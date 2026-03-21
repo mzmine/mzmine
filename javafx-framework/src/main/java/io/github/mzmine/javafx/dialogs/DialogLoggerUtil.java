@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,22 +27,44 @@ package io.github.mzmine.javafx.dialogs;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxTextUtils;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.Region;
+import javafx.scene.text.TextFlow;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +73,19 @@ public class DialogLoggerUtil {
   private static final Logger logger = Logger.getLogger(DialogLoggerUtil.class.getName());
 
   public static void showErrorDialog(String title, String message) {
-    showDialog(AlertType.ERROR, title, message, true);
+    showErrorDialog(null, title, message);
+  }
+
+  public static void showWarningDialog(String title, String message) {
+    showWarningDialog(null, title, message);
+  }
+
+  public static void showErrorDialog(final @Nullable Window owner, String title, String message) {
+    showDialog(AlertType.ERROR, owner, title, message, true);
+  }
+
+  public static void showWarningDialog(final @Nullable Window owner, String title, String message) {
+    showDialog(AlertType.WARNING, owner, title, message, true);
   }
 
   /**
@@ -81,15 +115,22 @@ public class DialogLoggerUtil {
     if (DesktopService.isHeadLess()) {
       return;
     }
-
     if (modal) {
-      FxThread.runOnFxThreadAndWait(() -> {
-        createAlert(AlertType.INFORMATION, title, content).showAndWait();
-      });
+      if (Platform.isFxApplicationThread()) {
+        // directly call modal show
+        // this way the dialog appear on screen even if long
+        createAlert(AlertType.INFORMATION, null, title, content).showAndWait();
+      } else {
+        // calling from a different thread
+        // very long dialogs may appear off screen because the thread is blocked right away
+        FxThread.runOnFxThreadAndWait(() -> {
+          createAlert(AlertType.INFORMATION, null, title, content).showAndWait();
+        });
+      }
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(AlertType.INFORMATION, title, content).show();
+        createAlert(AlertType.INFORMATION, null, title, content).show();
       });
     }
   }
@@ -104,26 +145,53 @@ public class DialogLoggerUtil {
     }
 
     if (modal) {
-      FxThread.runOnFxThreadAndWait(() -> {
-        createAlert(AlertType.INFORMATION, title, message).showAndWait();
-      });
+      if (Platform.isFxApplicationThread()) {
+        // directly call modal show
+        // this way the dialog appear on screen even if long
+        createAlert(AlertType.INFORMATION, null, title, message).showAndWait();
+      } else {
+        // calling from a different thread
+        // very long dialogs may appear off screen because the thread is blocked right away
+        FxThread.runOnFxThreadAndWait(() -> {
+          createAlert(AlertType.INFORMATION, null, title, message).showAndWait();
+        });
+      }
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(AlertType.INFORMATION, title, message).show();
+        createAlert(AlertType.INFORMATION, null, title, message).show();
       });
     }
   }
 
-  public static void applyMainWindowStyle(final Alert alert) {
+  /**
+   * @return main window if desktop is a {@link JavaFxDesktop}
+   */
+  @Nullable
+  public static Stage getMainWindow() {
     if (DesktopService.getDesktop() instanceof JavaFxDesktop fx) {
-      var alertScene = alert.getDialogPane().getScene();
-      alertScene.getStylesheets().setAll(fx.getMainWindow().getScene().getStylesheets());
-
-      if (alertScene.getWindow() instanceof Stage alertStage) {
-        alertStage.getIcons().setAll(fx.getMainWindow().getIcons());
-      }
+      return fx.getMainWindow();
     }
+    return null;
+  }
+
+  /**
+   * @return the currently focused window
+   */
+  public static Optional<Window> getFocusedWindow() {
+    return Window.getWindows().stream().filter(Window::isFocused).findFirst();
+  }
+
+  /**
+   * Set owner to the focused window or if not available to mainWindow. This sets the style sheets,
+   * icons, and lets dialogs spawn in the center of that window.
+   */
+  public static void applyFocusedWindowStyle(final Dialog<?> dialog) {
+    final Window parentWindow = getFocusedWindow().orElseGet(DialogLoggerUtil::getMainWindow);
+    if (parentWindow == null) {
+      return;
+    }
+    dialog.initOwner(parentWindow);
   }
 
   /**
@@ -165,7 +233,19 @@ public class DialogLoggerUtil {
    */
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       boolean blockingModal) {
-    return showDialog(type, title, message, blockingModal, new ButtonType[0]);
+    return showDialog(type, null, title, message, blockingModal);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, final @Nullable Window owner,
+      String title, String message, boolean blockingModal) {
+    return showDialog(type, owner, title, message, blockingModal, new ButtonType[0]);
   }
 
   /**
@@ -182,21 +262,43 @@ public class DialogLoggerUtil {
    */
   public static Optional<ButtonType> showDialog(AlertType type, String title, String message,
       boolean blockingModal, @Nullable ButtonType... buttons) {
+    return showDialog(type, null, title, message, blockingModal, buttons);
+  }
+
+  /**
+   * @param type          usually uses {@link AlertType#CONFIRMATION}
+   * @param title         title of dialog and also repeated in dialog header
+   * @param message       message in box wrapped
+   * @param blockingModal open dialog and block
+   * @param buttons       Either use predefined buttons or define new buttons with
+   *                      {@link ButtonType#ButtonType(String, ButtonData)} (String,
+   *                      ButtonData)}requires a {@link ButtonData#CANCEL_CLOSE} or
+   *                      {@link ButtonData#NO} button that will also trigger on X close button.
+   *                      Otherwise X button will not work
+   * @return optional button type. Easy to use the ButtonData or title to match the button
+   */
+  public static Optional<ButtonType> showDialog(AlertType type, final @Nullable Window owner,
+      String title, String message, boolean blockingModal, @Nullable ButtonType... buttons) {
     if (DesktopService.isHeadLess()) {
       logger.info(title + ": " + message);
       return Optional.empty();
     }
     if (blockingModal) {
       final AtomicReference<Optional<ButtonType>> result = new AtomicReference<>();
-      FxThread.runOnFxThreadAndWait(() -> {
-        var alert = createAlert(type, title, message, buttons);
+      if (Platform.isFxApplicationThread()) {
+        var alert = createAlert(type, owner, title, message, buttons);
         result.set(alert.showAndWait());
-      });
+      } else {
+        FxThread.runOnFxThreadAndWait(() -> {
+          var alert = createAlert(type, owner, title, message, buttons);
+          result.set(alert.showAndWait());
+        });
+      }
       return result.get();
     } else {
       // non blocking
       FxThread.runLater(() -> {
-        createAlert(type, title, message, buttons).show();
+        createAlert(type, owner, title, message, buttons).show();
       });
       return Optional.empty();
     }
@@ -205,28 +307,141 @@ public class DialogLoggerUtil {
   /**
    * Internal method to create an alert. use {@link #showDialog}
    */
-  private static @NotNull Alert createAlert(final AlertType type, final String title,
-      final String message, @Nullable final ButtonType... buttons) {
-    // seems like a good size for the dialog message when an old batch is loaded into new version
-    Text label = new Text(message);
-    label.setWrappingWidth(415);
-    HBox box = new HBox(label);
-    box.setPadding(new Insets(5));
-    return createAlert(type, title, box, buttons);
+  private static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+      final String title, final String message, @Nullable final ButtonType... buttons) {
+
+    // inner method will automatically wrap TextFlow in ScrollPane
+    final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(message));
+
+    return createAlert(type, owner, title, node, buttons);
   }
 
   /**
-   * Internal method to create an alert. use {@link #showDialog}
+   * Internal method to create an alert. use {@link #showDialog}.
+   * <p>
+   * This method will wrap TextFlow and TextArea content nodes into a scroll pane to ensure it fits
+   * the maximum sizes
    */
-  private static @NotNull Alert createAlert(final AlertType type, final String title,
-      final Node content, @Nullable final ButtonType... buttons) {
+  public static @NotNull Alert createAlert(final AlertType type, final @Nullable Window owner,
+      final String title, final Node content, @Nullable final ButtonType... buttons) {
     Alert alert = new Alert(type, "", buttons);
-    applyMainWindowStyle(alert);
-
+    if (owner == null) {
+      applyFocusedWindowStyle(alert);
+    } else {
+      alert.initOwner(owner);
+    }
     alert.setTitle(title);
     alert.setHeaderText(title);
-    alert.getDialogPane().setContent(content);
+    alert.getDialogPane().setMaxHeight(800);
+    alert.getDialogPane().setMaxWidth(800);
+
+    final Region mainPane;
+    if (content instanceof TextFlow || content instanceof TextArea) {
+      final ScrollPane scrollPane = new ScrollPane(content);
+      scrollPane.setFitToWidth(true);
+      scrollPane.setFitToHeight(true);
+      // seems like a good size for the dialog message when an old batch is loaded into new version
+      scrollPane.setPrefWidth(500);
+      scrollPane.setMaxWidth(800);
+      scrollPane.setMaxHeight(800);
+      scrollPane.setPannable(true);
+      mainPane = scrollPane;
+    } else {
+      mainPane = null;
+    }
+
+    alert.getDialogPane().setContent(mainPane);
+
+    // Center on screen after layout is complete
+    alert.setOnShown(_ -> {
+
+      // sometimes NaN when modal dialog with showAndWait
+      if (Double.isNaN(alert.getX())) {
+        BooleanProperty onceCenteredOnWindow = new SimpleBooleanProperty(false);
+        // use delayed subscription because there are many changes to xy width height
+        // in the construction of the layout and within the centering
+        final Subscription subscription = PropertyUtils.onChangeDelayedSubscription(() -> {
+          boolean centered = centerAlertOnWindow(alert);
+          if (centered) {
+            onceCenteredOnWindow.set(centered);
+          }
+        }, Duration.millis(100),  alert.xProperty(), alert.yProperty(), alert.widthProperty(), alert.heightProperty());
+        // remove subscription so that the dialog is not changed all the time
+        // otherwise it would be stuck on one screen
+        onceCenteredOnWindow.subscribe(state -> {
+          if(state) subscription.unsubscribe();
+        });
+      } else {
+        centerAlertOnWindow(alert);
+      }
+    });
+
     return alert;
+  }
+
+  /**
+   * @return true if the alert was already centered or is now centered
+   */
+  private static boolean centerAlertOnWindow(Alert alert) {
+    final Window owner = alert.getOwner();
+    final Screen screen = getCurrentScreen(owner);
+
+    if (!definedSizeCoords(alert)) {
+      return false;
+    }
+    if (isOnScreen(screen, alert)) {
+      return true;
+    }
+
+    if (alert.getWidth() > 800) {
+      alert.setWidth(800);
+    }
+    if (alert.getHeight() > 800) {
+      alert.setHeight(800);
+    }
+    if (owner != null) {
+      alert.setX(owner.getX() + (owner.getWidth() - alert.getWidth()) / 2);
+      alert.setY(owner.getY() + (owner.getHeight() - alert.getHeight()) / 2);
+    return true;
+    } else {
+      alert.setX(100);
+      alert.setY(100);
+    }
+    // not really centered could mean that width and other xy might not fully be set
+    return false;
+  }
+
+  /**
+   * @return true if alert is fully on screen
+   */
+  private static boolean isOnScreen(Screen screen, Alert alert) {
+    final Rectangle2D bounds = screen.getBounds();
+    return definedSizeCoords(alert) && //
+        bounds.contains(alert.getX(), alert.getY()) && //
+        bounds.contains(alert.getX() + alert.getWidth(), alert.getY() + alert.getHeight());
+  }
+
+  private static boolean definedSizeCoords(Alert alert) {
+    return !Double.isNaN(alert.getX()) && !Double.isNaN(alert.getY()) && //
+        !Double.isNaN(alert.getWidth()) && !Double.isNaN(alert.getHeight());
+  }
+
+  /**
+   * @return first screen that contains center or the primary screen otherwise
+   */
+  @NotNull
+  public static Screen getCurrentScreen(@Nullable Window stage) {
+    if (stage == null) {
+      return Screen.getPrimary();
+    }
+    final ObservableList<Screen> screens = Screen.getScreens();
+    for (Screen screen : screens) {
+      if (screen.getBounds()
+          .contains(stage.getX() + stage.getWidth() / 2, stage.getY() + stage.getHeight() / 2)) {
+        return screen;
+      }
+    }
+    return Screen.getPrimary();
   }
 
   /**
@@ -237,12 +452,26 @@ public class DialogLoggerUtil {
   }
 
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
+    showDialogForTime(title, message, timeMillis, AlertType.INFORMATION);
+  }
+
+  public static void showDialogForTime(String title, String message, final AlertType type) {
+    showDialogForTime(title, message, 3500, type);
+  }
+
+  public static void showDialogForTime(String title, String message, long timeMillis,
+      final AlertType type) {
     FxThread.runLater(() -> {
-      logger.info(title + ": " + message);
+      if (type == AlertType.WARNING || type == AlertType.ERROR) {
+        logger.warning(title + ": " + message);
+      } else {
+        logger.info(title + ": " + message);
+      }
+
       if (DesktopService.isHeadLess()) {
         return;
       }
-      var alert = createAlert(AlertType.INFORMATION, title, message);
+      var alert = createAlert(type, null, title, message);
       alert.show();
 
       PauseTransition delay = new PauseTransition(Duration.millis(timeMillis));
@@ -251,4 +480,106 @@ public class DialogLoggerUtil {
     });
   }
 
+
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, T[] options, String title,
+      String content) {
+    return showAndWaitChoiceDialog(selected, List.of(options), title, content);
+  }
+
+  /**
+   * @return the selected option or null if cancelled
+   */
+  @Nullable
+  public static <T> T showAndWaitChoiceDialog(T selected, List<T> options, String title,
+      String content) {
+    ChoiceDialog<T> choiceDialog = new ChoiceDialog<>(selected, options);
+    // applies style and more
+    applyFocusedWindowStyle(choiceDialog);
+    choiceDialog.setTitle(title);
+    choiceDialog.setContentText(content);
+    choiceDialog.showAndWait();
+    return choiceDialog.getResult();
+  }
+
+  public static TextInputDialog createTextInputDialog(@NotNull String title, @NotNull String header,
+      @NotNull String content) {
+    TextInputDialog dialog = new TextInputDialog();
+    // applies style and more
+    applyFocusedWindowStyle(dialog);
+    dialog.setTitle(title);
+    dialog.setHeaderText(header);
+    dialog.setContentText(content);
+    return dialog;
+  }
+
+  public static void showNotification(@NotNull NotificationType type, @NotNull String title,
+      @NotNull String message) {
+    logger.info(() -> title + ": " + message);
+    NotificationService.show(type, title, message);
+  }
+
+  public static void showInfoNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.INFO, title, message);
+  }
+
+  public static void showWarningNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.WARNING, title, message);
+  }
+
+  public static void showErrorNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.ERROR, title, message);
+  }
+
+  public static void showPlainNotification(@NotNull String title, @NotNull String message) {
+    showNotification(NotificationType.PLAIN, title, message);
+  }
+
+  public static ButtonType createAlertWithOptOutBlocking(String title, String headerText,
+      TextFlow message, String optOutMessage, Consumer<Boolean> optOutAction) {
+    // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
+
+    final AtomicReference<ButtonType> result = new AtomicReference<>(ButtonType.NO);
+    final CheckBox optOutCheckbox = new CheckBox();
+    FxThread.runOnFxThreadAndWait(() -> {
+      Alert alert = new Alert(AlertType.WARNING);
+      applyFocusedWindowStyle(alert);
+
+      // Need to force the alert to layout in order to grab the graphic,
+      // as we are replacing the dialog pane with a custom pane
+      alert.getDialogPane().applyCss();
+      Node graphic = alert.getDialogPane().getGraphic();
+      // Create a new dialog pane that has a checkbox instead of the hide/show details button
+      // Use the supplied callback for the action of the checkbox
+
+      alert.setDialogPane(new DialogPane() {
+        @Override
+        protected Node createDetailsButton() {
+          optOutCheckbox.setText(optOutMessage);
+          return optOutCheckbox;
+        }
+      });
+      alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
+
+      message.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(message);
+      // Fool the dialog into thinking there is some expandable content
+      // a Group won't take up any space if it has no children
+      alert.getDialogPane().setExpandableContent(new Group());
+      alert.getDialogPane().setExpanded(true);
+      // Reset the dialog graphic using the default style
+      alert.getDialogPane().setGraphic(graphic);
+      alert.setTitle(title);
+      alert.setHeaderText(headerText);
+
+      alert.showAndWait();
+      result.set(alert.getResult());
+    });
+
+    optOutAction.accept(result.get() == ButtonType.YES && optOutCheckbox.isSelected());
+    return result.get();
+  }
 }

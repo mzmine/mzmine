@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,42 +32,28 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder.EventHandling;
-import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.DoubleExpression;
-import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.DragEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -221,6 +207,27 @@ public class FxIconUtil {
   }
 
 
+  public static ToggleButton newToggleIconButton(@Nullable String tooltip,
+      Function<Boolean, IconCodeSupplier> selectedToIconFunction) {
+    return newToggleIconButton(DEFAULT_ICON_SIZE, tooltip, selectedToIconFunction);
+  }
+
+  public static ToggleButton newToggleIconButton(int size, @Nullable String tooltip,
+      Function<Boolean, IconCodeSupplier> selectedToIconFunction) {
+    // just use any icon for now
+    final ToggleButton button = FxIconButtonBuilder.ofToggleIconButton(FxIcons.BUG).size(size)
+        .tooltip(tooltip).build();
+
+    if (!(button.getGraphic() instanceof FontIcon fontIcon)) {
+      throw new IllegalStateException("Graphic of ToggleButton must be a FontIcon");
+    }
+    // bind selection state to icon
+    fontIcon.iconCodeProperty()
+        .bind(button.selectedProperty().map(selectedToIconFunction).map(IconCodeSupplier::getIkon));
+
+    return button;
+  }
+
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, onAction);
   }
@@ -228,6 +235,10 @@ public class FxIconUtil {
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable Runnable onAction) {
     return newIconButton(fxIcons, size, null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip) {
+    return newIconButton(fxIcons, tooltip, null);
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
@@ -293,5 +304,9 @@ public class FxIconUtil {
     stack.setMinHeight(Region.USE_COMPUTED_SIZE);
     stack.setPrefHeight(Region.USE_PREF_SIZE);
     return stack;
+  }
+
+  public static Image getIconImage(IconCodeSupplier code) {
+    return fontIconToImage(getFontIcon(code));
   }
 }

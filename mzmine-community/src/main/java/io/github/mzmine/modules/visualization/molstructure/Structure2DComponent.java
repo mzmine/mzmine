@@ -25,21 +25,24 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
 import java.awt.Font;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class Structure2DComponent extends Canvas {
@@ -47,6 +50,10 @@ public class Structure2DComponent extends Canvas {
   private static final Logger logger = Logger.getLogger(Structure2DComponent.class.getName());
   private final Structure2DRenderer renderer;
   private final Property<IAtomContainer> molecule = new SimpleObjectProperty<>();
+  private final ObjectProperty<Structure2DRenderConfig> renderConfig = new SimpleObjectProperty<>(
+      ConfigService.getStructureRenderConfig());
+
+  private final BooleanProperty contextMenuEnabled = new SimpleBooleanProperty(true);
 
   public static Structure2DComponent create(String structure) throws CDKException, IOException {
 
@@ -81,19 +88,31 @@ public class Structure2DComponent extends Canvas {
     this.renderer = renderer;
     molecule.addListener((_, _, mol) -> onStructureChange(mol));
     setMolecule(container);
+
+    // Create context menu
+    final ContextMenu contextMenu = new ContextMenu();
+    MenuItem saveSvg = new MenuItem("Save structure as svg");
+    saveSvg.setOnAction(e -> {
+      final IAtomContainer mol = molecule.getValue();
+      if (mol == null) {
+        return;
+      }
+      StructureGraphicsExportModule.exportToSvg(mol);
+    });
+    contextMenu.getItems().addAll(saveSvg);
+
+    // Show context menu on right click if enabled
+    setOnContextMenuRequested(e -> {
+      if (isContextMenuEnabled()) {
+        contextMenu.show(this, e.getScreenX(), e.getScreenY());
+      }
+    });
   }
 
   private void onStructureChange(final IAtomContainer mol) {
     // If the model has no coordinates, let's generate them
-    if (mol != null && !GeometryUtil.has2DCoordinates(mol)) {
-      try {
-//        logger.info("generate coordinates for structure");
-        StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-        sdg.setMolecule(mol, false);
-        sdg.generateCoordinates();
-      } catch (CDKException e) {
-        logger.warning("Cannot generate coordinates for structure");
-      }
+    if (mol != null) {
+      renderer.prepareStructure2D(mol);
     }
     repaint();
   }
@@ -102,7 +121,7 @@ public class Structure2DComponent extends Canvas {
    * ensures fx thread repaint
    */
   private void repaint() {
-    FxThread.runLater(() -> renderer.drawStructure(this, molecule.getValue()));
+    renderer.drawStructure(this, molecule.getValue(), renderConfig.getValue());
   }
 
   @Override
@@ -112,12 +131,12 @@ public class Structure2DComponent extends Canvas {
 
   @Override
   public double minWidth(double height) {
-    return 100d;
+    return 25d;
   }
 
   @Override
   public double minHeight(double width) {
-    return 50d;
+    return 25d;
   }
 
   @Override
@@ -157,5 +176,29 @@ public class Structure2DComponent extends Canvas {
 
   public Property<IAtomContainer> moleculeProperty() {
     return molecule;
+  }
+
+  public Structure2DRenderConfig getRenderConfig() {
+    return renderConfig.get();
+  }
+
+  public ObjectProperty<Structure2DRenderConfig> renderConfigProperty() {
+    return renderConfig;
+  }
+
+  public void setRenderConfig(Structure2DRenderConfig renderConfig) {
+    this.renderConfig.set(renderConfig);
+  }
+
+  public boolean isContextMenuEnabled() {
+    return contextMenuEnabled.get();
+  }
+
+  public BooleanProperty contextMenuEnabledProperty() {
+    return contextMenuEnabled;
+  }
+
+  public void setContextMenuEnabled(boolean contextMenuEnabled) {
+    this.contextMenuEnabled.set(contextMenuEnabled);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,7 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
   private final NumberFormat intensityFormat;
-  private double normalizationFactor = 1;
+  private final double normalizationFactor;
 
   public ScanBPCProvider(final List<Scan> scans) {
     this(scans, false);
@@ -71,6 +71,10 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
+    normalizationFactor = 1 / scans.stream()
+        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getBasePeakIntensity(), 0d)).max()
+        .orElse(1d);
   }
 
   @NotNull
@@ -105,9 +109,7 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    normalizationFactor = 1 / scans.stream()
-        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getBasePeakIntensity(), 0d)).max()
-        .orElse(1d);
+    // nothing to do here
   }
 
   @Override
@@ -117,8 +119,8 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
 
   @Override
   public double getRangeValue(int index) {
-    return Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d)
-        * normalizationFactor;
+    final double value = Objects.requireNonNullElse(scans.get(index).getBasePeakIntensity(), 0d);
+    return normalizeToOne ? value * normalizationFactor : value;
   }
 
   @Override
@@ -137,5 +139,13 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
       return null;
     }
     return scans.get(index);
+  }
+
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 }

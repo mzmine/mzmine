@@ -113,9 +113,6 @@ public class MirrorChartFactory {
       logger.warning(
           "This data set has no original data points in the query spectrum (development error)");
     }
-    if (mostIntenseDB == 0d || mostIntenseQuery == 0d) {
-      return null;
-    }
 
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();

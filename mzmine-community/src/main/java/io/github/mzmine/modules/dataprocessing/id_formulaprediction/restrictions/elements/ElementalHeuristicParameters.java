@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction.restriction
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 public class ElementalHeuristicParameters extends SimpleParameterSet {
 
@@ -46,4 +48,12 @@ public class ElementalHeuristicParameters extends SimpleParameterSet {
     super(new Parameter[] {checkHC, checkNOPS, checkMultiple});
   }
 
+  public static @NotNull ElementalHeuristicParameters create(boolean checkHC,
+      boolean checkNOPS, boolean checkMultiple) {
+    final ElementalHeuristicParameters p = (ElementalHeuristicParameters) new ElementalHeuristicParameters().cloneParameterSet();
+    p.setParameter(ElementalHeuristicParameters.checkHC, checkHC);
+    p.setParameter(ElementalHeuristicParameters.checkNOPS, checkNOPS);
+    p.setParameter(ElementalHeuristicParameters.checkMultiple, checkMultiple);
+    return p;
+  }
 }

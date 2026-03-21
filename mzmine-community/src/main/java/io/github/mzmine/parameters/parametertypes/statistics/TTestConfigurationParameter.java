@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
+import io.github.mzmine.modules.dataanalysis.significance.SignificanceTests;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class TTestConfigurationParameter implements
-    PropertyParameter<StorableTTestConfiguration, TTestConfigurationComponent> {
+    PropertyParameter<UnivariateRowSignificanceTestConfig, TTestConfigurationComponent> {
 
   private final String name;
   private final String desc;
@@ -44,14 +44,14 @@ public class TTestConfigurationParameter implements
   private final String XML_GRP_B_ATTR = "selected_b";
 
   @Nullable
-  private StorableTTestConfiguration value;
+  private UnivariateRowSignificanceTestConfig value;
 
   public TTestConfigurationParameter(String name, String desc) {
     this(name, desc, null);
   }
 
   public TTestConfigurationParameter(String name, String desc,
-      @Nullable StorableTTestConfiguration value) {
+      @Nullable UnivariateRowSignificanceTestConfig value) {
     this.name = name;
     this.desc = desc;
     this.value = value;
@@ -63,12 +63,12 @@ public class TTestConfigurationParameter implements
   }
 
   @Override
-  public @Nullable StorableTTestConfiguration getValue() {
+  public @Nullable UnivariateRowSignificanceTestConfig getValue() {
     return value;
   }
 
   @Override
-  public void setValue(@Nullable StorableTTestConfiguration newValue) {
+  public void setValue(@Nullable UnivariateRowSignificanceTestConfig newValue) {
     this.value = newValue;
   }
 
@@ -88,12 +88,14 @@ public class TTestConfigurationParameter implements
   @Override
   public void loadValueFromXML(Element xmlElement) {
     final String colName = xmlElement.getAttribute(XML_COLUMN_ATTR);
-    final TTestSamplingConfig sampling = TTestSamplingConfig.parseOrElse(
-        xmlElement.getAttribute(XML_SAMPLING_ATTR), TTestSamplingConfig.UNPAIRED);
+
+    // used to be TTestSamplingConfig but was changed to other more detailed enum
+    final SignificanceTests sampling = SignificanceTests.parseOrDefault(
+        xmlElement.getAttribute(XML_SAMPLING_ATTR), SignificanceTests.WELCHS_T_TEST);
     final String a = xmlElement.getAttribute(XML_GRP_A_ATTR);
     final String b = xmlElement.getAttribute(XML_GRP_B_ATTR);
 
-    value = new StorableTTestConfiguration(sampling, colName, a, b);
+    value = new UnivariateRowSignificanceTestConfig(sampling, colName, a, b);
   }
 
   @Override
@@ -103,7 +105,7 @@ public class TTestConfigurationParameter implements
     }
 
     // save enum name as identifier for valueOf
-    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().name());
+    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().getUniqueID());
     xmlElement.setAttribute(XML_COLUMN_ATTR, value.column());
     xmlElement.setAttribute(XML_GRP_A_ATTR, value.groupA());
     xmlElement.setAttribute(XML_GRP_B_ATTR, value.groupB());
@@ -126,12 +128,12 @@ public class TTestConfigurationParameter implements
 
   @Override
   public void setValueToComponent(TTestConfigurationComponent tTestConfigurationComponent,
-      @Nullable StorableTTestConfiguration newValue) {
+      @Nullable UnivariateRowSignificanceTestConfig newValue) {
     tTestConfigurationComponent.setValue(newValue);
   }
 
   @Override
-  public UserParameter<StorableTTestConfiguration, TTestConfigurationComponent> cloneParameter() {
+  public UserParameter<UnivariateRowSignificanceTestConfig, TTestConfigurationComponent> cloneParameter() {
     return new TTestConfigurationParameter(name, desc, value);
   }
 }

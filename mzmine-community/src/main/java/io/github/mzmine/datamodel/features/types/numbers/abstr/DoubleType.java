@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DoubleType extends NumberType<Double> {
+
+  private static final Function<@Nullable String, @Nullable Double> stringToDouble = ParsingUtils::stringToDouble;
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -177,5 +181,10 @@ public abstract class DoubleType extends NumberType<Double> {
       }
     }
     return result;
+  }
+
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable Double> getMapper() {
+    return stringToDouble;
   }
 }

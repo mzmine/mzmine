@@ -157,7 +157,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     if (loadedParams.containsKey(scanMatchingSelection.getName())) {
       // old batch with scan selection loaded - apply parameters to new parameters that replaced it
       // legacy parameter need to retrieve value directly because getValue would throw exception

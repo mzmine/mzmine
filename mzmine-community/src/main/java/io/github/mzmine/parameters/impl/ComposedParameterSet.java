@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,15 @@
 
 package io.github.mzmine.parameters.impl;
 
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.Map;
 import javafx.beans.property.BooleanProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -65,13 +68,26 @@ public abstract class ComposedParameterSet implements ParameterSet {
   }
 
   @Override
-  public Map<String, Parameter<?>> loadValuesFromXML(final Element element) {
-    return getParamSet().loadValuesFromXML(element);
+  public Map<String, Parameter<?>> loadValuesFromXML(final Element xmlElement) {
+    // needs to use this parameter map to load the corrected parameters
+    var nameParameterMap = getNameParameterMap();
+
+    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+      case false -> 1;
+    };
+
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+        this.getClass(), xmlElement, nameParameterMap);
+
+    handleLoadedParameters(loadedParameters, loadedVersion);
+    return loadedParameters;
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
-    getParamSet().handleLoadedParameters(loadedParams);
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    getParamSet().handleLoadedParameters(loadedParams, loadedVersion);
   }
 
   @Override
@@ -125,5 +141,10 @@ public abstract class ComposedParameterSet implements ParameterSet {
   @Override
   public void setModuleNameAttribute(final String moduleName) {
     getParamSet().setModuleNameAttribute(moduleName);
+  }
+
+  @Override
+  public @NotNull String getLoadingVersionMessages() {
+    return getParamSet().getLoadingVersionMessages();
   }
 }

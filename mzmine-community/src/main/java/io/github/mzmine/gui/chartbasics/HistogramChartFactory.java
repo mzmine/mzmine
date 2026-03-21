@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,6 @@ import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
@@ -212,7 +211,7 @@ public class HistogramChartFactory {
     String sigma = Precision.toString(fit[2], sigDigits, 7);
     String norm = Precision.toString(fit[0], sigDigits, 7);
     XYSeries gs = new XYSeries("Gaussian: " + mean + " \u00B1 " + sigma + " [" + norm
-                               + "] (mean \u00B1 sigma [normalisation])");
+        + "] (mean \u00B1 sigma [normalisation])");
     // add lower dp number out of gaussian fit range
     int steps = 100;
     if (gMin > drawStart) {
@@ -296,8 +295,7 @@ public class HistogramChartFactory {
             sum2 += bins[i];
             if ((sum2 / (double) sum) >= 0.99) {
               barwidth = function.apply(min + (binwidth / 2.0) + i * binwidth).doubleValue()
-                         - function.apply(min + (binwidth / 2.0) + (i - 1) * binwidth)
-                             .doubleValue();
+                  - function.apply(min + (binwidth / 2.0) + (i - 1) * binwidth).doubleValue();
             }
           }
         }
@@ -311,7 +309,7 @@ public class HistogramChartFactory {
   public static JFreeChart createHistogram(XYSeries series, double barwidth, String yAxisLabel) {
     XYSeriesCollection xydata = new XYSeriesCollection(series);
     XYBarDataset dataset = new XYBarDataset(xydata, barwidth);
-    JFreeChart chart = ChartFactory.createXYBarChart("", yAxisLabel, false, "n", dataset,
+    JFreeChart chart = FxChartFactory.createXYBarChart("", yAxisLabel, false, "n", dataset,
         PlotOrientation.VERTICAL, true, true, false);
 
     XYPlot xyplot = chart.getXYPlot();
@@ -551,7 +549,7 @@ public class HistogramChartFactory {
       HistogramDataset dataset = new HistogramDataset();
       dataset.addSeries("histo", data, bin, min, max);
 
-      JFreeChart chart = ChartFactory.createHistogram("", yAxisLabel, "n", dataset,
+      JFreeChart chart = FxChartFactory.createHistogram("", yAxisLabel, "n", dataset,
           PlotOrientation.VERTICAL, true, false, false);
 
       chart.setBackgroundPaint(new Color(230, 230, 230));

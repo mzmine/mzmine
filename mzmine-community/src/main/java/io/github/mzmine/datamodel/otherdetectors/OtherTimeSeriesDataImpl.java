@@ -122,7 +122,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   @Override
   public @NotNull String getTimeSeriesDomainUnit() {
-    return timeSeriesRangeLabel;
+    return timeSeriesDomainUnit;
   }
 
   public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {

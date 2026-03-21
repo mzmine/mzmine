@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,14 +54,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeaturesComponent extends HBox {
 
+  private static final Logger logger = Logger.getLogger(FeaturesComponent.class.getName());
+
   private final Button addButton = new Button("Add");
   private final Button removeButton = new Button("Remove");
   public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
-  ;
+
   private ListView<Feature> featuresList = new ListView<>(currentValue);
   private VBox buttonPane = new VBox();
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeaturesComponent() {
 

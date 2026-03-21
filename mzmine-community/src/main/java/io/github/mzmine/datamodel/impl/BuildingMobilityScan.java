@@ -53,27 +53,29 @@ public class BuildingMobilityScan implements MobilityScan {
   final double[] intensityValues;
   final double[] mzValues;
   int basePeakIndex;
+  final MassSpectrumType spectrumType;
 
   /**
    * @param scanNumber    The scan number beginning with 0
    * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
    */
-  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
-    this(scanNumber, mzIntensities[0], mzIntensities[1]);
+  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities, MassSpectrumType type) {
+    this(scanNumber, mzIntensities[0], mzIntensities[1], type);
   }
 
-  public BuildingMobilityScan(final int scanNumber, final SimpleSpectralArrays data) {
-    this(scanNumber, data.mzs(), data.intensities());
+  public BuildingMobilityScan(final int scanNumber, final SimpleSpectralArrays data, MassSpectrumType type) {
+    this(scanNumber, data.mzs(), data.intensities(), type);
   }
   /**
    * @param scanNumber  The scan number beginning with 0
    * @param mzs         The m/z values
    * @param intensities The intensity values.
    */
-  public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
+  public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities, MassSpectrumType type) {
     assert intensities.length == mzs.length;
 
     this.scanNumber = scanNumber;
+    this.spectrumType = type;
     boolean haveToSort = false;
 
     // -1 is intended to be used in mobility scans. The MobilityScan will return null,
@@ -131,7 +133,7 @@ public class BuildingMobilityScan implements MobilityScan {
 
   @Override
   public MassSpectrumType getSpectrumType() {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+    return spectrumType;
   }
 
   @Override

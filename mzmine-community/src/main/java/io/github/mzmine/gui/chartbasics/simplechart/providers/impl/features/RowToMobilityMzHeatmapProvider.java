@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,6 +59,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   private final double minDiameter = 10d;
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
+  private boolean isComputed;
 
   public RowToMobilityMzHeatmapProvider(@NotNull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
@@ -111,9 +112,8 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     final String sb =
         "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
             f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
-            f.getMaxHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
-            f.getAverageRT()) + " min\n" + "Mobility: " + mobilityFormat.format(
-            f.getAverageMobility());
+            f.getMaxHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(f.getAverageRT())
+            + " min\n" + "Mobility: " + mobilityFormat.format(f.getAverageMobility());
     return sb;
   }
 
@@ -136,6 +136,15 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     }
     deltaDiameter = maxDiameter - minDiameter;
     deltaValue = maxValue - minValue;
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  @Override
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

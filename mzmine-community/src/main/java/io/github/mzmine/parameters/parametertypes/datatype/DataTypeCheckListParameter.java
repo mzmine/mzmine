@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,20 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.UserParameter;
@@ -64,11 +69,18 @@ public class DataTypeCheckListParameter implements
   private Map<String, Boolean> value;
 
 
-  public DataTypeCheckListParameter(@NotNull String name, @NotNull String description) {
+  public DataTypeCheckListParameter(@NotNull String name, @NotNull String description,
+      @Nullable ColumnType type) {
     this.name = name;
     this.desc = description;
     this.value = new HashMap<>();
-    defaultDisableColumns();
+
+    if (type == ColumnType.ROW_TYPE) {
+      defaultRowColumns();
+    }
+    if (type == ColumnType.FEATURE_TYPE) {
+      defaultFeatureColumns();
+    }
   }
 
   private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
@@ -168,7 +180,7 @@ public class DataTypeCheckListParameter implements
    * @param map Map containing new data types and their values
    */
   public void setDataTypesAndVisibility(Map<String, Boolean> map) {
-    value = new HashMap<>(map);
+    value.putAll(map);
   }
 
   @Override
@@ -184,15 +196,12 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValueFromComponent(DataTypeCheckListComponent dataTypeCheckListComponent) {
-    assert dataTypeCheckListComponent == comp;
-
     value = dataTypeCheckListComponent.getValue();
   }
 
   @Override
   public void setValueToComponent(DataTypeCheckListComponent dataTypeCheckListComponent,
       @Nullable Map<String, Boolean> newValue) {
-    assert dataTypeCheckListComponent == comp;
     if (!(newValue instanceof HashMap)) {
       return;
     }
@@ -211,7 +220,7 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValue(Map<String, Boolean> newValue) {
-    this.value = newValue;
+    this.value.putAll(newValue);
   }
 
   @Override
@@ -224,7 +233,7 @@ public class DataTypeCheckListParameter implements
       Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
 
       final String replaced = key.replace("Feature:", "");
-      if(key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
+      if (key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
         // may be an old key from the time we were using the column headers
         continue;
       }
@@ -256,8 +265,11 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public UserParameter cloneParameter() {
-    return null;
+  public DataTypeCheckListParameter cloneParameter() {
+    final DataTypeCheckListParameter clone = new DataTypeCheckListParameter(name, desc,
+        ColumnType.ROW_TYPE);
+    clone.setValue(new HashMap<>(value));
+    return clone;
   }
 
   public void setAll(boolean visible) {
@@ -268,22 +280,36 @@ public class DataTypeCheckListParameter implements
    * disable some types by default that don't make sense to show but would be shown usually. For
    * example, the mz type in ion identity would be shown by default because
    * {@link MZType#getDefaultVisibility()} mz itself is always on for a feature or a row.
+   * <p>
+   * enable some types by default that are disabled by default but do make sense to show in specific
+   * cases. For example, the {@link CompoundNameType} would not be shown in the
+   * {@link  PreferredAnnotationType}, because it does not make sense to show it in all
+   * {@link io.github.mzmine.datamodel.features.types.ListWithSubsType} as the name is shown in the
+   * main list cell. However, the {@link PreferredAnnotationType} is not a list type.
    */
-  private void defaultDisableColumns() {
-    if (getName().toLowerCase().contains("row")) {
-      value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
+  private void defaultRowColumns() {
+    // activate comment column for rows
+    value.put(getKey(false, CommentType.class, null), true);
+    value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
 
-      value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
-      value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
+    value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
+    value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
 
-      value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
-      value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
 
-      value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
-    }
+    value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+  }
 
-    if (getName().toLowerCase().contains("feature")) {
-      // add types here in the future
-    }
+  /**
+   * Enable or disable feature types. In general feature types should be limited to height or area
+   * or may to very few other types.
+   */
+  private void defaultFeatureColumns() {
+    // all should be disabled - height is true as its the default
+    value.put(getKey(true, MZType.class, null), false);
+    value.put(getKey(true, RTType.class, null), false);
+    value.put(getKey(true, AreaType.class, null), false);
+    value.put(getKey(true, HeightType.class, null), true);
   }
 }

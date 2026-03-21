@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,9 +73,9 @@ public class SpectralLibraryEntryFactory {
   private final boolean addExperimentalResults;
   private final boolean addAnnotation;
   private final boolean useRowIdAsScanNumber;
-  private boolean flagChimerics = true;
   // online reaction workflow to flag spectra as potential educts or products of reactions
   private final OnlineReactionJsonWriter reactionJsonWriter = new OnlineReactionJsonWriter(false);
+  private boolean flagChimerics = true;
   private boolean addOnlineReactivityFlags = false;
 
   /**
@@ -142,6 +142,27 @@ public class SpectralLibraryEntryFactory {
   }
 
   /**
+   * Filenames usually from the scan (all source scans of a merged or simple scan) or if scan is
+   * null from feature
+   */
+  public static void addFilenames(final SpectralLibraryEntry entry, final @Nullable Feature feature,
+      final @Nullable MassSpectrum scan) {
+    final List<String> filenames;
+    if (scan != null) {
+      filenames = ScanUtils.streamSourceScans(scan).map(ScanUtils::getSourceFile)
+          .filter(Objects::nonNull).distinct().sorted().toList();
+    } else if (feature != null && feature.getRawDataFile() != null) {
+      filenames = List.of(feature.getRawDataFile().getName());
+    } else {
+      filenames = List.of();
+    }
+    if (!filenames.isEmpty()) {
+      entry.putIfNotNull(DBEntryField.FILENAME, String.join(";", filenames));
+      entry.putIfNotNull(DBEntryField.MERGED_N_SAMPLES, filenames.size());
+    }
+  }
+
+  /**
    * Create a new spectral library entry from any row, scan, and {@link FeatureAnnotation} - all
    * three optional. Already processed data can be provided as DataPoint[].
    *
@@ -170,6 +191,9 @@ public class SpectralLibraryEntryFactory {
     if (row != null) {
       // FEATURE_ID is used by GNPS and SIRIUS as simple number
       entry.putIfNotNull(DBEntryField.FEATURE_ID, row.getID());
+      // more complex feature ID is used by some tools to make the id more meaningful
+      // contains id, mz, rt, mobility
+      entry.putIfNotNull(DBEntryField.FEATURE_FULL_ID, FeatureUtils.rowToFullId(row));
 
       // write feature ID as feature list and row ID to identify MSn trees or MS2 spectra of the same row
       var flist = row.getFeatureList();
@@ -216,28 +240,6 @@ public class SpectralLibraryEntryFactory {
 
     return entry;
   }
-
-  /**
-   * Filenames usually from the scan (all source scans of a merged or simple scan) or if scan is
-   * null from feature
-   */
-  public static void addFilenames(final SpectralLibraryEntry entry, final @Nullable Feature feature,
-      final @Nullable MassSpectrum scan) {
-    final List<String> filenames;
-    if (scan != null) {
-      filenames = ScanUtils.streamSourceScans(scan).map(ScanUtils::getSourceFile)
-          .filter(Objects::nonNull).distinct().sorted().toList();
-    } else if (feature != null && feature.getRawDataFile() != null) {
-      filenames = List.of(feature.getRawDataFile().getName());
-    } else {
-      filenames = List.of();
-    }
-    if (!filenames.isEmpty()) {
-      entry.putIfNotNull(DBEntryField.FILENAME, String.join(";", filenames));
-      entry.putIfNotNull(DBEntryField.MERGED_N_SAMPLES, filenames.size());
-    }
-  }
-
 
   /**
    * This method is specific to unknown spectra. Also see
@@ -314,7 +316,11 @@ public class SpectralLibraryEntryFactory {
       return;
     }
     if (spec instanceof Scan scan) {
-      MsMsInfo msMsInfo = scan.getMsMsInfo();
+      // put the scan mslevel as default, may be overridden later. should not be different from
+      // the MsMsInfo mslevel any way.
+      entry.putIfNotNull(DBEntryField.MS_LEVEL, scan.getMSLevel());
+
+      final MsMsInfo msMsInfo = scan.getMsMsInfo();
       if (msMsInfo instanceof MSnInfoImpl msnInfo) {
         // energies are quite complex
         // [MS2, MS3, MS4] and multiple energies in last level due to merging
@@ -353,7 +359,6 @@ public class SpectralLibraryEntryFactory {
 
     final MergingType mergingType;
     if (spec instanceof MergedMassSpectrum merged) {
-      entry.putIfNotNull(DBEntryField.MS_LEVEL, merged.getMSLevel());
       entry.putIfNotNull(DBEntryField.SCAN_NUMBER,
           ScanUtils.extractScanNumbers(merged).boxed().toList());
       mergingType = merged.getMergingType();

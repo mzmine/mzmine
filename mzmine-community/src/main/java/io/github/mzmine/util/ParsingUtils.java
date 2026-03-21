@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,10 +37,12 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,8 +57,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Utility functions used during project load/save.
@@ -64,13 +70,19 @@ import org.jetbrains.annotations.Nullable;
 public class ParsingUtils {
 
   private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
+  private static final double[] EMPTY_DOUBLES = new double[0];
+  private static final float[] EMPTY_FLOATS = new float[0];
 
   /**
    * Value separator for storing lists and arrays.
    */
   public static String SEPARATOR = ";";
 
-  public static double[] stringToDoubleArray(String string) {
+  public static double @NotNull [] stringToDoubleArray(String string) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_DOUBLES;
+    }
+
     final String[] strValues = string.split(ParsingUtils.SEPARATOR);
     final double[] values = new double[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -150,7 +162,11 @@ public class ParsingUtils {
     return stringToFloatArray(string, SEPARATOR);
   }
 
-  public static float[] stringToFloatArray(String string, String separator) {
+  public static float @NotNull [] stringToFloatArray(String string, String separator) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_FLOATS;
+    }
+
     final String[] strValues = string.split(separator);
     final float[] values = new float[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -173,11 +189,28 @@ public class ParsingUtils {
     return b.toString().trim();
   }
 
+  /**
+   * Removes brackets and spaces but not other chars as , E and other chars may be used in number
+   * formats
+   */
+  private static @NotNull String removeExtraChars(@NotNull String string) {
+    return string.replaceAll("[\\[\\]\\s]", "");
+  }
+
+  public static List<Integer> stringToIntList(String string, String separator) {
+    return IntList.of(stringToIntArray(string, separator));
+  }
+
   public static int[] stringToIntArray(String string) {
-    final String[] strValues = string.split(ParsingUtils.SEPARATOR);
+    return stringToIntArray(string, SEPARATOR);
+  }
+
+  public static int[] stringToIntArray(String string, String separator) {
+    // remove [] that may be there
+    final String[] strValues = removeExtraChars(string).split(separator);
     final int[] values = new int[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
-      values[i] = Integer.parseInt(strValues[i]);
+      values[i] = Integer.parseInt(strValues[i].trim());
     }
     return values;
   }
@@ -215,13 +248,17 @@ public class ParsingUtils {
     return sublist;
   }
 
-
-  public static String rangeToString(Range<Comparable<?>> range) {
+  @NotNull
+  public static String rangeToString(@Nullable Range<Comparable<?>> range) {
+    if (range == null) {
+      return "";
+    }
     return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
   }
 
-  public static Range<Double> stringToDoubleRange(String str) {
-    if (str.isEmpty()) {
+  @Nullable
+  public static Range<Double> stringToDoubleRange(@Nullable String str) {
+    if (str == null || str.isEmpty()) {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
@@ -231,8 +268,9 @@ public class ParsingUtils {
     return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
-  public static Range<Float> stringToFloatRange(String str) {
-    if (str.isEmpty()) {
+  @Nullable
+  public static Range<Float> stringToFloatRange(@Nullable String str) {
+    if (str == null || str.isEmpty()) {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
@@ -242,6 +280,7 @@ public class ParsingUtils {
     return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
+  @Nullable
   public static Range<Integer> parseIntegerRange(String str) {
     Pattern regex = Pattern.compile("\\[([0-9]+)" + SEPARATOR + "([0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
@@ -499,7 +538,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Double.valueOf(str);
+      return Double.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }
@@ -519,9 +558,46 @@ public class ParsingUtils {
     }
 
     try {
-      return Float.valueOf(str);
+      return Float.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }
+  }
+
+  public static PolynomialSplineFunction loadSplineFunctionFromParentXmlElement(Element parent) {
+    final Element element = (Element) parent.getElementsByTagName("polynomialsplinefunction")
+        .item(0);
+
+    final Element polynomialsElement = (Element) element.getElementsByTagName("polynomials")
+        .item(0);
+    final String polynomialsText = polynomialsElement.getTextContent();
+    final PolynomialFunction[] parsedPolynomials = Arrays.stream(
+            polynomialsText.split(SEPARATOR + SEPARATOR)).map(ParsingUtils::stringToDoubleArray)
+        .map(PolynomialFunction::new).toArray(PolynomialFunction[]::new);
+
+    final Element knotsElement = (Element) element.getElementsByTagName("knots").item(0);
+    final double[] knots = stringToDoubleArray(knotsElement.getTextContent());
+
+    return new PolynomialSplineFunction(knots, parsedPolynomials);
+  }
+
+  public static Element createSplineFunctionXmlElement(Document doc,
+      PolynomialSplineFunction function) {
+
+    final Element spline = doc.createElement("polynomialsplinefunction");
+
+    final PolynomialFunction[] polynomials = function.getPolynomials();
+    final String joinedCoefficients = Arrays.stream(polynomials)
+        .map(PolynomialFunction::getCoefficients).map(ParsingUtils::doubleArrayToString)
+        .collect(Collectors.joining(SEPARATOR + SEPARATOR));
+
+    final Element knots = doc.createElement("knots");
+    knots.setTextContent(doubleArrayToString(function.getKnots()));
+    final Element polynomialsElement = doc.createElement("polynomials");
+    polynomialsElement.setTextContent(joinedCoefficients);
+
+    spline.appendChild(polynomialsElement);
+    spline.appendChild(knots);
+    return spline;
   }
 }

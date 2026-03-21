@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_ri;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -33,7 +32,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
-
 import java.util.List;
 
 /**
@@ -44,14 +42,19 @@ import java.util.List;
  */
 public class RICalculationParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter("Feature lists", 1, Integer.MAX_VALUE);
-  public static final FileNamesParameter alkaneFiles = new FileNamesParameter("Alkane scale files", "List of files containing retention times for straight-chain alkanes." +
-      "Expects CSV files with two columns with the header containing \"Carbon #\" and \"RT\". + " +
-      "Compares the dates in the filenames to dates in the raw data files' names and uses the most recent scale. ",
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(
+      "Feature lists", 1, Integer.MAX_VALUE);
+  public static final FileNamesParameter alkaneFiles = new FileNamesParameter("Alkane scale files",
+      "List of files containing retention times for straight-chain alkanes."
+          + "Expects CSV files with two columns with the header containing \"Carbon #\" and \"RT\". + "
+          + "Compares the dates in the filenames to dates in the raw data files' names and uses the most recent scale. ",
       List.of(ExtensionFilters.CSV));
-  public static final BooleanParameter extrapolate = new BooleanParameter("Extrapolation", "Linear extrapolation past the endpoints of the scale", false);
-  public static final BooleanParameter addSummary = new BooleanParameter("Add row summaries", "Inserts the minimum and maximum retention index values for each row", false);
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(false);
+  public static final BooleanParameter extrapolate = new BooleanParameter("Extrapolation",
+      "Linear extrapolation past the endpoints of the scale", false);
+  public static final BooleanParameter addSummary = new BooleanParameter("Add row summaries",
+      "Inserts the minimum and maximum retention index values for each row", false);
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      false);
   public static final StringParameter suffix = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "ri");
 
@@ -60,7 +63,8 @@ public class RICalculationParameters extends SimpleParameterSet {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, alkaneFiles, extrapolate, addSummary, handleOriginal, suffix);
+    super("https://mzmine.github.io/mzmine_documentation/module_docs/norm_ri/norm_ri.html",
+        featureLists, alkaneFiles, extrapolate, addSummary, handleOriginal, suffix);
   }
 
 }

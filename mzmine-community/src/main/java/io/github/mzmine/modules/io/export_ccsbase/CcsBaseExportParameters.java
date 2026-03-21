@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.io.export_ccsbase;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class CcsBaseExportParameters extends SimpleParameterSet {
 
@@ -53,5 +55,10 @@ public class CcsBaseExportParameters extends SimpleParameterSet {
 
   public CcsBaseExportParameters() {
     super(flists, file, fallbackMoleculeInfo, calibrationMethod);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

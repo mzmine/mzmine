@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,22 +25,33 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.modules.presets.ModulePresetStore;
 import io.github.mzmine.parameters.EmbeddedParameterComponentProvider;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.util.presets.PresetsButton;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,8 +68,19 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   private final BooleanProperty hidden = new SimpleBooleanProperty(true);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
-  protected final FlowPane topPane;
+  protected final HBox topPane;
   private final ParameterSet embeddedParameters;
+
+  private final ObjectProperty<@NotNull BiConsumer<ParameterSet, ParameterSetupPane>> askApplyParameterSet = new SimpleObjectProperty<>(
+      (params, parametersPane) -> {
+        if (DialogLoggerUtil.showDialogYesNo("Overwrite parameters?",
+            ModulePreset.getApplyPresetMessage(params))) {
+          if (parametersPane != null) {
+            parametersPane.setParametersDirect(params);
+          }
+        }
+      });
+  private final PresetsButton<ModulePreset> presetButton;
 
 
   public OptionalModuleComponent(ParameterSet embeddedParameters,
@@ -79,6 +101,12 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
   public OptionalModuleComponent(ParameterSet embeddedParameters,
       EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active,
       boolean openHidden) {
+    this(embeddedParameters, viewOption, title, alwaysActive, active, openHidden, null);
+  }
+
+  public OptionalModuleComponent(ParameterSet embeddedParameters,
+      EmbeddedComponentOptions viewOption, String title, boolean alwaysActive, boolean active,
+      boolean openHidden, @Nullable Class<? extends MZmineModule> moduleForPresets) {
     super();
     this.embeddedParameters = embeddedParameters;
     this.hidden.set(openHidden);
@@ -89,6 +117,8 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
       paramPane = null;
       setButton = new Button("Setup...");
       setButton.setOnAction(e -> embeddedParameters.showSetupDialog(false));
+      // no preset button if we open a dialog (dialog will have presets)
+      presetButton = null;
     } else {
       // use internal parameter pane
       paramPane = ParameterSetupPane.createEmbedded(true, embeddedParameters, null);
@@ -110,20 +140,37 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
         onViewStateChange(hidden);
       });
-    }
-    topPane = new FlowPane();
-    topPane.setHgap(5d);
-    topPane.setVgap(5d);
 
+      if (moduleForPresets != null) {
+        // is this the correct embedded parameter set to pass?
+        final ModulePresetStore store = new ModulePresetStore(
+            MZmineCore.getModuleInstance(moduleForPresets), embeddedParameters);
+        presetButton = new PresetsButton<>(true, store, name -> {
+          ParameterSet clone = embeddedParameters.cloneParameterSet();
+          updateParameterSetFromComponents(clone);
+          return store.createPreset(name, clone);
+        }, activePreset -> askApplyParameterSet.get().accept(activePreset.parameters(), paramPane));
+      } else {
+        presetButton = null;
+      }
+    }
     // just leave out checkbox if always active
     if (alwaysActive) {
-      topPane.getChildren().addAll(setButton);
+      // use HBox, FlowPane by default grew and had bad layout in combination with ComponentWrapperParameterComponent
+      topPane = FxLayout.newHBox(Insets.EMPTY, setButton);
     } else {
-      topPane.getChildren().addAll(checkBox, setButton);
+      topPane = FxLayout.newHBox(Insets.EMPTY, checkBox, setButton);
+    }
+    if (presetButton != null) {
+      topPane.getChildren().add(presetButton);
     }
 
     setTop(topPane);
     applyCheckBoxState();
+  }
+
+  public HBox getTopPane() {
+    return topPane;
   }
 
   public ParameterSet getEmbeddedParameters() {
@@ -136,6 +183,10 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
 
   public ParameterSetupPane getEmbeddedParameterPane() {
     return paramPane;
+  }
+
+  public BooleanProperty selectedProperty() {
+    return checkBox.selectedProperty();
   }
 
   public boolean isSelected() {
@@ -162,15 +213,15 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     }
   }
 
-  public void setParameterValuesToComponents() {
+  public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
     if (paramPane != null) {
-      paramPane.setParameterValuesToComponents();
+      paramPane.setParameterValuesToComponents(embeddedParameters);
     }
   }
 
-  public void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents(ParameterSet embeddedParameters) {
     if (paramPane != null) {
-      paramPane.updateParameterSetFromComponents();
+      paramPane.updateParameterSetFromComponents(embeddedParameters);
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
   private final IntensityTimeSeries series;
   private final NumberFormats formats;
   private final @NotNull String seriesKey;
+  private final double normalizationFactor;
 
   public IntensityTimeSeriesToXYProvider(OtherTimeSeries series) {
     this(series, series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT());
@@ -64,9 +65,15 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
       @Nullable String seriesKey) {
+    this(series, colorAwt, seriesKey, 1);
+  }
+
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
+      @Nullable String seriesKey, double normalizationFactor) {
     colorFx = FxColorUtil.awtColorToFX(colorAwt);
     this.colorAwt = colorAwt;
     this.series = series;
+    this.normalizationFactor = normalizationFactor;
     formats = ConfigService.getGuiFormats();
 
     if (seriesKey == null) {
@@ -110,7 +117,14 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    return;
+    // nothing to do
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 
   @Override
@@ -120,7 +134,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return series.getIntensity(index) * normalizationFactor;
   }
 
   @Override

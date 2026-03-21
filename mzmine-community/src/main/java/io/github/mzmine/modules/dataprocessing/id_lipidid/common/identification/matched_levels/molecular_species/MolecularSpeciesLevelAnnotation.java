@@ -51,13 +51,12 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_LIPID_FORMULA = "molecularformula";
   private static final String XML_LIPID_CHAINS = "lipidchains";
+  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL = LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
 
-  private ILipidClass lipidClass;
-  private String annotation;
-  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL =
-      LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
+  private final ILipidClass lipidClass;
+  private final String annotation;
   private final IMolecularFormula molecularFormula;
-  private List<ILipidChain> lipidChains;
+  private final List<ILipidChain> lipidChains;
 
   public MolecularSpeciesLevelAnnotation(ILipidClass lipidClass, String annotation,
       IMolecularFormula molecularFormula, List<ILipidChain> lipidChains) {
@@ -73,18 +72,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
   }
 
   @Override
-  public void setLipidClass(ILipidClass lipidClass) {
-    this.lipidClass = lipidClass;
-  }
-
-  @Override
   public String getAnnotation() {
     return annotation;
-  }
-
-  @Override
-  public void setAnnotation(String annotation) {
-    this.annotation = annotation;
   }
 
   @Override
@@ -101,10 +90,6 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     return lipidChains;
   }
 
-  public void setLipidChains(List<ILipidChain> lipidChains) {
-    this.lipidChains = lipidChains;
-  }
-
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -116,22 +101,28 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     MolecularSpeciesLevelAnnotation other = (MolecularSpeciesLevelAnnotation) obj;
     if (annotation == null) {
-      if (other.annotation != null)
+      if (other.annotation != null) {
         return false;
-    } else if (!annotation.equals(other.annotation))
+      }
+    } else if (!annotation.equals(other.annotation)) {
       return false;
+    }
     if (lipidChains == null) {
       return other.lipidChains == null;
-    } else
+    } else {
       return lipidChains.equals(other.lipidChains);
+    }
   }
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
@@ -171,8 +162,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     LipidAnnotationLevel lipidAnnotationLevel = null;
     IMolecularFormula molecularFormula = null;
     List<ILipidChain> lipidChains = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -189,8 +180,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
           annotation = reader.getElementText();
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
-          lipidAnnotationLevel =
-                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          lipidAnnotationLevel = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
+              reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
           molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
@@ -202,8 +193,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
           break;
       }
     }
-    if (lipidAnnotationLevel != null
-        && lipidAnnotationLevel.equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+    if (lipidAnnotationLevel != null && lipidAnnotationLevel.equals(
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
       return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
           lipidChains);
     }
@@ -218,8 +209,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     }
 
     List<ILipidChain> lipidChains = new ArrayList<>();
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_LIPID_CHAINS))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_LIPID_CHAINS))) {
       reader.next();
       if (reader.isStartElement()) {
         lipidChains.add(LipidChain.loadFromXML(reader));

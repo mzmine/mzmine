@@ -27,10 +27,8 @@ package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
@@ -45,9 +43,6 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,7 +73,7 @@ public class DetectionType extends EnumDataType<FeatureStatus> implements
   }
 
   @Override
-  public double getColumnWidth() {
+  public double getPrefColumnWidth() {
     return 10;
   }
 
@@ -164,33 +159,5 @@ public class DetectionType extends EnumDataType<FeatureStatus> implements
   @Override
   public ObjectProperty<FeatureStatus> createProperty() {
     return new SimpleObjectProperty<>(FeatureStatus.UNKNOWN);
-  }
-
-  @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    if (!(value instanceof FeatureStatus status)) {
-      throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
-    }
-    writer.writeCharacters(status.toString());
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    String elementText = reader.getElementText();
-    if (elementText.isEmpty()) {
-      return null;
-    }
-    return FeatureStatus.valueOf(elementText);
   }
 }

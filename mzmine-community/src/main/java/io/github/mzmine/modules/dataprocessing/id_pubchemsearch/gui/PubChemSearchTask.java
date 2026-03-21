@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.CompoundData;
@@ -52,8 +53,7 @@ public class PubChemSearchTask extends FxUpdateTask<PubChemResultsModel> {
     MASS, FORMULA;
   }
 
-  PubChemSearchTask(@NotNull String taskName, PubChemResultsModel model,
-      SearchType searchType) {
+  PubChemSearchTask(@NotNull String taskName, PubChemResultsModel model, SearchType searchType) {
     super(taskName, model);
     this.searchType = searchType;
     tolerance = model.getMzTolerance();
@@ -92,12 +92,14 @@ public class PubChemSearchTask extends FxUpdateTask<PubChemResultsModel> {
           return;
         }
         final List<CompoundData> compoundData = client.fetchPropertiesForChunk(searchConfig, chunk);
+        final List<TreeItem<CompoundDBAnnotation>> newItems = compoundData.stream()
+            .map(cd -> cd.convertAndScore(rowToScoreAgainst, model.getIonType())).map(TreeItem::new)
+            .toList();
+
         progress += step;
         FxThread.runLater(() -> {
           // don't use the updateGuiModel method, because this way we can already add intermediate results
-          model.compoundsProperty().addAll(compoundData.stream()
-              .map(cd -> cd.convertAndScore(rowToScoreAgainst, model.getIonType()))
-              .map(TreeItem::new).toList());
+          model.compoundsProperty().addAll(newItems);
         });
       }
     } catch (PubChemApiException e) {

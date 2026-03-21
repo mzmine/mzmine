@@ -26,13 +26,17 @@
 package io.github.mzmine.util.dependencylicenses;
 
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.MZmineCore;
+import java.util.List;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.TextFlow;
 
 public class DependencyListCell extends ListCell<Dependency> {
 
@@ -54,37 +58,43 @@ public class DependencyListCell extends ListCell<Dependency> {
         MZmineCore.getDesktop().openWebPage(url);
       }
     }, "dependency");
-    Hyperlink link = FxLabels.newHyperlink(() -> {
-      final Dependency dep = itemProperty().get();
-      if (dep == null) {
-        return;
-      }
-      if (dep.moduleLicenses() == null || dep.moduleLicenses().isEmpty()) {
-        return;
-      }
-      final String url = dep.moduleLicenses().getFirst().moduleLicenseUrl();
-      if (url != null && !url.isBlank()) {
-        MZmineCore.getDesktop().openWebPage(url);
-      }
-    }, "license");
+
+    final TextFlow licenseFlow = FxTextFlows.newTextFlow();
+    updateLicenseFlow(licenseFlow);
 
     itemProperty().subscribe(d -> {
       if (d != null) {
         dependencyName.setText(
             d.moduleName().substring(Math.max(d.moduleName().lastIndexOf(":") + 1, 0)) + " v"
                 + d.moduleVersion());
-        if (!d.moduleLicenses().isEmpty()) {
-          link.setText(d.moduleLicenses().getFirst().moduleLicense());
-          link.setDisable(false);
-        } else {
-          link.setDisable(true);
-        }
       } else {
         dependencyName.setText("");
-        link.setDisable(true);
       }
+      updateLicenseFlow(licenseFlow);
     });
 
-    return new FlowPane(5, 5, dependencyName, new Rectangle(20, 1, Color.TRANSPARENT), link);
+    return new FlowPane(5, 5, dependencyName, new Rectangle(20, 1, Color.TRANSPARENT), licenseFlow);
+  }
+
+  private void updateLicenseFlow(TextFlow licenseFlow) {
+    licenseFlow.getChildren().clear();
+    final Dependency d = itemProperty().get();
+    if (d != null && d.moduleLicenses() != null) {
+      List<ModuleLicense> moduleLicenses = d.moduleLicenses();
+      for (int i = 0; i < moduleLicenses.size(); i++) {
+        ModuleLicense license = moduleLicenses.get(i);
+        Hyperlink link = FxLabels.newHyperlink(() -> {
+          final String url = license.moduleLicenseUrl();
+          if (url != null && !url.isBlank()) {
+            MZmineCore.getDesktop().openWebPage(url);
+          }
+        }, license.moduleLicense());
+        licenseFlow.getChildren().add(link);
+        if (i < moduleLicenses.size() - 1) {
+          licenseFlow.getChildren().add(FxTexts.text(", "));
+        }
+      }
+    }
+    licenseFlow.setDisable(licenseFlow.getChildren().isEmpty());
   }
 }

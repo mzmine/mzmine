@@ -86,6 +86,12 @@ public class HeadLessDesktop implements MZmineDesktop {
     logger.severe(msg);
   }
 
+  @Override
+  public void displayErrorMessageAndThrow(RuntimeException ex) {
+    logger.log(Level.WARNING, ex.getMessage(), ex);
+    throw ex;
+  }
+
 
   @Override
   public void displayException(Exception e) {

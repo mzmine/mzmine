@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,6 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -46,12 +44,12 @@ import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +70,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
   private static final String MODULE_NAME_ATTR = "module_name";
-  private static final String MODULE_VERSION_ATTR = "parameter_version";
+  public static final String MODULE_VERSION_ATTR = "parameter_version";
 
   /**
    * De-serialize from XML.
@@ -122,6 +120,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     // prior to versioning of batch steps
     boolean noModuleVersion = false;
 
+    final Map<String, String> oldModuleNamesMap = ModuleMappingUtils.getOldModuleNamesMap();
+
     // Process the batch step elements.
     final NodeList nodes = xmlElement.getElementsByTagName(BATCH_STEP_ELEMENT);
     final int nodesLength = nodes.getLength();
@@ -143,8 +143,9 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
       if (moduleFound == null) {
         try {
+          final String moduleClassName = oldModuleNamesMap.getOrDefault(methodName, methodName);
           moduleFound = MZmineCore.getModuleInstance(
-              (Class<MZmineModule>) Class.forName(methodName));
+              (Class<MZmineModule>) Class.forName(moduleClassName));
         } catch (ClassNotFoundException e) {
           String batchVersionStr =
               batchMzmineVersion == null ? "of unspecified version" : batchMzmineVersion.toString();
@@ -179,18 +180,16 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
         if (batchStepVersion < currentVersion) {
           // this mzmine is newer, join find potential messages for user
-          String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
-              .mapToObj(parameterSet::getVersionMessage).filter(Objects::nonNull)
-              .collect(Collectors.joining(" "));
+          String versionMessages = parameterSet.getLoadingVersionMessages();
           if (!versionMessages.isBlank()) {
             versionMessages += "\n"; // add additional break after long version messages
           }
 
           errorMessages.add(
-              "'%s' step uses outdated parameters. %s".formatted(moduleFound.getName(),
+              "\n'%s' step uses outdated parameters:\n%s".formatted(moduleFound.getName(),
                   versionMessages));
         } else if (batchStepVersion > currentVersion) {
-          errorMessages.add("'%s' step uses parameters from a newer mzmine version.".formatted(
+          errorMessages.add("\n'%s' step uses parameters from a newer mzmine version.".formatted(
               moduleFound.getName()));
         }
 
@@ -323,7 +322,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       ParameterSet parameters = AllSpectralDataImportParameters.create(
           // use the last set value, not the preference
           ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
-              .getValue(AllSpectralDataImportParameters.applyVendorCentroiding), //
+              .getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters(), //
           allDataFiles, metadataFile, allLibraryFiles);
       addFirst(new MZmineProcessingStepImpl<>(module, parameters));
 

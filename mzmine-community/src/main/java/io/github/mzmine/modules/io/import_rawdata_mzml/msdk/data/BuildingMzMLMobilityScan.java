@@ -25,14 +25,16 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 
 public record BuildingMzMLMobilityScan(String id, double mobility, MobilityType mobilityType,
-                                       MzMLPrecursorList precursorList) {
+                                       MzMLPrecursorList precursorList,
+                                       MassSpectrumType spectrumType) {
 
   public static BuildingMzMLMobilityScan create(BuildingMzMLMsScan scan) {
     MzMLMobility mobility = scan.getMobility();
     return new BuildingMzMLMobilityScan(scan.getId(), mobility.mobility(), mobility.mobilityType(),
-        scan.getPrecursorList());
+        scan.getPrecursorList(), scan.getSpectrumType());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,14 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -51,10 +55,7 @@ public class FeatureTableFXUtil {
    * {@link Platform#runLater(Runnable)}.
    *
    * @param flist The feature list.
-   * @return The {@link FeatureTableFXMLTabAnchorPaneController} of the window or null if failed to
-   * initialise.
    */
-  @Nullable
   public static void addFeatureTableTab(FeatureList flist) {
     FeatureTableTab newTab = new FeatureTableTab(flist);
     MZmineCore.getDesktop().addTab(newTab);
@@ -81,17 +82,35 @@ public class FeatureTableFXUtil {
       final IndexedCell<?> lastCell = flow.getLastVisibleCell();
       if (firstCell != null && lastCell != null && !(itemIndex >= firstCell.getIndex()
           && itemIndex <= lastCell.getIndex())) {
-        table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
+        table.scrollTo(itemIndex);
       }
     }
-    table.getSelectionModel().clearAndSelect(table.getRoot().getChildren().indexOf(rowItem));
+    table.getSelectionModel().clearAndSelect(itemIndex);
   }
 
   public static void selectAndScrollTo(@Nullable FeatureListRow row,
       @NotNull FeatureTableFX table) {
-    final ObservableList<TreeItem<ModularFeatureListRow>> children = table.getRoot().getChildren();
+    final ObservableList<TreeItem<ModularFeatureListRow>> children = table.getFilteredRowItems();
     final Optional<TreeItem<ModularFeatureListRow>> selected = children.stream()
         .filter(item -> item.getValue().equals(row)).findAny();
     selectAndScrollTo(selected.orElse(null), table);
+  }
+
+  public static void updateCellsForFeatureList(FeatureList flist) {
+    if (!DesktopService.isGUI()) {
+      return;
+    }
+
+    final MZmineGUI desktop = (MZmineGUI) DesktopService.getDesktop();
+    final List<FeatureTableFX> featureTables = desktop.getAllTabs().stream()
+        .filter(FeatureTableTab.class::isInstance).map(FeatureTableTab.class::cast)
+        .map(FeatureTableTab::getController).map(FxFeatureTableController::getFeatureTable)
+        .filter(t -> t.getFeatureList() == flist).toList();
+
+    FxThread.runLater(() -> {
+      for (FeatureTableFX featureTable : featureTables) {
+        featureTable.refresh();
+      }
+    });
   }
 }

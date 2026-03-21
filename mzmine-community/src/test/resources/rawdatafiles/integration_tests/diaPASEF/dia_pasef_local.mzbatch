@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.6.14">
+<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.7.27">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
             <file>D:\OneDrive - mzio GmbH\mzio\Example data\Bruker\timsTOF\diaPASEF 32 Substances\dia_ce40_50width_3mob_BA2_6302.d</file>
@@ -404,14 +404,40 @@
         </parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule" module_name="Feature list rows filter" parameter_version="2">
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule" module_name="Feature list rows filter" parameter_version="3">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Name suffix">peak</parameter>
-        <parameter name="Minimum aligned features (samples)" selected="true">
+        <parameter name="Keep or remove rows">Keep rows that match all criteria</parameter>
+        <parameter name="Original feature list">REMOVE</parameter>
+        <parameter name="Minimum aligned samples" selected="true">
             <abs>1</abs>
             <rel>0.0</rel>
         </parameter>
-        <parameter name="Minimum features in an isotope pattern" selected="false">2</parameter>
+        <parameter name="Minimum aligned samples (in group)" selected="false">
+            <parameter name="Minimum samples">
+                <abs>1</abs>
+                <rel>0.0</rel>
+            </parameter>
+            <parameter name="Metadata grouping"/>
+        </parameter>
+        <parameter name="RSD filter" selected="false">
+            <parameter name="Abundance measure">Area</parameter>
+            <parameter name="Missing value imputation">GLOBAL_LIMIT_OF_DETECTION</parameter>
+            <parameter column="mzmine_sample_type" group="qc" name="Sample grouping"/>
+            <parameter name="Maximum missing values">0.2</parameter>
+            <parameter name="Maximum RSD">0.2</parameter>
+            <parameter name="Keep undetected">false</parameter>
+        </parameter>
+        <parameter name="Significance/fold-change filter" selected="false">
+            <parameter name="Abundance measure">Height</parameter>
+            <parameter name="Missing value imputation">GLOBAL_LIMIT_OF_DETECTION</parameter>
+            <parameter column="" groupA="" groupB="" name="Metadata selection"/>
+            <parameter name="Significance test">WELCHS_T_TEST</parameter>
+            <parameter name="Maximum p-value">0.05</parameter>
+            <parameter name="log2(fold-change) threshold">1.0</parameter>
+            <parameter name="Fold-change filter">abs_both_sides</parameter>
+        </parameter>
+        <parameter name="Minimum signals in an isotope pattern" selected="false">2</parameter>
         <parameter name="Validate 13C isotope pattern" selected="false">
             <parameter name="m/z tolerance">
                 <absolutetolerance>0.0015</absolutetolerance>
@@ -425,7 +451,7 @@
         <parameter name="Remove redundant isotope rows">false</parameter>
         <parameter name="m/z" selected="false"/>
         <parameter name="Retention time" selected="false"/>
-        <parameter name="features duration range" selected="false">
+        <parameter name="Chromatographic width" selected="false">
             <min>0.0</min>
             <max>3.0</max>
         </parameter>
@@ -437,6 +463,7 @@
             <min>1</min>
             <max>2</max>
         </parameter>
+        <parameter name="Mass defect" selected="false"/>
         <parameter name="Kendrick mass defect" selected="false">
             <parameter name="Kendrick mass defect">
                 <min>0.0</min>
@@ -448,17 +475,14 @@
             <parameter name="Divisor">1</parameter>
             <parameter name="Use Remainder of Kendrick mass">false</parameter>
         </parameter>
-        <parameter name="Parameter">No parameters defined</parameter>
         <parameter name="Only identified?">false</parameter>
         <parameter name="Text in identity" selected="false"/>
         <parameter name="Text in comment" selected="false"/>
-        <parameter name="Keep or remove rows">Keep rows that match all criteria</parameter>
-        <parameter name="Feature with MS2 scan">false</parameter>
-        <parameter name="Never remove feature with MS2">true</parameter>
+        <parameter name="Require MS2 scan">false</parameter>
+        <parameter name="Require other detector correlation">false</parameter>
+        <parameter name="Never remove rows with MS2">true</parameter>
         <parameter name="Never remove annotated rows">false</parameter>
-        <parameter name="Reset the feature number ID">false</parameter>
-        <parameter name="Mass defect" selected="false"/>
-        <parameter name="Original feature list">REMOVE</parameter>
+        <parameter name="Reset the row ID">false</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule" module_name="Feature finder (multithreaded)" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>

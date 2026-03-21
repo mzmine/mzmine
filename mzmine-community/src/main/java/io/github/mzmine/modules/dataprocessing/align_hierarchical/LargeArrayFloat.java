@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
-import java.util.logging.Logger;
-
 public class LargeArrayFloat {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private boolean VERBOSE = false;
 
   private final long CHUNK_SIZE = 1024 * 1024 * 1024; // 1GiB
@@ -46,13 +43,14 @@ public class LargeArrayFloat {
       int chunks = (int) (size / CHUNK_SIZE);
       int remainder = (int) (size - ((long) chunks) * CHUNK_SIZE);
 
-      if (VERBOSE)
+      if (VERBOSE) {
         System.out.println(
             this.getClass().getSimpleName() + " > Created with " + chunks + " chunks (size: "
                 + CHUNK_SIZE + " each) + a remainder of " + remainder + " => TOTAL: " + size);
+      }
 
       data = new float[chunks + (remainder == 0 ? 0 : 1)][];
-      for (int idx = chunks; --idx >= 0;) {
+      for (int idx = chunks; --idx >= 0; ) {
         data[idx] = new float[(int) CHUNK_SIZE];
       }
       if (remainder != 0) {
@@ -69,8 +67,9 @@ public class LargeArrayFloat {
   public float get(long index) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
-          + ".  Array is " + size + " elements long.");
+      throw new IndexOutOfBoundsException(
+          "Error attempting to access data element " + index + ".  Array is " + size
+              + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);
     int offset = (int) (index - (((long) chunk) * CHUNK_SIZE));
@@ -80,8 +79,9 @@ public class LargeArrayFloat {
   public void set(long index, float f) {
 
     if (index < 0 || index >= size) {
-      throw new IndexOutOfBoundsException("Error attempting to access data element " + index
-          + ".  Array is " + size + " elements long.");
+      throw new IndexOutOfBoundsException(
+          "Error attempting to access data element " + index + ".  Array is " + size
+              + " elements long.");
     }
     int chunk = (int) (index / CHUNK_SIZE);
     int offset = (int) (index - (((long) chunk) * CHUNK_SIZE));

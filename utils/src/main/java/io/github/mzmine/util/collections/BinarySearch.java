@@ -246,7 +246,7 @@ public class BinarySearch {
         toIndexExclusive, valueAtIndexProvider);
     if (lower == -1) {
       // no signal found
-      return EmptyIndexRange.INSTANCE;
+      return IndexRange.EMPTY;
     }
 
     // start to search from lower index
@@ -486,7 +486,7 @@ public class BinarySearch {
     if (index >= toIndex) {
       return -1;
     }
-    
+
     // should not happen because index is never below fromIndex
 //    if (index < fromIndex) {
 //      return -1;

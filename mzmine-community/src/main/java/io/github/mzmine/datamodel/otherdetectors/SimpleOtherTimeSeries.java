@@ -81,6 +81,13 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     this.name = name;
   }
 
+  /**
+   *
+   * @param rtValues float values
+   * @param intensityValues double values
+   * @param name
+   * @param timeSeriesData
+   */
   public SimpleOtherTimeSeries(@NotNull MemorySegment rtValues,
       @NotNull MemorySegment intensityValues, String name,
       @NotNull OtherTimeSeriesData timeSeriesData) {

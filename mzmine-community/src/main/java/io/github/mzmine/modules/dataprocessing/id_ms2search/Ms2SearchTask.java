@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 class Ms2SearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(Ms2SearchTask.class.getName());
 
   private int finishedRows, totalRows;
   private FeatureList peakList1;
@@ -61,7 +61,8 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2, @NotNull Instant moduleCallDate) {
+  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList1 = peakList1;
@@ -82,8 +83,9 @@ class Ms2SearchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return ((double) finishedRows) / totalRows;
   }
 
@@ -124,16 +126,17 @@ class Ms2SearchTask extends AbstractTask {
         Scan scanA = rows1[i].getMostIntenseFragmentScan();
         Scan scanB = rows2[j].getMostIntenseFragmentScan();
 
-        searchResult =
-            simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance);
+        searchResult = simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance);
 
         // Report the final score to the peaklist identity
         if (searchResult != null && searchResult.getScore() > scoreThreshold
-            && searchResult.getNumIonsMatched() >= minimumIonsMatched)
+            && searchResult.getNumIonsMatched() >= minimumIonsMatched) {
           this.addMS2Identity(rows1[i], featureA, featureB, searchResult);
+        }
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
       }
 
       // Update progress bar
@@ -142,8 +145,8 @@ class Ms2SearchTask extends AbstractTask {
 
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
-            Ms2SearchModule.class, parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod("Identification of similar MS2s", Ms2SearchModule.class,
+            parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -215,19 +218,21 @@ class Ms2SearchTask extends AbstractTask {
       double iMZ = ionsA[i].getMZ();
       double mzRangeAbsolute = iMZ * 1e-6 * mzRangePPM;
 
-      if (iMZ - mzRangeAbsolute > ionsBMaxMZ)
+      if (iMZ - mzRangeAbsolute > ionsBMaxMZ) {
         break; // Potential speedup heuristic. If any i is greater than
-               // the max of j, no more
-               // matches are possible.
+      }
+      // the max of j, no more
+      // matches are possible.
 
       for (int j = 0; j < ionsB.length; j++) {
 
         double jMZ = ionsB[j].getMZ();
 
-        if (iMZ < jMZ - mzRangeAbsolute)
+        if (iMZ < jMZ - mzRangeAbsolute) {
           break; // Potential speedup heuristic. iMZ smaller than jMZ.
-                 // Skip the rest of the j's as
-                 // they can only increase.
+        }
+        // Skip the rest of the j's as
+        // they can only increase.
 
         if (Math.abs(iMZ - jMZ) < mzRangeAbsolute) {
           runningScoreTotal += ionsA[i].getIntensity() * ionsB[j].getIntensity();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
@@ -70,6 +71,21 @@ public class PCAModel {
   private final ObjectProperty<SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
       SampleTypeFilter.sample());
 
+
+  // after missing value imputation etc
+  private final ObjectProperty<FeaturesDataTable> featureDataTable = new SimpleObjectProperty<>();
+
+  public FeaturesDataTable getFeatureDataTable() {
+    return featureDataTable.get();
+  }
+
+  public ObjectProperty<FeaturesDataTable> featureDataTableProperty() {
+    return featureDataTable;
+  }
+
+  public void setFeatureDataTable(FeaturesDataTable featureDataTable) {
+    this.featureDataTable.set(featureDataTable);
+  }
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;

@@ -127,4 +127,8 @@ class SpectraBottomPanel extends VBox {
   public void setMzTolerance(MZTolerance mzTol) {
     mzTolerance.setValue(mzTol);
   }
+
+  public ComboBox<FeatureList> getPeakListSelector() {
+    return peakListSelector;
+  }
 }

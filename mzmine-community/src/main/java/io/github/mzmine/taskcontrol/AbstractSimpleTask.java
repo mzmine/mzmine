@@ -119,4 +119,9 @@ public abstract class AbstractSimpleTask extends AbstractSimpleToolTask {
   public Class<? extends MZmineModule> getModuleClass() {
     return moduleClass;
   }
+
+  @NotNull
+  public ParameterSet getParameters() {
+    return parameters;
+  }
 }

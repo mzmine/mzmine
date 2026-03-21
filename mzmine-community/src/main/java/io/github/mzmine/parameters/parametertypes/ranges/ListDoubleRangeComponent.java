@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,31 +26,34 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
-public class ListDoubleRangeComponent extends GridPane {
+public class ListDoubleRangeComponent extends HBox {
 
-  private TextField inputField;
-  private Label parsedInput;
+  private final TextField inputField;
+  private final Label parsedInput;
 
   public ListDoubleRangeComponent() {
+    FxLayout.apply(this, FxLayout.DEFAULT_SPACE, Insets.EMPTY, Pos.CENTER_LEFT);
+
     inputField = new TextField();
     inputField.setPrefColumnCount(25);
 
     parsedInput = new Label();
-    // textField.setColumns(8);
 
-    add(inputField, 0, 0);
-    add(parsedInput, 0, 1);
+    getChildren().addAll(inputField, parsedInput);
 
     inputField.textProperty().addListener((_, _, _) -> update());
   }

@@ -41,6 +41,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
+/**
+ * Row = metadata group name
+ * <br>
+ * Column = Feature name (if available)
+ */
 public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
 
   private final @NotNull SimpleColorPalette colorPalette;

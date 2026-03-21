@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,17 +27,19 @@ package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
@@ -50,6 +52,7 @@ import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -95,9 +98,6 @@ public class ModularFeatureList implements FeatureList {
    */
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
-  // bindings for values
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
-  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
   private final @NotNull ColumnarModularFeatureListRowsSchema rowsSchema;
   private final @NotNull ColumnarModularDataModelSchema featuresSchema;
@@ -132,6 +132,15 @@ public class ModularFeatureList implements FeatureList {
   private List<RowGroup> groups;
 
   /**
+   * this just counts the mutations of annotationSortConfig to signal change.
+   * <p>
+   * May need to use volatile here to make it visible through all threads fast. But might not be
+   * needed as this change is still recognized fast enough
+   */
+  private int annotationSortConfigVersion = 0;
+  private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
+
+  /**
    * Used to buffer charts of rows and features to display in the
    * {@link io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX}. The key
    * is of the following format: "<row id>-<DataType.getUniqueID()>-<raw file name or empty
@@ -141,6 +150,12 @@ public class ModularFeatureList implements FeatureList {
    * file.getName() : ""));
    */
   private final Map<String, Node> bufferedCharts = new ConcurrentHashMap<>();
+
+  /**
+   * in rare cases modules produce extra feature lists that should never be used in batch last
+   * selection.
+   */
+  private boolean excludedFromBatchLastSelection = false;
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -183,12 +198,11 @@ public class ModularFeatureList implements FeatureList {
 
     // only a few standard types
     addRowType(new IDType());
-    addRowType(new ManualAnnotationType());
     addDefaultListeners();
   }
 
   private void addDefaultListeners() {
-    addFeatureTypeListener(new FeatureDataType(), (dataModel, type, oldValue, newValue) -> {
+    addFeatureTypeValueListener(new FeatureDataType(), (dataModel, type, oldValue, newValue) -> {
       // check feature data for graphical columns
       DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
     });
@@ -197,6 +211,14 @@ public class ModularFeatureList implements FeatureList {
     featuresSchema.addDataTypesChangeListener((added, removed) -> {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
+      }
+    });
+
+    rowsSchema.addDataTypesChangeListener((added, _) -> {
+      if (added.stream().filter(AnnotationType.class::isInstance)
+          .anyMatch(t -> CompoundAnnotationUtils.annotationTypePriority.contains(t))) {
+        // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
+        addRowType(DataTypes.get(PreferredAnnotationType.class));
       }
     });
   }
@@ -278,7 +300,7 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
-      addFeatureTypeListener(b.getFeatureType(), b);
+      addFeatureTypeValueListener(b.getFeatureType(), b);
       // add missing row types, that are based on RowBindings
       addRowType(b.getRowType());
       // apply to all rows
@@ -295,14 +317,9 @@ public class ModularFeatureList implements FeatureList {
    * @param listener    the listener for value changes
    */
   @Override
-  public void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener) {
-    featureTypeListeners.compute(featureType, (key, list) -> {
-      if (list == null) {
-        list = new ArrayList<>();
-      }
-      list.add(listener);
-      return list;
-    });
+  public void addFeatureTypeValueListener(DataType featureType,
+      DataTypeValueChangeListener listener) {
+    featuresSchema.addDataTypeValueChangeListener(featureType, listener);
   }
 
   /**
@@ -312,14 +329,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener the listener for value changes
    */
   @Override
-  public void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
-    rowTypeListeners.compute(rowType, (key, list) -> {
-      if (list == null) {
-        list = new ArrayList<>();
-      }
-      list.add(listener);
-      return list;
-    });
+  public void addRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowsSchema.addDataTypeValueChangeListener(rowType, listener);
   }
 
   /**
@@ -329,14 +340,8 @@ public class ModularFeatureList implements FeatureList {
    * @param listener the listener for value changes
    */
   @Override
-  public void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
-    rowTypeListeners.compute(rowType, (key, list) -> {
-      if (list == null || list.isEmpty()) {
-        return null;
-      }
-      list.remove(listener);
-      return list.isEmpty() ? null : list;
-    });
+  public void removeRowTypeValueListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowsSchema.removeDataTypeValueChangeListener(rowType, listener);
   }
 
   /**
@@ -348,13 +353,7 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void removeFeatureTypeListener(DataType featureType,
       DataTypeValueChangeListener listener) {
-    featureTypeListeners.compute(featureType, (key, list) -> {
-      if (list == null || list.isEmpty()) {
-        return null;
-      }
-      list.remove(listener);
-      return list.isEmpty() ? null : list;
-    });
+    featuresSchema.removeDataTypeValueChangeListener(featureType, listener);
   }
 
   @Override
@@ -366,7 +365,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void applyRowBindings(FeatureListRow row) {
-    for (var listeners : featureTypeListeners.values()) {
+    for (var listeners : List.copyOf(featuresSchema.getValueChangeListeners().values())) {
       for (var listener : listeners) {
         if (listener instanceof RowBinding bind) {
           bind.apply(row);
@@ -814,12 +813,12 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners() {
-    return featureTypeListeners;
+    return featuresSchema.getValueChangeListeners();
   }
 
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
-    return rowTypeListeners;
+    return rowsSchema.getValueChangeListeners();
   }
 
 
@@ -991,5 +990,32 @@ public class ModularFeatureList implements FeatureList {
 
   @NotNull ColumnarModularFeatureListRowsSchema getRowsSchema() {
     return rowsSchema;
+  }
+
+  @Override
+  public void setExcludedFromBatchLast(boolean excluded) {
+    this.excludedFromBatchLastSelection = excluded;
+  }
+
+  @Override
+  public boolean isExcludedFromBatchLastSelection() {
+    return excludedFromBatchLastSelection;
+  }
+
+  @Override
+  public @NotNull AnnotationSummarySortConfig getAnnotationSortConfig() {
+    return annotationSortConfig;
+  }
+
+  @Override
+  public synchronized void setAnnotationSortConfig(
+      @NotNull AnnotationSummarySortConfig annotationSortConfig) {
+    this.annotationSortConfig = annotationSortConfig;
+    annotationSortConfigVersion++;
+  }
+
+  @Override
+  public int getAnnotationSortConfigVersion() {
+    return annotationSortConfigVersion;
   }
 }

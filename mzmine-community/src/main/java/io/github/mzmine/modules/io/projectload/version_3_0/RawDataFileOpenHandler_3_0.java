@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,23 +26,25 @@
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
@@ -56,7 +58,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -148,7 +149,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       final XPath xpath = factory.newXPath();
 
       final XPathExpression expr = xpath.compile("//" + RawDataFileSaveHandler.ROOT_ELEMENT + "/"
-                                                 + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
+          + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
 
       final NodeList nodes = (NodeList) expr.evaluate(batchQueuesDocument, XPathConstants.NODESET);
       if (nodes.getLength() != 1) {
@@ -195,8 +196,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
   @Override
   public String getTaskDescription() {
     return "Importing raw data files from project. Processing import batch step " + (processedSteps
-                                                                                     + 1) + "/"
-           + numSteps + ".";
+        + 1) + "/" + numSteps + ".";
   }
 
   @Override
@@ -216,35 +216,21 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       Path tempDir = FileAndPathUtil.createTempDirectory(TEMP_RAW_DATA_FOLDER);
 
       for (BatchQueue batchQueue : batchQueues) {
-        final ParameterSet param = MZmineCore.getConfiguration()
+        final ParameterSet param = ConfigService.getConfiguration()
             .getModuleParameters(BatchModeModule.class).cloneParameterSet();
 
         resolvePathsUnpackFiles(batchQueue, tempDir);
 
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
-        final BatchModeModule batchModule = MZmineCore.getModuleInstance(BatchModeModule.class);
-        final List<Task> tasks = new ArrayList<>();
-        batchModule.runModule(project, param, tasks, Instant.now());
 
-        List<AbstractTask> abstractTasks = tasks.stream().filter(t -> t instanceof AbstractTask)
-            .map(t -> (AbstractTask) t).toList();
-        currentTask = abstractTasks.get(0);
+        currentTask = new BatchTask(project, param, Instant.now(), null);
+        currentTask.run();
 
-        AtomicBoolean finished = new AtomicBoolean(false);
-        AtomicBoolean success = new AtomicBoolean(true);
-        AllTasksFinishedListener listener = new AllTasksFinishedListener(abstractTasks, true,
-            c -> finished.set(true), c -> success.set(false), c -> success.set(false));
-
-        MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
-
-        while (!finished.get()) {
-          Thread.sleep(100);
-          if (isCanceled()) {
-            return false;
-          }
+        if (currentTask.getStatus() == TaskStatus.ERROR) {
+          error(currentTask.getErrorMessage());
+          return false;
         }
-
-        if (!success.get()) {
+        if (!currentTask.isFinished()) {
           return false;
         }
 
@@ -319,6 +305,35 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
               }
             }
             rfp.getValue().setSpecificFiles(newPlaceholders);
+          }
+        } else if ((parameter instanceof FileNameParameter fnp && fnp.getValue() != null) || (
+            parameter instanceof OptionalParameter<?> op
+                && op.getEmbeddedParameter() instanceof FileNameParameter && op.isSelected())) {
+          // eg like metadata
+          final FileNameParameter fnp = switch (parameter) {
+            case FileNameParameter p -> p;
+            case OptionalParameter<?> p -> ((FileNameParameter) p.getEmbeddedParameter());
+            default -> null;
+          };
+          if (fnp == null || fnp.getType() != FileSelectionType.OPEN) {
+            continue;
+          }
+          final File file = fnp.getValue();
+          // check if the file was actually saved in the project
+          final Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN.matcher(
+              file.getPath());
+          if (matcher.matches()) {
+            String fileInZip = matcher.group(2);
+            ZipUtils.unzipDirectory(fileInZip.replaceAll("\\\\", "/"), zipFile,
+                tempDir.toFile()); // always "/" in zips
+            fileInZip = fileInZip.replace("\\", separator); // appropriate separator afterwards
+
+            final File unzipped = new File(tempDir.toFile(), fileInZip);
+            if (!unzipped.exists()) {
+              throw new IllegalStateException("Expected file " + file.getName()
+                  + " to be included in the project, but file was not found.");
+            }
+            fnp.setValue(unzipped);
           }
         }
       }

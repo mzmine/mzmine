@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
@@ -73,9 +75,23 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
-    return (K) switch (subType) {
-      case FormulaListType __ -> formula;
+  public double getPrefColumnWidth() {
+    return getFormulaPrefColumnWidth();
+  }
+
+  /**
+   * @return the width of a
+   */
+  public static double getFormulaPrefColumnWidth() {
+    final double width =
+        TextLabelMeasurementUtil.measureWidth("C99H99O99N9P9") + TableColumns.EXTRA_WIDTH_MARGIN;
+    return width;
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
+    // specifically map to object first to avoid invocation of nullable Float.floatValue or Double.doubleValue.
+    final Object temp = switch (subType) {
       case FormulaMassType __ -> formula.getExactMass();
       case RdbeType __ -> formula.getRDBE();
       case MzPpmDifferenceType __ -> formula.getPpmDiff();
@@ -86,6 +102,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
+    return (K) temp;
   }
 
   @NotNull
@@ -129,7 +146,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.openscience.cdk</groupId>
+  <artifactId>cdk-qsarionpot</artifactId>
+  <versioning>
+    <versions>
+      <version>2.12-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20251030154759</lastUpdated>
+  </versioning>
+</metadata>

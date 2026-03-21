@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,26 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -60,7 +61,6 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
   private final FeatureList flist;
   private final RowSignificanceTest test;
-  private final AbundanceMeasure abundanceMeasure;
   private final double pValue;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
   private @Nullable List<DatasetAndRenderer> temporaryDatasets;
@@ -75,8 +75,15 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     } else {
       flist = null;
     }
-    test = model.getTest();
-    abundanceMeasure = model.getAbundanceMeasure();
+
+    final FeaturesDataTable dataTable = model.getFeatureDataTable();
+    final UnivariateRowSignificanceTestConfig testConfig = model.getTest();
+    if (testConfig != null && dataTable != null) {
+      test = testConfig.toValidConfig(dataTable);
+    } else {
+      test = null;
+    }
+
     pValue = model.getpValue();
     progress.setTotal(flist != null ? flist.getNumberOfRows() : 0);
   }
@@ -96,7 +103,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       if (isCanceled()) {
         return;
       }
-      RowSignificanceTestResult result = test.test(row, abundanceMeasure);
+      RowSignificanceTestResult result = test.test(row);
       if (result != null) {
         rowSignificanceTestResults.add(result);
       }
@@ -105,15 +112,16 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
     final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-        FeatureAnnotationPriority.getDataTypesInOrder());
+        CompoundAnnotationUtils.annotationTypePriority.toArray(DataType[]::new));
 
-    if (!(test instanceof StudentTTest<?> ttest)) {
+    if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
       return;
     }
 
-    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+    final SimpleColorPalette colors = ConfigService.getConfiguration().getDefaultColorPalette()
+        .clone(true);
     temporaryDatasets = new ArrayList<>();
-    colors.resetColorCounter(); // set color index to 0
+
     for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
 
       final DataType<?> type = entry.getKey();
@@ -128,7 +136,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       if (!significantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, significantRows, color,
             (type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
-                : type.getHeaderString()) + " (p < " + pValue + ")", abundanceMeasure);
+                : type.getHeaderString()) + " (p < " + pValue + ")");
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYZDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(false, ColoredXYShapeRenderer.defaultShape, true)));
@@ -137,7 +145,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       if (!insignificantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, insignificantRows, color,
             (type.equals(DataTypes.get(MissingValueType.class)) ? "unknown"
-                : type.getHeaderString()) + " (p ≥ " + pValue + ")", abundanceMeasure);
+                : type.getHeaderString()) + " (p ≥ " + pValue + ")");
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true, ColoredXYShapeRenderer.defaultShape, true)));

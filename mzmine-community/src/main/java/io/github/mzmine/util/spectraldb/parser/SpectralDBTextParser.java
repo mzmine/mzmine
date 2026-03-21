@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -40,17 +42,20 @@ import java.util.logging.Logger;
 public abstract class SpectralDBTextParser extends SpectralDBParser {
 
   private static final Logger logger = Logger.getLogger(SpectralDBTextParser.class.getName());
+  private final boolean extensiveErrorLogging;
 
   protected long totalLines = 0L;
   protected AtomicLong processedLines = new AtomicLong(0L);
 
-  public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor) {
+  public SpectralDBTextParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
     super(bufferEntries, processor);
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     if (totalLines == 0L) {
       try {
         logger.fine(
@@ -72,5 +77,9 @@ public abstract class SpectralDBTextParser extends SpectralDBParser {
 
   public void setTotalLines(long totalLines) {
     this.totalLines = totalLines;
+  }
+
+  public boolean isExtensiveErrorLogging() {
+    return extensiveErrorLogging;
   }
 }

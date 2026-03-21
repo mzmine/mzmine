@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.UserParameter;
+import javafx.beans.property.BooleanProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -52,6 +53,10 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
 
   public EmbeddedComponent getEmbeddedComponent() {
     return embeddedComponent;
+  }
+
+  public BooleanProperty selectedProperty() {
+    return checkBox.selectedProperty();
   }
 
   public boolean isSelected() {

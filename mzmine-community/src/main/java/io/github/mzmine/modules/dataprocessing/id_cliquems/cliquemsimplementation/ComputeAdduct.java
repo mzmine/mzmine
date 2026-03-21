@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,10 +49,11 @@ import org.apache.commons.lang3.mutable.MutableDouble;
  */
 public class ComputeAdduct {
 
+  private static final Logger logger = Logger.getLogger(ComputeAdduct.class.getName());
+
   public static final int numofAnnotation = 5;
   private final AnClique anClique;
   private final CliqueMSTask driverTask;
-  private final Logger logger = Logger.getLogger(getClass().getName());
   private final MutableDouble progress;
 
   public ComputeAdduct(AnClique anClique, CliqueMSTask driverTask, MutableDouble progress) {
@@ -77,31 +78,27 @@ public class ComputeAdduct {
       // adducts with nmol >1 && charge ==1,
       // and adducts with charge and nmol = 1
       List<IonizationType> chargeAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getCharge() > 1 && ion.getPolarity().equals(polarity)) {
-              chargeAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getCharge() > 1 && ion.getPolarity().equals(polarity)) {
+          chargeAd.add(ion);
+        }
+      });
       Collections.sort(chargeAd, Comparator.comparingDouble(IonizationType::getAddedMass));
 
       List<IonizationType> numMolAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getNumMol() > 1 && ion.getPolarity().equals(polarity)) {
-              numMolAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getNumMol() > 1 && ion.getPolarity().equals(polarity)) {
+          numMolAd.add(ion);
+        }
+      });
       Collections.sort(numMolAd, Comparator.comparingDouble(IonizationType::getAddedMass));
 
       List<IonizationType> normalAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getCharge() == 1 && ion.getNumMol() == 1 && ion.getPolarity()
-                .equals(polarity)) {
-              normalAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getCharge() == 1 && ion.getNumMol() == 1 && ion.getPolarity().equals(polarity)) {
+          normalAd.add(ion);
+        }
+      });
 
       // Sort them from adducts with charge >1,
       // normal and adducts with nummol > 1,
@@ -115,31 +112,27 @@ public class ComputeAdduct {
       // and adducts with charge and nmol = 1
 
       List<IonizationType> chargeAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getCharge() < -1 && ion.getPolarity().equals(polarity)) {
-              chargeAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getCharge() < -1 && ion.getPolarity().equals(polarity)) {
+          chargeAd.add(ion);
+        }
+      });
       Collections.sort(chargeAd, Comparator.comparingDouble(IonizationType::getAddedMass));
 
       List<IonizationType> numMolAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getNumMol() > 1 && ion.getPolarity().equals(polarity)) {
-              numMolAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getNumMol() > 1 && ion.getPolarity().equals(polarity)) {
+          numMolAd.add(ion);
+        }
+      });
       Collections.sort(numMolAd, Comparator.comparingDouble(IonizationType::getAddedMass));
 
       List<IonizationType> normalAd = new ArrayList<>();
-      EnumSet.allOf(IonizationType.class)
-          .forEach(ion -> {
-            if (ion.getCharge() == -1 && ion.getNumMol() == 1 && ion.getPolarity()
-                .equals(polarity)) {
-              normalAd.add(ion);
-            }
-          });
+      EnumSet.allOf(IonizationType.class).forEach(ion -> {
+        if (ion.getCharge() == -1 && ion.getNumMol() == 1 && ion.getPolarity().equals(polarity)) {
+          normalAd.add(ion);
+        }
+      });
 
       // Sort them from adducts with charge >1
       // normal and adducts with nummol > 1
@@ -187,8 +180,8 @@ public class ComputeAdduct {
    * @return
    */
   public List<AdductInfo> getAnnotation(int topMassTotal, int topMassf, int sizeAnG,
-      PolarityType polarity, MZTolerance tol, double filter,
-      double emptyS, boolean normalizeScore) {
+      PolarityType polarity, MZTolerance tol, double filter, double emptyS,
+      boolean normalizeScore) {
     if (anClique.anFound) {
       logger.log(Level.WARNING, "Annotation has already been computed for this object.");
     }
@@ -217,10 +210,10 @@ public class ComputeAdduct {
     int done = 0;
     for (Integer cliqueID : this.anClique.cliques.keySet()) {
       //progress update
-      this.progress.setValue(driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS +
-          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS + (
-          driverTask.ANNOTATE_PROGRESS * ((double) (done++)) / (this.anClique.cliques.keySet()
-              .size())));
+      this.progress.setValue(
+          driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS + driverTask.NET_PROGRESS
+              + driverTask.ISO_PROGRESS + (driverTask.ANNOTATE_PROGRESS * ((double) (done++))
+              / (this.anClique.cliques.keySet().size())));
       //check if task cancelled
       if (driverTask.isCanceled()) {
         return addInfos;
@@ -230,13 +223,12 @@ public class ComputeAdduct {
         dfClique.add(nodeIDtoPeakMap.get(nodeID));
       }
       dfClique.removeIf(pd -> !pd.getIsotopeAnnotation().startsWith("M0"));
-      Collections.sort(dfClique, Comparator
-          .comparingDouble(PeakData::getMz));//sorting in order of mz values, in decreasing order
+      Collections.sort(dfClique, Comparator.comparingDouble(
+          PeakData::getMz));//sorting in order of mz values, in decreasing order
 
       AdductAnnotationCliqueMS ad = new AdductAnnotationCliqueMS();
-      OutputAn outAn = ad
-          .returnAdductAnnotation(dfClique, orderAdInfo, topMassf, topMassTotal, sizeAnG, tol,
-              filter, emptyS, normalizeScore);
+      OutputAn outAn = ad.returnAdductAnnotation(dfClique, orderAdInfo, topMassf, topMassTotal,
+          sizeAnG, tol, filter, emptyS, normalizeScore);
 
       for (Integer itv : outAn.features) {
         List<String> annotations = new ArrayList<>();

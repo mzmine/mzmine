@@ -28,7 +28,8 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import io.github.mzmine.datamodel.DataPoint;
@@ -46,7 +47,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
   private FeatureList featureList;
 
-  private Feature displayedPeaks[];
+  private Feature displayedFeatures[];
   private double mzValues[], intensityValues[];
   private String label;
 
@@ -56,19 +57,19 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
     Feature features[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);
 
-    Vector<Feature> candidates = new Vector<Feature>();
+    List<Feature> candidates = new ArrayList<Feature>();
     for (Feature peak : features) {
       DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
       if (peakDataPoint != null)
         candidates.add(peak);
     }
-    displayedPeaks = candidates.toArray(new Feature[0]);
+    displayedFeatures = candidates.toArray(Feature[]::new);
 
-    mzValues = new double[displayedPeaks.length];
-    intensityValues = new double[displayedPeaks.length];
+    mzValues = new double[displayedFeatures.length];
+    intensityValues = new double[displayedFeatures.length];
 
-    for (int i = 0; i < displayedPeaks.length; i++) {
-      DataPoint dp = displayedPeaks[i].getDataPoint(scanNumber);
+    for (int i = 0; i < displayedFeatures.length; i++) {
+      DataPoint dp = displayedFeatures[i].getDataPoint(scanNumber);
       if (dp == null)
         continue;
       mzValues[i] = dp.getMZ();
@@ -93,8 +94,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     return featureList;
   }
 
-  public Feature getPeak(int series, int item) {
-    return displayedPeaks[item];
+  public Feature getFeature(int series, int item) {
+    return displayedFeatures[item];
   }
 
   @Override

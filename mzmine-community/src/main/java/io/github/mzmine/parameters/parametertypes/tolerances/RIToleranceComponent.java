@@ -29,6 +29,7 @@ import io.github.mzmine.util.RIColumn;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -48,6 +49,7 @@ public class RIToleranceComponent extends HBox {
       new NumberStringConverter(format));
   private final TextField toleranceField;
   private final ComboBox<RIColumn> toleranceType;
+  private final CheckBox allowMatchesWithoutRi;
 
   public RIToleranceComponent(ObservableList<RIColumn> riColumnTypes) {
     this.toleranceTypes = FXCollections.observableArrayList(riColumnTypes);
@@ -59,12 +61,15 @@ public class RIToleranceComponent extends HBox {
     this.toleranceType = new ComboBox<>(toleranceTypes);
     this.toleranceType.getSelectionModel().select(0);
 
-    getChildren().addAll(this.toleranceField, this.toleranceType);
+    this.allowMatchesWithoutRi = new CheckBox("Allow matches without RI");
+
+    getChildren().addAll(this.toleranceField, this.toleranceType, allowMatchesWithoutRi);
   }
 
   public RITolerance getValue() {
     RIColumn selectedColumnType = toleranceType.getValue();
     String valueString = toleranceField.getText();
+    final boolean allowWithoutRi = allowMatchesWithoutRi.isSelected();
 
     Float tolerance = null;
     try {
@@ -73,7 +78,7 @@ public class RIToleranceComponent extends HBox {
       return null;
     }
 
-    return new RITolerance(tolerance, selectedColumnType);
+    return new RITolerance(tolerance, selectedColumnType, allowWithoutRi);
   }
 
   public void setValue(@Nullable RITolerance value) {
@@ -84,10 +89,11 @@ public class RIToleranceComponent extends HBox {
     }
 
     float tolerance = value.getTolerance();
-    RIColumn selectedColumnType = value.getColumn();
+    RIColumn selectedColumnType = value.getRIType();
 
     toleranceType.setValue(selectedColumnType);
     toleranceField.setText(format.format(tolerance));
+    allowMatchesWithoutRi.setSelected(value.isMatchOnNull());
   }
 
   public void setToolTipText(String toolTip) {

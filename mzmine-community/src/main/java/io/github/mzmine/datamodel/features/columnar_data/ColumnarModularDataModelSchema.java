@@ -76,26 +76,22 @@ public class ColumnarModularDataModelSchema {
    * Each data type has its own DataColumn usually created in the factory {@link DataColumns}.
    */
   protected final Map<DataType, DataColumn> columns = new ConcurrentHashMap<>(20);
-  private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
-
-  /**
-   * The current length of the columns. This value should only change withing a
-   * resizeLock.writeLock
-   */
-  protected volatile int columnLength;
-  private final AtomicInteger nextRow = new AtomicInteger(0);
-
   /**
    * A lock that controls specifically the resizing of all {@link DataColumn}s controlled by this
    * schema. If more rows are added than the size allows, a write lock will block the creation of
    * new columns until resizing is finished.
    */
   protected final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
-
   protected final String modelName;
-
+  private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
+  private final AtomicInteger nextRow = new AtomicInteger(0);
   private final @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
   private final @NotNull List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
+  /**
+   * The current length of the columns. This value should only change withing a
+   * resizeLock.writeLock
+   */
+  protected volatile int columnLength;
 
   public ColumnarModularDataModelSchema(final @Nullable MemoryMapStorage storage, String modelName,
       int initialSize) {
@@ -206,6 +202,27 @@ public class ColumnarModularDataModelSchema {
    */
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return dataTypeValueChangedListeners;
+  }
+
+  public void addDataTypeValueChangeListener(@NotNull DataType type,
+      @NotNull final DataTypeValueChangeListener<?> listener) {
+    dataTypeValueChangedListeners.compute(type, (key, list) -> {
+      if (list == null) {
+        list = new ArrayList<>();
+      }
+      list.add(listener);
+      return list;
+    });
+  }
+
+  public void removeDataTypeValueChangeListener(@NotNull DataType type, @Nullable final DataTypeValueChangeListener<?> listener) {
+    dataTypeValueChangedListeners.compute(type, (key, list) -> {
+      if (list == null || list.isEmpty()) {
+        return null;
+      }
+      list.remove(listener);
+      return list.isEmpty() ? null : list;
+    });
   }
 
   /**

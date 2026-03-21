@@ -62,7 +62,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
-    boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+    boolean paramsOK = parameterSet.checkParameterValues(errorMessages, true);
     if (!paramsOK) {
       return;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class PathAlignerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(PathAlignerTask.class.getName());
 
   private final MZmineProject project;
   private ModularFeatureList peakLists[];
@@ -52,14 +52,14 @@ class PathAlignerTask extends AbstractTask {
   private ParameterSet parameters;
   private Aligner aligner;
 
-  PathAlignerTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  PathAlignerTask(MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;
-    peakLists = (ModularFeatureList[])
-        parameters.getParameter(PathAlignerParameters.peakLists).getValue()
-            .getMatchingFeatureLists();
+    peakLists = (ModularFeatureList[]) parameters.getParameter(PathAlignerParameters.peakLists)
+        .getValue().getMatchingFeatureLists();
 
     peakListName = parameters.getParameter(PathAlignerParameters.peakListName).getValue();
   }
@@ -95,9 +95,9 @@ class PathAlignerTask extends AbstractTask {
     project.addFeatureList(alignedPeakList);
 
     // Add task description to peakList
-    alignedPeakList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Path aligner",
-            PathAlignerModule.class, parameters, getModuleCallDate()));
+    alignedPeakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Path aligner", PathAlignerModule.class, parameters,
+            getModuleCallDate()));
 
     logger.info("Finished Path aligner");
     setStatus(TaskStatus.FINISHED);

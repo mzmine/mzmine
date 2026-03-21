@@ -588,6 +588,12 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
     return FeatureUtils.featureToString(this);
   }
 
+  public String toFullString() {
+    return getFeatureList().getFeatureTypes().stream().sorted(DataType::compareTo).map(
+            type -> "{%s,%s}".formatted(type.getUniqueID(), type.getFormattedString(this.get(type))))
+        .collect(Collectors.joining(","));
+  }
+
   @Override
   public boolean isMrm() {
     return get(MrmTransitionListType.class) != null;

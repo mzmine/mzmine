@@ -308,14 +308,14 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     // find indices in original data - feature data access may use other data points as well
     final List<Scan> allSpectra = getSpectraModifiable();
     List<Scan> subFromAll = allSpectra.subList(startIndex, endIndexExclusive);
-    final float startRT = subFromAll.getFirst().getRetentionTime();
-    final float endRT = subFromAll.getLast().getRetentionTime();
+    final float startNumber = subFromAll.getFirst().getScanNumber();
+    final float endNumber = subFromAll.getLast().getScanNumber();
 
     // from original series - different indices - use RT
     final IonTimeSeries<? extends Scan> original = getOriginalSeries();
     final List<? extends Scan> originalSpectra = original.getSpectraModifiable();
-    final IndexRange indexRangeOriginal = BinarySearch.indexRange(Range.closed(startRT, endRT),
-        originalSpectra, Scan::getRetentionTime);
+    final IndexRange indexRangeOriginal = BinarySearch.indexRange(Range.closed(startNumber, endNumber),
+        originalSpectra, Scan::getScanNumber);
 
     return subSeries(storage, startIndex, endIndexExclusive, indexRangeOriginal);
   }

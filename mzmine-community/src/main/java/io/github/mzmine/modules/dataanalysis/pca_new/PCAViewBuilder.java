@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,12 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
@@ -38,14 +41,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvid
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
-
-import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
-import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
-import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
-
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.util.FxIconUtil;
-import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -127,10 +123,10 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   private @NotNull Accordion buildControlsAccordion() {
     final HBox scaling = FxComboBox.createLabeledComboBox("Scaling",
-        FXCollections.observableArrayList(ScalingFunctions.values()),
+        FXCollections.observableArrayList(ScalingFunctions.valuesPCAOptions),
         model.scalingFunctionProperty());
     final HBox imputation = FxComboBox.createLabeledComboBox("Missing value imputation",
-        FXCollections.observableArrayList(ImputationFunctions.values()),
+        FXCollections.observableArrayList(ImputationFunctions.valuesExcludeNone),
         model.imputationFunctionProperty());
     final HBox domain = FxComboBox.createLabeledComboBox("Domain PC", model.getAvailablePCs(),
         model.domainPcProperty());

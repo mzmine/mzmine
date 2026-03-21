@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -148,6 +149,30 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     setDescription("Importing raw data file %s".formatted(file.getName()));
   }
 
+  /**
+   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
+   * MS2 info.
+   */
+  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
+    return switch (i) {
+      case PasefMsMsInfo pasef -> pasef;
+      case DIAImsMsMsInfoImpl dia -> {
+        if (dia.getIsolationWindow() == null) {
+          yield null;
+        }
+        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
+        if (isoWidth
+            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
+          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
+              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
+              dia.getMsMsFrame(), dia.getIsolationWindow());
+        }
+        yield null;
+      }
+      default -> null;
+    };
+  }
+
   @Override
   public String getTaskDescription() {
     return description;
@@ -238,82 +263,85 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       return;
     }
 
-    final TDFUtils tdfUtils = new TDFUtils();
-    logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
-    final long handle = tdfUtils.openFile(tdfBin);
+    try (final TDFUtils tdfUtils = new TDFUtils()) {
+
+      logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
+      final long handle = tdfUtils.openFile(tdfBin);
 //    newMZmineFile.setName(rawDataFileName);
-    if (handle == 0L) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
-      return;
-    }
-
-    loadedFrames = 0;
-    final int numFrames = frameTable.getFrameIdColumn().size();
-
-    logger.finest("Starting frame import.");
-
-    loadedFrames = 0;
-    // collect average spectra for each frame
-    List<SimpleFrame> frames = new ArrayList<>();
-
-    final boolean importProfile = ConfigService.isTdfPseudoProfile();
-
-    try {
-      for (int i = 0; i < numFrames; i++) {
-        int frameId = frameTable.getFrameIdColumn().get(i).intValue();
-        setFinishedPercentage((double) (loadedFrames) / numFrames);
-        setDescription(
-            "Importing " + rawDataFileName + ": Importing Frame " + frameId + "/" + numFrames);
-        final SimpleFrame frame;
-        if (!importProfile) {
-          frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
-        } else {
-          frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
-        }
-
-        // frame might be null when filtered out - just continue with next
-        if (frame == null) {
-          loadedFrames++;
-          continue;
-        }
-
-        if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
-          frame.addMassList(new ScanPointerMassList(frame));
-        }
-
-        if (isMaldi && frame instanceof ImagingFrame imgFrame) {
-          final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
-              frame.getFrameId());
-          imgFrame.setMaldiSpotInfo(maldiSpotInfo);
-        }
-
-        loadMobilityScansForFrame(tdfUtils, frameTable, frame);
-
-        newMZmineFile.addScan(frame);
-        frames.add(frame);
-        loadedFrames++;
-        if (isCanceled()) {
-          tdfUtils.close();
-          return;
-        }
+      if (handle == 0L) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
+        return;
       }
-    } catch (IndexOutOfBoundsException e) {
-      // happens on corrupt data
-      logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
-      setStatus(TaskStatus.FINISHED);
-      return;
+
+      loadedFrames = 0;
+      final int numFrames = frameTable.getFrameIdColumn().size();
+
+      logger.finest("Starting frame import.");
+
+      loadedFrames = 0;
+      // collect average spectra for each frame
+      List<SimpleFrame> frames = new ArrayList<>();
+
+      final boolean importProfile = ConfigService.isTdfPseudoProfile();
+
+      try {
+        for (int i = 0; i < numFrames; i++) {
+          int frameId = frameTable.getFrameIdColumn().get(i).intValue();
+          setFinishedPercentage((double) (loadedFrames) / numFrames);
+          setDescription(
+              "Importing " + rawDataFileName + ": Importing Frame " + frameId + "/" + numFrames);
+          final SimpleFrame frame;
+          if (!importProfile) {
+            frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
+                frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
+          } else {
+            frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
+                frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
+          }
+
+          // frame might be null when filtered out - just continue with next
+          if (frame == null) {
+            loadedFrames++;
+            continue;
+          }
+
+          if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
+            frame.addMassList(new ScanPointerMassList(frame));
+          }
+
+          if (isMaldi && frame instanceof ImagingFrame imgFrame) {
+            final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
+                frame.getFrameId());
+            imgFrame.setMaldiSpotInfo(maldiSpotInfo);
+          }
+
+          loadMobilityScansForFrame(tdfUtils, frameTable, frame);
+
+          newMZmineFile.addScan(frame);
+          frames.add(frame);
+          loadedFrames++;
+          if (isCanceled()) {
+            tdfUtils.close();
+            return;
+          }
+        }
+      } catch (IndexOutOfBoundsException e) {
+        // happens on corrupt data
+        logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
+        setStatus(TaskStatus.FINISHED);
+        return;
+      }
+
+      // now assign MS/MS infos
+      constructMsMsInfo(newMZmineFile, framePrecursorTable);
+      assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
+      assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
+      assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
+
+    } catch (RuntimeException e) {
+      error("Error importing file %s. %s".formatted(fileNameToOpen.getName(), e.getMessage()), e);
     }
-
-    // now assign MS/MS infos
-    constructMsMsInfo(newMZmineFile, framePrecursorTable);
-    assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
-    assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
-    assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
-
-    tdfUtils.close();
 
     if (isCanceled()) {
       return;
@@ -407,7 +435,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
         scanProcessorConfig);
     if (spectra.isEmpty()) {
-      spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
+      spectra.add(
+          new BuildingMobilityScan(0, new double[]{}, new double[]{}, MassSpectrumType.CENTROIDED));
     }
 
     boolean useAsMassList = scanProcessorConfig.isMassDetectActive(frame.getMSLevel());
@@ -476,20 +505,21 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
         final Frame parentFrame = getParentFrame(file, parentFrameNumber);
 
         PasefMsMsInfo info = new PasefMsMsInfoImpl(building.getLargestPeakMz(),
-            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
-                // -1 bc we work with indices later on
-                building.getSpectrumNumberRange().upperEndpoint() - 1),
+            // -1 bc we work with 0 based indices later on instead of 1 based
+            Range.closed(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+                // -2 the upper bound is exclusive and we work with 0 based instead of 1 based
+                building.getSpectrumNumberRange().upperEndpoint() - 2),
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,
             building.getIsolationWindow());
 
-        frame.getImsMsMsInfos().add(info);
+        ((SimpleFrame) frame).addImsMsMsInfo(info);
         constructed++;
       }
     }
 
     Date end = new Date();
     logger.info(
-        "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
+        "Constructed " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
   }
 
@@ -518,30 +548,6 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
         ((SimpleFrame) frame).setPrecursorInfos(newInfos);
       }
     }
-  }
-
-  /**
-   * With timsControl > 6.1 the SIMSEF data is saved as DIA window. We have to map it to a regular
-   * MS2 info.
-   */
-  private static @Nullable PasefMsMsInfo mapToPasefInfo(IonMobilityMsMsInfo i) {
-    return switch (i) {
-      case PasefMsMsInfo pasef -> pasef;
-      case DIAImsMsMsInfoImpl dia -> {
-        if (dia.getIsolationWindow() == null) {
-          yield null;
-        }
-        final double isoWidth = RangeUtils.rangeLength(dia.getIsolationWindow()).doubleValue();
-        if (isoWidth
-            <= 5) { // is arbitrarily chosen as a cutoff for what can be deemed as a SIMSEF dda MS2.
-          yield new PasefMsMsInfoImpl(RangeUtils.rangeCenter(dia.getIsolationWindow()),
-              dia.getSpectrumNumberRange(), dia.getActivationEnergy(), null, null,
-              dia.getMsMsFrame(), dia.getIsolationWindow());
-        }
-        yield null;
-      }
-      default -> null;
-    };
   }
 
   /**
@@ -574,7 +580,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       final float ce = frameMsMsInfoTable.getCe().get(frameMsMsTableIndex).floatValue();
       final DIAImsMsMsInfoImpl diaImsMsMsInfo = new DIAImsMsMsInfoImpl(
           Range.closed(0, frame.getNumberOfMobilityScans() - 1), ce, frame, mzRange);
-      frame.getImsMsMsInfos().add(diaImsMsMsInfo);
+      ((SimpleFrame) frame).addImsMsMsInfo(diaImsMsMsInfo);
     }
   }
 
@@ -605,7 +611,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
       final PasefMsMsInfo ddaImsMsMsInfo = frameMsMsInfoTable.getImsAutoMsMsInfo(
           frameMsMsTableIndex, frame, null);
-      frame.getImsMsMsInfos().add(ddaImsMsMsInfo);
+      ((SimpleFrame) frame).addImsMsMsInfo(ddaImsMsMsInfo);
     }
   }
 
@@ -621,8 +627,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {

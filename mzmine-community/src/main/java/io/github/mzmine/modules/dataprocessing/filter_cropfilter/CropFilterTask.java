@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CropFilterTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(CropFilterTask.class.getName());
 
   private MZmineProject project;
   private RawDataFile dataFile;
@@ -103,7 +103,8 @@ public class CropFilterTask extends AbstractTask {
 
     try {
 
-      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, null, storage);
+      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, null,
+          storage);
 
       for (Scan scan : scans) {
 
@@ -114,7 +115,8 @@ public class CropFilterTask extends AbstractTask {
           if (emptyScans) {
             continue;
           } else {
-            scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]));
+            scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]),
+                scan.getIntensityValues(new double[0]));
             newFile.addScan(scanCopy);
             processedScans++;
             continue;
@@ -123,8 +125,8 @@ public class CropFilterTask extends AbstractTask {
 
         // Check if we have something to crop
         if (!mzRange.encloses(scan.getDataPointMZRange())) {
-          DataPoint croppedDataPoints[] =
-              ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange);
+          DataPoint croppedDataPoints[] = ScanUtils.selectDataPointsByMass(
+              ScanUtils.extractDataPoints(scan), mzRange);
 
           double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(croppedDataPoints);
           scanCopy = new SimpleScan(newFile, scan, dp[0], dp[1]);
@@ -141,8 +143,9 @@ public class CropFilterTask extends AbstractTask {
       for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
         newFile.getAppliedMethods().add(appliedMethod);
       }
-      newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          CropFilterModule.class, parameters, getModuleCallDate()));
+      newFile.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(CropFilterModule.class, parameters,
+              getModuleCallDate()));
       project.addFile(newFile);
 
       // Remove the original file if requested
@@ -161,8 +164,9 @@ public class CropFilterTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
+    }
     return (double) processedScans / totalScans;
   }
 

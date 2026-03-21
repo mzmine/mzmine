@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,15 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.mvci.LatestTaskScheduler;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.List;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.text.TextFlow;
 
 public abstract class AbstractPreviewPane<T> extends BorderPane implements PreviewPane<T> {
 
@@ -42,6 +45,8 @@ public abstract class AbstractPreviewPane<T> extends BorderPane implements Previ
   protected final SimpleXYChart<? extends PlotXYDataProvider> chart;
   protected final ParameterSet parameters;
   protected final LatestTaskScheduler scheduler = new LatestTaskScheduler();
+  private final TextFlow topTextFlow;
+
 
   /**
    * sets chart to the center of this pane.
@@ -50,6 +55,17 @@ public abstract class AbstractPreviewPane<T> extends BorderPane implements Previ
     this.parameters = parameters;
     chart = createChart();
     setCenter(chart);
+
+    topTextFlow = FxTextFlows.newTextFlow();
+    topTextFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    setTop(topTextFlow);
+  }
+
+  /**
+   * Possible to set error or other messages
+   */
+  public TextFlow getTopTextFlow() {
+    return topTextFlow;
   }
 
   /**

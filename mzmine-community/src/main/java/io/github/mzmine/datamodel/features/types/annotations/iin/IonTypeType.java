@@ -32,7 +32,11 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -46,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
  * Todo: remove {@link io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType}, rename this?
  */
 public class IonTypeType extends DataType<IonType> {
+
+  private static final Function<@Nullable String, @Nullable IonType> mapper = IonTypeParser::parse;
 
   @Override
   public @NotNull String getUniqueID() {
@@ -95,5 +101,24 @@ public class IonTypeType extends DataType<IonType> {
     }
 
     return IonType.loadFromXML(reader);
+  }
+
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable IonType> getMapper() {
+    return mapper;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    return getFormulaPrefColumnWidth();
+  }
+
+  /**
+   * @return the width of a
+   */
+  public static double getFormulaPrefColumnWidth() {
+    final double width =
+        TextLabelMeasurementUtil.measureWidth("[M-2H2O+Na]+2") + TableColumns.EXTRA_WIDTH_MARGIN;
+    return width;
   }
 }

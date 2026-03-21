@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
@@ -154,8 +153,8 @@ public class TSFUtils {
     tsfdata.tsf_index_to_mz(handle, frameId, filtered[0], profileMzArray, numDataPoints);
 
     double[][] mzIntensities = new double[2][];
-    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, numValues.get() - 1);
-    mzIntensities[1] = Arrays.copyOfRange(filtered[1], 0, numValues.get() - 1);
+    mzIntensities[0] = Arrays.copyOfRange(profileMzArray, 0, Math.max(numValues.get() - 1, 0));
+    mzIntensities[1] = Arrays.copyOfRange(filtered[1], 0, Math.max(numValues.get() - 1, 0));
     return mzIntensities;
   }
 
@@ -212,7 +211,7 @@ public class TSFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
-    final SimpleBuildingScan metadata = new SimpleBuildingScan(frameIndex, msLevel, polarity,
+    final SimpleBuildingScan metadata = new SimpleBuildingScan((int) frameId, msLevel, polarity,
         spectrumType, rt, 0d, 0);
     if (!config.scanFilter().matches(metadata)) {
       return null;
@@ -322,20 +321,22 @@ public class TSFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+    final long handle;
     if (path.isFile()) {
       logger.finest(() -> "Opening tsf file " + path.getAbsolutePath());
-      final long handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
+      handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
           useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tsfdata.tsf_has_recalibrated_state(handle));
-      return handle;
     } else {
       logger.finest(() -> "Opening tsf path " + path.getAbsolutePath());
-      final long handle = tsfdata.tsf_open(path.getAbsolutePath(), useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tsfdata.tsf_has_recalibrated_state(handle));
+      handle = tsfdata.tsf_open(path.getAbsolutePath(), useRecalibratedState);
+    }
+    if (handle == 0L) {
+      printLastError(handle);
       return handle;
     }
+    logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
+        + tsfdata.tsf_has_recalibrated_state(handle));
+    return handle;
   }
 
 
@@ -366,7 +367,7 @@ public class TSFUtils {
    */
   private boolean printLastError(long errorCode) {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
-      byte[] errorBuffer = new byte[64];
+      byte[] errorBuffer = new byte[256];
       long len = tsfdata.tsf_get_last_error_string(errorBuffer, errorBuffer.length);
       final String errorMessage = new String(errorBuffer, StandardCharsets.UTF_8);
       logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
@@ -409,11 +410,13 @@ public class TSFUtils {
       }
     }
 
-    // add a last 0
-    profileDeletedZeroMzs[numValues] = mzs[mzs.length - 1];
-    profileDeletedZeroIntensities[numValues] = 0d;
-    numValues++;
-    outNumValues.set(numValues);
+    if (numValues > 0) {
+      // add a last 0
+      profileDeletedZeroMzs[numValues] = mzs[mzs.length - 1];
+      profileDeletedZeroIntensities[numValues] = 0d;
+      numValues++;
+      outNumValues.set(numValues);
+    }
 
     double[][] filtered = new double[2][];
     filtered[0] = profileDeletedZeroMzs;

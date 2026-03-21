@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,10 @@
 package io.github.mzmine.javafx.properties;
 
 import java.util.Arrays;
+import java.util.List;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -65,7 +68,10 @@ public class PropertyUtils {
   public static Subscription onChangeDelayedSubscription(Runnable operation, Duration delay,
       final ObservableValue<?>... triggers) {
     PauseTransition pause = new PauseTransition(delay);
-    pause.setOnFinished(_ -> operation.run());
+    // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
+//    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
+    // use Platform.runLater directly and not FxThread. Platform does extra checks
+    pause.setOnFinished(_ -> Platform.runLater(operation));
     return onChangeSubscription(pause::playFromStart, triggers);
   }
 
@@ -97,6 +103,16 @@ public class PropertyUtils {
     observableList.addListener((ListChangeListener) change -> {
       operation.run();
     });
+  }
+
+  /**
+   * Unidirectional binding by derived mapped property.
+   *
+   * @param <T> elements of list and binding
+   * @return create a new ObservableValue for the first element in a list
+   */
+  public static <T> ObservableValue<T> firstElementProperty(ObjectProperty<List<T>> listProp) {
+    return listProp.map(list -> list == null || list.isEmpty() ? null : list.getFirst());
   }
 
 }

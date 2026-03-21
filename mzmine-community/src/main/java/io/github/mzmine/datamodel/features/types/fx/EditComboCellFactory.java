@@ -75,12 +75,14 @@ public class EditComboCellFactory implements
 
       Label textValue = new Label();
       VBox textWrapper = new VBox(textValue);
+
       {
         textValue.setWrapText(true);
         textWrapper.setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
         textWrapper.setPrefHeight(USE_COMPUTED_SIZE);
         textWrapper.setAlignment(Pos.CENTER);
         setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+        setWrapText(true);
       }
 
       @Override
@@ -104,6 +106,9 @@ public class EditComboCellFactory implements
 
       @Override
       public void commitEdit(Object newValue) {
+        // sometimes this method seems to be called with a wrapped value
+        // (ArrayList with the selected value). Did not find a way to resolve this here or before,
+        // so this is handled in DataType#createStandardColumn
         super.commitEdit(newValue);
       }
 
@@ -133,9 +138,9 @@ public class EditComboCellFactory implements
             }
           }
 
+          getTableColumn().setPrefWidth(type.getPrefColumnWidth());
           if (type instanceof GraphicalColumType graphType) {
             Node node = graphType.getCellNode(this, param, type, list, raw);
-            getTableColumn().setMinWidth(graphType.getColumnWidth());
             setGraphic(node);
             setText(null);
             setTooltip(new Tooltip(type.getFormattedStringCheckType(list)));
@@ -143,8 +148,8 @@ public class EditComboCellFactory implements
             String formatted = type.getFormattedStringCheckType(list);
             textValue.setText(formatted);
             setTooltip(new Tooltip(formatted));
-            setText(null);
-            setGraphic(textWrapper);
+            setText(formatted);
+            setGraphic(null);
           }
         }
         if (type instanceof NumberFormatType) {
@@ -179,8 +184,8 @@ public class EditComboCellFactory implements
         } else if (value == null) {
           return null;
         } else {
-          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
-                                                  + type.getHeaderString());
+          throw new UnsupportedOperationException(
+              "Unhandled data type in edit combo CellFactory: " + type.getHeaderString());
         }
       }
     };

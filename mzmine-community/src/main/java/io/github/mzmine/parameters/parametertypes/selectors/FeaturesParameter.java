@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,9 +47,10 @@ import org.w3c.dom.NodeList;
  */
 public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesComponent> {
 
+  private static final Logger logger = Logger.getLogger(FeaturesParameter.class.getName());
+
   private String name = "Features";
   private List<Feature> value;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
   public String getName() {

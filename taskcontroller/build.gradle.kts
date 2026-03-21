@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ plugins {
 repositories {
     mavenCentral()
     // local libraries
-    maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
+    maven { url = uri(layout.projectDirectory.dir("../local-repo/")) }
 }
 
 dependencies {

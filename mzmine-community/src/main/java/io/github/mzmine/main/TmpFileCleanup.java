@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.main;
 
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -43,7 +42,7 @@ import org.apache.commons.io.FileUtils;
 
 public class TmpFileCleanup implements Runnable {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(TmpFileCleanup.class.getName());
 
   private final File[] tempDirs;
 
@@ -88,7 +87,8 @@ public class TmpFileCleanup implements Runnable {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
             "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER))
             || name.matches("(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
-            || name.matches("(.)*%s(.)*".formatted(ThermoRawImportTask.THERMO_RAW_PARSER_DIR))) {
+            // old thermo raw file parser was extracted to a folder in old mzmine versions
+            || name.matches("(.)*%s(.)*".formatted("mzmine_thermo_raw_parser"))) {
           return true;
         }
         return false;

@@ -41,8 +41,9 @@ public class DiaFrameMsMsWindowTable extends TDFDataTable<Long> {
   public static final String windowGroupColName = "WindowGroup";
 
   private final TDFDataColumn<Long> windowGroupColumn;
-  private final TDFDataColumn<Long> scanNumBeginColumn;
   private final TDFDataColumn<Long> scanNumEndColumn;
+  // Spectrum range as listed in the bruker table. (scan numbers start at 1 and are end-exclusive)
+  private final TDFDataColumn<Long> scanNumBeginColumn;
   private final TDFDataColumn<Double> isolationMzColumn;
   private final TDFDataColumn<Double> isolationWidthColumn;
   private final TDFDataColumn<Double> collisionEnergyColumn;
@@ -67,8 +68,8 @@ public class DiaFrameMsMsWindowTable extends TDFDataTable<Long> {
 
   @Override
   public boolean executeQuery(Connection connection) {
-    boolean ok =  super.executeQuery(connection);
-    if(ok) {
+    boolean ok = super.executeQuery(connection);
+    if (ok) {
       buildMsMsInfos();
     }
     return ok;
@@ -76,8 +77,10 @@ public class DiaFrameMsMsWindowTable extends TDFDataTable<Long> {
 
   private void buildMsMsInfos() {
     for (int i = 0; i < windowGroupColumn.size(); i++) {
-      final Range<Integer> scanRange = Range.closed(scanNumBeginColumn.get(i).intValue(),
-          scanNumEndColumn.get(i).intValue());
+      // Spectrum range are listed in the bruker table where scan numbers start at 1 and are end-exclusive
+      // hence we need to subtract 1 from the start and 2 from the end, because we deal with incluse ranges and 0 indices
+      final Range<Integer> scanRange = Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
+          scanNumEndColumn.get(i).intValue() - 2);
       final Double mz = isolationMzColumn.get(i);
       final Double width = isolationWidthColumn.get(i);
       final Range<Double> isolationRange = RangeUtils.rangeAround(mz, width);

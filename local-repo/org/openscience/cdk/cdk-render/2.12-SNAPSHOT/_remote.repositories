@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Thu Oct 30 16:48:28 CET 2025
+cdk-render-2.12-SNAPSHOT.jar>=
+cdk-render-2.12-SNAPSHOT.pom>=

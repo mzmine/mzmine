@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,36 +25,36 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.text.NumberFormat;
-import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.title.TextTitle;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
 import javafx.scene.Cursor;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.title.TextTitle;
 
 /**
  *
  */
 class TwoDPlot extends EChartViewer {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(TwoDPlot.class.getName());
 
   // crosshair (selection) color
   private static final Color crossHairColor = Color.gray;
 
   // crosshair stroke
-  private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
+  private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+      BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3}, 0);
 
   private RawDataFile rawDataFile;
   private Range<Double> mzRange;
@@ -145,8 +145,9 @@ class TwoDPlot extends EChartViewer {
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
   }
 
 
@@ -167,8 +168,9 @@ class TwoDPlot extends EChartViewer {
 
   void setFeaturesNotVisible() {
 
-    if (plot.getDataset(1) == null)
+    if (plot.getDataset(1) == null) {
       return;
+    }
     plot.setRenderer(1, null);
   }
 

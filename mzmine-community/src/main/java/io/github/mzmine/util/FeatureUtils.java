@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,10 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
+
 import com.google.common.collect.Range;
+import com.google.common.collect.TreeRangeSet;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -40,7 +43,6 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -60,15 +62,17 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
-import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getTypeValue;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +83,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -169,20 +172,111 @@ public class FeatureUtils {
     return buf.toString();
   }
 
+
   /**
+   * @return a description and example for a stable feature ID
+   */
+  public static @NotNull String rowToFullIdDescription() {
+    return """
+        full row ID is defined by row ID, mz, retention time, ion mobility (if applicable), like:
+        %s""".formatted(rowToFullId(1, 195.0085, 5.45f, 1.5f));
+  }
+
+  /**
+   * A stable ID for a row that incorporates the id, mz, rt, mobility if available and applies a
+   * stable fixed format to each.
+   *
+   * @return a full row ID
+   */
+  public static @NotNull String rowToFullId(FeatureListRow row) {
+    final Integer id = row.getID();
+    final Float rt = row.getAverageRT();
+    final Float mob = row.getAverageMobility();
+    final Double mz = row.getAverageMZ();
+    return rowToFullId(id, mz, rt, mob);
+  }
+
+  /**
+   * A stable ID for a row that incorporates the id, mz, rt, mobility if available and applies a
+   * stable fixed format to each.
+   *
+   * @return a full row ID
+   */
+  private static @NotNull String rowToFullId(int id, @Nullable Double mz, @Nullable Float rt,
+      @Nullable Float mob) {
+    // use stable formats so that ID is stable across versions
+    final NumberFormats formats = ConfigService.getConfiguration().getPreferences()
+        .getStableFormats();
+    final StringBuilder b = new StringBuilder();
+    b.append("row").append(id);
+    if (mz != null) {
+      b.append("_mz").append(formats.mz(mz));
+    }
+    if (rt != null) {
+      b.append("_rt").append(formats.rt(rt));
+    }
+    if (mob != null) {
+      b.append("_mob").append(formats.mobility(mob));
+    }
+    // bad to end with number because row1 also matches row11 by substring but row1_id is unique
+    b.append("_id");
+    return b.toString();
+  }
+
+  /**
+   * Check all {@link FeatureAnnotation} on both rows if they have the same name or same smiles /
+   * inchi/ inchikey
+   * <p>
+   * Previous behavior was:
+   * <p>
    * Compares identities of two feature list rows. 1) if preferred identities are available, they
    * must be same 2) if no identities are available on both rows, return true 3) otherwise all
    * identities on both rows must be same
    *
    * @return True if identities match between rows
    */
-  @Deprecated
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
     if ((row1 == null) || (row2 == null)) {
       return false;
     }
 
+    final List<FeatureAnnotation> matches1 = row1.getAllFeatureAnnotations();
+    final List<FeatureAnnotation> matches2 = row2.getAllFeatureAnnotations();
+
+    if (matches1.isEmpty() && matches2.isEmpty()) {
+      // no annotations available is still true
+      return true;
+    }
+
+    for (FeatureAnnotation match1 : matches1) {
+      // do not use formula or bestNameIdentifier as this contains the formula
+      // this does not fully qualify an ID and isomers usually elute close enough
+      final String name = match1.getCompoundName();
+      final String iupac = match1.getIupacName();
+      final String internalId = match1.getInternalId();
+      final String smiles = match1.getSmiles();
+      final String inChI = match1.getInChI();
+      final String inChIKey = match1.getInChIKey();
+      if (StringUtils.allBlank(name, iupac, internalId, smiles, inChI, inChIKey)) {
+        continue;
+      }
+
+      // if any of the matches metadata matches then return true
+      for (FeatureAnnotation match2 : matches2) {
+        if (StringUtils.equalContentIgnoreCase(name, match2.getCompoundName()) || //
+            StringUtils.equalContentIgnoreCase(iupac, match2.getIupacName()) || //
+            StringUtils.equalContent(smiles, match2.getSmiles()) || //
+            StringUtils.equalContent(inChI, match2.getInChI()) || //
+            StringUtils.equalContent(inChIKey, match2.getInChIKey()) || //
+            StringUtils.equalContent(internalId, match2.getInternalId()) //
+        ) {
+          return true;
+        }
+      }
+    }
+
+    // TODO remove old identity based matches
     // If both have preferred identity available, then compare only those
     FeatureIdentity row1PreferredIdentity = row1.getPreferredFeatureIdentity();
     FeatureIdentity row2PreferredIdentity = row2.getPreferredFeatureIdentity();
@@ -495,8 +589,7 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
-   * {@link ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -769,22 +862,10 @@ public class FeatureUtils {
   }
 
   public static List<IonType> extractAllIonTypes(FeatureListRow row) {
-    final List<IonType> allIonTypes = Arrays.stream(FeatureAnnotationPriority.values())
-        .flatMap(type -> {
-          final Object o = row.get(type.getAnnotationType());
-          if (!(o instanceof List<?> annotations)) {
-            return Stream.empty();
-          }
-          return switch (type) {
-            case MANUAL, LIPID, FORMULA -> Stream.empty();
-            case SPECTRAL_LIBRARY, EXACT_COMPOUND -> {
-              List<FeatureAnnotation> featureAnnotations = (List<FeatureAnnotation>) annotations;
-              yield featureAnnotations.stream().map(FeatureAnnotation::getAdductType);
-            }
-          };
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+    final List<IonType> allIonTypes = CompoundAnnotationUtils.getAllFeatureAnnotations(row).stream()
+        .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).toList();
 
-    if(row.getBestIonIdentity() != null) {
+    if (row.getBestIonIdentity() != null) {
       final IonType ionType = row.getBestIonIdentity().getIonType();
       final List<IonType> combined = new ArrayList<>(allIonTypes);
       combined.add(ionType);
@@ -848,8 +929,8 @@ public class FeatureUtils {
       }
       // try to get from match - but only if match was not defined
       if (match == null) {
-        return CompoundAnnotationUtils.streamFeatureAnnotations(row)
-            .map(FeatureAnnotation::getAdductType).filter(Objects::nonNull).findFirst();
+        return row.streamAllFeatureAnnotations().map(FeatureAnnotation::getAdductType)
+            .filter(Objects::nonNull).findFirst();
       }
     }
     return Optional.empty();
@@ -860,5 +941,22 @@ public class FeatureUtils {
    */
   public static boolean isMrm(@Nullable Feature f) {
     return f instanceof ModularFeature mf && mf.isMrm();
+  }
+
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    final List<IndexRange> ranges = IndexRange.findRanges(
+        rows.stream().map(FeatureListRow::getID).toList());
+    return IndexRange.asString(ranges);
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final TreeRangeSet<Integer> ids = TreeRangeSet.create();
+    final List<IndexRange> ranges = IndexRange.parseRanges(str);
+    for (IndexRange range : ranges) {
+      ids.add(Range.closed(range.min(), range.maxInclusive()));
+    }
+
+    return flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
   }
 }

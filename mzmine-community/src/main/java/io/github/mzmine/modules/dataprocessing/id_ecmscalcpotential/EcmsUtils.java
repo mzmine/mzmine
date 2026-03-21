@@ -64,7 +64,7 @@ public class EcmsUtils {
    * @return The retention time of a given potential in min.
    */
   public static float getRtAtPotential(final double delayTime, final double rampSpeed,
-      final double potential) {
-    return (float) ((float) (delayTime / 60) + (potential / (rampSpeed * 60d)));
+      final double potential, final double startPotential) {
+    return (float) ((float) (delayTime / 60) + ((potential - startPotential) / (rampSpeed * 60d)));
   }
 }

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
@@ -38,6 +39,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.JFreeChart;
 
 public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
     SelectedRowsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
@@ -60,8 +62,8 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
         model.setDataset(null);
         return;
       }
-      model.setDataset(
-          new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
+      model.setDataset(new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(),
+          model.getAbundanceMeasure()));
     });
   }
 
@@ -95,5 +97,9 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
 
   public BooleanProperty showColumnAxisLabelsProperty() {
     return model.showCategoryAxisColumnLabelsProperty();
+  }
+
+  public EChartViewer getChart() {
+    return model.getChart();
   }
 }

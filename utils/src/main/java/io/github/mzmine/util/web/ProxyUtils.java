@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,52 @@
 
 package io.github.mzmine.util.web;
 
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTPS_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_NON_PROXY_HOSTS;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.HTTP_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_HOST;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_PORT;
+import static io.github.mzmine.util.web.ProxySystemVar.SOCKS_SELECTED;
+import static io.github.mzmine.util.web.ProxySystemVar.TYPE;
+
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.proxy.ManualProxyConfig;
+import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import io.mzio.events.EventService;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.URI;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProxyUtils {
 
-  private static boolean allowChanges = true;
+  private static final Logger logger = Logger.getLogger(ProxyUtils.class.getName());
+  private static volatile boolean allowChanges = true;
+
+  @NotNull
+  private static volatile FullProxyConfig currentConfig = FullProxyConfig.create(
+      ProxyConfigOption.STARTUP);
+
+  // keep track of all initial proxy values from the startup
+  private static final String DEFAULT_HTTP_NON_PROXY_HOSTS = HTTP_NON_PROXY_HOSTS.getSystemValue();
+  private static final String DEFAULT_HTTP_HOST = HTTP_HOST.getSystemValue();
+  private static final String DEFAULT_HTTP_PORT = HTTP_PORT.getSystemValue();
+  private static final String DEFAULT_HTTPS_HOST = HTTPS_HOST.getSystemValue();
+  private static final String DEFAULT_HTTPS_PORT = HTTPS_PORT.getSystemValue();
+  private static final String DEFAULT_SOCKS_HOST = SOCKS_HOST.getSystemValue();
+  private static final String DEFAULT_SOCKS_PORT = SOCKS_PORT.getSystemValue();
 
   public static synchronized void setAllowChanges(final boolean allowChanges) {
     ProxyUtils.allowChanges = allowChanges;
@@ -42,110 +80,193 @@ public class ProxyUtils {
     return allowChanges;
   }
 
+
   /**
-   * Remove system properties
+   * Apply config and create {@link EventService} {@link ProxyChangedEvent}
+   *
+   * @param value new config to apply
    */
-  public static synchronized void clearSystemProxy() {
+  public static synchronized void applyConfig(@NotNull FullProxyConfig value) {
     if (!allowChanges) {
       return;
     }
 
-    Proxy old = getSelectedSystemProxy();
-    System.clearProperty("proxyType"); // needed for login service
-    System.clearProperty("http.proxySet");
-    System.clearProperty("http.proxyHost");
-    System.clearProperty("http.proxyPort");
-
-    System.clearProperty("https.proxySet");
-    System.clearProperty("https.proxyHost");
-    System.clearProperty("https.proxyPort");
-
-    if (!Objects.equals(old, Proxy.EMPTY)) {
-      EventService.post(new ProxyChangedEvent(Proxy.EMPTY));
+    if (Objects.equals(currentConfig, value)) {
+      return;
     }
+
+    if (value.option() == ProxyConfigOption.MANUAL_PROXY) {
+      final ManualProxyConfig m = value.manualConfig();
+      logger.info("Applying proxy config: %s; Manual is: %s".formatted(value.option().toString(),
+          m.toString()));
+    } else {
+      logger.info("Applying proxy config: %s".formatted(value.option().toString()));
+    }
+
+    switch (value.option()) {
+      // use system defaults and only use selector for those that are missing
+      case SYSTEM -> applySystemDefaults(SynchronizeProxySelectorOptions.IF_SYSTEM_PROP_MISSING);
+      // use system defaults and force selector even if default is not missing
+      case AUTO_PROXY -> applySystemDefaults(SynchronizeProxySelectorOptions.ALWAYS);
+      case STARTUP -> applySystemDefaults(SynchronizeProxySelectorOptions.NEVER);
+      case NO_PROXY -> clearSystemProxy();
+      case MANUAL_PROXY -> applyManualProxyConfig(value.manualConfig());
+    }
+
+    // send event that proxy has changed
+    currentConfig = value;
+    EventService.post(new ProxyChangedEvent(value, getSelectedSystemProxy()));
   }
 
-  /**
-   * Setting system properties to use proxy. Fires {@link ProxyChangedEvent} in {@link EventService}
-   * if proxy changed
-   *
-   * @param address   proxy address prefix of http:// or https:// will be removed
-   * @param port      proxy port
-   * @param proxyType proxy type
-   * @return proxy object with the final address
-   */
-  @NotNull
-  public static synchronized Proxy setSystemProxy(String address, String port,
-      ProxyType proxyType) {
-    return setSystemProxy(new Proxy(true, address, port, proxyType));
-  }
 
-  /**
-   * Setting system properties to use proxy. Fires {@link ProxyChangedEvent} in {@link EventService}
-   * if proxy changed
-   *
-   * @return proxy object with the final address
-   */
-  @NotNull
-  public static synchronized Proxy setSystemProxy(Proxy proxy) {
+  private static synchronized void clearSystemProxy() {
     if (!allowChanges) {
-      return getSystemProxy(proxy.type());
+      return;
     }
 
-    if (!proxy.active()) {
-      clearSystemProxy();
-      return Proxy.EMPTY;
+    for (ProxySystemVar sysVar : ProxySystemVar.values()) {
+      sysVar.setSystemValue(null);
     }
-    // if any is null active == false
-    assert proxy.address() != null;
-    assert proxy.port() != null;
-    assert proxy.type() != null;
 
-    Proxy old = getSelectedSystemProxy();
+    logger.info("Proxy system properties cleared");
+  }
 
-    System.setProperty("http.proxySet", "true");
-    System.setProperty("http.proxyHost", proxy.address());
-    System.setProperty("http.proxyPort", proxy.port());
-    System.setProperty("https.proxySet", "true");
-    System.setProperty("https.proxyHost", proxy.address());
-    System.setProperty("https.proxyPort", proxy.port());
-    System.setProperty("proxyType", proxy.type().toString()); // needed for login service
+  /**
+   * Synchronizes system properties with the default ProxySelector for a given URI. This allows
+   * JavaFX WebView to use the same proxy as other Java HTTP clients.
+   *
+   * @param uri The URI to determine proxy settings for
+   * @return true if proxy was configured, false otherwise
+   */
+  private static boolean syncProxySelectorToSystemProperties(String uri) {
+    ProxySelector proxySelector = ProxySelector.getDefault();
+    return syncProxySelectorToSystemProperties(uri, proxySelector);
+  }
 
-    if (!Objects.equals(old, proxy)) {
-      EventService.post(new ProxyChangedEvent(proxy));
+  /**
+   * Synchronizes system properties with the default ProxySelector for a given URI. This allows
+   * JavaFX WebView to use the same proxy as other Java HTTP clients.
+   *
+   * @param uri           The URI to determine proxy settings for
+   * @param proxySelector the selector to use
+   * @return true if proxy was configured, false otherwise
+   */
+  private static boolean syncProxySelectorToSystemProperties(String uri,
+      @Nullable ProxySelector proxySelector) {
+    if (proxySelector == null) {
+      return false;
     }
-    return proxy;
+
+    try {
+      List<Proxy> proxies = proxySelector.select(URI.create(uri));
+
+      if (proxies == null || proxies.isEmpty()) {
+        clearSystemProxy();
+        return false;
+      }
+
+      // Use the first proxy in the list
+      Proxy proxy = proxies.getFirst();
+
+      if (proxy.type() == Proxy.Type.DIRECT) {
+        // No proxy needed
+        logger.info("Proxy selector found a direct proxy. clearing Proxies now.");
+        clearSystemProxy();
+        return false;
+      }
+
+      if (proxy.address() instanceof InetSocketAddress socketAddress) {
+        String host = socketAddress.getHostString();
+        int port = socketAddress.getPort();
+
+        switch (proxy.type()) {
+          case HTTP -> {
+            HTTP_HOST.setSystemValue(host);
+            HTTP_PORT.setSystemValue(Integer.toString(port));
+            HTTPS_HOST.setSystemValue(host);
+            HTTPS_PORT.setSystemValue(Integer.toString(port));
+            logger.info("HTTP/HTTPS proxy configured: " + host + ":" + port);
+          }
+          case SOCKS -> {
+            SOCKS_HOST.setSystemValue(host);
+            SOCKS_PORT.setSystemValue(Integer.toString(port));
+            logger.info("SOCKS proxy configured: " + host + ":" + port);
+          }
+          default -> {
+            logger.warning("Unsupported proxy type: " + proxy.type());
+            return false;
+          }
+        }
+        return true;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to sync ProxySelector to system properties", e);
+    }
+
+    return false;
+  }
+
+  /**
+   * Configures non-proxy hosts from system property
+   */
+  public static void configureNonProxyHosts(@Nullable List<String> hosts) {
+    if (hosts == null || hosts.isEmpty()) {
+      HTTP_NON_PROXY_HOSTS.setSystemValue(null);
+      return;
+    }
+
+    String nonProxyHosts = String.join("|", hosts);
+    HTTP_NON_PROXY_HOSTS.setSystemValue(nonProxyHosts);
+    logger.info("Non-proxy hosts configured: " + nonProxyHosts);
+  }
+
+  /**
+   * Setting system properties to use proxy. Fires {@link ProxyChangedEvent} in {@link EventService}
+   * if proxy changed
+   *
+   * @return proxy object with the final address
+   */
+  @NotNull
+  public static synchronized ProxyDefinition setManualProxy(ProxyDefinition proxy) {
+    applyConfig(new FullProxyConfig(ProxyConfigOption.MANUAL_PROXY, new ManualProxyConfig(proxy)));
+    return getSelectedSystemProxy();
+  }
+
+  /**
+   * This is only for manually selected proxy and sets the type and selected
+   *
+   */
+  private static void setManuallySelected(@NotNull ProxyType type) {
+    HTTP_SELECTED.setSystemValue(null);
+    HTTPS_SELECTED.setSystemValue(null);
+    SOCKS_SELECTED.setSystemValue(null);
+    type.getSelectedKey().setSystemValue("true");
+    TYPE.setSystemValue(type.name()); // setting the name of type to type system var
   }
 
   /**
    * The proxy of a specific type
    */
   @NotNull
-  public static synchronized Proxy getSelectedSystemProxy() {
-    String type = System.getProperty("proxyType");
-    if (type == null) {
-      return Proxy.EMPTY;
+  public static synchronized ProxyDefinition getSelectedSystemProxy() {
+    // type is only set for manual proxy selection
+    if (currentConfig != null && currentConfig.option() == ProxyConfigOption.MANUAL_PROXY) {
+      final ProxyType type = currentConfig.manualConfig().type();
+      final ProxyDefinition def = type.createSystemProxyDefinition().orElse(null);
+      if (def != null) {
+        return def;
+      }
     }
-    try {
-      return getSystemProxy(ProxyType.parse(type));
-    } catch (Exception ex) {
-      return Proxy.EMPTY;
-    }
-  }
 
-  /**
-   * The proxy of a specific type
-   */
-  @NotNull
-  public static synchronized Proxy getSystemProxy(ProxyType type) {
-    boolean active = "true".equals(System.getProperty(type + ".proxySet"));
-    String address = System.getProperty(type + ".proxyHost");
-    String port = System.getProperty(type + ".proxyPort");
-    try {
-      return new Proxy(active, address, port, type);
-    } catch (Exception exception) {
-      return Proxy.EMPTY;
+    // then just find the first that is set
+    for (ProxyType pt : ProxyType.values()) {
+      final Optional<ProxyDefinition> def = pt.createSystemProxyDefinition();
+      if (def.isPresent()) {
+        return def.get();
+      }
     }
+
+    return ProxyDefinition.EMPTY;
   }
 
   /**
@@ -153,18 +274,11 @@ public class ProxyUtils {
    * @return the now set proxy
    */
   @NotNull
-  public static synchronized Proxy setSystemProxy(final String fullProxy)
+  public static synchronized ProxyDefinition setManualProxy(final String fullProxy)
       throws InputMismatchException {
-    var portIndex = fullProxy.lastIndexOf(":");
-    if (portIndex == -1) {
-      throw new InputMismatchException(
-          "Full proxy format did not contain a port. Define proxy like http://myproxy:port");
-    }
-    String port = fullProxy.substring(portIndex + 1);
-    String address = fullProxy.substring(0, portIndex);
-
-    var proxy = new Proxy(true, address, port);
-    return setSystemProxy(proxy);
+    applyConfig(
+        new FullProxyConfig(ProxyConfigOption.MANUAL_PROXY, new ManualProxyConfig(fullProxy)));
+    return getSelectedSystemProxy();
   }
 
   /**
@@ -175,11 +289,91 @@ public class ProxyUtils {
    * @return the now set proxy
    */
   @NotNull
-  public static synchronized Proxy setSystemProxyAndBlockLaterChanges(final String fullProxy)
-      throws InputMismatchException {
-    setAllowChanges(true);
-    var proxy = setSystemProxy(fullProxy);
+  public static synchronized ProxyDefinition setSystemProxyAndBlockLaterChanges(
+      final String fullProxy) throws InputMismatchException {
+    if (!allowChanges) {
+      throw new IllegalStateException(
+          "Cannot set proxy twice with this method as it was already disabled");
+    }
+    var proxy = setManualProxy(fullProxy);
     setAllowChanges(false);
     return proxy;
+  }
+
+  private static void applyManualProxyConfig(@NotNull ManualProxyConfig proxy) {
+    if (!allowChanges) {
+      return;
+    }
+
+    // do not trigger change event
+    clearSystemProxy();
+    configureNonProxyHosts(proxy.nonProxyHosts());
+
+    final boolean hasAddress = !proxy.host().isBlank();
+    if (hasAddress) {
+      setManuallySelected(proxy.type());
+    }
+
+    // if HTTP selected then also set HTTPS and flipped
+    switch (proxy.type()) {
+      case HTTP, HTTPS -> {
+        HTTP_HOST.setSystemValue(proxy.host());
+        HTTP_PORT.setSystemValue(proxy.portString());
+        HTTPS_HOST.setSystemValue(proxy.host());
+        HTTPS_PORT.setSystemValue(proxy.portString());
+      }
+      case SOCKS -> {
+        SOCKS_HOST.setSystemValue(proxy.host());
+        SOCKS_PORT.setSystemValue(proxy.portString());
+      }
+    }
+  }
+
+  /**
+   * Applies system defaults from startup of JVM or if those are empty tries to find the proxy with
+   * {@link ProxySelector#getDefault()} by checking https://auth.mzio.io/.
+   */
+  private static void applySystemDefaults(SynchronizeProxySelectorOptions synchronize) {
+    if (!allowChanges) {
+      return;
+    }
+
+    // clear fields that are only for manual selection
+    TYPE.setSystemValue(null);
+    HTTP_SELECTED.setSystemValue(null);
+    HTTPS_SELECTED.setSystemValue(null);
+    SOCKS_SELECTED.setSystemValue(null);
+
+    // set to system defaults and see if HTTP or HTTPS is found
+    boolean anyHttpHostDefined = //
+        HTTP_HOST.setSystemValue(DEFAULT_HTTP_HOST) || //
+            HTTPS_HOST.setSystemValue(DEFAULT_HTTPS_HOST);
+
+    HTTP_NON_PROXY_HOSTS.setSystemValue(DEFAULT_HTTP_NON_PROXY_HOSTS);
+    HTTP_PORT.setSystemValue(DEFAULT_HTTP_PORT);
+
+    HTTPS_PORT.setSystemValue(DEFAULT_HTTPS_PORT);
+
+    SOCKS_HOST.setSystemValue(DEFAULT_SOCKS_HOST);
+    SOCKS_PORT.setSystemValue(DEFAULT_SOCKS_PORT);
+
+    logger.info("Proxy settings restored to system defaults");
+
+    if (synchronize == SynchronizeProxySelectorOptions.ALWAYS || (!anyHttpHostDefined
+        && synchronize == SynchronizeProxySelectorOptions.IF_SYSTEM_PROP_MISSING)) {
+      final ProxySelector selector = ProxySelector.getDefault();
+      if (selector != null) {
+        syncProxySelectorToSystemProperties("https://auth.mzio.io/", selector);
+      }
+    }
+  }
+
+  /**
+   *
+   * @return only null on startup but should be notnull after
+   */
+  @NotNull
+  public static FullProxyConfig getConfig() {
+    return currentConfig;
   }
 }

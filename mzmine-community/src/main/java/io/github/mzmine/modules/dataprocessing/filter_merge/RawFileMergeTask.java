@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,11 +52,10 @@ import org.jetbrains.annotations.Nullable;
  * MS2
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 class RawFileMergeTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(RawFileMergeTask.class.getName());
 
   private double perc = 0;
   private ParameterSet parameters;
@@ -76,8 +75,9 @@ class RawFileMergeTask extends AbstractTask {
     useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
     ms2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getEmbeddedParameter()
         .getValue();
-    if (ms2Marker.isEmpty())
+    if (ms2Marker.isEmpty()) {
       useMS2Marker = false;
+    }
   }
 
   @Override
@@ -112,8 +112,9 @@ class RawFileMergeTask extends AbstractTask {
         boolean isMS2Only = useMS2Marker && r.getName().contains(ms2Marker);
         ObservableList<Scan> snarray = r.getScans();
         for (Scan scan : snarray) {
-          if (isCanceled())
+          if (isCanceled()) {
             return;
+          }
 
           if (!isMS2Only || scan.getMSLevel() > 1) {
             scans.add(scan);
@@ -130,8 +131,9 @@ class RawFileMergeTask extends AbstractTask {
 
       int i = 0;
       for (Scan scan : scans) {
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
         // copy, reset scan number
         SimpleScan scanCopy = new SimpleScan(newFile, scan, scan.getMzValues(new double[0]),
             scan.getIntensityValues(new double[0]));
@@ -144,13 +146,15 @@ class RawFileMergeTask extends AbstractTask {
       for (FeatureListAppliedMethod appliedMethod : raw[0].getAppliedMethods()) {
         newFile.getAppliedMethods().add(appliedMethod);
       }
-      newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          RawFileMergeModule.class, parameters, getModuleCallDate()));
+      newFile.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(RawFileMergeModule.class, parameters,
+              getModuleCallDate()));
 
       project.addFile(newFile);
 
-      if (getStatus() == TaskStatus.PROCESSING)
+      if (getStatus() == TaskStatus.PROCESSING) {
         setStatus(TaskStatus.FINISHED);
+      }
     } catch (IOException e) {
       throw new MSDKRuntimeException(e);
     }

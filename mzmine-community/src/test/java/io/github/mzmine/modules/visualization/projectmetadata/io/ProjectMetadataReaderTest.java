@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,27 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import testutils.MZmineTestUtil;
@@ -56,6 +66,72 @@ class ProjectMetadataReaderTest {
   }
 
   @Test
+  void readWithTypeMismatch() {
+    // should read all as string as number and date also contains a string
+    ProjectMetadataReader reader = new ProjectMetadataReader(false, true);
+    File file = new File(
+        getClass().getClassLoader().getResource("metadata/metadata_wide_type_mismatch.tsv")
+            .getFile());
+
+    final MetadataTable table = reader.readFile(file);
+    for (MetadataColumn<?> column : table.getColumns()) {
+      if (column.getTitle().equals("date2")) {
+        assertInstanceOf(DateMetadataColumn.class, column);
+      } else {
+        assertInstanceOf(StringMetadataColumn.class, column);
+      }
+    }
+    // Filename	ATTRIBUTE_Group	ATTRIBUTE_NumberCol	ATTRIBUTE_Group2	run_date	sample_id	date2
+    //a.mzML	A	12	A	2021-08-31T15:33:15	A	20240125
+    //b.mzML	A	0.5	B	NODATE	20241005	2025-10-30
+    //c.mzML	c	NONUMBER	B	2021-08-31T19:23:46	1	30-12-2020
+    assertEquals("A", table.getValue(table.getColumnByName("sample_id"), rawA));
+    assertEquals("20241005", table.getValue(table.getColumnByName("sample_id"), rawB));
+    assertEquals("1", table.getValue(table.getColumnByName("sample_id"), rawC));
+
+    assertEquals("2021-08-31T15:33:15", table.getValue(table.getColumnByName("run_date"), rawA));
+    assertEquals("NODATE", table.getValue(table.getColumnByName("run_date"), rawB));
+    assertEquals("2021-08-31T19:23:46", table.getValue(table.getColumnByName("run_date"), rawC));
+
+    assertEquals("12", table.getValue(table.getColumnByName("NumberCol"), rawA));
+    assertEquals("0.5", table.getValue(table.getColumnByName("NumberCol"), rawB));
+    assertEquals("NONUMBER", table.getValue(table.getColumnByName("NumberCol"), rawC));
+
+    assertEquals(DateTimeUtils.parse("2024-01-25"),
+        table.getValue(table.getColumnByName("date2"), rawA));
+    assertEquals(DateTimeUtils.parse("2025-10-30"),
+        table.getValue(table.getColumnByName("date2"), rawB));
+    assertNull(table.getValue(table.getColumnByName("date2"), rawC));
+  }
+
+  @Test
+  void testStringColumn() {
+    final StringMetadataColumn col = new StringMetadataColumn("test");
+    assertEquals("", col.convertOrThrow(""));
+    assertEquals("", col.convertOrThrow(" "));
+    assertEquals("", col.convertOrThrow("\t"));
+    assertEquals("A", col.convertOrThrow("\tA"));
+  }
+
+  @Test
+  void testDateColumn() {
+    final DateMetadataColumn col = new DateMetadataColumn("test");
+    assertNull(col.convertOrThrow(""));
+    assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("A"));
+    assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("2025-10"));
+    assertThrows(IllegalArgumentException.class, () -> col.convertOrThrow("1025451"));
+  }
+
+  @Test
+  void testNumberColumn() {
+    final DoubleMetadataColumn col = new DoubleMetadataColumn("test");
+    assertNull(col.convertOrThrow(""));
+    assertThrows(NumberFormatException.class, () -> col.convertOrThrow("A"));
+    assertThrows(NumberFormatException.class, () -> col.convertOrThrow("2025-10-15"));
+    assertThrows(NumberFormatException.class, () -> col.convertOrThrow("2025-10"));
+  }
+
+  @Test
   void readFileRemoveAttributePrefix() {
     ProjectMetadataReader reader = new ProjectMetadataReader(false, true);
 
@@ -64,26 +140,26 @@ class ProjectMetadataReaderTest {
       File file = new File(getClass().getClassLoader().getResource(f).getFile());
 
       MetadataTable meta = reader.readFile(file);
-      Assertions.assertNotNull(meta);
-      Assertions.assertTrue(reader.getErrors().isEmpty());
+      assertNotNull(meta);
+      assertTrue(reader.getErrors().isEmpty());
 
       var group2Col = (MetadataColumn<String>) meta.getColumnByName("Group2");
-      Assertions.assertNotNull(group2Col);
+      assertNotNull(group2Col);
 
       final Map<String, List<RawDataFile>> groupedCol2Files = meta.groupFilesByColumn(group2Col);
-      Assertions.assertEquals(2, groupedCol2Files.size());
-      Assertions.assertEquals(1, groupedCol2Files.get("A").size());
-      Assertions.assertEquals(2, groupedCol2Files.get("B").size());
+      assertEquals(2, groupedCol2Files.size());
+      assertEquals(1, groupedCol2Files.get("A").size());
+      assertEquals(2, groupedCol2Files.get("B").size());
 
       var numCol = (MetadataColumn<Double>) meta.getColumnByName("NumberCol");
       final Map<Double, List<RawDataFile>> groupedNumberColFiles = meta.groupFilesByColumn(numCol);
-      Assertions.assertEquals(2, groupedNumberColFiles.size());
-      Assertions.assertEquals(1, groupedNumberColFiles.get(12d).size());
-      Assertions.assertEquals(1, groupedNumberColFiles.get(0.5).size());
+      assertEquals(2, groupedNumberColFiles.size());
+      assertEquals(1, groupedNumberColFiles.get(12d).size());
+      assertEquals(1, groupedNumberColFiles.get(0.5).size());
 
-      Assertions.assertTrue(
+      assertTrue(
           new HashSet<>(meta.getDistinctColumnValues(numCol)).containsAll(List.of(0.5d, 12d)));
-      Assertions.assertTrue(
+      assertTrue(
           new HashSet<>(meta.getDistinctColumnValues(group2Col)).containsAll(List.of("A", "B")));
     }
   }
@@ -97,26 +173,26 @@ class ProjectMetadataReaderTest {
       File file = new File(getClass().getClassLoader().getResource(f).getFile());
 
       MetadataTable meta = reader.readFile(file);
-      Assertions.assertNotNull(meta);
-      Assertions.assertTrue(reader.getErrors().isEmpty());
+      assertNotNull(meta);
+      assertTrue(reader.getErrors().isEmpty());
 
       var group2Col = (MetadataColumn<String>) meta.getColumnByName("ATTRIBUTE_Group2");
-      Assertions.assertNotNull(group2Col);
+      assertNotNull(group2Col);
 
       final Map<String, List<RawDataFile>> groupedCol2Files = meta.groupFilesByColumn(group2Col);
-      Assertions.assertEquals(2, groupedCol2Files.size());
-      Assertions.assertEquals(1, groupedCol2Files.get("A").size());
-      Assertions.assertEquals(2, groupedCol2Files.get("B").size());
+      assertEquals(2, groupedCol2Files.size());
+      assertEquals(1, groupedCol2Files.get("A").size());
+      assertEquals(2, groupedCol2Files.get("B").size());
 
       var numCol = (MetadataColumn<Double>) meta.getColumnByName("ATTRIBUTE_NumberCol");
       final Map<Double, List<RawDataFile>> groupedNumberColFiles = meta.groupFilesByColumn(numCol);
-      Assertions.assertEquals(2, groupedNumberColFiles.size());
-      Assertions.assertEquals(1, groupedNumberColFiles.get(12d).size());
-      Assertions.assertEquals(1, groupedNumberColFiles.get(0.5).size());
+      assertEquals(2, groupedNumberColFiles.size());
+      assertEquals(1, groupedNumberColFiles.get(12d).size());
+      assertEquals(1, groupedNumberColFiles.get(0.5).size());
 
-      Assertions.assertTrue(
+      assertTrue(
           new HashSet<>(meta.getDistinctColumnValues(numCol)).containsAll(List.of(0.5d, 12d)));
-      Assertions.assertTrue(
+      assertTrue(
           new HashSet<>(meta.getDistinctColumnValues(group2Col)).containsAll(List.of("A", "B")));
     }
   }
@@ -128,13 +204,13 @@ class ProjectMetadataReaderTest {
         .getResource("metadata/metadata_wide_defined_numberparse_exception.tsv").getFile());
     ProjectMetadataReader reader = new ProjectMetadataReader(true, true);
     var meta = reader.readFile(file);
-    Assertions.assertNotNull(meta);
-    Assertions.assertEquals(1, reader.getErrors().size()); // warning on wrong column
+    assertNotNull(meta);
+    assertEquals(1, reader.getErrors().size()); // warning on wrong column
 
     reader = new ProjectMetadataReader(false, true);
     meta = reader.readFile(file);
-    Assertions.assertNull(meta); // should be null
-    Assertions.assertEquals(1, reader.getErrors().size()); // warning on wrong column
+    assertNull(meta); // should be null
+    assertEquals(1, reader.getErrors().size()); // warning on wrong column
   }
 
   @Test
@@ -144,7 +220,7 @@ class ProjectMetadataReaderTest {
             .getFile());
     var reader = new ProjectMetadataReader(false, true);
     var meta = reader.readFile(file);
-    Assertions.assertNotNull(meta);
-    Assertions.assertEquals(0, reader.getErrors().size()); // warning on wrong column
+    assertNotNull(meta);
+    assertEquals(0, reader.getErrors().size()); // warning on wrong column
   }
 }

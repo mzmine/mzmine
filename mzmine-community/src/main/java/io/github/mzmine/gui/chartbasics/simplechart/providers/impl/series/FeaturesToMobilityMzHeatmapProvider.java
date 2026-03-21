@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements PlotXYZDataProvider 
   private final List<ModularFeature> features;
   private double boxWidth;
   private double boxHeight;
+  private boolean isComputed;
 
   public FeaturesToMobilityMzHeatmapProvider(@NotNull final List<ModularFeature> f) {
     features = f;
@@ -147,6 +148,14 @@ public class FeaturesToMobilityMzHeatmapProvider implements PlotXYZDataProvider 
           ((IMSRawDataFile) features.get(0).getRawDataFile()).getFrame(0)) * 3;
     }
 
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

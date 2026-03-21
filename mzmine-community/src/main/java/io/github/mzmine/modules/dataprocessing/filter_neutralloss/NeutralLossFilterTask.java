@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,8 +63,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  */
 public class NeutralLossFilterTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(NeutralLossFilterTask.class.getName());
   IIsotope[] el;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
   private double minRating;
   private String suffix;
@@ -181,7 +181,7 @@ public class NeutralLossFilterTask extends AbstractTask {
         suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
       } else {
         suffix = " NL (" + molecule + "): " + dMassLoss + " RTtol: " + rtTolerance.getTolerance()
-                 + "_results";
+            + "_results";
       }
     }
 
@@ -208,8 +208,8 @@ public class NeutralLossFilterTask extends AbstractTask {
       // now get all peaks that lie within RT and maxIsotopeMassRange:
       // pL[index].mz ->
       // pL[index].mz+maxMass
-      ArrayList<FeatureListRow> groupedPeaks =
-          groupPeaks(rows, i, diff.get(diff.size() - 1).doubleValue());
+      ArrayList<FeatureListRow> groupedPeaks = groupPeaks(rows, i,
+          diff.get(diff.size() - 1).doubleValue());
 
       if (groupedPeaks.size() < 2) {
         finishedRows++;
@@ -281,8 +281,9 @@ public class NeutralLossFilterTask extends AbstractTask {
           // isotope number
           // l represents the number of results in resultBuffer[k]
 
-          candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l),
-              diff.get(k), minRating);
+          candidates.get(k)
+              .checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k),
+                  minRating);
         }
       }
 
@@ -339,11 +340,9 @@ public class NeutralLossFilterTask extends AbstractTask {
         comParent += ("[--IS PARENT-- child ID: " + child.getID() + " ] | ");
         addComment(parent, comParent);
 
-        addComment(child,
-            " m/z shift(ppm): "
-            + round(((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1))
-                    / parent.getAverageMZ() * 1E6, 2)
-            + " ");
+        addComment(child, " m/z shift(ppm): " + round(
+            ((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1)) / parent.getAverageMZ()
+                * 1E6, 2) + " ");
 
         rowBuffer.add(parent);
       }
@@ -434,8 +433,8 @@ public class NeutralLossFilterTask extends AbstractTask {
         continue;
       }
 
-      if (pL[i].getAverageMZ() > mz
-          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance())) {
+      if (pL[i].getAverageMZ() > mz && pL[i].getAverageMZ() <= (mz + maxDiff
+          + mzTolerance.getMzTolerance())) {
         buf.add(pL[i]);
       }
 
@@ -463,8 +462,8 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("NeutralLossFilter",
-            NeutralLossFilterModule.class, parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod("NeutralLossFilter", NeutralLossFilterModule.class,
+            parameters, getModuleCallDate()));
   }
 
   /**
@@ -477,9 +476,8 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @return null if no peak with the given parameters exists, the specified feature list row
    * otherwise.
    */
-  private @Nullable
-  ModularFeatureListRow getRowFromCandidate(@NotNull Candidates candidates, int peakIndex,
-      @NotNull PeakListHandler plh) {
+  private @Nullable ModularFeatureListRow getRowFromCandidate(@NotNull Candidates candidates,
+      int peakIndex, @NotNull PeakListHandler plh) {
 
     if (peakIndex >= candidates.size()) {
       return null;

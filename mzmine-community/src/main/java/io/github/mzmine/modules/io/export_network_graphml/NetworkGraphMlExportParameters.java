@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.io.export_network_graphml;
 
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
 
 public class NetworkGraphMlExportParameters extends SimpleParameterSet {
 
@@ -46,9 +48,12 @@ public class NetworkGraphMlExportParameters extends SimpleParameterSet {
                   + "(i.e. \"blah{}blah.graphml\" would become \"blahSourceFeatureListNameblah.graphml\"). "
                   + "If the file already exists, it will be overwritten.", extensions, "networks");
 
-
   public NetworkGraphMlExportParameters() {
     super(featureLists, filename);
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

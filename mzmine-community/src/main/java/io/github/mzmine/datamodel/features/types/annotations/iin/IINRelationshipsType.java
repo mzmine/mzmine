@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import java.util.List;
 import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
@@ -57,4 +59,11 @@ public class IINRelationshipsType extends
     return "iin_relationship";
   }
 
+  @Override
+  public double getPrefColumnWidth() {
+    // define to speed up table open - otherwise calculation of width takes long
+    // if too many types are undefined
+    return TextLabelMeasurementUtil.measureWidth(
+        getHeaderString() + TableColumns.EXTRA_WIDTH_MARGIN);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -60,6 +59,7 @@ public class OtherTraceSelectionComponent extends VBox implements
   private final StringProperty rangeUnitFilter = new SimpleStringProperty();
   private final StringProperty rangeLabelFilter = new SimpleStringProperty();
   private final StringProperty descriptionFilter = new SimpleStringProperty();
+  private final StringProperty nameFilter = new SimpleStringProperty();
   private final ObjectProperty<OtherRawOrProcessed> rawOrProcessed = new SimpleObjectProperty<>(
       OtherRawOrProcessed.RAW);
 
@@ -101,11 +101,16 @@ public class OtherTraceSelectionComponent extends VBox implements
     grid.add(FxLabels.newLabel("Description filter: "), 0, 3);
     grid.add(descriptionFilterField, 1, 3);
 
+    final TextField nameFilterField = FxTextFields.newTextField(20, nameFilter, "name filter",
+        "Set an optional name filter using a wildcard '*' to match anything. (e.g. \"*Sig=220*\")");
+    grid.add(FxLabels.newLabel("Name filter: "), 0, 4);
+    grid.add(nameFilterField, 1, 4);
+
     final ComboBox<OtherRawOrProcessed> rawOrProcessedCombo = FxComboBox.createComboBox(
         "Select the type of chromatograms you want to process.", otherRawOrProcessedChoices,
         this.rawOrProcessed);
-    grid.add(FxLabels.newLabel("Trace type:"), 0, 4);
-    grid.add(rawOrProcessedCombo, 1, 4);
+    grid.add(FxLabels.newLabel("Trace type:"), 0, 5);
+    grid.add(rawOrProcessedCombo, 1, 5);
 
     grid.getColumnConstraints().add(new ColumnConstraints(120));
     grid.getColumnConstraints().add(
@@ -113,17 +118,19 @@ public class OtherTraceSelectionComponent extends VBox implements
             true));
 
     value.bind(Bindings.createObjectBinding(this::createValue, chromType, rangeLabelFilter,
-        rangeUnitFilter, descriptionFilter, rawOrProcessed));
+        rangeUnitFilter, descriptionFilter, nameFilter, rawOrProcessed));
   }
 
   private OtherTraceSelection createValue() {
     final ChromatogramType chrom = chromType.get().toChromatogramType();
     final String uf = StringUtils.isBlank(rangeUnitFilter.get()) ? null : rangeUnitFilter.get();
     final String lf = StringUtils.isBlank(rangeLabelFilter.get()) ? null : rangeLabelFilter.get();
-    final String desc = StringUtils.isBlank(rangeLabelFilter.get()) ? null : rangeLabelFilter.get();
+    final String desc =
+        StringUtils.isBlank(descriptionFilter.get()) ? null : descriptionFilter.get();
+    final String name = StringUtils.isBlank(nameFilter.get()) ? null : nameFilter.get();
     final OtherRawOrProcessed raw = rawOrProcessed.get();
 
-    return new OtherTraceSelection(chrom, uf, lf, desc, raw);
+    return new OtherTraceSelection(chrom, uf, lf, desc, name, raw);
   }
 
   @Override
@@ -139,13 +146,14 @@ public class OtherTraceSelectionComponent extends VBox implements
     chromType.set(ChromatogramTypeChoices.fromChromatogramType(value.chromatogramType()));
     // replace the wildcard filter with the gui representation
     rangeUnitFilter.set(
-        value.rangeUnitFilter() != null ? value.rangeUnitFilter().replaceAll("\\*\\.", "*")
-            : "");
+        value.rangeUnitFilter() != null ? value.rangeUnitFilter().replaceAll("\\*\\.", "*") : "");
     rangeLabelFilter.set(
-        value.rangeLabelFilter() != null ? value.rangeLabelFilter().replaceAll("\\*\\.", "*")
+        value.rangeLabelFilter() != null ? value.rangeLabelFilter().replaceAll("\\*\\.", "*") : "");
+    descriptionFilter.set(
+        value.descriptionFilter() != null ? value.descriptionFilter().replaceAll("\\*\\.", "*")
             : "");
-    descriptionFilter.set(value.descriptionFilter() != null ? value.descriptionFilter()
-        .replaceAll("\\*\\.", "*") : "");
+    nameFilter.set(value.nameFilter() != null ? value.nameFilter().replaceAll("\\*\\.", "*") : "");
+
     rawOrProcessed.set(value.rawOrProcessed());
   }
 
@@ -153,26 +161,27 @@ public class OtherTraceSelectionComponent extends VBox implements
    * Reasonable choices for the gui and ALL option.
    */
   private enum ChromatogramTypeChoices {
-    ELECTROMAGNETIC_RADIATION, ABSORPTION, EMISSION, ION_CURRENT, UNKNOWN, ALL;
+    ELECTROMAGNETIC_RADIATION, ABSORPTION, EMISSION, ION_CURRENT, UNKNOWN, MRM_SRM, ALL;
 
     static ChromatogramTypeChoices fromChromatogramType(final @Nullable ChromatogramType type) {
       return switch (type) {
-        case TIC, SIM, SIC, BPC, MRM_SRM, PRESSURE, FLOW_RATE, UNKNOWN -> UNKNOWN;
+        case TIC, SIM, SIC, BPC, PRESSURE, FLOW_RATE, UNKNOWN -> UNKNOWN;
         case ELECTROMAGNETIC_RADIATION -> ELECTROMAGNETIC_RADIATION;
         case ABSORPTION -> ABSORPTION;
         case EMISSION -> EMISSION;
         case ION_CURRENT -> ION_CURRENT;
+        case MRM_SRM -> MRM_SRM;
         case null -> ALL;
       };
     }
 
-    @Nullable
-    ChromatogramType toChromatogramType() {
+    @Nullable ChromatogramType toChromatogramType() {
       return switch (this) {
         case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
         case ABSORPTION -> ChromatogramType.ABSORPTION;
         case EMISSION -> ChromatogramType.EMISSION;
         case ION_CURRENT -> ChromatogramType.ION_CURRENT;
+        case MRM_SRM -> ChromatogramType.MRM_SRM;
         case UNKNOWN -> ChromatogramType.UNKNOWN;
         case ALL -> null;
       };

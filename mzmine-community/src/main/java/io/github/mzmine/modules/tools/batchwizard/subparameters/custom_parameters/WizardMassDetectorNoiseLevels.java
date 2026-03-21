@@ -67,4 +67,21 @@ public class WizardMassDetectorNoiseLevels extends CustomComboValue<MassDetector
   public WizardMassDetectorNoiseLevels copy() {
     return new WizardMassDetectorNoiseLevels(valueType, ms1NoiseLevel, msnNoiseLevel);
   }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (!(o instanceof WizardMassDetectorNoiseLevels that)) {
+      return false;
+    }
+
+    return Double.compare(getMs1NoiseLevel(), that.getMs1NoiseLevel()) == 0
+        && Double.compare(getMsnNoiseLevel(), that.getMsnNoiseLevel()) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Double.hashCode(getMs1NoiseLevel());
+    result = 31 * result + Double.hashCode(getMsnNoiseLevel());
+    return result;
+  }
 }

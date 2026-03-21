@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,9 @@ public class DateTimeUtils {
    *
    * @param dateTime the text to parse such as "2007-12-03T10:15:30" or "2007-12-03T10:15:30Z"
    * @return the parsed local date-time, not null
-   * @throws java.time.format.DateTimeParseException – if the text cannot be parsed
+   * @throws DateTimeParseException   – if the text cannot be parsed
+   * @throws IllegalArgumentException if text cannot be parsed by
+   *                                  {@link LocalDateTimeParser#parseAnyFirstDate(String)}
    */
   @NotNull
   public static LocalDateTime parse(@NotNull String dateTime) {
@@ -63,7 +66,11 @@ public class DateTimeUtils {
       try {
         return LocalDateTime.parse(dateTime);
       } catch (Exception _) {
-        return LocalDateTimeParser.parseAnyFirstDate(dateTime);
+        final LocalDateTime parsed = LocalDateTimeParser.parseAnyFirstDate(dateTime);
+        if (parsed == null) {
+          throw new IllegalArgumentException("Could not parse date: " + dateTime);
+        }
+        return parsed;
       }
     }
   }

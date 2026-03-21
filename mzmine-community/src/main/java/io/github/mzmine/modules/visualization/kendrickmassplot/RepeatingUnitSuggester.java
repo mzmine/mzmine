@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,7 +63,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(RepeatingUnitSuggester.class.getName());
 
   private final FeatureList featureList;
   private final MZTolerance mzTolerance;
@@ -222,7 +222,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
   private boolean passesSimpleNitrogenHeuristic(IMolecularFormula formula, Isotopes ifac) {
     return MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("N"))
-           <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
+        <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
   }
 
 
@@ -250,7 +250,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
     }
     double ratio = delta / baseDelta;
     return Math.abs(ratio - Math.round(ratio))
-           < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
+        < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
   }
 
   /*
@@ -268,7 +268,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
     } catch (Exception e) {
       logger.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "
-          + e.getMessage());
+              + e.getMessage());
     }
     return new MZTolerance(0.005, 15);
   }

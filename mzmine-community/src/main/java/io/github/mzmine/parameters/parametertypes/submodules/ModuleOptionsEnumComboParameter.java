@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -155,13 +155,15 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   @Override
   public void setValueFromComponent(ModuleOptionsEnumComponent<EnumType> component) {
     this.selectedValue = component.getValue();
-    component.updateParameterSetFromComponents();
+    final ParameterSet embedded = getEmbeddedParameters(selectedValue);
+    component.updateParameterSetFromComponents(embedded);
   }
 
   @Override
   public void setValueToComponent(ModuleOptionsEnumComponent<EnumType> component,
       @Nullable EnumType newValue) {
-    component.setSelectedValue(newValue);
+    final ParameterSet embedded = getEmbeddedParameters(newValue);
+    component.setSelectedValue(newValue, embedded);
   }
 
   @Override

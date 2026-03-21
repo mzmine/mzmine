@@ -130,9 +130,8 @@ public class BaseFeatureListAligner {
     // Create a new aligned feature list based on the baseList and renumber IDs
     var alignedFeatureList = new ModularFeatureList(featureListName, storage, estimatedRows,
         exactFeatures, allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists, true);
-    FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
-    FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
+
+    FeatureListUtils.transferMetadata(featureLists, alignedFeatureList, true);
     return alignedFeatureList;
   }
 
@@ -289,7 +288,7 @@ public class BaseFeatureListAligner {
                   mzmine feature alignment started on %d total features across %d samples. \
                   This may result in a large aligned feature list and memory constraints.
                   When possible run modules with PROCESS_IN_PLACE where available or with REMOVE option to clear previous results. \
-                  Consider applying higher thresholds during chromatogram builder and feature resolving, \
+                  Consider applying higher thresholds during chromatogram builder and feature resolving,
                   such as increased minimum height, chromatographic threshold, and feature top/edge ratio in the local minimum resolver. \
                   When working on large datasets, consult the performance documentation for tuning options:
                   """.formatted(totalRows, featureLists.size())),

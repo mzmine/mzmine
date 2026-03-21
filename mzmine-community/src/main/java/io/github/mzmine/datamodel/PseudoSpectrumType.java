@@ -24,6 +24,19 @@
 
 package io.github.mzmine.datamodel;
 
-public enum PseudoSpectrumType {
-  LC_DIA, GC_EI, MALDI_IMAGING;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
+
+public enum PseudoSpectrumType implements UniqueIdSupplier {
+  LC_DIA, GC_EI, MALDI_IMAGING, UNCORRELATED;
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case LC_DIA -> "LC_DIA";
+      case GC_EI -> "GC_EI";
+      case MALDI_IMAGING -> "MALDI_IMAGING";
+      case UNCORRELATED -> "UNCORRELATED";
+    };
+  }
 }

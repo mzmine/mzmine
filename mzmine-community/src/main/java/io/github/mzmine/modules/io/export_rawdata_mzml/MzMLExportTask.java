@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,6 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
-import java.io.File;
-import java.time.Instant;
-import java.util.logging.Logger;
-
 import io.github.msdk.MSDKMethod;
 import io.github.msdk.io.mzml.MzMLFileExportMethod;
 import io.github.msdk.io.mzml.data.MzMLCompressionType;
@@ -37,11 +33,15 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.time.Instant;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class MzMLExportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MzMLExportTask.class.getName());
+
   private final RawDataFile dataFile;
 
   // User parameters
@@ -70,8 +70,9 @@ public class MzMLExportTask extends AbstractTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    if ((msdkMethod == null) || (msdkMethod.getFinishedPercentage() == null))
+    if ((msdkMethod == null) || (msdkMethod.getFinishedPercentage() == null)) {
       return 0;
+    }
     return msdkMethod.getFinishedPercentage().doubleValue();
   }
 
@@ -97,8 +98,9 @@ public class MzMLExportTask extends AbstractTask {
         msdkMethod = new NetCDFFileExportMethod(msdkDataFile, outFilename);
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
       msdkMethod.execute();
 
       setStatus(TaskStatus.FINISHED);
@@ -116,7 +118,8 @@ public class MzMLExportTask extends AbstractTask {
   @Override
   public void cancel() {
     super.cancel();
-    if (msdkMethod != null)
+    if (msdkMethod != null) {
       msdkMethod.cancel();
+    }
   }
 }

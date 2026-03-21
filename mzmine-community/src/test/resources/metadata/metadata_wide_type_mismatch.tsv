@@ -1,0 +1,4 @@
+Filename	ATTRIBUTE_Group	ATTRIBUTE_NumberCol	ATTRIBUTE_Group2	run_date	sample_id	date2	text
+a.mzML	A	12	A	2021-08-31T15:33:15	A	20240125	test
+b.mzML	A	0.5	B	NODATE	20241005	2025-10-30	test
+c.mzML	c	NONUMBER	B	2021-08-31T19:23:46	1		test

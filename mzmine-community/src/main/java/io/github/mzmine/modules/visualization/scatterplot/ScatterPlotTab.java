@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Main window of the scatter plot visualizer.
- *
  */
 public class ScatterPlotTab extends MZmineTab {
 
@@ -93,7 +92,8 @@ public class ScatterPlotTab extends MZmineTab {
     axesButton = new Button(null, new ImageView(axesIcon));
     axesButton.setTooltip(new Tooltip("Setup ranges for axes"));
     axesButton.setOnAction(e -> {
-      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(), chart.getPlot());
+      AxesSetupDialog dialog = new AxesSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+          chart.getPlot());
       dialog.show();
     });
     toolbar.getItems().add(axesButton);
@@ -107,21 +107,6 @@ public class ScatterPlotTab extends MZmineTab {
     bottomPanel = new ScatterPlotBottomPanel(this, chart, featureList);
     mainPane.setBottom(bottomPanel);
 
-    // Add the Windows menu
-    //WindowsMenu.addWindowsMenu(mainScene);
-
-
-    // get the window settings parameter
-    //ParameterSet paramSet =
-    //    MZmineCore.getConfiguration().getModuleParameters(ScatterPlotVisualizerModule.class);
-    //WindowSettingsParameter settings = paramSet.getParameter(ScatterPlotParameters.windowSettings);
-
-    // update the window and listen for changes
-    // settings.applySettingsToWindow(this);
-    // this.addComponentListener(settings);
-
-    //setMinWidth(500.0);
-    //setMinHeight(400.0);
     setContent(mainPane);
 
   }
@@ -155,8 +140,7 @@ public class ScatterPlotTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

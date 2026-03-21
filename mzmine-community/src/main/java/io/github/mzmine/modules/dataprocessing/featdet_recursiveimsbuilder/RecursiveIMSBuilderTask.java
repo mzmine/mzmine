@@ -54,9 +54,6 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,7 +70,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.misc.Unsafe;
 
 public class RecursiveIMSBuilderTask extends AbstractTask {
 
@@ -388,7 +384,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
           return null;
         }
 
-        final Frame frame = access.nextFrame();
+        access.nextFrame();
 
         final TreeSet<RetentionTimeMobilityDataPoint> dps = new TreeSet<>((o1, o2) -> {
           if (o1.getIntensity() > o2.getIntensity()) {
@@ -536,25 +532,6 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
    * @return Instance {@link Unsafe} or null.
    * @author https://github.com/SteffenHeu
    */
-  @Nullable
-  private Unsafe initUnsafe() {
-    try {
-      Class unsafeClass = Class.forName("sun.misc.Unsafe");
-//      unsafeClass = Class.forName("jdk.internal.misc.Unsafe");
-      Method clean = unsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
-      clean.setAccessible(true);
-      Field theUnsafeField = unsafeClass.getDeclaredField("theUnsafe");
-      theUnsafeField.setAccessible(true);
-      Object theUnsafe = theUnsafeField.get(null);
-
-      return (Unsafe) theUnsafe;
-
-    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-             NoSuchFieldException | ClassCastException e) {
-      // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
-      // but that method should be added if sun.misc.Unsafe is removed.
-      e.printStackTrace();
-    }
-    return null;
-  }
+  // Removed use of sun.misc.Unsafe. If buffer cleaning is needed in the future,
+  // prefer java.lang.ref.Cleaner or rely on the GC to reclaim direct buffers.
 }

@@ -46,7 +46,6 @@ import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
 
@@ -141,8 +140,8 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
-    super.handleLoadedParameters(loadedParams);
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
     if(!loadedParams.containsKey(keepMatching.getName())) {
       setParameter(keepMatching, FeatureFilterChoices.KEEP_MATCHING);
     }

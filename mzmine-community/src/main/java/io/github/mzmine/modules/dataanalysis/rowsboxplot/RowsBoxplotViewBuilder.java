@@ -33,12 +33,11 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.labels.CategoryItemLabelGenerator;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.chart.title.TextTitle;
 
@@ -58,6 +57,8 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
     ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
         formats.intensityFormat());
     final EChartViewer viewer = new EChartViewer(barChart);
+    model.chartProperty().set(viewer); // needed so we can use this to export the chart
+
     viewer.setMinWidth(200);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
     boxAndWhiskerRenderer.setMeanVisible(false);
@@ -102,7 +103,8 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
       barChart.getCategoryPlot().getDomainAxis().setTickMarksVisible(value);
     });
 
-    return new BorderPane(viewer);
+    // use stackpane as it is transparent / borderpane is not
+    return new StackPane(viewer);
   }
 
 

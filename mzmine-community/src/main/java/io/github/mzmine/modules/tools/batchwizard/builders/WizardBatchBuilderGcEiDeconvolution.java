@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -37,8 +36,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
-import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -143,7 +140,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
@@ -183,6 +180,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       }
       makeAndAddBatchExportStep(q, isExportActive, exportPath);
     }
+
     return q;
   }
 
@@ -315,19 +313,4 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         param));
   }
 
-
-  @Override
-  protected void makeAndAddRowFilterStep(BatchQueue q) {
-    super.makeAndAddRowFilterStep(q);
-    // dont change if the step was not created
-    final MZmineProcessingStep<MZmineProcessingModule> filterStep = q.getLast();
-    if (!filter13C && !minAlignedSamples.isGreaterZero() || !filterStep.getModule()
-        .equals(MZmineCore.getModuleInstance(RowsFilterModule.class))) {
-      return;
-    }
-
-    // deactivate for gc-ei, everything has a spectrum
-    final ParameterSet param = filterStep.getParameterSet();
-    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
-  }
 }

@@ -385,7 +385,7 @@ public class MetadataTable {
     // numbers and dates will be sorted after the convertToDouble conversion
     final List<Entry<Object, @NotNull List<RawDataFile>>> entries = nonNullMap.entrySet().stream()
         .sorted(Comparator.comparing(e -> e.getKey().toString())).toList();
-    
+
     for (Entry<Object, @NotNull List<RawDataFile>> e : entries) {
       final List<RawDataFile> rawFiles = e.getValue();
       final Object value = e.getKey();
@@ -455,10 +455,21 @@ public class MetadataTable {
         colVal -> Optional.ofNullable(groupedFiles.get(colVal)).orElse(List.of())));
   }
 
-  public <T> List<T> getDistinctColumnValues(MetadataColumn<T> column) {
+  public <T> List<T> getDistinctColumnValuesOrThrow(MetadataColumn<T> column) {
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
       throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
+    return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
+  }
+
+  /**
+   * @return the list of distinct unique values or an empty list if column does not exist
+   */
+  public <T> List<T> getDistinctColumnValues(MetadataColumn<T> column) {
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      return List.of();
     }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
   }
@@ -509,5 +520,13 @@ public class MetadataTable {
     }
 
     return data.get(col);
+  }
+
+  /**
+   * @return unsorted list of all raw data files with values
+   */
+  public List<RawDataFile> getRawDataFilesUnsorted() {
+    return data.values().stream()
+        .<RawDataFile>mapMulti((d, consumer) -> d.keySet().forEach(consumer)).distinct().toList();
   }
 }

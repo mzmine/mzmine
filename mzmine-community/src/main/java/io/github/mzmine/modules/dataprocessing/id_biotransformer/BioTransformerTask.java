@@ -215,10 +215,10 @@ public class BioTransformerTask extends AbstractTask {
       }
 
       final FeatureAnnotation bestAnnotation = getBestAnnotation(row);
-      if (bestAnnotation == null) {
+      if (bestAnnotation == null || bestAnnotation.getStructure().canonicalSmiles() == null) {
         continue;
       }
-      uniqueSmilesMap.put(bestAnnotation.getSmiles(), row);
+      uniqueSmilesMap.put(bestAnnotation.getStructure().canonicalSmiles(), row);
     }
 
     numEducts = uniqueSmilesMap.size();
@@ -233,7 +233,7 @@ public class BioTransformerTask extends AbstractTask {
         final FeatureListRow row = entry.getValue();
         final FeatureAnnotation bestAnnotation = getBestAnnotation(row);
 
-        if (bestAnnotation == null || !bestSmiles.equals(bestAnnotation.getSmiles())) {
+        if (bestAnnotation == null || !bestSmiles.equals(bestAnnotation.getStructure().canonicalSmiles())) {
           throw new ConcurrentModificationException(
               "Best smiles of row " + row.getID() + " was altered.");
         }
@@ -262,7 +262,7 @@ public class BioTransformerTask extends AbstractTask {
         for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
           flist.stream().filter(this::filterProductRow).forEach(r -> {
             final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-                mzTolerance, rtTolerance, null, null);
+                mzTolerance, rtTolerance, null, null, null);
             if (clone != null) {
 
               final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r))
@@ -309,14 +309,16 @@ public class BioTransformerTask extends AbstractTask {
 
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)) {
-      return spectralLibraryMatches.get(0);
+        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)
+        && spectralLibraryMatches.getFirst().getStructure() != null) {
+      return spectralLibraryMatches.getFirst();
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.COMPOUND_DB)) {
-      return compoundAnnotations.get(0);
+        || smilesSource == SmilesSource.COMPOUND_DB)
+        && compoundAnnotations.getFirst().getStructure() != null) {
+      return compoundAnnotations.getFirst();
     }
 
     return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -64,9 +65,10 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MzDataImportTask extends AbstractTask implements RawDataImportTask {
 
+  private static final Logger logger = Logger.getLogger(MzDataImportTask.class.getName());
+
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private File file;
   private MZmineProject project;
@@ -185,8 +187,8 @@ public class MzDataImportTask extends AbstractTask implements RawDataImportTask 
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return newMZmineFile;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
   private class MzDataHandler extends DefaultHandler {

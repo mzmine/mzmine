@@ -25,14 +25,16 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.download.AssetCategory;
 import io.github.mzmine.modules.io.download.DownloadAssets;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.AnnotationWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithDownloadParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
@@ -42,27 +44,33 @@ import io.github.mzmine.util.files.ExtensionFilters;
  */
 public final class AnnotationWizardParameters extends WizardStepParameters {
 
-  public static final OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> localCsvSearch = new OptionalModuleParameter<>(
+  public static final AnnotationLocalCSVDatabaseSearchWizardParameter localCsvSearch = new AnnotationLocalCSVDatabaseSearchWizardParameter(
       "Local compound database search", """
       Search a local CSV or TSV database as comma- or tab-separated data, respectively.
-      Matches are done based on m/z, retention time, and ion mobility if applicable and selected.
-      """, new AnnotationLocalCSVDatabaseSearchParameters());
+      Matches are done based on m/z, retention time, and ion mobility if applicable and selected.""");
 
   public static final BooleanParameter lipidAnnotation = new BooleanParameter("Annotate lipids", """
       Lipid annotation can be applied on MS1 only data (including imaging),
       or in combination with MS2 information from either DDA or DIA experiments.
       """, true);
 
+  public static final OptionalParameter<DoubleParameter> formulaPrediction = new OptionalParameter<>(
+      new DoubleParameter("Formula prediction (for m/z < X)", """
+          If enabled, molecular formulas will be computed for all m/zs smaller than the given m/z. Default: m/z < 600
+          This parameter is ignored for library building and GC-EI workflows.""",
+          ConfigService.getGuiFormats().mzFormat(), 600d), false);
+
   public static final FileNamesWithDownloadParameter dataBaseFiles = new FileNamesWithDownloadParameter(
       "Spectral library files", """
       Path of spectral library files in common formats
       (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY,
-      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES), "Drag & drop your spectral libraries here.");
+      DownloadAssets.forAssetGroup(AssetCategory.SPECTRAL_LIBRARIES),
+      "Drag & drop your spectral libraries here.");
 
   public AnnotationWizardParameters() {
     super(WizardPart.ANNOTATION, AnnotationWizardParameterFactory.Annotation,
         // parameters
-        localCsvSearch, lipidAnnotation, dataBaseFiles);
+        localCsvSearch, lipidAnnotation, formulaPrediction, dataBaseFiles);
   }
 
 }

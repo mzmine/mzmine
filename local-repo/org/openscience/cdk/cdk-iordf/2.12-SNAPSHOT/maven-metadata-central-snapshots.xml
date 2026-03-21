@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>org.openscience.cdk</groupId>
+  <artifactId>cdk-iordf</artifactId>
+  <versioning>
+    <lastUpdated>20251009055433</lastUpdated>
+    <snapshot>
+      <timestamp>20251009.055433</timestamp>
+      <buildNumber>5</buildNumber>
+    </snapshot>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>2.12-20251009.055433-5</value>
+        <updated>20251009055433</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>2.12-20251009.055433-5</value>
+        <updated>20251009055433</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+  <version>2.12-SNAPSHOT</version>
+</metadata>

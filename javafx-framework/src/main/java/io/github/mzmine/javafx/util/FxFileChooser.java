@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,12 +30,20 @@ import java.util.List;
 import java.util.Objects;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxFileChooser {
 
   public enum FileSelectionType {
     OPEN, SAVE
+  }
+
+  @Nullable
+  public static List<File> openSelectMultiDialog(final List<ExtensionFilter> filters,
+      @Nullable File initialDir, @Nullable String title) {
+    final FileChooser fileChooser = newFileChooser(filters, initialDir, title);
+    return fileChooser.showOpenMultipleDialog(null);
   }
 
   public static File openSelectDialog(final FileSelectionType type,
@@ -45,6 +53,20 @@ public class FxFileChooser {
 
   public static File openSelectDialog(final FileSelectionType type,
       final List<ExtensionFilter> filters, @Nullable File initialDir, @Nullable String title) {
+    final FileChooser fileChooser = newFileChooser(filters, initialDir, title);
+
+    // Open chooser.
+    File selectedFile = null;
+    if (type == FxFileChooser.FileSelectionType.OPEN) {
+      selectedFile = fileChooser.showOpenDialog(null);
+    } else {
+      selectedFile = fileChooser.showSaveDialog(null);
+    }
+    return selectedFile;
+  }
+
+  public static @NotNull FileChooser newFileChooser(List<ExtensionFilter> filters,
+      @Nullable File initialDir, @Nullable String title) {
     // Create chooser.
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle(Objects.requireNonNullElse(title, "Select file"));
@@ -62,14 +84,6 @@ public class FxFileChooser {
       }
     } catch (Exception _) {
     }
-
-    // Open chooser.
-    File selectedFile = null;
-    if (type == FxFileChooser.FileSelectionType.OPEN) {
-      selectedFile = fileChooser.showOpenDialog(null);
-    } else {
-      selectedFile = fileChooser.showSaveDialog(null);
-    }
-    return selectedFile;
+    return fileChooser;
   }
 }

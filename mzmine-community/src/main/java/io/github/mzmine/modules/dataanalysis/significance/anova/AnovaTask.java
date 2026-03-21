@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,17 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.anova;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
@@ -48,6 +51,7 @@ public class AnovaTask extends AbstractTask {
   private final ParameterSet parameters;
   private final FeatureList flist;
   private final String groupingColumnName;
+  private final AbundanceDataTablePreparationConfig tablePrepConfig;
   private AnovaTest calc;
   private int processed;
 
@@ -56,6 +60,8 @@ public class AnovaTask extends AbstractTask {
     this.flist = flist;
     this.parameters = parameters;
     this.groupingColumnName = this.parameters.getValue(AnovaParameters.groupingParameter);
+    tablePrepConfig = parameters.getParameter(AnovaParameters.abundanceDataTablePreparation)
+        .createConfig();
   }
 
   @Override
@@ -77,7 +83,13 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
     try {
-      calc = new AnovaTest(MZmineCore.getProjectMetadata().getColumnByName(groupingColumnName));
+      // extract and prepare data
+      final FeaturesDataTable dataTable = StatisticUtils.extractAbundancesPrepareData(
+          flist.getRows(), flist.getRawDataFiles(), tablePrepConfig);
+
+      final MetadataColumn<?> column = ProjectService.getMetadata()
+          .getColumnByName(groupingColumnName);
+      calc = new AnovaTest(dataTable, column);
     } catch (MetadataColumnDoesNotExistException e) {
       setErrorMessage(e.getMessage());
       logger.log(Level.WARNING, e.getMessage(), e);
@@ -90,7 +102,7 @@ public class AnovaTask extends AbstractTask {
         return null;
       }
       processed++;
-      return calc.test(row, AbundanceMeasure.Height);
+      return calc.test(row);
     }).filter(Objects::nonNull).toList();
 
     anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));

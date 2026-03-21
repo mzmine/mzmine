@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,9 +69,10 @@ import org.jfree.data.xy.XYSeries;
  */
 public class MassCalibrationTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(MassCalibrationTask.class.getName());
+
   protected static boolean runCalibrationOnPreview = false;
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
 
@@ -112,7 +113,8 @@ public class MassCalibrationTask extends AbstractTask {
    * @param previewRun
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun, @NotNull Instant moduleCallDate) {
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun,
+      @NotNull Instant moduleCallDate) {
     super(storageMemoryMap, moduleCallDate);
     this.dataFile = dataFile;
     this.parameters = parameters;
@@ -137,12 +139,14 @@ public class MassCalibrationTask extends AbstractTask {
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return 0;
-    else
-      // processed scans are added twice, when errors are obtain and when mass lists are shifted
-      // so to get finished percentage of the task, divide processed scans by double total scans
+    } else
+    // processed scans are added twice, when errors are obtain and when mass lists are shifted
+    // so to get finished percentage of the task, divide processed scans by double total scans
+    {
       return (double) processedScans / totalScans / 2;
+    }
   }
 
   public RawDataFile getDataFile() {
@@ -173,7 +177,7 @@ public class MassCalibrationTask extends AbstractTask {
     if (afterHook != null && isCanceled() == false) {
       afterHook.run();
     }
-    if(!previewRun) {
+    if (!previewRun) {
       dataFile.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(MassCalibrationModule.class, parameters,
               getModuleCallDate()));
@@ -194,33 +198,32 @@ public class MassCalibrationTask extends AbstractTask {
       return;
     }
 
-    Double intensityThreshold =
-        parameters.getParameter(MassCalibrationParameters.intensityThreshold).getValue();
-    Boolean filterDuplicates =
-        parameters.getParameter(MassCalibrationParameters.duplicateErrorFilter).getValue();
+    Double intensityThreshold = parameters.getParameter(
+        MassCalibrationParameters.intensityThreshold).getValue();
+    Boolean filterDuplicates = parameters.getParameter(
+        MassCalibrationParameters.duplicateErrorFilter).getValue();
     extractToleranceParameters();
 
     extractErrorTrend();
 
     massCalibrator = null;
-    NestedCombo rangeExtractionMethod =
-        parameters.getParameter(MassCalibrationParameters.rangeExtractionMethod).getValue();
+    NestedCombo rangeExtractionMethod = parameters.getParameter(
+        MassCalibrationParameters.rangeExtractionMethod).getValue();
     ParameterSet rangeParameterSet = rangeExtractionMethod.getCurrentChoiceParameterSet();
 
     if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.RANGE_METHOD)) {
-      Double tolerance =
-          rangeParameterSet.getParameter(MassCalibrationParameters.errorRangeTolerance).getValue();
-      Double rangeSize =
-          rangeParameterSet.getParameter(MassCalibrationParameters.errorRangeSize).getValue();
+      Double tolerance = rangeParameterSet.getParameter(
+          MassCalibrationParameters.errorRangeTolerance).getValue();
+      Double rangeSize = rangeParameterSet.getParameter(MassCalibrationParameters.errorRangeSize)
+          .getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, tolerance, rangeSize,
           standardsList, errorTrend);
     } else if (rangeExtractionMethod.isCurrentChoice(RangeExtractionChoice.PERCENTILE_RANGE)) {
-      Range<Double> percentileRange =
-          rangeParameterSet.getParameter(MassCalibrationParameters.percentileRange).getValue();
+      Range<Double> percentileRange = rangeParameterSet.getParameter(
+          MassCalibrationParameters.percentileRange).getValue();
       massCalibrator = new MassCalibrator(rtTolerance, mzRatioTolerance, percentileRange,
           standardsList, errorTrend);
     }
-
 
     scanNumbers = dataFile.getScans();
     totalScans = scanNumbers.size();
@@ -324,8 +327,7 @@ public class MassCalibrationTask extends AbstractTask {
       // DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks, biasEstimate);
       DataPoint[] newMzPeaks = massCalibrator.calibrateMassList(mzPeaks);
 
-      MassList newMassList =
-          SimpleMassList.create(storageMemoryMap, newMzPeaks);
+      MassList newMassList = SimpleMassList.create(storageMemoryMap, newMzPeaks);
 
       scan.addMassList(newMassList);
 
@@ -340,15 +342,14 @@ public class MassCalibrationTask extends AbstractTask {
   }
 
   protected boolean extractStandardsList() {
-    NestedCombo massPeakMatchingMethod =
-        parameters.getParameter(MassCalibrationParameters.referenceLibrary).getValue();
+    NestedCombo massPeakMatchingMethod = parameters.getParameter(
+        MassCalibrationParameters.referenceLibrary).getValue();
     try {
       if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
-        String universalCalibrantsIonizationMode =
-            massPeakMatchingMethod.getCurrentChoiceParameterSet()
-                .getParameter(MassCalibrationParameters.ionizationMode).getValue();
-        String universalCalibrantsFilename =
-            MassCalibrationParameters.ionizationModeChoices.get(universalCalibrantsIonizationMode);
+        String universalCalibrantsIonizationMode = massPeakMatchingMethod.getCurrentChoiceParameterSet()
+            .getParameter(MassCalibrationParameters.ionizationMode).getValue();
+        String universalCalibrantsFilename = MassCalibrationParameters.ionizationModeChoices.get(
+            universalCalibrantsIonizationMode);
         try (InputStream is = getClass().getClassLoader()
             .getResourceAsStream(universalCalibrantsFilename)) {
           UniversalCalibrantsListCsvExtractor extractor = new UniversalCalibrantsListCsvExtractor(
@@ -360,8 +361,8 @@ public class MassCalibrationTask extends AbstractTask {
         standardsListFilename = massPeakMatchingMethod.getChoices()
             .get(MassPeakMatchingChoice.STANDARDS_LIST.toString())
             .getParameter(MassCalibrationParameters.standardsList).getValue().getAbsolutePath();
-        standardsListExtractor =
-            StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
+        standardsListExtractor = StandardsListExtractorFactory.createFromFilename(
+            standardsListFilename, false);
         standardsList = standardsListExtractor.extractStandardsList();
       }
 
@@ -379,39 +380,38 @@ public class MassCalibrationTask extends AbstractTask {
   }
 
   protected void extractToleranceParameters() {
-    NestedCombo massPeakMatchingMethod =
-        parameters.getParameter(MassCalibrationParameters.referenceLibrary).getValue();
-    ParameterSet massPeakMatchingParameterSet =
-        massPeakMatchingMethod.getCurrentChoiceParameterSet();
+    NestedCombo massPeakMatchingMethod = parameters.getParameter(
+        MassCalibrationParameters.referenceLibrary).getValue();
+    ParameterSet massPeakMatchingParameterSet = massPeakMatchingMethod.getCurrentChoiceParameterSet();
     if (massPeakMatchingMethod.isCurrentChoice(MassPeakMatchingChoice.STANDARDS_LIST)) {
-      mzRatioTolerance = massPeakMatchingParameterSet
-          .getParameter(MassCalibrationParameters.mzToleranceSCL).getValue();
-      rtTolerance = massPeakMatchingParameterSet
-          .getParameter(MassCalibrationParameters.retentionTimeTolerance).getValue();
-    } else if (massPeakMatchingMethod
-        .isCurrentChoice(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
-      mzRatioTolerance = massPeakMatchingParameterSet
-          .getParameter(MassCalibrationParameters.mzToleranceUCL).getValue();
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(
+          MassCalibrationParameters.mzToleranceSCL).getValue();
+      rtTolerance = massPeakMatchingParameterSet.getParameter(
+          MassCalibrationParameters.retentionTimeTolerance).getValue();
+    } else if (massPeakMatchingMethod.isCurrentChoice(
+        MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS)) {
+      mzRatioTolerance = massPeakMatchingParameterSet.getParameter(
+          MassCalibrationParameters.mzToleranceUCL).getValue();
       rtTolerance = null;
     }
   }
 
   protected void extractErrorTrend() {
-    NestedCombo trendMethod =
-        parameters.getParameter(MassCalibrationParameters.biasEstimationMethod).getValue();
+    NestedCombo trendMethod = parameters.getParameter(
+        MassCalibrationParameters.biasEstimationMethod).getValue();
     ParameterSet trendParameterSet = trendMethod.getCurrentChoiceParameterSet();
 
     if (trendMethod.isCurrentChoice(BiasEstimationChoice.KNN_REGRESSION)) {
-      Double percentageNeighbors = trendParameterSet
-          .getParameter(MassCalibrationParameters.nearestNeighborsPercentage).getValue();
+      Double percentageNeighbors = trendParameterSet.getParameter(
+          MassCalibrationParameters.nearestNeighborsPercentage).getValue();
       errorTrend = new ArithmeticMeanKnnTrend(percentageNeighbors / 100.0);
     } else if (trendMethod.isCurrentChoice(BiasEstimationChoice.OLS_REGRESSION)) {
-      Integer polynomialDegree =
-          trendParameterSet.getParameter(MassCalibrationParameters.polynomialDegree).getValue();
-      Boolean exponentialFeature =
-          trendParameterSet.getParameter(MassCalibrationParameters.exponentialFeature).getValue();
-      Boolean logarithmicFeature =
-          trendParameterSet.getParameter(MassCalibrationParameters.logarithmicFeature).getValue();
+      Integer polynomialDegree = trendParameterSet.getParameter(
+          MassCalibrationParameters.polynomialDegree).getValue();
+      Boolean exponentialFeature = trendParameterSet.getParameter(
+          MassCalibrationParameters.exponentialFeature).getValue();
+      Boolean logarithmicFeature = trendParameterSet.getParameter(
+          MassCalibrationParameters.logarithmicFeature).getValue();
       errorTrend = new OLSRegressionTrend(polynomialDegree, exponentialFeature, logarithmicFeature);
     }
   }

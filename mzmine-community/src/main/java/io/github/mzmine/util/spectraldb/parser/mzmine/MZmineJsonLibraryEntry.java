@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonPropertyOrder({"softwaresource", "mergedSpectrumType", "entry_id", "ms_level", "polarity",
-    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ri", "ccs",
+    "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ri",
+    "ccs",
 
     // structure/compound specific
     "formula", "smiles", "inchi", "inchikey",
@@ -106,6 +107,7 @@ public class MZmineJsonLibraryEntry {
   public SpectralQuality quality;
   public Double purity;
   public Integer numSignals;
+  public String internalId;
 
   public String classyFireSuperclass;
   public String classyFireClass;
@@ -114,6 +116,9 @@ public class MZmineJsonLibraryEntry {
   public String npClassifierSuperclass;
   public String npClassifierPathway;
   public String npClassifierClass;
+  public String iupacName;
+
+  public String acquisitionMethod;
 
 
   @JsonDeserialize(using = SpectrumDeserializer.class)
@@ -163,7 +168,8 @@ public class MZmineJsonLibraryEntry {
       case NPCLASSIFIER_CLASS -> npClassifierClass;
       case NPCLASSIFIER_PATHWAY -> npClassifierPathway;
       case CAS -> cas;
-
+      case INTERNAL_ID -> internalId;
+      case IUPAC_NAME -> iupacName;
       case MS_LEVEL -> msLevel;
       case RT -> rt;
       case RETENTION_INDEX -> ri;
@@ -195,6 +201,7 @@ public class MZmineJsonLibraryEntry {
       case PRINCIPAL_INVESTIGATOR -> investigator;
       case DATA_COLLECTOR -> dataCollector;
       case SOFTWARE -> softwaresource;
+      case ACQUISITION_METHOD -> acquisitionMethod;
       case DATASET_ID -> datasetId;
       case FILENAME -> null;
       case USI -> usi;
@@ -217,10 +224,11 @@ public class MZmineJsonLibraryEntry {
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
-          null;
+      case FEATURE_ID, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID, FEATURE_MS1_HEIGHT,
+           FEATURE_MS1_REL_HEIGHT -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
+      case JSON_STRING -> null;
     };
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,14 @@ import org.jetbrains.annotations.Nullable;
  * Mass spectrum acquired during an ion mobility experiment. The main implementation of this
  * interface, ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}, is created on demand by
  * the respective parent {@link Frame}. This means, that if available, existing instances shall be
- * reused as done in, e.g. {@link io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries#copy(MemoryMapStorage)}
+ * reused as done in, e.g.
+ * {@link
+ * io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries#copy(MemoryMapStorage)}
  * and other methods that copy lists of scans.
  * <p></p>
- * During project import, the instances of this interface are cached in a {@link
- * io.github.mzmine.modules.io.projectload.CachedIMSFrame} to minimize ram consumption by using the
- * same instances throughout all feature lists.
+ * During project import, the instances of this interface are cached in a
+ * {@link io.github.mzmine.modules.io.projectload.CachedIMSFrame} to minimize ram consumption by
+ * using the same instances throughout all feature lists.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -47,8 +49,7 @@ public interface MobilityScan extends Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
-  @NotNull
-  RawDataFile getDataFile();
+  @NotNull RawDataFile getDataFile();
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
@@ -95,8 +96,8 @@ public interface MobilityScan extends Scan {
   }
 
   /**
-   * Returns the frame id. The mobility scan number can be accessed via {@link
-   * MobilityScan#getMobilityScanNumber()}.
+   * Returns the frame id. The mobility scan number can be accessed via
+   * {@link MobilityScan#getMobilityScanNumber()}.
    *
    * @return The frame Id. {@link Frame#getScanNumber()}.
    */
@@ -111,9 +112,8 @@ public interface MobilityScan extends Scan {
     return getFrame().getScanDefinition() + " - Mobility scan #" + getMobilityScanNumber();
   }
 
-  @NotNull
   @Override
-  default Range<Double> getScanningMZRange() {
+  default @Nullable Range<Double> getScanningMZRange() {
     return getFrame().getScanningMZRange();
   }
 
@@ -129,7 +129,6 @@ public interface MobilityScan extends Scan {
   }
 
   /**
-   *
    * @return The injection time of the frame or null.
    */
   @Override

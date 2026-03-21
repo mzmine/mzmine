@@ -54,6 +54,11 @@ public class RTType extends FloatType implements ExpandableType {
   }
 
   @Override
+  public double getRepresentativeLargeNumber() {
+    return 999.444444444444;
+  }
+
+  @Override
   public NumberFormat getFormat() {
     try {
       return MZmineCore.getConfiguration().getRTFormat();

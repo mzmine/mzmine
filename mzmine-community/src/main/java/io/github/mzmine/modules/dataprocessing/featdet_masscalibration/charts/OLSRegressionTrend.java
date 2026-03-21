@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,21 +26,23 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
 
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.BiasEstimator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.commons.text.WordUtils;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.BiasEstimator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Logger;
 
 /**
- * OLS regression trend,
- * for two dimensional dataset performs OLS regression on polynomial, exponential and logarithmic features
+ * OLS regression trend, for two dimensional dataset performs OLS regression on polynomial,
+ * exponential and logarithmic features
  */
 public class OLSRegressionTrend implements Trend2D {
+
+  private static final Logger logger = Logger.getLogger(OLSRegressionTrend.class.getName());
 
   protected XYSeries dataset;
   protected XYDataItem[] items;
@@ -57,7 +59,8 @@ public class OLSRegressionTrend implements Trend2D {
   protected double arithmeticMean;
   protected boolean estimated = true;
 
-  public OLSRegressionTrend(int polynomialDegree, boolean exponentialFeature, boolean logarithmicFeature) {
+  public OLSRegressionTrend(int polynomialDegree, boolean exponentialFeature,
+      boolean logarithmicFeature) {
     this.polynomialDegree = polynomialDegree;
     this.exponentialFeature = exponentialFeature;
     this.logarithmicFeature = logarithmicFeature;
@@ -134,7 +137,7 @@ public class OLSRegressionTrend implements Trend2D {
       estimated = true;
     } catch (IllegalArgumentException ex) {
       estimated = false;
-      Logger.getLogger(this.getClass().getName()).info("OLS regression exception " + ex);
+      logger.info("OLS regression exception " + ex);
     }
   }
 

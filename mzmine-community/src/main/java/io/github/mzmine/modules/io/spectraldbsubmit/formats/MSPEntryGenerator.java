@@ -76,7 +76,7 @@ public class MSPEntryGenerator {
     boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
     String ionMode =
         meta.getParameter(LibraryMetaDataParameters.IONMODE).getValue().equals(Polarity.Negative)
-            ? "N" : "P";
+            ? "NEGATIVE" : "POSITIVE";
 
     String def = ": ";
     String br = "\n";
@@ -156,7 +156,7 @@ public class MSPEntryGenerator {
     }
     var polarity = entry.getPolarity();
     if (polarity.isDefined()) {
-      String pol = PolarityType.POSITIVE.equals(polarity) ? "P" : "N";
+      String pol = PolarityType.POSITIVE.equals(polarity) ? "POSITIVE" : "NEGATIVE";
       s.append(DBEntryField.POLARITY.getNistMspID()).append(def).append(pol).append(br);
     }
 

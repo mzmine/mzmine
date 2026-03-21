@@ -129,7 +129,7 @@ public class FeatureDataTypeTest {
     for (int i = 0; i < 20; i++) {
       List<BuildingMobilityScan> scans = new ArrayList<>();
       for (int j = 0; j < 5; j++) {
-        scans.add(new BuildingMobilityScan(j, new double[0], new double[0]));
+        scans.add(new BuildingMobilityScan(j, new double[0], new double[0], MassSpectrumType.CENTROIDED));
       }
       SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),

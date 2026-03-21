@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,19 +24,26 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.StringUtils;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -56,6 +62,24 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   @Nullable
   private SpectralLibrary library;
   private @Nullable MolecularStructure structure;
+  /**
+   * Pattern is calculated for ion
+   * <p>
+   * StableValue renamed to ComputedConstant in JDK26
+   */
+  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+          FormulaUtils.createMajorIsotopeMolFormula(getFormula()), getAdductType()));
+
+  /**
+   * Copy constructor
+   *
+   * @param entry
+   */
+  public SpectralDBEntry(SpectralDBEntry entry) {
+    super(entry.mzValues, entry.intensityValues);
+    this.fields = new HashMap<>(entry.fields);
+  }
 
   public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields,
@@ -117,8 +141,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     assert mzs.length == intensities.length;
 
     if (libraryFileName != null) {
-      final SpectralLibrary library = project.getCurrentSpectralLibraries().stream()
-          .filter(l -> l.getName().equals(libraryFileName)).findFirst().orElse(null);
+      // library.name used to contain the size as well, therefore match for both name with size and without
+      final SpectralLibrary library = project.getCurrentSpectralLibraries().stream().filter(
+              l -> l.getName().equals(libraryFileName) || l.getNameWithSize().equals(libraryFileName))
+          .findFirst().orElse(null);
       return new SpectralDBEntry(null, mzs, intensities, fields, library);
     } else {
       return new SpectralDBEntry(null, mzs, intensities, fields);
@@ -233,7 +259,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
     return Objects.equals(fields, that.fields)
-           && getNumberOfDataPoints() == that.getNumberOfDataPoints();
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
   @Override
@@ -262,7 +288,32 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   public String getLibraryName() {
+    // used to return library name with size but better to use the library name without size by default
     return library != null ? library.getName() : null;
+  }
+
+  @Override
+  @Nullable
+  public String getFormula() {
+    final String formula = getOrElse(DBEntryField.FORMULA, null);
+    if (StringUtils.hasValue(formula)) {
+      return formula;
+    }
+    final MolecularStructure structure = getStructure();
+    if (structure != null) {
+      final String formulaString = structure.formulaString();
+      if (formulaString != null) {
+        putIfNotNull(DBEntryField.FORMULA, formulaString);
+      }
+      return formulaString;
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public IonType getAdductType() {
+    return get(IonTypeType.class);
   }
 
   @Override
@@ -274,6 +325,11 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     String inchi = getOrElse(DBEntryField.INCHI, "");
     structure = StructureParser.silent().parseStructure(smiles, inchi);
     return structure;
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    return pattern.get();
   }
 
 }

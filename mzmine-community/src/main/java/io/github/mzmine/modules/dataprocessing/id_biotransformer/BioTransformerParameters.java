@@ -33,6 +33,7 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -49,6 +50,7 @@ import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
@@ -154,5 +156,10 @@ public class BioTransformerParameters extends SimpleParameterSet {
         case env -> "env";
       };
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,19 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -56,8 +58,8 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   private final boolean swapAxes;
   private final boolean normalize;
 
-  private final Double normalizationFactor;
-  private SummedIntensityMobilitySeries data;
+  private final double normalizationFactor;
+  private final SummedIntensityMobilitySeries data;
 
   public SummedMobilogramXYProvider(final Feature f) {
     this(f, false);
@@ -74,12 +76,10 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
       throw new IllegalArgumentException(
           "Feature does not possess an IonMobilogramTimeSeries, cannot create mobilogram chart");
     }
-    data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
-    color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
-    seriesKey = "m/z " + mzFormat.format(f.getMZ());
-    this.swapAxes = swapAxes;
-    this.normalize = normalize;
-    this.normalizationFactor = normalizationFactor;
+    var data = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+    var color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+    var seriesKey = "m/z " + mzFormat.format(f.getMZ());
+    this(data, color, seriesKey, swapAxes, normalize, normalizationFactor);
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
@@ -95,7 +95,14 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     this.data = summedMobilogram;
     this.swapAxes = swapAxes;
     this.normalize = normalize;
-    this.normalizationFactor = normalizationFactor;
+    if (normalize) {
+      // use normalization factor or max intensity of data
+      this.normalizationFactor = requireNonNullElse(normalizationFactor,
+          Arrays.stream(data.getIntensityValues(new double[data.getNumberOfValues()])).max()
+              .orElse(1d));
+    } else {
+      this.normalizationFactor = 1d;
+    }
   }
 
   @NotNull
@@ -130,17 +137,18 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    if (normalize || normalizationFactor != null) {
-      data = IonMobilityUtils.normalizeMobilogram(data, normalizationFactor);
-    }
   }
 
   @Override
   public double getDomainValue(int index) {
     if (swapAxes) {
-      return data.getIntensity(index);
+      return getIntensity(index);
     }
     return data.getMobility(index);
+  }
+
+  private double getIntensity(int index) {
+    return data.getIntensity(index) / normalizationFactor;
   }
 
   @Override
@@ -148,7 +156,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     if (swapAxes) {
       return data.getMobility(index);
     }
-    return data.getIntensity(index);
+    return getIntensity(index);
   }
 
   @Override
@@ -159,5 +167,12 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 0;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 }

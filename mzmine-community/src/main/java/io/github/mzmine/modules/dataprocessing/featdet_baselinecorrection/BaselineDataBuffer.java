@@ -287,7 +287,7 @@ public class BaselineDataBuffer {
       subsampleIndices.add(finalIndex);
     }
 
-    logger.finer("Subsampling indices: " + StringUtils.join(subsampleIndices.toIntArray(), ", "));
+//    logger.finer("Subsampling indices: " + StringUtils.join(subsampleIndices.toIntArray(), ", "));
     return subsampleIndices;
   }
 }

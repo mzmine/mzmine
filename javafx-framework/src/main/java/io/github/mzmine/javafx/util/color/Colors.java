@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.javafx.util.color;
 import java.awt.Color;
 
 /**
- * ColorPalletes (some based on http://mkweb.bcgsc.ca/colorblind) for color blindness
+ * ColorPalletes (some based on
+ * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+ * https://www.nature.com/articles/nmeth.1618) for color blindness
  *
  * @author Robin Schmid
  */
@@ -50,7 +52,9 @@ public class Colors {
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
    * green, yellow, blue, vermillion (darker orange), reddish purple
    * <br>
-   * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
+   * <p>
+   * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+   * https://www.nature.com/articles/nmeth.1618
    */
   private static Color[] COLORS_7_AND_BLACK = new Color[]{ //
       Color.BLACK, // black
@@ -60,12 +64,14 @@ public class Colors {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
+      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
 
   /**
    * Color palette with black+7colors for color blindness: <br> Orange, sky blue, bluish green,
    * yellow, blue, vermillion (darker orange), reddish purple <br>
-   * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
+   * <p>
+   * https://davidmathlogic.com/colorblind/#%23000000-%23E69F00-%2356B4E9-%23009E73-%23F0E442-%230072B2-%23D55E00-%23CC79A7
+   * https://www.nature.com/articles/nmeth.1618
    */
   private static Color[] COLORS_7 = new Color[]{ //
       new Color(0.902f, 0.624f, 0f, 1f), // orange
@@ -74,7 +80,7 @@ public class Colors {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
+      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
 
   /**
    * Seven colors (+black)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@ package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraItemLabelGenerator;
@@ -36,7 +37,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -118,7 +118,7 @@ public class SpectrumChartFactory {
           rtForm.format(rt));
     }
 
-    JFreeChart chart = ChartFactory.createXYLineChart(title, // title
+    JFreeChart chart = FxChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
         dataset, // data set
@@ -184,8 +184,8 @@ public class SpectrumChartFactory {
     marker.setLabelAnchor(RectangleAnchor.TOP_LEFT);
     marker.setLabelTextAnchor(TextAnchor.TOP_RIGHT);
     marker.setLabelPaint(color);
-    marker.setLabelBackgroundColor(new Color(0,0,0,0));
-    marker.setLabelOffset(new RectangleInsets(5,5,0,5));
+    marker.setLabelBackgroundColor(new Color(0, 0, 0, 0));
+    marker.setLabelOffset(new RectangleInsets(5, 5, 0, 5));
     chart.getXYPlot().addDomainMarker(marker);
   }
 }

@@ -71,6 +71,12 @@ public class MZType extends DoubleType implements ExpandableType {
   }
 
   @Override
+  public double getRepresentativeLargeNumber() {
+    // use long tail depending on number format the pref width will be adjusted
+    return 9999.4444444444;
+  }
+
+  @Override
   public @NotNull String getHeaderString() {
     return "m/z";
   }

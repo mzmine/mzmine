@@ -61,9 +61,13 @@ public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
   }
 
   private LabeledProgressBar createTaskPane() {
+    // Important: bind to task list size too, otherwise the label can stay at "0 tasks" until the
+    // first progress update changes allTasksProgressProperty().
+    final var sizeBinding = Bindings.size(model.getTasks());
     return new LabeledProgressBar( //
         model.allTasksProgressProperty(),
-        Bindings.createStringBinding(this::computeTasksText, model.allTasksProgressProperty()));
+        Bindings.createStringBinding(this::computeTasksText, model.allTasksProgressProperty(),
+            sizeBinding));
   }
 
   private LabeledProgressBar createBatchPane() {

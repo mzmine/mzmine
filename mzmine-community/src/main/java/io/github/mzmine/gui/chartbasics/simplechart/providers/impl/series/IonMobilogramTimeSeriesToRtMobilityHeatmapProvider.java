@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   private final double progress;
   private PaintScale paintScale = null;
   private final List<IonMobilitySeries> mobilograms;
+  private boolean isComputed;
 
   public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final ModularFeature f) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
@@ -149,6 +150,14 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
       paintScale = new SimpleColorPalette(base, color).toPaintScale(PaintScaleTransform.LINEAR,
           Range.closed(0d, max));
     }
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

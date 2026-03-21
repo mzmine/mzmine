@@ -69,7 +69,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,6 +112,89 @@ public class FeatureListUtils {
       }
     });
     rows.setAll(table.getSelectedRows());
+  }
+
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<FeatureListRow>> selectedRows) {
+    bindSelectedRows(weak, table, selectedRows, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedRows(WeakAdapter weak, FeatureTableFX table,
+      @NotNull ObjectProperty<List<FeatureListRow>> selectedRows,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      var rows = c.getList().stream().<FeatureListRow>map(TreeItem::getValue).toList();
+      selectedRows.setValue(rows);
+    });
+
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+      selectedRows.setValue(rows);
+    });
+
+    final List<FeatureListRow> rows = List.copyOf(table.getSelectedRows());
+    selectedRows.setValue(rows);
+  }
+
+  public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<Feature>> selectedFeatures) {
+    bindSelectedFeatures(weak, table, selectedFeatures, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedFeatures(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<Feature>> selectedFeatures,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<Feature> features = List.copyOf(table.getSelectedFeatures());
+      selectedFeatures.setValue(features);
+    });
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<Feature> features = List.copyOf(table.getSelectedFeatures());
+      selectedFeatures.setValue(features);
+    });
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles) {
+    bindSelectedRawDataFiles(weak, table, selectedFiles, new SimpleBooleanProperty(true));
+  }
+
+  public static void bindSelectedRawDataFiles(WeakAdapter weak, FeatureTableFX table,
+      ObjectProperty<List<RawDataFile>> selectedFiles,
+      @NotNull final ObservableBooleanValue isUpdateEnabled) {
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedCells(), c -> {
+      if (weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
+
+    weak.addChangeListener(null, isUpdateEnabled, (_, _, newVal) -> {
+      if (newVal == null || !newVal || weak.isDisposed() || !isUpdateEnabled.get()) {
+        return;
+      }
+
+      List<RawDataFile> raws = List.copyOf(table.getSelectedRawDataFiles());
+      selectedFiles.setValue(raws);
+    });
   }
 
   /**
@@ -350,6 +437,29 @@ public class FeatureListUtils {
    * mobility values based on tolerances -> ranges). General score is SUM((difference
    * row-center(range)) / rangeLength * factor) / sum(factors)
    *
+   * @param feature        target feature
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Feature feature, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, @Nullable Range<Float> riRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight, double riWeight) {
+    return getAlignmentScore(feature.getMZ(), feature.getRT(), feature.getMobility(),
+        feature.getCCS(), feature.getRI(), mzRange, rtRange, mobilityRange, ccsRange, riRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight, riWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
    * @param row            target row
    * @param mzRange        allowed range
    * @param rtRange        allowed range
@@ -366,6 +476,29 @@ public class FeatureListUtils {
     return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
         row.getAverageCCS(), mzRange, rtRange, mobilityRange, ccsRange, mzWeight, rtWeight,
         mobilityWeight, ccsWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param row            target row
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, @Nullable Range<Float> riRange, double mzWeight,
+      double rtWeight, double mobilityWeight, double ccsWeight, double riWeight) {
+    return getAlignmentScore(row.getAverageMZ(), row.getAverageRT(), row.getAverageMobility(),
+        row.getAverageCCS(), row.getAverageRI(), mzRange, rtRange, mobilityRange, ccsRange, riRange,
+        mzWeight, rtWeight, mobilityWeight, ccsWeight, riWeight);
   }
 
   /**
@@ -404,6 +537,32 @@ public class FeatureListUtils {
       @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
       double rtWeight, double mobilityWeight, double ccsWeight) {
 
+    return getAlignmentScore(testMz, testRt, testMobility, testCCS, null, mzRange, rtRange,
+        mobilityRange, ccsRange, null, mzWeight, rtWeight, mobilityWeight, ccsWeight, 1d);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param testMz         tested value
+   * @param testRt         tested value
+   * @param testMobility   tested value
+   * @param mzRange        allowed range
+   * @param rtRange        allowed range
+   * @param mobilityRange  allowed range
+   * @param mzWeight       weight factor
+   * @param rtWeight       weight factor
+   * @param mobilityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Double testMz, Float testRt, Float testMobility,
+      Float testCCS, Float testedRi, @Nullable Range<Double> mzRange,
+      @Nullable Range<Float> rtRange, @Nullable Range<Float> mobilityRange,
+      @Nullable Range<Float> ccsRange, Range<Float> riRange, double mzWeight, double rtWeight,
+      double mobilityWeight, double ccsWeight, double riWeight) {
+
     ScoreAccumulator score = new ScoreAccumulator();
 
     // values are "matched" if the given value exists in this class and falls within the tolerance.
@@ -412,6 +571,7 @@ public class FeatureListUtils {
     checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
     checkAndAddCenterScore(score, testMobility, mobilityRange, mobilityWeight);
     checkAndAddCenterScore(score, testCCS, ccsRange, ccsWeight);
+    checkAndAddCenterScore(score, testedRi, riRange, riWeight);
 
     return score.getScore();
   }
@@ -576,8 +736,19 @@ public class FeatureListUtils {
   public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
       final String suffix, final MemoryMapStorage storage, final @Nullable Integer totalRows,
       final @Nullable Integer totalFeatures) {
-    return createCopy(featureList, null, suffix, storage, false, featureList.getRawDataFiles(),
-        false, totalRows, totalFeatures);
+    return createCopyWithoutRows(featureList, suffix, storage, featureList.getRawDataFiles(),
+        totalRows, totalFeatures);
+  }
+
+  /**
+   * Does not copy rows
+   */
+  public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
+      final String suffix, final MemoryMapStorage storage,
+      final @NotNull List<RawDataFile> dataFiles, final @Nullable Integer totalRows,
+      final @Nullable Integer totalFeatures) {
+    return createCopy(featureList, null, suffix, storage, false, dataFiles, false, totalRows,
+        totalFeatures);
   }
 
   /**
@@ -630,9 +801,7 @@ public class FeatureListUtils {
         requireNonNullElse(totalRows, estimatedRows),
         requireNonNullElse(totalFeatures, estimatedFeatures), dataFiles);
 
-    FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
-    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList), true);
-    FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+    transferMetadata(featureList, newFlist, true);
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
@@ -650,6 +819,39 @@ public class FeatureListUtils {
       newFeatureList.addRow(copy);
       id++;
     }
+  }
+
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param source        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferMetadata(@NotNull FeatureList source, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    transferMetadata(List.of(source), target, transferTypes);
+  }
+  /**
+   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   *
+   * @param sources        copy from
+   * @param target        copy to
+   * @param transferTypes true then transfer all row and feature types
+   */
+  public static void transferMetadata(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
+      boolean transferTypes) {
+    if (sources.isEmpty()) {
+      throw new IllegalArgumentException("No source feature list");
+    }
+    final FeatureList source = sources.getFirst();
+
+    FeatureListUtils.copyPeakListAppliedMethods(source, target);
+    if (transferTypes) {
+      FeatureListUtils.transferRowTypes(target, sources, true);
+    }
+    FeatureListUtils.transferSelectedScans(target, sources);
+    target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
   }
 
   /**
@@ -720,6 +922,10 @@ public class FeatureListUtils {
     return flist.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance);
   }
 
+  public static boolean hasAllImagingData(FeatureList flist) {
+    return flist.getRawDataFiles().stream().allMatch(ImagingRawDataFile.class::isInstance);
+  }
+
   /**
    * Default row sorter is depending on imaging data. If one raw file is imaging all is sorted by
    * mz. Otherwise sort by RT
@@ -755,4 +961,14 @@ public class FeatureListUtils {
     }
     return (int) features;
   }
+
+  /**
+   * @return Creates a sorter which sorts by descending number of rows. Avoids collisions by the
+   * name of the feature list.
+   */
+  public static Comparator<FeatureList> createDescendingNumberOfRowsSorter() {
+    return Comparator.comparing(FeatureList::getNumberOfRows).reversed()
+        .thenComparing(FeatureList::getName);
+  }
+
 }

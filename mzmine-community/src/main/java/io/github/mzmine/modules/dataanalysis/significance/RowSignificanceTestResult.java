@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.dataanalysis.significance;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import org.jetbrains.annotations.Nullable;
 
 public interface RowSignificanceTestResult {
@@ -40,6 +40,6 @@ public interface RowSignificanceTestResult {
 
   @Nullable
   default MetadataColumn<?> column() {
-    return MZmineCore.getProjectMetadata().getColumnByName(groupingColumn());
+    return ProjectService.getMetadata().getColumnByName(groupingColumn());
   }
 }

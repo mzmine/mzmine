@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,14 +27,18 @@ package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class SpectralDBParser {
 
@@ -60,22 +64,39 @@ public abstract class SpectralDBParser {
    * @return the list or an empty list if something went wrong (e.g., wrong format)
    * @throws IOException exception while reading file
    */
-  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
-      throws UnsupportedFormatException, IOException;
+  public abstract boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws UnsupportedFormatException, IOException;
 
   /**
    * Add DB entry and push every 1000 entries. Does not allow 0 intensity values.
+   * <p>
+   * Caller should check for profile mode spectra with zero intensity signals
    *
-   * @param entry handle parsed library entry
+   * @param storage
+   * @param errors
+   * @param entry   handle parsed library entry
    */
-  protected boolean addLibraryEntry(SpectralLibraryEntry entry) {
-    // no 0 values allowed in entry
-    if (Arrays.stream(entry.getDataPoints()).mapToDouble(DataPoint::getIntensity)
-        .anyMatch(v -> Double.compare(v, 0) == 0)) {
-      logger.finest(
-          "Found entry with zero intensity, maybe not centroided but profile data - entry was excluded");
+  protected boolean addLibraryEntry(@Nullable MemoryMapStorage storage, LibraryParsingErrors errors,
+      SpectralLibraryEntry entry) {
+    // zero intensity may be due to normalization and then number formatting
+    // or too many (50%) zero values may be profile spectrum
+    final DataPoint[] zeroFiltered = ScanUtils.getFiltered(entry.getDataPoints(), 0);
+
+    if (zeroFiltered.length == 0) {
+      errors.addUnknownException("Skipped entry with empty spectrum");
       return false;
+    } else if (zeroFiltered.length * 4 < entry.getNumberOfDataPoints()) {
+      // detected as profile due to many 0 values = skip entry
+      // msconvert used to add zero datapoints left and right of a centroid when using local max algorithm
+      // therefore use a higher factor of zero values
+      errors.addUnknownException(
+          "Skipped entry with >50% zero-intensity values (maybe profile spectrum).");
+      return false;
+    } else {
+      // only a few zero values so maybe just bad formatting
+      entry = SpectralLibraryEntryFactory.create(storage, entry.getFields(), zeroFiltered);
     }
+
     synchronized (LOCK) {
       // need double lock as list changes inside
       synchronized (list) {

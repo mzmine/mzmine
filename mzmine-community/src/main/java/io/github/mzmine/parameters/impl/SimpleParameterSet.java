@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,31 +31,36 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ButtonType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
@@ -65,13 +70,20 @@ import org.w3c.dom.Element;
 public class SimpleParameterSet implements ParameterSet {
 
   public static final String parameterElement = "parameter";
-  private static final String nameAttribute = "name";
+  public static final String nameAttribute = "name";
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
   protected String helpUrl = null;
   private String moduleNameAttribute;
   private boolean skipSensitiveParameters = false;
+
+  /**
+   * Error messages populated during loading from xml. This value is not cloned. Do not include in
+   * hashCode or equals.
+   */
+  @NotNull
+  private String loadingVersionMessages = "";
 
   public SimpleParameterSet() {
     this(new Parameter<?>[0], null);
@@ -108,57 +120,32 @@ public class SimpleParameterSet implements ParameterSet {
   @Override
   public Map<String, Parameter<?>> loadValuesFromXML(Element xmlElement) {
     var nameParameterMap = getNameParameterMap();
-    // cannot use getElementsByTagName, this goes recursively through all levels
-    // finding nested ParameterSets
-//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
 
-    Map<String, Parameter<?>> loadedParameters = HashMap.newHashMap(nameParameterMap.size());
+    final int loadedVersion = switch (xmlElement.hasAttribute(BatchQueue.MODULE_VERSION_ATTR)) {
+      case true -> Integer.parseInt(xmlElement.getAttribute(BatchQueue.MODULE_VERSION_ATTR));
+      case false -> 1;
+    };
 
-    var childNodes = xmlElement.getChildNodes();
-    for (int i = 0; i < childNodes.getLength(); i++) {
-      if (!(childNodes.item(i) instanceof Element nextElement) || !parameterElement.equals(
-          nextElement.getTagName())) {
-        continue;
-      }
+    final Map<String, Parameter<?>> loadedParameters = ParameterUtils.loadValuesFromXML(
+        this.getClass(), xmlElement, nameParameterMap);
 
-      String paramName = nextElement.getAttribute(nameAttribute);
-      Parameter<?> param = nameParameterMap.get(paramName);
-      if (param != null) {
-        try {
-          param.loadValueFromXML(nextElement);
-          // keep track of all parameters that were actually loaded - this means that some may be missing
-          loadedParameters.put(param.getName(), param);
-        } catch (Exception e) {
-          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
-              e);
-        }
-      } else {
-        // load config reads the EncryptionKeyParameter in a second go
-        if (nameParameterMap.values().stream()
-            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
-          logger.warning(
-              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
-                  paramName, getClass().getName()));
-        }
-      }
+    handleLoadedParameters(loadedParameters, loadedVersion);
+
+    // dont check if the versions differ here, as there may be embedded parameter sets that
+    // should be checked. Alternatively, stream over all parameters and check if we have an
+    // EmbeddedParameterSet parameter.
+    final String message = extractAllLoadingVersionMessages(loadedVersion).collect(
+        Collectors.joining("\n"));
+    if (!StringUtils.isBlank(message)) {
+      loadingVersionMessages = message;
     }
-    handleLoadedParameters(loadedParameters);
+
     return loadedParameters;
   }
 
   @Override
   public void saveValuesToXML(Element xmlElement) {
-    Document parentDocument = xmlElement.getOwnerDocument();
-    for (Parameter<?> param : parameters) {
-      if (skipSensitiveParameters && param.isSensitive()) {
-        continue;
-      }
-      Element paramElement = parentDocument.createElement(parameterElement);
-      paramElement.setAttribute(nameAttribute, param.getName());
-      xmlElement.appendChild(paramElement);
-      param.saveValueToXML(paramElement);
-
-    }
+    ParameterUtils.saveValuesToXML(xmlElement, skipSensitiveParameters, parameters);
   }
 
   /**
@@ -205,8 +192,10 @@ public class SimpleParameterSet implements ParameterSet {
     // Make a deep copy of the parameters
     Parameter<?>[] newParameters = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
       } else {
         newParameters[i] = parameters[i].cloneParameter();
       }
@@ -250,7 +239,8 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, this.getMessage());
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -262,7 +252,7 @@ public class SimpleParameterSet implements ParameterSet {
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
       if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-                                                  || p instanceof FeatureListsParameter)) {
+          || p instanceof FeatureListsParameter)) {
         continue;
       }
 
@@ -317,24 +307,21 @@ public class SimpleParameterSet implements ParameterSet {
           "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                       "This module has not been tested with ion mobility data files. This could lead "
-                       + "to unexpected results. Do you want to continue anyway?",
-                       "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                "This module has not been tested with ion mobility data files. This could lead "
+                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
       return true;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
       logger.warning(
           "This module has certain restrictions when processing ion mobility data files. This"
-          + " could lead to unexpected results");
+              + " could lead to unexpected results");
       if (showMsg) {
         return MZmineCore.getDesktop()
-                   .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
-                       getRestrictedIonMobilitySupportMessage(), "Do not show again",
-                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
-               == ButtonType.YES;
+            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
       }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
@@ -349,7 +336,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       boolean returnVal = DialogLoggerUtil.showDialogYesNo("Untested IMS support",
           "This module does not support ion mobility data. This will lead to unexpected "
-          + "results. Do you want to continue anyway?");
+              + "results. Do you want to continue anyway?");
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
@@ -368,7 +355,7 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
-           + "could lead to unexpected results. Do you want to continue anyway?";
+        + "could lead to unexpected results. Do you want to continue anyway?";
   }
 
   /**
@@ -395,5 +382,35 @@ public class SimpleParameterSet implements ParameterSet {
   @Override
   public void setModuleNameAttribute(String moduleName) {
     this.moduleNameAttribute = moduleName;
+  }
+
+  /**
+   * Only used during loading of the ParameterSet to set the internal
+   * {@link #getLoadingVersionMessages()}. Starts with messages from this parameter set, followed by
+   * messages from embedded parameters sets.
+   *
+   * @param storedVersion the loaded version
+   * @return stream of non-blank messages
+   */
+  protected @NotNull Stream<@NotNull String> extractAllLoadingVersionMessages(int storedVersion) {
+    List<String> embeddedMessages = Arrays.stream(this.parameters).<String>mapMulti((p, c) -> {
+      if (p instanceof EmbeddedParameterSet<?, ?> embeddedParameterSetParam) {
+        ParameterSet embeddedParameters = embeddedParameterSetParam.getEmbeddedParameters();
+        final String embeddedMessage = embeddedParameters.getLoadingVersionMessages();
+        if (!StringUtils.isBlank(embeddedMessage)) {
+          String name = embeddedParameterSetParam.getName();
+          c.accept(name + " (embedded): " + embeddedMessage);
+        }
+      }
+    }).toList();
+
+    return Stream.concat(
+        IntStream.range(storedVersion + 1, getVersion() + 1).mapToObj(this::getVersionMessage)
+            .filter(StringUtils::hasValue), embeddedMessages.stream());
+  }
+
+  @Override
+  public @NotNull String getLoadingVersionMessages() {
+    return loadingVersionMessages;
   }
 }

@@ -64,6 +64,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,19 +80,6 @@ import org.jetbrains.annotations.Nullable;
 public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(ImzMLImportTask.class.getName());
-
-  private final File file;
-  private final MZmineProject project;
-  private final ScanImportProcessorConfig scanProcessorConfig;
-  private final ImagingRawDataFile newMZmineFile;
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> module;
-  private int totalScans = 0, parsedScans;
-
-  private int lastScanNumber = 0;
-
-  private final Map<String, Integer> scanIdTable = new Hashtable<>();
-
   /*
    * This stack stores at most 20 consecutive scans. This window serves to find possible fragments
    * (current scan) that belongs to any of the stored scans in the stack. The reason of the size
@@ -100,7 +88,16 @@ public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
    * scans.
    */
   private static final int PARENT_STACK_SIZE = 20;
+  private final File file;
+  private final MZmineProject project;
+  private final ScanImportProcessorConfig scanProcessorConfig;
+  private final ImagingRawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
+  private final Map<String, Integer> scanIdTable = new Hashtable<>();
   private final LinkedList<SimpleScan> parentStack = new LinkedList<>();
+  private int totalScans = 0, parsedScans;
+  private int lastScanNumber = 0;
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen,
       final @NotNull ScanImportProcessorConfig scanProcessorConfig,
@@ -473,7 +470,7 @@ public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
   }
 
   @Override
-  public RawDataFile getImportedRawDataFile() {
-    return getStatus() == TaskStatus.FINISHED ? newMZmineFile : null;
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 }

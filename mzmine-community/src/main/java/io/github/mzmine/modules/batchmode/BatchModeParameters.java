@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -46,9 +45,11 @@ public class BatchModeParameters extends SimpleParameterSet {
       new AdvancedBatchModeParameters());
 
   public BatchModeParameters() {
-    super(new Parameter[]{batchQueue,
-//        advanced,
-        lastFiles});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/workflows/batch_processing/batch-processing.html",
+        batchQueue,
+//        advanced, // when enabling this, make sure to set appropriate setting in RawDataFileOpenHandler_3_0
+        lastFiles);
   }
 
   @Override
@@ -72,9 +73,9 @@ public class BatchModeParameters extends SimpleParameterSet {
       if (dialog.getExitCode() != ExitCode.OK) {
         return;
       }
-      final ParameterSet finalParams = params.cloneParameterSet();
-      ConfigService.getConfiguration().setModuleParameters(BatchModeModule.class, params);
-      MZmineCore.runMZmineModule(BatchModeModule.class, finalParams);
+      ConfigService.getConfiguration()
+          .setModuleParameters(BatchModeModule.class, params.cloneParameterSet(false));
+      MZmineCore.runMZmineModule(BatchModeModule.class, params);
     });
   }
 }

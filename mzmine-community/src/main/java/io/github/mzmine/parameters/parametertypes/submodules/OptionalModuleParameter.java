@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -91,7 +92,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     return embeddedParameters;
   }
 
-  public void setEmbeddedParameters(T embeddedParameters) {
+  public void setEmbeddedParameters(@NotNull T embeddedParameters) {
     if (this.embeddedParameters == null) {
       this.embeddedParameters = embeddedParameters;
     } else {
@@ -136,13 +137,13 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public void setValueFromComponent(OptionalModuleComponent component) {
     this.value = component.isSelected();
-    component.updateParameterSetFromComponents();
+    component.updateParameterSetFromComponents(embeddedParameters);
   }
 
   @Override
   public void setValueToComponent(OptionalModuleComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
-    component.setParameterValuesToComponents();
+    component.setParameterValuesToComponents(embeddedParameters);
   }
 
   @Override

@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.structures.StructureUtils.SmilesFlavor;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.inchi.InChIGenerator;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * All values are computed on demand. So if accessed often use {@link #precomputeValues()} to create
@@ -77,13 +77,14 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
     return StructureUtils.getTotalFormalCharge(structure());
   }
 
+  @Override
+  public int totalAtomsCount() {
+    return structure.getAtomCount();
+  }
+
   @Nullable
   public String inchiKey() {
-    InChIGenerator inchi = StructureUtils.getInchiGenerator(structure());
-    if (inchi == null) {
-      return null;
-    }
-    return inchi.getInchi();
+    return StructureUtils.getInchiKey(structure());
   }
 
   /**
@@ -99,5 +100,12 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
     return new PrecomputedMolecularStructure(structure, formula(), canonicalSmiles(),
         isomericSmiles(), inchi, inchiKey, monoIsotopicMass(), mostAbundantMass(),
         totalFormalCharge());
+  }
+
+  @Override
+  public @NotNull String toString() {
+    // no need to calculate too many things as to string does not make much sense.
+    // toString was also called by the default comparator in javafx table
+    return "SimpleMolecularStructure[" + "formula=" + MolecularFormulaManipulator.getString(formula())+']';
   }
 }

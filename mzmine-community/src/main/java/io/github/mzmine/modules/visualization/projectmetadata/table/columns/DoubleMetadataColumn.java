@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.projectmetadata.table.columns;
 
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import io.github.mzmine.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,8 +54,11 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
   @Override
   public Double convertOrElse(String input, Double defaultValue) {
+    if (StringUtils.isBlank(input)) {
+      return defaultValue;
+    }
     try {
-      return input == null ? defaultValue : convertOrThrow(input);
+      return convertOrThrow(input);
     } catch (NumberFormatException ignored) {
       return defaultValue;
     }
@@ -62,6 +66,9 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
   @Override
   public Double convertOrThrow(@NotNull final String input) {
+    if (input.isBlank()) {
+      return null;
+    }
     return Double.parseDouble(input.trim());
   }
 

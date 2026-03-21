@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,7 +49,7 @@ import org.apache.commons.lang3.mutable.MutableDouble;
  */
 public class ComputeIsotopesModule {
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(ComputeIsotopesModule.class.getName());
 
   private final CliqueMSTask driverTask;
   private final AnClique anClique;
@@ -159,8 +159,8 @@ public class ComputeIsotopesModule {
    * and 2nd carries grade of the node
    */
   private int[][] isoGrade(List<Integer> inLinks, List<Integer> outLinks) {
-    int[][] gradeData = new int[2 * inLinks
-        .size()][2]; // 1st dimension carries node ID, 2nd carries grade
+    int[][] gradeData = new int[2
+        * inLinks.size()][2]; // 1st dimension carries node ID, 2nd carries grade
     int pos = 0;
     for (int i = 0; i < inLinks.size(); i++) {
       gradeData[pos++][0] = inLinks.get(i);
@@ -279,22 +279,22 @@ public class ComputeIsotopesModule {
       }
       //if no change in cluster and grade, then infinite loop will occur
       boolean changed = false;
-      for(int i=0 ; i<cluster.size() ; i++){
-        if(!cluster.get(i).equals(clusterCopy.get(i))){
+      for (int i = 0; i < cluster.size(); i++) {
+        if (!cluster.get(i).equals(clusterCopy.get(i))) {
           changed = true;
           break;
         }
       }
-      for(int i=0 ; i<grades.size() ; i++){
-        if(!grades.get(i).equals(gradeCopy.get(i))){
+      for (int i = 0; i < grades.size(); i++) {
+        if (!grades.get(i).equals(gradeCopy.get(i))) {
           changed = true;
           break;
         }
       }
-      if(!changed) {
-        for(int i=0; i<grades.size(); i++){
-          if(grades.get(i)>maxGrade){
-            grades.set(i,maxGrade);
+      if (!changed) {
+        for (int i = 0; i < grades.size(); i++) {
+          if (grades.get(i) > maxGrade) {
+            grades.set(i, maxGrade);
           }
         }
         break;
@@ -331,9 +331,9 @@ public class ComputeIsotopesModule {
     int done = 0;
     for (Integer cliqueID : this.anClique.cliques.keySet()) {
       done++;
-      this.progress.setValue(driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS +
-          driverTask.NET_PROGRESS + driverTask.ISO_PROGRESS * ((double) done
-          / (double) this.anClique.cliques.size()));
+      this.progress.setValue(
+          driverTask.EIC_PROGRESS + driverTask.MATRIX_PROGRESS + driverTask.NET_PROGRESS
+              + driverTask.ISO_PROGRESS * ((double) done / (double) this.anClique.cliques.size()));
 
       if (driverTask.isCanceled()) {
         return listIsoTable;

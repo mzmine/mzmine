@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,20 +26,22 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.util.FxLayout;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.Nullable;
 
-public class IntRangeComponent extends GridPane {
+public class IntRangeComponent extends HBox {
 
   private final TextField minTxtField;
   private final TextField maxTxtField;
 
   public IntRangeComponent() {
-
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+    FxLayout.apply(this, FxLayout.DEFAULT_SPACE, Insets.EMPTY, Pos.CENTER_LEFT);
 
     minTxtField = new TextField();
     minTxtField.setPrefColumnCount(8);
@@ -47,9 +49,7 @@ public class IntRangeComponent extends GridPane {
     maxTxtField = new TextField();
     maxTxtField.setPrefColumnCount(8);
 
-    add(minTxtField, 0, 0);
-    add(new Label(" - "), 1, 0);
-    add(maxTxtField, 2, 0);
+    getChildren().addAll(minTxtField, new Label(" - "), maxTxtField);
   }
 
   public Range<Integer> getValue() {

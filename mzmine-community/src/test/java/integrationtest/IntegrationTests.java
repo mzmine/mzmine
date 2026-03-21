@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -85,6 +86,7 @@ public class IntegrationTests {
             "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results, batchFile)
         .isEmpty());
 
+    logger.info("Checking file with 42 known differences. Table below is expected:");
     Assertions.assertEquals(42, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
         batchFile).size());
@@ -165,9 +167,12 @@ public class IntegrationTests {
         "rawdatafiles/integration_tests/mse/expected_results_project.csv", exportedFlist,
         "mse_project.mzmine").size());
 
+    // expected_results_project_direct_batch.csv is the results of the project after batch processing
+    // expected_results.csv changed a bit because the MSe processing changed from 10% to 1% intensity factor
+    // just using the old project still with the old results
     Assertions.assertEquals(2, IntegrationTestUtils.getCsvComparisonResults(
-        "rawdatafiles/integration_tests/mse/expected_results.csv", exportedFlist,
-        "mse_project.mzmine").size());
+        "rawdatafiles/integration_tests/mse/expected_results_project_direct_batch.csv",
+        exportedFlist, "mse_project.mzmine").size());
   }
 
   @Test
@@ -190,6 +195,7 @@ public class IntegrationTests {
     }
     Assertions.assertEquals(0,
         IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims", "lc_tims_local.mzbatch")
+            .specLibsFullPath("spectral_libraries/integration_tests/matches_for_tims-full.json")
             .tempDir(tempDir).build()
             .runBatchGetCheckResults("rawdatafiles/integration_tests/lc_tims/expected_results.csv")
             .size());
@@ -218,5 +224,23 @@ public class IntegrationTests {
             "dia_pasef_local.mzbatch").tempDir(tempDir).build()
         .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
         .size());
+  }
+
+  @Test
+  @Disabled("This test needs to be run from the $ProjectFileDir$ working directory to resolve to the correct path.")
+  void testThermo(@TempDir File tempDir) {
+    // only run the test on local machines
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping thermo full batch integration test.");
+      return;
+    }
+//    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import",
+//            "trp_batch.mzbatch").tempDir(tempDir).build()
+//        .runBatchGetCheckResults("rawdatafiles/integration_tests/thermo_import/test_trp_old.csv")
+//        .size());
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import", "trp_batch.mzbatch")
+            .tempDir(tempDir).build().runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/thermo_import/test_msconvert.csv").size());
   }
 }

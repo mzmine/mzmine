@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,28 +26,62 @@
 package io.github.mzmine.javafx.components.factories;
 
 import javafx.scene.Node;
-import javafx.util.Duration;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ComboBox;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Still needs more styling to be viable
+ * Creates PopOvers that can be shown by popOver.show(owner). Owner should not be a {@link ComboBox}
+ * or other components that may consume clicks or lock in focus. Otherwise the popup becomes modal.
+ * <p>
+ * Just wrap ComboBox or similar into a pane and use that as the owner.
  */
 public class FxPopOvers {
 
-  public static PopOver newPopOver(Node content) {
+  public static PopOver newPopOver(@Nullable Node content) {
+    return newPopOver(content, ArrowLocation.TOP_CENTER);
+  }
+
+  public static PopOver newPopOver(@Nullable Node content, @NotNull ArrowLocation arrowLocation) {
+//    if (content != null) {
+    // add an outline content pane to the popover
+    // needs better style
+//      content = new StackPane(content);
+//      content.getStyleClass().add("outlined-panel");
+//    }
+
     var popOver = new PopOver(content);
     popOver.setAutoHide(true);
     popOver.setAutoFix(true);
     popOver.setHideOnEscape(true);
-    popOver.setDetachable(true);
-    popOver.setAnimated(true);
+    popOver.setDetachable(false);
+    popOver.setAnimated(false);
     popOver.setDetached(false);
-    popOver.setArrowLocation(ArrowLocation.BOTTOM_LEFT);
-    popOver.setFadeInDuration(Duration.millis(500));
-    popOver.setFadeOutDuration(Duration.millis(1000));
+    popOver.setArrowLocation(arrowLocation);
 //    popOver.show(owner);
     return popOver;
   }
 
+  public static void install(@NotNull ButtonBase button, @NotNull PopOver popOver) {
+    button.setOnAction(_ -> {
+      if (popOver.showingProperty().get()) {
+        popOver.hide();
+      } else {
+        popOver.show(button);
+      }
+    });
+  }
+
+  public static void installOnClick(@NotNull Node button, @NotNull PopOver popOver) {
+    button.setOnMouseClicked(_ -> {
+      if (popOver.showingProperty().get()) {
+        popOver.hide();
+      } else {
+        popOver.show(button);
+      }
+    });
+  }
 }

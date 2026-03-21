@@ -90,6 +90,7 @@ public interface Frame extends Scan {
    * @return The {@link MobilityScanStorage} of this frame. The storage is initialised during raw
    * data file import.
    */
+  @Nullable
   MobilityScanStorage getMobilityScanStorage();
 
   /**

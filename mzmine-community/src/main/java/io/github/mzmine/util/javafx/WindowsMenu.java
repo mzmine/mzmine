@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -44,7 +45,7 @@ import javafx.stage.Window;
  */
 public class WindowsMenu extends Menu {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(WindowsMenu.class.getName());
 
   private final MenuItem closeAllMenuItem;
   private final SimpleListProperty<MenuItem> itemsProperty;
@@ -74,12 +75,18 @@ public class WindowsMenu extends Menu {
    */
   public static void addWindowsMenu(final Scene scene) {
     Parent rootNode = scene.getRoot();
-    if (rootNode instanceof Pane) {
-      Pane rootPane = (Pane) rootNode;
-      MenuBar menuBar = new MenuBar();
-      menuBar.setUseSystemMenuBar(true);
-      menuBar.getMenus().add(new WindowsMenu());
-      rootPane.getChildren().add(menuBar);
+
+    final MenuBar menuBar = new MenuBar();
+    menuBar.setUseSystemMenuBar(true);
+    menuBar.getMenus().add(new WindowsMenu());
+
+    switch (rootNode) {
+      case BorderPane bp -> bp.setTop(menuBar);
+      case Pane p -> {
+        Pane rootPane = (Pane) rootNode;
+        rootPane.getChildren().add(menuBar);
+      }
+      default -> {}
     }
   }
 

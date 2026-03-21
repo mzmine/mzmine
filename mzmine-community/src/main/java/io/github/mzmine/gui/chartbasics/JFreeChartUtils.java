@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,334 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.main.ConfigService;
+import java.awt.Color;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D.Double;
+import java.util.List;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 
 public class JFreeChartUtils {
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @NotNull JFreeChart chart) {
+    return createChartLogIdentifier(viewer, chart, chart.getPlot());
+  }
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @Nullable JFreeChart chart, @NotNull Plot mainPlot) {
+    final String instanceID;
+    if (viewer != null) {
+      instanceID = "%s@%s ".formatted(viewer.getClass().getSimpleName(),
+          Integer.toHexString(viewer.hashCode()));
+    } else {
+      instanceID = "%s@%s ".formatted(mainPlot.getClass().getSimpleName(),
+          Integer.toHexString(mainPlot.hashCode()));
+    }
+
+    final TextTitle textTitle = chart != null ? chart.getTitle() : null;
+    final String title = textTitle != null ? textTitle.getText() : null;
+
+    final Axis domain = getDomainAxis(mainPlot);
+    final Axis range = getRangeAxis(mainPlot);
+
+    final String x = domain != null ? domain.getLabel() : null;
+    final String y = range != null ? range.getLabel() : null;
+
+    String result = instanceID;
+    if (title != null) {
+      result += "%s ".formatted(title);
+    }
+
+    if (x != null) {
+      result += "x:'%s' ".formatted(x);
+    }
+    if (y != null) {
+      result += "y:'%s'".formatted(y);
+    }
+    return result;
+  }
+
+  public static Axis getDomainAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedDomainXYPlot plot -> plot.getDomainAxis();
+      case CombinedDomainCategoryPlot plot -> plot.getDomainAxis();
+      case CombinedRangeXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedRangeCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getDomainAxis();
+      case CategoryPlot plot -> plot.getDomainAxis();
+      case null, default -> null;
+    };
+  }
+
+  public static Axis getRangeAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedRangeXYPlot plot -> plot.getRangeAxis();
+      case CombinedRangeCategoryPlot plot -> plot.getRangeAxis();
+      case CombinedDomainXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedDomainCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getRangeAxis();
+      case CategoryPlot plot -> plot.getRangeAxis();
+      case null, default -> null;
+    };
+  }
+
+  private enum TriangleDirection {
+    UP, DOWN, LEFT, RIGHT
+  }
+
+  public static final Shape[] DEFAULT_SERIES_SHAPES = createStandardSeriesShapes();
+
+  public static Shape defaultShape() {
+    return ColoredXYShapeRenderer.defaultShape;
+  }
+
+  public static DefaultDrawingSupplier createDefaultDrawingSupplier() {
+    final Color[] colors = ConfigService.getDefaultColorPalette().getColorsAWT()
+        .toArray(Color[]::new);
+    return new DefaultDrawingSupplier(colors, DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+        DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE, DEFAULT_SERIES_SHAPES);
+  }
+
+  /**
+   * @return an array of shapes for charts
+   */
+  public static Shape[] createStandardSeriesShapes() {
+    double size = 7.0;
+    double delta = size / 2.0;
+
+    return List.of(
+        // circle
+        createCircle(size),
+        // square
+        createSquare(size),
+        // up-pointing triangle
+        createTriangle(size, TriangleDirection.UP),
+        // diamond
+        createDiamond(size),
+        // X shape
+        createX(size),
+        // plus shape
+        createPlus(size),
+        // horizontal rectangle
+        new Double(-delta, -delta / 2, size, size / 2),
+        // vertical ellipse
+        new Ellipse2D.Double(-delta / 2, -delta, size / 2, size),
+        // down-pointing triangle
+        createTriangle(size, TriangleDirection.DOWN),
+        // vertical rectangle
+        new Double(-delta / 2, -delta, size / 2, size),
+        // horizontal ellipse
+        new Ellipse2D.Double(-delta, -delta / 2, size, size / 2),
+        // right-pointing triangle
+        createTriangle(size, TriangleDirection.RIGHT),
+        // left-pointing triangle
+        createTriangle(size, TriangleDirection.LEFT),
+        // cross shape
+        createHollowPlus(size),
+        // pentagon
+        createPentagon(size),
+        // hexagon
+        createHexagon(size),
+        // star shape
+        createDefaultStar(size, 0, 0) //
+    ).toArray(Shape[]::new);
+  }
+
+  private static Ellipse2D.@NotNull Double createCircle(double size) {
+    size *= 0.92; // needs a bit smaller size
+    final double delta = size / 2;
+    return new Ellipse2D.Double(-delta, -delta, size, size);
+  }
+
+  private static @NotNull Double createSquare(double size) {
+    size *= 0.9; // needs a bit smaller size
+    final double delta = size / 2;
+    return new Double(-delta, -delta, size, size);
+  }
+
+  private static @NotNull Path2D createHexagon(double size) {
+    final double delta = size / 2;
+    Path2D hexagon = new Path2D.Double();
+    hexagon.moveTo(-delta / 2, -delta);
+    hexagon.lineTo(-delta, 0);
+    hexagon.lineTo(-delta / 2, delta);
+    hexagon.lineTo(delta / 2, delta);
+    hexagon.lineTo(delta, 0);
+    hexagon.lineTo(delta / 2, -delta);
+    hexagon.closePath();
+    return hexagon;
+  }
+
+  private static @NotNull Path2D createPentagon(double size) {
+    final double delta = size / 2;
+    Path2D pentagon = new Path2D.Double();
+    pentagon.moveTo(0, -delta);
+    pentagon.lineTo(-delta, -delta / 3);
+    pentagon.lineTo(-delta / 2, delta);
+    pentagon.lineTo(delta / 2, delta);
+    pentagon.lineTo(delta, -delta / 3);
+    pentagon.closePath();
+    return pentagon;
+  }
+
+  private static @NotNull Path2D createHollowPlus(double size) {
+    // usually needs bigger
+    size *= 1.1;
+    final double delta = size / 2;
+    Path2D cross = new Path2D.Double();
+    cross.moveTo(-delta, -delta / 3);
+    cross.lineTo(-delta / 3, -delta / 3);
+    cross.lineTo(-delta / 3, -delta);
+    cross.lineTo(delta / 3, -delta);
+    cross.lineTo(delta / 3, -delta / 3);
+    cross.lineTo(delta, -delta / 3);
+    cross.lineTo(delta, delta / 3);
+    cross.lineTo(delta / 3, delta / 3);
+    cross.lineTo(delta / 3, delta);
+    cross.lineTo(-delta / 3, delta);
+    cross.lineTo(-delta / 3, delta / 3);
+    cross.lineTo(-delta, delta / 3);
+    cross.closePath();
+    return cross;
+  }
+
+  private static Shape createDefaultStar(double radius, double centerX, double centerY) {
+    radius *= 0.72;
+    return createStar(centerX, centerY, radius / 2.63, radius, 5, Math.toRadians(-18));
+  }
+
+  private static Shape createStar(double centerX, double centerY, double innerRadius,
+      double outerRadius, int numRays, double startAngleRad) {
+    Path2D path = new Path2D.Double();
+    double deltaAngleRad = Math.PI / numRays;
+    for (int i = 0; i < numRays * 2; i++) {
+      double angleRad = startAngleRad + i * deltaAngleRad;
+      double ca = Math.cos(angleRad);
+      double sa = Math.sin(angleRad);
+      double relX = ca;
+      double relY = sa;
+      if ((i & 1) == 0) {
+        relX *= outerRadius;
+        relY *= outerRadius;
+      } else {
+        relX *= innerRadius;
+        relY *= innerRadius;
+      }
+      if (i == 0) {
+        path.moveTo(centerX + relX, centerY + relY);
+      } else {
+        path.lineTo(centerX + relX, centerY + relY);
+      }
+    }
+    path.closePath();
+    return path;
+  }
+
+
+  private static Shape createTriangle(double size, TriangleDirection direction) {
+    double delta = size / 2.0;
+    Path2D.Double path = new Path2D.Double();
+
+    switch (direction) {
+      case UP -> {
+        path.moveTo(0, -delta);
+        path.lineTo(delta, delta);
+        path.lineTo(-delta, delta);
+      }
+      case DOWN -> {
+        path.moveTo(-delta, -delta);
+        path.lineTo(delta, -delta);
+        path.lineTo(0, delta);
+      }
+      case RIGHT -> {
+        path.moveTo(-delta, -delta);
+        path.lineTo(delta, 0);
+        path.lineTo(-delta, delta);
+      }
+      case LEFT -> {
+        path.moveTo(-delta, 0);
+        path.lineTo(delta, -delta);
+        path.lineTo(delta, delta);
+      }
+    }
+    path.closePath();
+    return path;
+  }
+
+  private static Shape createDiamond(double size) {
+    size *= 1.1; // needs a bit bigger size
+    double delta = size / 2.0;
+    Path2D.Double path = new Path2D.Double();
+    path.moveTo(0, -delta);
+    path.lineTo(delta, 0);
+    path.lineTo(0, delta);
+    path.lineTo(-delta, 0);
+    path.closePath();
+    return path;
+  }
+
+  private static Shape createX(double size) {
+    // too big needs smaller
+    size *= 0.9;
+    double delta = size / 2.0;
+    Path2D.Double path = new Path2D.Double();
+    path.moveTo(-delta, -delta);
+    path.lineTo(delta, delta);
+    path.moveTo(delta, -delta);
+    path.lineTo(-delta, delta);
+    return path;
+  }
+
+  private static Shape createPlus(double size) {
+    double delta = size / 2.0;
+    Path2D.Double path = new Path2D.Double();
+    path.moveTo(0, -delta);
+    path.lineTo(0, delta);
+    path.moveTo(-delta, 0);
+    path.lineTo(delta, 0);
+    return path;
+  }
 
   /**
    * Plot may contain null datasets
@@ -47,7 +370,16 @@ public class JFreeChartUtils {
    * @return num datasets EXCLUDING null
    */
   public static int getDatasetCountNotNull(XYPlot plot) {
-    return plot.getDatasetCount();
+    if (plot instanceof FxXYPlot fxPlot) {
+      return fxPlot.getNonNullDatasetCount();
+    }
+    int counter = 0;
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      if (plot.getDataset(i) != null) {
+        counter++;
+      }
+    }
+    return counter;
   }
 
   /**
@@ -68,27 +400,19 @@ public class JFreeChartUtils {
   /**
    * Removes all feature data sets.
    *
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
-   *               added right after and the plot shall not be updated until then.
    */
-  public static void removeAllDataSetsOf(JFreeChart chart, Class<? extends XYDataset> clazz,
-      boolean notify) {
-    if (!(chart.getPlot() instanceof XYPlot plot)) {
-      return;
-    }
-
-    plot.setNotify(false);
+  public static void removeAllDataSetsOf(XYPlot plot, Class<? extends XYDataset> clazz) {
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i < numDatasets; i++) {
+    for (int i = numDatasets - 1; i >= 0; i--) {
       XYDataset ds = plot.getDataset(i);
       if (clazz.isInstance(ds)) {
-        plot.setDataset(i, null);
-        plot.setRenderer(i, null);
+        if (plot instanceof FxXYPlot fxPlot) {
+          fxPlot.removeDataSet(i);
+        } else {
+          plot.setDataset(i, null);
+          plot.setRenderer(i, null);
+        }
       }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
     }
   }
 }

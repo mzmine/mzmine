@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -300,6 +299,11 @@ public class MzMLCV {
   public static final String cvUnitsSquareAngstrom = "UO:0000324";
   public static final String cvUnitsAreaUnit = "UO:0000047";
   public static final String cvUnitsDimensionlessUnit = "UO:0000186";
+  public static final String cvAmpere = "UO:0000011";
+  public static final String cvMilliAmpere = "UO:0000037";
+  public static final String cvMicroAmpere = "UO:0000038";
+  public static final String cvPicoAmpere = "UO:0010054";
+
 
 
   // Intensity array unit

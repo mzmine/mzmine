@@ -36,7 +36,7 @@
     <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
-      <version>11.1.1</version>
+      <version>11.2.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -76,6 +76,12 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>io.mzio</groupId>
+      <artifactId>user-client</artifactId>
+      <version>1.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>io.github.mzmine</groupId>
       <artifactId>utils</artifactId>
       <scope>runtime</scope>
@@ -94,37 +100,37 @@
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-graphics</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-fxml</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-swing</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-web</artifactId>
-      <version>23.0.2</version>
+      <version>24.0.2</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

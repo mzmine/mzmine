@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,12 +26,14 @@ package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -66,10 +67,8 @@ public class ImportSpeedTestMain {
       rawdatafiles/DOM_a_invalid_chars.mzML
       rawdatafiles/DOM_a_invalid_header.mzML
       """.split("\n"));
-  public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
-
-
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
+  public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
   public static void main(String[] args) {
 
@@ -138,8 +137,9 @@ public class ImportSpeedTestMain {
       return new File(ImportSpeedTestMain.class.getClassLoader().getResource(name).getFile());
     }).toArray(File[]::new);
 
-    ParameterSet paramDataImport = AllSpectralDataImportParameters.create(true, files, null, null,
-        advanced);
+    ParameterSet paramDataImport = AllSpectralDataImportParameters.create(
+        VendorImportParameters.create(true, MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING, true,
+            WatersLockmassParameters.createDefault(), true), files, null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,13 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
@@ -38,13 +41,17 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStruc
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.util.Collections;
 import java.util.Comparator;
@@ -99,9 +106,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         reader.getAttributeValue(null, XML_TYPE_ATTR));
 
     if (!((reader.isStartElement() && startElementName.equals(XML_ELEMENT_OLD) // old case
-           && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
-          || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
-              && startElementAttrValue.equals(XML_ATTR)))) {
+        && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
+        || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
+        && startElementAttrValue.equals(XML_ATTR)))) {
       throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
     }
 
@@ -169,6 +176,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   }
 
   @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return CompoundDatabaseMatchesType.class;
+  }
+
+  @Override
   public void setStructure(final MolecularStructure structure) {
     if (structure == null) {
       return;
@@ -184,12 +196,18 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public <T> T get(@NotNull DataType<T> key) {
-    // this type is not in the map to avoid export. It is calculated on demand
-    if (key instanceof MolecularStructureType) {
-      return (T) getStructure();
+    // special values that are not in the map may be mapped directly
+    Object value = switch (key) {
+      // this type is not in the map to avoid export. It is calculated on demand
+      case MolecularStructureType _ -> getStructure();
+      case AnnotationMethodType _ -> getAnnotationMethodName(); // might not by in data map
+      default -> null;
+    };
+
+    if (value == null) {
+      value = data.get(key);
     }
 
-    Object value = data.get(key);
     if (value != null && !key.getValueClass().isInstance(value)) {
       throw new IllegalStateException(
           String.format("Value type (%s) does not match data type value class (%s)",
@@ -264,7 +282,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         final Object finalVal = value;
         logger.warning(
             () -> "Error while writing data type " + key.getClass().getSimpleName() + " with value "
-                  + finalVal + " to xml.");
+                + finalVal + " to xml.");
         e.printStackTrace();
       }
     }
@@ -275,21 +293,31 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   @Override
   public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
-      @Nullable Double percentCCSTolerance) {
+      @Nullable Double percentCCSTolerance, @Nullable RITolerance riTolerance) {
 
     final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && (row.getAverageMZ() == null
-                                                     || !mzTolerance.checkWithinTolerance(
-        row.getAverageMZ(), exactMass))) {
+        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
       return false;
+    }
+
+    if (get(Q3QuantMzType.class) != null && mzTolerance != null) {
+      final double q3Mz = get(Q3QuantMzType.class);
+      final ModularFeature bestFeature = (ModularFeature) row.getBestFeature();
+      if (bestFeature == null) {
+        return false;
+      }
+      final double quantifier = bestFeature.get(MrmTransitionListType.class).quantifier().q3mass();
+      if (!mzTolerance.checkWithinTolerance(q3Mz, quantifier)) {
+        return false;
+      }
     }
 
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
     if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
-                                                        || !rtTolerance.checkWithinTolerance(
-        row.getAverageRT(), rt))) {
+        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
       return false;
     }
 
@@ -303,9 +331,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
-    return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
-                                                                      && !(
-        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+    if (percentCCSTolerance != null && ccs != null && ccs > 0 && (row.getAverageCCS() == null
+        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
+      return false;
+    }
+
+    final RIRecord riRecord = getRiRecord();
+    final Float rowRi = row.getAverageRI();
+    if (riTolerance != null && //
+        ((rowRi == null && !riTolerance.isMatchOnNull()) || (rowRi != null
+            && !riTolerance.checkWithinTolerance(rowRi, riRecord)))) {
+      return false;
+    }
+
+    return true;
   }
 
   @Override
@@ -347,5 +386,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public int hashCode() {
     return Objects.hash(data);
   }
+
 }
 

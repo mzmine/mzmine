@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Thu Oct 30 16:48:16 CET 2025
+cdk-formula-2.12-SNAPSHOT.jar>=
+cdk-formula-2.12-SNAPSHOT.pom>=

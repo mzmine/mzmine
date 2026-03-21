@@ -160,7 +160,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     if (loadedParams.containsKey(MERGE_PARAMETER.getName())) {
       boolean merge = MERGE_PARAMETER.getValue();
       if (!merge) {

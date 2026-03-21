@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -45,7 +44,6 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
@@ -89,7 +87,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -119,7 +117,9 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
     makeAndAddBatchExportStep(q, true, null);
+
     return q;
   }
 
@@ -161,7 +161,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
           massDetectorOption.getMs1NoiseLevel());
 
       final var param = AllSpectralDataImportParameters.create(
-          ConfigService.isApplyVendorCentroiding(), dataFiles,
+          ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
           metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(

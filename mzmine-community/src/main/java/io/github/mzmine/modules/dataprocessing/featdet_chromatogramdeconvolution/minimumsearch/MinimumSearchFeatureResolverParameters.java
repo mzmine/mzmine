@@ -31,14 +31,21 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,6 +99,62 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
           new Parameter[]{CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
               MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
     };
+  }
+
+  public static MinimumSearchFeatureResolverParameters create(FeatureListsSelection flists,
+      String suffix, OriginalFeatureListOption handleOriginal, boolean enableMs2Grouping,
+      GroupMS2SubParameters ms2Param, ResolvingDimension dimension, double chromThreshold,
+      double minSearchRange, double minRelHeight, double minAbsHeight, double topToEdge,
+      Range<Double> duration, int minDp) {
+
+    final MinimumSearchFeatureResolverParameters param = (MinimumSearchFeatureResolverParameters) new MinimumSearchFeatureResolverParameters().cloneParameterSet();
+    param.setParameter(PEAK_LISTS, flists);
+    param.setParameter(SUFFIX, suffix);
+    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal, handleOriginal);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .setValue(enableMs2Grouping);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .setEmbeddedParameters(ms2Param);
+    param.setParameter(MinimumSearchFeatureResolverParameters.dimension, dimension);
+    param.setParameter(CHROMATOGRAPHIC_THRESHOLD_LEVEL, chromThreshold);
+    param.setParameter(SEARCH_RT_RANGE, minSearchRange);
+    param.setParameter(MIN_RELATIVE_HEIGHT, minRelHeight);
+    param.setParameter(MIN_ABSOLUTE_HEIGHT, minAbsHeight);
+    param.setParameter(MIN_RATIO, topToEdge);
+    param.setParameter(PEAK_DURATION, duration);
+    param.setParameter(MIN_NUMBER_OF_DATAPOINTS, minDp);
+
+    return param;
+  }
+
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+    return List.of(new ModulePreset("Orbitrap_UHPLC",
+            MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class).getUniqueID(),
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), "r",
+                OriginalFeatureListOption.KEEP, true, GroupMS2SubParameters.createDefault(),
+                ResolvingDimension.RETENTION_TIME, 0.90, 0.04, 0d, 1E5, 2d, Range.closed(0d, 10d), 5)),
+        //
+        new ModulePreset("TOF_UHPLC",
+            MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class).getUniqueID(),
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                "r", OriginalFeatureListOption.KEEP, true, GroupMS2SubParameters.createDefault(),
+                ResolvingDimension.RETENTION_TIME, 0.90, 0.04, 0d, 1E3, 2d, Range.closed(0d, 10d),
+                5)),
+        //
+        new ModulePreset("Orbitrap_HPLC",
+            MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class).getUniqueID(),
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                "r", OriginalFeatureListOption.KEEP, true, GroupMS2SubParameters.createDefault(),
+                ResolvingDimension.RETENTION_TIME, 0.90, 0.1, 0d, 1E5, 2d, Range.closed(0d, 10d),
+                5)),
+        //
+        new ModulePreset("TOF_HPLC",
+            MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class).getUniqueID(),
+            create(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                "r", OriginalFeatureListOption.KEEP, true, GroupMS2SubParameters.createDefault(),
+                ResolvingDimension.RETENTION_TIME, 0.90, 0.1, 0d, 1E3, 2d, Range.closed(0d, 10d),
+                5)));
   }
 
   @Override

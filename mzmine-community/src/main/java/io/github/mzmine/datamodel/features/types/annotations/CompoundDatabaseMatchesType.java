@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
@@ -69,18 +71,19 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
     AnnotationType {
 
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
-      new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
-      new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
-      new InChIStructureType(), new InChIKeyStructureType(),
+      new CompoundNameType(), new AnnotationSummaryType(), new CompoundAnnotationScoreType(),
+      new FormulaType(), new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
+      new InChIStructureType(),
       // classifiers
-      new ClassyFireSuperclassType(), new ClassyFireClassType(), new ClassyFireSubclassType(),
-      new ClassyFireParentType(), new NPClassifierSuperclassType(), new NPClassifierClassType(),
-      new NPClassifierPathwayType(),
+      new InChIKeyStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
+      new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
+      new NPClassifierClassType(),
 
       //
-      new PrecursorMZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
-      new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
-      new IsotopePatternScoreType(), new CommentType());
+      new NPClassifierPathwayType(), new PrecursorMZType(), new MzPpmDifferenceType(),
+      new MzAbsoluteDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
+      new CCSRelativeErrorType(), new IsotopePatternScoreType(), new CommentType(), new RIType(),
+      new RIDiffType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
@@ -94,7 +97,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final CompoundDBAnnotation item) {
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final CompoundDBAnnotation item) {
     return item.get(subType);
   }
 
@@ -178,11 +182,11 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 
   @Override
-  public int getPrefColumnWidth() {
+  public double getPrefColumnWidth() {
     return 150;
   }
 }

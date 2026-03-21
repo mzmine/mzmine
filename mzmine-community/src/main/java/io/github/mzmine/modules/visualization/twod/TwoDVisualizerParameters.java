@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.twod;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -40,27 +39,21 @@ import javafx.collections.FXCollections;
  */
 public class TwoDVisualizerParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<PlotType> plotType =
-      new ComboParameter<>("Type of plot", "Resampled data -> fast. Raw data -> slow.",
-          FXCollections.observableArrayList(PlotType.values()));
+  public static final ComboParameter<PlotType> plotType = new ComboParameter<>("Type of plot",
+      "Resampled data -> fast. Raw data -> slow.",
+      FXCollections.observableArrayList(PlotType.values()));
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final MZRangeParameter mzRange = new MZRangeParameter();
 
   public static final FeatureThresholdParameter featureThresholdSettings = new FeatureThresholdParameter();
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
-
   public TwoDVisualizerParameters() {
-    super(new Parameter[] {plotType, dataFiles, scanSelection, mzRange, featureThresholdSettings,
-        windowSettings});
+    super(new Parameter[]{plotType, dataFiles, scanSelection, mzRange, featureThresholdSettings});
   }
 
 }

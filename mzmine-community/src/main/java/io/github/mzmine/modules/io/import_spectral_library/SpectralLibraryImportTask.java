@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,13 +47,15 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private final File dataBaseFile;
+  private final boolean extensiveErrorLogging;
   private AutoLibraryParser parser;
 
   public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, boolean extensiveErrorLogging) {
     super(MemoryMapStorage.forMassList(), moduleCallDate);
     this.project = project;
     this.dataBaseFile = dataBaseFile;
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
@@ -115,9 +117,9 @@ public class SpectralLibraryImportTask extends AbstractTask {
    */
   private SpectralLibrary parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
-    //
     SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
-    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list));
+    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list),
+        extensiveErrorLogging);
     // return tasks
     parser.parse(this, dataBaseFile, library);
     return library;

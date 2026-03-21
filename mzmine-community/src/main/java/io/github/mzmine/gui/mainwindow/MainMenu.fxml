@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
-  ~
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
   ~ files (the "Software"), to deal in the Software without
@@ -268,8 +267,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_sql.SQLExportModule"/>
       <MenuItem text="MSP file (ADAP)" onAction="#runModule"
@@ -435,10 +432,7 @@
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule"/>
       <MenuItem text="Linear normalizer" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
-      <MenuItem text="Standard compound normalizer"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule"/>
       <MenuItem text="Retention index calculation"
                 onAction="#runModule"
                 userData="io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule"/>

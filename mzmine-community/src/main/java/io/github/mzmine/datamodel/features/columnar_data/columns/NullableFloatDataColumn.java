@@ -25,9 +25,10 @@
 
 package io.github.mzmine.datamodel.features.columnar_data.columns;
 
+import io.github.mzmine.datamodel.features.columnar_data.columns.general.NullableFloat;
 import org.jetbrains.annotations.Nullable;
 
-public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
+public non-sealed interface NullableFloatDataColumn extends DataColumn<Float>, NullableFloat {
 
   /**
    * @param index row index
@@ -56,17 +57,4 @@ public non-sealed interface NullableFloatDataColumn extends DataColumn<Float> {
     return isNull(value) ? null : value;
   }
 
-  /**
-   * @return Float.NaN used as null representative
-   */
-  default float nullValue() {
-    return Float.NaN;
-  }
-
-  /**
-   * @return true if value represents null
-   */
-  default boolean isNull(final float value) {
-    return Float.isNaN(value);
-  }
 }

@@ -73,6 +73,12 @@ public class DefaultHeadlessDesktop implements Desktop {
     logger.severe(msg);
   }
 
+  @Override
+  public void displayErrorMessageAndThrow(RuntimeException ex) {
+    logger.log(Level.WARNING, ex.getMessage(), ex);
+    throw ex;
+  }
+
 
   @Override
   public void displayException(Exception e) {

@@ -58,7 +58,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
       0d, 1d);
 
   public static final BooleanParameter separateBlankQcs = new BooleanParameter(
-      "Separate blanks & QCs", "Separate coloring for blanks and QCs", true);
+      "Separate blanks & QCs", "Separate coloring for blanks and QCs", false);
 
   public static final BooleanParameter applySorting = new BooleanParameter("Sort data files",
       "Sort raw data files", true);
@@ -97,7 +97,7 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
     // transfer old parameter type to new type
     if (loadedParams.containsKey(colorByColumn.getName())) {
       getParameter(columnSelection).setValue(colorByColumn.getValue());
@@ -106,4 +106,6 @@ public class ColorByMetadataParameters extends SimpleParameterSet {
               colorByColumn.getEmbeddedParameter().getValue());
     }
   }
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,30 @@
 
 package io.github.mzmine.util.dependencylicenses;
 
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
-public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements Comparable<ModuleLicense> {
+public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements
+    Comparable<ModuleLicense> {
+
+  /**
+   *
+   * @param moduleLicense
+   * @param relativePath  relative path to distributed license file. e.g. place in external_tools.
+   */
+  public ModuleLicense(String moduleLicense, @NotNull File relativePath) {
+    this(moduleLicense, relativePath.getAbsolutePath());
+  }
 
   @Override
   public int compareTo(@NotNull ModuleLicense o) {
-    if(o.moduleLicense == null) {
-      if(this.moduleLicense == null) {
+    if (o.moduleLicense == null) {
+      if (this.moduleLicense == null) {
         return 0;
       }
       return 1;
     }
-    if(this.moduleLicense == null) {
+    if (this.moduleLicense == null) {
       return -1;
     }
     return this.moduleLicense.compareTo(o.moduleLicense);

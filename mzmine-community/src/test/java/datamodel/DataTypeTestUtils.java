@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -96,6 +95,9 @@ public class DataTypeTestUtils {
     testSaveLoad(type, null, project, flist, row, feature, file);
 
     file.close();
+
+    testStringConversion(type, value);
+    testStringConversion(type, null);
   }
 
   /**
@@ -157,6 +159,13 @@ public class DataTypeTestUtils {
 
     // test row load
     InputStream is = new ByteArrayInputStream(os.toByteArray());
+    return loadDataTypeFromInputStream(type, value, project, flist, row, feature, file, is, os);
+  }
+
+  public static @Nullable Object loadDataTypeFromInputStream(@NotNull DataType<?> type,
+      @Nullable Object value, @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file, InputStream is, ByteArrayOutputStream os) {
     XMLInputFactory xif = XMLInputFactory.newInstance();
     XMLStreamReader reader = null;
     try {
@@ -202,5 +211,30 @@ public class DataTypeTestUtils {
     }
     Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());
     return null;
+  }
+
+  /**
+   * Tests if the string conversions {@link DataType#getFormattedString(Object)} ->
+   * {@link DataType#getMapper()} -> {@link DataType#getFormattedString(Object)} produce equal
+   * return values on both formatter calls.
+   * <p>
+   * Same applies to {@link DataType#getFormattedExportString(Object)}
+   *
+   * @param type
+   * @param value
+   * @param <T>
+   */
+  public static <T> void testStringConversion(@NotNull DataType<T> type, @Nullable T value) {
+    if (type.getMapper() == null) {
+      return;
+    }
+
+    final String f = type.getFormattedString(value);
+    T mapped = type.getMapper().apply(f);
+    Assertions.assertEquals(f, type.getFormattedString(mapped));
+
+    final String formattedExportString = type.getFormattedExportString(value);
+    mapped = type.getMapper().apply(formattedExportString);
+    Assertions.assertEquals(formattedExportString, type.getFormattedExportString(mapped));
   }
 }

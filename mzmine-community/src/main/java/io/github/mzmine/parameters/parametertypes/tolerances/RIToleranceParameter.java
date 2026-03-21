@@ -144,6 +144,14 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     if (columnAttrType == null || columnAttrType.isEmpty()) {
       return;
     }
+    String matchNullStr = xmlElement.getAttribute("matchWithoutRi");
+    final boolean matchNull;
+    if (matchNullStr == null || matchNullStr.isBlank()) {
+      matchNull = false;
+    } else {
+      // returns false if the string is not "true", no exception
+      matchNull = Boolean.parseBoolean(matchNullStr);
+    }
 
     RIColumn columnType = RIColumn.valueOf(columnAttrType);
 
@@ -152,7 +160,7 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
       return;
     }
     float tolerance = Float.parseFloat(toleranceNum);
-    this.value = new RITolerance(tolerance, columnType);
+    this.value = new RITolerance(tolerance, columnType, matchNull);
   }
 
   @Override
@@ -160,10 +168,11 @@ public class RIToleranceParameter implements UserParameter<RITolerance, RITolera
     if (value == null) {
       return;
     }
-    xmlElement.setAttribute("columnType", value.getColumn().name());
+    xmlElement.setAttribute("columnType", value.getRIType().name());
     float tolerance = value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
+    xmlElement.setAttribute("matchWithoutRi", Boolean.toString(value.isMatchOnNull()));
   }
 
   @Override

@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible problem in mzmine
+labels:
+  - Bug
+title: "[Bug]: "
+body:
+  - type: input
+    id: mzmine_version
+    attributes:
+      label: mzmine version/build
+      description: Example "4.7.33"
+      placeholder: 4.x.x
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      multiple: false
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Observed issue behavior
+      description: What did you expect to happen and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide clear, minimal steps to reproduce the issue.
+      placeholder: |
+        Provide either of the following:
+        - a link to a small, standalone mzmine project to reproduce the problem.
+        - include a batch file plus minimal raw files to reproduce the problem.
+        You may use cloud storage links (e.g., Google Drive, Dropbox). Issues without an example project are unlikely to be processed.
+    validations:
+      required: true

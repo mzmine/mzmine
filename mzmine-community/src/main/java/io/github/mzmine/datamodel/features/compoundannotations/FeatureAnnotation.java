@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,14 +26,20 @@
 package io.github.mzmine.datamodel.features.compoundannotations;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +56,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Describes a common feature annotation. Future implementations should also extend the
@@ -62,15 +69,17 @@ public interface FeatureAnnotation {
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
 
-  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
-      ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
+  static FeatureAnnotation loadFromXML(@NotNull XMLStreamReader reader,
+      @NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
     }
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project, flist, row,
+              project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       case MatchedLipid.XML_ELEMENT ->
@@ -148,8 +157,7 @@ public interface FeatureAnnotation {
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
-  @Nullable
-  Double getPrecursorMZ();
+  @Nullable Double getPrecursorMZ();
 
   /**
    * This should be usually recalculated on demand from smiles or inchi. Also if smiles or inchi
@@ -157,38 +165,61 @@ public interface FeatureAnnotation {
    *
    * @return the structure parsed from smiles or inchi
    */
-  @Nullable
-  MolecularStructure getStructure();
+  @Nullable MolecularStructure getStructure();
+
+  @Nullable String getSmiles();
+
+  @Nullable String getInChI();
+
+  @Nullable String getInChIKey();
+
+  @Nullable String getCompoundName();
+
+  @Nullable String getIupacName();
+
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.CASType}
+   */
+  @Nullable String getCAS();
+
+  /**
+   * @see {@link io.github.mzmine.datamodel.features.types.identifiers.InternalIdType}
+   */
+  @Nullable String getInternalId();
+
+  @Nullable String getFormula();
+
+  @Nullable IonType getAdductType();
+
+  @Nullable Float getMobility();
+
+  @Nullable Float getCCS();
+
+  @Nullable Float getRT();
+
+  @Nullable Float getScore();
 
   @Nullable
-  String getSmiles();
+  default IsotopePattern calculateIsotopePattern() {
+    String formulaStr = getFormula();
+    final IonType ionType = getAdductType();
 
-  @Nullable
-  String getInChI();
+    if (ionType == null) {
+      return null;
+    }
+    IMolecularFormula formula = null;
+    if (formulaStr == null) {
+      final MolecularStructure structure = getStructure();
+      if (structure != null) {
+        formula = structure.formula();
+      }
+    } else {
+      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+    }
+    return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
+  }
 
-  @Nullable
-  String getInChIKey();
-
-  @Nullable
-  String getCompoundName();
-
-  @Nullable
-  String getFormula();
-
-  @Nullable
-  IonType getAdductType();
-
-  @Nullable
-  Float getMobility();
-
-  @Nullable
-  Float getCCS();
-
-  @Nullable
-  Float getRT();
-
-  @Nullable
-  Float getScore();
+  @Nullable IsotopePattern getIsotopePattern();
 
   @Nullable
   default String getScoreString() {
@@ -199,8 +230,41 @@ public interface FeatureAnnotation {
     return MZmineCore.getConfiguration().getScoreFormat().format(score);
   }
 
+  @Nullable String getDatabase();
+
+  /**
+   * @return the best name identifier in order of {@link CompoundNameIdentifier}
+   */
   @Nullable
-  String getDatabase();
+  default String getBestNameIdentifier() {
+    for (CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
+      final String name = getNameIdentifier(id);
+
+      if (name != null) {
+        return name;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param id identifier for name
+   * @return the mapped identifier or null
+   */
+  default @Nullable String getNameIdentifier(@Nullable CompoundNameIdentifier id) {
+    return switch (id) {
+      case null -> null;
+      case COMPOUND_NAME -> getCompoundName();
+      case IUPAC_NAME -> getIupacName();
+      case INTERNAL_ID -> getInternalId();
+      case FORMULA -> getFormula();
+      case SMILES -> getSmiles();
+      case INCHI_KEY -> getInChIKey();
+      case INCHI -> getInChI();
+      case CAS -> getCAS();
+    };
+  }
+
 
   /**
    * Keep stable as its exported to tools. often the xml key but not always
@@ -211,11 +275,21 @@ public interface FeatureAnnotation {
     return getXmlAttributeKey();
   }
 
+  default @NotNull String getAnnotationMethodName() {
+    return DataTypes.get(getDataType()).getHeaderString();
+  }
+
+  /**
+   *
+   * @return The data type that represents this annotation in the feature table
+   * ({@link CompoundAnnotationUtils#annotationTypePriority}
+   */
+  @NotNull Class<? extends DataType> getDataType();
+
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
    */
-  @NotNull
-  String getXmlAttributeKey();
+  @NotNull String getXmlAttributeKey();
 
   /**
    * Writes an opening tag that conforms with the
@@ -240,4 +314,9 @@ public interface FeatureAnnotation {
   default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
   }
+
+  /**
+   * A comment
+   */
+  @Nullable String getComment();
 }

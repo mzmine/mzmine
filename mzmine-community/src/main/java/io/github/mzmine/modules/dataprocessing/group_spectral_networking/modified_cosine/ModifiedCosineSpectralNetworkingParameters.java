@@ -110,7 +110,8 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     MZTolerance mzTol = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA;
     if (loadedParams.containsKey(MZ_TOLERANCE.getName())) {
       mzTol = getValue(MZ_TOLERANCE);
