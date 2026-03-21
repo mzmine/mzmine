@@ -40,11 +40,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -68,18 +64,19 @@ public final class StartupSplash {
   private static final Logger logger = Logger.getLogger(StartupSplash.class.getName());
   private static final Logger rootLogger = Logger.getLogger("");
   private static final String SPLASH_RESOURCE = "icons/introductiontab/logos_mzio_mzmine.png";
-  private static final String MZIO_LOGO_RESOURCE = "icons/introductiontab/logo_mzio.png";
+  private static final String MZIO_LOGO_RESOURCE = "splash/logo_mzio.png";
+  private static final String COMMUNITY_LOGO_RESOURCE = "splash/mzmine_community.png";
   private static final int MAX_LOGO_WIDTH = 800;
-  private static final int SPLASH_PADDING = 24;
   private static final int LOG_LABEL_HEIGHT = 18;
   private static final int BRAND_FONT_SIZE = 16;
   private static final int BRAND_LOGO_HEIGHT = 16;
   private static final double BRAND_TEXT_Y_OFFSET = 6.0;
   private static final int VERSION_FONT_SIZE = 24;
-  private static final int VERSION_TOP_PADDING = 5;
+  private static final int VERSION_AND_LOGO_SPACE = 5;
   private static final AtomicReference<Stage> splashStage = new AtomicReference<>();
   private static final AtomicReference<Handler> splashLogHandler = new AtomicReference<>();
   private static final Color fontColor = Color.web("#3C3C3B");
+  private static Insets OVERALL_PADDING = new Insets(20);
 
   private StartupSplash() {
   }
@@ -135,19 +132,16 @@ public final class StartupSplash {
 
   @NotNull
   private static Stage createSplashStage(final @NotNull TextFlow logFlow) {
-    final VBox brandingPane = createBrandingPane();
+    final BorderPane logoPane = createLogoPane();
     final BorderPane footer = createFooter(logFlow);
-    final BorderPane content = new BorderPane(brandingPane);
+    final BorderPane content = new BorderPane(logoPane);
     content.setBottom(footer);
 
-    content.setPrefWidth(MAX_LOGO_WIDTH + (SPLASH_PADDING * 2.0));
+    content.setPrefWidth(MAX_LOGO_WIDTH + OVERALL_PADDING.getLeft() + OVERALL_PADDING.getRight());
     content.setMinWidth(Region.USE_PREF_SIZE);
     content.setBackground(
-        new Background(new BackgroundFill(Color.WHITE, new CornerRadii(10), Insets.EMPTY)));
-    content.setBorder(new Border(
-        new BorderStroke(Color.rgb(0xD9, 0xD9, 0xD9), BorderStrokeStyle.SOLID, new CornerRadii(10),
-            BorderWidths.DEFAULT)));
-    content.setPadding(new Insets(15));
+        new Background(new BackgroundFill(Color.WHITE, new CornerRadii(15), Insets.EMPTY)));
+    content.setPadding(OVERALL_PADDING);
 
     final Scene scene = new Scene(content);
     scene.setFill(Color.TRANSPARENT);
@@ -171,19 +165,16 @@ public final class StartupSplash {
   }
 
   @NotNull
-  private static VBox createBrandingPane() {
+  private static BorderPane createLogoPane() {
     final Label versionLabel = createVersionLabel();
-    final VBox brandingPane = new VBox(VERSION_TOP_PADDING, createLogoView(), versionLabel);
-    brandingPane.setPadding(new Insets(10));
+    final VBox brandingPane = new VBox(VERSION_AND_LOGO_SPACE, createLogoView(), versionLabel);
     brandingPane.setAlignment(Pos.CENTER);
-    return brandingPane;
+    return new BorderPane(brandingPane);
   }
 
   @NotNull
   private static Label createVersionLabel() {
     final Label versionLabel = new Label(String.valueOf(SemverVersionReader.getMZmineVersion()));
-    versionLabel.setAlignment(Pos.CENTER);
-    versionLabel.setMaxWidth(Region.USE_PREF_SIZE);
     versionLabel.setTextFill(fontColor);
     versionLabel.setFont(
         Font.font(Font.getDefault().getFamily(), FontWeight.BOLD, VERSION_FONT_SIZE));
@@ -211,14 +202,30 @@ public final class StartupSplash {
   @NotNull
   private static BorderPane createFooter(final @NotNull TextFlow logFlow) {
     final HBox mzioBrand = createMzioBrand();
+    final HBox communityLogo = createCommunityLogoView();
     final BorderPane footer = new BorderPane();
+    footer.setLeft(communityLogo);
     footer.setCenter(logFlow);
     footer.setRight(mzioBrand);
+    BorderPane.setAlignment(communityLogo, Pos.BOTTOM_LEFT);
     BorderPane.setAlignment(mzioBrand, Pos.BOTTOM_RIGHT);
     BorderPane.setAlignment(logFlow, Pos.BOTTOM_LEFT);
     footer.setPadding(new Insets(5));
-
+    communityLogo.setPadding(new Insets(0, 5, 0, 0));
     return footer;
+  }
+
+  @NotNull
+  private static HBox createCommunityLogoView() {
+    final ImageView communityLogo = new ImageView(
+        FxIconUtil.loadImageFromResources(COMMUNITY_LOGO_RESOURCE));
+    communityLogo.setPreserveRatio(true);
+    communityLogo.setSmooth(true);
+    communityLogo.setFitHeight(BRAND_LOGO_HEIGHT * 2);
+    communityLogo.setTranslateY(5);
+    HBox hBox = new HBox(communityLogo);
+    hBox.setAlignment(Pos.BOTTOM_LEFT);
+    return hBox;
   }
 
   @NotNull
