@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -43,7 +42,15 @@ public enum Themes {
           "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
   DARK_GREY("Dark grey",
       List.of("themes/jabref_light.css", "themes/jabref_dark_grey.css",
-      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true) //
+          "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
+  MIDNIGHT("Midnight", List.of("themes/jabref_light.css", "themes/mzmine_midnight.css",
+      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
+  NORD("Nord", List.of("themes/jabref_light.css", "themes/mzmine_nord.css",
+      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
+  TWILIGHT("Twilight", List.of("themes/jabref_light.css", "themes/mzmine_twilight.css",
+      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
+  CRISP_LIGHT("Crisp Light", List.of("themes/jabref_light.css", "themes/mzmine_crisp_light.css",
+      "themes/jabref_additions_common.css", "themes/jabref_additions_light.css"), false) //
   ;
 
   private final String name;
