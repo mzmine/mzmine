@@ -152,6 +152,8 @@ public final class StartupSplash {
     stage.setScene(scene);
     stage.sizeToScene();
     stage.centerOnScreen();
+    stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
+
     return stage;
   }
 
