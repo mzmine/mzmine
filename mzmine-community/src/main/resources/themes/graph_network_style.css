@@ -40,6 +40,11 @@ edge.MS2Deepscore {
   fill-mode: dyn-plain;
   fill-color: #c58bff, #f700ff, #5b195d, #490d38;
 }
+edge.ISOTOPE_LABELING {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #6ddc8b, #29c45a, #1a8a3e, #0d5526;
+}
 edge.OTHER {
   size-mode: dyn-size;
   fill-mode: dyn-plain;

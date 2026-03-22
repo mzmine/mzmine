@@ -35,7 +35,7 @@ import java.util.Optional;
 public enum EdgeType implements ElementType {
 
   FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-  ONLINE_REACTION, MS2Deepscore, DREAMS, OTHER;
+  ONLINE_REACTION, MS2Deepscore, DREAMS, ISOTOPE_LABELING, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -55,6 +55,7 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> ONLINE_REACTION;
       case MS2Deepscore -> MS2Deepscore;
       case DREAMS -> DREAMS;
+      case ISOTOPE_LABELING_SIM -> ISOTOPE_LABELING;
       case OTHER -> OTHER;
       case null -> OTHER;
     };
@@ -70,6 +71,7 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> Type.ONLINE_REACTION;
       case MS2Deepscore -> Type.MS2Deepscore;
       case DREAMS -> Type.DREAMS;
+      case ISOTOPE_LABELING -> Type.ISOTOPE_LABELING_SIM;
       case OTHER -> Type.OTHER;
       case null -> Type.OTHER;
     };
@@ -77,7 +79,7 @@ public enum EdgeType implements ElementType {
 
   public static List<EdgeType> getDefaultVisibleColumns() {
     return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-        MS2Deepscore, DREAMS, OTHER);
+        MS2Deepscore, DREAMS, ISOTOPE_LABELING, OTHER);
   }
 
   @Override
@@ -101,6 +103,7 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> "IINREL";
       case MS2Deepscore -> "MS2Deepscore";
       case DREAMS -> "DreaMS";
+      case ISOTOPE_LABELING -> "ISOTOPE_LABELING";
       case OTHER -> "OTHER";
     });
   }

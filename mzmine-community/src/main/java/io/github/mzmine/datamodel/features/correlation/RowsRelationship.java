@@ -155,6 +155,7 @@ public interface RowsRelationship {
      */
     MS2Deepscore,
     DREAMS,
+    ISOTOPE_LABELING_SIM,
     /**
      * External or other undefined
      */
@@ -186,6 +187,7 @@ public interface RowsRelationship {
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
+        case ISOTOPE_LABELING_SIM -> "Isotope Labeling Similarity";
         case OTHER -> "Other";
       };
     }

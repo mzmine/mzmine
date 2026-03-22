@@ -56,6 +56,7 @@ import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.A
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.group_isotope_labeling_networking.IsotopeLabelingNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.CalcEcmsPotentialModule;
@@ -283,7 +284,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultFeatureGroupingSubMenu() {
     final Menu groupingMenu = addModuleMenuItems("Feature grouping", CorrelateGroupingModule.class,
-        IonNetworkingModule.class, MainSpectralNetworkingModule.class, AddIonNetworkingModule.class,
+        IonNetworkingModule.class, MainSpectralNetworkingModule.class,
+        IsotopeLabelingNetworkingModule.class, AddIonNetworkingModule.class,
         IonNetworkRefinementModule.class, IonNetRelationsModule.class,
         FormulaPredictionIonNetworkModule.class, CreateAvgNetworkFormulasModule.class,
         IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
