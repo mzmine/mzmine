@@ -40,6 +40,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
@@ -139,7 +140,12 @@ public class MobilogramFeatureShapeCell extends ChartCell<SimpleXYChart<?>> {
     // x axis label needs updates in update item()
     SimpleXYChart<SummedMobilogramXYProvider> chart = new SimpleXYChart<>("Mobility",
         uf.format("Intensity", "a.u."));
-    chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+
+    chart.getXYPlot().setInsets(ChartCell.DEFAULT_SMALL_PLOT_INSETS);
+    chart.getXYPlot().getDomainAxis().setLabel(null);
+    chart.getXYPlot().getRangeAxis().setLabel(null);
+
+    chart.setRangeAxisNumberFormatOverride(MZmineConfiguration.INTEGER_SCIENTIFIC_FORMAT);
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setLegendItemsVisible(false);
     chart.setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);

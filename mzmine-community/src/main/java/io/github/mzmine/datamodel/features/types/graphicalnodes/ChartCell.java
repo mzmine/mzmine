@@ -34,12 +34,14 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import javafx.geometry.Insets;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.ui.RectangleInsets;
 
 /**
  * Basic cell to create a chart for the feature table.
@@ -54,6 +56,13 @@ import org.jfree.chart.JFreeChart;
  */
 public abstract class ChartCell<T extends EChartViewer> extends
     TreeTableCell<ModularFeatureListRow, Object> {
+
+  /**
+   * Many plots better to set smaller insets in the table to save space:
+   * <p>
+   * chart.getXYPlot().setInsets(ChartCell.DEFAULT_SMALL_PLOT_INSETS);
+   */
+  public static final RectangleInsets DEFAULT_SMALL_PLOT_INSETS = new RectangleInsets(2, 2, 2, 2);
 
   protected final T plot;
   protected final Region view;
@@ -76,6 +85,9 @@ public abstract class ChartCell<T extends EChartViewer> extends
 
     // use stackpane as it is transparent / borderpane is not
     graphicProperty().bind(emptyProperty().map(empty -> empty ? null : view));
+
+    // no extra space around the chart in cell - effectively still 1px space
+    setPadding(Insets.EMPTY);
   }
 
   protected abstract int getMinCellHeight();
