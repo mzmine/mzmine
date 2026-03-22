@@ -27,9 +27,15 @@ package io.github.mzmine.modules.visualization.isotope_labeling;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.modules.dataprocessing.id_untargetedLabeling.UntargetedLabelingModule;
 import io.github.mzmine.modules.dataprocessing.id_untargetedLabeling.UntargetedLabelingParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,11 +69,17 @@ public class IsotopeLabelingModel {
   private final StringProperty visualizationType = new SimpleStringProperty("Relative intensities");
   private final BooleanProperty normalizeToBaseIsotopologue = new SimpleBooleanProperty(false);
   private final IntegerProperty maxIsotopologues = new SimpleIntegerProperty(10);
+  private final BooleanProperty showSignificanceMarkers = new SimpleBooleanProperty(true);
 
   // Chart data
   private final ObjectProperty<JFreeChart> chart = new SimpleObjectProperty<>();
   private final ObjectProperty<Map<Integer, Map<String, double[]>>> processedData = new SimpleObjectProperty<>(
       new HashMap<>());
+
+  // Labeling group identifiers extracted from the feature list's applied methods
+  private String metadataColumnName = null;
+  private String labeledGroupValue = null;
+  private String unlabeledGroupValue = null;
 
   /**
    * Extract isotope clusters from the feature list
@@ -189,25 +201,74 @@ public class IsotopeLabelingModel {
   }
 
   /**
-   * Get sample groups based on file names
-   *
-   * @param files List of raw data files
-   * @return Map of file names to group names
+   * Reads the UntargetedLabelingModule parameters stored in the feature list's applied methods and
+   * caches the metadata column name and group values so that {@link #determineSampleGroups} can
+   * classify files correctly.
    */
-  public static Map<String, String> determineSampleGroups(List<RawDataFile> files) {
+  public void extractLabelingParamsFromFeatureList(FeatureList featureList) {
+    if (featureList == null) {
+      return;
+    }
+    for (FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
+      if (method.getModule() instanceof UntargetedLabelingModule) {
+        ParameterSet params = method.getParameters();
+        metadataColumnName = params.getParameter(UntargetedLabelingParameters.metadataGrouping)
+            .getValue();
+        labeledGroupValue = params.getParameter(UntargetedLabelingParameters.labeledGroupValue)
+            .getValue();
+        unlabeledGroupValue = params.getParameter(UntargetedLabelingParameters.unlabeledGroupValue)
+            .getValue();
+        logger.info("Extracted labeling params from feature list: column=" + metadataColumnName
+            + ", labeled=" + labeledGroupValue + ", unlabeled=" + unlabeledGroupValue);
+        return;
+      }
+    }
+    logger.warning("Could not find UntargetedLabelingModule in applied methods of feature list "
+        + featureList.getName() + ". Sample groups will be shown as Unknown.");
+  }
+
+  /**
+   * Determines sample groups (Labeled / Unlabeled / Unknown) for a list of raw data files by
+   * consulting the project metadata table with the column and values extracted during processing.
+   *
+   * @param files raw data files to classify
+   * @return map of file name → group label
+   */
+  public Map<String, String> determineSampleGroups(List<RawDataFile> files) {
     Map<String, String> groups = new HashMap<>();
 
-    for (RawDataFile file : files) {
-      String name = file.getName().toLowerCase();
-
-      if (name.contains("unlabeled") || name.contains("control") || name.contains("c12")
-          || name.contains("12c")) {
-        groups.put(file.getName(), "Unlabeled");
-      } else if (name.contains("labeled") || name.contains("c13") || name.contains("13c")
-          || name.contains("treatment")) {
-        groups.put(file.getName(), "Labeled");
-      } else {
+    if (metadataColumnName == null || labeledGroupValue == null || unlabeledGroupValue == null) {
+      // Params were never set — all files labeled Unknown
+      for (RawDataFile file : files) {
         groups.put(file.getName(), "Unknown");
+      }
+      return groups;
+    }
+
+    MetadataTable metadata = ProjectService.getMetadata();
+    MetadataColumn<?> column = metadata.getColumnByName(metadataColumnName);
+
+    if (column == null) {
+      logger.warning("Metadata column '" + metadataColumnName + "' not found in project metadata");
+      for (RawDataFile file : files) {
+        groups.put(file.getName(), "Unknown");
+      }
+      return groups;
+    }
+
+    for (RawDataFile file : files) {
+      Object value = metadata.getValue(column, file);
+      if (value == null) {
+        groups.put(file.getName(), "Unknown");
+      } else {
+        String strValue = value.toString().trim();
+        if (labeledGroupValue.equalsIgnoreCase(strValue)) {
+          groups.put(file.getName(), "Labeled");
+        } else if (unlabeledGroupValue.equalsIgnoreCase(strValue)) {
+          groups.put(file.getName(), "Unlabeled");
+        } else {
+          groups.put(file.getName(), "Unknown");
+        }
       }
     }
 
@@ -302,6 +363,18 @@ public class IsotopeLabelingModel {
 
   public void setMaxIsotopologues(int maxIsotopologues) {
     this.maxIsotopologues.set(maxIsotopologues);
+  }
+
+  public boolean getShowSignificanceMarkers() {
+    return showSignificanceMarkers.get();
+  }
+
+  public BooleanProperty showSignificanceMarkersProperty() {
+    return showSignificanceMarkers;
+  }
+
+  public void setShowSignificanceMarkers(boolean show) {
+    this.showSignificanceMarkers.set(show);
   }
 
   public JFreeChart getChart() {

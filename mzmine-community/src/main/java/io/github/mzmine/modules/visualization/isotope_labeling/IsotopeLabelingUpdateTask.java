@@ -33,31 +33,38 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.inference.TTest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.CategoryTextAnnotation;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.category.StatisticalBarRenderer;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.statistics.DefaultStatisticalCategoryDataset;
 
-/**
- * Update task for isotope labeling visualization, creating stacked bar charts
- */
 public class IsotopeLabelingUpdateTask extends FxUpdateTask<IsotopeLabelingModel> {
 
   private static final Logger logger = Logger.getLogger(IsotopeLabelingUpdateTask.class.getName());
@@ -74,31 +81,25 @@ public class IsotopeLabelingUpdateTask extends FxUpdateTask<IsotopeLabelingModel
     super("isotope_labeling_update", model);
     this.allClusters = allClusters;
 
-    // Set progress total based on the number of selected clusters
     List<Integer> selectedClusters = model.getSelectedClusters();
     progress.setTotal(selectedClusters != null ? selectedClusters.size() : 0);
   }
 
   @Override
   public boolean checkPreConditions() {
-    // Check if we have feature lists and clusters
     if (model.getFeatureLists() == null || model.getFeatureLists().isEmpty()) {
       logger.warning("No feature lists available");
       return false;
     }
-
     if (allClusters == null || allClusters.isEmpty()) {
       logger.warning("No isotope clusters available");
       return false;
     }
-
-    // Check if any clusters are selected
     List<Integer> selectedClusters = model.getSelectedClusters();
     if (selectedClusters == null || selectedClusters.isEmpty()) {
       logger.warning("No isotope clusters selected");
       return false;
     }
-
     return true;
   }
 
@@ -108,400 +109,407 @@ public class IsotopeLabelingUpdateTask extends FxUpdateTask<IsotopeLabelingModel
       return;
     }
 
-    // Get selected clusters
     List<Integer> selectedClusterIds = model.getSelectedClusters();
-    Map<Integer, List<FeatureListRow>> selectedClusters = new HashMap<>();
+    boolean multipleCluster = selectedClusterIds.size() > 1;
+
+    // dataset: series = group name, category = isotopologue label
+    DefaultStatisticalCategoryDataset dataset = new DefaultStatisticalCategoryDataset();
+
+    // significance annotations: category key → significance string
+    // stored as list of (categoryKey, yValue, significanceString)
+    List<Object[]> significanceAnnotations = new ArrayList<>();
+
+    String visualizationType = model.getVisualizationType();
+    boolean useRelative = "Relative intensities".equals(visualizationType);
+    boolean normalizeToBase = model.getNormalizeToBaseIsotopologue();
+    int maxIsotopologues = model.getMaxIsotopologues();
+
+    // Track all group names to assign consistent colors later
+    Set<String> allGroupNames = new LinkedHashSet<>();
+    // Map cluster ID → [baseMz, baseRt] for subtitle annotations
+    Map<Integer, double[]> clusterInfo = new LinkedHashMap<>();
+
+    // Pre-compute group colors in fixed order so bars and dots share the same palette
+    SimpleColorPalette colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    colorPalette.resetColorCounter();
+    Map<String, Color> groupColorMap = new LinkedHashMap<>();
+    for (String preferred : List.of("Unlabeled", "Labeled", "Unknown")) {
+      groupColorMap.put(preferred, colorPalette.getNextColorAWT());
+    }
+
+    // Per-sample dot datasets (populated inside the cluster loop)
+    Map<String, Color> pointSeriesColors = new LinkedHashMap<>();
+    DefaultCategoryDataset pointsDataset = new DefaultCategoryDataset();
+
+    // Labeled fraction per cluster (fraction of labeled signal that is M+1 and above)
+    Map<Integer, Double> labeledFractions = new LinkedHashMap<>();
 
     for (Integer clusterId : selectedClusterIds) {
-      if (allClusters.containsKey(clusterId)) {
-        selectedClusters.put(clusterId, allClusters.get(clusterId));
-      }
-    }
-
-    if (selectedClusters.isEmpty()) {
-      logger.warning("No valid clusters selected");
-      return;
-    }
-
-    // Set up color palette
-    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-    colors.resetColorCounter();
-
-    // Get visualization type
-    String visualizationType = model.getVisualizationType();
-
-    // We'll need to create a category dataset for the bar chart
-    DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-    // Process each selected cluster
-    for (Map.Entry<Integer, List<FeatureListRow>> entry : selectedClusters.entrySet()) {
       if (isCanceled()) {
         return;
       }
 
-      Integer clusterId = entry.getKey();
-      List<FeatureListRow> rows = entry.getValue();
-
-      // Skip empty clusters
-      if (rows == null || rows.isEmpty()) {
+      List<FeatureListRow> rawRows = allClusters.get(clusterId);
+      if (rawRows == null || rawRows.isEmpty()) {
         continue;
       }
 
-      // Sort rows by isotopologue rank
-      rows.sort((r1, r2) -> {
+      // Sort by isotopologue rank into a new mutable list
+      List<FeatureListRow> sortedRows = new ArrayList<>(rawRows);
+      sortedRows.sort((r1, r2) -> {
         Integer rank1 = IsotopeLabelingModel.getIsotopologueRank(r1);
         Integer rank2 = IsotopeLabelingModel.getIsotopologueRank(r2);
         return Integer.compare(rank1 != null ? rank1 : 0, rank2 != null ? rank2 : 0);
       });
 
-      // Limit to max isotopologues
-      int maxIsotopologues = model.getMaxIsotopologues();
-      List<FeatureListRow> limitedRows =
-          rows.size() > maxIsotopologues ? rows.subList(0, maxIsotopologues) : rows;
+      final List<FeatureListRow> rows =
+          sortedRows.size() > maxIsotopologues ? sortedRows.subList(0, maxIsotopologues)
+              : sortedRows;
 
-      // Get base feature info for the dataset name
       FeatureListRow baseRow = IsotopeLabelingModel.findBasePeak(rows);
       if (baseRow == null) {
         continue;
       }
+      clusterInfo.put(clusterId, new double[]{baseRow.getAverageMZ(), baseRow.getAverageRT()});
 
-      double baseMz = baseRow.getAverageMZ();
-      double baseRt = baseRow.getAverageRT();
-
-      // Get raw data files from the feature list
       List<RawDataFile> rawDataFiles = baseRow.getRawDataFiles();
+      Map<String, String> sampleGroups = model.determineSampleGroups(rawDataFiles);
 
-      // Determine sample groups
-      Map<String, String> sampleGroups = IsotopeLabelingModel.determineSampleGroups(rawDataFiles);
-
-      // Group files by type
-      Map<String, List<RawDataFile>> groupedFiles = new HashMap<>();
+      // Group files by group name
+      Map<String, List<RawDataFile>> groupedFiles = new LinkedHashMap<>();
       for (RawDataFile file : rawDataFiles) {
         String group = sampleGroups.getOrDefault(file.getName(), "Unknown");
         groupedFiles.computeIfAbsent(group, k -> new ArrayList<>()).add(file);
+        allGroupNames.add(group);
       }
 
-      // Create datasets based on visualization type
-      if ("Relative intensities".equals(visualizationType)) {
-        processRelativeIntensities(clusterId, limitedRows, groupedFiles, dataset, baseMz);
-      } else if ("Absolute intensities".equals(visualizationType)) {
-        processAbsoluteIntensities(clusterId, limitedRows, groupedFiles, dataset, baseMz);
+      // Find the base peak row for normalization
+      FeatureListRow normRow = normalizeToBase ? baseRow : null;
+
+      // Per-isotopologue: compute per-group means, SDs, and raw arrays for t-tests
+      // rawGroupValues: isotopologue index → group name → double[]
+      List<Map<String, double[]>> rawGroupValues = new ArrayList<>();
+
+      for (int i = 0; i < rows.size(); i++) {
+        FeatureListRow row = rows.get(i);
+        Map<String, double[]> groupValues = new HashMap<>();
+
+        for (Map.Entry<String, List<RawDataFile>> entry : groupedFiles.entrySet()) {
+          String groupName = entry.getKey();
+          List<RawDataFile> groupFiles = entry.getValue();
+          double[] values = collectIntensities(row, rows, groupFiles, useRelative, normRow);
+          groupValues.put(groupName, values);
+        }
+
+        rawGroupValues.add(groupValues);
       }
 
+      // Add to dataset
+      Map<String, double[]> clusterMeans = new LinkedHashMap<>();
+
+      for (int i = 0; i < rows.size(); i++) {
+        FeatureListRow row = rows.get(i);
+        Integer rank = IsotopeLabelingModel.getIsotopologueRank(row);
+        int massShift = rank != null ? rank : i;
+        String categoryKey =
+            multipleCluster ? ("Cluster " + clusterId + " M+" + massShift) : ("M+" + massShift);
+
+        Map<String, double[]> groupValues = rawGroupValues.get(i);
+
+        for (Map.Entry<String, double[]> entry : groupValues.entrySet()) {
+          String groupName = entry.getKey();
+          double[] vals = entry.getValue();
+          DescriptiveStatistics stats = new DescriptiveStatistics(vals);
+          double mean = stats.getMean();
+          double sd =
+              Double.isNaN(stats.getStandardDeviation()) ? 0.0 : stats.getStandardDeviation();
+          dataset.add(mean, sd, groupName, categoryKey);
+          clusterMeans.computeIfAbsent(groupName, k -> new double[rows.size()])[i] = mean;
+
+          // Add individual sample dots
+          for (int j = 0; j < vals.length; j++) {
+            String seriesKey = groupName + "_s" + j;
+            pointsDataset.addValue(vals[j], seriesKey, categoryKey);
+            pointSeriesColors.putIfAbsent(seriesKey,
+                groupColorMap.getOrDefault(groupName, Color.GRAY));
+          }
+        }
+      }
+
+      // t-test between "Labeled" and "Unlabeled" per isotopologue
+      TTest tTest = new TTest();
+      for (int i = 0; i < rows.size(); i++) {
+        FeatureListRow row = rows.get(i);
+        Integer rank = IsotopeLabelingModel.getIsotopologueRank(row);
+        int massShift = rank != null ? rank : i;
+        String categoryKey =
+            multipleCluster ? ("Cluster " + clusterId + " M+" + massShift) : ("M+" + massShift);
+
+        Map<String, double[]> groupValues = rawGroupValues.get(i);
+        double[] labeled = groupValues.get("Labeled");
+        double[] unlabeled = groupValues.get("Unlabeled");
+
+        if (model.getShowSignificanceMarkers() && labeled != null && unlabeled != null
+            && labeled.length >= 2 && unlabeled.length >= 2) {
+          try {
+            double pValue = tTest.tTest(labeled, unlabeled);
+            String sig = significanceLabel(pValue);
+            if (!sig.isEmpty()) {
+              // y position: slightly above the tallest bar (mean + sd)
+              double yPos = 0.0;
+              for (double[] vals : groupValues.values()) {
+                DescriptiveStatistics st = new DescriptiveStatistics(vals);
+                double top = st.getMean() + (Double.isNaN(st.getStandardDeviation()) ? 0.0
+                    : st.getStandardDeviation());
+                if (top > yPos) {
+                  yPos = top;
+                }
+              }
+              significanceAnnotations.add(new Object[]{categoryKey, yPos, sig});
+            }
+          } catch (Exception e) {
+            logger.log(Level.FINE, "t-test failed for isotopologue " + i + " cluster " + clusterId,
+                e);
+          }
+        }
+      }
+
+      // Compute labeled fraction: fraction of labeled group signal that is M+1 and above
+      double[] labeledMeans = clusterMeans.getOrDefault("Labeled", new double[0]);
+      if (labeledMeans.length > 0) {
+        double total = 0;
+        for (double v : labeledMeans) {
+          total += v;
+        }
+        double enriched = total - labeledMeans[0];
+        labeledFractions.put(clusterId, total > 0 ? enriched / total : 0.0);
+      }
+
+      processedData.put(clusterId, clusterMeans);
       progress.getAndIncrement();
     }
 
-    // Create the chart with the dataset
-    createStackedBarChart(dataset, visualizationType, selectedClusterIds);
+    // Build chart
+    chart = buildGroupedBarChart(dataset, visualizationType, normalizeToBase, selectedClusterIds,
+        significanceAnnotations, allGroupNames, clusterInfo, pointsDataset, pointSeriesColors,
+        groupColorMap, labeledFractions);
   }
 
   /**
-   * Process relative intensities for stacked bar chart
+   * Collect per-sample intensities for a single isotopologue row.
    */
-  private void processRelativeIntensities(Integer clusterId, List<FeatureListRow> rows,
-      Map<String, List<RawDataFile>> groupedFiles, DefaultCategoryDataset dataset, double baseMz) {
-
-    FeatureListRow baseRow = IsotopeLabelingModel.findBasePeak(rows);
-    boolean normalizeToBase = model.getNormalizeToBaseIsotopologue();
-    Map<String, double[]> groupIntensities = new HashMap<>();
-
-    // Create a unique category label for this cluster with m/z
-    String clusterLabel =
-        "Cluster " + clusterId + " (m/z " + MZ_FORMAT.format(baseMz) + ") at " + RT_FORMAT.format(
-            baseRow.getAverageRT()) + " min";
-
-    // For each sample group
-    for (Map.Entry<String, List<RawDataFile>> entry : groupedFiles.entrySet()) {
-      String groupName = entry.getKey();
-      List<RawDataFile> groupFiles = entry.getValue();
-
-      if (groupFiles.isEmpty()) {
+  private double[] collectIntensities(FeatureListRow row, List<FeatureListRow> allRows,
+      List<RawDataFile> files, boolean useRelative, @Nullable FeatureListRow normRow) {
+    List<Double> values = new ArrayList<>();
+    for (RawDataFile file : files) {
+      Feature feature = row.getFeature(file);
+      if (feature == null) {
         continue;
       }
-
-      // Calculate relative intensities for this group
-      double[][] relativeIntensities = calculateRelativeIntensities(rows, groupFiles,
-          normalizeToBase);
-      double[] meanValues = relativeIntensities[0];
-
-      // Store mean values for this group
-      groupIntensities.put(groupName, meanValues);
-
-      // Add to dataset for each isotopologue
-      for (int i = 0; i < meanValues.length; i++) {
-        // For stacked bars, the isotopologue is the series (row key)
-        // and the cluster is the category (column key)
-        String isotopologueLabel = "M+" + i;
-
-        // For each sample group, add a separate segment to the stacked bar
-        if (groupName.equals("Unlabeled")) {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (Unlabeled)", clusterLabel);
-        } else if (groupName.equals("Labeled")) {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (Labeled)", clusterLabel);
+      double intensity = feature.getHeight();
+      if (useRelative) {
+        if (normRow != null) {
+          // Normalize to M+0 intensity
+          Feature baseFeature = normRow.getFeature(file);
+          if (baseFeature == null || baseFeature.getHeight() <= 0) {
+            continue;
+          }
+          values.add(intensity / baseFeature.getHeight());
         } else {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (" + groupName + ")", clusterLabel);
-        }
-      }
-    }
-
-    // Store processed data for this cluster
-    processedData.put(clusterId, groupIntensities);
-  }
-
-  /**
-   * Process absolute intensities for stacked bar chart
-   */
-  private void processAbsoluteIntensities(Integer clusterId, List<FeatureListRow> rows,
-      Map<String, List<RawDataFile>> groupedFiles, DefaultCategoryDataset dataset, double baseMz) {
-
-    Map<String, double[]> groupIntensities = new HashMap<>();
-
-    // Create a unique category label for this cluster with m/z
-    String clusterLabel = "Cluster " + clusterId + " (m/z " + MZ_FORMAT.format(baseMz) + ")";
-
-    // For each sample group
-    for (Map.Entry<String, List<RawDataFile>> entry : groupedFiles.entrySet()) {
-      String groupName = entry.getKey();
-      List<RawDataFile> groupFiles = entry.getValue();
-
-      if (groupFiles.isEmpty()) {
-        continue;
-      }
-
-      // Calculate absolute intensities for this group
-      double[][] absoluteIntensities = calculateAbsoluteIntensities(rows, groupFiles);
-      double[] meanValues = absoluteIntensities[0];
-
-      // Store mean values for this group
-      groupIntensities.put(groupName, meanValues);
-
-      // Add to dataset for each isotopologue
-      for (int i = 0; i < meanValues.length; i++) {
-        // For stacked bars, the isotopologue is the series (row key)
-        // and the cluster is the category (column key)
-        String isotopologueLabel = "M+" + i;
-
-        // For each sample group, add a separate segment to the stacked bar
-        if (groupName.equals("Unlabeled")) {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (Unlabeled)", clusterLabel);
-        } else if (groupName.equals("Labeled")) {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (Labeled)", clusterLabel);
-        } else {
-          dataset.addValue(meanValues[i], isotopologueLabel + " (" + groupName + ")", clusterLabel);
-        }
-      }
-    }
-
-    // Store processed data for this cluster
-    processedData.put(clusterId, groupIntensities);
-  }
-
-  /**
-   * Calculate relative intensities for a list of rows and files
-   */
-  private double[][] calculateRelativeIntensities(List<FeatureListRow> rows,
-      List<RawDataFile> files, boolean normalizeToBase) {
-
-    int numIsotopologues = rows.size();
-    FeatureListRow baseRow = normalizeToBase ? IsotopeLabelingModel.findBasePeak(rows) : null;
-
-    // Arrays to store mean and std dev values
-    double[] meanValues = new double[numIsotopologues];
-    double[] stdDevValues = new double[numIsotopologues];
-
-    // Process each isotopologue
-    for (int i = 0; i < numIsotopologues; i++) {
-      FeatureListRow row = rows.get(i);
-      DescriptiveStatistics stats = new DescriptiveStatistics();
-
-      // Calculate total intensity for normalization if not normalizing to base peak
-      if (!normalizeToBase) {
-        for (RawDataFile file : files) {
-          double rowTotal = 0.0;
-
-          // Calculate total for this sample
-          for (FeatureListRow r : rows) {
-            Feature feature = r.getFeature(file);
-            if (feature != null) {
-              rowTotal += feature.getHeight();
+          // Normalize to total cluster intensity in this sample
+          double total = 0.0;
+          for (FeatureListRow r : allRows) {
+            Feature f = r.getFeature(file);
+            if (f != null) {
+              total += f.getHeight();
             }
           }
-
-          // Calculate relative intensity
-          Feature feature = row.getFeature(file);
-          if (feature != null && rowTotal > 0) {
-            stats.addValue(feature.getHeight() / rowTotal);
+          if (total <= 0) {
+            continue;
           }
+          values.add(intensity / total);
         }
       } else {
-        // Normalize to base peak
-        for (RawDataFile file : files) {
-          Feature baseFeature = baseRow.getFeature(file);
-          Feature feature = row.getFeature(file);
-
-          if (baseFeature != null && feature != null && baseFeature.getHeight() > 0) {
-            stats.addValue(feature.getHeight() / baseFeature.getHeight());
-          }
-        }
+        values.add(intensity);
       }
-
-      // Store statistics
-      meanValues[i] = stats.getMean();
-      stdDevValues[i] = stats.getStandardDeviation();
     }
-
-    return new double[][]{meanValues, stdDevValues};
+    return values.stream().mapToDouble(Double::doubleValue).toArray();
   }
 
   /**
-   * Calculate absolute intensities for a list of rows and files
+   * Returns the significance label for a p-value.
    */
-  private double[][] calculateAbsoluteIntensities(List<FeatureListRow> rows,
-      List<RawDataFile> files) {
-    int numIsotopologues = rows.size();
-
-    // Arrays to store mean and std dev values
-    double[] meanValues = new double[numIsotopologues];
-    double[] stdDevValues = new double[numIsotopologues];
-
-    // Process each isotopologue
-    for (int i = 0; i < numIsotopologues; i++) {
-      FeatureListRow row = rows.get(i);
-      DescriptiveStatistics stats = new DescriptiveStatistics();
-
-      // Calculate intensity for each file
-      for (RawDataFile file : files) {
-        Feature feature = row.getFeature(file);
-        if (feature != null) {
-          stats.addValue(feature.getHeight());
-        }
-      }
-
-      // Store statistics
-      meanValues[i] = stats.getMean();
-      stdDevValues[i] = stats.getStandardDeviation();
+  private static String significanceLabel(double pValue) {
+    if (pValue < 0.001) {
+      return "***";
+    } else if (pValue < 0.01) {
+      return "**";
+    } else if (pValue < 0.05) {
+      return "*";
     }
-
-    return new double[][]{meanValues, stdDevValues};
+    return "";
   }
 
   /**
-   * Create a stacked bar chart with the provided dataset
+   * Build a grouped bar chart with error bars, significance annotations, per-sample dots, and
+   * labeled-fraction subtitles.
    */
-  private void createStackedBarChart(DefaultCategoryDataset dataset, String visualizationType,
-      List<Integer> selectedClusterIds) {
+  private JFreeChart buildGroupedBarChart(DefaultStatisticalCategoryDataset dataset,
+      String visualizationType, boolean normalizeToBase, List<Integer> selectedClusterIds,
+      List<Object[]> significanceAnnotations, Set<String> groupNames,
+      Map<Integer, double[]> clusterInfo, DefaultCategoryDataset pointsDataset,
+      Map<String, Color> pointSeriesColors, Map<String, Color> groupColorMap,
+      Map<Integer, Double> labeledFractions) {
 
-    // Determine chart title
     String title;
     if (selectedClusterIds.size() == 1) {
-      title = "Isotope Labeling - Cluster " + selectedClusterIds.get(0);
+      int id = selectedClusterIds.get(0);
+      double[] info = clusterInfo.get(id);
+      if (info != null) {
+        title = "Cluster " + id + "  |  m/z " + MZ_FORMAT.format(info[0]) + "  |  RT "
+            + RT_FORMAT.format(info[1]) + " min";
+      } else {
+        title = "Isotopologue Distribution - Cluster " + id;
+      }
     } else {
-      title = "Isotope Labeling - Multiple clusters (" + selectedClusterIds.size() + ")";
+      title = "Isotopologue Distributions - " + selectedClusterIds.size() + " Clusters";
     }
 
-    // Determine Y axis label
     String yAxisLabel;
     if ("Relative intensities".equals(visualizationType)) {
-      yAxisLabel = "Relative Intensity";
+      yAxisLabel = normalizeToBase ? "Relative Intensity (normalized to M+0)"
+          : "Relative Intensity (fraction of total)";
     } else {
       yAxisLabel = "Intensity";
     }
 
-    // Create the chart
-    chart = ChartFactory.createStackedBarChart(title,                      // chart title
-        "Isotope Cluster",          // domain axis label
-        yAxisLabel,                 // range axis label
-        dataset,                    // data
-        PlotOrientation.VERTICAL,   // orientation
-        true,                       // include legend
-        true,                       // tooltips
-        false                       // URLs
-    );
+    JFreeChart jfchart = ChartFactory.createBarChart(title, "Isotopologue", yAxisLabel, dataset,
+        PlotOrientation.VERTICAL, true, true, false);
 
-    // Customize the chart
-    CategoryPlot plot = chart.getCategoryPlot();
+    CategoryPlot plot = jfchart.getCategoryPlot();
 
-    // Customize domain axis
-    CategoryAxis domainAxis = plot.getDomainAxis();
-    domainAxis.setCategoryMargin(0.2);  // increase gap between clusters
-    domainAxis.setCategoryLabelPositions(
-        CategoryLabelPositions.createUpRotationLabelPositions(Math.PI / 6.0));
-
-    // Customize bars
-    BarRenderer renderer = (BarRenderer) plot.getRenderer();
-    renderer.setBarPainter(new StandardBarPainter());  // solid fill, not gradient
+    // Replace renderer with StatisticalBarRenderer to show error bars
+    StatisticalBarRenderer renderer = new StatisticalBarRenderer();
+    renderer.setErrorIndicatorPaint(Color.BLACK);
+    renderer.setItemMargin(0.05);
     renderer.setShadowVisible(false);
-    renderer.setDrawBarOutline(true);
+    plot.setRenderer(renderer);
 
-    // Customize colors based on isotopologues (M+0, M+1, etc.)
-    SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-    colors.resetColorCounter();
-
-    // Group series by isotopologues (extract M+X from "M+X (group)")
-    Map<String, List<Integer>> isotopologueGroups = new LinkedHashMap<>();
+    // Apply group colors from pre-computed map (consistent across bars and dots)
     for (int i = 0; i < dataset.getRowCount(); i++) {
       String seriesKey = (String) dataset.getRowKey(i);
-      String baseIsotopologue = seriesKey.split(" \\(")[0]; // Extract M+X part
-
-      isotopologueGroups.computeIfAbsent(baseIsotopologue, k -> new ArrayList<>()).add(i);
+      Color c = groupColorMap.get(seriesKey);
+      if (c != null) {
+        renderer.setSeriesPaint(i, c);
+      }
     }
 
-    // Assign colors to each isotopologue group
-    for (Map.Entry<String, List<Integer>> entry : isotopologueGroups.entrySet()) {
-      Color baseColor = colors.getNextColorAWT();
+    // Axis styling
+    CategoryAxis domainAxis = plot.getDomainAxis();
+    domainAxis.setLowerMargin(0.02);
+    domainAxis.setUpperMargin(0.02);
+    if (selectedClusterIds.size() > 1) {
+      domainAxis.setCategoryLabelPositions(
+          CategoryLabelPositions.createUpRotationLabelPositions(Math.PI / 4.0));
+    }
 
-      // For each occurrence of this isotopologue (different groups)
-      for (int i = 0; i < entry.getValue().size(); i++) {
-        int seriesIndex = entry.getValue().get(i);
+    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+    rangeAxis.setAutoRange(true);
+    rangeAxis.setAutoRangeIncludesZero(true);
 
-        // Adjust color brightness based on whether it's labeled or unlabeled
-        String seriesKey = (String) dataset.getRowKey(seriesIndex);
-        if (seriesKey.contains("(Unlabeled)")) {
-          // Make unlabeled slightly darker
-          renderer.setSeriesPaint(seriesIndex, baseColor.darker());
-        } else if (seriesKey.contains("(Labeled)")) {
-          // Keep labeled as is
-          renderer.setSeriesPaint(seriesIndex, baseColor);
-        } else {
-          // Make other groups slightly brighter
-          renderer.setSeriesPaint(seriesIndex, baseColor.brighter());
+    // Significance annotations
+    if (!significanceAnnotations.isEmpty()) {
+      // compute overall max to set upper margin for annotations
+      double globalMax = 0.0;
+      for (Object[] ann : significanceAnnotations) {
+        double yVal = (double) ann[1];
+        if (yVal > globalMax) {
+          globalMax = yVal;
         }
       }
-    }
+      rangeAxis.setUpperBound(globalMax * 1.25);
 
-    // Set basic chart properties
-    chart.setBackgroundPaint(java.awt.Color.WHITE);
-
-    // Try to customize the legend - using try/catch to handle version differences
-    try {
-      if (chart.getLegend() != null) {
-        // Just customize the font to be slightly smaller
-        java.awt.Font smallerFont = new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10);
-        chart.getLegend().setItemFont(smallerFont);
+      Font sigFont = new Font("SansSerif", Font.BOLD, 14);
+      for (Object[] ann : significanceAnnotations) {
+        String categoryKey = (String) ann[0];
+        double yPos = (double) ann[1] * 1.05;
+        String sigLabel = (String) ann[2];
+        CategoryTextAnnotation annotation = new CategoryTextAnnotation(sigLabel, categoryKey, yPos);
+        annotation.setFont(sigFont);
+        annotation.setTextAnchor(TextAnchor.BOTTOM_CENTER);
+        plot.addAnnotation(annotation);
       }
-    } catch (Exception e) {
-      // If there's any issue with customizing the legend, log and continue
-      logger.log(Level.WARNING, "Could not customize chart legend", e);
     }
 
-    // Add subtitle with information about normalization
-    StringBuilder subtitle = new StringBuilder(visualizationType);
-    if ("Relative intensities".equals(visualizationType)) {
-      subtitle.append(model.getNormalizeToBaseIsotopologue() ? " (normalized to M+0)"
-          : " (normalized to total)");
+    // Overlay individual sample dots on top of bars
+    if (pointsDataset.getRowCount() > 0) {
+      plot.setDataset(1, pointsDataset);
+      LineAndShapeRenderer pointRenderer = new LineAndShapeRenderer(false, true);
+      Ellipse2D.Double dot = new Ellipse2D.Double(-3.5, -3.5, 7, 7);
+      for (int i = 0; i < pointsDataset.getRowCount(); i++) {
+        String sk = (String) pointsDataset.getRowKey(i);
+        Color base = pointSeriesColors.getOrDefault(sk, Color.GRAY);
+        pointRenderer.setSeriesPaint(i,
+            new Color(base.getRed(), base.getGreen(), base.getBlue(), 180));
+        pointRenderer.setSeriesShape(i, dot);
+        pointRenderer.setSeriesVisibleInLegend(i, false);
+      }
+      plot.setRenderer(1, pointRenderer);
+      plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE);
     }
-    TextTitle subtitleText = new TextTitle(subtitle.toString());
-    subtitleText.setFont(new java.awt.Font("SansSerif", java.awt.Font.ITALIC, 12));
-    chart.addSubtitle(subtitleText);
+
+    jfchart.setBackgroundPaint(Color.WHITE);
+
+    // Groups subtitle
+    String groupSubtitle = "Groups: " + String.join(" vs ", groupNames);
+    TextTitle groupSubtitleText = new TextTitle(groupSubtitle);
+    groupSubtitleText.setFont(new Font("SansSerif", Font.ITALIC, 11));
+    jfchart.addSubtitle(groupSubtitleText);
+
+    // For a single cluster, add labeled-fraction annotation if available
+    if (selectedClusterIds.size() == 1) {
+      int id = selectedClusterIds.get(0);
+      Double fraction = labeledFractions.get(id);
+      if (fraction != null && fraction > 0) {
+        String fractionText = String.format("%.0f%% incorporated (M+1 and above)", fraction * 100);
+        TextTitle ft = new TextTitle(fractionText);
+        ft.setFont(new Font("SansSerif", Font.BOLD, 11));
+        jfchart.addSubtitle(ft);
+      }
+    }
+
+    // For multiple clusters, add a subtitle listing each cluster's m/z, RT, and labeled fraction
+    if (selectedClusterIds.size() > 1 && !clusterInfo.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      for (Integer id : selectedClusterIds) {
+        double[] info = clusterInfo.get(id);
+        if (info != null) {
+          if (sb.length() > 0) {
+            sb.append("   |   ");
+          }
+          sb.append("Cluster ").append(id).append(": m/z ").append(MZ_FORMAT.format(info[0]))
+              .append(", RT ").append(RT_FORMAT.format(info[1])).append(" min");
+          Double fraction = labeledFractions.get(id);
+          if (fraction != null && fraction > 0) {
+            sb.append(String.format(", %.0f%% incorp.", fraction * 100));
+          }
+        }
+      }
+      if (sb.length() > 0) {
+        TextTitle clusterSubtitle = new TextTitle(sb.toString());
+        clusterSubtitle.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        jfchart.addSubtitle(clusterSubtitle);
+      }
+    }
+
+    return jfchart;
   }
 
   @Override
   protected void updateGuiModel() {
-    if (chart == null && !isFinished()) {
+    if (chart == null) {
       return;
     }
-
-    // Update the model with the chart
     model.setChart(chart);
     model.setProcessedData(processedData);
   }

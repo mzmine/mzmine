@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -69,21 +71,22 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.title.TextTitle;
 
 /**
- * View builder for isotope labeling visualization with stacked bar charts
+ * View builder for isotope labeling visualization with grouped bar charts
  */
 public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingModel> {
 
   private static final Logger logger = Logger.getLogger(IsotopeLabelingViewBuilder.class.getName());
   private static final int SPACING = 5;
-  // private static final Stroke ANNOTATION_STROKE = EStandardChartTheme.DEFAULT_MARKER_STROKE;
-  // private static final DecimalFormat MZ_FORMAT = new DecimalFormat("0.0000");
-  // private static final DecimalFormat RT_FORMAT = new DecimalFormat("0.00");
+  private static final DecimalFormat MZ_FORMAT = new DecimalFormat("0.0000");
+  private static final DecimalFormat RT_FORMAT = new DecimalFormat("0.00");
 
   private SwingNode chartNode;
   private ChartPanel chartPanel;
   private ListView<Integer> clusterListView;
   private Label statusLabel;
   private ComboBox<String> visTypeCombo;
+  private Map<Integer, List<FeatureListRow>> allClusters = new HashMap<>();
+  private boolean updatingSelection = false;
 
   public IsotopeLabelingViewBuilder(@NotNull IsotopeLabelingModel model) {
     super(model);
@@ -167,13 +170,23 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
     // Add selection listener
     clusterListView.getSelectionModel().selectedItemProperty()
         .addListener((obs, oldVal, newVal) -> {
-          if (newVal != null) {
+          if (newVal != null && !updatingSelection) {
             // Get all selected clusters
             List<Integer> selectedClusters = new ArrayList<>(
                 clusterListView.getSelectionModel().getSelectedItems());
 
             // Update model with selection
             model.setSelectedClusters(selectedClusters);
+
+            // Sync selected rows so external feature table highlights them
+            List<FeatureListRow> rows = new ArrayList<>();
+            for (Integer id : selectedClusters) {
+              List<FeatureListRow> cr = allClusters.get(id);
+              if (cr != null) {
+                rows.addAll(cr);
+              }
+            }
+            model.setSelectedRows(rows);
 
             // Update the status label
             updateStatusLabel();
@@ -314,8 +327,22 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
 
     maxIsotopologuesBox.getChildren().addAll(maxIsotopologuesLabel, maxIsotopologuesSpinner);
 
+    // Significance markers toggle
+    CheckBox sigMarkersCheck = new CheckBox("Show significance markers (*, **, ***)");
+    sigMarkersCheck.setSelected(model.getShowSignificanceMarkers());
+    sigMarkersCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+      if (newVal != null && newVal != model.getShowSignificanceMarkers()) {
+        model.setShowSignificanceMarkers(newVal);
+      }
+    });
+    model.showSignificanceMarkersProperty().addListener((obs, oldVal, newVal) -> {
+      if (newVal != null && newVal != sigMarkersCheck.isSelected()) {
+        sigMarkersCheck.setSelected(newVal);
+      }
+    });
+
     // Add all controls to the flow pane
-    controls.getChildren().addAll(visTypeBox, normalizeCheck, maxIsotopologuesBox);
+    controls.getChildren().addAll(visTypeBox, normalizeCheck, maxIsotopologuesBox, sigMarkersCheck);
 
     return controls;
   }
@@ -460,10 +487,18 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
       }
     });
 
-    // Listen for changes in selected clusters
+    // Listen for changes in selected clusters (status label + reverse-sync from external sources)
     model.selectedClustersProperty().addListener((obs, oldVal, newVal) -> {
       Platform.runLater(() -> {
         updateStatusLabel();
+        if (!updatingSelection) {
+          updatingSelection = true;
+          try {
+            syncClusterListToModel(newVal);
+          } finally {
+            updatingSelection = false;
+          }
+        }
       });
     });
 
@@ -508,6 +543,8 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
    * @param clusters Map of available isotope clusters
    */
   public void updateClusterList(Map<Integer, List<FeatureListRow>> clusters) {
+    this.allClusters = clusters != null ? clusters : new HashMap<>();
+
     if (clusters == null || clusters.isEmpty()) {
       clusterListView.setItems(FXCollections.observableArrayList());
       return;
@@ -519,6 +556,28 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
 
       // Update list view with cluster IDs
       clusterListView.setItems(FXCollections.observableArrayList(clusterIds));
+
+      // Custom cell factory: show "Cluster N | m/z X.XXXX | RT X.XX min"
+      clusterListView.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+        @Override
+        protected void updateItem(Integer id, boolean empty) {
+          super.updateItem(id, empty);
+          if (empty || id == null) {
+            setText(null);
+            return;
+          }
+          List<FeatureListRow> crows = allClusters.get(id);
+          FeatureListRow base = IsotopeLabelingModel.findBasePeak(
+              crows != null ? crows : List.of());
+          if (base != null) {
+            setText(
+                "Cluster " + id + "  |  m/z " + MZ_FORMAT.format(base.getAverageMZ()) + "  |  RT "
+                    + RT_FORMAT.format(base.getAverageRT()) + " min");
+          } else {
+            setText("Cluster " + id);
+          }
+        }
+      });
 
       // Restore or initialize selection
       List<Integer> selectedClusters = model.getSelectedClusters();
@@ -544,6 +603,24 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
       updateStatusLabel();
     } catch (Exception e) {
       logger.warning("Error updating cluster list: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Sync the cluster list view selection to match the given list of cluster IDs (e.g. when the
+   * selection is driven externally from the feature table).
+   */
+  private void syncClusterListToModel(List<Integer> selectedClusters) {
+    clusterListView.getSelectionModel().clearSelection();
+    if (selectedClusters == null || selectedClusters.isEmpty()) {
+      return;
+    }
+    List<Integer> items = clusterListView.getItems();
+    for (Integer id : selectedClusters) {
+      int idx = items.indexOf(id);
+      if (idx >= 0) {
+        clusterListView.getSelectionModel().select(idx);
+      }
     }
   }
 
