@@ -91,6 +91,13 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
       "Maximum isotopologues", "Maximum number of isotopologues to search for", 10, 2, 100);
 
   /**
+   * Maximum charge state to consider when matching isotopologue m/z spacings. For singly charged
+   * ions the spacing equals the tracer mass difference; for charge z it equals massDiff/z.
+   */
+  public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
+      "Maximum ion charge state to consider (1 = singly charged only)", 1, 1, 10);
+
+  /**
    * Minimum number of peaks required in an isotope pattern
    */
   public static final IntegerParameter minimumIsotopePatternSize = new IntegerParameter(
@@ -138,14 +145,6 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
 
   // ---- PATTERN VALIDATION PARAMETERS ----
   /**
-   * Tolerance parameter for enforcing monotonicity in unlabeled samples
-   */
-  public static final DoubleParameter monotonicityTolerance = new DoubleParameter(
-      "Monotonicity tolerance",
-      "Tolerance parameter for enforcing monotonic decrease from M0 to Mn in unlabeled samples (0=strict)",
-      NumberFormat.getNumberInstance(), 0.1, 0.0, 1.0);
-
-  /**
    * Tolerance parameter for enforcing enrichment in labeled samples
    */
   public static final DoubleParameter enrichmentTolerance = new DoubleParameter(
@@ -159,6 +158,22 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   public static final BooleanParameter allowIncompletePatterns = new BooleanParameter(
       "Allow incomplete patterns",
       "Allow detection of incomplete isotope patterns (e.g., M+6 without M+0 for glucose)", true);
+
+  /**
+   * Minimum sample coverage required
+   */
+  public static final DoubleParameter minimumSampleCoverage = new DoubleParameter(
+      "Minimum sample coverage",
+      "Minimum fraction of samples that must have signal (0.5 = 50%, 0.2 = 20%)",
+      NumberFormat.getNumberInstance(), 0.2, 0.0, 1.0);
+
+  /**
+   * Whether to require statistical significance
+   */
+  public static final BooleanParameter requireStatisticalSignificance = new BooleanParameter(
+      "Require statistical significance",
+      "Require statistically significant enrichment (disable for more permissive detection)",
+      false);
 
   // ---- RESULT ANNOTATION TYPES ----
   /**
@@ -180,7 +195,7 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
         featureLists, metadataGrouping, unlabeledGroupValue, labeledGroupValue, suffix,
 
         // Tracer parameters
-        tracerType, maximumIsotopologues, minimumIsotopePatternSize,
+        tracerType, maximumIsotopologues, minimumIsotopePatternSize, maximumCharge,
 
         // Search tolerance parameters
         rtTolerance, mzTolerance, noiseLevel,
@@ -189,6 +204,9 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
         intensityMeasure, pValueCutoff, singleSample,
 
         // Pattern validation parameters
-        monotonicityTolerance, enrichmentTolerance, allowIncompletePatterns});
+        enrichmentTolerance, allowIncompletePatterns,
+
+        // options for stricter or more permissive detection
+        minimumSampleCoverage, requireStatisticalSignificance,});
   }
 }

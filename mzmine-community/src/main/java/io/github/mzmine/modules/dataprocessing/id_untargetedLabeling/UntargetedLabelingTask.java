@@ -34,15 +34,14 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -93,15 +92,17 @@ public class UntargetedLabelingTask extends AbstractTask {
   private RTTolerance rtTolerance;
   private MZTolerance mzTolerance;
   private int maximumIsotopologues;
+  private int maximumCharge;
   private int minIsotopePatternSize;
   private double noiseLevel;
   private String intensityMeasure;
   private double pValueCutoff;
   private boolean singleSample;
-  private double monotonicityTolerance;
   private double enrichmentTolerance;
   private String suffix;
   private boolean allowIncompletePatterns;
+  private double minimumSampleCoverage;
+  private boolean requireStatisticalSignificance;
 
   // Results storage
   private List<IsotopeGroupResult> isotopeLabelResults;
@@ -122,7 +123,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     this.parameters = parameters;
 
     // Get metadata column
-    MetadataTable metadata = MZmineCore.getProjectMetadata();
+    MetadataTable metadata = ProjectService.getMetadata();
     this.metadataColumn = metadata.getColumnByName(metadataColumnName);
 
     // Initialize isotope data first
@@ -151,6 +152,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     mzTolerance = parameters.getParameter(UntargetedLabelingParameters.mzTolerance).getValue();
     maximumIsotopologues = parameters.getParameter(
         UntargetedLabelingParameters.maximumIsotopologues).getValue();
+    maximumCharge = parameters.getParameter(UntargetedLabelingParameters.maximumCharge).getValue();
     minIsotopePatternSize = parameters.getParameter(
         UntargetedLabelingParameters.minimumIsotopePatternSize).getValue();
     noiseLevel = parameters.getParameter(UntargetedLabelingParameters.noiseLevel).getValue();
@@ -158,13 +160,15 @@ public class UntargetedLabelingTask extends AbstractTask {
         .getValue();
     pValueCutoff = parameters.getParameter(UntargetedLabelingParameters.pValueCutoff).getValue();
     singleSample = parameters.getParameter(UntargetedLabelingParameters.singleSample).getValue();
-    monotonicityTolerance = parameters.getParameter(
-        UntargetedLabelingParameters.monotonicityTolerance).getValue();
     enrichmentTolerance = parameters.getParameter(UntargetedLabelingParameters.enrichmentTolerance)
         .getValue();
     suffix = parameters.getParameter(UntargetedLabelingParameters.suffix).getValue();
     allowIncompletePatterns = parameters.getParameter(
         UntargetedLabelingParameters.allowIncompletePatterns).getValue();
+    minimumSampleCoverage = parameters.getParameter(
+        UntargetedLabelingParameters.minimumSampleCoverage).getValue();
+    requireStatisticalSignificance = parameters.getParameter(
+        UntargetedLabelingParameters.requireStatisticalSignificance).getValue();
   }
 
   @Override
@@ -227,8 +231,10 @@ public class UntargetedLabelingTask extends AbstractTask {
         continue;
       }
 
-      // Skip if below noise level
-      if (getAverageIntensity(baseRow) < noiseLevel) {
+      // Check basic signal in unlabeled samples: at least one sample must exceed the noise level.
+      double[] unlabeledIntensities = getIntensitiesForGroup(baseRow, false);
+      double unlabeledMax = Arrays.stream(unlabeledIntensities).max().orElse(0);
+      if (unlabeledMax < noiseLevel) {
         continue;
       }
 
@@ -260,68 +266,84 @@ public class UntargetedLabelingTask extends AbstractTask {
   }
 
   /**
-   * Find isotopologue pattern starting from a base peak using FeatureListUtils
+   * Find the best isotopologue pattern starting from a base peak. Tries every charge state from 1
+   * to {@code maximumCharge} and returns the pattern with the most isotopologues found. In case of
+   * a tie the lower charge state is preferred.
    */
   private List<IsotopeCandidate> findIsotopologuePattern(FeatureListRow basePeak,
       List<FeatureListRow> allRows, Set<Integer> usedRowIds) {
 
+    List<IsotopeCandidate> bestPattern = null;
+
+    for (int charge = 1; charge <= maximumCharge; charge++) {
+      List<IsotopeCandidate> candidate = findIsotopologuePatternForCharge(basePeak, allRows,
+          usedRowIds, charge);
+      if (bestPattern == null || candidate.size() > bestPattern.size()) {
+        bestPattern = candidate;
+      }
+    }
+
+    return bestPattern != null ? bestPattern : List.of(new IsotopeCandidate(basePeak, 0, 1));
+  }
+
+  /**
+   * Search for an isotopologue pattern at a specific charge state. The expected m/z spacing between
+   * consecutive isotopologues is {@code isotopeMassDifference / charge}.
+   */
+  private List<IsotopeCandidate> findIsotopologuePatternForCharge(FeatureListRow basePeak,
+      List<FeatureListRow> allRows, Set<Integer> usedRowIds, int charge) {
+
     List<IsotopeCandidate> pattern = new ArrayList<>();
-    pattern.add(new IsotopeCandidate(basePeak, 0));
+    pattern.add(new IsotopeCandidate(basePeak, 0, charge));
 
     double baseMz = basePeak.getAverageMZ();
     double baseRt = basePeak.getAverageRT();
-
-    // Define RT range for isotopologues
     Range<Float> rtRange = rtTolerance.getToleranceRange((float) baseRt);
+    double spacingPerUnit = isotopeMassDifference / charge;
 
-    // Search for each potential isotopologue
     for (int massShift = 1; massShift <= maximumIsotopologues; massShift++) {
-      double expectedMz = baseMz + (massShift * isotopeMassDifference);
-
-      // Define m/z range for this isotopologue
+      double expectedMz = baseMz + (massShift * spacingPerUnit);
       Range<Double> mzRange = mzTolerance.getToleranceRange(expectedMz);
 
-      // Use FeatureListUtils to find candidates
-      List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(mzRange, rtRange,
-          null, allRows, true);
+      // Binary search to the lower bound of the tolerance window
+      final double lowerBound = mzRange.lowerEndpoint();
+      int windowStart = Collections.binarySearch(allRows, null,
+          (r1, r2) -> Double.compare(r1 == null ? lowerBound : r1.getAverageMZ(), lowerBound));
+      if (windowStart < 0) {
+        windowStart = -(windowStart + 1);
+      }
 
-      // Filter out already used rows and find best match
       FeatureListRow bestMatch = null;
       double bestScore = Double.MAX_VALUE;
 
-      for (FeatureListRow candidate : candidates) {
-        if (usedRowIds.contains(candidate.getID())) {
+      for (int i = windowStart; i < allRows.size(); i++) {
+        FeatureListRow row = allRows.get(i);
+        if (row.getAverageMZ() > mzRange.upperEndpoint()) {
+          break;
+        }
+        if (usedRowIds.contains(row.getID())) {
           continue;
         }
-
-        // Calculate score based on m/z error and intensity
-        double mzError = Math.abs(candidate.getAverageMZ() - expectedMz);
-        double ppmError = (mzError / baseMz) * 1e6;
-
-        // Basic intensity check if not allowing incomplete patterns
+        if (!rtRange.contains((float) row.getAverageRT())) {
+          continue;
+        }
         if (!allowIncompletePatterns) {
-          double candidateIntensity = getAverageIntensity(candidate);
-          double baseIntensity = getAverageIntensity(basePeak);
-
-          // Skip if isotopologue is more intense than base peak in unlabeled samples
-          double unlabeledRatio = getIntensityRatio(candidate, basePeak, false);
+          double unlabeledRatio = getIntensityRatio(row, basePeak, false);
           if (unlabeledRatio > 1.5) {
             continue;
           }
         }
 
-        double score = ppmError;
-
-        if (score < bestScore) {
-          bestScore = score;
-          bestMatch = candidate;
+        double ppmError = Math.abs(row.getAverageMZ() - expectedMz) / baseMz * 1e6;
+        if (ppmError < bestScore) {
+          bestScore = ppmError;
+          bestMatch = row;
         }
       }
 
       if (bestMatch != null) {
-        pattern.add(new IsotopeCandidate(bestMatch, massShift));
+        pattern.add(new IsotopeCandidate(bestMatch, massShift, charge));
       } else if (!allowIncompletePatterns) {
-        // Stop searching if we can't find a consecutive isotopologue
         break;
       }
     }
@@ -381,10 +403,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     IsotopeGroupResult result = analyzeIsotopePattern(isotopologues);
 
     if (result != null) {
-      // Calculate the cluster ID
       int clusterID = isotopeLabelResults.size() + 1;
-      result.clusterId = clusterID;
-
       isotopeLabelResults.add(result);
 
       // Annotate all isotopologue rows in the result feature list
@@ -474,7 +493,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     double labeledRatio =
         data.labeledTotals.length > 0 ? (double) labeledWithSignal / data.labeledTotals.length : 0;
 
-    if (unlabeledRatio < 0.5 || labeledRatio < 0.5) {
+    if (unlabeledRatio < minimumSampleCoverage || labeledRatio < minimumSampleCoverage) {
       logger.fine("Insufficient samples with signal");
       return false;
     }
@@ -508,11 +527,6 @@ public class UntargetedLabelingTask extends AbstractTask {
 
     // Sort clusters by m/z
     Collections.sort(isotopeLabelResults, Comparator.comparingDouble(r -> r.baseMz));
-
-    // Initialize cluster IDs
-    for (int i = 0; i < isotopeLabelResults.size(); i++) {
-      isotopeLabelResults.get(i).clusterId = i + 1;
-    }
 
     // Track which clusters have been merged
     Set<Integer> mergedClusterIndices = new HashSet<>();
@@ -584,25 +598,41 @@ public class UntargetedLabelingTask extends AbstractTask {
    * Determine if two clusters should be merged
    */
   private boolean shouldMergeClusters(IsotopeGroupResult cluster1, IsotopeGroupResult cluster2) {
-    // Check RT tolerance
+    double quality1 = calculateClusterQuality(cluster1);
+    double quality2 = calculateClusterQuality(cluster2);
+
+    if (quality1 <= 0 || quality2 <= 0) {
+      return checkStructuralOverlap(cluster1, cluster2);
+    }
+
+    double qualityRatio = Math.min(quality1, quality2) / Math.max(quality1, quality2);
+
+    // Use enrichmentTolerance to determine how different quality can be
+    double minQualityRatio = 1.0 - enrichmentTolerance;
+    if (qualityRatio < minQualityRatio) {
+      return false;
+    }
+
     if (!rtTolerance.checkWithinTolerance((float) cluster1.baseRt, (float) cluster2.baseRt)) {
       return false;
     }
 
-    // Calculate mass difference in isotope units
     double massRatio = (cluster2.baseMz - cluster1.baseMz) / isotopeMassDifference;
     int massShiftDiff = (int) Math.round(massRatio);
 
-    // Direct isotope relationship
-    if (Math.abs(massRatio - massShiftDiff) <= 0.2
-        && Math.abs(massShiftDiff) <= maximumIsotopologues / 2) {
+    // Check if cluster2's base m/z matches the expected m/z for a shifted version of cluster1
+    double expectedMz = cluster1.baseMz + massShiftDiff * isotopeMassDifference;
+    if (mzTolerance.checkWithinTolerance(expectedMz, cluster2.baseMz)
+        && Math.abs(massShiftDiff) <= maximumIsotopologues) {
       return true;
     }
 
-    // Check for shared features
+    return checkStructuralOverlap(cluster1, cluster2);
+  }
+
+  private boolean checkStructuralOverlap(IsotopeGroupResult cluster1, IsotopeGroupResult cluster2) {
     Set<Integer> featureIds1 = cluster1.isotopologues.stream().map(c -> c.row.getID())
         .collect(Collectors.toSet());
-
     Set<Integer> featureIds2 = cluster2.isotopologues.stream().map(c -> c.row.getID())
         .collect(Collectors.toSet());
 
@@ -641,7 +671,8 @@ public class UntargetedLabelingTask extends AbstractTask {
           .anyMatch(existing -> existing.row.getID() == candidate.row.getID());
 
       if (!exists) {
-        mainCluster.isotopologues.add(new IsotopeCandidate(candidate.row, adjustedMassShift));
+        mainCluster.isotopologues.add(
+            new IsotopeCandidate(candidate.row, adjustedMassShift, candidate.charge));
       }
     }
 
@@ -663,7 +694,6 @@ public class UntargetedLabelingTask extends AbstractTask {
     for (int i = 0; i < isotopeLabelResults.size(); i++) {
       IsotopeGroupResult cluster = isotopeLabelResults.get(i);
       int newClusterId = i + 1;
-      cluster.clusterId = newClusterId;
 
       // Assign to all isotopologues in this cluster
       for (IsotopeCandidate candidate : cluster.isotopologues) {
@@ -689,7 +719,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     }
 
     // Get metadata table and retrieve value for this raw data file
-    MetadataTable metadata = MZmineCore.getProjectMetadata();
+    MetadataTable metadata = ProjectService.getMetadata();
     Object value = metadata.getValue(metadataColumn, file);
     return value != null ? value.toString() : null;
   }
@@ -710,8 +740,14 @@ public class UntargetedLabelingTask extends AbstractTask {
       throw new IllegalArgumentException("Invalid tracer isotope index: " + tracerIsotopeIndex);
     }
 
-    // Calculate the mass difference between the tracer isotope and the most abundant isotope
     double difference = masses[tracerIsotopeIndex] - masses[0];
+
+    // Validate: mass difference should be positive and within reasonable bounds
+    if (difference <= 0) {
+      throw new IllegalArgumentException(
+          "Isotope mass difference must be positive, got: " + difference);
+    }
+
     logger.info("Isotope mass difference calculated: " + difference);
     return difference;
   }
@@ -1209,11 +1245,9 @@ public class UntargetedLabelingTask extends AbstractTask {
     double[][] labeledRelativeIntensities = calculateRelativeIntensities(labeledIntensities,
         labeledTotals);
 
-    // Calculate mean and sd of relative intensities
+    // Calculate mean relative intensities
     double[] meanUnlabeledRelIntensities = new double[numIsotopologues];
     double[] meanLabeledRelIntensities = new double[numIsotopologues];
-    double[] sdUnlabeledRelIntensities = new double[numIsotopologues];
-    double[] sdLabeledRelIntensities = new double[numIsotopologues];
 
     for (int i = 0; i < numIsotopologues; i++) {
       DescriptiveStatistics statsUnlabeled = new DescriptiveStatistics();
@@ -1229,22 +1263,16 @@ public class UntargetedLabelingTask extends AbstractTask {
 
       meanUnlabeledRelIntensities[i] = statsUnlabeled.getMean();
       meanLabeledRelIntensities[i] = statsLabeled.getMean();
-      sdUnlabeledRelIntensities[i] = statsUnlabeled.getStandardDeviation();
-      sdLabeledRelIntensities[i] = statsLabeled.getStandardDeviation();
     }
 
     // Create and return the data object
     IsotopeIntensityData data = new IsotopeIntensityData();
-    data.unlabeledIntensities = unlabeledIntensities;
-    data.labeledIntensities = labeledIntensities;
     data.unlabeledRelativeIntensities = unlabeledRelativeIntensities;
     data.labeledRelativeIntensities = labeledRelativeIntensities;
     data.unlabeledTotals = unlabeledTotals;
     data.labeledTotals = labeledTotals;
     data.meanUnlabeledRelIntensities = meanUnlabeledRelIntensities;
     data.meanLabeledRelIntensities = meanLabeledRelIntensities;
-    data.sdUnlabeledRelIntensities = sdUnlabeledRelIntensities;
-    data.sdLabeledRelIntensities = sdLabeledRelIntensities;
 
     return data;
   }
@@ -1285,68 +1313,26 @@ public class UntargetedLabelingTask extends AbstractTask {
   }
 
   /**
-   * Validate the isotope pattern according to monotonicity and enrichment rules
+   * Validate that the isotope pattern shows enrichment in at least one higher isotopologue in
+   * labeled samples relative to unlabeled.
    */
   private boolean validateIsotopePattern(IsotopeIntensityData data) {
-    // Check monotonicity in unlabeled samples if configured
-    if (!allowIncompletePatterns && monotonicityTolerance >= 0) {
-      double prevMean = data.meanUnlabeledRelIntensities[0];
-
-      for (int i = 1; i < data.meanUnlabeledRelIntensities.length; i++) {
-        // Check if there's a gap in the isotopologue pattern
-        boolean hasGap = false;
-        // You would need to track the actual mass shifts to determine gaps
-
-        if (data.meanUnlabeledRelIntensities[i] > (1 + monotonicityTolerance) * prevMean) {
-          if (!hasGap) {
-            // Non-monotonic pattern without a gap - reject
-            logger.fine("Monotonicity check failed at isotopologue " + i);
-            return false;
-          }
-        } else {
-          prevMean = data.meanUnlabeledRelIntensities[i];
+    boolean anyEnriched = false;
+    for (int i = 1; i < data.meanLabeledRelIntensities.length; i++) {
+      if (data.meanUnlabeledRelIntensities[i] > 0) {
+        double ratio = data.meanLabeledRelIntensities[i] / data.meanUnlabeledRelIntensities[i];
+        if (ratio > getEnrichmentThreshold()) {
+          anyEnriched = true;
+          break;
         }
+      } else if (data.meanLabeledRelIntensities[i] > 0) {
+        // Isotopologue absent in unlabeled but present in labeled → enriched
+        anyEnriched = true;
+        break;
       }
     }
 
-    // Check enrichment in labeled samples - base peak should NOT be enriched
-    if (enrichmentTolerance >= 0) {
-      double baseUnlabeled = data.meanUnlabeledRelIntensities[0];
-      double baseLabeled = data.meanLabeledRelIntensities[0];
-
-      if (baseUnlabeled > 0) {
-        double baseRatio = baseLabeled / baseUnlabeled;
-        if (baseRatio > (1 + enrichmentTolerance)) {
-          // Base peak is enriched, which typically shouldn't happen
-          logger.fine("Enrichment check failed: base peak is enriched in labeled samples");
-          return false;
-        }
-      }
-
-      // For incomplete patterns, ensure at least one peak is significantly enriched
-      boolean anyEnriched = false;
-      for (int i = 1; i < data.meanLabeledRelIntensities.length; i++) {
-        if (data.meanUnlabeledRelIntensities[i] > 0) {
-          double ratio = data.meanLabeledRelIntensities[i] / data.meanUnlabeledRelIntensities[i];
-          if (ratio > (1 + enrichmentTolerance)) {
-            anyEnriched = true;
-            break;
-          }
-        }
-      }
-
-      if (!anyEnriched) {
-        logger.fine("No isotopologues show significant enrichment in labeled samples");
-        return false;
-      }
-    }
-
-    // Additional validation: check that not all intensities are zero
-    boolean allZeroUnlabeled = Arrays.stream(data.meanUnlabeledRelIntensities)
-        .allMatch(v -> v == 0);
-    boolean allZeroLabeled = Arrays.stream(data.meanLabeledRelIntensities).allMatch(v -> v == 0);
-
-    if (allZeroUnlabeled && allZeroLabeled) {
+    if (!anyEnriched) {
       return false;
     }
 
@@ -1369,7 +1355,12 @@ public class UntargetedLabelingTask extends AbstractTask {
       if (data.meanUnlabeledRelIntensities[i] > 0) {
         enrichmentRatios[i] =
             data.meanLabeledRelIntensities[i] / data.meanUnlabeledRelIntensities[i];
+      } else if (data.meanLabeledRelIntensities[i] > 0) {
+        // Labeled has signal but unlabeled has none > infinitely enriched.
+        // Using POSITIVE_INFINITY (not NaN) so the downstream > threshold check naturally passes.
+        enrichmentRatios[i] = Double.POSITIVE_INFINITY;
       } else {
+        // No signal in either group - truly absent.
         enrichmentRatios[i] = Double.NaN;
       }
     }
@@ -1384,16 +1375,8 @@ public class UntargetedLabelingTask extends AbstractTask {
     result.baseMz = isotopologues.get(0).row.getAverageMZ();
     result.baseRt = isotopologues.get(0).row.getAverageRT();
     result.isotopologues = isotopologues;
-    result.meanUnlabeledRelIntensities = data.meanUnlabeledRelIntensities;
-    result.meanLabeledRelIntensities = data.meanLabeledRelIntensities;
-    result.sdUnlabeledRelIntensities = data.sdUnlabeledRelIntensities;
-    result.sdLabeledRelIntensities = data.sdLabeledRelIntensities;
     result.enrichmentRatios = enrichmentRatios;
     result.pValues = pValues;
-    result.unlabeledTotalIntensity = Arrays.stream(data.unlabeledTotals).average().orElse(0);
-    result.labeledTotalIntensity = Arrays.stream(data.labeledTotals).average().orElse(0);
-    result.rawUnlabeledRelIntensities = data.unlabeledRelativeIntensities;
-    result.rawLabeledRelIntensities = data.labeledRelativeIntensities;
 
     return result;
   }
@@ -1429,8 +1412,24 @@ public class UntargetedLabelingTask extends AbstractTask {
             .toArray();
         double[] labeledArray = labeledValues.stream().mapToDouble(Double::doubleValue).toArray();
 
-        if (unlabeledArray.length > 0 && labeledArray.length > 0) {
-          pValues[i] = tTest.tTest(unlabeledArray, labeledArray);
+        double labeledMean = Arrays.stream(labeledArray).average().orElse(0);
+
+        if (unlabeledArray.length == 0 && i > 0) {
+          // Unlabeled has no total signal at this isotopologue position; labeled does → treat as
+          // highly significant enrichment if labeled actually has signal here.
+          pValues[i] = labeledMean > 0 ? 0.001 : 1.0;
+        } else if (unlabeledArray.length > 0 && labeledArray.length > 0) {
+          // Use one-sided t-test for enrichment (testing if labeled > unlabeled)
+          double twoSidedP = tTest.tTest(unlabeledArray, labeledArray);
+          double unlabeledMean = Arrays.stream(unlabeledArray).average().orElse(0);
+
+          if (i == 0) {
+            // For base peak (M+0), use two-sided test
+            pValues[i] = twoSidedP;
+          } else {
+            // For higher isotopologues, convert to one-sided enrichment test
+            pValues[i] = labeledMean > unlabeledMean ? twoSidedP / 2.0 : 1.0;
+          }
         } else {
           pValues[i] = 1.0;
         }
@@ -1444,40 +1443,33 @@ public class UntargetedLabelingTask extends AbstractTask {
   }
 
   /**
-   * Check if the isotope pattern shows significant enrichment
+   * Check if the isotope pattern shows significant enrichment. When statistical significance is
+   * required and multiple replicates are available, p-values are tested against the cutoff.
+   * Otherwise (single-sample mode or significance not required), the enrichment ratio alone
+   * determines acceptance.
    */
   private boolean isSingleSampleSignificant(IsotopeGroupResult result) {
     if (result == null) {
       return false;
     }
 
-    if (!singleSample) {
-      // Check for any significant p-values
-      boolean anySignificant = false;
+    if (requireStatisticalSignificance && !singleSample) {
       for (double pValue : result.pValues) {
         if (pValue < pValueCutoff) {
-          anySignificant = true;
-          break;
+          return true;
         }
       }
-
-      if (!anySignificant) {
-        return false;
-      }
-    } else {
-      // In single sample mode, use a simple difference in distribution
-      double totalDelta = 0;
-      for (int i = 0; i < result.meanLabeledRelIntensities.length; i++) {
-        totalDelta += Math.abs(
-            result.meanLabeledRelIntensities[i] - result.meanUnlabeledRelIntensities[i]);
-      }
-
-      if (totalDelta < 0.1) {  // Arbitrary threshold
-        return false;
-      }
+      return false;
     }
 
-    return true;
+    // Single-sample or no significance required: accept if any M+i exceeds enrichment threshold
+    for (int i = 1; i < result.enrichmentRatios.length; i++) {
+      double ratio = result.enrichmentRatios[i];
+      if (!Double.isNaN(ratio) && ratio > getEnrichmentThreshold()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1490,7 +1482,7 @@ public class UntargetedLabelingTask extends AbstractTask {
         "Annotating isotopologue rows for cluster ID " + clusterID + " with " + isotopologues.size()
             + " isotopologues");
 
-    // First ensure the required column types exist in the result feature list
+    // Check if required column types exist in the result feature list
     if (!resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopeClusterType)) {
       resultFeatureList.addRowType(UntargetedLabelingParameters.isotopeClusterType);
       logger.info("Added isotopeClusterType to result feature list");
@@ -1757,16 +1749,22 @@ public class UntargetedLabelingTask extends AbstractTask {
   }
 
   /**
-   * Class to represent an isotopologue candidate
+   * Represents a single isotopologue candidate within a cluster.
+   *
+   * @param row       the feature list row for this isotopologue
+   * @param massShift number of tracer mass units above the base peak (M+0 = 0, M+1 = 1, …)
+   * @param charge    ion charge state (1 for singly charged, 2 for doubly charged, …)
    */
   public static class IsotopeCandidate {
 
     FeatureListRow row;
     int massShift;
+    int charge;
 
-    public IsotopeCandidate(FeatureListRow row, int massShift) {
+    public IsotopeCandidate(FeatureListRow row, int massShift, int charge) {
       this.row = row;
       this.massShift = massShift;
+      this.charge = charge;
     }
   }
 
@@ -1774,17 +1772,58 @@ public class UntargetedLabelingTask extends AbstractTask {
    * Class to store isotope intensity data during analysis
    */
   private class IsotopeIntensityData {
-
-    double[][] unlabeledIntensities;
-    double[][] labeledIntensities;
+    
     double[][] unlabeledRelativeIntensities;
     double[][] labeledRelativeIntensities;
     double[] unlabeledTotals;
     double[] labeledTotals;
     double[] meanUnlabeledRelIntensities;
     double[] meanLabeledRelIntensities;
-    double[] sdUnlabeledRelIntensities;
-    double[] sdLabeledRelIntensities;
+  }
+
+  /**
+   * Calculate cluster quality score used for prioritising clusters during consolidation.
+   * <p>
+   * When p-values are available (multi-replicate mode) the score combines enrichment magnitude with
+   * statistical significance. In single-sample mode only enrichment magnitude is used.
+   */
+  private double calculateClusterQuality(IsotopeGroupResult cluster) {
+    if (cluster.enrichmentRatios == null) {
+      return 0.0;
+    }
+
+    double qualityScore = 0.0;
+    int validIsotopologues = 0;
+
+    for (int i = 1; i < cluster.enrichmentRatios.length; i++) { // skip M+0
+      double enrichment = cluster.enrichmentRatios[i];
+      if (Double.isNaN(enrichment) || enrichment <= 1.0) {
+        continue;
+      }
+
+      double enrichmentScore = Math.log(enrichment);
+
+      if (cluster.pValues != null && i < cluster.pValues.length) {
+        // Multi-replicate: weight by statistical significance
+        double significanceScore = -Math.log10(cluster.pValues[i] + 1e-10);
+        qualityScore += enrichmentScore + significanceScore;
+      } else {
+        // Single-sample: enrichment magnitude only
+        qualityScore += enrichmentScore;
+      }
+
+      validIsotopologues++;
+    }
+
+    return validIsotopologues > 0 ? qualityScore / validIsotopologues : 0.0;
+  }
+
+  /**
+   * Get minimum enrichment threshold. Returns 1 + enrichmentTolerance, with a floor of 1.01 so that
+   * even at enrichmentTolerance=0 at least 1% enrichment is required.
+   */
+  private double getEnrichmentThreshold() {
+    return 1.0 + Math.max(0.01, enrichmentTolerance);
   }
 
   /**
@@ -1795,16 +1834,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     double baseMz;
     double baseRt;
     List<IsotopeCandidate> isotopologues;
-    double[] meanUnlabeledRelIntensities;
-    double[] meanLabeledRelIntensities;
-    double[] sdUnlabeledRelIntensities;
-    double[] sdLabeledRelIntensities;
     double[] enrichmentRatios;
     double[] pValues;
-    double unlabeledTotalIntensity;
-    double labeledTotalIntensity;
-    double[][] rawUnlabeledRelIntensities;
-    double[][] rawLabeledRelIntensities;
-    int clusterId; // Added field to track the current cluster ID
   }
 }
