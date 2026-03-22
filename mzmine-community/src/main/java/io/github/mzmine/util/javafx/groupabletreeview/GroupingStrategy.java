@@ -24,6 +24,7 @@
 
 package io.github.mzmine.util.javafx.groupabletreeview;
 
+import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,4 +54,23 @@ public sealed interface GroupingStrategy<T> permits NoGroupingStrategy, CustomGr
    * auto-groupings
    */
   boolean isCustom();
+
+  /**
+   * Returns a comparator for sorting group nodes. Default sorts groups alphabetically by name.
+   *
+   * @return a comparator that compares two {@link GroupTreeItem}s
+   */
+  default @NotNull Comparator<GroupTreeItem<T>> groupComparator() {
+    return Comparator.comparing(GroupTreeItem::getGroupName, String.CASE_INSENSITIVE_ORDER);
+  }
+
+  /**
+   * Returns a comparator for sorting leaf items within groups and at the top level. Default returns
+   * null (no sorting).
+   *
+   * @return a comparator for items, or null if no item sorting should be applied
+   */
+  default @Nullable Comparator<T> itemComparator() {
+    return null;
+  }
 }

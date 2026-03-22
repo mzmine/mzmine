@@ -127,7 +127,9 @@
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
-                                text="Group/Ungroup files" fx:id="rawDataGroupMenuItem"/>
+                                text="Group files" fx:id="rawDataGroupMenuItem"/>
+                              <MenuItem onAction="#handleUngroupRawDataFiles"
+                                text="Ungroup files" fx:id="rawDataUngroupMenuItem"/>
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>

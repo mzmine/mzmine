@@ -222,10 +222,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (mainWindowController != null) {
         GroupableTreeView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
         rawDataList.addItems(project.getCurrentRawDataFiles());
+        rawDataList.setStrategyProvider(MZmineGUI::createRawDataStrategies);
         setupRawDataStrategies(rawDataList);
 
         GroupableTreeView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
         featureListsList.addItems(project.getCurrentFeatureLists());
+        featureListsList.setStrategyProvider(MZmineGUI::createFeatureListStrategies);
         setupFeatureListStrategies(featureListsList);
 
         var libraryList = mainWindowController.getSpectralLibraryList();
@@ -260,10 +262,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   }
 
-  private static void setupRawDataStrategies(
-      @NotNull final GroupableTreeView<RawDataFile> rawDataList) {
-    final ObservableList<GroupingStrategy<RawDataFile>> strategies = rawDataList.getAvailableStrategies();
-    strategies.clear();
+  private static @NotNull List<@NotNull GroupingStrategy<RawDataFile>> createRawDataStrategies() {
+    final List<GroupingStrategy<RawDataFile>> strategies = new ArrayList<>();
     strategies.add(new NoGroupingStrategy<>());
 
     // add one strategy per metadata column, excluding filename and run_date
@@ -275,18 +275,19 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
       strategies.add(new RawDataMetadataGroupingStrategy(column));
     }
-
-    // default: no grouping
-    rawDataList.setActiveStrategy(strategies.getFirst());
+    return strategies;
   }
 
-  private static void setupFeatureListStrategies(
-      @NotNull final GroupableTreeView<FeatureList> featureListsList) {
-    final ObservableList<GroupingStrategy<FeatureList>> strategies = featureListsList.getAvailableStrategies();
-    strategies.clear();
+  private static void setupRawDataStrategies(
+      @NotNull final GroupableTreeView<RawDataFile> rawDataList) {
+    rawDataList.getAvailableStrategies().setAll(createRawDataStrategies());
+    // default: no grouping
+    rawDataList.setActiveStrategy(rawDataList.getAvailableStrategies().getFirst());
+  }
 
-    final FeatureListByRawDataFileStrategy byRawDataFile = new FeatureListByRawDataFileStrategy();
-    strategies.add(byRawDataFile);
+  private static @NotNull List<@NotNull GroupingStrategy<FeatureList>> createFeatureListStrategies() {
+    final List<GroupingStrategy<FeatureList>> strategies = new ArrayList<>();
+    strategies.add(new FeatureListByRawDataFileStrategy());
     strategies.add(new NoGroupingStrategy<>());
     strategies.add(new FeatureListByProcessingStepStrategy());
 
@@ -299,9 +300,14 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
       strategies.add(new FeatureListByMetadataStrategy(column));
     }
+    return strategies;
+  }
 
+  private static void setupFeatureListStrategies(
+      @NotNull final GroupableTreeView<FeatureList> featureListsList) {
+    featureListsList.getAvailableStrategies().setAll(createFeatureListStrategies());
     // default: group by raw data file
-    featureListsList.setActiveStrategy(byRawDataFile);
+    featureListsList.setActiveStrategy(featureListsList.getAvailableStrategies().getFirst());
   }
 
   public static void sortRawDataFilesAlphabetically(final List<RawDataFile> raws) {

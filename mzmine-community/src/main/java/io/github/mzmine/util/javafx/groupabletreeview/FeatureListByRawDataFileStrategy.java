@@ -25,6 +25,7 @@
 package io.github.mzmine.util.javafx.groupabletreeview;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,5 +52,11 @@ public final class FeatureListByRawDataFileStrategy implements GroupingStrategy<
   @Override
   public boolean isCustom() {
     return false;
+  }
+
+  @Override
+  public @NotNull Comparator<FeatureList> itemComparator() {
+    // more applied methods first
+    return Comparator.<FeatureList>comparingInt(fl -> fl.getAppliedMethods().size()).reversed();
   }
 }

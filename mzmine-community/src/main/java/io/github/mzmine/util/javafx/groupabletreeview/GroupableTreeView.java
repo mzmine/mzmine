@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,6 +43,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +63,7 @@ public class GroupableTreeView<T> extends BorderPane {
   private final ObservableList<GroupingStrategy<T>> availableStrategies = FXCollections.observableArrayList();
   private final ObjectProperty<GroupingStrategy<T>> activeStrategy;
   private final ComboBox<GroupingStrategy<T>> strategyComboBox;
+  private @Nullable Supplier<@NotNull List<@NotNull GroupingStrategy<T>>> strategyProvider;
   private boolean suppressRegroup = false;
 
   public GroupableTreeView() {
@@ -85,6 +88,9 @@ public class GroupableTreeView<T> extends BorderPane {
         regroup();
       }
     });
+
+    // refresh strategies from provider before the dropdown opens
+    strategyComboBox.addEventFilter(MouseEvent.MOUSE_PRESSED, _ -> refreshStrategies());
 
     setTop(FxLayout.newHBox(Pos.CENTER_LEFT, FxLabels.newLabel("Group by"), strategyComboBox));
     setCenter(treeView);
@@ -124,6 +130,54 @@ public class GroupableTreeView<T> extends BorderPane {
     return activeStrategy;
   }
 
+  /**
+   * Sets a provider that supplies the available grouping strategies. Called each time the combo box
+   * dropdown opens so that dynamic strategies (e.g., metadata columns) are refreshed.
+   */
+  public void setStrategyProvider(
+      @Nullable final Supplier<@NotNull List<@NotNull GroupingStrategy<T>>> strategyProvider) {
+    this.strategyProvider = strategyProvider;
+  }
+
+  /**
+   * Refreshes the available strategies from the provider, preserving the currently active strategy
+   * if an equivalent one (by display name) is still available or if it is a custom strategy.
+   */
+  private void refreshStrategies() {
+    if (strategyProvider == null) {
+      return;
+    }
+
+    final GroupingStrategy<T> current = activeStrategy.get();
+    final List<GroupingStrategy<T>> fresh = new ArrayList<>(strategyProvider.get());
+
+    // keep existing custom strategy in the list
+    if (current instanceof CustomGroupingStrategy<T>) {
+      fresh.removeIf(GroupingStrategy::isCustom);
+      fresh.add(current);
+    }
+
+    // find the equivalent strategy in the new list by display name
+    final GroupingStrategy<T> restored;
+    if (current instanceof CustomGroupingStrategy<T>) {
+      restored = current;
+    } else if (current != null) {
+      final String currentName = current.displayName();
+      restored = fresh.stream().filter(s -> s.displayName().equals(currentName)).findFirst()
+          .orElse(null);
+    } else {
+      restored = null;
+    }
+
+    suppressRegroup = true;
+    try {
+      availableStrategies.setAll(fresh);
+      activeStrategy.set(restored);
+    } finally {
+      suppressRegroup = false;
+    }
+  }
+
   // -- Item management --
 
   public void addItem(@NotNull final T item) {
@@ -156,7 +210,10 @@ public class GroupableTreeView<T> extends BorderPane {
     final GroupingStrategy<T> strategy = activeStrategy.get();
     final List<TreeItem<T>> newChildren = buildTreeChildren(strategy);
     // apply on the FX thread to avoid ConcurrentModificationException from task threads
-    FxThread.runLater(() -> rootItem.getChildren().setAll(newChildren));
+    FxThread.runLater(() -> {
+      rootItem.getChildren().setAll(newChildren);
+      applyStrategySort(strategy);
+    });
   }
 
   /**
@@ -167,6 +224,20 @@ public class GroupableTreeView<T> extends BorderPane {
     final GroupingStrategy<T> strategy = activeStrategy.get();
     final List<TreeItem<T>> newChildren = buildTreeChildren(strategy);
     rootItem.getChildren().setAll(newChildren);
+    applyStrategySort(strategy);
+  }
+
+  /**
+   * Applies sorting defined by the strategy's item and group comparators.
+   */
+  private void applyStrategySort(@Nullable final GroupingStrategy<T> strategy) {
+    if (strategy == null) {
+      return;
+    }
+    final Comparator<T> comparator = strategy.itemComparator();
+    if (comparator != null) {
+      sortItems(comparator);
+    }
   }
 
   private @NotNull List<TreeItem<T>> buildTreeChildren(
@@ -202,10 +273,12 @@ public class GroupableTreeView<T> extends BorderPane {
   }
 
   /**
-   * Groups the currently selected items under a new group. If an auto-strategy is active, snapshots
-   * to custom first.
+   * Groups the currently selected items under a group with the given name. If an auto-strategy is
+   * active, snapshots to custom first. Items already in a group are moved to the new group.
+   *
+   * @param groupName the name of the group to assign selected items to
    */
-  public void groupSelected() {
+  public void groupSelected(@NotNull final String groupName) {
     final List<T> selectedValues = getSelectedItems();
     if (selectedValues.isEmpty()) {
       return;
@@ -218,9 +291,9 @@ public class GroupableTreeView<T> extends BorderPane {
     final GroupingStrategy<T> strategy = activeStrategy.get();
     if (strategy instanceof CustomGroupingStrategy<T> custom) {
       for (final T item : selectedValues) {
-        custom.assignToGroup(item, "Group");
+        custom.assignToGroup(item, groupName);
       }
-      regroup();
+      regroupAndSelect(selectedValues);
     }
   }
 
@@ -243,7 +316,22 @@ public class GroupableTreeView<T> extends BorderPane {
       for (final T item : selectedValues) {
         custom.removeFromGroup(item);
       }
-      regroup();
+      regroupAndSelect(selectedValues);
+    }
+  }
+
+  /**
+   * Rebuilds the tree and restores selection for the given items. Called from group/ungroup which
+   * run on the FX thread (context menu handlers).
+   */
+  private void regroupAndSelect(@NotNull final List<T> itemsToSelect) {
+    regroupNow();
+    treeView.getSelectionModel().clearSelection();
+    for (final T item : itemsToSelect) {
+      final TreeItem<T> node = findTreeItem(item);
+      if (node != null) {
+        treeView.getSelectionModel().select(node);
+      }
     }
   }
 
@@ -301,14 +389,19 @@ public class GroupableTreeView<T> extends BorderPane {
   // -- Sorting --
 
   /**
-   * Sorts the tree hierarchically: groups are sorted alphabetically, items within each group (and
-   * top-level items) are sorted by the provided comparator.
+   * Sorts the tree hierarchically: groups are sorted by the active strategy's
+   * {@link GroupingStrategy#groupComparator()}, items within each group (and top-level items) are
+   * sorted by the provided comparator.
    */
   public void sortItems(@NotNull final Comparator<T> comparator) {
+    final GroupingStrategy<T> strategy = activeStrategy.get();
+    final Comparator<GroupTreeItem<T>> groupCmp = strategy != null ? strategy.groupComparator()
+        : Comparator.comparing(GroupTreeItem::getGroupName, String.CASE_INSENSITIVE_ORDER);
+
     final Comparator<TreeItem<T>> treeComparator = (a, b) -> {
-      // groups sort by name
+      // groups sort by strategy-defined comparator
       if (a instanceof GroupTreeItem<T> ga && b instanceof GroupTreeItem<T> gb) {
-        return ga.getGroupName().compareToIgnoreCase(gb.getGroupName());
+        return groupCmp.compare(ga, gb);
       }
       // groups before leaf items
       if (a instanceof GroupTreeItem) {

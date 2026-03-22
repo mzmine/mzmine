@@ -174,6 +174,8 @@ public class MainWindowController {
   @FXML
   public MenuItem rawDataGroupMenuItem;
   @FXML
+  public MenuItem rawDataUngroupMenuItem;
+  @FXML
   public MenuItem rawDataRemoveMenuItem;
   @FXML
   public Menu rawDataSetColorMenu;
@@ -1109,16 +1111,20 @@ public class MainWindowController {
   }
 
   public void handleGroupRawDataFiles(Event event) {
-    // decision: if any selected item is inside a group, ungroup; otherwise group
-    final var selectedTreeItems = rawDataList.getSelectedTreeItems();
-    final boolean anyInGroup = selectedTreeItems.stream().anyMatch(
-        item -> item.getParent() != null && item.getParent() != rawDataList.getTreeView()
-            .getRoot());
-    if (anyInGroup) {
-      rawDataList.ungroupSelected();
-    } else {
-      rawDataList.groupSelected();
+    final var selected = rawDataList.getSelectedItems();
+    if (selected.isEmpty()) {
+      return;
     }
+
+    final var dialog = DialogLoggerUtil.createTextInputDialog("Group files",
+        "Enter a name for the new group", "Group name:");
+    dialog.getEditor().setText("Group");
+    final Optional<String> result = dialog.showAndWait();
+    result.filter(name -> !name.isBlank()).ifPresent(rawDataList::groupSelected);
+  }
+
+  public void handleUngroupRawDataFiles(Event event) {
+    rawDataList.ungroupSelected();
   }
 
   public NotificationPane getNotificationPane() {

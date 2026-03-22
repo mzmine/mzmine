@@ -26,7 +26,9 @@ package io.github.mzmine.util.javafx.groupabletreeview;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import java.util.Comparator;
 import java.util.List;
+import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,5 +55,19 @@ public final class FeatureListByProcessingStepStrategy implements GroupingStrate
   @Override
   public boolean isCustom() {
     return false;
+  }
+
+  @Override
+  public @NotNull Comparator<GroupTreeItem<FeatureList>> groupComparator() {
+    // sort groups by max applied methods count (descending)
+    return Comparator.<GroupTreeItem<FeatureList>>comparingInt(
+        group -> group.getChildren().stream().map(TreeItem::getValue).filter(fl -> fl != null)
+            .mapToInt(fl -> fl.getAppliedMethods().size()).max().orElse(0)).reversed();
+  }
+
+  @Override
+  public @NotNull Comparator<FeatureList> itemComparator() {
+    // more applied methods first
+    return Comparator.<FeatureList>comparingInt(fl -> fl.getAppliedMethods().size()).reversed();
   }
 }

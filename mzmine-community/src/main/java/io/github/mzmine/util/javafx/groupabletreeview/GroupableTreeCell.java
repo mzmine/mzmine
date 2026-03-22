@@ -143,6 +143,14 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
     return 18 + graphicPadding;
   }
 
+  /**
+   * @return true if the drag event originated from a cell in this tree view (internal reorder)
+   */
+  private boolean isInternalDrag(@NotNull final DragEvent event) {
+    return event.getGestureSource() instanceof GroupableTreeCell<?> && event.getDragboard()
+        .hasString();
+  }
+
   private void setupDragAndDrop() {
     setOnDragDetected(event -> {
       if (getItem() == null || getTreeItem() instanceof GroupTreeItem) {
@@ -159,10 +167,11 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
     });
 
     setOnDragOver(event -> {
-      if (event.getGestureSource() != this && event.getDragboard().hasString()) {
+      // only handle internal tree reorder drags; let external file drags bubble to scene handler
+      if (isInternalDrag(event)) {
         event.acceptTransferModes(TransferMode.MOVE);
+        event.consume();
       }
-      event.consume();
     });
 
     setOnDragEntered(event -> {
@@ -178,6 +187,11 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
     });
 
     setOnDragDropped(event -> {
+      // only handle internal tree reorder drags; let external file drags bubble to scene handler
+      if (!isInternalDrag(event)) {
+        return;
+      }
+
       if (ownerTreeView == null || getTreeItem() == null) {
         event.setDropCompleted(false);
         event.consume();
@@ -185,36 +199,32 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
       }
 
       final Dragboard db = event.getDragboard();
-      if (db.hasString()) {
-        final int draggedIndex = Integer.parseInt(db.getString());
-        final TreeItem<T> draggedItem = getTreeView().getTreeItem(draggedIndex);
-        if (draggedItem != null && draggedItem.getValue() != null) {
-          // determine target parent and index
-          final TreeItem<T> targetItem = getTreeItem();
-          final TreeItem<T> targetParent;
-          int targetIndex;
+      final int draggedIndex = Integer.parseInt(db.getString());
+      final TreeItem<T> draggedItem = getTreeView().getTreeItem(draggedIndex);
+      if (draggedItem != null && draggedItem.getValue() != null) {
+        // determine target parent and index
+        final TreeItem<T> targetItem = getTreeItem();
+        final TreeItem<T> targetParent;
+        int targetIndex;
 
-          if (targetItem instanceof GroupTreeItem<T>) {
-            // dropping onto a group: add at end of group
-            targetParent = targetItem;
-            targetIndex = targetItem.getChildren().size();
-          } else {
-            // dropping onto a leaf: insert relative to the target
-            targetParent = targetItem.getParent();
-            targetIndex = targetParent.getChildren().indexOf(targetItem);
+        if (targetItem instanceof GroupTreeItem<T>) {
+          // dropping onto a group: add at end of group
+          targetParent = targetItem;
+          targetIndex = targetItem.getChildren().size();
+        } else {
+          // dropping onto a leaf: insert relative to the target
+          targetParent = targetItem.getParent();
+          targetIndex = targetParent.getChildren().indexOf(targetItem);
 
-            // if dragging downward, place after the target item
-            if (draggedIndex < getIndex()) {
-              targetIndex++;
-            }
+          // if dragging downward, place after the target item
+          if (draggedIndex < getIndex()) {
+            targetIndex++;
           }
-
-          ownerTreeView.moveItem(draggedItem.getValue(), targetParent, targetIndex);
         }
-        event.setDropCompleted(true);
-      } else {
-        event.setDropCompleted(false);
+
+        ownerTreeView.moveItem(draggedItem.getValue(), targetParent, targetIndex);
       }
+      event.setDropCompleted(true);
       event.consume();
     });
 

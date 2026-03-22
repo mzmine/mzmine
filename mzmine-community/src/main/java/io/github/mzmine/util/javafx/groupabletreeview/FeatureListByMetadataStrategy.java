@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
+import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,6 +67,12 @@ public final class FeatureListByMetadataStrategy implements GroupingStrategy<Fea
   @Override
   public boolean isCustom() {
     return false;
+  }
+
+  @Override
+  public @NotNull Comparator<FeatureList> itemComparator() {
+    // more applied methods first
+    return Comparator.<FeatureList>comparingInt(fl -> fl.getAppliedMethods().size()).reversed();
   }
 
   public @NotNull MetadataColumn<?> getColumn() {
