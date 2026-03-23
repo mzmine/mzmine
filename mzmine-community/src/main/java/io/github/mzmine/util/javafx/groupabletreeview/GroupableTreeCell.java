@@ -1,0 +1,287 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.util.javafx.groupabletreeview;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import javafx.scene.Node;
+import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Custom TreeCell for {@link GroupableTreeView} that renders leaf items using configurable text and
+ * graphic extractors, and renders group nodes with their group name in bold. Supports drag & drop
+ * for reordering.
+ * <p>
+ * Overrides {@link #layoutChildren} to remove the default disclosure node indent that TreeCellSkin
+ * reserves for all cells (even leaf items). For leaf items at the top level, this eliminates the
+ * unwanted left indent.
+ *
+ * @param <T> the type of items in the tree
+ */
+public class GroupableTreeCell<T> extends TreeCell<T> {
+
+  private final Function<T, String> textExtractor;
+  private final @Nullable Function<T, Node> graphicFactory;
+  private final @Nullable GroupableTreeView<T> ownerTreeView;
+  private final @Nullable Function<T, File> dragFileExtractor;
+
+  // saved reference to the default disclosure node so we can restore it for group items
+  private @Nullable Node savedDisclosureNode;
+
+  /**
+   * @param textExtractor    function to extract display text from an item
+   * @param graphicFactory   optional function to create a graphic node for an item, may be null
+   * @param ownerTreeView    the owning GroupableTreeView, used for drag & drop move operations. May
+   *                         be null if drag & drop is not needed.
+   * @param dragFileExtractor optional function to extract a {@link File} from an item. When set,
+   *                          all currently selected files are added to the dragboard so the drag can
+   *                          be accepted by external file-drop targets (e.g. FileNamesComponent).
+   */
+  public GroupableTreeCell(@NotNull final Function<T, String> textExtractor,
+      @Nullable final Function<T, Node> graphicFactory,
+      @Nullable final GroupableTreeView<T> ownerTreeView,
+      @Nullable final Function<T, File> dragFileExtractor) {
+    this.textExtractor = textExtractor;
+    this.graphicFactory = graphicFactory;
+    this.ownerTreeView = ownerTreeView;
+    this.dragFileExtractor = dragFileExtractor;
+    setupDragAndDrop();
+  }
+
+  public GroupableTreeCell(@NotNull final Function<T, String> textExtractor,
+      @Nullable final Function<T, Node> graphicFactory,
+      @Nullable final GroupableTreeView<T> ownerTreeView) {
+    this(textExtractor, graphicFactory, ownerTreeView, null);
+  }
+
+  @Override
+  protected void updateItem(final @Nullable T item, final boolean empty) {
+    super.updateItem(item, empty);
+
+    // capture the default disclosure node on first use so we can restore it later
+    if (savedDisclosureNode == null && getDisclosureNode() != null) {
+      savedDisclosureNode = getDisclosureNode();
+    }
+
+    if (empty || getTreeItem() == null) {
+      setText(null);
+      setGraphic(null);
+      setFont(Font.getDefault());
+      setDisclosureNode(null);
+      return;
+    }
+
+    if (getTreeItem() instanceof GroupTreeItem<T> group) {
+      setText(group.getGroupName());
+      setGraphic(null);
+      setFont(Font.font(getFont().getFamily(), FontWeight.BOLD, getFont().getSize()));
+      // restore disclosure node for groups so the expand/collapse arrow is shown
+      setDisclosureNode(savedDisclosureNode);
+    } else if (item != null) {
+      setText(textExtractor.apply(item));
+      setGraphic(graphicFactory != null ? graphicFactory.apply(item) : null);
+      setFont(Font.getDefault());
+      // null disclosure node for leaf items
+      setDisclosureNode(null);
+    } else {
+      setText(null);
+      setGraphic(null);
+      setFont(Font.getDefault());
+      setDisclosureNode(null);
+    }
+  }
+
+  @Override
+  protected void layoutChildren() {
+    // let the default skin layout first
+    super.layoutChildren();
+
+    // decision: TreeCellSkin always reserves disclosureWidth (default 18px) even for leaf cells.
+    // For non-group items, shift all children left to compensate for that reserved space.
+    if (!(getTreeItem() instanceof GroupTreeItem)) {
+      final Node disclosureNode = getDisclosureNode();
+      // only adjust when there is no disclosure node (leaf items)
+      if (disclosureNode == null || !disclosureNode.isVisible()) {
+        final double shift = computeDisclosureShift();
+        if (shift > 0) {
+          for (final Node child : getChildren()) {
+            child.setLayoutX(child.getLayoutX() - shift);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Derives the disclosure width from the saved disclosure node so the shift adapts to the actual
+   * skin, CSS theme, and HiDPI scaling instead of using a hardcoded value.
+   */
+  private double computeDisclosureShift() {
+    if (savedDisclosureNode != null) {
+      final double w = savedDisclosureNode.prefWidth(-1);
+      if (w > 0) {
+        return w;
+      }
+    }
+    // assumption: fall back to the JavaFX default if the node is not yet measured
+    return 18;
+  }
+
+  /**
+   * @return true if the drag event originated from a cell in this tree view (internal reorder)
+   */
+  /**
+   * Collects {@link File} objects for all currently selected items using {@link #dragFileExtractor}.
+   * Returns an empty list when no extractor is set or no owner tree view is available.
+   */
+  private @NotNull List<File> buildDragFiles() {
+    if (dragFileExtractor == null || ownerTreeView == null) {
+      return List.of();
+    }
+    final List<T> selected = List.copyOf(ownerTreeView.getSelectedValues());
+    // fall back to the dragged item itself if nothing is selected
+    final List<T> source = selected.isEmpty() ? List.of(getItem()) : selected;
+    final List<File> files = new ArrayList<>(source.size());
+    for (final T item : source) {
+      if (item != null) {
+        final File file = dragFileExtractor.apply(item);
+        if (file != null) {
+          files.add(file);
+        }
+      }
+    }
+    return files;
+  }
+
+  private boolean isInternalDrag(@NotNull final DragEvent event) {
+    return event.getGestureSource() instanceof GroupableTreeCell<?> && event.getDragboard()
+        .hasString();
+  }
+
+  private void setupDragAndDrop() {
+    setOnDragDetected(event -> {
+      if (getItem() == null || getTreeItem() instanceof GroupTreeItem) {
+        return;
+      }
+
+      final ClipboardContent content = new ClipboardContent();
+      // TODO: identifying the dragged item by its visual flat row index is fragile if items
+      //  shift between drag-start and drop. Consider storing a stable item identity instead.
+      content.putString(String.valueOf(getIndex()));
+
+      // add selected file paths so external drop targets (e.g. FileNamesComponent) can accept them
+      final List<File> files = buildDragFiles();
+      final TransferMode[] transferModes;
+      if (!files.isEmpty()) {
+        content.putFiles(files);
+        transferModes = TransferMode.COPY_OR_MOVE;
+      } else {
+        transferModes = new TransferMode[]{TransferMode.MOVE};
+      }
+
+      final Dragboard dragboard = startDragAndDrop(transferModes);
+      final WritableImage snapshot = this.snapshot(null, null);
+      dragboard.setDragView(snapshot);
+      dragboard.setContent(content);
+      event.consume();
+    });
+
+    setOnDragOver(event -> {
+      // only handle internal tree reorder drags; let external file drags bubble to scene handler
+      if (isInternalDrag(event)) {
+        event.acceptTransferModes(TransferMode.MOVE);
+        event.consume();
+      }
+    });
+
+    setOnDragEntered(event -> {
+      if (event.getGestureSource() != this && event.getDragboard().hasString()) {
+        setOpacity(0.3);
+      }
+    });
+
+    setOnDragExited(event -> {
+      if (event.getGestureSource() != this && event.getDragboard().hasString()) {
+        setOpacity(1);
+      }
+    });
+
+    setOnDragDropped(event -> {
+      // only handle internal tree reorder drags; let external file drags bubble to scene handler
+      if (!isInternalDrag(event)) {
+        return;
+      }
+
+      if (ownerTreeView == null || getTreeItem() == null) {
+        event.setDropCompleted(false);
+        event.consume();
+        return;
+      }
+
+      final Dragboard db = event.getDragboard();
+      final int draggedIndex = Integer.parseInt(db.getString());
+      final TreeItem<T> draggedItem = getTreeView().getTreeItem(draggedIndex);
+      if (draggedItem != null && draggedItem.getValue() != null) {
+        // determine target parent and index
+        final TreeItem<T> targetItem = getTreeItem();
+        final TreeItem<T> targetParent;
+        int targetIndex;
+
+        if (targetItem instanceof GroupTreeItem<T>) {
+          // dropping onto a group: add at end of group
+          targetParent = targetItem;
+          targetIndex = targetItem.getChildren().size();
+        } else {
+          // dropping onto a leaf: insert relative to the target
+          targetParent = targetItem.getParent();
+          targetIndex = targetParent.getChildren().indexOf(targetItem);
+
+          // if dragging downward, place after the target item
+          if (draggedIndex < getIndex()) {
+            targetIndex++;
+          }
+        }
+
+        ownerTreeView.moveItem(draggedItem.getValue(), targetParent, targetIndex);
+      }
+      event.setDropCompleted(true);
+      event.consume();
+    });
+
+    setOnDragDone(DragEvent::consume);
+  }
+}

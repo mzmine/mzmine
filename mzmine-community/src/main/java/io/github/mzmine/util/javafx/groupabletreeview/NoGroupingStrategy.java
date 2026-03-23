@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,43 +22,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx.groupablelistview;
+package io.github.mzmine.util.javafx.groupabletreeview;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Class designed to be used as a group item of {@link GroupableListView}.
+ * Strategy that applies no grouping — all items are displayed at the top level.
+ *
+ * @param <T> the type of items being grouped
  */
-public class GroupEntity implements GroupableListViewEntity {
+public final class NoGroupingStrategy<T> implements GroupingStrategy<T> {
 
-  private String groupName;
-  private boolean isExpanded = true;
-
-  public GroupEntity(String groupName) {
-    this.groupName = groupName;
-  }
-
-  public String getGroupName() {
-    return groupName;
-  }
-
-  public void setGroupName(String groupName) {
-    this.groupName = groupName;
-  }
-
-  public void invertState() {
-    isExpanded = !isExpanded;
-  }
-
-  public boolean isExpanded() {
-    return isExpanded;
-  }
-
-  public boolean isHidden() {
-    return !isExpanded;
+  @Override
+  public @NotNull String displayName() {
+    return "No grouping";
   }
 
   @Override
-  public String toString() {
-    return groupName;
+  public @Nullable String getGroupName(@NotNull final T item) {
+    return null;
   }
 
+  @Override
+  public boolean isCustom() {
+    // decision: returns true so the user can manually move/group items after selecting "No grouping"
+    // without being snapped back to an auto-derived layout.
+    return true;
+  }
 }
