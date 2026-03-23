@@ -130,6 +130,9 @@
                                 text="Group files" fx:id="rawDataGroupMenuItem"/>
                               <MenuItem onAction="#handleUngroupRawDataFiles"
                                 text="Ungroup files" fx:id="rawDataUngroupMenuItem"/>
+                              <MenuItem onAction="#handleRenameRawDataGroup"
+                                text="Rename group" fx:id="rawDataRenameGroupMenuItem"
+                                disable="true"/>
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>

@@ -69,6 +69,13 @@ public final class CustomGroupingStrategy<T> implements GroupingStrategy<T> {
   }
 
   /**
+   * Renames a group by updating all assignments that reference {@code oldName} to {@code newName}.
+   */
+  public void renameGroup(@NotNull final String oldName, @NotNull final String newName) {
+    assignments.replaceAll((item, name) -> oldName.equals(name) ? newName : name);
+  }
+
+  /**
    * @return the current assignments map (read-only view for snapshotting)
    */
   @NotNull

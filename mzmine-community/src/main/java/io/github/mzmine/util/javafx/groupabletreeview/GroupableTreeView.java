@@ -36,10 +36,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -68,6 +69,8 @@ public class GroupableTreeView<T> extends BorderPane {
   private final ObservableList<GroupingStrategy<T>> availableStrategies = FXCollections.observableArrayList();
   private final ObjectProperty<GroupingStrategy<T>> activeStrategy;
   private final ComboBox<GroupingStrategy<T>> strategyComboBox;
+  private final ReadOnlyListWrapper<T> selectedValuesWrapper = new ReadOnlyListWrapper<>(this,
+      "selectedValues", FXCollections.observableArrayList());
   private @Nullable Supplier<@NotNull List<@NotNull GroupingStrategy<T>>> strategyProvider;
   private boolean suppressRegroup = false;
   private BiConsumer<T, String> renameConsumer;
@@ -100,6 +103,45 @@ public class GroupableTreeView<T> extends BorderPane {
 
     setTop(FxLayout.newHBox(Pos.CENTER_LEFT, FxLabels.newLabel("Group by"), strategyComboBox));
     setCenter(treeView);
+
+    treeView.getSelectionModel().getSelectedItems()
+        .addListener((javafx.collections.ListChangeListener<TreeItem<T>>) _ -> updateSelectedValues());
+  }
+
+  // -- Selected values property --
+
+  /**
+   * A read-only observable list of the currently selected item values. When a group node is
+   * selected, all values of its children are included instead of the group itself.
+   */
+  public @NotNull ReadOnlyListProperty<T> selectedValuesProperty() {
+    return selectedValuesWrapper.getReadOnlyProperty();
+  }
+
+  /**
+   * Returns the live read-only list of currently selected values. Prefer
+   * {@link #selectedValuesProperty()} when attaching change listeners.
+   */
+  public @NotNull ObservableList<T> getSelectedValues() {
+    return selectedValuesWrapper.getReadOnlyProperty();
+  }
+
+  private void updateSelectedValues() {
+    final List<T> newValues = new ArrayList<>();
+    for (final TreeItem<T> item : treeView.getSelectionModel().getSelectedItems()) {
+      if (item instanceof GroupTreeItem<T> group) {
+        // decision: selecting a group selects all its children
+        for (final TreeItem<T> child : group.getChildren()) {
+          final T value = child.getValue();
+          if (value != null) {
+            newValues.add(value);
+          }
+        }
+      } else if (item != null && item.getValue() != null) {
+        newValues.add(item.getValue());
+      }
+    }
+    selectedValuesWrapper.setAll(newValues);
   }
 
   public @NotNull TreeView<T> getTreeView() {
@@ -594,23 +636,45 @@ public class GroupableTreeView<T> extends BorderPane {
     this.renameConsumer = renameConsumer;
   }
 
-  public void edit(T value) {
-    TreeItem<T> item = findTreeItem(value);
+  /**
+   * Opens a rename dialog for a leaf item and notifies {@link #renameConsumer}.
+   * For group items use {@link #editGroup(GroupTreeItem)} instead.
+   */
+  public void edit(@NotNull final T value) {
+    final TreeItem<T> item = findTreeItem(value);
 
     if (item == null || renameConsumer == null) {
       return;
     }
 
-    TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Set new name",
+    final TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Set new name",
         "Set a new name for %s".formatted(StringUtils.inQuotes(item.getValue().toString())), "");
-    Optional<String> s = dialog.showAndWait();
-    s.ifPresent(newName -> {
-      if (item instanceof GroupTreeItem<T> groupItem) {
-        groupItem.groupNameProperty().setValue(newName);
-      } else {
-        renameConsumer.accept(item.getValue(), newName);
-      }
+    dialog.showAndWait().ifPresent(newName -> {
+      renameConsumer.accept(item.getValue(), newName);
       treeView.refresh();
     });
+  }
+
+  /**
+   * Opens a rename dialog for a group node. If the active strategy is not custom, snapshots the
+   * current tree to a {@link CustomGroupingStrategy} first so the rename is preserved across
+   * regroups.
+   */
+  public void editGroup(@NotNull final GroupTreeItem<T> groupItem) {
+    final String oldName = groupItem.getGroupName();
+    final TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Rename group",
+        "Set a new name for group %s".formatted(StringUtils.inQuotes(oldName)), oldName);
+    dialog.showAndWait().filter(newName -> !newName.isBlank() && !newName.equals(oldName))
+        .ifPresent(newName -> {
+          // snapshot to custom first if we are on an auto-strategy
+          if (!isCustomStrategy()) {
+            snapshotToCustomSilent();
+          }
+          final GroupingStrategy<T> strategy = activeStrategy.get();
+          if (strategy instanceof CustomGroupingStrategy<T> custom) {
+            custom.renameGroup(oldName, newName);
+          }
+          regroupNow();
+        });
   }
 }

@@ -76,6 +76,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelec
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.util.javafx.groupabletreeview.GroupTreeItem;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeCell;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -88,7 +89,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -172,6 +172,8 @@ public class MainWindowController {
   public MenuItem rawDataGroupMenuItem;
   @FXML
   public MenuItem rawDataUngroupMenuItem;
+  @FXML
+  public MenuItem rawDataRenameGroupMenuItem;
   @FXML
   public MenuItem rawDataRemoveMenuItem;
   @FXML
@@ -377,21 +379,17 @@ public class MainWindowController {
       }
     });
 
-    featureListsList.getTreeView().getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
-          FxThread.runLater(() -> {
-            change.next();
-            for (MZmineTab tab : MZmineCore.getDesktop().getAllTabs()) {
-              if (tab != null && tab.isSelected() && tab.isUpdateOnSelection()
-                  && !(CollectionUtils.isEqualCollection(tab.getFeatureLists(),
-                  change.getList()))) {
-                tab.onFeatureListSelectionChanged(
-                    change.getList().stream().map(TreeItem::getValue).filter(Objects::nonNull)
-                        .toList());
-              }
-            }
-          });
-        });
+    featureListsList.selectedValuesProperty().addListener((ListChangeListener<FeatureList>) _ -> {
+      FxThread.runLater(() -> {
+        final List<FeatureList> selected = featureListsList.getSelectedValues();
+        for (MZmineTab tab : MZmineCore.getDesktop().getAllTabs()) {
+          if (tab != null && tab.isSelected() && tab.isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(tab.getFeatureLists(), selected))) {
+            tab.onFeatureListSelectionChanged(selected);
+          }
+        }
+      });
+    });
 
     featureListsList.getTreeView().getSelectionModel().getSelectedItems()
         .addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
@@ -412,7 +410,8 @@ public class MainWindowController {
 
             if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
               featureListsRenameMenuItem.setDisable(false);
-              if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue() == null) {
+              if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+                  == null) {
                 featureListsRenameMenuItem.setText("Rename group");
               } else {
                 featureListsRenameMenuItem.setText("Rename feature list");
@@ -432,10 +431,8 @@ public class MainWindowController {
     //  not tree data items. It acts only as a change trigger here, so the binding stays correct,
     //  but the intent is misleading. Consider using rawDataList.getAllItems() as the dependency.
     final StackPane dragAndDropWrapper = FxIconUtil.createDragAndDropWrapper(rawDataList,
-        Bindings.createBooleanBinding(
-            () -> rawDataList.getTreeView().getRoot().getChildren().isEmpty(),
-            rawDataList.getTreeView().getRoot().getChildren(),
-            rawDataList.getTreeView().getChildrenUnmodifiable()),
+        Bindings.createBooleanBinding(() -> rawDataList.getAllItems().isEmpty(),
+            rawDataList.getAllItems()),
         "Drag & drop MS data files, mzmine projects, and/or spectral libraries here",
         dragDropOpacity);
     parent.setCenter(dragAndDropWrapper);
@@ -465,25 +462,20 @@ public class MainWindowController {
       }
     });
 
-    rawDataList.getTreeView().getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<TreeItem<RawDataFile>>) change -> {
-          // Add listener body to the event queue to run it after all selected items are added to
-          // the observable list, so the collections' elements equality test in the if statement will
-          // compare final result of the multiple selection
-          FxThread.runLater(() -> {
-            change.next();
-
-            for (MZmineTab tab : MZmineCore.getDesktop().getAllTabs()) {
-              if (tab != null && tab.isSelected() && tab.isUpdateOnSelection()
-                  && !(CollectionUtils.isEqualCollection(tab.getRawDataFiles(),
-                  change.getList()))) {
-                tab.onRawDataFileSelectionChanged(
-                    change.getList().stream().map(TreeItem::getValue).filter(Objects::nonNull)
-                        .toList());
-              }
-            }
-          });
-        });
+    // Add listener body to the event queue to run it after all selected items are added to
+    // the observable list, so the collections' elements equality test in the if statement will
+    // compare final result of the multiple selection
+    rawDataList.selectedValuesProperty().addListener((ListChangeListener<RawDataFile>) _ -> {
+      FxThread.runLater(() -> {
+        final List<RawDataFile> selected = rawDataList.getSelectedValues();
+        for (MZmineTab tab : MZmineCore.getDesktop().getAllTabs()) {
+          if (tab != null && tab.isSelected() && tab.isUpdateOnSelection()
+              && !(CollectionUtils.isEqualCollection(tab.getRawDataFiles(), selected))) {
+            tab.onRawDataFileSelectionChanged(selected);
+          }
+        }
+      });
+    });
 
     // Update rawDataList context menu depending on selected items
     rawDataList.getTreeView().getSelectionModel().getSelectedItems()
@@ -493,9 +485,12 @@ public class MainWindowController {
               return;
             }
 
+            final var selected = rawDataList.getTreeView().getSelectionModel().getSelectedItems();
             // Setting color should be enabled only if files are selected
-            rawDataSetColorMenu.setDisable(
-                rawDataList.getTreeView().getSelectionModel().getSelectedItems().size() <= 0);
+            rawDataSetColorMenu.setDisable(selected.size() <= 0);
+            // Rename group only available when exactly one group node is selected
+            rawDataRenameGroupMenuItem.setDisable(selected.size() != 1
+                || !(selected.getFirst() instanceof GroupTreeItem<RawDataFile>));
           }
         });
 
@@ -507,14 +502,8 @@ public class MainWindowController {
     }
 
     rawDataFileColorPicker.addColorSelectedListener((newValue) -> {
-      if (rawDataList.getTreeView().getSelectionModel() == null) {
-        return;
-      }
-
-      List<RawDataFile> files = rawDataList.getTreeView().getSelectionModel().getSelectedItems()
-          .stream().map(TreeItem::getValue).filter(Objects::nonNull).toList();
-      for (var row : files) {
-        row.setColor(newValue);
+      for (final RawDataFile file : rawDataList.getSelectedValues()) {
+        file.setColor(newValue);
       }
       rawDataList.getTreeView().refresh();
     });
@@ -863,13 +852,20 @@ public class MainWindowController {
       return;
     }
 
-    // Only one item must be selected
-    if (featureListsList.getSelectedItems().size() != 1) {
+    final var selectedItem = featureListsList.getTreeView().getSelectionModel().getSelectedItem();
+    if (selectedItem == null) {
       return;
     }
 
-    featureListsList.edit(
-        featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue());
+    if (selectedItem instanceof GroupTreeItem<FeatureList> groupItem) {
+      featureListsList.editGroup(groupItem);
+    } else {
+      // Only one leaf item must be selected for rename
+      if (featureListsList.getSelectedItems().size() != 1) {
+        return;
+      }
+      featureListsList.edit(selectedItem.getValue());
+    }
   }
 
   @FXML
@@ -940,17 +936,16 @@ public class MainWindowController {
   }
 
   public void addTab(Tab tab) {
-    if (tab instanceof MZmineTab) {
-      ((MZmineTab) tab).updateOnSelectionProperty().addListener(((obs, old, val) -> {
+    if (tab instanceof MZmineTab mzTab) {
+      mzTab.updateOnSelectionProperty().addListener(((obs, old, val) -> {
         if (val) {
-          if (((MZmineTab) tab).getRawDataFiles() != null && !((MZmineTab) tab).getRawDataFiles()
-              .equals(rawDataList.getSelectedItems())) {
-            ((MZmineTab) tab).onRawDataFileSelectionChanged(rawDataList.getSelectedItems());
+          mzTab.getRawDataFiles();
+          if (!mzTab.getRawDataFiles().equals(rawDataList.getSelectedValues())) {
+            mzTab.onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
           }
 
-          if (((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
-              .equals(featureListsList.getSelectedItems())) {
-            ((MZmineTab) tab).onFeatureListSelectionChanged(featureListsList.getSelectedItems());
+          if (!mzTab.getFeatureLists().equals(featureListsList.getSelectedValues())) {
+            mzTab.onFeatureListSelectionChanged(featureListsList.getSelectedValues());
           }
         }
       }));
@@ -1032,6 +1027,13 @@ public class MainWindowController {
 
   public void handleUngroupRawDataFiles(Event event) {
     rawDataList.ungroupSelected();
+  }
+
+  public void handleRenameRawDataGroup(Event event) {
+    final var selectedItem = rawDataList.getTreeView().getSelectionModel().getSelectedItem();
+    if (selectedItem instanceof GroupTreeItem<RawDataFile> groupItem) {
+      rawDataList.editGroup(groupItem);
+    }
   }
 
   public NotificationPane getNotificationPane() {
