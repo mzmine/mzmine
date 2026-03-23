@@ -132,17 +132,18 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   }
 
   /**
-   * Computes the disclosure width that TreeCellSkin reserved. This is the default 18px or whatever
-   * the max disclosure width is for this tree view.
+   * Derives the disclosure width from the saved disclosure node so the shift adapts to the actual
+   * skin, CSS theme, and HiDPI scaling instead of using a hardcoded value.
    */
   private double computeDisclosureShift() {
-    // assumption: TreeCellSkin uses a default of 18 when no disclosure node is set,
-    // plus 3px padding when no graphic is present on the tree item
-    // TODO: 18px is the JavaFX default but may change with CSS theming or HiDPI scaling.
-    //  Derive from the actual skin disclosure width if possible.
-    final int graphicPadding =
-        (getTreeItem() != null && getTreeItem().getGraphic() == null) ? 0 : 3;
-    return 18 + graphicPadding;
+    if (savedDisclosureNode != null) {
+      final double w = savedDisclosureNode.prefWidth(-1);
+      if (w > 0) {
+        return w;
+      }
+    }
+    // assumption: fall back to the JavaFX default if the node is not yet measured
+    return 18;
   }
 
   /**

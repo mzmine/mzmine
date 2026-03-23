@@ -32,10 +32,12 @@ import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.beans.property.ObjectProperty;
@@ -127,7 +129,7 @@ public class GroupableTreeView<T> extends BorderPane {
   }
 
   private void updateSelectedValues() {
-    final List<T> newValues = new ArrayList<>();
+    final Set<T> newValues = new HashSet<>();
     for (final TreeItem<T> item : treeView.getSelectionModel().getSelectedItems()) {
       if (item instanceof GroupTreeItem<T> group) {
         // decision: selecting a group selects all its children
@@ -327,7 +329,7 @@ public class GroupableTreeView<T> extends BorderPane {
    * @param groupName the name of the group to assign selected items to
    */
   public void groupSelected(@NotNull final String groupName) {
-    final List<T> selectedValues = getSelectedItems();
+    final List<T> selectedValues = List.copyOf(getSelectedValues());
     if (selectedValues.isEmpty()) {
       return;
     }
@@ -350,7 +352,7 @@ public class GroupableTreeView<T> extends BorderPane {
    * auto-strategy is active, snapshots to custom first.
    */
   public void ungroupSelected() {
-    final List<T> selectedValues = getSelectedItems();
+    final List<T> selectedValues = List.copyOf(getSelectedValues());
     if (selectedValues.isEmpty()) {
       return;
     }

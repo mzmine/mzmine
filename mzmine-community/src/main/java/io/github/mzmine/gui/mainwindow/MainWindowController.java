@@ -427,9 +427,6 @@ public class MainWindowController {
 
   private void initRawDataList() {
     final BorderPane parent = (BorderPane) rawDataList.getParent();
-    // TODO: getChildrenUnmodifiable() returns JavaFX scene-graph children of the TreeView node,
-    //  not tree data items. It acts only as a change trigger here, so the binding stays correct,
-    //  but the intent is misleading. Consider using rawDataList.getAllItems() as the dependency.
     final StackPane dragAndDropWrapper = FxIconUtil.createDragAndDropWrapper(rawDataList,
         Bindings.createBooleanBinding(() -> rawDataList.getAllItems().isEmpty(),
             rawDataList.getAllItems()),
