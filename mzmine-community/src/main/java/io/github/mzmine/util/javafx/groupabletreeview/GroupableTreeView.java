@@ -27,6 +27,8 @@ package io.github.mzmine.util.javafx.groupabletreeview;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -34,6 +36,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
@@ -41,6 +45,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
@@ -65,6 +70,7 @@ public class GroupableTreeView<T> extends BorderPane {
   private final ComboBox<GroupingStrategy<T>> strategyComboBox;
   private @Nullable Supplier<@NotNull List<@NotNull GroupingStrategy<T>>> strategyProvider;
   private boolean suppressRegroup = false;
+  private BiConsumer<T, String> renameConsumer;
 
   public GroupableTreeView() {
     rootItem.setExpanded(true);
@@ -448,6 +454,9 @@ public class GroupableTreeView<T> extends BorderPane {
         .toList();
   }
 
+  /**
+   * Selected items, including group nodes.
+   */
   public @NotNull List<@NotNull TreeItem<T>> getSelectedTreeItems() {
     return List.copyOf(treeView.getSelectionModel().getSelectedItems());
   }
@@ -576,5 +585,32 @@ public class GroupableTreeView<T> extends BorderPane {
    */
   public @NotNull ObservableList<T> getAllItems() {
     return allItems;
+  }
+
+  /**
+   * Consumer to map a new name to an item. Called after {@link #edit(Object)}
+   */
+  public void setRenameConsumer(@Nullable BiConsumer<@NotNull T, @NotNull String> renameConsumer) {
+    this.renameConsumer = renameConsumer;
+  }
+
+  public void edit(T value) {
+    TreeItem<T> item = findTreeItem(value);
+
+    if (item == null || renameConsumer == null) {
+      return;
+    }
+
+    TextInputDialog dialog = DialogLoggerUtil.createTextInputDialog("Set new name",
+        "Set a new name for %s".formatted(StringUtils.inQuotes(item.getValue().toString())), "");
+    Optional<String> s = dialog.showAndWait();
+    s.ifPresent(newName -> {
+      if (item instanceof GroupTreeItem<T> groupItem) {
+        groupItem.groupNameProperty().setValue(newName);
+      } else {
+        renameConsumer.accept(item.getValue(), newName);
+      }
+      treeView.refresh();
+    });
   }
 }

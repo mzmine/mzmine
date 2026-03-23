@@ -138,6 +138,8 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   private double computeDisclosureShift() {
     // assumption: TreeCellSkin uses a default of 18 when no disclosure node is set,
     // plus 3px padding when no graphic is present on the tree item
+    // TODO: 18px is the JavaFX default but may change with CSS theming or HiDPI scaling.
+    //  Derive from the actual skin disclosure width if possible.
     final int graphicPadding =
         (getTreeItem() != null && getTreeItem().getGraphic() == null) ? 0 : 3;
     return 18 + graphicPadding;
@@ -159,6 +161,8 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
 
       final Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
       final ClipboardContent content = new ClipboardContent();
+      // TODO: identifying the dragged item by its visual flat row index is fragile if items
+      //  shift between drag-start and drop. Consider storing a stable item identity instead.
       content.putString(String.valueOf(getIndex()));
       final WritableImage snapshot = this.snapshot(null, null);
       dragboard.setDragView(snapshot);

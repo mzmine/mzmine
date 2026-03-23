@@ -46,6 +46,8 @@ public final class NoGroupingStrategy<T> implements GroupingStrategy<T> {
 
   @Override
   public boolean isCustom() {
+    // decision: returns true so the user can manually move/group items after selecting "No grouping"
+    // without being snapped back to an auto-derived layout.
     return true;
   }
 }

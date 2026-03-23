@@ -241,6 +241,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
             switch (event.change()) {
               case ADDED -> rawDataList.addItems(event.changedLists());
               case REMOVED -> rawDataList.removeItemsByValues(event.changedLists());
+              case RENAMED, UPDATED -> rawDataList.getTreeView().refresh();
             }
           }
 
@@ -249,6 +250,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
             switch (event.change()) {
               case ADDED -> featureListsList.addItems(event.changedLists());
               case REMOVED -> featureListsList.removeItemsByValues(event.changedLists());
+              case UPDATED, RENAMED -> featureListsList.getTreeView().refresh();
             }
           }
 
