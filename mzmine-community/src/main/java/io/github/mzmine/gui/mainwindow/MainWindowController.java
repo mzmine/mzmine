@@ -305,7 +305,7 @@ public class MainWindowController {
     rawDataList.getTreeView().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     rawDataList.getTreeView().setCellFactory(
         _ -> new GroupableTreeCell<>(RawDataFile::getName, MainWindowController::getRawGraphic,
-            rawDataList));
+            rawDataList, RawDataFile::getAbsoluteFilePath));
 
     featureListsList.getTreeView().setEditable(false);
     featureListsList.getTreeView().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

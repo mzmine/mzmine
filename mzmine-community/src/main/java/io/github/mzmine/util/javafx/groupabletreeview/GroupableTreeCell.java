@@ -24,6 +24,9 @@
 
 package io.github.mzmine.util.javafx.groupabletreeview;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import javafx.scene.Node;
 import javafx.scene.control.TreeCell;
@@ -54,23 +57,35 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   private final Function<T, String> textExtractor;
   private final @Nullable Function<T, Node> graphicFactory;
   private final @Nullable GroupableTreeView<T> ownerTreeView;
+  private final @Nullable Function<T, File> dragFileExtractor;
 
   // saved reference to the default disclosure node so we can restore it for group items
   private @Nullable Node savedDisclosureNode;
 
   /**
-   * @param textExtractor  function to extract display text from an item
-   * @param graphicFactory optional function to create a graphic node for an item, may be null
-   * @param ownerTreeView  the owning GroupableTreeView, used for drag & drop move operations. May
-   *                       be null if drag & drop is not needed.
+   * @param textExtractor    function to extract display text from an item
+   * @param graphicFactory   optional function to create a graphic node for an item, may be null
+   * @param ownerTreeView    the owning GroupableTreeView, used for drag & drop move operations. May
+   *                         be null if drag & drop is not needed.
+   * @param dragFileExtractor optional function to extract a {@link File} from an item. When set,
+   *                          all currently selected files are added to the dragboard so the drag can
+   *                          be accepted by external file-drop targets (e.g. FileNamesComponent).
    */
   public GroupableTreeCell(@NotNull final Function<T, String> textExtractor,
       @Nullable final Function<T, Node> graphicFactory,
-      @Nullable final GroupableTreeView<T> ownerTreeView) {
+      @Nullable final GroupableTreeView<T> ownerTreeView,
+      @Nullable final Function<T, File> dragFileExtractor) {
     this.textExtractor = textExtractor;
     this.graphicFactory = graphicFactory;
     this.ownerTreeView = ownerTreeView;
+    this.dragFileExtractor = dragFileExtractor;
     setupDragAndDrop();
+  }
+
+  public GroupableTreeCell(@NotNull final Function<T, String> textExtractor,
+      @Nullable final Function<T, Node> graphicFactory,
+      @Nullable final GroupableTreeView<T> ownerTreeView) {
+    this(textExtractor, graphicFactory, ownerTreeView, null);
   }
 
   @Override
@@ -149,6 +164,29 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   /**
    * @return true if the drag event originated from a cell in this tree view (internal reorder)
    */
+  /**
+   * Collects {@link File} objects for all currently selected items using {@link #dragFileExtractor}.
+   * Returns an empty list when no extractor is set or no owner tree view is available.
+   */
+  private @NotNull List<File> buildDragFiles() {
+    if (dragFileExtractor == null || ownerTreeView == null) {
+      return List.of();
+    }
+    final List<T> selected = List.copyOf(ownerTreeView.getSelectedValues());
+    // fall back to the dragged item itself if nothing is selected
+    final List<T> source = selected.isEmpty() ? List.of(getItem()) : selected;
+    final List<File> files = new ArrayList<>(source.size());
+    for (final T item : source) {
+      if (item != null) {
+        final File file = dragFileExtractor.apply(item);
+        if (file != null) {
+          files.add(file);
+        }
+      }
+    }
+    return files;
+  }
+
   private boolean isInternalDrag(@NotNull final DragEvent event) {
     return event.getGestureSource() instanceof GroupableTreeCell<?> && event.getDragboard()
         .hasString();
@@ -160,11 +198,22 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
         return;
       }
 
-      final Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
       final ClipboardContent content = new ClipboardContent();
       // TODO: identifying the dragged item by its visual flat row index is fragile if items
       //  shift between drag-start and drop. Consider storing a stable item identity instead.
       content.putString(String.valueOf(getIndex()));
+
+      // add selected file paths so external drop targets (e.g. FileNamesComponent) can accept them
+      final List<File> files = buildDragFiles();
+      final TransferMode[] transferModes;
+      if (!files.isEmpty()) {
+        content.putFiles(files);
+        transferModes = TransferMode.COPY_OR_MOVE;
+      } else {
+        transferModes = new TransferMode[]{TransferMode.MOVE};
+      }
+
+      final Dragboard dragboard = startDragAndDrop(transferModes);
       final WritableImage snapshot = this.snapshot(null, null);
       dragboard.setDragView(snapshot);
       dragboard.setContent(content);
