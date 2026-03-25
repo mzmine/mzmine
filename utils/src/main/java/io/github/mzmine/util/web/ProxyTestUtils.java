@@ -101,9 +101,16 @@ public class ProxyTestUtils {
   private static void logSystemProperties(StringBuilder sb) {
     sb.append("Checking Java System Properties for Proxies...\n");
 
-    String[] properties = {"java.net.useSystemProxies", "http.proxyHost", "http.proxyPort",
-        "http.nonProxyHosts", "https.proxyHost", "https.proxyPort", "ftp.proxyHost",
-        "ftp.proxyPort", "socksProxyHost", "socksProxyPort"};
+    String[] properties = {
+        // proxy routing
+        "java.net.useSystemProxies", "http.proxyHost", "http.proxyPort", "http.nonProxyHosts",
+        "https.proxyHost", "https.proxyPort", "ftp.proxyHost", "ftp.proxyPort",
+        "socksProxyHost", "socksProxyPort",
+        // Kerberos / NTLM proxy auth
+        "javax.security.auth.useSubjectCredsOnly",
+        "jdk.http.auth.proxying.disabledSchemes",
+        "jdk.http.auth.tunneling.disabledSchemes",
+        "sun.security.krb5.debug", "sun.security.spnego.debug", "sun.security.jgss.debug"};
 
     boolean found = false;
     for (String prop : properties) {
@@ -118,6 +125,12 @@ public class ProxyTestUtils {
     if (!found) {
       sb.append("No standard proxy system properties are set.\n");
     }
+
+    // Log Authenticator presence — required for JDK HttpClient to attempt Kerberos/NTLM on 407
+    final java.net.Authenticator auth = java.net.Authenticator.getDefault();
+    sb.append("System Authenticator: ").append(
+        auth != null ? auth.getClass().getName() : "<none — JDK HttpClient will skip proxy auth>")
+        .append("\n");
   }
 
   private static void logProxyDetails(StringBuilder sb, List<String> urls) {
