@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.features.types.annotations.MzConnectEntryContextType;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
@@ -440,7 +441,15 @@ public class SpectralMatchPanelFX extends GridPane {
       if (!o.equalsIgnoreCase("n/a")) {
         Label text = new Label(db.toString() + ": " + o);
         text.setWrapText(true);
-        text.setOnMouseClicked(_ -> copyTextToClipboard(o));
+        if (db == DBEntryField.ENTRY_ID && isMzConnectLibrary(entry)) {
+          text.setOnMouseClicked(_ -> {
+            if (!MzConnectEntryContextType.openEntryContext(o)) {
+              copyTextToClipboard(o);
+            }
+          });
+        } else {
+          text.setOnMouseClicked(_ -> copyTextToClipboard(o));
+        }
         panelOther.getChildren().addAll(text);
       }
     }
@@ -450,6 +459,11 @@ public class SpectralMatchPanelFX extends GridPane {
     BorderPane pn = new BorderPane(panelOther);
     pn.setTop(otherInfo);
     return pn;
+  }
+
+  private boolean isMzConnectLibrary(final SpectralLibraryEntry entry) {
+    final String libraryName = entry.getLibraryName();
+    return libraryName != null && libraryName.toLowerCase().startsWith("mzconnect");
   }
 
   private BorderPane extractJsonMetaData(String title, SpectralLibraryEntry entry) {
@@ -618,7 +632,6 @@ public class SpectralMatchPanelFX extends GridPane {
   }
 
 }
-
 
 
 

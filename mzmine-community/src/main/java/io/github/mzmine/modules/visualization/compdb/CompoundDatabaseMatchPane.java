@@ -128,9 +128,14 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       String strValue = value != null ? type.getFormattedStringCheckType(value) : VALUE_UNAVAILABLE;
       final Label valueLabel = new Label(strValue);
       if (row != null && row.getBestFeature() != null) {
-        valueLabel.setOnMouseClicked(e -> type.getDoubleClickAction(null, row,
-            List.of(row.getBestFeature().getRawDataFile()), new CompoundDatabaseMatchesType(),
-            value));
+        valueLabel.setOnMouseClicked(e -> {
+          final Runnable action = type.getDoubleClickAction(null, row,
+              List.of(row.getBestFeature().getRawDataFile()), new CompoundDatabaseMatchesType(),
+              value);
+          if (action != null) {
+            action.run();
+          }
+        });
       }
 
       pane.add(label, 0, rowCounter);

@@ -238,7 +238,18 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
    * Column header title
    */
   public void setTitle(List<? extends FeatureListRow> rows) {
-    column.setText(rows.stream().map(FeatureUtils::rowToString).collect(Collectors.joining("; ")));
+    if (rows.isEmpty()) {
+      column.setText("No rows selected");
+      return;
+    }
+    if (rows.size() == 1) {
+      column.setText(FeatureUtils.rowToString(rows.getFirst()));
+      return;
+    }
+
+    // decision: avoid oversized header strings that can force very wide table layout.
+    final String text = "%d rows selected".formatted(rows.size());
+    column.setText(text);
   }
 
   /**
