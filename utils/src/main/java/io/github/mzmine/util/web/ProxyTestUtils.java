@@ -203,20 +203,13 @@ public class ProxyTestUtils {
 
     final ProxySelector selector = ProxySelector.getDefault();
     sb.append(testJdkClient(urls, "JDK NULL selector", null, Redirect.NORMAL));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.NORMAL));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.NEVER));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.ALWAYS));
-    sb.append("\n");
     // test apache client - not in this package and java client should work
     sb.append(testApacheClient(urls, "Apache NULL SYSTEM selector", null, true));
-    sb.append("\n");
     sb.append(testApacheClient(urls, "Apache NULL selector", null));
-    sb.append("\n");
     sb.append(testApacheClient(urls, "Apache default selector", selector));
-    sb.append("\n");
 
     logger.info("Proxy test results:\n" + sb.toString());
 
