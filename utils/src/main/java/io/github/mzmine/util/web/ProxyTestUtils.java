@@ -54,7 +54,6 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.client.WinHttpClients;
@@ -219,6 +218,8 @@ public class ProxyTestUtils {
     sb.append(testApacheClient(urls, "Apache default selector", selector));
     sb.append("\n");
 
+    logger.info("Proxy test results:\n" + sb.toString());
+
     return sb.toString();
   }
 
@@ -244,7 +245,7 @@ public class ProxyTestUtils {
   public static String testJdkClient(List<String> urls, String title, ProxySelector selector,
       Redirect redirect) {
     StringBuilder sb = new StringBuilder();
-    sb.append(title).append(" using redirect: ").append(redirect).append("; results: \n");
+    sb.append("\n\n").append(title).append(" using redirect: ").append(redirect).append("; results: ");
 
     final Builder builder = HttpClient.newBuilder().followRedirects(redirect);
     if (selector != null) {
@@ -260,9 +261,9 @@ public class ProxyTestUtils {
               HttpResponse.BodyHandlers.ofString());
 
           if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            sb.append("success (%s); ".formatted(url));
+            sb.append("\nsuccess (%s); ".formatted(url));
           } else {
-            sb.append("failed %d".formatted(response.statusCode()));
+            sb.append("\nfailed %d".formatted(response.statusCode()));
 
             // Log authentication headers if present
             var wwwAuth = response.headers().firstValue("WWW-Authenticate");
@@ -286,7 +287,6 @@ public class ProxyTestUtils {
       sb.append("error creating client: ").append(e.getMessage()).append("; ");
     }
     final String message = sb.toString();
-    logger.info(message);
     return message;
   }
 
@@ -342,7 +342,7 @@ public class ProxyTestUtils {
       final boolean useSystemProxy) {
 
     final StringBuilder sb = new StringBuilder();
-    sb.append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: \n");
+    sb.append("\n\n").append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: ");
 
     final HttpClientBuilder clientBuilder = createApacheHttpClientBuilder(selector, useSystemProxy,
         sb);
@@ -363,7 +363,6 @@ public class ProxyTestUtils {
     }
 
     final String message = sb.toString();
-    logger.info(message);
     return message;
   }
 
@@ -385,8 +384,8 @@ public class ProxyTestUtils {
   private static @NotNull HttpClientBuilder createApacheClientBuilder(
       final boolean useSystemProxy) {
     // decision: Prefer native Windows SSPI authentication stack for seamless proxy SSO.
-    final HttpClientBuilder clientBuilder =
-        IS_WINDOWS ? WinHttpClients.custom() : HttpClients.custom();
+    // WinHttpClients checks internally if its windows or other system and will use regular client instead
+    final HttpClientBuilder clientBuilder = WinHttpClients.custom();
     if (useSystemProxy) {
       clientBuilder.useSystemProperties();
     }
@@ -404,7 +403,7 @@ public class ProxyTestUtils {
       final @NotNull HttpClientBuilder clientBuilder) {
     // Always needed: route proxy auth challenges to the right strategy and supply OS credentials.
     clientBuilder.setProxyAuthenticationStrategy(ProxyAuthenticationStrategy.INSTANCE);
-    if (IS_WINDOWS) {
+    if (WinHttpClients.isWinAuthAvailable()) {
       // WinHttpClients.custom() already registers WindowsNegotiateSchemeFactory (SSPI Kerberos)
       // and WindowsNTLMSchemeFactory (SSPI NTLM). Calling setDefaultAuthSchemeRegistry() would
       // replace those with Java GSSAPI factories and lose native NTLM — so we skip it.
@@ -430,11 +429,11 @@ public class ProxyTestUtils {
       final @NotNull String url, final @NotNull CloseableHttpResponse response) {
     final int statusCode = response.getStatusLine().getStatusCode();
     if (statusCode >= 200 && statusCode < 300) {
-      sb.append("success (%s); ".formatted(url));
+      sb.append("\nsuccess (%s); ".formatted(url));
       return;
     }
 
-    sb.append("failed %d (%s)".formatted(statusCode, url));
+    sb.append("\nfailed %d (%s)".formatted(statusCode, url));
     final String proxyAuthenticate = getHeaderValues(response, "Proxy-Authenticate");
     if (!proxyAuthenticate.isBlank()) {
       sb.append("; Proxy-Authenticate: ").append(proxyAuthenticate);
