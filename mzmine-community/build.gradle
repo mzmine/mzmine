@@ -298,7 +298,14 @@ application {
             '--add-opens=java.logging/java.util.logging=ALL-UNNAMED',
 
             // logging
-            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+
+            // proxy & Kerberos/NTLM authentication
+            "-Djava.net.useSystemProxies=true",
+            "-Djavax.security.auth.useSubjectCredsOnly=false",
+            // Kerberos/SPNEGO debug logging — enable to diagnose proxy auth failures
+            "-Dsun.security.krb5.debug=true",
+            "-Dsun.security.jgss.debug=true"
     ]
 }
 
@@ -440,6 +447,9 @@ runtime {
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
                    "-Djava.net.useSystemProxies=true",
+                   "-Djavax.security.auth.useSubjectCredsOnly=false",
+                   "-Dsun.security.krb5.debug=true",
+                   "-Dsun.security.jgss.debug=true",
                    "--add-opens=java.logging/java.util.logging=ALL-UNNAMED",
                    "--enable-preview",
         ]
