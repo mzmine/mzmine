@@ -44,11 +44,9 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.mzio.global.events)
     implementation(libs.semver4j)
+    // can also import on other platforms, we are using this function to identify if its windows
+    implementation(libs.apache.httpclient.win)
     implementation(libs.apache.httpclient)
-
-    if (org.gradle.internal.os.OperatingSystem.current().isWindows) {
-        implementation(libs.apache.httpclient.win)
-    }
 }
 
 semver {
