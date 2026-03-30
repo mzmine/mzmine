@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -169,8 +168,11 @@ public class MZminePreferences extends SimpleParameterSet {
 //      "Options to control the default rendering of molecular structures. Some views may add a separate zoom factor on top of the base zoom.",
 //      new StructureRenderParameters());
 
-  public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
-      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
+  public static final ComboParameter<ThemeStyle> themeStyle = new ComboParameter<>("Theme style",
+      "Select the structural UI style for controls, tabs, and layout.", ThemeStyle.values(),
+      ThemeStyle.MODERN);
+  public static final ComboParameter<ThemeColors> themeColors = new ComboParameter<>("Theme colors",
+      "Select the color palette for the UI.", ThemeColors.values(), ThemeColors.LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
@@ -284,7 +286,7 @@ public class MZminePreferences extends SimpleParameterSet {
             // how to format unit strings
             unitFormat,
             // other preferences
-            defaultColorPalette, defaultPaintScale, chartParam, theme,
+            defaultColorPalette, defaultPaintScale, chartParam, themeStyle, themeColors,
             presentationMode, imageNormalization, imageTransformation, showPrecursorWindow,
             imsModuleWarnings, windowSettings, useTabSubtitles,
             // silent parameters without controls
@@ -295,11 +297,11 @@ public class MZminePreferences extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
-      var oldTheme = getValue(theme);
-
-      if (oldTheme.isDark() != state) {
-        var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
-        setParameter(MZminePreferences.theme, theme);
+      final var oldColors = getValue(themeColors);
+      if (oldColors.isDark() != state) {
+        final Themes oldTheme = getThemeConfig();
+        // decision: switch to default light/dark when toggling dark mode
+        setParameter(MZminePreferences.themeColors, state ? ThemeColors.DARK : ThemeColors.LIGHT);
         applyConfig(oldTheme);
       }
     });
@@ -312,7 +314,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
-    final Themes previousTheme = getValue(MZminePreferences.theme);
+    final Themes previousTheme = getThemeConfig();
 
     final List<UserParameter<?, ? extends Region>> fixed = List.of();
 
@@ -323,7 +325,7 @@ public class MZminePreferences extends SimpleParameterSet {
         new ParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
             intensityFormat, ppmFormat, scoreFormat, percentFormat, unitFormat), //
         new ParameterGroup("Visuals", useTabSubtitles, defaultColorPalette, defaultPaintScale,
-            chartParam, theme, presentationMode, showPrecursorWindow,
+            chartParam, themeStyle, themeColors, presentationMode, showPrecursorWindow,
             imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
             watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
@@ -363,15 +365,15 @@ public class MZminePreferences extends SimpleParameterSet {
     final KeepInMemory keepInMemory = getValue(MZminePreferences.memoryOption);
     keepInMemory.enforceToMemoryMapping();
 
-    final Themes theme = getValue(MZminePreferences.theme);
+    final Themes currentTheme = getThemeConfig();
     if (previousTheme != null) {
-      showDialogToAdjustColorsToTheme(previousTheme, theme);
+      showDialogToAdjustColorsToTheme(previousTheme, currentTheme);
     }
     // need to check as MZmineCore.getDesktop() throws exception if not initialized
     // if apply is called before window is opened the new settings will by taken up during window creation
     if (DesktopService.isGUI()) {
-      theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      darkModeProperty.set(theme.isDark());
+      currentTheme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      darkModeProperty.set(currentTheme.isDark());
 
       Boolean presentation = getValue(MZminePreferences.presentationMode);
       if (presentation) {
@@ -523,7 +525,7 @@ public class MZminePreferences extends SimpleParameterSet {
       final int loadedVersion) {
     updateSystemProxySettings();
     updateGuiFormat();
-    darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
+    darkModeProperty.set(getThemeConfig().isDark());
     String username = ConfigService.getPreference(MZminePreferences.username);
     // this will set the current user to CurrentUserService
     // loads all users already logged in from the user folder
@@ -586,6 +588,13 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public NumberFormats getGuiFormats() {
     return guiFormat;
+  }
+
+  /**
+   * @return the combined theme configuration from the selected style and color palette.
+   */
+  public Themes getThemeConfig() {
+    return new Themes(getValue(themeStyle), getValue(themeColors));
   }
 
   public boolean isDarkMode() {

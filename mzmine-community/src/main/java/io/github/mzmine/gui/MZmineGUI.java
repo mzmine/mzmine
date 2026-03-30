@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -524,7 +523,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
-      preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
+      preferences.getThemeConfig().apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Error loading mzmine GUI from FXML: " + e.getMessage(), e);

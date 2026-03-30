@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -28,7 +27,6 @@ package io.github.mzmine.modules.visualization.projectmetadata.color;
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -123,7 +121,7 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
     List<RawDataFile> qcs = SampleTypeFilter.qc().filterFiles(raws);
     colorFadeLighter(qcs, qcColor, brightnessPercentRange);
 
-    final Themes theme = ConfigService.getPreferences().getValue(MZminePreferences.theme);
+    final Themes theme = ConfigService.getPreferences().getThemeConfig();
     // exclude light colors in light mode and dark colors in dark mode
     final List<Color> excluded = colors.stream().filter(
         clr -> (theme.isDark() && ColorUtils.isDark(clr)) || (!theme.isDark() && ColorUtils.isLight(
