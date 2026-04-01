@@ -55,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationR
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,9 +133,7 @@ public class LipidAnnotationUtils {
             }
             for (IonizationType ionization : ionizationTypeList) {
               if (polarityTypes.contains(ionization.getPolarity())) {
-                double lipidIonMass =
-                    MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-                        AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
+                double lipidIonMass = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula()) + ionization.getAddedMass();
                 lipidDatabase.add(new LipidIon(lipid, ionization, lipidIonMass));
               }
             }

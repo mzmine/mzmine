@@ -33,7 +33,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
@@ -186,18 +185,12 @@ public enum IonizationType {
     this.polarity = polarity;
     this.numMol = numMol;
     this.charge = charge;
-    this.addedFormula =
-        !addedFormula.isBlank() ? MolecularFormulaManipulator.getMolecularFormula(addedFormula,
-            SilentChemObjectBuilder.getInstance()) : null;
-    this.removedFormula =
-        !removedFormula.isBlank() ? MolecularFormulaManipulator.getMolecularFormula(removedFormula,
-            SilentChemObjectBuilder.getInstance()) : null;
+    this.addedFormula = !addedFormula.isBlank() ? FormulaUtils.parse(addedFormula) : null;
+    this.removedFormula = !removedFormula.isBlank() ? FormulaUtils.parse(removedFormula) : null;
 
-    var added = this.addedFormula != null ? MolecularFormulaManipulator.getMass(this.addedFormula,
-        MolecularFormulaManipulator.MonoIsotopic) : 0d;
+    var added = this.addedFormula != null ? FormulaUtils.getMonoisotopicMass(this.addedFormula) : 0d;
     var removed =
-        this.removedFormula != null ? MolecularFormulaManipulator.getMass(this.removedFormula,
-            MolecularFormulaManipulator.MonoIsotopic) : 0d;
+        this.removedFormula != null ? FormulaUtils.getMonoisotopicMass(this.removedFormula) : 0d;
 
     this.addedMass = (added - removed - charge * FormulaUtils.electronMass);
 
@@ -246,8 +239,7 @@ public enum IonizationType {
    * @return The ionized formula.
    */
   public IMolecularFormula ionizeFormula(@NotNull String formula) {
-    final IMolecularFormula form = MolecularFormulaManipulator.getMolecularFormula(formula,
-        SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula form = FormulaUtils.parse(formula);
     ionizeFormula(form);
     return form;
   }

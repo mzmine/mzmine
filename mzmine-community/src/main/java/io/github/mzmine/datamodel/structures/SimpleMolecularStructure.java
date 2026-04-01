@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 
 import io.github.mzmine.datamodel.structures.StructureUtils.SmilesFlavor;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,7 +102,7 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
   @Override
   public @NotNull String toString() {
     final PrecomputedMolecularStructure val = precomputeValues();
-    return "SimpleMolecularStructure[" + "formula=" + MolecularFormulaManipulator.getString(val.formula())
+    return "SimpleMolecularStructure[" + "formula=" + FormulaUtils.getFormulaString(val.formula())
         + ", " + "canonicalSmiles=" + val.canonicalSmiles() + ", " + "isomericSmiles=" + val.isomericSmiles()
         + ", " + "inchi=" + val.inchi() + ", " + "inchiKey=" + val.inchiKey() + ", " + "monoIsotopicMass="
         + val.monoIsotopicMass() + ", " + "mostAbundantMass=" + val.mostAbundantMass() + ", "

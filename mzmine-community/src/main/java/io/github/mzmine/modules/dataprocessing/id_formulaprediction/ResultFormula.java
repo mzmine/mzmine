@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,10 +32,10 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -165,7 +165,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
     };
     final SearchableIonLibrary searchLibrary = library.toSearchableLibrary(true);
     // use a wide tolerance to check if reported formula matches the row mz
-    final MZTolerance wideMzTol = MZTolerance.WIDE_25_PPM_OR_8_MDA;
+    final MZTolerance wideMzTol = MZTolerance.WIDE_25_PPM_OR_10_MDA;
     final Range<Double> rowMzRange = wideMzTol.getToleranceRange(row.getAverageMZ());
 
     var formulae = row.streamAllFeatureAnnotations().filter(a -> a instanceof FeatureAnnotation)

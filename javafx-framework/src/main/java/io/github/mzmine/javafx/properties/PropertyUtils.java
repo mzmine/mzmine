@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,26 @@
 
 package io.github.mzmine.javafx.properties;
 
+import io.github.mzmine.util.StringUtils;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TextFormatter;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import javafx.util.Subscription;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PropertyUtils {
 
@@ -62,11 +72,16 @@ public class PropertyUtils {
    *
    * @param operation called on any change to trigger values
    * @param delay     delay to wait before triggering an update, may want to use
-   *                  {@link #DEFAULT_TEXT_FIELD_DELAY}
+   *                  {@link #DEFAULT_TEXT_FIELD_DELAY}. null for no delay then equal to
+   *                  {@link #onChangeSubscription(Runnable, ObservableValue[])}
    * @return a combined subscription that may be used to unsubscribe later (optional)
    */
-  public static Subscription onChangeDelayedSubscription(Runnable operation, Duration delay,
-      final ObservableValue<?>... triggers) {
+  public static Subscription onChangeDelayedSubscription(Runnable operation,
+      @Nullable Duration delay, final ObservableValue<?>... triggers) {
+    if (delay == null) {
+      return onChangeSubscription(operation, triggers);
+    }
+
     PauseTransition pause = new PauseTransition(delay);
     // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
 //    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
@@ -142,6 +157,97 @@ public class PropertyUtils {
    */
   public static <T> ObservableValue<T> firstElementProperty(ObjectProperty<List<T>> listProp) {
     return listProp.map(list -> list == null || list.isEmpty() ? null : list.getFirst());
+  }
+
+
+  /**
+   * Different to {@link Bindings#bindBidirectional(Property, Property, StringConverter)} to allow
+   * text strings that do not map to a valid value. This means that the user enters text, conversion
+   * fails, the value is null, until the text converts to a value. The intermediate text is not
+   * cleared as it happens in the original bindings or when using {@link TextFormatter}.
+   *
+   * @param text      the text property, will be updated when the value is not null
+   * @param value     the value property, will be updated when the text is changed.
+   * @param converter a converter to convert between String and value class
+   * @param <T>       the value class
+   * @return a read-only boolean property to signal if the current text is valid. true if valid and
+   * false if conversion to value failed.
+   */
+  public static <T> ReadOnlyBooleanProperty bindBidirectionalKeepTextDelayed(
+      @NotNull Property<String> text, @NotNull Property<T> value,
+      @NotNull StringConverter<T> converter) {
+    return bindBidirectionalKeepText(text, value, DEFAULT_TEXT_FIELD_DELAY, converter);
+  }
+
+  /**
+   * Different to {@link Bindings#bindBidirectional(Property, Property, StringConverter)} to allow
+   * text strings that do not map to a valid value. This means that the user enters text, conversion
+   * fails, the value is null, until the text converts to a value. The intermediate text is not
+   * cleared as it happens in the original bindings or when using {@link TextFormatter}.
+   *
+   * @param text      the text property, will be updated when the value is not null
+   * @param value     the value property, will be updated when the text is changed.
+   * @param textDelay A delay to wait for user input like {@link #DEFAULT_TEXT_FIELD_DELAY} or null
+   *                  if value should be updated without delay.
+   * @param converter a converter to convert between String and value class
+   * @param <T>       the value class
+   * @return a read-only boolean property to signal if the current text is valid. true if valid and
+   * false if conversion to value failed.
+   */
+  public static <T> ReadOnlyBooleanProperty bindBidirectionalKeepText(
+      @NotNull Property<String> text, @NotNull Property<T> value, @Nullable Duration textDelay,
+      @NotNull StringConverter<T> converter) {
+    ReadOnlyBooleanWrapper validText = new ReadOnlyBooleanWrapper(true);
+
+    // on change already set text to true
+    text.subscribe((_) -> validText.set(true));
+
+    onChangeDelayedSubscription(() -> {
+      String currentText = text.getValue();
+      // skip change if value equals text
+      final T currentValue = value.getValue();
+      if (currentValue != null) {
+        final String currentValueStr = converter.toString(currentValue);
+        if (Objects.equals(currentValueStr, currentText)) {
+          // text still equals current value so no need to change
+          // this is checked because converter may return null if this is an item that is not captured by converter
+          validText.set(true);
+          return;
+        }
+      }
+
+      if (StringUtils.isBlank(currentText)) {
+        value.setValue(null);
+        validText.set(true);
+        return;
+      }
+
+      try {
+        final T convertedValue = converter.fromString(currentText);
+        value.setValue(convertedValue);
+        validText.set(convertedValue != null);
+      } catch (Exception e) {
+        // remove value
+        value.setValue(null);
+        validText.set(false);
+      }
+    }, textDelay, text);
+
+    value.subscribe((nv) -> {
+      // only update the text if the value is not null
+      // otherwise the text would be always cleared in a text field if the user is typing
+      // and the text does not convert to a proper value
+      if (nv != null) {
+        String newText = null;
+        try {
+          newText = converter.toString(nv);
+        } catch (Exception e) {
+        }
+        text.setValue(newText);
+        validText.set(true);
+      }
+    });
+    return validText.getReadOnlyProperty();
   }
 
 }

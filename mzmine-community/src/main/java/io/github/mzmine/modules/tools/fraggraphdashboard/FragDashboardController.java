@@ -46,6 +46,7 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.mvci.Fragment
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
@@ -188,7 +189,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 
         final Map<DataPoint, String> annotations = model.allNodesProperty().stream().collect(
             Collectors.toMap(sfm -> sfm.getPeakWithFormulae().peak(),
-                sfm -> MolecularFormulaManipulator.getString(
+                sfm -> FormulaUtils.getFormulaString(
                     sfm.getSelectedFormulaWithMz().formula())));
 
         final ResultFormula formula = new ResultFormula(chargedFormula, measuredPattern,

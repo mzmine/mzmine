@@ -221,10 +221,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
    */
   public static SimpleIsotopePattern[] getIsotopePatterns(String elements, double mergeWidth,
       double minAbundance) {
-    SilentChemObjectBuilder builder =
-        (SilentChemObjectBuilder) SilentChemObjectBuilder.getInstance();
-    IMolecularFormula form =
-        MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(elements, builder);
+    IMolecularFormula form = FormulaUtils.parse(elements);
 
     SimpleIsotopePattern[] isotopePatterns = new SimpleIsotopePattern[form.getIsotopeCount()];
 

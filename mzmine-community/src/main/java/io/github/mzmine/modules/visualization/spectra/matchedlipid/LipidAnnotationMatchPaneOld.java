@@ -176,14 +176,14 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     annotation.setWrapText(true);
     panelOther.getChildren().addAll(annotation);
 
-    Label formula = new Label("Formula: " + MolecularFormulaManipulator.getString(
+    Label formula = new Label("Formula: " + FormulaUtils.getFormulaString(
         matchedLipid.getLipidAnnotation().getMolecularFormula()));
     formula.setWrapText(true);
     panelOther.getChildren().addAll(formula);
 
     Label ion = new Label("Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
         + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-        FormulaUtils.ionizeFormula(MolecularFormulaManipulator.getString(
+        FormulaUtils.ionizeFormula(FormulaUtils.getFormulaString(
             matchedLipid.getLipidAnnotation().getMolecularFormula()), matchedLipid.getIonizationType()))));
     ion.setWrapText(true);
     panelOther.getChildren().addAll(ion);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ class IonPartParserTest {
       // special chars
       new Case("+α-", -1, 1, null, "α"),//
       // () needed to capture - in name
-      new Case("+(α-OH-)", -1, 1, null, "α-OH"),//
+      new Case("+(α-OH-)", -1, 1, null, "(α-OH)"),//
       // no () needed
       new Case("+2Ca(OH)2", 0, 2, "CaH2O2"),//
       new Case("+2((OH)2Ca)", 0, 2, "CaH2O2"),//
@@ -117,8 +117,11 @@ class IonPartParserTest {
 
   @Test
   void testParseCase() {
+
+    testParse(new Case("+H", 1, 1, "H"));
     final Case c = new Case("+2((OH)2Ca)", 0, 2, "CaH2O2");
     testParse(c);
+    testParse(new Case("  + [CH] +2", 2, 1, "CH"));
   }
 
   @Test

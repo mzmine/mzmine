@@ -154,8 +154,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
     if (neutralFormula != null) {
-      put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic));
+      put(NeutralMassType.class, FormulaUtils.getMonoisotopicMass(neutralFormula));
     }
   }
 

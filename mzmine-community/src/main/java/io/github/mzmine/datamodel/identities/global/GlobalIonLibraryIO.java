@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
@@ -52,7 +52,7 @@ class GlobalIonLibraryIO {
 
     try {
       IonLibraryIO.toJsonFile(file,
-          new SimpleIonLibrary("mzmine_global_ions", library.getIonTypesUnmodifiable()));
+          new UnmodifiableIonLibrary("mzmine_global_ions", library.getIonTypesUnmodifiable()));
       globalFileLastModified.set(file.lastModified());
       logger.fine("Saved global ion library to file: " + file.getAbsolutePath());
     } catch (Exception ex) {

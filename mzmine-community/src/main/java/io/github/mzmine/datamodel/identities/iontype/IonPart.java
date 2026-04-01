@@ -118,7 +118,8 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
     // name is blank for silent charge - so it is reserved
     // for example for [M]+ (already charged and not -e-)
     // do not treat silent charge as unknown
-    return !name().isBlank() && singleFormula() == null && Double.compare(absSingleMass(), 0d) == 0;
+    return !name().isBlank() && singleFormula() == null && Precision.equalFloatSignificance(
+        absSingleMass(), 0d);
   }
 
   /**
@@ -144,10 +145,10 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
       case SIMPLE_WITH_CHARGE ->
         // use single charge here to allow saving loading in json
         // use charge as in +2 or - with trailing number
-          "%s(%s%s)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()));
+          "%s%s%s".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()));
       case FULL_WITH_MASS ->
         // use single charge here
-          "%s(%s%s) (%s Da)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()),
+          "%s%s%s (%s Da)".formatted(base, name(), IonUtils.getSignedNumberOmit1(singleCharge()),
               ConfigService.getExportFormats().mz(totalMass()));
     };
   }

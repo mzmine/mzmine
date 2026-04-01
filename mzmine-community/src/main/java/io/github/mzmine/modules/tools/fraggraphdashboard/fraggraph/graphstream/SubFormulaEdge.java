@@ -96,7 +96,7 @@ public class SubFormulaEdge {
         Bindings.createObjectBinding(this::computeLossFormula, a.selectedFormulaWithMzProperty(),
             b.selectedFormulaWithMzProperty()));
     lossFormulaString.bind(Bindings.createStringBinding(
-        () -> lossFormula.get() != null ? MolecularFormulaManipulator.getString(lossFormula.get())
+        () -> lossFormula.get() != null ? FormulaUtils.getFormulaString(lossFormula.get())
             : null, lossFormula));
     // the signals do not change, can just set this property for now
     measuredMassDiff.set(

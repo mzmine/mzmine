@@ -32,7 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A row for IonType matching, This class makes the search independent of {@link FeatureListRow} and
- * search could be used also for other mz values.
+ * search could be used also for other mz values like from mass spectra.
+ * <p>
+ * The charge state and polarity may be unknown. Internally the charge and polarity will be defined
+ * if either signedCharge or both absCharge+polarity are provided.
  *
  * @param mz           the mz
  * @param signedCharge the signed charge like -1 used to filter potential adducts for this row
@@ -44,10 +47,31 @@ public record IonSearchRow(double mz, @Nullable Integer signedCharge, @Nullable 
 
   public IonSearchRow(double mz, @Nullable Integer signedCharge, @Nullable Integer absCharge,
       @Nullable PolarityType polarity) {
+    if (absCharge != null) {
+      absCharge = Math.abs(absCharge); // just to make sure
+    }
+    if (!PolarityType.isDefined(polarity)) {
+      polarity = null; // just to make sure it is not undefined
+    }
+
     this.mz = mz;
-    this.signedCharge = signedCharge;
-    this.absCharge = absCharge;
-    this.polarity = !PolarityType.isDefined(polarity) ? null : polarity;
+    if (signedCharge != null && signedCharge != 0) {
+      this.signedCharge = signedCharge;
+      this.absCharge = Math.abs(signedCharge);
+      this.polarity = PolarityType.fromInt(signedCharge);
+    } else if (absCharge != null && absCharge != 0) {
+      this.absCharge = absCharge;
+      this.polarity = polarity;
+      if (polarity != null) {
+        this.signedCharge = polarity.getSign() * absCharge;
+      } else {
+        this.signedCharge = null;
+      }
+    } else {
+      this.signedCharge = null;
+      this.absCharge = null;
+      this.polarity = polarity;
+    }
   }
 
   public IonSearchRow(double mz) {

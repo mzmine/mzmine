@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,10 @@
 package io.github.mzmine.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
@@ -40,6 +42,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
+import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -67,6 +70,13 @@ class FormulaUtilsTest {
       , new Case("NH4+", "[H4N]+", 1) //
       , new Case("(NH4)+", "[H4N]+", 1) //
       , new Case("(NH4)-2", "[H4N]2-", -2) //
+      // unknown name CH iunknown charge state
+      , new Case("[CH]+", "[CH]+", 1) //
+      , new Case("CH+", "[CH]+", 1) //
+      , new Case("(CH)+", "[CH]+", 1) //
+      , new Case("(CH)-2", "[CH]2-", -2) //
+      , new Case("CH-2", "[CH]2-", -2) //
+      , new Case("[CH]2-", "[CH]2-", -2) //
       // flipped charge only works with []2- not with ()2- as ()2- would mean 2 times what is in ()
       , new Case("NH4-2", "[H4N]2-", -2) //
       , new Case("[NH4]2-", "[H4N]2-", -2) //
@@ -95,29 +105,62 @@ class FormulaUtilsTest {
   @Test
   void testIonizationType() {
     final String nacetylglucosamine = "C8H15NO6";
-    final double neutralMass = MolecularFormulaManipulator.getMass(
-        MolecularFormulaManipulator.getMolecularFormula(nacetylglucosamine,
-            SilentChemObjectBuilder.getInstance()), MolecularFormulaManipulator.MonoIsotopic);
+    final double neutralMass = FormulaUtils.getMonoisotopicMass(
+        FormulaUtils.parse(nacetylglucosamine));
     for (IonizationType it : IonizationType.values()) {
       if (it == IonizationType.NO_IONIZATION) {
         continue;
       }
-      final IMolecularFormula glucose = MolecularFormulaManipulator.getMolecularFormula(
-          nacetylglucosamine, SilentChemObjectBuilder.getInstance());
+      final IMolecularFormula glucose = FormulaUtils.parse(nacetylglucosamine);
 
       it.ionizeFormula(glucose);
 
-      logger.info(it + " " + MolecularFormulaManipulator.getString(glucose));
+      logger.info(it + " " + FormulaUtils.getFormulaString(glucose));
       Assert.assertEquals(Math.abs((neutralMass + it.getAddedMass()) / it.getCharge()),
           FormulaUtils.calculateMzRatio(glucose), 0.0000001d);
     }
   }
 
   @Test
+  void checkIsotopeAbundance() {
+    final IMolecularFormula formula = FormulaUtils.parse("C[13]CBr[81]Br");
+
+    final List<IIsotope> isotopes = FormulaUtils.getIsotopes(formula);
+    assertEquals(4, isotopes.size());
+
+    IIsotope iso = isotopes.get(0);
+    assertEquals("C", iso.getSymbol());
+    assertEquals(6, iso.getAtomicNumber());
+    assertEquals(12, iso.getMassNumber());
+    assertEquals(12.0, iso.getExactMass(), 0.0000001d);
+    assertEquals(98.93, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(1);
+    assertEquals("C", iso.getSymbol());
+    assertEquals(6, iso.getAtomicNumber());
+    assertEquals(13, iso.getMassNumber());
+    assertEquals(13.00335484, iso.getExactMass(), 0.0000001d);
+    assertEquals(1.07, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(2);
+    assertEquals("Br", iso.getSymbol());
+    assertEquals(35, iso.getAtomicNumber());
+    assertEquals(79, iso.getMassNumber());
+    assertEquals(78.9183371, iso.getExactMass(), 0.0000001d);
+    assertEquals(50.69, iso.getNaturalAbundance(), 0.0001d);
+
+    iso = isotopes.get(3);
+    assertEquals("Br", iso.getSymbol());
+    assertEquals(35, iso.getAtomicNumber());
+    assertEquals(81, iso.getMassNumber());
+    assertEquals(80.9162906, iso.getExactMass(), 0.0000001d);
+    assertEquals(49.31, iso.getNaturalAbundance(), 0.0001d);
+  }
+
+  @Test
   void testNeutralizeFormula() {
     final String gluStr = "C6H12O6";
-    final IMolecularFormula neutralGlucose = MolecularFormulaManipulator.getMolecularFormula(gluStr,
-        SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula neutralGlucose = FormulaUtils.parse(gluStr);
 
     final IMolecularFormula n1 = FormulaUtils.neutralizeFormulaWithHydrogen(gluStr);
     final IMolecularFormula n2 = FormulaUtils.neutralizeFormulaWithHydrogen("C6H13O6+");
@@ -142,8 +185,7 @@ class FormulaUtilsTest {
   @Test
   void testCalcMz() {
     // M - H + 2Na
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-        "[C6H11O6Na2]+", SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula molecularFormula = FormulaUtils.parse("[C6H11O6Na2]+");
 
     assertEquals((float) 225.0345531, (float) FormulaUtils.calculateMzRatio(molecularFormula));
   }
@@ -199,6 +241,11 @@ class FormulaUtilsTest {
 
   @Test
   void getMonoisotopicMass() {
+    // is the exact mass with the isotopes defined by the formula or the most abundant if not defined
+    assertEquals(55.9349375, FormulaUtils.getMonoisotopicMass(formula("Fe")), 0.000001);
+    assertEquals(53.9396105, FormulaUtils.getMonoisotopicMass(formula("[54]Fe")), 0.000001);
+    assertEquals(55.9349375, FormulaUtils.getMonoisotopicMass(formula("[56]Fe")), 0.000001);
+    assertEquals(2.015650064, FormulaUtils.getMonoisotopicMass(formula("H2")), 0.000001);
     assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2]H2")), 0.000001);
     assertEquals(4.028203556, FormulaUtils.getMonoisotopicMass(formula("[2H]2")), 0.000001);
     assertEquals(86.00670968, FormulaUtils.getMonoisotopicMass(formula("C5[13]C2")), 0.000001);
@@ -255,5 +302,78 @@ class FormulaUtilsTest {
       assertNotNull(f, "Formula for %s is null".formatted(formula));
     }
     return f;
+  }
+
+
+  @Test
+  void containsElement() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+    assertTrue(FormulaUtils.containsElement(hexose, "C"));
+    assertTrue(FormulaUtils.containsElement(hexose13C2, "C"));
+    assertTrue(FormulaUtils.containsElement(hexose, "H"));
+    assertTrue(FormulaUtils.containsElement(hexose, "O"));
+    assertFalse(FormulaUtils.containsElement(hexose, "N"));
+  }
+
+  @Test
+  void countElement() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+    assertEquals(6, FormulaUtils.countElement(hexose, "C"));
+    assertEquals(6, FormulaUtils.countElement(hexose13C2, "C"));
+    assertEquals(12, FormulaUtils.countElement(hexose, "H"));
+    assertEquals(6, FormulaUtils.countElement(hexose, "O"));
+    assertEquals(0, FormulaUtils.countElement(hexose, "N"));
+  }
+
+  @Test
+  void subtractFormula() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+
+    final IMolecularFormula C2H4O = FormulaUtils.parse("C2H4O");
+    final IMolecularFormula C2H4O13C2 = FormulaUtils.parse("[13]C2H4O");
+
+    assertEquals("C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O, 2, true)));
+    assertEquals("C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O13C2, 2, true)));
+    assertEquals("[13]C2H4O4",
+        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose13C2, C2H4O, 2, true)));
+    assertEquals("C2H4O4", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 2, true)));
+
+    // full removal
+    assertEquals("", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 20, true)));
+  }
+
+  @Test
+  void addOrRemoveIsotope() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    for (IIsotope isotope : hexose.isotopes()) {
+      // just to make sure that assumption that -count also works in the future
+      hexose.addIsotope(isotope, -2);
+    }
+    assertEquals("C4H10O4", FormulaUtils.getFormulaString(hexose));
+  }
+
+  @Test
+  void addFormula() {
+    final IMolecularFormula hexose = FormulaUtils.parse("C6H12O6");
+    final IMolecularFormula hexose13C2 = FormulaUtils.parse("[13]C2C4H12O6");
+
+    final IMolecularFormula C2H4O = FormulaUtils.parse("C2H4O");
+    final IMolecularFormula C2H4O13C2 = FormulaUtils.parse("[13]C2H4O");
+
+    assertEquals("C10H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose, C2H4O, 2, true)));
+    assertEquals("C6[13]C4H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose, C2H4O13C2, 2, true)));
+    assertEquals("C8[13]C2H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose13C2, C2H4O, 2, true)));
+    assertEquals("C4[13]C6H20O8",
+        FormulaUtils.getFormulaString(FormulaUtils.addFormula(hexose13C2, C2H4O13C2, 2, true)));
   }
 }

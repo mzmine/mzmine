@@ -55,7 +55,7 @@ public class FragmentGraphTest {
 //    final ConcurrentLinkedQueue<IMolecularFormula> formulae = formulaTask.get();
 //
 //    final Optional<IMolecularFormula> caffeineOptional = formulae.stream()
-//        .filter(f -> MolecularFormulaManipulator.getString(f).equals("[C8H11N4O2]+")).findAny();
+//        .filter(f -> FormulaUtils.getFormulaString(f).equals("[C8H11N4O2]+")).findAny();
 //    Assertions.assertTrue(caffeineOptional.isPresent());
 //    final IMolecularFormula caf = caffeineOptional.get();
 //

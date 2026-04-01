@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
@@ -58,7 +58,7 @@ class BioTransformerTest {
 
   private static final Logger logger = Logger.getLogger(BioTransformerTest.class.getName());
 
-  final IonLibrary library = new SimpleIonLibrary("temp lib", List.of(IonTypes.H.asIonType()));
+  final IonLibrary library = new UnmodifiableIonLibrary("temp lib", List.of(IonTypes.H.asIonType()));
 
   @Test
   void testCmdGeneration() {

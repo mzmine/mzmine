@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import static java.util.Objects.requireNonNullElse;
 
+import com.sun.xml.bind.v2.TODO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
@@ -35,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -46,7 +48,10 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class IonParts {
 
   public static final String XML_ELEMENT = "ionpart";
-
+  /**
+   * Contains at least one - or + and does not already start and end with braces
+   */
+  public static final Pattern REQUIRES_BRACES_PATTERN = Pattern.compile("^(?!\\().*[+-].*(?!\\))$");
   /**
    * The only part allowed with empty name
    */
@@ -114,8 +119,8 @@ public class IonParts {
   /**
    * @param nameOrFormula structure or common name
    * @param charge
-   * @return an IonPart either predefined by name, common name {@link CompoundsByNames}, by
-   * structure. Otherwise, {@link IonParts#unknown(String, Integer)}
+   * @return an IonPart either predefined by name, common name {@link IonPartAliases}, by structure.
+   * Otherwise, {@link IonParts#unknown(String, Integer)}
    */
   @NotNull
   public static IonPart findPartByNameOrFormula(@NotNull String nameOrFormula, int count,
@@ -146,7 +151,7 @@ public class IonParts {
     }
 
     // map names or structure by internal known names
-    Optional<IonPart> part = CompoundsByNames.getIonPartByName(nameOrFormula);
+    Optional<IonPart> part = IonPartAliases.getIonPartByName(nameOrFormula);
     if (part.isPresent()) {
       return part.get().withCount(count).withSingleCharge(charge);
     }
@@ -216,28 +221,35 @@ public class IonParts {
     }
 
     if (singleFormula != null) {
-      singleFormula = StringUtils.removeAllWhiteSpace(singleFormula);
+      // try parse formula but keep single formula in case parsing fails it will be the name
+      // keeping all spaces
+      String cleanFormula = StringUtils.removeAllWhiteSpace(singleFormula);
       // try parse formula
       final IMolecularFormula parsedFormula =
-          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula)
-              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(singleFormula, singleCharge);
+          singleCharge == null ? FormulaUtils.createMajorIsotopeMolFormulaWithCharge(cleanFormula)
+              : FormulaUtils.createMajorIsotopeMolFormulaWithCharge(cleanFormula, singleCharge);
 
-      if (parsedFormula == null) {
-        if (name == null) {
-          name = singleFormula;
-        }
-        // remain unknown as formula was not parsed - mass 0 and formula null
-        return unknown(name, requireNonNullElse(singleCharge, 0), count);
-      } else {
+      if (parsedFormula != null) {
         // parsing successful
+        cleanFormula = FormulaUtils.getFormulaString(parsedFormula, false);
+        singleFormula = cleanFormula;
+
         if (singleCharge == null) {
           singleCharge = requireNonNullElse(parsedFormula.getCharge(), 0);
         }
-        singleFormula = FormulaUtils.getFormulaString(parsedFormula, false);
-
-        if (absSingleMass == null) {
-          absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
+        if (name == null) {
+          name = cleanFormula;
         }
+
+        // always replace mass with formula mass - otherwise mass might be a bit different
+        // when loading legacy library parameter
+        absSingleMass = FormulaUtils.getMonoisotopicMass(parsedFormula, singleCharge);
+      } else {
+        // parsing failed
+        if (name == null) {
+          name = singleFormula; // name allowing whitespace
+        }
+        singleFormula = null;
       }
     }
     if (absSingleMass == null) {
@@ -248,7 +260,12 @@ public class IonParts {
       throw new IllegalArgumentException("name or singleFormula must be defined");
     }
 
-    name = requireNonNullElse(name, singleFormula).trim();
+    name = name.trim();
+
+    // starts with number or contains + - symbol - needs braces
+    if (Character.isDigit(name.charAt(0)) || REQUIRES_BRACES_PATTERN.matcher(name).matches()) {
+      name = "(" + name + ")";
+    }
 
     // SILENT_CHARGE has empty name check that mass is null
     if (name.isEmpty()) {

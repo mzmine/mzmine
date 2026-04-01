@@ -56,6 +56,7 @@ import io.github.mzmine.parameters.parametertypes.ValueOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -421,8 +422,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     } catch (Exception e) {
       logger.log(Level.WARNING, () -> MessageFormat.format(
           "Error in MS/MS score calculation for ion formula {0} (for neutral M: {1})",
-          MolecularFormulaManipulator.getString(cdkFormulaIon),
-          MolecularFormulaManipulator.getString(cdkFormulaNeutralM)));
+          FormulaUtils.getFormulaString(cdkFormulaIon),
+          FormulaUtils.getFormulaString(cdkFormulaNeutralM)));
     }
 
     // Create a new formula entry

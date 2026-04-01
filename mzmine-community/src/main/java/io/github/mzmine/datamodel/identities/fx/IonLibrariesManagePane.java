@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,16 +27,20 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -53,15 +57,9 @@ class IonLibrariesManagePane extends BorderPane {
 
   IonLibrariesManagePane(@NotNull GlobalIonLibrariesModel model,
       @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
-    this(model, true, eventHandler);
-  }
-
-  IonLibrariesManagePane(@NotNull GlobalIonLibrariesModel model, boolean allowRemoveItem,
-      @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
-
     // create main layout
-    final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(),
-        allowRemoveItem, true, true);
+    final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(), true,
+        true, true);
 
     libraryList.setCreateNewAction(() -> eventHandler.accept(new CreateNewLibrary()));
     libraryList.setEditSelectedAction(
@@ -76,8 +74,17 @@ class IonLibrariesManagePane extends BorderPane {
 
     selectedIonLibrary.subscribe((_, lib) -> ionTypes.setAll(lib != null ? lib.ions() : List.of()));
 
+    final var titlePane = newHBox(Insets.EMPTY,
+        FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, FxIconUtil.DEFAULT_LARGE_ICON_SIZE,
+            """
+                Manage, copy, and create new ion libraries. Select an ion library to see its ion types content on the right.
+                mzmine default libraries cannot be deleted or changed.
+                Click to open the documentation.""",
+            "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-libraries"),
+        newBoldTitle("Available ion libraries"));
+
     final BorderPane librarySelectionLeft = newBorderPane().defaultPadding() //
-        .top(newBoldTitle("Available ion libraries")) //
+        .top(titlePane) //
         .center(libraryList).build();
 
     Pane libraryDetailPane = newBorderPane().defaultPadding() //

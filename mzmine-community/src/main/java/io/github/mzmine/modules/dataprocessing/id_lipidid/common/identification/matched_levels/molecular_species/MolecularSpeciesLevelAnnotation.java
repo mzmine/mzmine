@@ -150,7 +150,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CHAINS);
     if (lipidChains != null) {

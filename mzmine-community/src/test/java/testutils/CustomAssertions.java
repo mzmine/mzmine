@@ -23,44 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package testutils;
 
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.Range;
+import org.junit.jupiter.api.Assertions;
 
-/**
- * A simple ion library used by the parameter. Use {@link #toSearchableLibrary(boolean)} for an
- * optimized version for searches.
- */
-public record SimpleIonLibrary(@NotNull String name, @NotNull List<IonType> ions) implements
-    IonLibrary {
+public class CustomAssertions {
 
-  @Override
-  @NotNull
-  public List<IonType> ions() {
-    return ions;
+  public static <T extends Number & Comparable<?>> void assertEquals(Range<T> expected,
+      Range<T> actual, double tolerance) {
+    Assertions.assertEquals(expected.lowerEndpoint().doubleValue(),
+        actual.lowerEndpoint().doubleValue(), tolerance);
+    Assertions.assertEquals(expected.upperEndpoint().doubleValue(),
+        actual.upperEndpoint().doubleValue(), tolerance);
   }
 
-  @Override
-  @NotNull
-  public String toString() {
-    return "%s (%d ions)".formatted(name, ions.size());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof SimpleIonLibrary(String oName, List<IonType> oIons))) {
-      return false;
-    }
-
-    return name.equals(oName) && ions.size() == oIons.size() && ions.containsAll(oIons)
-        && oIons.containsAll(ions);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + ions.hashCode();
-    return result;
-  }
 }

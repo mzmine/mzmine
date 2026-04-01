@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.structures;
 
 
+import io.github.mzmine.util.FormulaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -45,7 +46,7 @@ public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
 
   @Override
   public @NotNull String toString() {
-    return "PrecomputedMolecularStructure[" + "formula=" + MolecularFormulaManipulator.getString(formula())
+    return "PrecomputedMolecularStructure[" + "formula=" + FormulaUtils.getFormulaString(formula())
         + ", " + "canonicalSmiles=" + canonicalSmiles + ", " + "isomericSmiles=" + isomericSmiles
         + ", " + "inchi=" + inchi + ", " + "inchiKey=" + inchiKey + ", " + "monoIsotopicMass="
         + monoIsotopicMass + ", " + "mostAbundantMass=" + mostAbundantMass + ", "

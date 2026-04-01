@@ -38,7 +38,6 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 class StructureParserTest {
 
@@ -105,14 +104,13 @@ class StructureParserTest {
       Assertions.assertNotNull(struc);
       Assertions.assertEquals(0, AtomContainerManipulator.getTotalFormalCharge(struc),
           "charge mismatch");
-      Assertions.assertEquals(0, MolecularFormulaManipulator.getMolecularFormula(struc).getCharge(),
+      Assertions.assertEquals(0, StructureUtils.getFormula(struc).getCharge(),
           "charge in formula mismatch");
-      final IMolecularFormula formula = MolecularFormulaManipulator.getMolecularFormula(struc);
-      final String formulaString = MolecularFormulaManipulator.getString(formula);
+      final IMolecularFormula formula = StructureUtils.getFormula(struc);
+      final String formulaString = FormulaUtils.getFormulaString(formula);
 
       for (int j = 0; j < 1000; j++) {
-        Assertions.assertEquals(3,
-            MolecularFormulaManipulator.getMolecularFormula(struc).getIsotopeCount());
+        Assertions.assertEquals(3, StructureUtils.getFormula(struc).getIsotopeCount());
       }
       for (int j = 0; j < 1000; j++) {
         Assertions.assertEquals(3, StructureUtils.getFormula(struc).getIsotopeCount());

@@ -29,6 +29,8 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
 /// - M+H+
 /// - `M+(H+)`
 public class IonTypeParser {
+
+  private static final Pattern SPECIAL_M_PATTERN = Pattern.compile("^([0-9])*M([+-][0-9]*)$");
 
   /// Charge pattern at the end of string as +- with optional number
   ///
@@ -129,14 +133,34 @@ public class IonTypeParser {
     return -1; // nothing found
   }
 
-  /**
-   * Do not remove whitespace as this is allowed in part names
-   *
-   * @param input
-   * @return
-   */
+  /// Parses ion types in format:
+  ///
+  /// - `[M+Na]+`
+  /// - `[M+(a-OH)+H]+` (use braces if - or + in name)
+  ///
+  /// Do not remove whitespace as this is allowed in part names.
+  ///
+  /// Uses defaultCharge 0 to parse input as is.
+  ///
+  /// @return an ion part or null if not parsed
   @Nullable
   public static IonType parse(@Nullable String input) {
+    return parse(input, 0);
+  }
+
+  /// Parses ion types in format:
+  ///
+  /// - `[M+Na]+`
+  /// - `[M+(a-OH)+H]+` (use braces if - or + in name)
+  ///
+  /// Do not remove whitespace as this is allowed in part names.
+  ///
+  /// Uses defaultCharge 0 to parse input as is.
+  ///
+  /// @param defaultCharge the defaultCharge is applied when no charge state was found
+  /// @return an ion part or null if not parsed
+  @Nullable
+  public static IonType parse(@Nullable String input, int defaultCharge) {
     if (StringUtils.isBlank(input)) {
       return null;
     }
@@ -154,6 +178,13 @@ public class IonTypeParser {
       int startIndex = first == '[' || first == '(' ? 1 : 0;
 
       input = input.substring(startIndex, chargeIndex).trim();
+    } else {
+      // handle special cases that are not covered by the rest of the parsing
+      // like M+ or 2M+2
+      IonType special = parseSpecialTypes(input);
+      if (special != null) {
+        return special;
+      }
     }
 
     // input is now without total charge notation and without [] or () surrounding
@@ -179,9 +210,8 @@ public class IonTypeParser {
 
     int chargeDiff = 0;
     if (detectedCharge == null && ion.totalCharge() == 0) {
-      // default to charge 1 because we are looking at ions and mostly in positive ion mode
-      // for negative the charge needs to be defined
-      chargeDiff = 1;
+      // default charge may be 0 or the preferred charge state
+      chargeDiff = defaultCharge;
     } else if (detectedCharge != null) {
       chargeDiff = detectedCharge - ion.totalCharge();
     }
@@ -204,6 +234,24 @@ public class IonTypeParser {
     } else {
       return ion;
     }
+  }
+
+  @Nullable
+  private static IonType parseSpecialTypes(@NotNull String input) {
+    // try parse M+ or 2M+2 types
+    final String inputNoSpaces = StringUtils.removeAllWhiteSpace(input);
+    final Matcher matcher = SPECIAL_M_PATTERN.matcher(inputNoSpaces);
+    if (matcher.find()) {
+      // is M+ or 2M-, usually requires [M]+ to define charge but is missing here in special cases
+      // charge is required
+      final int charge = StringUtils.parseSignAndIntegerOrElse(matcher.group(2), 0);
+      // mol is optional
+      final String molStr = matcher.group(1);
+      final int mol = StringUtils.parseIntegerOrElse(molStr, false, 1);
+      // electron is -1 so need to flip charge as removal of electron --> positive charge
+      return new IonType(mol, IonParts.M_PLUS.withCount(-charge));
+    }
+    return null;
   }
 
   private static int findMolMIndex(@NotNull String input) {

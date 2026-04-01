@@ -104,7 +104,7 @@ public class LipidChain implements ILipidChain {
     writer.writeCharacters(chainAnnotation);
     writer.writeEndElement();
     writer.writeStartElement(XML_CHAIN_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_NUMBER_OF_CARBONS);
     writer.writeCharacters(String.valueOf(numberOfCarbons));

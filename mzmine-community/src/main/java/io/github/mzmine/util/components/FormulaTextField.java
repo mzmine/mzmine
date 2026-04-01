@@ -78,6 +78,8 @@ public class FormulaTextField extends CustomTextField {
         "Enter a formula formatted like: %s (%s)".formatted(flavor.getInputExample(),
             requireValue ? "value required" : "empty allowed")));
 
+    setPromptText("Formula like: " + flavor.getInputExample());
+
     textProperty().subscribe(this::parseFormula);
     parsedFormula.bind(formula.map(f -> {
       if (f == null) {
@@ -96,9 +98,11 @@ public class FormulaTextField extends CustomTextField {
     final ButtonBase harmonizeButton = FxIconUtil.newIconButton(FxIcons.RELOAD, harmonizeTooltip,
         this::harmonizeFormula);
 
-    final BooleanBinding mayHarmonize = Bindings.createBooleanBinding(
-        () -> getText() == null || getText().trim().equals(getParsedFormula()));
-    harmonizeButton.disableProperty().bind(mayHarmonize);
+    final BooleanBinding isHarmonized = Bindings.createBooleanBinding(
+        () -> getText() == null || getParsedFormula() == null || getText().trim()
+            .equals(getParsedFormula()), textProperty(), parsedFormulaProperty());
+    harmonizeButton.disableProperty().bind(isHarmonized);
+    harmonizeButton.visibleProperty().bind(harmonizeButton.disableProperty().not());
     setRight(harmonizeButton);
 
     FxValidation.registerErrorValidator(this, parsingError);
@@ -132,6 +136,9 @@ public class FormulaTextField extends CustomTextField {
     if (formula.get() == null) {
       String error = "Cannot parse formula, required format: " + format;
       parsingError.set(error);
+    } else {
+      // clear error on success
+      parsingError.set(null);
     }
   }
 

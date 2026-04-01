@@ -58,7 +58,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * <p>
  * If undefined {@link IonPart} are used the following will happen. One undefined part will take up
  * all the remaining charge. If there are two undefined parts the charge will be distributed
- * randomly. Try adding common names to {@link CompoundsByNames}.
+ * randomly. Try adding common names to {@link IonPartAliases}.
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -68,11 +68,16 @@ public final class IonType {
 
   /**
    * handles the sorting and everything for the parts
-   *
-   * @param parts
    */
   IonType(@NotNull IonPart @NotNull ... parts) {
-    this(List.of(parts), 1);
+    this(1, parts);
+  }
+
+  /**
+   * handles the sorting and everything for the parts
+   */
+  IonType(int molecules, @NotNull IonPart @NotNull ... parts) {
+    this(List.of(parts), molecules);
   }
 
   /**
@@ -82,6 +87,9 @@ public final class IonType {
    * @param molecules
    */
   IonType(@NotNull List<@NotNull IonPart> parts, int molecules) {
+    if (molecules < 1) {
+      molecules = 1;
+    }
     // requires to merge all the same IonParts into single objects by adding up their count multiplier
     // sort so that name will be correct
     parts = IonParts.mergeDuplicates(parts).stream()

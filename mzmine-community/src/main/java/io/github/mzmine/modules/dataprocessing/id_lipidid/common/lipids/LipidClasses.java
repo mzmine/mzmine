@@ -79,7 +79,7 @@ public enum LipidClasses implements ILipidClass {
       }), //
 
   FATTYACYLCARNITINES("Fatty acyl carnitines", "CAR", LipidCategories.FATTYACYLS,
-      LipidMainClasses.FATTYESTERS, "C7H15NO3", new LipidChainType[]{LipidChainType.ACYL_CHAIN},//
+      LipidMainClasses.FATTYESTERS, "C7H16NO3", new LipidChainType[]{LipidChainType.ACYL_CHAIN},//
       new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,

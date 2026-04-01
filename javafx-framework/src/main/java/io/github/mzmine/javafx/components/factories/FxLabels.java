@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,7 +79,7 @@ public class FxLabels {
   }
 
   public static Label newBoldLabel(ObservableValue<? extends String> name) {
-    return attachProperty(newBoldLabel(""), name);
+    return bindText(newBoldLabel(""), name);
   }
 
   public static Label newBoldLabel(String name) {
@@ -87,7 +87,7 @@ public class FxLabels {
   }
 
   public static Label newItalicLabel(ObservableValue<? extends String> name) {
-    return attachProperty(newItalicLabel(""), name);
+    return bindText(newItalicLabel(""), name);
   }
 
   public static Label newItalicLabel(String name) {
@@ -101,10 +101,10 @@ public class FxLabels {
   }
 
   @NotNull
-  public static Label attachProperty(@NotNull Label label,
-      @Nullable ObservableValue<? extends String> property) {
-    if (property != null) {
-      label.textProperty().bind(property);
+  public static Label bindText(@NotNull Label label,
+      @Nullable ObservableValue<? extends String> text) {
+    if (text != null) {
+      label.textProperty().bind(text);
     }
     return label;
   }
@@ -147,7 +147,7 @@ public class FxLabels {
 
   public static Label newLabel(Styles style, @Nullable Color color,
       @Nullable TextAlignment textAlignment, @Nullable ObservableValue<? extends String> binding) {
-    return attachProperty(newLabel(style, color, textAlignment, ""), binding);
+    return bindText(newLabel(style, color, textAlignment, ""), binding);
   }
 
   public static Label newBoldTitle(String text) {

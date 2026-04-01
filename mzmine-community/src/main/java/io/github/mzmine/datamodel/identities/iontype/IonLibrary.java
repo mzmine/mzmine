@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,10 @@ public interface IonLibrary {
 
   @NotNull String name();
 
+  /**
+   * @return unmodifiable list of ions sorted by
+   * {@link IonTypeSorting#MOLECULES_THEN_CHARGE_THEN_MASS}
+   */
   List<IonType> ions();
 
   default int getNumIons() {
@@ -55,6 +60,30 @@ public interface IonLibrary {
 
     final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
         .toList();
-    return new SimpleIonLibrary(name() + " filtered " + polarity.name(), ions);
+    return new UnmodifiableIonLibrary(name() + " filtered " + polarity.name(), ions);
   }
+
+  /**
+   * IonLibraries are always sorted by {@link IonTypeSorting#MOLECULES_THEN_CHARGE_THEN_MASS}
+   *
+   * @return true if other has the same content of ions like this library
+   */
+  default boolean equalIons(@NotNull IonLibrary other) {
+    if(other.getNumIons() != getNumIons()) {
+      return false;
+    }
+
+    final List<IonType> ions = ions();
+    final List<IonType> otherIons = other.ions();
+
+    // same sorting
+    for (int i = 0; i < ions.size(); i++) {
+      if(!ions.get(i).equals(otherIons.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @NotNull IonLibrary copy();
 }

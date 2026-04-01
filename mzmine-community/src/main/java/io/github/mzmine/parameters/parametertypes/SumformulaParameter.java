@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 
 import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -117,8 +118,7 @@ public class SumformulaParameter extends StringParameter {
    */
   public double getMonoisotopicMass() {
     if (!value.isBlank()) {
-      double mz = MolecularFormulaManipulator.getMass(getFormula(),
-          MolecularFormulaManipulator.MonoIsotopic);
+      double mz = FormulaUtils.getMonoisotopicMass(getFormula());
       mz -= getCharge() * ELECTRON_MASS;
       if (value.startsWith("-")) {
         mz = -mz;
@@ -147,12 +147,11 @@ public class SumformulaParameter extends StringParameter {
       //
       int l = Math.max(formString.lastIndexOf('+'), formString.lastIndexOf('-'));
       if (l == -1) {
-        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formString, builder);
+        return FormulaUtils.parse(formString);
       } else {
         String f = formString.substring(0, l);
         String charge = formString.substring(l);
-        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("[" + f + "]" + charge,
-            builder);
+        return FormulaUtils.parse("[" + f + "]" + charge);
       }
     } catch (Exception e) {
       throw new MSDKRuntimeException("Could not set up formula. Invalid input.");

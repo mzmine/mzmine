@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.SignalWithFormulae;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import org.graphstream.graph.Node;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -46,7 +47,7 @@ public enum FragNodeAttr {
       case INTENSITY -> node.setAttribute(name(),
           formats.intensity(sfm.getPeakWithFormulae().peak().getIntensity()));
       case FORMULA -> node.setAttribute(name(),
-          MolecularFormulaManipulator.getString(sfm.getSelectedFormulaWithMz().formula()));
+          FormulaUtils.getFormulaString(sfm.getSelectedFormulaWithMz().formula()));
       case DELTA_MZ_ABS -> node.setAttribute(name(), formats.mz(sfm.getDeltaMzAbs()));
       case DELTA_MZ_PPM -> node.setAttribute(name(), formats.mz(sfm.getDeltaMzPpm()));
     }

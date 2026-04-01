@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
-import io.github.mzmine.datamodel.identities.iontype.SimpleIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.ConfigService;
@@ -96,7 +96,7 @@ public class FragDashboardTab extends SimpleTab {
     final IonIdentity bestIon = row.getBestIonIdentity();
     if (bestIon != null) {
       parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
-          new SimpleIonLibrary("best ion of row " + row.getID(), List.of(bestIon.getIonType())));
+          new UnmodifiableIonLibrary("best ion of row " + row.getID(), List.of(bestIon.getIonType())));
     } else {
       parameters.setParameter(FragmentGraphCalcParameters.allowedIons,
           IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST);

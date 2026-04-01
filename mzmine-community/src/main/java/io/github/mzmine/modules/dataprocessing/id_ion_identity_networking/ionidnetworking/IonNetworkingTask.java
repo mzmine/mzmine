@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,13 +34,13 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonTypePair;
-import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
+import io.github.mzmine.datamodel.identities.iontype.IonTypePair;
+import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesTask;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -291,7 +291,7 @@ public class IonNetworkingTask extends AbstractTask {
       final IonNetwork oldNetB = results.get(b);
       if (oldNetA == null && oldNetB == null) {
         // create new
-        final IonNetwork network = new IonNetwork(mzTolerance, -1);
+        final IonNetwork network = new IonNetwork(-1);
         network.put(rowA, new IonIdentity(id.a()));
         network.put(rowB, new IonIdentity(id.b()));
         results.put(a, network);

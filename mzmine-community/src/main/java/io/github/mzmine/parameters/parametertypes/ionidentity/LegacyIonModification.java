@@ -63,15 +63,10 @@ class LegacyIonModification extends LegacyNeutralMolecule implements
   public static final LegacyIonModification M_MINUS = new LegacyIonModification(
       LegacyIonModificationType.ADDUCT, "e", +0.00054858, -1);
   // NR4+ is already charged, mass might also be charged already
-  public static final LegacyIonModification M_MINUS_ALREADY_CHARGED = new LegacyIonModification(
-      LegacyIonModificationType.ADDUCT, "e", 0, -1);
   public static final LegacyIonModification H_NEG = new LegacyIonModification(
       LegacyIonModificationType.ADDUCT, "H", "H", -1.007276, -1);
   public static final LegacyIonModification M_PLUS = new LegacyIonModification(
       LegacyIonModificationType.ADDUCT, "e", -0.00054858, 1);
-  // NR4+ is already charged, mass might also be charged already
-  public static final LegacyIonModification M_PLUS_ALREADY_CHARGED = new LegacyIonModification(
-      LegacyIonModificationType.ADDUCT, "e", 0, 1);
   public static final LegacyIonModification H = new LegacyIonModification(
       LegacyIonModificationType.ADDUCT, "H", "H", 1.007276, 1);
   // water loss
@@ -166,9 +161,9 @@ class LegacyIonModification extends LegacyNeutralMolecule implements
   // default values
   public static final LegacyIonModification[] DEFAULT_VALUES_POSITIVE = {M_PLUS, M_PLUS_H2O, H,
       H_H2O_1, H_H2O_2, H_H2O_3, NA, K, NH4, M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2,
-      Hneg_CA, Hneg_FE, Hneg_MG, M_PLUS_ALREADY_CHARGED, H2O, H_NEG};
+      Hneg_CA, Hneg_FE, Hneg_MG, H2O, H_NEG};
   public static final LegacyIonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, CL,
-      BR, FA, ACETATE, M_MINUS_ALREADY_CHARGED, H2O, NA};
+      BR, FA, ACETATE, H2O, NA};
   // default modifications
   public static final LegacyIonModification[] DEFAULT_VALUES_MODIFICATIONS = {H2O, H2O_2, H2O_3,
       H2O_4, H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
@@ -740,6 +735,15 @@ class LegacyIonModification extends LegacyNeutralMolecule implements
 
   @NotNull
   public Stream<? extends IonPart> toNewParts() {
-    return Stream.of(IonParts.create(name, molFormula, mass, charge, getModCount()));
+    if (name.equals("e")) {
+      final IonPart e = mass < 0 ? IonParts.M_PLUS : IonParts.M_MINUS;
+      return Stream.of(e);
+    }
+    // count was based on mass
+    final int count = mass < 0 ? -1 : 1;
+    // charge here is the total charge of the modification like -H is -1
+    // multiply with count to get the actual charge of H
+    final int charge = this.charge * count;
+    return Stream.of(IonParts.create(name, molFormula, mass, charge, count));
   }
 }

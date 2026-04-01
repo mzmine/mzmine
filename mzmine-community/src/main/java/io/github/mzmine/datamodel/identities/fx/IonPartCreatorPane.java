@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,24 +27,27 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.components.FilterableListView;
 import io.github.mzmine.javafx.components.FilterableListView.MenuControls;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.util.FxLayout.Position;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.layout.BorderPane;
@@ -66,14 +69,21 @@ class IonPartCreatorPane extends BorderPane {
 
   public IonPartCreatorPane(ObservableList<IonPartDefinition> parts) {
     setPadding(DEFAULT_PADDING_INSETS);
-    final Label title = newBoldTitle("List of ion building blocks");
+    final var titlePane = newHBox(Insets.EMPTY,
+        FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, FxIconUtil.DEFAULT_LARGE_ICON_SIZE,
+            """
+                Define ion building blocks by molecular formula, charge state, neutral mass difference, and a name.
+                Either the formula or the name+mass needs to be defined.
+                Click to open the documentation.""",
+            "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-parts"),
+        newBoldTitle("List of ion building blocks"));
 
     IonPartDefinitionPane ionPartDefinitionPane = new IonPartDefinitionPane(this::addPart, true);
 
     partListView = createListView(parts);
     setCenter(ionPartDefinitionPane);
     // space is already enough
-    setTop(new VBox(0, title, partListView.removeTopMenu()));
+    setTop(new VBox(0, titlePane, partListView.removeTopMenu()));
     setLeft(partListView);
   }
 
