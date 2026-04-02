@@ -26,7 +26,9 @@ package io.github.mzmine.util.reporting.jasper;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.visualization.molstructure.Structure2DRenderConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -49,6 +51,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.ui.RectangleInsets;
 
 public class ReportingTask extends AbstractFeatureListTask {
 
@@ -83,10 +86,12 @@ public class ReportingTask extends AbstractFeatureListTask {
     final ReportTypes reportType = valueWithParameters.value();
     final ParameterSet reportTypeParam = valueWithParameters.parameters();
 
-    final Map<String, Object> parameters = generateMetadata((ReportingParameters) getParameters());
+    final ReportUtils reportUtils = createReportUtils();
+
+    final Map<String, Object> metadata = generateMetadata((ReportingParameters) getParameters());
     reportModule = reportType.getModuleInstance().createInstance(reportTypeParam);
     try {
-      final JasperPrint jasperPrint = reportModule.generateReport(flist, parameters);
+      final JasperPrint jasperPrint = reportModule.generateReport(flist, metadata, reportUtils);
       if (isCanceled()) {
         reportModule.cancel();
         return;
@@ -98,6 +103,7 @@ public class ReportingTask extends AbstractFeatureListTask {
       desc = "Exporting report for feature list %s to pdf.".formatted(flist.getName());
 
       final File exportPdf = getParameters().getValue(ReportingParameters.exportFile);
+      FileAndPathUtil.createDirectory(exportPdf.getParentFile());
       JasperExportManager.exportReportToPdfFile(jasperPrint,
           FileAndPathUtil.getRealFilePath(exportPdf, "pdf").getAbsolutePath());
       desc = "Exporting report for feature list %s to HTML.".formatted(flist.getName());
@@ -111,6 +117,25 @@ public class ReportingTask extends AbstractFeatureListTask {
     } catch (JRException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
+  }
+
+  /**
+   * Report utils is created with all available values from {@link ReportingParameters} and the
+   * specific reports may add specific values later.
+   */
+  private @NotNull ReportUtils createReportUtils() {
+    final ReportingStyleParameters styleParams = parameters.getValue(
+        ReportingParameters.reportingStyle);
+
+    final EStandardChartTheme theme = new EStandardChartTheme("Aligned feature report");
+    styleParams.getValue(ReportingStyleParameters.chartThemeParam).applyToChartTheme(theme);
+    theme.setMirrorPlotAxisOffset(new RectangleInsets(0, 0, -2, 0));
+
+    // DPI of report is roughly 3x of screen so export structures with greater zoom
+    final Structure2DRenderConfig structureRenderConfig = styleParams.getValue(
+        ReportingStyleParameters.structureRendering).createConfig().multiplyZoom(2.5);
+
+    return new ReportUtils(theme, structureRenderConfig);
   }
 
   @NotNull Map<String, Object> generateMetadata(@NotNull final ReportingParameters parameters) {

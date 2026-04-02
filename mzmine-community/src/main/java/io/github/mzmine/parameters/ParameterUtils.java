@@ -66,7 +66,6 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -593,8 +592,7 @@ public class ParameterUtils {
    */
   public static String saveValuesToXMLString(ParameterSet parameterSet) {
     try {
-      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-          .newDocument();
+      final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
       document.appendChild(element);
 
@@ -616,8 +614,7 @@ public class ParameterUtils {
    */
   public static String saveParameterToXMLString(Parameter<?> parameter) {
     try {
-      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-          .newDocument();
+      final Document document = XMLUtils.newDocument();
 
       Element paramElement = document.createElement(SimpleParameterSet.parameterElement);
       paramElement.setAttribute(SimpleParameterSet.nameAttribute, parameter.getName());

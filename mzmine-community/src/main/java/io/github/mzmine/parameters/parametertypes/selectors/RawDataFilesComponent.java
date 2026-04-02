@@ -26,7 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -69,13 +71,14 @@ public class RawDataFilesComponent extends GridPane {
         FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
     typeCombo.getSelectionModel().selectFirst();
 
-    typeCombo.getSelectionModel().selectedItemProperty()
-        .addListener((options, oldValue, newValue) -> {
-          currentValue.setSelectionType(newValue);
-          detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
-              && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
-          updateNumFiles();
-        });
+    final ReadOnlyObjectProperty<RawDataFilesSelectionType> selectedItem = typeCombo.getSelectionModel()
+        .selectedItemProperty();
+    selectedItem.subscribe((_, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      updateNumFiles();
+    });
+
+    detailsButton.disableProperty().bind(selectedItem.map(item -> !item.hasAdditionalUserInput()));
 
     add(typeCombo, 1, 0);
 
@@ -103,6 +106,21 @@ public class RawDataFilesComponent extends GridPane {
         if (exitCode == ExitCode.OK) {
           String namePattern = paramSet.getParameter(nameParameter).getValue();
           currentValue.setNamePattern(namePattern);
+        }
+      }
+      if (type == RawDataFilesSelectionType.BY_METADATA) {
+        final ParameterSet metaParams = ConfigService.getConfiguration()
+            .getModuleParameters(RawDataFilesByMetadataModule.class).cloneParameterSet();
+        metaParams.setParameter(RawDataFilesByMetadataParameters.included,
+            currentValue.getIncludeMetadataSelection());
+        metaParams.setParameter(RawDataFilesByMetadataParameters.excluded,
+            currentValue.getExcludeMetadataSelection());
+
+        final ExitCode exitCode = metaParams.showSetupDialog(true);
+        if (exitCode == ExitCode.OK) {
+          var includeSelection = metaParams.getValue(RawDataFilesByMetadataParameters.included);
+          var excludeSelection = metaParams.getValue(RawDataFilesByMetadataParameters.excluded);
+          currentValue.setMetadataSelection(includeSelection, excludeSelection);
         }
       }
       updateNumFiles();

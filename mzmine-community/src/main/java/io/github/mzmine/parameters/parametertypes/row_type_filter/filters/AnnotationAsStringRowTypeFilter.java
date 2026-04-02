@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +46,7 @@ class AnnotationAsStringRowTypeFilter extends AbstractStringRowTypeFilter {
 
   @Override
   public boolean matches(FeatureListRow row) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(valueFunction)
+    return row.streamAllFeatureAnnotations().map(valueFunction)
         .anyMatch(this::matchesString);
   }
 

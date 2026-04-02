@@ -60,6 +60,13 @@ public class ExtensionFilters {
       "*.exe");
 
   /*
+   * graphics
+   */
+  public static final ExtensionFilter SVG = new ExtensionFilter("Scalable vector graphic", ".svg");
+  public static final ExtensionFilter PDF = new ExtensionFilter("PDF", ".pdf");
+  public static final ExtensionFilter PNG = new ExtensionFilter("PNG pixel graphics", ".png");
+
+  /*
    * CSV and TSV import export
    */
   public static final ExtensionFilter CSV = new ExtensionFilter("comma-separated data", "*.csv");

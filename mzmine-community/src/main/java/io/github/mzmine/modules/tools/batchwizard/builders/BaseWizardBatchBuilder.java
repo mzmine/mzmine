@@ -112,6 +112,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ChargeFilterType;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
@@ -1372,6 +1373,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         imsFwhmMobTolerance);
     param.setParameter(LocalCSVDatabaseSearchParameters.ccsTolerance,
         ImportType.isDataTypeSelectedInImportTypes(csvColumns, CCSType.class), 0.05);
+    param.setParameter(LocalCSVDatabaseSearchParameters.chargeFilter, ChargeFilterType.NO_FILTER);
 
     // define ions
     IonLibrary library = switch (polarity) {

@@ -71,13 +71,19 @@ import org.w3c.dom.Element;
 public class ParsingUtils {
 
   private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
+  private static final double[] EMPTY_DOUBLES = new double[0];
+  private static final float[] EMPTY_FLOATS = new float[0];
 
   /**
    * Value separator for storing lists and arrays.
    */
   public static String SEPARATOR = ";";
 
-  public static double[] stringToDoubleArray(String string) {
+  public static double @NotNull [] stringToDoubleArray(String string) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_DOUBLES;
+    }
+
     final String[] strValues = string.split(ParsingUtils.SEPARATOR);
     final double[] values = new double[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -157,7 +163,11 @@ public class ParsingUtils {
     return stringToFloatArray(string, SEPARATOR);
   }
 
-  public static float[] stringToFloatArray(String string, String separator) {
+  public static float @NotNull [] stringToFloatArray(String string, String separator) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_FLOATS;
+    }
+
     final String[] strValues = string.split(separator);
     final float[] values = new float[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -528,7 +538,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Double.valueOf(str);
+      return Double.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }
@@ -568,7 +578,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Float.valueOf(str);
+      return Float.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }

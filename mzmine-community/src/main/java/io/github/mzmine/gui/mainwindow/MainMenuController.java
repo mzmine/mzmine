@@ -40,6 +40,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
@@ -204,8 +205,7 @@ public class MainMenuController {
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f, Instant.now());
-          MZmineCore.getTaskController().addTask(newTask);
+          ProjectLoadModule.showImportDialog(f);
         }
       });
       return item;

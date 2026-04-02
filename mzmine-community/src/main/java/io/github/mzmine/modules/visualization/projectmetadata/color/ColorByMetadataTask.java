@@ -45,6 +45,7 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -146,7 +147,9 @@ public class ColorByMetadataTask extends AbstractRawDataFileTask {
       map.forEach(RawDataFile::setColor);
 
       if (applySorting) {
-        MZmineGUI.sortRawDataFilesAlphabetically(raws);
+        MZmineGUI.sortRawDataFiles(raws.stream()
+            .sorted(Comparator.comparing(RawDataFile::getName, String.CASE_INSENSITIVE_ORDER))
+            .toList());
       }
     });
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,8 @@ class LipidMsOneLevelTest {
     Double mzExact = FormulaUtils.calculateExactMass(formula);
     IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(freefattyacids,
         numberOfCarbons, numberOfDBEs, 0).getMolecularFormula();
-    assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(FormulaUtils.getMonoisotopicMass(testSpeciesMG)));
+    assertEquals(NUMBER_FORMAT.format(mzExact),
+        NUMBER_FORMAT.format(FormulaUtils.getMonoisotopicMass(testSpeciesMG)));
   }
 
   //Fatty Acyls

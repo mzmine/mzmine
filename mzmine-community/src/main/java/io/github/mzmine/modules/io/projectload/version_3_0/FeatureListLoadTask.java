@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -37,13 +38,17 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -57,14 +62,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -149,6 +155,8 @@ public class FeatureListLoadTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    List<FeatureList> loadedFeatureLists = new ArrayList<>();
     try {
       Path tempDirectory = FileAndPathUtil.createTempDirectory(TEMP_FLIST_DATA_FOLDER);
 
@@ -195,6 +203,7 @@ public class FeatureListLoadTask extends AbstractTask {
         flist.replaceCachedFilesAndScans();
 
         project.addFeatureList(flist);
+        loadedFeatureLists.add(flist);
         processedFlists++;
       }
     } catch (Exception e) {
@@ -208,6 +217,15 @@ public class FeatureListLoadTask extends AbstractTask {
 
     // disable caching on project level
     project.setProjectLoadImsImportCaching(false);
+
+    //  group flists by date created, only use the latest set of feature lists in next batch step
+    final Set<FeatureList> mostRecentStepFeatureLists = Set.copyOf(loadedFeatureLists.stream()
+        .collect(
+            Collectors.groupingBy(flist -> flist.getAppliedMethods().getLast().getModuleCallDate()))
+        .entrySet().stream().max(Entry.comparingByKey()).map(Entry::getValue).orElse(List.of()));
+    loadedFeatureLists.forEach(
+        flist -> flist.setExcludedFromBatchLast(!mostRecentStepFeatureLists.contains(flist)));
+
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -234,8 +252,8 @@ public class FeatureListLoadTask extends AbstractTask {
                 || !flist.getDateCreated()
                 .equals(reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR))) {
               throw new IllegalArgumentException(
-                  "Feature list names do not match. " + flist.getName() + " != "
-                      + reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
+                  "The name of the loaded feature list does not match the expected name. %s != %s Does a feature list with this name already exist?".formatted(
+                      flist.getName(), reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR)));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
             parseRow(reader, storage, project, flist);
@@ -304,13 +322,10 @@ public class FeatureListLoadTask extends AbstractTask {
    */
   private ModularFeatureList readMetadataCreateFeatureList(File file, MemoryMapStorage storage) {
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final Document configuration = XMLUtils.load(file);
 
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
-
-      XPathFactory factory = XPathFactory.newInstance();
-      XPath xpath = factory.newXPath();
+      final XPathFactory factory = XPathFactory.newInstance();
+      final XPath xpath = factory.newXPath();
 
       XPathExpression metadataExpr = xpath.compile(
           "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_METADATA_ELEMENT);
@@ -384,6 +399,13 @@ public class FeatureListLoadTask extends AbstractTask {
               .getTextContent());
       flist.getAppliedMethods().addAll(appliedMethods);
       selectedScansMap.forEach(flist::setSelectedScans);
+
+      final FeatureListAppliedMethod preferredAnnoationSorting = ParameterUtils.getLatestModuleCall(
+          appliedMethods, PreferredAnnotationRankingModule.class);
+      if (preferredAnnoationSorting != null) {
+        PreferredAnnotationRankingParameters param = (PreferredAnnotationRankingParameters) preferredAnnoationSorting.getParameters();
+        flist.setAnnotationSortConfig(param.toConfig());
+      }
       return flist;
     } catch (XPathExpressionException | ParserConfigurationException | SAXException |
              IOException e) {

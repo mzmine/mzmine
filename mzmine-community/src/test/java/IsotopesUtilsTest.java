@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,29 +30,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.Isotope;
 import io.github.mzmine.util.IsotopePatternUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.maths.Precision;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.Element;
+import org.openscience.cdk.formula.IsotopeContainer;
+import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 class IsotopesUtilsTest {
+
+  private static final Logger logger = Logger.getLogger(IsotopesUtilsTest.class.getName());
 
   /**
    * Test that all mz diffs are positive
@@ -296,7 +310,8 @@ class IsotopesUtilsTest {
     for (int i = 1; i < br3C10.getNumberOfDataPoints(); i++) {
       // all other should find a previous signal
       assertFalse(
-          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br, true), String.format("Br3C10 isotope signal i=%d detected as main", i));
+          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br,
+              true), String.format("Br3C10 isotope signal i=%d detected as main", i));
     }
 
     // change up some of the intensities - should be false in the end
@@ -362,5 +377,68 @@ class IsotopesUtilsTest {
         .toList();
   }
 
+  @Test
+  public void testPattern() {
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+        "C80H120N40O30Br2Cl");
 
+    final double resolution = 0.01;
+    IsotopePattern mzminePattern = IsotopePatternCalculator.estimateIsotopePatternFast(formula,
+        0.01, resolution, 0, PolarityType.POSITIVE, false);
+
+//    Instant start = Instant.now();
+//    final int iterations = 100;
+//    for (int i = 0; i < iterations; i++) {
+//      mzminePattern = IsotopePatternCalculator.estimateIsotopePatternFast(formula, 0.01,
+//          0.01, 0, PolarityType.POSITIVE, false);
+//    }
+//    Duration mzmineTime = Duration.between(start, Instant.now());
+//    logger.info("mzmine " + mzmineTime.toString());
+
+    final IsotopePatternGenerator cdkGenerator = new IsotopePatternGenerator(0.01);
+    cdkGenerator.setMinResolution(resolution);
+    org.openscience.cdk.formula.IsotopePattern cdkIso = cdkGenerator.getIsotopes(formula);
+//    start = Instant.now();
+//    for (int i = 0; i < iterations; i++) {
+//      cdkIso = cdkGenerator.getIsotopes(formula);
+//    }
+//    Duration cdkTime = Duration.between(start, Instant.now());
+//    logger.info("cdk " + cdkTime.toString());
+    SimpleMassSpectrum cdkSpectrum = getSpectrum(cdkIso);
+
+    Assertions.assertTrue(Precision.equalRelativeSignificance(cdkSpectrum.getBasePeakMz(),
+            mzminePattern.getBasePeakMz(), 0.00001),
+        "Expected %f, found %f".formatted(cdkSpectrum.getBasePeakMz(),
+            mzminePattern.getBasePeakMz()));
+
+    for (int i = 0; i < mzminePattern.getNumberOfDataPoints(); i++) {
+      double mzValue = mzminePattern.getMzValue(i);
+      int cdkIndex = cdkSpectrum.binarySearch(mzValue, DefaultTo.CLOSEST_VALUE);
+      if (cdkIndex < 0) {
+        Assertions.fail("Expected peak not found");
+      }
+
+      final double cdkMz = cdkSpectrum.getMzValue(cdkIndex);
+      Assertions.assertTrue(Precision.equalRelativeSignificance(cdkMz, mzValue, 0.00001),
+          () -> "Expected %f, found %f".formatted(cdkMz, mzValue));
+
+//      double intensity = mzmineSpectrum.getIntensityValue(i);
+//      double cdkIntensity = cdkSpectrum.getIntensityValue(cdkIndex);
+//      Assertions.assertTrue(Precision.equalRelativeSignificance(intensity, cdkIntensity, 0.1), () -> "Expected %f, found %f".formatted(cdkIntensity, intensity));
+    }
+
+  }
+
+  private static @NotNull SimpleMassSpectrum getSpectrum(
+      org.openscience.cdk.formula.IsotopePattern mzmineIso) {
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+    for (IsotopeContainer isotope : mzmineIso.getIsotopes()) {
+      mzs.add(isotope.getMass());
+      intensities.add(isotope.getIntensity());
+    }
+    SimpleMassSpectrum mzmineSpectrum = new SimpleMassSpectrum(mzs.toDoubleArray(),
+        intensities.toDoubleArray());
+    return mzmineSpectrum;
+  }
 }

@@ -49,10 +49,10 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
-
-  private ILipidClass lipidClass;
-  private String annotation;
   private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL = LipidAnnotationLevel.SPECIES_LEVEL;
+
+  private final ILipidClass lipidClass;
+  private final String annotation;
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
@@ -75,18 +75,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
   }
 
   @Override
-  public void setLipidClass(ILipidClass lipidClass) {
-    this.lipidClass = lipidClass;
-  }
-
-  @Override
   public String getAnnotation() {
     return annotation;
-  }
-
-  @Override
-  public void setAnnotation(String annotation) {
-    this.annotation = annotation;
   }
 
   @Override

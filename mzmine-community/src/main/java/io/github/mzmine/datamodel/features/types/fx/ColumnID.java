@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,10 +61,14 @@ public class ColumnID {
   private final String uniqueIdStr;
 
   /**
-   * @param dt   The {@link DataType} this column represents
-   * @param type The {@link ColumnType} to determine if this is a feature or row type column.
-   * @param raw  The {@link RawDataFile} this column belongs to or null if not a features type
-   *             column.
+   * @param dt             The {@link DataType} this column represents, the main type for
+   *                       {@link SubColumnsFactory}s
+   * @param type           The {@link ColumnType} to determine if this is a feature or row type
+   *                       column.
+   * @param raw            The {@link RawDataFile} this column belongs to or null if not a features
+   *                       type column.
+   * @param subcolumnIndex -1 if this is not a sub column of a {@link SubColumnsFactory} type, the
+   *                       index otherwise.
    */
   public ColumnID(@NotNull DataType dt, @NotNull ColumnType type, @Nullable RawDataFile raw,
       int subcolumnIndex) {

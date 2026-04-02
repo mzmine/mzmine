@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -40,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
@@ -72,8 +75,7 @@ public interface FeatureList {
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull
-  String getName();
+  @NotNull String getName();
 
   /**
    * Change the name of this feature list
@@ -304,8 +306,7 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable
-  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -481,8 +482,7 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull
-  R2RNetworkingMaps getRowMaps();
+  @NotNull R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -490,16 +490,14 @@ public interface FeatureList {
    *
    * @return map of feature DataType listeners
    */
-  @NotNull
-  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
 
   /**
    * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
    *
    * @return map of feature DataType listeners
    */
-  @NotNull
-  Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
 
   /**
    * @param row
@@ -552,6 +550,50 @@ public interface FeatureList {
   void applyDefaultRowsSorting();
 
   void clearRows();
+
+  /**
+   * @param excluded true to exclude this feature list from batch last
+   */
+  void setExcludedFromBatchLast(boolean excluded);
+
+  /**
+   * @return true if this feature list should never be used as batch last feature list
+   */
+  boolean isExcludedFromBatchLastSelection();
+
+  /**
+   * This counter allows a quick comparison if the last used {@link AnnotationSummarySortConfig} in
+   * classes like {@link AnnotationSummary} is still the same to
+   * {@link #getAnnotationSortConfig()}.
+   * <p>
+   * This is useful to precompute scores so that they are only computed once, especially during
+   * sorting.
+   *
+   * @return version as modification counter
+   */
+  int getAnnotationSortConfigVersion();
+
+  /**
+   * The annotation sorting config is initialized by its default
+   * {@link AnnotationSummarySortConfig#DEFAULT} and changed by
+   * {@link PreferredAnnotationRankingModule}.
+   * <p>
+   * The version counter {@link #getAnnotationSortConfigVersion()} signals if the internal config
+   * has changed.
+   *
+   * @return the annotation sorting config
+   */
+  @NotNull AnnotationSummarySortConfig getAnnotationSortConfig();
+
+  /**
+   * The annotation sorting config is initialized by its default
+   * {@link AnnotationSummarySortConfig#DEFAULT} and changed by
+   * {@link PreferredAnnotationRankingModule}.
+   * <p>
+   * The version counter {@link #getAnnotationSortConfigVersion()} signals if the internal config
+   * has changed.
+   */
+  void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig);
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

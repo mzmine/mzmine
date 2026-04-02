@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,20 @@
  .root {
    -error-text-color: #cc0033;
    -warning-text-color: #CC9900;
+   -contrast-text-color: #BF2C84;
     /* set background color of scene root node so that stages have correct color
      most panes are transparent - so root needs to have base color */
    -fx-background-color: -jr-base;
  }
+
+
+.radio-button > .radio,
+.check-box > .box {
+    -fx-background-color: -fx-outer-border, -fx-control-inner-background;
+    -fx-background-radius: 0;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-background-insets: 2px;
+}
 
 .error-label {
   -fx-text-fill: -error-text-color;
@@ -45,9 +55,20 @@ Text.error-label {
   -fx-text-fill: -warning-text-color;
   -fx-icon-color: -warning-text-color;
 }
+
 Text.warning-label {
   /* Text uses fill instead of text fill */
   -fx-fill: -warning-text-color;
+}
+
+.contrast-label {
+  -fx-text-fill: -contrast-text-color;
+  -fx-icon-color: -contrast-text-color;
+}
+
+Text.contrast-label {
+  -fx-fill: -contrast-text-color;
+  -fx-icon-color: -contrast-text-color;
 }
 
 /* Option to set all Text children in TextFlow to yellow */
@@ -129,6 +150,25 @@ Text.warning-label {
     -fx-effect: dropshadow(three-pass-box, skyblue, 14, 0, 0, 0);
 }
 
+/* make annotation summary tooltip white text */
+.tooltip > HBox > VBox > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > HBox > VBox > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
+.tooltip > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
+.tooltip > TextFlow > Text {
+    -fx-fill: -jr-tooltip-fg;
+}
+.tooltip > TextFlow > Label {
+    -fx-text-fill: -jr-tooltip-fg;
+}
 
 .tooltip-error {
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 5);

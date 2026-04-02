@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,21 +34,25 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunction;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
@@ -361,8 +364,9 @@ public class FeatureDataUtils {
     if (rawTrace != null) {
       final OtherFeature preProcessed = featureData.getTimeSeriesData()
           .getPreProcessedFeatureForTrace(rawTrace);
-      if(preProcessed != null && preProcessed.get(AreaType.class) != null) {
-        feature.set(AreaPercentType.class, feature.get(AreaType.class) / preProcessed.get(AreaType.class));
+      if (preProcessed != null && preProcessed.get(AreaType.class) != null) {
+        feature.set(AreaPercentType.class,
+            feature.get(AreaType.class) / preProcessed.get(AreaType.class));
       }
     }
   }
@@ -404,6 +408,13 @@ public class FeatureDataUtils {
 
     if (calcQuality) {
       calculateQualityParameters(feature);
+    }
+
+    // auto-apply normalization if present
+    final NormalizationFunction normalizer = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
+        feature.getFeatureList(), feature.getRawDataFile());
+    if (normalizer != null) {
+      normalizeAbundances(feature, normalizer);
     }
   }
 
@@ -483,5 +494,16 @@ public class FeatureDataUtils {
     if (!Float.isNaN(af)) {
       feature.set(AsymmetryFactorType.class, af);
     }
+  }
+
+  public static void normalizeAbundances(@NotNull ModularFeature feature,
+      @Nullable final NormalizationFunction normalizer) {
+    if (normalizer == null) {
+      return;
+    }
+
+    final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
+    feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
+    feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
   }
 }

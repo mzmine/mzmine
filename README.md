@@ -100,3 +100,8 @@ https://github.com/mzmine/mzmine/issues
 
 Guides and more information is in the mzmine documentation:
 https://mzmine.github.io/mzmine_documentation/contribute_intellij.html
+
+### AI coding help
+
+Use the [claude_codex_template.md](claude_codex_template.md) for your agent. When submitting PRs
+with AI code, review the changes yourself (human review) before submitting a PR.

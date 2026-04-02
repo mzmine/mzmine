@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.row_type_filter.filters;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
@@ -35,6 +38,7 @@ import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -88,11 +92,20 @@ class FormulaRangeRowTypeFilter extends AbstractRowTypeFilter {
 
   @Override
   public boolean matches(FeatureListRow row) {
-    return CompoundAnnotationUtils.streamFeatureAnnotations(row).map(FeatureAnnotation::getFormula)
-        .anyMatch(this::matchesFormula);
+    return row.streamAllFeatureAnnotations().map(FeatureAnnotation::getFormula)
+        .anyMatch(this::matchesFormula) || matchesFormulaListType(row);
   }
 
-  private boolean matchesFormula(String formulaStr) {
+  private boolean matchesFormulaListType(@NotNull final FeatureListRow row) {
+    final List<ResultFormula> formulas = row.get(FormulaListType.class);
+    if (formulas == null || formulas.isEmpty()) {
+      return false;
+    }
+
+    return formulas.stream().map(ResultFormula::getFormulaAsString).anyMatch(this::matchesFormula);
+  }
+
+  private boolean matchesFormula(@Nullable String formulaStr) {
     final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         formulaStr);
     if (formula == null) {

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -87,6 +87,7 @@ import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -119,11 +120,10 @@ import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReac
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
-import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -338,15 +338,15 @@ public class BatchModeModulesList {
           VolcanoPlotRegionExtractionModule.class, //
           PCALoadingsExtractionModule.class, //
           SplitAlignedFeatureListModule.class, //
+          PreferredAnnotationRankingModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
            */
           ClearFeatureAnnotationsModule.class, //
-          LinearNormalizerModule.class, //
+          IntensityNormalizerModule.class, //
           RTCorrectionModule.class, //
           ScanRtCorrectionModule.class, //
-          StandardCompoundNormalizerModule.class, //
           RICalculationModule.class, //
 
           /*

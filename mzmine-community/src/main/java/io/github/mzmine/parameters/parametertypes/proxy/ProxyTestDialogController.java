@@ -25,14 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.proxy;
 
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.util.web.ProxyTestUtils;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
+import io.github.mzmine.main.MZmineCore;
 import org.jetbrains.annotations.NotNull;
 
 public class ProxyTestDialogController extends FxController<ProxyTestDialogModel> {
@@ -43,22 +40,7 @@ public class ProxyTestDialogController extends FxController<ProxyTestDialogModel
     super(new ProxyTestDialogModel());
     viewBuilder = new ProxyTestDialogViewBuilder(model);
 
-    onTaskThread(this::runTests);
-  }
-
-  private void runTests() {
-    final boolean testProxy = ProxyTestUtils.testDefaultClient(true);
-    final boolean testNoProxy = ProxyTestUtils.testDefaultClient(false);
-
-    final String results = ProxyTestUtils.testAll();
-    final String log = ProxyTestUtils.logProxyState("Proxy config test: ");
-
-    FxThread.runLater(() -> {
-      model.setProxyTest(testProxy);
-      model.setNoProxyTest(testNoProxy);
-      model.setMessage(results + "\n\n" + log);
-      model.setTestsFinished(true);
-    });
+    onTaskThread(new ProxyTestUpdateTask(model));
   }
 
   @Override
@@ -68,9 +50,8 @@ public class ProxyTestDialogController extends FxController<ProxyTestDialogModel
 
   public void showDialog() {
     FxThread.runLater(() -> {
-      final Alert dialog = DialogLoggerUtil.createAlert(AlertType.NONE,
-          DialogLoggerUtil.getMainWindow(), "Proxy connection test", buildView(), ButtonType.CLOSE);
-      dialog.show();
+      // use tab because dialog layout with auto sizing opened a too small dialog
+      MZmineCore.getDesktop().addTab(new SimpleTab("Proxy test", buildView()));
     });
   }
 }

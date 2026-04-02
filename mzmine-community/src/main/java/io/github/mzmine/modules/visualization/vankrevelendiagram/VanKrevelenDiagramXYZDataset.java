@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
@@ -60,7 +61,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, XYZBubbleDataset {
+class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, XYZBubbleDataset,
+    XYItemObjectProvider<FeatureListRow> {
 
   // TODO replace with getTask or AbstractTaskXYZDataset
   private static final Logger logger = Logger.getLogger(
@@ -76,6 +78,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   private final double[] yValues;
   private final double[] colorScaleValues;
   private final double[] bubbleSizeValues;
+  private VanKrevelenDiagramDataTypes colorVanKrevelenDataType;
   private VanKrevelenDiagramDataTypes bubbleVanKrevelenDataType;
 
 
@@ -108,6 +111,8 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues).getValue());
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(VanKrevelenDiagramParameters.bubbleSizeValues).getValue());
+    colorVanKrevelenDataType = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
+        .getValue();
     bubbleVanKrevelenDataType = parameters.getParameter(
         VanKrevelenDiagramParameters.bubbleSizeValues).getValue();
     finishedSteps = 1;
@@ -144,6 +149,28 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
       default -> null;
     };
+  }
+
+  FeatureListRow getRow(final int item) {
+    return filteredRows.get(item);
+  }
+
+  @Override
+  public @Nullable FeatureListRow getItemObject(final int item) {
+    if (item < filteredRows.size()) {
+      return filteredRows.get(item);
+    }
+    return null;
+  }
+
+  @Nullable
+  String getFormulaString(final int item) {
+    final Object ann = getRow(item).getPreferredAnnotation();
+    return ann == null ? null : getFormulaFromAnnotation(ann);
+  }
+
+  public VanKrevelenDiagramDataTypes getColorVanKrevelenDataType() {
+    return colorVanKrevelenDataType;
   }
 
   private void initDimensionValues(double[] values,

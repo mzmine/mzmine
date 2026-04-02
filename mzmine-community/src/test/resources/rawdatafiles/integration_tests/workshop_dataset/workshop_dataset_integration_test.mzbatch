@@ -1,9 +1,45 @@
-<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.5.39">
-    <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" parameter_version="1">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<batch mzmine_version="4.8.56">
+  <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule"
+    module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
             <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
             <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
         </parameter>
+    <parameter name="Vendor data options">
+      <parameter name="Try vendor centroiding">false</parameter>
+      <parameter name="Remove calibrant signals (Thermo)">true</parameter>
+      <parameter name="Apply lockmass on import (Waters)" selected="true">
+        <parameter name="Positive lockmass">556.276575</parameter>
+        <parameter name="Negative lockmass">554.262022</parameter>
+      </parameter>
+      <parameter name="Waters MassLynx data import">native</parameter>
+    </parameter>
         <parameter name="Advanced import" selected="false">
             <parameter name="Scan filters" selected="false">
                 <parameter name="Scan number"/>
@@ -27,10 +63,12 @@
                     <parameter name="Noise level"/>
                 </module>
                 <module name="Exact mass">
-                    <parameter name="Noise level"/>
+                  <parameter name="Noise level">1000.0</parameter>
                 </module>
                 <module name="Local maxima">
                     <parameter name="Noise level"/>
+                  <parameter name="Minimum non-zero points">3</parameter>
+                  <parameter name="Intensity calculation">Height</parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -54,10 +92,12 @@
                     <parameter name="Noise level"/>
                 </module>
                 <module name="Exact mass">
-                    <parameter name="Noise level"/>
+                  <parameter name="Noise level">300.0</parameter>
                 </module>
                 <module name="Local maxima">
                     <parameter name="Noise level"/>
+                  <parameter name="Minimum non-zero points">3</parameter>
+                  <parameter name="Intensity calculation">Height</parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -82,7 +122,9 @@
             <file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"
+    module_name="Mass detection" parameter_version="1">
         <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
@@ -104,27 +146,31 @@
                 <parameter name="Noise level">1000.0</parameter>
             </module>
             <module name="Centroid">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">10.0</parameter>
             </module>
             <module name="Exact mass">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">100.0</parameter>
             </module>
             <module name="Local maxima">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">1.0</parameter>
+              <parameter name="Minimum non-zero points">3</parameter>
+              <parameter name="Intensity calculation">Height</parameter>
             </module>
             <module name="Recursive threshold">
-                <parameter name="Noise level"/>
-                <parameter name="Min m/z peak width"/>
-                <parameter name="Max m/z peak width"/>
+              <parameter name="Noise level">10.0</parameter>
+              <parameter name="Min m/z peak width">5.0E-4</parameter>
+              <parameter name="Max m/z peak width">0.01</parameter>
             </module>
             <module name="Wavelet transform">
-                <parameter name="Noise level"/>
-                <parameter name="Scale level"/>
-                <parameter name="Wavelet window size (%)"/>
+              <parameter name="Noise level">50.0</parameter>
+              <parameter name="Scale level">5</parameter>
+              <parameter name="Wavelet window size (%)">1.0</parameter>
             </module>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"
+    module_name="Mass detection" parameter_version="1">
         <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
@@ -146,27 +192,31 @@
                 <parameter name="Noise level">1000.0</parameter>
             </module>
             <module name="Centroid">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">10.0</parameter>
             </module>
             <module name="Exact mass">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">100.0</parameter>
             </module>
             <module name="Local maxima">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">1.0</parameter>
+              <parameter name="Minimum non-zero points">3</parameter>
+              <parameter name="Intensity calculation">Height</parameter>
             </module>
             <module name="Recursive threshold">
-                <parameter name="Noise level"/>
-                <parameter name="Min m/z peak width"/>
-                <parameter name="Max m/z peak width"/>
+              <parameter name="Noise level">10.0</parameter>
+              <parameter name="Min m/z peak width">5.0E-4</parameter>
+              <parameter name="Max m/z peak width">0.01</parameter>
             </module>
             <module name="Wavelet transform">
-                <parameter name="Noise level"/>
-                <parameter name="Scale level"/>
-                <parameter name="Wavelet window size (%)"/>
+              <parameter name="Noise level">50.0</parameter>
+              <parameter name="Scale level">5</parameter>
+              <parameter name="Wavelet window size (%)">1.0</parameter>
             </module>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"
+    module_name="Chromatogram builder" parameter_version="1">
         <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
@@ -189,9 +239,9 @@
             <ppmtolerance>10.0</ppmtolerance>
         </parameter>
         <parameter name="Suffix">eics</parameter>
-        <parameter name="Allow single scan chromatograms"/>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule" parameter_version="1">
+  <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"
+    module_name="Smoothing" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Smoothing algorithm" selected_item="Savitzky Golay">
             <module name="Loess smoothing">
@@ -206,7 +256,9 @@
         <parameter name="Original feature list">REMOVE</parameter>
         <parameter name="Suffix">sm</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule" parameter_version="2">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"
+    module_name="Local minimum feature resolver" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Suffix">r</parameter>
         <parameter name="Original feature list">REMOVE</parameter>
@@ -224,6 +276,7 @@
             <parameter name="Advanced" selected="false">
                 <parameter name="Minimum signal intensity (absolute, TIMS)" selected="false">250.0</parameter>
                 <parameter name="Minimum signal intensity (relative, TIMS)" selected="false">0.01</parameter>
+              <parameter name="Group iterative MS2s" selected="false">mainQuantFile</parameter>
             </parameter>
         </parameter>
         <parameter name="Dimension">Retention time</parameter>
@@ -238,7 +291,9 @@
         </parameter>
         <parameter name="Minimum scans (data points)">6</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"
+    module_name="13C isotope filter (formerly: isotope grouper)" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Name suffix">deiso</parameter>
         <parameter name="m/z tolerance (intra-sample)">
@@ -253,7 +308,9 @@
         <parameter name="Never remove feature with MS2">true</parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"
+    module_name="Isotopic peaks finder" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Chemical elements">H,C,N,O,S</parameter>
         <parameter name="m/z tolerance (feature-to-scan)">
@@ -263,7 +320,8 @@
         <parameter name="Maximum charge of isotope m/z">1</parameter>
         <parameter name="Search in scans">SINGLE MOST INTENSE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" parameter_version="1">
+  <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule"
+    module_name="Join aligner" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Feature list name">Aligned feature list</parameter>
         <parameter name="m/z tolerance (sample-to-sample)">
@@ -306,14 +364,48 @@
         </parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule" parameter_version="2">
+  <batchstep method="io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule"
+    module_name="Feature list rows filter" parameter_version="3">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Name suffix">13C peak</parameter>
-        <parameter name="Minimum aligned features (samples)" selected="true">
+    <parameter name="Keep or remove rows">Keep rows that match all criteria</parameter>
+    <parameter name="Original feature list">REMOVE</parameter>
+    <parameter name="Minimum aligned samples" selected="true">
             <abs>2</abs>
             <rel>0.0</rel>
         </parameter>
-        <parameter name="Minimum features in an isotope pattern" selected="false">2</parameter>
+    <parameter name="Minimum aligned samples (in any group)" selected="false">
+      <parameter name="Minimum samples">
+        <abs>1</abs>
+        <rel>0.0</rel>
+      </parameter>
+      <parameter name="Metadata grouping"/>
+    </parameter>
+    <parameter name="Minimum aligned samples (in one group)" selected="false">
+      <parameter name="Minimum samples">
+        <abs>1</abs>
+        <rel>0.0</rel>
+      </parameter>
+      <parameter column="" group="" name="Sample grouping"/>
+    </parameter>
+    <parameter name="RSD filter" selected="false">
+      <parameter name="Abundance measure">Height</parameter>
+      <parameter name="Missing value imputation">GLOBAL_LIMIT_OF_DETECTION</parameter>
+      <parameter column="mzmine_sample_type" group="qc" name="Sample grouping"/>
+      <parameter name="Maximum missing values">0.2</parameter>
+      <parameter name="Maximum RSD">0.2</parameter>
+      <parameter name="Keep undetected">false</parameter>
+    </parameter>
+    <parameter name="Significance/fold-change filter" selected="false">
+      <parameter name="Abundance measure">Height</parameter>
+      <parameter name="Missing value imputation">GLOBAL_LIMIT_OF_DETECTION</parameter>
+      <parameter column="" groupA="" groupB="" name="Metadata selection"/>
+      <parameter name="Significance test">WELCHS_T_TEST</parameter>
+      <parameter name="Maximum p-value">0.05</parameter>
+      <parameter name="log2(fold-change) threshold">1.0</parameter>
+      <parameter name="Fold-change filter">abs_both_sides</parameter>
+    </parameter>
+    <parameter name="Minimum signals in an isotope pattern" selected="false">2</parameter>
         <parameter name="Validate 13C isotope pattern" selected="true">
             <parameter name="m/z tolerance">
                 <absolutetolerance>0.0015</absolutetolerance>
@@ -325,9 +417,15 @@
             <parameter name="Exclude isotopes">O</parameter>
         </parameter>
         <parameter name="Remove redundant isotope rows">false</parameter>
-        <parameter name="m/z" selected="false"/>
-        <parameter name="Retention time" selected="false"/>
-        <parameter name="features duration range" selected="false">
+    <parameter name="m/z" selected="false">
+      <min>454.0</min>
+      <max>455.0</max>
+    </parameter>
+    <parameter name="Retention time" selected="false">
+      <min>35.0</min>
+      <max>36.0</max>
+    </parameter>
+    <parameter name="Chromatographic width" selected="false">
             <min>0.0</min>
             <max>3.0</max>
         </parameter>
@@ -339,6 +437,7 @@
             <min>1</min>
             <max>2</max>
         </parameter>
+    <parameter name="Mass defect" selected="false"/>
         <parameter name="Kendrick mass defect" selected="false">
             <parameter name="Kendrick mass defect">
                 <min>0.0</min>
@@ -350,19 +449,23 @@
             <parameter name="Divisor">1</parameter>
             <parameter name="Use Remainder of Kendrick mass">false</parameter>
         </parameter>
-        <parameter name="Parameter">No parameters defined</parameter>
+    <parameter name="Flexible filter (e.g., annotation)" selected="false">
+      <parameter name="Matching mode"/>
+      <parameter name="Type"/>
+      <parameter name="Search value"/>
+    </parameter>
         <parameter name="Only identified?">false</parameter>
         <parameter name="Text in identity" selected="false"/>
         <parameter name="Text in comment" selected="false"/>
-        <parameter name="Keep or remove rows">Keep rows that match all criteria</parameter>
-        <parameter name="Feature with MS2 scan">false</parameter>
-        <parameter name="Never remove feature with MS2">true</parameter>
+    <parameter name="Require MS2 scan">false</parameter>
+    <parameter name="Require other detector correlation">false</parameter>
+    <parameter name="Never remove rows with MS2">true</parameter>
         <parameter name="Never remove annotated rows">false</parameter>
-        <parameter name="Reset the feature number ID">false</parameter>
-        <parameter name="Mass defect" selected="false"/>
-        <parameter name="Original feature list">REMOVE</parameter>
+    <parameter name="Reset the row ID">false</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule"
+    module_name="Feature finder (multithreaded)" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Name suffix">gaps</parameter>
         <parameter name="Intensity tolerance">0.2</parameter>
@@ -374,7 +477,9 @@
         <parameter name="Minimum scans (data points)">3</parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule"
+    module_name="Duplicate peak filter" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Name suffix">dup</parameter>
         <parameter name="Filter mode">NEW AVERAGE</parameter>
@@ -387,7 +492,9 @@
         <parameter name="Require same identification">false</parameter>
         <parameter name="Original feature list">REMOVE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule" parameter_version="3">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"
+    module_name="Correlation grouping (metaCorrelate)" parameter_version="3">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="RT tolerance" unit="MINUTES">0.055999998</parameter>
         <parameter name="Minimum feature height">0.0</parameter>
@@ -423,7 +530,9 @@
             <parameter name="Simplify for ≥ samples">250</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"
+    module_name="Ion identity networking" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="m/z tolerance (intra-sample)">
             <absolutetolerance>0.0015</absolutetolerance>
@@ -589,7 +698,9 @@
             <parameter name="Delete rows witout ion id">false</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule" parameter_version="3">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule"
+    module_name="Spectral library search" parameter_version="3">
         <parameter name="Spectral libraries" type="ALL_IMPORTED"/>
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Merge &amp; select fragment scans" selected_item="simple_merged">
@@ -639,7 +750,10 @@
             </module>
         </parameter>
         <parameter name="Advanced" selected="false">
-            <parameter name="Retention time tolerance" selected="false"/>
+          <parameter name="Retention time tolerance" selected="false" unit="MINUTES">0.1</parameter>
+          <parameter columnType="NONPOLAR" matchWithoutRi="false" name="Retention index tolerance"
+            selected="true">300.0
+          </parameter>
             <parameter name="CCS tolerance [%]" selected="false">0.05</parameter>
             <parameter name="13C deisotoping" selected="false">
                 <parameter name="m/z tolerance">
@@ -653,7 +767,9 @@
             <parameter name="Crop spectra to m/z overlap">false</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule" parameter_version="2">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"
+    module_name="Lipid Annotation" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Lipid classes">
             <item>Fatty Acyls</item>
@@ -936,5 +1052,30 @@
                 <item>[3M-H]-</item>
             </parameter>
         </parameter>
+  </batchstep>
+  <batchstep method="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"
+    module_name="Export to CSV file (modular)" parameter_version="1">
+    <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+    <parameter name="Filename">
+      <current_file>
+        C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv
+      </current_file>
+      <last_file>
+        C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv
+      </last_file>
+      <last_file>C:\Users\Steffen\Desktop\test.csv</last_file>
+      <last_file>C:\Users\Steffen\Desktop\pest_local_min.csv</last_file>
+      <last_file>C:\Users\Steffen\Desktop\compare_dda_adriano.csv</last_file>
+      <last_file>C:\Users\Steffen\Desktop\compare_mz.csv</last_file>
+      <last_file>C:\Users\Steffen\Desktop\compare_rt.csv</last_file>
+      <last_file>C:\Users\Steffen\Desktop\compare_rtmz.csv</last_file>
+      <last_file>
+        C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\lc_tims\expected_results.csv
+      </last_file>
+    </parameter>
+    <parameter name="Field separator">,</parameter>
+    <parameter name="Identification separator">;</parameter>
+    <parameter name="Remove empty columns">true</parameter>
+    <parameter name="Filter rows">ALL</parameter>
     </batchstep>
 </batch>

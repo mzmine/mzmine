@@ -100,11 +100,20 @@ public record ManualProxyConfig(@NotNull ProxyType type, @NotNull String host, i
 
   @NotNull
   public String getFullProxyString() {
-    return "%s://%s:%s".formatted(type.toString(), host, port);
+    return "%s://%s:%d".formatted(type.toString(), host, port);
   }
 
   @Override
   public @NotNull String toString() {
     return getFullProxyString();
+  }
+
+  public String fullDefinitionString() {
+    if (nonProxyHosts.isEmpty()) {
+      return getFullProxyString();
+    } else {
+      return "%s (non-proxy hosts: %s)".formatted(getFullProxyString(),
+          String.join(", ", nonProxyHosts));
+    }
   }
 }

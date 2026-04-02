@@ -182,9 +182,9 @@ public class FeatureListsSelection implements Cloneable {
     FeatureListsSelection newSelection = new FeatureListsSelection();
     newSelection.selectionType = selectionType;
     newSelection.namePattern = namePattern;
+    newSelection.specificFeatureLists = specificFeatureLists;
     // avoid memory leak use placeholder with weak references
     if (keepSelection) {
-      newSelection.specificFeatureLists = specificFeatureLists;
       newSelection.batchLastFeatureLists = batchLastFeatureLists;
       newSelection.evaluatedSelection = evaluatedSelection;
     }

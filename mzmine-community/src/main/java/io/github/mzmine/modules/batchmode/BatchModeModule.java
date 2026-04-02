@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,11 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -43,8 +45,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -79,12 +79,16 @@ public class BatchModeModule implements MZmineProcessingModule {
           "Cannot run a second batch while the current batch is not finished.");
       return null;
     }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
+      return null;
+    }
 
     logger.info("Running batch from file " + batchFile);
 
     try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document parsedBatchXML = docBuilder.parse(batchFile);
+      final Document parsedBatchXML = XMLUtils.load(batchFile);
 
       List<String> errorMessages = new ArrayList<>();
       // fail on missing modules - here its usually run from the command line - fail it
@@ -134,6 +138,12 @@ public class BatchModeModule implements MZmineProcessingModule {
           "Cannot run a second batch while the current batch is not finished.");
       return null;
     }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
+      return null;
+    }
+
 
     // change input files and spectral libraries, e.g., by command line arguments
     if (overrideDataFiles != null || overrideSpectralLibraryFiles != null
@@ -189,6 +199,11 @@ public class BatchModeModule implements MZmineProcessingModule {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
+      return ExitCode.ERROR;
+    }
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(ProjectOpeningTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Currently loading a project, cannot run a batch until project load is finished.");
       return ExitCode.ERROR;
     }
 

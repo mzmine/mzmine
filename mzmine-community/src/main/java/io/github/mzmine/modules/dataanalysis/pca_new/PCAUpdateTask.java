@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -41,7 +41,6 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
-import io.github.mzmine.util.collections.SortOrder;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
@@ -117,13 +117,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     // data was already prepared
     final List<FeatureListRow> rows = featureDataTable.getFeatureListRows();
 
+    Comparator<@Nullable AnnotationSummary> annotationSummarySorter = AnnotationSummaryOrder.MZMINE.getComparatorLowFirst();
     // change sorting
-    final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
-        SortOrder.ASCENDING);
-    final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
+    final Map<@NotNull FeatureListRow, @NotNull AnnotationSummary> rowsMappedToBestSummary = CompoundAnnotationUtils.mapRowsToBestAnnotationSummary(
         rows, true);
-    final Comparator<FeatureListRow> finalRowSorter = (r1, r2) -> annotationPrioSorter.compare(
-        rowsMappedToBestAnnotation.get(r1), rowsMappedToBestAnnotation.get(r2));
+    final Comparator<FeatureListRow> finalRowSorter = (r1, r2) -> annotationSummarySorter.compare(
+        rowsMappedToBestSummary.get(r1), rowsMappedToBestSummary.get(r2));
 
     // apply sorting to DataTable
     featureDataTable = DataTableUtils.createSortedCopy(featureDataTable, finalRowSorter);

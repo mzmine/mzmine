@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionException;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
@@ -89,6 +91,16 @@ class PrecursorDBSearchTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
+    // have to check if spectral libraries are all imported
+    // cannot run matching if libraries are still imported this is most likely because
+    // user loaded manually and started matching to early
+    if (TaskService.getController()
+        .isTaskInstanceRunningOrQueued(SpectralLibraryImportTask.class)) {
+      error(
+          "Cannot run spectral library matching while a spectral library is imported. Finish import first.");
+      return;
+    }
+
     List<CompoundDBAnnotation> entries = combineLibrariesSortedByMz();
     if (isCanceled()) {
       return;

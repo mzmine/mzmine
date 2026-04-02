@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * @param typeToCalculate The type to calculate the value for.
- * @param calc            A function to calculate the desired value of the type. May trhow an
+ * @param calc            A function to calculate the desired value of the type. May throw an
  *                        {@link NullPointerException} (caught) but no other exception.
  * @param <T>
  */
@@ -88,22 +88,34 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzPpmDifferenceType.class), (row, db) -> {
         final Double exactMass = db.get(PrecursorMZType.class);
-        return (float) MathUtils.getPpmDiff(exactMass, row.getAverageMZ());
+        if (exactMass != null) {
+          return (float) MathUtils.getPpmDiff(exactMass, row.getAverageMZ());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzAbsoluteDifferenceType.class), (row, db) -> {
         final Double exactMass = db.get(PrecursorMZType.class);
-        return MzAbsoluteDifferenceType.calculate(exactMass, row.getAverageMZ());
+        if (exactMass != null) {
+          return MzAbsoluteDifferenceType.calculate(exactMass, row.getAverageMZ());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(CCSRelativeErrorType.class), (row, db) -> {
         final Float ccs = db.get(CCSType.class);
-        return PercentTolerance.getPercentError(ccs, row.getAverageCCS());
+        if (ccs != null) {
+          return PercentTolerance.getPercentError(ccs, row.getAverageCCS());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(RtAbsoluteDifferenceType.class), (row, db) -> {
         final Float rt = db.get(RTType.class);
-        return rt - row.getAverageRT();
+        if (rt != null) {
+          return rt - row.getAverageRT();
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(NeutralMassType.class),
@@ -134,7 +146,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
         annotation.putIfNotNull(typeToCalculate, result);
       }
     } catch (NullPointerException e) {
-      logger.info("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
+      logger.fine("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
     }
   }
 }

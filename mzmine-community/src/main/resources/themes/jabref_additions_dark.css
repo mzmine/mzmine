@@ -26,6 +26,8 @@
  .root {
    -error-text-color: #e12525;
    -warning-text-color: #e8cd1b;
+   -jr-tooltip-bg: -jr-accent-below-text;
+   -jr-tooltip-fg: -jr-white;
  }
 
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {

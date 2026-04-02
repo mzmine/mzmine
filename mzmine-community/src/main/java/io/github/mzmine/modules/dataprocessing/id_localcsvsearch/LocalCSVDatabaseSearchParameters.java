@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,9 +56,16 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxFileChooser;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -76,14 +83,24 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.CsvWriter;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.stage.FileChooser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,6 +149,11 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       new IsotopePatternMatcherParameters());
 
+  public static final BooleanParameter calculateMainSignal = new BooleanParameter(
+      "Calculate main isotopic signal",
+      "Calculate the main signal of an isotope pattern for large molecules (>C75) and elements other than CHONPFI.",
+      true);
+
   private static final Function<@Nullable String, @Nullable Float> wildcardFloatMapper = s -> {
     final Float v = ParsingUtils.stringToFloat(s);
     if (v == null || v >= 0) {
@@ -178,6 +200,13 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       HandleExtraColumnsOptions.IMPORT_SPECIFIC,
       new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
 
+  public static final ComboParameter<ChargeFilterType> chargeFilter = new ComboParameter<>(
+      "Charge filter", """
+      If enabled, the charge of the compound determined through the "%s" parameter or by importing
+      the "%s" type and matched to the determined charge of the feature (isotope pattern must be detected).
+      If no isotope pattern is detected, the charge filtering is not executed and compounds are matched
+      regardless of charge state.""".formatted(ionLibrary.getName(),
+      new IonTypeType().getHeaderString()), ChargeFilterType.values(), ChargeFilterType.NO_FILTER);
 
   // old parameter
   private final StringParameter commentFields = new StringParameter("Append comment fields",
@@ -188,12 +217,15 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html",
         peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance, mobTolerance,
-        ccsTolerance, riTolerance, isotopePatternMatcher, ionLibrary, filterSamples, extraColumns);
+        ccsTolerance, riTolerance, chargeFilter, isotopePatternMatcher, ionLibrary,
+        calculateMainSignal, filterSamples, extraColumns);
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
 
     final List<ImportType<?>> selectedTypes = getParameter(columns).getValue().stream()
         .filter(ImportType::isSelected).toList();
@@ -222,7 +254,17 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
           new SmilesStructureType().getHeaderString()));
     }
 
-    return superCheck && anyIdentifierSelected && canDetermineMz;
+    boolean chargeFilterPossible = true;
+    if (getValue(chargeFilter) != ChargeFilterType.NO_FILTER && !(getValue(ionLibrary) || getValue(
+        columns).stream().filter(i -> i.getDataType().equals(new IonTypeType())).findFirst()
+        .map(ImportType::isSelected).orElse(false))) {
+      errorMessages.add("""
+          Cannot apply charge filtering if neither the "%s" parameter nor the "%s" charge are enabled.""".formatted(
+          ionLibrary.getName(), new IonTypeType().getHeaderString()));
+      chargeFilterPossible = false;
+    }
+
+    return superCheck && anyIdentifierSelected && canDetermineMz && chargeFilterPossible;
   }
 
   private boolean isAnyIdentifierSelected(Collection<String> errorMessages,
@@ -304,6 +346,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
                 commentFieldValues));
       }
     }
+
+    if (!loadedParams.containsKey(calculateMainSignal.getName())) {
+      setParameter(calculateMainSignal, false);
+    }
+
+    if (!loadedParams.containsKey(chargeFilter.getName())) {
+      setParameter(chargeFilter, ChargeFilterType.NO_FILTER);
+    }
   }
 
   @Override
@@ -322,5 +372,69 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       case 3 -> "Added support for Retention index (RI) matching.";
       default -> null;
     };
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
+
+    dialog.setMinWidth(600);
+    dialog.getParamsPane().setPrefWidth(800);
+    dialog.setMinHeight(500);
+
+
+    //
+    final Button exampleButton = FxButtons.createButton("Example", FxIcons.SAVE, """
+        Export an example table with all selected headers.
+        Also considers the filename column if the filter is activated.
+        Format depends on extension .csv (comma-separated) or .tsv (tab-separated).""", () -> {
+      final List<ImportType<?>> allTypes = getValue(columns);
+      final String fileNameColumn = getEmbeddedParameterValueIfSelectedOrElse(filterSamples, null);
+      final File dataBaseFile = getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
+      exportExampleFile(allTypes, fileNameColumn, dataBaseFile);
+    });
+    ButtonBar.setButtonData(exampleButton, ButtonData.OK_DONE);
+    dialog.getButtonBar().getButtons().add(exampleButton);
+
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  public static void exportExampleFile(@NotNull List<ImportType<?>> allTypes,
+      @Nullable String fileNameColumn, @Nullable File folder) {
+    final List<String> headers = allTypes.stream().filter(ImportType::isSelected)
+        .map(ImportType::getCsvColumnName).collect(CollectionUtils.toArrayList());
+    if (fileNameColumn != null) {
+      headers.addFirst(fileNameColumn);
+    }
+
+    if (headers.isEmpty()) {
+      DialogLoggerUtil.showWarningDialog("No column selected",
+          "Select columns and define headers for the csv example file.");
+      return;
+    }
+
+//    folder = folder == null ? null : (folder.exists() ? folder : folder.getParentFile());
+    final FileChooser chooser = FxFileChooser.newFileChooser(ExtensionFilters.CSV_TSV_EXPORT,
+        folder, "Select where to export example file");
+    File exportFile = chooser.showSaveDialog(null);
+    if (exportFile == null) {
+      return;
+    }
+    final List<String> extensions = chooser.getSelectedExtensionFilter().getExtensions();
+
+    final String selectedExtension = extensions.getFirst().replace("*.", "");
+    try {
+      CsvWriter.writeToFile(exportFile, List.of(headers), selectedExtension);
+    } catch (IOException e) {
+      DialogLoggerUtil.showWarningDialog("Failed to export example file",
+          "An error occurred while exporting the example file. " + e.getMessage());
+    }
   }
 }

@@ -25,13 +25,16 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @param <EnumType>     used in combo box of {@link ComboWithInputParameter}
  * @param <EmbeddedType> the embedded type in {@link ComboWithInputParameter}
  */
 public interface ComboWithInputValue<EnumType, EmbeddedType> {
 
-  EnumType getSelectedOption();
+  @NotNull EnumType getSelectedOption();
 
-  EmbeddedType getEmbeddedValue();
+  @Nullable EmbeddedType getEmbeddedValue();
 }

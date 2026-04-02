@@ -24,14 +24,15 @@
 
 package io.github.mzmine.util.reporting.jasper.reporttypes;
 
-import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeModule;
-import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.util.reporting.jasper.ReportingParameters;
 
+/**
+ * Sub parameters in {@link ReportingParameters}
+ */
 public class AlignedFeatureReportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter includeSummaryTable = new BooleanParameter(
@@ -47,12 +48,8 @@ public class AlignedFeatureReportParameters extends SimpleParameterSet {
       "Select the metadata grouping for the generation of the box plot.",
       MetadataColumn.SAMPLE_TYPE_HEADER);
 
-  public static final ParameterSetParameter<ExportChartThemeParameters> chartThemeParam = new ParameterSetParameter<>(
-      "Chart theme", "Define the chart theme", new ExportChartThemeParameters(), false,
-      ExportChartThemeModule.class);
-
   public AlignedFeatureReportParameters() {
-    super(includeSummaryTable, includeEvidencePages, grouping, chartThemeParam);
+    super(includeSummaryTable, includeEvidencePages, grouping);
   }
 
 }
