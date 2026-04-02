@@ -69,7 +69,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
    */
   private final Supplier<IsotopePattern> pattern = StableValue.supplier(
       () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
-          FormulaUtils.createMajorIsotopeMolFormula(getFormula()), getAdductType()));
+          FormulaUtils.createMajorIsotopeMolFormulaWithCharge(getFormula()), getAdductType()));
 
   /**
    * Copy constructor

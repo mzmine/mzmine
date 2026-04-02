@@ -57,7 +57,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Elements;
-import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -983,7 +982,7 @@ public class FormulaUtils {
     // ion formula - otherwise might be neutral molecule formula that needs to be ionized by adduct
     final Double mz = annotation.getPrecursorMZ();
     final double formulaMZ = FormulaUtils.calculateMzRatio(molecularFormula);
-    if (mz != null && MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA.checkWithinTolerance(formulaMZ, mz)) {
+    if (mz != null && MZTolerance.NARROW_5_PPM_OR_1_MDA.checkWithinTolerance(formulaMZ, mz)) {
       return molecularFormula;
     }
 

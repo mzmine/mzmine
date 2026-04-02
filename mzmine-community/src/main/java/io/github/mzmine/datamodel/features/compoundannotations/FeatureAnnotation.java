@@ -214,7 +214,7 @@ public interface FeatureAnnotation {
         formula = structure.formula();
       }
     } else {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formulaStr);
     }
     return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }

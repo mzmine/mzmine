@@ -32,6 +32,8 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.factories.FxSpinners.newSpinner;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newNumberField;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.util.FormulaUtils.getFormulaString;
@@ -42,9 +44,11 @@ import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextFi
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.FormulaStringFlavor;
@@ -65,6 +69,7 @@ import javafx.beans.property.StringProperty;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.util.Duration;
 import org.controlsfx.validation.ValidationSupport;
 import org.jetbrains.annotations.NotNull;
@@ -100,10 +105,12 @@ public class IonPartDefinitionPane extends BorderPane {
 
     var mzFormat = new DecimalFormat("0.########");
 
-    var txtName = newTextField(8, name, "Optional name (use formula)", "Optional name or empty to use the formula");
+    var txtName = newTextField(8, name, "Optional name (use formula)",
+        "Optional name or empty to use the formula");
     FxTextFields.autoGrowFitText(txtName, 12, 100);
 
-    var txtFormula = newFormulaTextField(FormulaStringFlavor.DEFAULT_NO_CHARGE, false, rawFormulaStr);
+    var txtFormula = newFormulaTextField(FormulaStringFlavor.DEFAULT_NO_CHARGE, false,
+        rawFormulaStr);
 //    FxTextFields.autoGrowFitText(txtFormula, 12, 100);
     singleFormula = txtFormula.formulaProperty();
 
@@ -120,17 +127,22 @@ public class IonPartDefinitionPane extends BorderPane {
         part.map(p -> p.toString(IonPartStringFlavor.FULL_WITH_MASS)).orElse("Cannot parse input"));
 
     var btnAdd = createDisabledButton("Add", FxIcons.ADD,
-        "Add new ion part based on name, formula, and charge", part.isNull(),
-        () -> addPart(false));
+        "Add new ion part based on name, formula, and charge", part.isNull(), () -> addPart(false));
     var btnAddAndClear = createDisabledButton("Add & clear", FxIcons.ADD,
-        "Add new ion part based on name, formula, and charge, then clear inputs",
-        part.isNull(), () -> addPart(true));
+        "Add new ion part based on name, formula, and charge, then clear inputs", part.isNull(),
+        () -> addPart(true));
     FxLayout.bindManagedToVisible(btnAddAndClear);
     btnAddAndClear.setVisible(showAddAndClear);
 
+    final Region infoPane = FxTextFlows.newTextFlowInAccordion("Info",
+        FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true, text("""
+            Ion building blocks define alternative names for ion additions or neutral losses, e.g., (NH4 for the formula H4N)."""),
+        boldText("\nImportant: "), text(
+            "Ion building blocks without an alternative name are parsed by their formula. No need to define them."));
+
     // layout in grid
     final GridPane ionCreationGrid = FxLayout.newGrid2Col(GridColumnGrow.NONE,
-        DEFAULT_PADDING_INSETS,
+        DEFAULT_PADDING_INSETS, gridRow(infoPane), //
         // formula is most important, name optional
         newLabel("Formula: "), txtFormula, //
         newLabel("Name: "), txtName, //

@@ -26,9 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
+import static io.github.mzmine.javafx.components.factories.FxLabels.colored;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
-import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
 import static io.github.mzmine.javafx.util.FxIconUtil.DEFAULT_LARGE_ICON_SIZE;
 import static io.github.mzmine.javafx.util.FxIconUtil.newIconButtonOpenUrl;
 

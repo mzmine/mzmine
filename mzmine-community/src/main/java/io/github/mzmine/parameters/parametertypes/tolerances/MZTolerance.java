@@ -36,6 +36,7 @@ import java.util.Objects;
  */
 public class MZTolerance {
 
+  public static final MZTolerance NARROW_5_PPM_OR_1_MDA = new MZTolerance(0.001, 5);
   public static final MZTolerance FIFTEEN_PPM_OR_FIVE_MDA = new MZTolerance(0.005, 15);
   public static final MZTolerance WIDE_25_PPM_OR_10_MDA = new MZTolerance(0.01, 25);
 

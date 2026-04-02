@@ -34,16 +34,19 @@ import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.util.StringUtils;
@@ -66,6 +69,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.util.Duration;
 
 class IonTypeDefinitionPane extends BorderPane {
@@ -115,6 +119,12 @@ class IonTypeDefinitionPane extends BorderPane {
   }
 
   private Node createIonTypeByStringPane() {
+
+    final Region infoPane = FxTextFlows.newTextFlowInAccordion("Info", FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true
+        , FxTexts.text("""
+            Ion types are defined by a molecule multiplier (2M) and multiple building blocks which define additions or neutral losses with their charge and mass differences.
+            Simply write an ion type notation, the parsed result will be shown below, and finally click add. Unknown names of building blocks need to be defined but formulas will be parsed directly."""));
+
     var lbParsingResult = newBoldLabel(
         parsedIonType.map(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS))
             .orElse("Cannot parse input"));
@@ -138,6 +148,7 @@ class IonTypeDefinitionPane extends BorderPane {
             part -> part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE)))));
 
     return newGrid2Col( //
+        gridRow(infoPane), //
         newLabel("Ion type:"), inputText, //
         newLabel("Result:"), lbParsingResult, //
         gridRow(lbUnknown), //

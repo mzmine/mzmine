@@ -68,7 +68,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import io.github.mzmine.datamodel.structures.StructureUtils;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -95,7 +94,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     Comparable<CompoundDBAnnotation> {
@@ -669,7 +667,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
         // find the most intense individual isotope signal as representative
         final IsotopePattern highResPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
-            majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
+            majorIsotopeIon, 0.005, 0d, adduct.totalCharge(), adduct.getPolarity(), true);
         final double mainPeak = mainIsotopePeak.getPrecursorMZ();
         Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
         IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,
