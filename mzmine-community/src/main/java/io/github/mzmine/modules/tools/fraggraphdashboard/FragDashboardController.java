@@ -60,7 +60,6 @@ import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FragDashboardController extends FxController<FragDashboardModel> {
 
@@ -189,8 +188,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 
         final Map<DataPoint, String> annotations = model.allNodesProperty().stream().collect(
             Collectors.toMap(sfm -> sfm.getPeakWithFormulae().peak(),
-                sfm -> FormulaUtils.getFormulaString(
-                    sfm.getSelectedFormulaWithMz().formula())));
+                sfm -> FormulaUtils.getFormulaString(sfm.getSelectedFormulaWithMz().formula())));
 
         final ResultFormula formula = new ResultFormula(chargedFormula, measuredPattern,
             model.getSpectrum(), model.getPrecursorMz(),

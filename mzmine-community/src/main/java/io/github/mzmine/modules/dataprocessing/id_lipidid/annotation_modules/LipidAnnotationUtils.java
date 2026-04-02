@@ -67,8 +67,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationUtils {
 
@@ -132,7 +130,8 @@ public class LipidAnnotationUtils {
             }
             for (IonizationType ionization : ionizationTypeList) {
               if (polarityTypes.contains(ionization.getPolarity())) {
-                double lipidIonMass = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula()) + ionization.getAddedMass();
+                double lipidIonMass = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula())
+                    + ionization.getAddedMass();
                 lipidDatabase.add(new LipidIon(lipid, ionization, lipidIonMass));
               }
             }

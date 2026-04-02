@@ -37,7 +37,6 @@ import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaTable extends TableView<ResultFormula> {
 

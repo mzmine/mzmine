@@ -31,7 +31,6 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.SignalWithFor
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import org.graphstream.graph.Node;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Node attributes for a fragment graph. This class describes the available values and sets them

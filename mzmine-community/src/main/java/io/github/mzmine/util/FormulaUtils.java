@@ -59,6 +59,7 @@ import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.MolecularFormula;
@@ -192,10 +193,26 @@ public class FormulaUtils {
     return false;
   }
 
+  /**
+   * @return count all elements with the same symbol
+   */
   public static int countElement(IMolecularFormula f, String element) {
     int count = 0;
     for (IIsotope iso : f.isotopes()) {
       if (iso.getSymbol().equals(element)) {
+        count += f.getIsotopeCount(iso);
+      }
+    }
+    return count;
+  }
+
+  /**
+   * @return Count all elements of the same atomic number
+   */
+  public static int countElement(IMolecularFormula f, IElement element) {
+    int count = 0;
+    for (IIsotope iso : f.isotopes()) {
+      if (Objects.equals(iso.getAtomicNumber(), element.getAtomicNumber())) {
         count += f.getIsotopeCount(iso);
       }
     }

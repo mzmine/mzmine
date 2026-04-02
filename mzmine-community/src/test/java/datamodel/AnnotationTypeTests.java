@@ -85,10 +85,7 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class AnnotationTypeTests {
 
@@ -358,12 +355,12 @@ public class AnnotationTypeTests {
         IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),
         0.5f, 0.1f,
         Map.of(new SimpleDataPoint(513.25, 1d), "C132", new SimpleDataPoint(200.26, 1d), "COF"),
-        MolecularFormulaManipulator.getMass(form1, 3));
+        FormulaUtils.getMonoisotopicMass(form1));
     ResultFormula formula2 = new ResultFormula(form2,
         IsotopePatternCalculator.calculateIsotopePattern(form2, 0.01, 1, PolarityType.POSITIVE),
-        0.5f, 0.1f, null, MolecularFormulaManipulator.getMass(form1, 3));
+        0.5f, 0.1f, null, FormulaUtils.getMonoisotopicMass(form1));
     ResultFormula formula3 = new ResultFormula(form3, null, 0.5f, null, null,
-        MolecularFormulaManipulator.getMass(form1, 3));
+        FormulaUtils.getMonoisotopicMass(form1));
 
     final List<ResultFormula> value = List.of(formula1, formula2, formula3);
     final FormulaListType type = new FormulaListType();

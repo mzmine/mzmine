@@ -45,8 +45,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidDatabaseCalculator {
 
@@ -115,7 +113,8 @@ public class LipidDatabaseCalculator {
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
               .map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
           for (IonizationType ionizationType : ionizationTypes) {
-            double mz = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula()) + ionizationType.getAddedMass();
+            double mz = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula())
+                + ionizationType.getAddedMass();
             exactMassSB.append(ionizationType.getAdductName()).append(" ")
                 .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }

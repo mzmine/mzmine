@@ -47,7 +47,6 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SubFormulaEdge {
 
@@ -96,8 +95,8 @@ public class SubFormulaEdge {
         Bindings.createObjectBinding(this::computeLossFormula, a.selectedFormulaWithMzProperty(),
             b.selectedFormulaWithMzProperty()));
     lossFormulaString.bind(Bindings.createStringBinding(
-        () -> lossFormula.get() != null ? FormulaUtils.getFormulaString(lossFormula.get())
-            : null, lossFormula));
+        () -> lossFormula.get() != null ? FormulaUtils.getFormulaString(lossFormula.get()) : null,
+        lossFormula));
     // the signals do not change, can just set this property for now
     measuredMassDiff.set(
         a.getPeakWithFormulae().peak().getMZ() - b.getPeakWithFormulae().peak().getMZ());
@@ -114,7 +113,8 @@ public class SubFormulaEdge {
 
     massErrorAbs.bind(Bindings.createObjectBinding(() -> {
       return isValid() && computedMassDiff.get() != null ? measuredMassDiff.get()
-          - computedMassDiff.get() : null; // double properties cannot be set to null.
+                                                           - computedMassDiff.get()
+          : null; // double properties cannot be set to null.
     }, computedMassDiff, measuredMassDiff, valid));
 
     massErrorPpm.bind(Bindings.createObjectBinding(

@@ -43,8 +43,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
@@ -58,8 +58,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class MatchedLipid implements FeatureAnnotation {
 
@@ -200,7 +199,8 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   public static double getExactMass(MatchedLipid match) {
-    return FormulaUtils.getMonoisotopicMass(match.getLipidAnnotation().getMolecularFormula()) + match.getIonizationType().getAddedMass();
+    return FormulaUtils.getMonoisotopicMass(match.getLipidAnnotation().getMolecularFormula())
+        + match.getIonizationType().getAddedMass();
   }
 
   public ILipidAnnotation getLipidAnnotation() {
@@ -226,6 +226,11 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public String getComment() {
     return comment;
+  }
+
+  @Override
+  public @Nullable IMolecularFormula getCdkFormula() {
+    return lipidAnnotation.getMolecularFormula();
   }
 
   public void setComment(String comment) {

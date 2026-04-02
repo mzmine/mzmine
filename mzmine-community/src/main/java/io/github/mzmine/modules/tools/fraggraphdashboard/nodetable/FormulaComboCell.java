@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableCell;
 import javafx.util.StringConverter;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormulaeModel> {
 

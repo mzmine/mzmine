@@ -33,7 +33,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * This class will be removed in the future and replaced by {@link IonType} and {@link IonLibrary}
@@ -188,7 +187,8 @@ public enum IonizationType {
     this.addedFormula = !addedFormula.isBlank() ? FormulaUtils.parse(addedFormula) : null;
     this.removedFormula = !removedFormula.isBlank() ? FormulaUtils.parse(removedFormula) : null;
 
-    var added = this.addedFormula != null ? FormulaUtils.getMonoisotopicMass(this.addedFormula) : 0d;
+    var added =
+        this.addedFormula != null ? FormulaUtils.getMonoisotopicMass(this.addedFormula) : 0d;
     var removed =
         this.removedFormula != null ? FormulaUtils.getMonoisotopicMass(this.removedFormula) : 0d;
 

@@ -319,4 +319,13 @@ public interface FeatureAnnotation {
    * A comment
    */
   @Nullable String getComment();
+
+  @Nullable
+  default IMolecularFormula getCdkFormula() {
+    final String formula = getFormula();
+    if (formula == null) {
+      return null;
+    }
+    return FormulaUtils.parse(formula);
+  }
 }
