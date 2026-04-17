@@ -313,10 +313,11 @@ public final class IonType implements Comparable<IonType> {
     return parts.stream();
   }
 
-  /** All parts including {@link IonPartSilentCharge} instances. Same as {@link #stream()}. */
-  @NotNull
-  public Stream<@NotNull IonPart> streamAll() {
-    return parts.stream();
+  /**
+   * @return a stream of ion parts excluding the silent charges
+   */
+  public Stream<IonPart> streamWithoutSilentCharge() {
+    return stream().filter(not(IonPart::isSilentCharge));
   }
 
   @NotNull
@@ -347,7 +348,6 @@ public final class IonType implements Comparable<IonType> {
   }
 
 
-
   public PolarityType getPolarity() {
     return PolarityType.fromInt(totalCharge, PolarityType.NEUTRAL);
   }
@@ -362,35 +362,28 @@ public final class IonType implements Comparable<IonType> {
    */
   @NotNull
   public IMolecularFormula addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
-    IMolecularFormula result = null;
     try {
-      result = (IMolecularFormula) formula.clone();
+      final IMolecularFormula result = (IMolecularFormula) formula.clone();
+
+      // add for n molecules the M formula
+      for (int i = 2; i <= molecules; i++) {
+        FormulaUtils.addFormula(result, formula);
+      }
+
+      // add first then remove — exclude silent charges (they carry no formula contribution)
+      streamWithoutSilentCharge().filter(IonPart::isAddition)
+          .forEach(ion -> ion.addToFormula(result, false));
+      streamWithoutSilentCharge().filter(IonPart::isLoss)
+          .forEach(ion -> ion.addToFormula(result, false));
+      if (ionize) {
+        result.setCharge(totalCharge);
+      }
+      return result;
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unexpected exception cloning molecular formula " + e.getMessage(),
           e);
       return formula;
     }
-    // add for n molecules the M formula
-    for (int i = 2; i <= molecules; i++) {
-      FormulaUtils.addFormula(result, formula);
-    }
-
-    // add first then remove — exclude silent charges (they carry no formula contribution)
-    stream(false).filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(result, false));
-    stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(result, false));
-    if (ionize) {
-      result.setCharge(totalCharge);
-    }
-    return result;
-  }
-
-  /**
-   * @param includeSilentCharges include the silent charges that are used to add or remove charges
-   *                             when it does not sum up
-   * @return a stream of ion parts
-   */
-  public Stream<IonPart> stream(boolean includeSilentCharges) {
-    return includeSilentCharges ? stream() : stream().filter(not(IonPart::isSilentCharge));
   }
 
   @Override

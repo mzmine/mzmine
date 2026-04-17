@@ -24,9 +24,7 @@
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -78,31 +76,6 @@ public class IonIdentityTest {
   final IonType hAdduct = IonTypes.H.asIonType();
   final IonType naAdduct = IonTypes.NA.asIonType();
 
-
-  @Test
-  void equals_basedOnIonType() {
-    IonIdentity a = new IonIdentity(hAdduct);
-    IonIdentity b = new IonIdentity(hAdduct);
-    IonIdentity c = new IonIdentity(naAdduct);
-
-    assertEquals(a, b, "Two IonIdentities with the same IonType must be equal");
-    assertEquals(a.hashCode(), b.hashCode(), "Equal IonIdentities must have the same hashCode");
-    assertNotEquals(a, c, "IonIdentities with different IonTypes must not be equal");
-  }
-
-  @Test
-  void listRemove_worksViaEquals() {
-    IonIdentity added = new IonIdentity(hAdduct);
-    IonIdentity sameType = new IonIdentity(hAdduct);
-
-    List<IonIdentity> list = new ArrayList<>();
-    list.add(added);
-
-    // remove via a different instance that is equal() — broken before equals() was added
-    boolean removed = list.remove(sameType);
-    assertTrue(removed, "List.remove() must succeed for an equal IonIdentity");
-    assertTrue(list.isEmpty(), "List must be empty after removing the only element");
-  }
 
   @Test
   void ionIdentityTest() {

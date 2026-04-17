@@ -43,9 +43,6 @@ import org.jetbrains.annotations.NotNull;
  * {@link FormulaPredictionIonNetworkModule} and they are part of the Ion Identity Molecular
  * Networking workflow on https://gnps.ucsd.edu/, which is accessible through
  * {@link GnpsFbmnExportAndSubmitModule}.
- * <p>
- * Equality is based on {@link IonType}. Two {@link IonIdentity} instances with the same ion type
- * are considered equal regardless of their network or formula list.
  */
 public class IonIdentity implements Comparable<IonIdentity> {
 
@@ -117,6 +114,9 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return network.size();
   }
 
+  /**
+   * @return unmodifiable copy of formulas
+   */
   @NotNull
   public List<ResultFormula> getMolFormulas() {
     return Collections.unmodifiableList(molFormulas);
@@ -178,16 +178,6 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   public synchronized void removeMolFormula(ResultFormula formula) {
     molFormulas.remove(formula);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    return o instanceof IonIdentity other && ionType.equals(other.ionType);
-  }
-
-  @Override
-  public int hashCode() {
-    return ionType.hashCode();
   }
 
   @Override

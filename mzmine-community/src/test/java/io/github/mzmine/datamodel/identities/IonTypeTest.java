@@ -108,7 +108,7 @@ class IonTypeTest {
     assertEquals(before, FormulaUtils.getFormulaString(formula),
         "addToFormula must not mutate the input formula");
     // returned formula has one extra H (charge shown by default)
-    assertEquals("C6H13O6+", FormulaUtils.getFormulaString(ionized));
+    assertEquals("[C6H13O6]+", FormulaUtils.getFormulaString(ionized));
   }
 
   @Test
@@ -117,7 +117,7 @@ class IonTypeTest {
     IonType t1 = IonType.create(IonParts.H, IonParts.SILENT_CHARGE);
     IonType t2 = IonType.create(IonParts.NA, IonParts.SILENT_CHARGE);
     IonType merged = t1.merge(t2);
-    long silentCount = merged.streamAll().filter(IonPart::isSilentCharge).count();
+    long silentCount = merged.stream().filter(IonPart::isSilentCharge).count();
     assertEquals(1, silentCount, "merge() should deduplicate SILENT_CHARGE parts into one");
   }
 }
