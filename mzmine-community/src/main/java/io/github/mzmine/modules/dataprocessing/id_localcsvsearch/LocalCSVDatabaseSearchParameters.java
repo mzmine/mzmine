@@ -55,7 +55,12 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.Q3QuantMzType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxFileChooser;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -78,14 +83,24 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.io.CsvWriter;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.stage.FileChooser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -357,5 +372,69 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       case 3 -> "Added support for Retention index (RI) matching.";
       default -> null;
     };
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
+
+    dialog.setMinWidth(600);
+    dialog.getParamsPane().setPrefWidth(800);
+    dialog.setMinHeight(500);
+
+
+    //
+    final Button exampleButton = FxButtons.createButton("Example", FxIcons.SAVE, """
+        Export an example table with all selected headers.
+        Also considers the filename column if the filter is activated.
+        Format depends on extension .csv (comma-separated) or .tsv (tab-separated).""", () -> {
+      final List<ImportType<?>> allTypes = getValue(columns);
+      final String fileNameColumn = getEmbeddedParameterValueIfSelectedOrElse(filterSamples, null);
+      final File dataBaseFile = getValue(LocalCSVDatabaseSearchParameters.dataBaseFile);
+      exportExampleFile(allTypes, fileNameColumn, dataBaseFile);
+    });
+    ButtonBar.setButtonData(exampleButton, ButtonData.OK_DONE);
+    dialog.getButtonBar().getButtons().add(exampleButton);
+
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  public static void exportExampleFile(@NotNull List<ImportType<?>> allTypes,
+      @Nullable String fileNameColumn, @Nullable File folder) {
+    final List<String> headers = allTypes.stream().filter(ImportType::isSelected)
+        .map(ImportType::getCsvColumnName).collect(CollectionUtils.toArrayList());
+    if (fileNameColumn != null) {
+      headers.addFirst(fileNameColumn);
+    }
+
+    if (headers.isEmpty()) {
+      DialogLoggerUtil.showWarningDialog("No column selected",
+          "Select columns and define headers for the csv example file.");
+      return;
+    }
+
+//    folder = folder == null ? null : (folder.exists() ? folder : folder.getParentFile());
+    final FileChooser chooser = FxFileChooser.newFileChooser(ExtensionFilters.CSV_TSV_EXPORT,
+        folder, "Select where to export example file");
+    File exportFile = chooser.showSaveDialog(null);
+    if (exportFile == null) {
+      return;
+    }
+    final List<String> extensions = chooser.getSelectedExtensionFilter().getExtensions();
+
+    final String selectedExtension = extensions.getFirst().replace("*.", "");
+    try {
+      CsvWriter.writeToFile(exportFile, List.of(headers), selectedExtension);
+    } catch (IOException e) {
+      DialogLoggerUtil.showWarningDialog("Failed to export example file",
+          "An error occurred while exporting the example file. " + e.getMessage());
+    }
   }
 }

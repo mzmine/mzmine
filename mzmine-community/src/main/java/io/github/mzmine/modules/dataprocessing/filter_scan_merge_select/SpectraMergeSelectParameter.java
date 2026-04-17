@@ -92,7 +92,7 @@ public class SpectraMergeSelectParameter extends
   private SpectraMergeSelectParameter(final String name, final String description,
       final SpectraMergeSelectModuleOptions selectedValue,
       final EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> parameters) {
-    super(name, description, selectedValue, parameters);
+    super(name, description, selectedValue, parameters, true);
   }
 
   /**

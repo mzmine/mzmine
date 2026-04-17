@@ -35,6 +35,7 @@ import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -44,8 +45,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -89,8 +88,7 @@ public class BatchModeModule implements MZmineProcessingModule {
     logger.info("Running batch from file " + batchFile);
 
     try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document parsedBatchXML = docBuilder.parse(batchFile);
+      final Document parsedBatchXML = XMLUtils.load(batchFile);
 
       List<String> errorMessages = new ArrayList<>();
       // fail on missing modules - here its usually run from the command line - fail it

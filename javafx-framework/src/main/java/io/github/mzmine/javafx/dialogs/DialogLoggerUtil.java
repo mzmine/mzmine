@@ -29,6 +29,7 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.JavaFxDesktop;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -312,6 +313,7 @@ public class DialogLoggerUtil {
 
     // inner method will automatically wrap TextFlow in ScrollPane
     final TextFlow node = FxTextFlows.newTextFlow(FxTexts.text(message));
+    node.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
 
     return createAlert(type, owner, title, node, buttons);
   }
@@ -332,20 +334,34 @@ public class DialogLoggerUtil {
     }
     alert.setTitle(title);
     alert.setHeaderText(title);
-    alert.getDialogPane().setMaxHeight(800);
-    alert.getDialogPane().setMaxWidth(800);
+
+    final double maxDialogHeight = 800;
+    final double maxDialogWidth = 800;
+      // seems like a good size for the dialog message when an old batch is loaded into new version
+    final double prefDialogWidth = 550;
+
+    alert.getDialogPane().setMaxHeight(maxDialogHeight);
+    alert.getDialogPane().setMaxWidth(maxDialogWidth);
 
     final Region mainPane;
-    if (content instanceof TextFlow || content instanceof TextArea) {
+    if (content instanceof Region cregion && (content instanceof TextFlow || content instanceof TextArea)) {
       final ScrollPane scrollPane = new ScrollPane(content);
       scrollPane.setFitToWidth(true);
-      scrollPane.setFitToHeight(true);
-      // seems like a good size for the dialog message when an old batch is loaded into new version
-      scrollPane.setPrefWidth(500);
-      scrollPane.setMaxWidth(800);
-      scrollPane.setMaxHeight(800);
+      scrollPane.setFitToHeight(false);
+      scrollPane.setPrefViewportWidth(prefDialogWidth);
+      scrollPane.setMaxWidth(maxDialogWidth);
+      scrollPane.setMaxHeight(maxDialogHeight);
       scrollPane.setPannable(true);
       mainPane = scrollPane;
+
+
+      cregion.setMaxWidth(Region.USE_PREF_SIZE);
+      scrollPane.viewportBoundsProperty().subscribe((_, bounds) -> {
+        if (bounds != null && bounds.getWidth() > 0) {
+          cregion.setPrefWidth(bounds.getWidth());
+        }
+      });
+
     } else {
       mainPane = null;
     }
@@ -354,6 +370,20 @@ public class DialogLoggerUtil {
 
     // Center on screen after layout is complete
     alert.setOnShown(_ -> {
+      if (mainPane instanceof ScrollPane scrollPane) {
+        double viewportW = scrollPane.getViewportBounds().getWidth();
+        if (viewportW <= 0) {
+          viewportW = prefDialogWidth;
+        }
+        double naturalTextHeight = content.prefHeight(viewportW);
+        double targetViewportHeight = Math.min(naturalTextHeight, maxDialogHeight);
+        scrollPane.setPrefViewportHeight(targetViewportHeight);
+
+        if (alert.getDialogPane().getScene() != null
+            && alert.getDialogPane().getScene().getWindow() instanceof Stage stage) {
+          stage.sizeToScene();
+        }
+      }
 
       // sometimes NaN when modal dialog with showAndWait
       if (Double.isNaN(alert.getX())) {

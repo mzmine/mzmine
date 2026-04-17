@@ -268,8 +268,8 @@ public class SiriusToMzmine {
             List.of(AlignedFeatureOptField.NONE)).stream().filter(SiriusToMzmine::isSiriusFeatureValid)
         .collect(Collectors.toMap(
             alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
-            AlignedFeature::getAlignedFeatureId, (a, _) -> {
-              throw new SiriusDuplicateFeatureIdException(a);
+            AlignedFeature::getAlignedFeatureId, (a, b) -> {
+              throw new SiriusDuplicateFeatureIdException(a, b);
             }));
   }
 

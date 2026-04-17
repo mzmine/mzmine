@@ -51,13 +51,13 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
-import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
@@ -316,9 +316,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final List<ImportFile> unknownFileTypes = Arrays.stream(filesToImport)
         .filter(f -> f.type() == null).toList();
     if (!unknownFileTypes.isEmpty()) {
-      String files = Arrays.stream(filesToImport).map(f -> f.originalFile().getAbsolutePath())
+      String files = unknownFileTypes.stream().map(f -> f.originalFile().getAbsolutePath())
           .collect(Collectors.joining(",\n"));
-      String msg = "Could not identify the data type needed for import of n files=%d. The file/path might not exist.\n%s".formatted(
+      String msg = "Could not identify the data type needed for import of %d files. The file/path might not exist or be corrupt.\n%s".formatted(
           unknownFileTypes.size(), files);
       MZmineCore.getDesktop().displayErrorMessage(msg);
       logger.log(Level.SEVERE, "%s.  %s".formatted(msg, files));

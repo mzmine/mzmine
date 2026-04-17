@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -89,6 +88,7 @@ class NumberTypeTests {
     ChargeType type = new ChargeType();
     int value = 2;
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, -3);
   }
 
   @Test

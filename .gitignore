@@ -29,7 +29,8 @@ not-bio
 codex.md
 AGENTS.md
 claude.md
-.claude/
+.claude/worktrees/
+.claude/settings.local.json
 
 # External tools fetched locally (do not commit downloaded parser binaries)
 /external_tools/thermo_raw_file_parser/

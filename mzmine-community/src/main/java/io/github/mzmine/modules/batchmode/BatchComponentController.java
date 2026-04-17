@@ -72,7 +72,6 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.jetbrains.annotations.NotNull;
@@ -384,8 +383,7 @@ public class BatchComponentController implements LastFilesComponent {
       throws ParserConfigurationException, TransformerException, IOException {
 
     // Create the document.
-    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-        .newDocument();
+    final Document document = XMLUtils.newDocument();
     final Element element = document.createElement("batch");
     document.appendChild(element);
 
