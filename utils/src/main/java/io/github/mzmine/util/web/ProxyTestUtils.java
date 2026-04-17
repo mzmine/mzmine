@@ -54,9 +54,9 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import org.apache.http.impl.client.WinHttpClients;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,13 +103,12 @@ public class ProxyTestUtils {
     String[] properties = {
         // proxy routing
         "java.net.useSystemProxies", "http.proxyHost", "http.proxyPort", "http.nonProxyHosts",
-        "https.proxyHost", "https.proxyPort", "ftp.proxyHost", "ftp.proxyPort",
-        "socksProxyHost", "socksProxyPort",
+        "https.proxyHost", "https.proxyPort", "ftp.proxyHost", "ftp.proxyPort", "socksProxyHost",
+        "socksProxyPort",
         // Kerberos / NTLM proxy auth
-        "javax.security.auth.useSubjectCredsOnly",
-        "jdk.http.auth.proxying.disabledSchemes",
-        "jdk.http.auth.tunneling.disabledSchemes",
-        "sun.security.krb5.debug", "sun.security.spnego.debug", "sun.security.jgss.debug"};
+        "javax.security.auth.useSubjectCredsOnly", "jdk.http.auth.proxying.disabledSchemes",
+        "jdk.http.auth.tunneling.disabledSchemes", "sun.security.krb5.debug",
+        "sun.security.spnego.debug", "sun.security.jgss.debug"};
 
     boolean found = false;
     for (String prop : properties) {
@@ -128,7 +127,7 @@ public class ProxyTestUtils {
     // Log Authenticator presence — required for JDK HttpClient to attempt Kerberos/NTLM on 407
     final java.net.Authenticator auth = java.net.Authenticator.getDefault();
     sb.append("System Authenticator: ").append(
-        auth != null ? auth.getClass().getName() : "<none — JDK HttpClient will skip proxy auth>")
+            auth != null ? auth.getClass().getName() : "<none — JDK HttpClient will skip proxy auth>")
         .append("\n");
   }
 
@@ -238,7 +237,8 @@ public class ProxyTestUtils {
   public static String testJdkClient(List<String> urls, String title, ProxySelector selector,
       Redirect redirect) {
     StringBuilder sb = new StringBuilder();
-    sb.append("\n\n").append(title).append(" using redirect: ").append(redirect).append("; results: ");
+    sb.append("\n\n").append(title).append(" using redirect: ").append(redirect)
+        .append("; results: ");
 
     final Builder builder = HttpClient.newBuilder().followRedirects(redirect);
     if (selector != null) {
@@ -297,9 +297,6 @@ public class ProxyTestUtils {
    * Apache client test run.
    */
   private static void logKerberosDebugInfo(final StringBuilder sb) {
-    sb.append("[Kerberos diag] IS_WINDOWS=").append(IS_WINDOWS).append("; auth path: ")
-        .append(IS_WINDOWS ? "WinHttpClients native SSPI" : "Java GSSAPI").append("\n");
-
     // Java GSSAPI credential acquisition flag
     final String subjectCredsOnly = System.getProperty("javax.security.auth.useSubjectCredsOnly",
         "<not set>");
@@ -335,7 +332,8 @@ public class ProxyTestUtils {
       final boolean useSystemProxy) {
 
     final StringBuilder sb = new StringBuilder();
-    sb.append("\n\n").append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: ");
+    sb.append("\n\n").append(title).append(" useSystemProxy: ").append(useSystemProxy)
+        .append("; results: ");
 
     final HttpClientBuilder clientBuilder = createApacheHttpClientBuilder(selector, useSystemProxy,
         sb);
@@ -376,9 +374,7 @@ public class ProxyTestUtils {
 
   private static @NotNull HttpClientBuilder createApacheClientBuilder(
       final boolean useSystemProxy) {
-    // decision: Prefer native Windows SSPI authentication stack for seamless proxy SSO.
-    // WinHttpClients checks internally if its windows or other system and will use regular client instead
-    final HttpClientBuilder clientBuilder = WinHttpClients.custom();
+    final HttpClientBuilder clientBuilder = HttpClients.custom();
     if (useSystemProxy) {
       clientBuilder.useSystemProperties();
     }
@@ -396,26 +392,17 @@ public class ProxyTestUtils {
       final @NotNull HttpClientBuilder clientBuilder) {
     // Always needed: route proxy auth challenges to the right strategy and supply OS credentials.
     clientBuilder.setProxyAuthenticationStrategy(ProxyAuthenticationStrategy.INSTANCE);
-    if (WinHttpClients.isWinAuthAvailable()) {
-      // WinHttpClients.custom() already registers WindowsNegotiateSchemeFactory (SSPI Kerberos)
-      // and WindowsNTLMSchemeFactory (SSPI NTLM). Calling setDefaultAuthSchemeRegistry() would
-      // replace those with Java GSSAPI factories and lose native NTLM — so we skip it.
-      // Preferred order: Negotiate (SPNEGO/Kerberos via SSPI), then Kerberos, then NTLM fallback.
-      clientBuilder.setDefaultRequestConfig(RequestConfig.custom().setProxyPreferredAuthSchemes(
-          List.of(AuthSchemes.SPNEGO, AuthSchemes.KERBEROS, AuthSchemes.NTLM)).build());
-    } else {
-      clientBuilder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider());
-      // Non-Windows: Java GSSAPI handles Kerberos/SPNEGO. The JVM must be allowed to acquire
-      // a Kerberos TGT from the OS ticket cache, not only from an active JAAS Subject.
-      // already set in build.gradle globally
+    clientBuilder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider());
+    // Non-Windows: Java GSSAPI handles Kerberos/SPNEGO. The JVM must be allowed to acquire
+    // a Kerberos TGT from the OS ticket cache, not only from an active JAAS Subject.
+    // already set in build.gradle globally
 //      System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
-      final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-          .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
-          .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(true)).build();
-      clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
-      clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
-          .setProxyPreferredAuthSchemes(List.of(AuthSchemes.SPNEGO, AuthSchemes.KERBEROS)).build());
-    }
+    final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
+        .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(true)).build();
+    clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+    clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+        .setProxyPreferredAuthSchemes(List.of(AuthSchemes.SPNEGO, AuthSchemes.KERBEROS)).build());
   }
 
   private static void appendApacheResponseResult(final @NotNull StringBuilder sb,
@@ -436,9 +423,8 @@ public class ProxyTestUtils {
       sb.append("; WWW-Authenticate: ").append(wwwAuthenticate);
     }
     if (statusCode == HTTP_PROXY_AUTH_REQUIRED) {
-      sb.append("; auth path: ").append(IS_WINDOWS ? "SSPI" : "Java GSSAPI");
-      sb.append("; isWinAuthAvailable: ")
-          .append(WinHttpClients.isWinAuthAvailable() ? "true" : "false");
+      sb.append("; isWindows: ")
+          .append(IS_WINDOWS ? "true" : "false");
       sb.append("; hint: ").append(buildProxyAuthHint(proxyAuthenticate));
     }
     sb.append("; ");
