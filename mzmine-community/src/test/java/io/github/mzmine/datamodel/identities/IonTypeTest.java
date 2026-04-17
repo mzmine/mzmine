@@ -29,9 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -92,5 +94,30 @@ class IonTypeTest {
   @Test
   void equals() {
     assertEquals(IonTypes.H.asIonType(), IonType.create(IonParts.H));
+  }
+
+  @Test
+  void addToFormula_doesNotMutateInput() {
+    var formula = FormulaUtils.parse("C6H12O6");
+    String before = FormulaUtils.getFormulaString(formula);
+
+    IonType mPlusH = IonTypes.H.asIonType();
+    var ionized = mPlusH.addToFormula(formula, true);
+
+    // input must be unchanged
+    assertEquals(before, FormulaUtils.getFormulaString(formula),
+        "addToFormula must not mutate the input formula");
+    // returned formula has one extra H (charge shown by default)
+    assertEquals("C6H13O6+", FormulaUtils.getFormulaString(ionized));
+  }
+
+  @Test
+  void merge_deduplicatesSilentCharges() {
+    // Both IonTypes carry a SILENT_CHARGE; merging must yield exactly one after deduplication
+    IonType t1 = IonType.create(IonParts.H, IonParts.SILENT_CHARGE);
+    IonType t2 = IonType.create(IonParts.NA, IonParts.SILENT_CHARGE);
+    IonType merged = t1.merge(t2);
+    long silentCount = merged.streamAll().filter(IonPart::isSilentCharge).count();
+    assertEquals(1, silentCount, "merge() should deduplicate SILENT_CHARGE parts into one");
   }
 }

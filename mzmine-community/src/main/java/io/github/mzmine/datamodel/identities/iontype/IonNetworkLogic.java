@@ -68,7 +68,7 @@ public class IonNetworkLogic {
     }
 
     // network size, MSMS modification and multimer (2M) verification
-    int result = Integer.compare(a.getLikelyhood(), b.getLikelyhood());
+    int result = Integer.compare(a.getScore(), b.getScore());
     if (result != 0) {
       return result;
     }
