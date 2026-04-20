@@ -81,6 +81,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
         Ion libraries are defined globally in the '%s' tab, use the button to open the tab and to define a list of ion types to use.""".formatted(
         GlobalIonLibrariesTab.HEADER);
     final GlobalIonLibrariesController controller = GlobalIonLibrariesController.getInstance();
+
     final var selectedLibraryField = new ListSelectTextField<>(true,
         controller.librariesProperty());
     library = selectedLibraryField.selectedItemProperty();
