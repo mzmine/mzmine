@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
@@ -100,8 +101,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     final var topBox = FxLayout.newIconPane(Orientation.HORIZONTAL, //
         selectLibraryButton, //
         updateWithGlobalLibrary, //
-        newIconButton(FxIcons.GEAR_PREFERENCES, tooltip, GlobalIonLibrariesTab::showTab), //
-        newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, tooltip + "\nClick to open the documentation.",
+        newIconButton(FxIcons.GEAR_PREFERENCES, tooltip, this::showGlobalTab), //
+        newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE,
+            tooltip + "\nClick to open the documentation.",
             "https://mzmine.github.io/mzmine_documentation/ions/ions.html"));
 
     setTop(topBox);
@@ -137,6 +139,13 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
                 positives, negatives, neutrals));
       }
     });
+  }
+
+  private void showGlobalTab() {
+    DialogLoggerUtil.showInfoNotification("Define ion libraries in the main window",
+        "The '%s' tab (in the main window) enables ion library creation and modification.".formatted(
+            GlobalIonLibrariesTab.HEADER));
+    GlobalIonLibrariesTab.showTab();
   }
 
   /**
