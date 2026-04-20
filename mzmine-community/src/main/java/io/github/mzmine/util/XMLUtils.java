@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Objects;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,23 +51,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.SAXException;
 
 /**
  * XML processing utilities
  */
 public class XMLUtils {
 
-  private static final String FEATURE_DISALLOW_DOCTYPE_DECL =
-      "http://apache.org/xml/features/disallow-doctype-decl";
-  private static final String FEATURE_EXTERNAL_GENERAL_ENTITIES =
-      "http://xml.org/sax/features/external-general-entities";
-  private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES =
-      "http://xml.org/sax/features/external-parameter-entities";
-  private static final String FEATURE_LOAD_EXTERNAL_DTD =
-      "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+  private static final String FEATURE_DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+  private static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+  private static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+  private static final String FEATURE_LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
   private XMLUtils() {
   }
@@ -103,8 +101,8 @@ public class XMLUtils {
       factory.setFeature(FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
       factory.setFeature(FEATURE_LOAD_EXTERNAL_DTD, false);
     } catch (SAXNotRecognizedException | SAXNotSupportedException exception) {
-      final ParserConfigurationException parserConfigurationException =
-          new ParserConfigurationException("Failed to configure secure SAX parser factory.");
+      final ParserConfigurationException parserConfigurationException = new ParserConfigurationException(
+          "Failed to configure secure SAX parser factory.");
       parserConfigurationException.initCause(exception);
       throw parserConfigurationException;
     }
@@ -362,5 +360,22 @@ public class XMLUtils {
     }
     throw new IllegalArgumentException(
         "Missing required child element '" + tagName + "' in " + parent.getTagName());
+  }
+
+  /**
+   * Only streams over direct children, not recursively. The method
+   * {@link Element#getElementsByTagName(String)} goes too deep into sub children.
+   *
+   * @param parent element to search in
+   * @param tagName children tag name
+   * @return stream over all direct children with tag name
+   */
+  @NotNull
+  public static Stream<@NotNull Element> streamChildElementsByTagName(@NotNull Element parent,
+      @NotNull String tagName) {
+    NodeList children = parent.getChildNodes();
+    return IntStream.range(0, children.getLength()).mapToObj(children::item)
+        .filter(Element.class::isInstance).map(Element.class::cast)
+        .filter(element -> Objects.equals(element.getTagName(), tagName));
   }
 }

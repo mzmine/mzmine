@@ -24,13 +24,11 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.XMLUtils;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,16 +36,61 @@ import org.w3c.dom.Element;
  * Function that returns a normalization factor for specific feature coordinates.
  */
 public sealed interface NormalizationFunction extends UniqueIdSupplier permits
-    FactorNormalizationFunction, StandardCompoundNormalizationFunction,
-    InterpolatedNormalizationFunction {
+    CompositeNormalizationFunction, FactorNormalizationFunction, InterpolatedNormalizationFunction,
+    StandardCompoundNormalizationFunction {
 
   String XML_FUNCTION_ELEMENT = "normalizationFunction";
   String XML_FUNCTION_TYPE_ATTR = "type";
-  String XML_ACQUISITION_TIMESTAMP_ATTR = "acquisitionTimestamp";
 
-  @NotNull RawDataFilePlaceholder rawDataFilePlaceholder();
+  /**
+   * Merges the old and new function. If both are constant factors then the factors are merged into
+   * a single function. If the functions are more complex like feature specific functions, then a
+   * {@link CompositeNormalizationFunction} is returned.
+   *
+   * @param old      old function
+   * @param function new function
+   * @return a new function instance either merged or composite
+   */
+  @NotNull
+  static NormalizationFunction merge(@NotNull NormalizationFunction old,
+      @NotNull NormalizationFunction function) {
+    if (old instanceof FactorNormalizationFunction(
+        double factor
+    ) && function instanceof FactorNormalizationFunction(double factor2)) {
+      return new FactorNormalizationFunction(factor * factor2);
+    }
 
-  @Nullable LocalDateTime acquisitionTimestamp();
+    final List<NormalizationFunction> subfunctions = new ArrayList<>();
+    if (old instanceof CompositeNormalizationFunction(var functions)) {
+      subfunctions.addAll(functions);
+    } else {
+      subfunctions.add(old);
+    }
+
+    if (function instanceof CompositeNormalizationFunction(var functions)) {
+      subfunctions.addAll(functions);
+    } else {
+      subfunctions.add(function);
+    }
+
+    return new CompositeNormalizationFunction(List.copyOf(subfunctions));
+  }
+
+  /**
+   * @return true if this function is feature specific meaning that RT and or m/z affect
+   * normalization factor. Otherwise, any call to {@link #getNormalizationFactor(Double, Float)}
+   */
+  default boolean isFeatureSpecific() {
+    return !isConstantFactor();
+  }
+
+  /**
+   * @return opposite of {@link #isFeatureSpecific()}. true if this is a constant factor and not
+   * feature specific
+   */
+  default boolean isConstantFactor() {
+    return this instanceof FactorNormalizationFunction;
+  }
 
   /**
    * @param mz the mz of the feature
@@ -58,14 +101,6 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
 
   void saveToXML(@NotNull Element functionElement);
 
-  /**
-   *
-   * @return The data file this normalization applies to. may be null if the file was removed from
-   * the project.
-   */
-  default @Nullable RawDataFile getRawDataFile() {
-    return rawDataFilePlaceholder().getMatchingFile();
-  }
 
   static void appendFunctionElement(final @NotNull Element parentElement,
       final @NotNull NormalizationFunction normalizationFunction) {
@@ -84,29 +119,10 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
           StandardCompoundNormalizationFunction.loadFromXML(functionElement);
       case InterpolatedNormalizationFunction.XML_TYPE ->
           InterpolatedNormalizationFunction.loadFromXML(functionElement);
+      case CompositeNormalizationFunction.XML_TYPE -> CompositeNormalizationFunction.loadFromXML(functionElement);
       default -> throw new IllegalArgumentException(
           "Unsupported normalization function type: " + functionType);
     };
-  }
-
-  static void saveAcquisitionTimestamp(final @NotNull Element functionElement,
-      final @Nullable LocalDateTime acquisitionTimestamp) {
-    if (acquisitionTimestamp != null) {
-      functionElement.setAttribute(XML_ACQUISITION_TIMESTAMP_ATTR, acquisitionTimestamp.toString());
-    }
-  }
-
-  static @Nullable LocalDateTime loadAcquisitionTimestamp(final @NotNull Element functionElement) {
-    if (!functionElement.hasAttribute(XML_ACQUISITION_TIMESTAMP_ATTR)) {
-      return null;
-    }
-
-    final String acquisitionTimestamp = functionElement.getAttribute(XML_ACQUISITION_TIMESTAMP_ATTR);
-    if (acquisitionTimestamp.isBlank()) {
-      return null;
-    }
-
-    return LocalDateTime.parse(acquisitionTimestamp);
   }
 
 }

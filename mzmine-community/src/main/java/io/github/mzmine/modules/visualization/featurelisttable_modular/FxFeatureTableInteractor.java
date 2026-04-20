@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -32,6 +33,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu.FxFeatureTableFilterMenuModel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.RangeUtils;
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +65,16 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
   }
 
   private void applyRowsFilter(@Nullable TableFeatureListRowFilter filter) {
+    // clear selection before changing predicate to avoid stale indices in the
+    // TreeTableView selection model (leads to IndexOutOfBoundsException on sort)
+    final FeatureListRow row = model.getFeatureTable().getSelectedRow();
+    model.getFeatureTable().getSelectionModel().clearSelection();
     model.getFilteredRowItems()
         .setPredicate(item -> filter == null || filter.test(item.getValue()));
+    if (row != null) {
+      // try to re-select and scroll if the previously selected row is still in the filtered items.
+      FeatureTableFXUtil.selectAndScrollTo(row, model.getFeatureTable());
+    }
   }
 
   private void updateFilterPrompts() {

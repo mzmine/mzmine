@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,44 +25,36 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.MathUtils;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MedianFeatureIntensityNormalizationTypeModule extends
-    AbstractFactorNormalizationTypeModule {
+/**
+ * Uses factor 1 for all samples, so no normalization at all. Does not add functions to the summary
+ * as a factor one is the same like no normalization function. Usually this normalizer is skipped
+ * completely during normalization. Mostly implemented to have the option to select no
+ * normalization.
+ */
+public class NoNormalizationTypeModule implements NormalizationTypeModule {
 
   @Override
-  public @NotNull String getName() {
-    return "Median feature intensity";
+  public void createAllNormalizationFunctionsToSummary(
+      @NotNull IntensityNormalizationSearchableSummary summary,
+      @NotNull ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
+      @NotNull MetadataTable metadata, @NotNull ParameterSet mainParameters,
+      @NotNull ParameterSet moduleSpecificParameters) {
+    // just do nothing. No normalization is the same as not adding any norm functions to the summary
   }
 
   @Override
-  protected double getNormalizationMetricForFile(@NotNull final RawDataFile file,
-      @NotNull final ModularFeatureList featureList,
-      @NotNull final ParameterSet linearNormalizerParameters,
-      @NotNull final ParameterSet moduleSpecificParameters) {
-    final AbundanceMeasure abundanceMeasure = linearNormalizerParameters.getValue(
-        IntensityNormalizerParameters.featureMeasurementType);
-    if (abundanceMeasure == null) {
-      throw new IllegalStateException("No feature abundance measure selected for normalization.");
-    }
+  public @NotNull String getName() {
+    return NormalizationType.NoNormalization.toString();
+  }
 
-    final double[] abundances = featureList.stream().map(r -> (ModularFeature) r.getFeature(file))
-        .filter(Objects::nonNull).mapToDouble(abundanceMeasure::getOrNaN)
-        .filter(d -> !Double.isNaN(d)).toArray();
-
-    final double median = MathUtils.calcMedian(abundances);
-    if (Double.compare(median, 0d) == 0) {
-      throw new IllegalStateException(
-          "No features found or median of feature intensities is 0 for file: " + file.getName());
-    }
-
-    return median;
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return NoNormalizationTypeParameters.class;
   }
 }

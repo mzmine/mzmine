@@ -25,17 +25,13 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
-import java.time.LocalDateTime;
+import io.github.mzmine.util.MathUtils;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +40,7 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
 
   @Override
   public @NotNull String getName() {
-    return "Metadata column";
+    return NormalizationType.MetadataColumn.toString();
   }
 
   @Override
@@ -53,20 +49,16 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
   }
 
   @Override
-  public @NotNull List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
-      @NotNull final ParameterSet normalizationModuleParameters) {
-    return List.copyOf(flist.getRawDataFiles());
-  }
+  public void createAllNormalizationFunctionsToSummary(
+      @NotNull IntensityNormalizationSearchableSummary summary,
+      @NotNull ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
+      @NotNull MetadataTable metadata, @NotNull ParameterSet mainParameters,
+      @NotNull ParameterSet moduleSpecificParameters) {
 
-  @Override
-  public @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
-      @NotNull final List<@NotNull RawDataFile> referenceFiles,
-      @NotNull final ModularFeatureList featureList, @NotNull final MetadataTable metadata,
-      @NotNull final ParameterSet mainParameters,
-      @NotNull final ParameterSet moduleSpecificParameters) {
-    final String columnName = moduleSpecificParameters.getValue(
+    final MetadataNormalizationConfig metadataConfig = moduleSpecificParameters.getValue(
         MetadataColumnNormalizationTypeParameters.metadataColumn);
-    if (columnName == null || columnName.isBlank()) {
+    final String columnName = metadataConfig.metadataColumn();
+    if (columnName.isBlank()) {
       throw new IllegalStateException("No metadata column selected for normalization.");
     }
 
@@ -76,9 +68,9 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
           "Selected metadata column is missing or not numeric: " + columnName);
     }
 
-    final Map<@NotNull RawDataFile, @NotNull Double> fileToMetadataValue = new HashMap<>(
-        referenceFiles.size());
-    for (final RawDataFile rawDataFile : referenceFiles) {
+    final Map<@NotNull RawDataFile, @NotNull Double> fileToMetadataValue = HashMap.newHashMap(
+        samplesBatch.size());
+    for (final RawDataFile rawDataFile : samplesBatch.getRaws()) {
       final Double metadataValue = metadata.getValue(numericColumn, rawDataFile);
       // decision: allow 0 as value as "no normalization"
       if (metadataValue == null || !Double.isFinite(metadataValue) || metadataValue < 0) {
@@ -89,34 +81,29 @@ public class MetadataColumnNormalizationTypeModule implements NormalizationTypeM
       fileToMetadataValue.put(rawDataFile, metadataValue);
     }
 
-    final double maxMetadataValue = fileToMetadataValue.values().stream().max(Double::compare)
-        .orElseThrow(() -> new IllegalStateException(
-            "No valid metadata values available in column: " + columnName));
-
-    final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> functions = new HashMap<>(
-        referenceFiles.size());
-    for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : fileToMetadataValue.entrySet()) {
-      final RawDataFile file = entry.getKey();
-      final double factor =
-          Double.compare(entry.getValue(), 0) == 0 ? 1 : maxMetadataValue / entry.getValue();
-      final LocalDateTime runDate = MetadataTableUtils.getRunDate(metadata, file);
-      functions.put(file, new FactorNormalizationFunction(file, runDate, factor));
+    if (fileToMetadataValue.isEmpty()) {
+      throw new IllegalStateException(
+          "No valid metadata values available in column: " + columnName);
     }
 
-    return functions;
+    // normalize intensities to the median of the factors to have a similar level of intensities
+    // before and after normalization
+    final double median = MathUtils.calcMedian(
+        fileToMetadataValue.values().stream().mapToDouble(Double::doubleValue).toArray());
+
+    for (final Entry<@NotNull RawDataFile, @NotNull Double> entry : fileToMetadataValue.entrySet()) {
+      final RawDataFile file = entry.getKey();
+      // correct sample by factor/median to keep general intensity scales
+      // could also think about using the factor as is
+      final double factor =
+          Double.compare(entry.getValue(), 0) == 0 ? 1 : entry.getValue() / median;
+      // divide or multiple by factor
+      NormalizationFunction function = new FactorNormalizationFunction(
+          metadataConfig.mode().isDivide() ? 1d / factor : factor);
+
+      // add or merge function into a new instance within summary
+      summary.addMergeFunction(file, function);
+    }
   }
 
-  @Override
-  public @NotNull NormalizationFunction createInterpolatedFunction(
-      @NotNull final RawDataFile fileToInterpolate,
-      @NotNull final NormalizationFunction previousRunCalibration,
-      @NotNull final NormalizationFunction nextRunCalibration,
-      @NotNull final InterpolationWeights interpolationWeights,
-      @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
-      @NotNull final ParameterSet normalizerParameters) {
-
-    throw new RuntimeException(
-        "Interpolating a normalization is invalid for Metadata normalization. Prove a metadata value for file %s.".formatted(
-            fileToInterpolate.getName()));
-  }
 }

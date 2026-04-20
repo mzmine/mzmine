@@ -29,18 +29,16 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.MetadataNormalizationConfig.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DoubleMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -62,26 +60,53 @@ class MetadataColumnNormalizationTypeModuleTest {
     metadata.setValue(concentrationColumn, fileB, 5d);
     metadata.setValue(concentrationColumn, fileC, 2d);
 
-    final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
-        concentrationColumn.getTitle());
+    {
+      final MetadataColumnNormalizationTypeParameters moduleParameters = MetadataColumnNormalizationTypeParameters.create(
+          concentrationColumn.getTitle(), Mode.divide);
 
-    final List<RawDataFile> referenceFiles = module.getReferenceSamples(featureList,
-        moduleParameters);
-    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
-        referenceFiles, featureList, metadata, createMainParameters(AbundanceMeasure.Height),
-        moduleParameters);
+      final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+          featureList.getNumberOfRawDataFiles());
+      module.createAllNormalizationFunctionsToSummary(summary, featureList,
+          new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
+          createMainParameters(AbundanceMeasure.Height), moduleParameters);
+      final Map<RawDataFile, RawFileNormalizationFunction> functions = summary.functions();
 
-    final FactorNormalizationFunction functionA = assertInstanceOf(
-        FactorNormalizationFunction.class, functions.get(fileA));
-    final FactorNormalizationFunction functionB = assertInstanceOf(
-        FactorNormalizationFunction.class, functions.get(fileB));
-    final FactorNormalizationFunction functionC = assertInstanceOf(
-        FactorNormalizationFunction.class, functions.get(fileC));
+      final FactorNormalizationFunction functionA = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileA));
+      final FactorNormalizationFunction functionB = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileB));
+      final FactorNormalizationFunction functionC = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileC));
 
-    assertEquals(3, functions.size());
-    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(2d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(5d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(3, functions.size());
+      assertEquals(0.5d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(2.5d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
+    }
+
+    {
+      // multiply
+      final MetadataColumnNormalizationTypeParameters moduleParameters = MetadataColumnNormalizationTypeParameters.create(
+          concentrationColumn.getTitle(), Mode.multiply);
+
+      final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+          featureList.getNumberOfRawDataFiles());
+      module.createAllNormalizationFunctionsToSummary(summary, featureList,
+          new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
+          createMainParameters(AbundanceMeasure.Height), moduleParameters);
+
+      final FactorNormalizationFunction functionA = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileA));
+      final FactorNormalizationFunction functionB = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileB));
+      final FactorNormalizationFunction functionC = assertInstanceOf(
+          FactorNormalizationFunction.class, summary.get(fileC));
+
+      assertEquals(3, summary.size());
+      assertEquals(2d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(2d / 5d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
+    }
   }
 
   @Test
@@ -99,16 +124,18 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         concentrationColumn.getTitle());
 
-    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
-        List.of(fileA, fileB), featureList, metadata, createMainParameters(AbundanceMeasure.Height),
-        moduleParameters);
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    module.createAllNormalizationFunctionsToSummary(summary, featureList,
+        new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
+        createMainParameters(AbundanceMeasure.Height), moduleParameters);
 
     final FactorNormalizationFunction functionA = assertInstanceOf(
-        FactorNormalizationFunction.class, functions.get(fileA));
+        FactorNormalizationFunction.class, summary.get(fileA));
     final FactorNormalizationFunction functionB = assertInstanceOf(
-        FactorNormalizationFunction.class, functions.get(fileB));
+        FactorNormalizationFunction.class, summary.get(fileB));
 
-    assertEquals(1d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(0.5d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
     assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
   }
 
@@ -120,8 +147,12 @@ class MetadataColumnNormalizationTypeModuleTest {
 
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters("");
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(file), featureList, new MetadataTable(false),
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("No metadata column selected for normalization.", exception.getMessage());
@@ -141,8 +172,11 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         concentrationColumn.getTitle());
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA, fileB), featureList, metadata,
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': null",
@@ -162,8 +196,11 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         stringColumn.getTitle());
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(file), featureList, metadata,
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("Selected metadata column is missing or not numeric: sample_group",
@@ -185,8 +222,11 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         concentrationColumn.getTitle());
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA, fileB), featureList, metadata,
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': -1.0",
@@ -208,8 +248,11 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         concentrationColumn.getTitle());
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA, fileB), featureList, metadata,
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': NaN",
@@ -231,37 +274,21 @@ class MetadataColumnNormalizationTypeModuleTest {
     final MetadataColumnNormalizationTypeParameters moduleParameters = createModuleParameters(
         concentrationColumn.getTitle());
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA, fileB), featureList, metadata,
+        () -> module.createAllNormalizationFunctionsToSummary(summary, featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': Infinity",
         exception.getMessage());
   }
 
-  @Test
-  void createInterpolatedFunctionThrowsByDesign() {
-    final MetadataColumnNormalizationTypeModule module = new MetadataColumnNormalizationTypeModule();
-    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
-    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
-
-    final FactorNormalizationFunction prev = new FactorNormalizationFunction(fileA,
-        fileA.getStartTimeStamp(), 2d);
-    final FactorNormalizationFunction next = new FactorNormalizationFunction(fileB,
-        fileB.getStartTimeStamp(), 4d);
-
-    final RuntimeException exception = assertThrows(RuntimeException.class,
-        () -> module.createInterpolatedFunction(fileA, prev, next,
-            new InterpolationWeights(fileB, fileA, 0.5d, 0.5d), new MetadataTable(false),
-            createMainParameters(AbundanceMeasure.Height),
-            createModuleParameters("concentration")));
-
-    assertTrue(exception.getMessage()
-        .contains("Interpolating a normalization is invalid for Metadata normalization"));
-  }
 
   private static @NotNull MetadataColumnNormalizationTypeParameters createModuleParameters(
       final @NotNull String metadataColumnName) {
-    return MetadataColumnNormalizationTypeParameters.create(metadataColumnName);
+    return MetadataColumnNormalizationTypeParameters.create(
+        new MetadataNormalizationConfig(metadataColumnName, Mode.divide));
   }
 }

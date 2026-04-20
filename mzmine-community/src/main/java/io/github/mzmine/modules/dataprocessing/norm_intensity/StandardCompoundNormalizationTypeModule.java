@@ -30,23 +30,23 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class StandardCompoundNormalizationTypeModule implements NormalizationTypeModule {
+/**
+ * Internal standards normalization
+ */
+public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWithReferencesModule {
 
   @Override
   public @NotNull String getName() {
-    return "Standard compounds";
+    return NormalizationType.StandardCompounds.toString();
   }
 
   @Override
@@ -56,17 +56,19 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
 
   @NotNull
   public List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
+      @NotNull SamplesBatch samplesBatch,
       @NotNull final ParameterSet normalizationModuleParameters) {
-    final var sampleTypeFilter = new SampleTypeFilter(normalizationModuleParameters.getParameter(
-        StandardCompoundNormalizationTypeParameters.sampleTypes).getValue());
-    return sampleTypeFilter.filterFiles(flist.getRawDataFiles());
+    return NormalizationFunctionUtils.getReferenceSamplesOrThrow(false, samplesBatch,
+        normalizationModuleParameters.getValue(
+            StandardCompoundNormalizationTypeParameters.sampleTypes));
   }
 
   @Override
   public @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
+      @NotNull IntensityNormalizationSearchableSummary summary,
       @NotNull final List<@NotNull RawDataFile> referenceFiles,
-      @NotNull final ModularFeatureList featureList, @NotNull final MetadataTable metadata,
-      @NotNull final ParameterSet mainParameters,
+      @NotNull final ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
+      @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
       @NotNull final ParameterSet moduleSpecificParameters) {
     final FeatureListRow[] standardRows = moduleSpecificParameters.getParameter(
         StandardCompoundNormalizationTypeParameters.standardCompounds).getMatchingRows(featureList);
@@ -85,34 +87,22 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
 
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = new HashMap<>();
     for (final RawDataFile rawFile : referenceFiles) {
-      final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(rawFile,
-          standardRows, abundanceMeasure, requireAllStandards);
-      final LocalDateTime acquisitionTimestamp = MetadataTableUtils.getRunDate(metadata,
-          rawFile);
-      fileToFunction.put(rawFile,
-          new StandardCompoundNormalizationFunction(rawFile, acquisitionTimestamp,
-              standardUsageType, mzVsRtBalance, referencePoints));
+      final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(summary,
+          rawFile, standardRows, abundanceMeasure, requireAllStandards);
+      NormalizationFunction function = new StandardCompoundNormalizationFunction(standardUsageType, mzVsRtBalance, referencePoints);
+
+      // add or merge function into a new instance within summary
+      summary.addMergeFunction(rawFile, function);
+
+      // return the actual function of this step for interpolation
+      fileToFunction.put(rawFile, function);
     }
     return fileToFunction;
   }
 
-  @Override
-  public @NotNull NormalizationFunction createInterpolatedFunction(
-      @NotNull final RawDataFile fileToInterpolate,
-      @NotNull final NormalizationFunction previousRunCalibration,
-      @NotNull final NormalizationFunction nextRunCalibration,
-      @NotNull final InterpolationWeights interpolationWeights,
-      @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
-      @NotNull final ParameterSet normalizerParameters) {
-    final LocalDateTime acquisitionTimestamp = MetadataTableUtils.getRunDate(metadata,
-        fileToInterpolate);
-    return new InterpolatedNormalizationFunction(fileToInterpolate, acquisitionTimestamp,
-        previousRunCalibration, interpolationWeights.previousWeight(), nextRunCalibration,
-        interpolationWeights.nextRunWeight());
-  }
-
   private @NotNull List<StandardCompoundReferencePoint> createReferencePoints(
-      @NotNull final RawDataFile rawFile, @NotNull final FeatureListRow[] standardRows,
+      @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile rawFile,
+      @NotNull final FeatureListRow[] standardRows,
       @NotNull final AbundanceMeasure abundanceMeasure, boolean requireAllStandards) {
     final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>(
         standardRows.length);
@@ -138,11 +128,13 @@ public class StandardCompoundNormalizationTypeModule implements NormalizationTyp
         continue;
       }
 
-      final Float standardAbundance = abundanceMeasure.get(standardFeature);
-      if (standardAbundance == null || Float.compare(standardAbundance, 0.0f) == 0
-          || !Float.isFinite(standardAbundance)) {
+      // apply existing function to abundance to normalize on already normalized values
+      final @Nullable RawFileNormalizationFunction existingFunction = summary.functions().get(rawFile);
+
+      final float standardAbundance = abundanceMeasure.getOrNaN(standardFeature, existingFunction);
+      if (Float.compare(standardAbundance, 0.0f) == 0 || !Float.isFinite(standardAbundance)) {
         if (!requireAllStandards) {
-          continue;
+          continue; // skip standard
         }
         throw new IllegalStateException(
             "Invalid standard abundance found for row %s in file %s: %.2E".formatted(
