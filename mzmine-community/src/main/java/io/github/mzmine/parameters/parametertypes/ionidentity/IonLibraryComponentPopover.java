@@ -25,7 +25,74 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-public class IonLibraryComponentPopover {
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import org.controlsfx.control.PopOver;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Controller for the popover that lets the user inspect the currently selected {@link IonLibrary}
+ * and pick a different one from the list of global ion libraries.
+ */
+public class IonLibraryComponentPopover extends FxController<IonLibraryComponentPopoverModel> {
 
+  private final IonLibraryComponentPopoverViewBuilder viewBuilder;
+  private @Nullable PopOver popOver;
+
+  public IonLibraryComponentPopover(@NotNull ReadOnlyListProperty<IonLibrary> libraries) {
+    super(new IonLibraryComponentPopoverModel(libraries));
+    viewBuilder = new IonLibraryComponentPopoverViewBuilder(model, this::hide);
+  }
+
+  /**
+   * Bidirectional selection property – callers bind this to their own state.
+   */
+  public @NotNull ObjectProperty<@Nullable IonLibrary> selectedLibraryProperty() {
+    return model.selectedLibraryProperty();
+  }
+
+  /**
+   * Wire the popover to a button so it toggles on click.
+   */
+  public void installOn(@NotNull ButtonBase button) {
+    FxPopOvers.install(button, getOrCreatePopOver());
+  }
+
+  public void hide() {
+    if (popOver != null) {
+      popOver.hide();
+    }
+  }
+
+  @Override
+  protected @NotNull FxViewBuilder<IonLibraryComponentPopoverModel> getViewBuilder() {
+    return viewBuilder;
+  }
+
+  private PopOver getOrCreatePopOver() {
+    if (popOver == null) {
+      popOver = FxPopOvers.newPopOver(buildView());
+
+      // Prevent popover from closing when Enter is pressed
+      popOver.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+        if (event.getCode() == KeyCode.ENTER) {
+          event.consume();
+        }
+      });
+
+      popOver.setOnShown(_ -> {
+        viewBuilder.syncListSelectionFromModel();
+        viewBuilder.focusSearchField();
+      });
+    }
+    return popOver;
+  }
 }

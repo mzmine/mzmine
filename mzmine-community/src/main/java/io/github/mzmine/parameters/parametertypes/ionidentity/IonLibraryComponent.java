@@ -25,11 +25,11 @@
 
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
-import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createLabelButton;
 import static io.github.mzmine.javafx.components.factories.FxLabels.colored;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
-import static io.github.mzmine.javafx.util.FxIconUtil.DEFAULT_LARGE_ICON_SIZE;
+import static io.github.mzmine.javafx.util.FxIconUtil.newIconButton;
 import static io.github.mzmine.javafx.util.FxIconUtil.newIconButtonOpenUrl;
 
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
@@ -37,8 +37,6 @@ import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.javafx.components.controls.ListSelectTextField;
-import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -48,7 +46,10 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
@@ -60,7 +61,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonLibraryComponent extends BorderPane implements ParameterComponent<IonLibrary> {
 
-  private final StringProperty selectedName = new SimpleStringProperty();
   private final StringProperty numIonsText = new SimpleStringProperty();
   private final StringProperty conflictWithLocalText = new SimpleStringProperty();
   private final StringProperty updateWithGlobalTooltip = new SimpleStringProperty();
@@ -82,25 +82,26 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
         GlobalIonLibrariesTab.HEADER);
     final GlobalIonLibrariesController controller = GlobalIonLibrariesController.getInstance();
 
-    final var selectedLibraryField = new ListSelectTextField<>(true,
+    final IonLibraryComponentPopover libraryPopover = new IonLibraryComponentPopover(
         controller.librariesProperty());
-    library = selectedLibraryField.selectedItemProperty();
+    library = libraryPopover.selectedLibraryProperty();
 
-    FxTextFields.applyToField(selectedLibraryField, null, selectedName, "Select ion library",
-        tooltip);
+    final ObservableValue<String> buttonLabel = library.map(IonLibrary::name)
+        .orElse("Select ion library");
+    final Button selectLibraryButton = createLabelButton(buttonLabel, FxIcons.LIST, tooltip,
+        () -> { /* popover toggles via installOn */ });
+    libraryPopover.installOn(selectLibraryButton);
 
     final ButtonBase updateWithGlobalLibrary = FxIconUtil.newIconButton(FxIcons.RELOAD,
         updateWithGlobalTooltip, this::exchangeIonLibraryForGlobalVersion);
     updateWithGlobalLibrary.visibleProperty().bind(hasConflictWithLocal);
     updateWithGlobalLibrary.managedProperty().bind(hasConflictWithLocal);
 
-    final var topBox = FxLayout.newFlowPane(Insets.EMPTY, //
-        selectedLibraryField, //
+    final var topBox = FxLayout.newIconPane(Orientation.HORIZONTAL, //
+        selectLibraryButton, //
         updateWithGlobalLibrary, //
-        createButton("Define libraries", FxIcons.GEAR_PREFERENCES, tooltip,
-            GlobalIonLibrariesTab::showTab), //
-        newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, DEFAULT_LARGE_ICON_SIZE,
-            tooltip + "\nClick to open the documentation.",
+        newIconButton(FxIcons.GEAR_PREFERENCES, tooltip, GlobalIonLibrariesTab::showTab), //
+        newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, tooltip + "\nClick to open the documentation.",
             "https://mzmine.github.io/mzmine_documentation/ions/ions.html"));
 
     setTop(topBox);
@@ -180,9 +181,6 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
   @Override
   public void setValue(IonLibrary value) {
-    if (value == null) {
-      selectedName.set("");
-    }
     library.set(value);
   }
 }
