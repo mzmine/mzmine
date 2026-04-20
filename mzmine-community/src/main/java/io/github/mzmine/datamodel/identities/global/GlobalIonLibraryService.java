@@ -41,10 +41,14 @@ import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,6 +95,8 @@ public final class GlobalIonLibraryService {
    * Only used for parts as there are multiple data structures to update
    */
   private final CloseableReentrantReadWriteLock lock = new CloseableReentrantReadWriteLock();
+
+  private final GlobalIonLibraryValidator validator = new GlobalIonLibraryValidator();
 
   /**
    * Used to save ion libraries as presets
@@ -194,6 +200,11 @@ public final class GlobalIonLibraryService {
    * to the global library.
    * <p>
    * All internal lists are cleared and exchanged for the arguments.
+   * <p>
+   * This overload skips the optimistic-concurrency check — reserve it for internal or migration
+   * paths that really intend to overwrite whatever the current state is. UI-initiated writes
+   * should go through {@link #applyUpdates(int, GlobalIonLibraryDTO)} so stale base versions
+   * surface as a conflict instead of a silent overwrite.
    */
   public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts,
       List<IonPartDefinition> partDefinitions) {
@@ -203,6 +214,89 @@ public final class GlobalIonLibraryService {
       setIonTypes(types);
       setLibraries(libraries);
     });
+  }
+
+  /// Versioned apply: validate, check that the caller's base version is still current, and only
+  /// then mutate. All three phases run inside a single write lock so a racing writer can't slip in
+  /// between the version check and the mutation.
+  ///
+  /// Returns one of {@link ApplyResult.Applied}, {@link ApplyResult.Invalid}, or {@link
+  /// ApplyResult.Conflict}. Callers must handle all three — the sealed return type makes that
+  /// obligation visible at the type level.
+  ///
+  /// @param expectedBaseVersion the service version the caller built {@code proposed} against;
+  ///                            typically {@code model.getRetrievalVersion()}
+  /// @param proposed            the full desired state (libraries, types, parts, part definitions)
+  public @NotNull ApplyResult applyUpdates(int expectedBaseVersion,
+      @NotNull GlobalIonLibraryDTO proposed) {
+    try (var _ = lock.lockWrite()) {
+      final int currentVersion = getVersion();
+      if (currentVersion != expectedBaseVersion) {
+        final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
+        return new ApplyResult.Conflict(currentVersion,
+            diffLibraries(proposed.libraries(), currentDto.libraries()));
+      }
+
+      final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
+      final ValidationResult vr = validator.validate(proposed, currentDto);
+      if (vr.hasErrors()) {
+        return new ApplyResult.Invalid(vr);
+      }
+
+      // validation passed and nobody has raced us — mutate atomically
+      final boolean oldNotify = notifyChanges.getAndSet(false);
+      try {
+        setIonPartDefinitions(proposed.partDefinitions());
+        setIonParts(proposed.parts());
+        setIonTypes(proposed.types());
+        setLibraries(proposed.libraries());
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Failed to apply global ion library update: " + ex.getMessage(),
+            ex);
+      } finally {
+        notifyChanges.set(oldNotify);
+      }
+      notifyChange();
+      return new ApplyResult.Applied(getVersion());
+    }
+  }
+
+  /// Snapshot without re-acquiring the read lock (we hold the write lock already).
+  private @NotNull GlobalIonLibraryDTO snapshotWithinLock(int version) {
+    return new GlobalIonLibraryDTO(version, getIonLibrariesUnmodifiable(),
+        getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
+  }
+
+  private static @NotNull ConflictReport diffLibraries(@NotNull List<IonLibrary> proposed,
+      @NotNull List<IonLibrary> current) {
+    final Map<UUID, IonLibrary> proposedById = HashMap.newHashMap(proposed.size());
+    for (IonLibrary lib : proposed) {
+      proposedById.put(lib.id(), lib);
+    }
+    final Map<UUID, IonLibrary> currentById = HashMap.newHashMap(current.size());
+    for (IonLibrary lib : current) {
+      currentById.put(lib.id(), lib);
+    }
+
+    final Set<UUID> sameIdDifferentContent = new HashSet<>();
+    final Set<UUID> onlyInProposed = new HashSet<>();
+    final Set<UUID> onlyInCurrent = new HashSet<>();
+
+    for (Map.Entry<UUID, IonLibrary> e : proposedById.entrySet()) {
+      final IonLibrary other = currentById.get(e.getKey());
+      if (other == null) {
+        onlyInProposed.add(e.getKey());
+      } else if (!e.getValue().name().equals(other.name()) || !e.getValue().equalIons(other)) {
+        sameIdDifferentContent.add(e.getKey());
+      }
+    }
+    for (UUID id : currentById.keySet()) {
+      if (!proposedById.containsKey(id)) {
+        onlyInCurrent.add(id);
+      }
+    }
+    return new ConflictReport(Set.copyOf(sameIdDifferentContent), Set.copyOf(onlyInProposed),
+        Set.copyOf(onlyInCurrent));
   }
 
   private void setIonPartDefinitions(List<IonPartDefinition> definitions) {

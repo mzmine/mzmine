@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.io;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -37,25 +38,33 @@ import io.github.mzmine.datamodel.identities.iontype.IonPartSorting;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeUtils;
+import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Only used for storage.
  *
+ * @param id       stable identifier for this library; nullable for files written before identity
+ *                 was introduced. Missing ids are regenerated on first load.
+ * @param origin   where the library came from ({@link LibraryOrigin}); nullable for legacy files,
+ *                 defaulted to {@link LibraryOrigin#LOCAL} on load.
  * @param name     the library name
  * @param parts    all part definitions without count just name, formula, charge, mass + a unique ID
  *                 that is used in types.
  * @param ionTypes ion types that use unique ids to refer to the ion parts
  */
-
-record StorableIonLibrary(@NotNull String name, //
+@JsonInclude(JsonInclude.Include.NON_NULL)
+record StorableIonLibrary(@Nullable UUID id, //
+                          @Nullable LibraryOrigin origin, //
+                          @NotNull String name, //
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
                           @JsonSerialize(using = LocalDateTimeSerializer.class) //
                           @NotNull LocalDateTime savedDate, //
@@ -89,7 +98,7 @@ record StorableIonLibrary(@NotNull String name, //
     final List<IonTypeDTO> types = library.ions().stream()
         .map(ion -> IonTypeDTO.createIonTypeDTO(ion, uniquePartIds, partMapping)).toList();
 
-    this(library.name(), LocalDateTime.now(), parts, types);
+    this(library.id(), library.origin(), library.name(), LocalDateTime.now(), parts, types);
   }
 
   /**

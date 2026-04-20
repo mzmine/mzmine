@@ -167,8 +167,12 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
       if (nameUnique || DialogLoggerUtil.showDialogYesNo("Overwrite library named " + newName,
           "A library exists with this name, do you want to overwrite it?")) {
 
-        final UnmodifiableIonLibrary newLibrary = new UnmodifiableIonLibrary(newName,
-            List.copyOf(model.getIonTypes()));
+        // overwrite: keep the original identity/origin so references upstream stay valid.
+        // save-as-copy (or brand-new library): fresh id + local origin.
+        final UnmodifiableIonLibrary newLibrary = (!saveAsCopy && original != null) //
+            ? new UnmodifiableIonLibrary(original.id(), original.origin(), newName,
+                List.copyOf(model.getIonTypes())) //
+            : new UnmodifiableIonLibrary(newName, List.copyOf(model.getIonTypes()));
 
         if (!saveAsCopy) {
           parentModel.getLibraries().remove(original);

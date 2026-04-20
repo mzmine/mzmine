@@ -75,7 +75,7 @@ class GlobalIonLibrariesModel {
    * Holds the global library version number last retrieved for updating the model
    * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
    */
-  private final IntegerProperty retrivalVersion = new SimpleIntegerProperty();
+  private final IntegerProperty retrievalVersion = new SimpleIntegerProperty();
   /**
    * The current version - mismatch to retrieval date signals change.
    * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
@@ -94,7 +94,7 @@ class GlobalIonLibrariesModel {
 
 
   public GlobalIonLibrariesModel() {
-    globalVersionChanged = retrivalVersion.isNotEqualTo(globalIonsVersion);
+    globalVersionChanged = retrievalVersion.isNotEqualTo(globalIonsVersion);
   }
 
   /// The part definitions is a subset of parts to define alternative names or charge state for
@@ -185,16 +185,16 @@ class GlobalIonLibrariesModel {
     this.ionTypes.set(ionTypes);
   }
 
-  public int getRetrivalVersion() {
-    return retrivalVersion.get();
+  public int getRetrievalVersion() {
+    return retrievalVersion.get();
   }
 
-  public IntegerProperty retrivalVersionProperty() {
-    return retrivalVersion;
+  public IntegerProperty retrievalVersionProperty() {
+    return retrievalVersion;
   }
 
-  public void setRetrivalVersion(int retrivalVersion) {
-    this.retrivalVersion.set(retrivalVersion);
+  public void setRetrievalVersion(int retrievalVersion) {
+    this.retrievalVersion.set(retrievalVersion);
   }
 
 }

@@ -57,7 +57,9 @@ public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class
 
   @Override
   public @NotNull IonLibraryPreset withName(String name) {
-    return new IonLibraryPreset(new UnmodifiableIonLibrary(name, library.ions()));
+    // rename preserves identity so a renamed preset still refers to the same library upstream
+    return new IonLibraryPreset(
+        new UnmodifiableIonLibrary(library.id(), library.origin(), name, library.ions()));
   }
 
 }

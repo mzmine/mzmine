@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -138,10 +140,15 @@ public class IonLibraryIO {
       logger.fine(
           "A library named '%s' was loaded but this internal library has now a different content. Using a different name '%s' now to refer to this library.".formatted(
               storable.name(), newName));
-      return new UnmodifiableIonLibrary(newName, types);
+      // renamed: no longer matches any builtin, treat as local with fresh identity
+      return new UnmodifiableIonLibrary(UUID.randomUUID(), LibraryOrigin.LOCAL, newName, types);
     }
 
-    return new UnmodifiableIonLibrary(storable.name(), types);
+    // preserve persisted identity when present; generate a fresh one for legacy files
+    final UUID id = storable.id() != null ? storable.id() : UUID.randomUUID();
+    final LibraryOrigin origin =
+        storable.origin() != null ? storable.origin() : LibraryOrigin.LOCAL;
+    return new UnmodifiableIonLibrary(id, origin, storable.name(), types);
   }
 
   /**
@@ -194,8 +201,9 @@ public class IonLibraryIO {
       types.add(new StorableIonLibrary.IonTypeDTO(ionParts, molecules));
     }
 
-    final StorableIonLibrary storable = new StorableIonLibrary(libraryName, savedDate, parts,
-        types);
+    // legacy XML has no identity fields — convert() will assign defaults
+    final StorableIonLibrary storable = new StorableIonLibrary(null, null, libraryName, savedDate,
+        parts, types);
     return new LoadedIonLibrary(storable.savedDate(), convert(storable));
   }
 

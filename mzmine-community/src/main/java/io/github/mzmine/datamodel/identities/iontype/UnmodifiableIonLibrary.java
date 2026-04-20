@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 public class UnmodifiableIonLibrary implements IonLibrary {
 
   private static final Logger logger = Logger.getLogger(UnmodifiableIonLibrary.class.getName());
+  private final @NotNull UUID id;
+  private final @NotNull LibraryOrigin origin;
   private final @NotNull String name;
   private final @NotNull List<IonType> ions;
 
@@ -49,7 +52,8 @@ public class UnmodifiableIonLibrary implements IonLibrary {
    * @param skipNameCheck name check can only be skipped by classes in this package to create
    *                      default libraries. Outside, there will always be a name check.
    */
-  UnmodifiableIonLibrary(boolean skipNameCheck, @NotNull String name, @NotNull List<IonType> ions) {
+  UnmodifiableIonLibrary(boolean skipNameCheck, @NotNull UUID id, @NotNull LibraryOrigin origin,
+      @NotNull String name, @NotNull List<IonType> ions) {
     if (!skipNameCheck && IonLibraries.isInternalLibrary(name)) {
       // use try catch to get stack trace
       // users might load a library with mzmine default in name
@@ -63,6 +67,8 @@ public class UnmodifiableIonLibrary implements IonLibrary {
       }
       name = "unnamed library";
     }
+    this.id = id;
+    this.origin = origin;
     this.name = name;
     List<IonType> sorted = new ArrayList<>(ions);
     sorted.sort(IonTypeSorting.MOLECULES_THEN_CHARGE_THEN_MASS.getComparator());
@@ -70,19 +76,47 @@ public class UnmodifiableIonLibrary implements IonLibrary {
   }
 
   /**
-   * Create a new library and check if name is valid
+   * Create a new library with a freshly generated id and {@link LibraryOrigin#LOCAL} origin.
    */
   public UnmodifiableIonLibrary(@NotNull String name, @NotNull List<IonType> ions) {
-    this(false, name, ions);
+    this(false, UUID.randomUUID(), LibraryOrigin.LOCAL, name, ions);
   }
 
   /**
-   * Option to create internal default libraries within this package
+   * Create a library with an explicit id and origin. Used on import, when loading from disk, and
+   * when cloning while preserving identity.
    */
-  static UnmodifiableIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
-    return new UnmodifiableIonLibrary(true, name, ions);
+  public UnmodifiableIonLibrary(@NotNull UUID id, @NotNull LibraryOrigin origin,
+      @NotNull String name, @NotNull List<IonType> ions) {
+    this(false, id, origin, name, ions);
   }
 
+  /**
+   * Option to create internal default libraries within this package. The id is derived
+   * deterministically from the name so builtins keep stable identifiers across sessions.
+   */
+  static UnmodifiableIonLibrary createInternal(@NotNull String name, @NotNull List<IonType> ions) {
+    return new UnmodifiableIonLibrary(true, deterministicBuiltinId(name), LibraryOrigin.BUILTIN,
+        name, ions);
+  }
+
+  /**
+   * Stable UUID derived from the library name so that builtins keep the same id across restarts
+   * without needing to persist them.
+   */
+  static @NotNull UUID deterministicBuiltinId(@NotNull String name) {
+    return UUID.nameUUIDFromBytes(("mzmine-builtin:" + name).getBytes());
+  }
+
+  @Override
+  public @NotNull UUID id() {
+    return id;
+  }
+
+  @Override
+  public @NotNull LibraryOrigin origin() {
+    return origin;
+  }
 
   @Override
   @NotNull
@@ -92,7 +126,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
 
   @Override
   public @NotNull IonLibrary copy() {
-    return new UnmodifiableIonLibrary(true, name, ions);
+    return new UnmodifiableIonLibrary(true, id, origin, name, ions);
   }
 
   @Override
