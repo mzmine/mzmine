@@ -29,10 +29,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Sealed interface for the payload produced by a retention trend computation. Implemented by
- * {@link EcnRetentionPayload}, {@link DbeRetentionPayload}, and {@link CombinedRetentionPayload}.
+ * {@link EcnRetentionPayload}, {@link DbeRetentionPayload}, {@link CombinedRetentionPayload}, and
+ * {@link TotalLipidClassRetentionPayload}.
  */
 sealed interface RetentionComputationPayload permits EcnRetentionPayload, DbeRetentionPayload,
-    CombinedRetentionPayload {
+    CombinedRetentionPayload, TotalLipidClassRetentionPayload {
 
   @NotNull RetentionTrendMode mode();
 }

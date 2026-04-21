@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -50,7 +51,9 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -58,6 +61,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.MouseButton;
@@ -98,6 +102,8 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
   private final StringProperty paneTitle = new SimpleStringProperty("Retention time analysis");
   private final ComboBox<RetentionTrendMode> trendModeCombo = new ComboBox<>(
       FXCollections.observableArrayList(RetentionTrendMode.values()));
+  private final CheckBox showAllLipidsOfSelectedClassCheckBox = new CheckBox(
+      "Show all lipids of selected class");
   private List<FeatureListRow> rowsWithLipidIds = List.of();
 
   public EquivalentCarbonNumberPane(final @NotNull LipidAnnotationQCDashboardModel model) {
@@ -126,7 +132,15 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     });
     trendModeCombo.getSelectionModel().select(RetentionTrendMode.COMBINED_CARBON_DBE_TRENDS);
     trendModeCombo.valueProperty().addListener((_, _, _) -> requestUpdate());
-    final HBox trendRow = new HBox(6, FxLabels.newLabel("Trend:"), trendModeCombo);
+    showAllLipidsOfSelectedClassCheckBox.setSelected(false);
+    showAllLipidsOfSelectedClassCheckBox.selectedProperty()
+        .addListener((_, _, _) -> requestUpdate());
+    showAllLipidsOfSelectedClassCheckBox.managedProperty()
+        .bind(showAllLipidsOfSelectedClassCheckBox.visibleProperty());
+    showAllLipidsOfSelectedClassCheckBox.visibleProperty().bind(
+        trendModeCombo.valueProperty().isNotEqualTo(RetentionTrendMode.COMBINED_CARBON_DBE_TRENDS));
+    final HBox trendRow = new HBox(6, FxLabels.newLabel("Trend:"), trendModeCombo,
+        showAllLipidsOfSelectedClassCheckBox);
     trendRow.setAlignment(Pos.CENTER_LEFT);
     final VBox controlBox = new VBox(6, trendRow);
     controlBox.setAlignment(Pos.TOP_LEFT);
@@ -149,8 +163,10 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
   public void requestUpdate() {
     final List<FeatureListRow> currentRowsWithLipidIds = getCurrentRowsWithLipidIds();
     final RetentionTrendMode mode = trendModeCombo.getValue();
-    scheduleUpdate(new RetentionComputationTask(this, model.getRow(),
-        currentRowsWithLipidIds, mode));
+    final boolean showAllLipidsOfSelectedClass = showAllLipidsOfSelectedClassCheckBox.isVisible()
+        && showAllLipidsOfSelectedClassCheckBox.isSelected();
+    scheduleUpdate(new RetentionComputationTask(this, model.getRow(), currentRowsWithLipidIds, mode,
+        showAllLipidsOfSelectedClass));
   }
 
   void applyComputationResult(final @NotNull RetentionComputationResult result) {
@@ -177,6 +193,10 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
           combinedPayload.selectedMatch(), combinedPayload.selectedClass(),
           combinedPayload.selectedCarbons(), combinedPayload.selectedDbe(),
           combinedPayload.carbonsDataset(), combinedPayload.dbeDataset());
+      case TotalLipidClassRetentionPayload totalClassPayload ->
+          showTotalLipidClassTrend(totalClassPayload.selectedMatch(),
+              totalClassPayload.rowsWithLipidIds(), totalClassPayload.selectedClass(),
+              totalClassPayload.mode());
     }
   }
 
@@ -419,6 +439,88 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     setCenter(chart);
   }
 
+  private void showTotalLipidClassTrend(final @NotNull MatchedLipid selectedMatch,
+      final @NotNull List<FeatureListRow> currentRowsWithLipidIds,
+      final @NotNull ILipidClass selectedClass, final @NotNull RetentionTrendMode mode) {
+    final boolean showEcnTrend = mode == RetentionTrendMode.ECN_CARBON_TREND;
+    final GroupedRetentionTrendDataset trendDataset = new GroupedRetentionTrendDataset(
+        currentRowsWithLipidIds, selectedClass,
+        showEcnTrend ? match -> LipidQcAnnotationSelectionUtils.extractDbe(
+            match.getLipidAnnotation())
+            : match -> LipidQcAnnotationSelectionUtils.extractCarbons(match.getLipidAnnotation()),
+        showEcnTrend ? match -> LipidQcAnnotationSelectionUtils.extractCarbons(
+            match.getLipidAnnotation())
+            : match -> LipidQcAnnotationSelectionUtils.extractDbe(match.getLipidAnnotation()),
+        showEcnTrend ? dbe -> "DBE " + dbe : carbons -> "C " + carbons);
+    if (trendDataset.getTotalItemCount() == 0) {
+      showPlaceholder("No lipid annotations available for the selected lipid class.");
+      return;
+    }
+    final TotalLipidClassTrendChartResult chartResult = createTotalLipidClassTrendChart(
+        trendDataset, model.preferredLipidLevelProperty(),
+        showEcnTrend ? "Number of carbons" : "Number of DBEs");
+    final EChartViewer chart = chartResult.chart();
+    configureNoCrosshair(chart.getChart().getXYPlot());
+    chart.addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(final ChartMouseEventFX event) {
+        if (event.getTrigger() == null || !event.getTrigger().isStillSincePress()
+            || event.getTrigger().getButton() != MouseButton.PRIMARY) {
+          return;
+        }
+        if (!(event.getEntity() instanceof XYItemEntity entity)
+            || !(entity.getDataset() instanceof GroupedRetentionTrendDataset clickedDataset)) {
+          return;
+        }
+        final int series = entity.getSeriesIndex();
+        final int item = entity.getItem();
+        if (series < 0 || series >= clickedDataset.getSeriesCount() || item < 0
+            || item >= clickedDataset.getItemCount(series)) {
+          return;
+        }
+        final @Nullable FeatureListRow clickedRow = clickedDataset.getRow(series, item);
+        if (clickedRow != null) {
+          model.setRow(clickedRow);
+          FeatureTableFXUtil.selectAndScrollTo(clickedRow, model.getFeatureTableFx());
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(final ChartMouseEventFX event) {
+      }
+    });
+
+    final XYPlot plot = chart.getChart().getXYPlot();
+    final @Nullable SelectionQualityFlag selectionQualityFlag =
+        model.getRow() == null ? null : determineSelectionQualityFlag(model.getRow());
+    final int falsePositiveDatasetIndex = nextDatasetIndex(plot);
+    final int falsePositiveCount = addGroupedTrendFalsePositiveOverlay(plot, trendDataset,
+        falsePositiveDatasetIndex, 0);
+    if (model.getRow() != null) {
+      final int selectedYValue = showEcnTrend ? LipidQcAnnotationSelectionUtils.extractCarbons(
+          selectedMatch.getLipidAnnotation())
+          : LipidQcAnnotationSelectionUtils.extractDbe(selectedMatch.getLipidAnnotation());
+      final @Nullable Float selectedRt = model.getRow().getAverageRT();
+      if (selectedRt != null && Double.isFinite(selectedYValue)) {
+        final int selectedDatasetIndex = nextDatasetIndex(plot);
+        addSelectedOverlayPoint(plot, selectedDatasetIndex, 0, selectedRt.doubleValue(),
+            selectedYValue, SELECTED_POINT_COLOR, new Ellipse2D.Double(-5d, -5d, 10d, 10d));
+      }
+      if (selectionQualityFlag == SelectionQualityFlag.POTENTIAL_FALSE_NEGATIVE) {
+        final int falseNegativeDatasetIndex = nextDatasetIndex(plot);
+        addFalseNegativeSelectionOverlay(plot, falseNegativeDatasetIndex, 0, selectedRt,
+            selectedYValue);
+      }
+      ensurePointVisible(plot, selectedRt, selectedYValue, 0);
+    }
+    updatePaneTitle("Retention time analysis: " + selectedClass.getAbbr() + " " + (showEcnTrend
+        ? "ECN carbon trend" : "DBE trend") + " all class lipids (n="
+        + chartResult.annotationCount() + ", " + (showEcnTrend ? "DBE lines=" : "carbon lines=")
+        + chartResult.trendCount() + ")" + formatQualityIndicator(falsePositiveCount,
+        selectionQualityFlag));
+    setCenter(chart);
+  }
+
 
   private static TrendChartResult createTrendChart(final @NotNull RetentionTrendDataset dataset,
       final @NotNull String yAxisLabel, final @NotNull Paint trendPaint,
@@ -451,6 +553,44 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     }
     configureTrendAxisRanges(plot, dataset);
     return new TrendChartResult(viewer, regression[2]);
+  }
+
+  private static @NotNull TotalLipidClassTrendChartResult createTotalLipidClassTrendChart(
+      final @NotNull GroupedRetentionTrendDataset dataset,
+      final @NotNull ObjectProperty<LipidAnnotationLevel> levelProperty,
+      final @NotNull String yAxisLabel) {
+    final JFreeChart chart = ChartFactory.createScatterPlot("", "Retention time", yAxisLabel,
+        dataset, PlotOrientation.VERTICAL, true, true, true);
+    final EChartViewer viewer = new EChartViewer(chart);
+    ConfigService.getConfiguration().getDefaultChartTheme().apply(viewer);
+
+    final XYPlot plot = chart.getXYPlot();
+    configureNoCrosshair(plot);
+    final int seriesCount = dataset.getSeriesCount();
+    final List<Color> trendColors = createDistinctTrendColors(seriesCount);
+    final XYLineAndShapeRenderer pointRenderer = createGroupedPointRenderer(dataset, trendColors,
+        levelProperty);
+    plot.setRenderer(0, pointRenderer);
+
+    int datasetIndex = 1;
+    int trendCount = 0;
+    final RegressionYBounds regressionBounds = new RegressionYBounds();
+    for (int series = 0; series < seriesCount; series++) {
+      final double[] regression = calculateLinearRegression(dataset, series);
+      if (appendGroupedRegressionDatasetIfValid(plot, datasetIndex, regression, dataset, series, 0,
+          trendColors.get(series), groupedRegressionStroke())) {
+        trendCount++;
+        extendRegressionBounds(regressionBounds, regression, dataset, series);
+        datasetIndex++;
+      }
+    }
+
+    if (trendCount == 0 && chart.getLegend() != null) {
+      chart.removeLegend();
+    }
+
+    configureTotalLipidClassAxisRanges(plot, dataset, regressionBounds);
+    return new TotalLipidClassTrendChartResult(viewer, dataset.getTotalItemCount(), trendCount);
   }
 
   private static double[] calculateLinearRegression(
@@ -492,6 +632,45 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     return new double[]{slope, intercept, r2};
   }
 
+  private static double[] calculateLinearRegression(
+      final @NotNull GroupedRetentionTrendDataset dataset, final int series) {
+    final int itemCount = dataset.getItemCount(series);
+    if (itemCount < 2) {
+      return new double[]{Double.NaN, Double.NaN, Double.NaN};
+    }
+    double sumX = 0d;
+    double sumY = 0d;
+    double sumXX = 0d;
+    double sumXY = 0d;
+    for (int item = 0; item < itemCount; item++) {
+      final double x = dataset.getXValue(series, item);
+      final double y = dataset.getYValue(series, item);
+      sumX += x;
+      sumY += y;
+      sumXX += x * x;
+      sumXY += x * y;
+    }
+    final double denominator = itemCount * sumXX - sumX * sumX;
+    if (Math.abs(denominator) < 1e-10d) {
+      return new double[]{Double.NaN, Double.NaN, Double.NaN};
+    }
+    final double slope = (itemCount * sumXY - sumX * sumY) / denominator;
+    final double intercept = (sumY - slope * sumX) / itemCount;
+
+    final double meanY = sumY / itemCount;
+    double ssr = 0d;
+    double sse = 0d;
+    for (int item = 0; item < itemCount; item++) {
+      final double x = dataset.getXValue(series, item);
+      final double y = dataset.getYValue(series, item);
+      final double predicted = slope * x + intercept;
+      ssr += (predicted - meanY) * (predicted - meanY);
+      sse += (y - predicted) * (y - predicted);
+    }
+    final double r2 = (ssr + sse) > 0d ? ssr / (ssr + sse) : Double.NaN;
+    return new double[]{slope, intercept, r2};
+  }
+
   private static @NotNull XYSeriesCollection createRegressionDataset(final double slope,
       final double intercept, final @NotNull RetentionTrendDataset dataset) {
     final double minX = Arrays.stream(dataset.getXValues()).min().orElse(0d);
@@ -501,6 +680,19 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     series.add(maxX, slope * maxX + intercept);
     final XYSeriesCollection regressionDataset = new XYSeriesCollection();
     regressionDataset.addSeries(series);
+    return regressionDataset;
+  }
+
+  private static @NotNull XYSeriesCollection createRegressionDataset(final double slope,
+      final double intercept, final @NotNull GroupedRetentionTrendDataset dataset,
+      final int series) {
+    final double minX = minDatasetX(dataset, series);
+    final double maxX = maxDatasetX(dataset, series);
+    final XYSeries regressionSeries = new XYSeries(dataset.getSeriesKey(series));
+    regressionSeries.add(minX, slope * minX + intercept);
+    regressionSeries.add(maxX, slope * maxX + intercept);
+    final XYSeriesCollection regressionDataset = new XYSeriesCollection();
+    regressionDataset.addSeries(regressionSeries);
     return regressionDataset;
   }
 
@@ -624,6 +816,27 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     }
   }
 
+  private static void configureTotalLipidClassAxisRanges(final @NotNull XYPlot plot,
+      final @NotNull GroupedRetentionTrendDataset dataset,
+      final @NotNull RegressionYBounds regressionBounds) {
+    if (plot.getDomainAxis() instanceof NumberAxis domainAxis) {
+      setAxisRangeToData(domainAxis, minDatasetX(dataset), maxDatasetX(dataset), true);
+    }
+    if (plot.getRangeAxis() instanceof NumberAxis rangeAxis) {
+      double minY = minDatasetY(dataset);
+      double maxY = maxDatasetY(dataset);
+      if (Double.isFinite(regressionBounds.minY)) {
+        minY =
+            Double.isFinite(minY) ? Math.min(minY, regressionBounds.minY) : regressionBounds.minY;
+      }
+      if (Double.isFinite(regressionBounds.maxY)) {
+        maxY =
+            Double.isFinite(maxY) ? Math.max(maxY, regressionBounds.maxY) : regressionBounds.maxY;
+      }
+      setAxisRangeToData(rangeAxis, minY, maxY, false);
+    }
+  }
+
   private static double minDatasetY(final @NotNull RetentionTrendDataset dataset) {
     double min = Double.POSITIVE_INFINITY;
     for (int i = 0; i < dataset.getItemCount(0); i++) {
@@ -635,10 +848,76 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     return min;
   }
 
+  private static double minDatasetY(final @NotNull GroupedRetentionTrendDataset dataset) {
+    double min = Double.POSITIVE_INFINITY;
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final double value = dataset.getYValue(series, item);
+        if (Double.isFinite(value)) {
+          min = Math.min(min, value);
+        }
+      }
+    }
+    return min;
+  }
+
   private static double maxDatasetY(final @NotNull RetentionTrendDataset dataset) {
     double max = Double.NEGATIVE_INFINITY;
     for (int i = 0; i < dataset.getItemCount(0); i++) {
       final double value = dataset.getYValue(0, i);
+      if (Double.isFinite(value)) {
+        max = Math.max(max, value);
+      }
+    }
+    return max;
+  }
+
+  private static double maxDatasetY(final @NotNull GroupedRetentionTrendDataset dataset) {
+    double max = Double.NEGATIVE_INFINITY;
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final double value = dataset.getYValue(series, item);
+        if (Double.isFinite(value)) {
+          max = Math.max(max, value);
+        }
+      }
+    }
+    return max;
+  }
+
+  private static double minDatasetX(final @NotNull GroupedRetentionTrendDataset dataset) {
+    double min = Double.POSITIVE_INFINITY;
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      min = Math.min(min, minDatasetX(dataset, series));
+    }
+    return min;
+  }
+
+  private static double maxDatasetX(final @NotNull GroupedRetentionTrendDataset dataset) {
+    double max = Double.NEGATIVE_INFINITY;
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      max = Math.max(max, maxDatasetX(dataset, series));
+    }
+    return max;
+  }
+
+  private static double minDatasetX(final @NotNull GroupedRetentionTrendDataset dataset,
+      final int series) {
+    double min = Double.POSITIVE_INFINITY;
+    for (int item = 0; item < dataset.getItemCount(series); item++) {
+      final double value = dataset.getXValue(series, item);
+      if (Double.isFinite(value)) {
+        min = Math.min(min, value);
+      }
+    }
+    return min;
+  }
+
+  private static double maxDatasetX(final @NotNull GroupedRetentionTrendDataset dataset,
+      final int series) {
+    double max = Double.NEGATIVE_INFINITY;
+    for (int item = 0; item < dataset.getItemCount(series); item++) {
+      final double value = dataset.getXValue(series, item);
       if (Double.isFinite(value)) {
         max = Math.max(max, value);
       }
@@ -786,6 +1065,24 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     plot.setRenderer(datasetIndex, regressionRenderer);
   }
 
+  private static boolean appendGroupedRegressionDatasetIfValid(final @NotNull XYPlot plot,
+      final int datasetIndex, final @NotNull double[] regression,
+      final @NotNull GroupedRetentionTrendDataset dataset, final int series,
+      final int rangeAxisIndex, final @NotNull Paint linePaint, final @NotNull BasicStroke stroke) {
+    if (datasetIndex < 0 || dataset.getItemCount(series) < 2 || !Double.isFinite(regression[0])
+        || !Double.isFinite(regression[1])) {
+      return false;
+    }
+    plot.setDataset(datasetIndex,
+        createRegressionDataset(regression[0], regression[1], dataset, series));
+    plot.mapDatasetToRangeAxis(datasetIndex, rangeAxisIndex);
+    final XYLineAndShapeRenderer regressionRenderer = new XYLineAndShapeRenderer(true, false);
+    regressionRenderer.setSeriesPaint(0, linePaint);
+    regressionRenderer.setSeriesStroke(0, stroke);
+    plot.setRenderer(datasetIndex, regressionRenderer);
+    return true;
+  }
+
   private static @NotNull XYLineAndShapeRenderer createTrendPointRenderer(
       final @NotNull RetentionTrendDataset dataset, final @NotNull Paint seriesPaint,
       final @NotNull java.awt.Shape seriesShape,
@@ -800,6 +1097,24 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     pointRenderer.setDefaultToolTipGenerator(
         (xyDataset, series, item) -> dataset.getTooltip(item, levelProperty.get()));
     pointRenderer.setSeriesVisibleInLegend(0, false);
+    return pointRenderer;
+  }
+
+  private static @NotNull XYLineAndShapeRenderer createGroupedPointRenderer(
+      final @NotNull GroupedRetentionTrendDataset dataset, final @NotNull List<Color> seriesColors,
+      final @NotNull ObjectProperty<LipidAnnotationLevel> levelProperty) {
+    final XYLineAndShapeRenderer pointRenderer = new XYLineAndShapeRenderer(false, true);
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      pointRenderer.setSeriesShape(series, new Ellipse2D.Double(-3d, -3d, 6d, 6d));
+      pointRenderer.setSeriesPaint(series, seriesColors.get(series));
+      pointRenderer.setSeriesVisibleInLegend(series, false);
+    }
+    pointRenderer.setDefaultItemLabelGenerator(
+        (xyDataset, series, item) -> dataset.getLabel(series, item, levelProperty.get()));
+    pointRenderer.setDefaultItemLabelPaint(retentionLabelPaint());
+    pointRenderer.setDefaultItemLabelsVisible(true);
+    pointRenderer.setDefaultToolTipGenerator(
+        (xyDataset, series, item) -> dataset.getTooltip(series, item, levelProperty.get()));
     return pointRenderer;
   }
 
@@ -841,6 +1156,40 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
         continue;
       }
       falsePositiveSeries.add(dataset.getXValue(0, i), dataset.getYValue(0, i));
+    }
+    if (falsePositiveSeries.isEmpty()) {
+      plot.setDataset(datasetIndex, null);
+      plot.setRenderer(datasetIndex, null);
+      return 0;
+    }
+    final XYSeriesCollection overlayDataset = new XYSeriesCollection();
+    overlayDataset.addSeries(falsePositiveSeries);
+    plot.setDataset(datasetIndex, overlayDataset);
+    plot.mapDatasetToRangeAxis(datasetIndex, rangeAxisIndex);
+    plot.setRenderer(datasetIndex, createOutlinedOverlayRenderer(falsePositiveColor(),
+        new Ellipse2D.Double(-6d, -6d, 12d, 12d), null));
+    return falsePositiveSeries.getItemCount();
+  }
+
+  private int addGroupedTrendFalsePositiveOverlay(final @NotNull XYPlot plot,
+      final @NotNull GroupedRetentionTrendDataset dataset, final int datasetIndex,
+      final int rangeAxisIndex) {
+    final XYSeries falsePositiveSeries = new XYSeries("Potential false positives");
+    final Set<String> addedCoordinates = new HashSet<>();
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final @Nullable FeatureListRow row = dataset.getRow(series, item);
+        if (row == null || !isPotentialFalsePositive(row)) {
+          continue;
+        }
+        final double xValue = dataset.getXValue(series, item);
+        final double yValue = dataset.getYValue(series, item);
+        final String coordinateKey = xValue + ":" + yValue;
+        if (!addedCoordinates.add(coordinateKey)) {
+          continue;
+        }
+        falsePositiveSeries.add(xValue, yValue);
+      }
     }
     if (falsePositiveSeries.isEmpty()) {
       plot.setDataset(datasetIndex, null);
@@ -1078,6 +1427,59 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     synchronizer.syncSecondaryToPrimary();
   }
 
+  private static @NotNull List<Color> createDistinctTrendColors(final int colorCount) {
+    final List<Color> colors = new java.util.ArrayList<>(colorCount);
+    final Set<Integer> usedColorCodes = new HashSet<>();
+    final var palette = ConfigService.getConfiguration().getDefaultColorPalette();
+    final int paletteSize = Math.max(0, palette.size());
+    int colorIndex = 0;
+    while (colors.size() < colorCount) {
+      int overflowIndex = Math.max(0, colorIndex - paletteSize);
+      Color color = colorIndex < paletteSize ? palette.getAWT(colorIndex)
+          : generateDistinctOverflowColor(overflowIndex);
+      while (usedColorCodes.contains(color.getRGB())) {
+        color = generateDistinctOverflowColor(++overflowIndex);
+      }
+      usedColorCodes.add(color.getRGB());
+      colors.add(color);
+      colorIndex++;
+    }
+    return colors;
+  }
+
+  private static @NotNull Color generateDistinctOverflowColor(final int index) {
+    final double hue = (index * 0.6180339887498949d) % 1d;
+    return Color.getHSBColor((float) hue, 0.72f, 0.88f);
+  }
+
+  private static @NotNull BasicStroke groupedRegressionStroke() {
+    return new BasicStroke(1.8f);
+  }
+
+  private static void extendRegressionBounds(final @NotNull RegressionYBounds regressionBounds,
+      final @NotNull double[] regression, final @NotNull GroupedRetentionTrendDataset dataset,
+      final int series) {
+    if (!Double.isFinite(regression[0]) || !Double.isFinite(regression[1])) {
+      return;
+    }
+    final double minX = minDatasetX(dataset, series);
+    final double maxX = maxDatasetX(dataset, series);
+    if (Double.isFinite(minX)) {
+      regressionBounds.include(regression[0] * minX + regression[1]);
+    }
+    if (Double.isFinite(maxX)) {
+      regressionBounds.include(regression[0] * maxX + regression[1]);
+    }
+  }
+
+  private static int nextDatasetIndex(final @NotNull XYPlot plot) {
+    int index = 0;
+    while (plot.getDataset(index) != null || plot.getRenderer(index) != null) {
+      index++;
+    }
+    return index;
+  }
+
   private static @NotNull Paint retentionLabelPaint() {
     return ConfigService.getConfiguration().isDarkMode() ? new Color(230, 230, 230)
         : new Color(35, 35, 35);
@@ -1110,5 +1512,19 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
 
   private record TrendYBounds(double minY, double maxY) {
 
+  }
+
+  private static final class RegressionYBounds {
+
+    private double minY = Double.POSITIVE_INFINITY;
+    private double maxY = Double.NEGATIVE_INFINITY;
+
+    private void include(final double yValue) {
+      if (!Double.isFinite(yValue)) {
+        return;
+      }
+      minY = Math.min(minY, yValue);
+      maxY = Math.max(maxY, yValue);
+    }
   }
 }

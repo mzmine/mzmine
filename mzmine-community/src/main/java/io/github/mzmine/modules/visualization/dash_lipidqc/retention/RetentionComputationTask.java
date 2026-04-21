@@ -45,16 +45,18 @@ final class RetentionComputationTask extends FxUpdateTask<EquivalentCarbonNumber
   private final @Nullable FeatureListRow selectedRow;
   private final @NotNull List<FeatureListRow> rowsWithLipidIds;
   private final @Nullable RetentionTrendMode mode;
+  private final boolean showAllLipidsOfSelectedClass;
   private @NotNull RetentionComputationResult result =
       new RetentionComputationResult("Select a row with lipid annotations.", null);
 
   RetentionComputationTask(final @NotNull EquivalentCarbonNumberPane pane,
       final @Nullable FeatureListRow selectedRow, final @NotNull List<FeatureListRow> rowsWithLipidIds,
-      final @Nullable RetentionTrendMode mode) {
+      final @Nullable RetentionTrendMode mode, final boolean showAllLipidsOfSelectedClass) {
     super("lipidqc-retention-update", pane);
     this.selectedRow = selectedRow;
     this.rowsWithLipidIds = List.copyOf(rowsWithLipidIds);
     this.mode = mode;
+    this.showAllLipidsOfSelectedClass = showAllLipidsOfSelectedClass;
   }
 
   @Override
@@ -84,6 +86,10 @@ final class RetentionComputationTask extends FxUpdateTask<EquivalentCarbonNumber
 
     switch (mode) {
       case ECN_CARBON_TREND -> {
+        if (showAllLipidsOfSelectedClass) {
+          result = buildTotalLipidClassResult(mode, selectedMatch, selectedClass);
+          return;
+        }
         final int dbe = extractDbe(selectedMatch.getLipidAnnotation());
         if (dbe < 0) {
           result = new RetentionComputationResult(
@@ -104,6 +110,10 @@ final class RetentionComputationTask extends FxUpdateTask<EquivalentCarbonNumber
                 matchCount));
       }
       case DBE_TREND -> {
+        if (showAllLipidsOfSelectedClass) {
+          result = buildTotalLipidClassResult(mode, selectedMatch, selectedClass);
+          return;
+        }
         final int carbons = extractCarbons(
             selectedMatch.getLipidAnnotation());
         final int selectedDbe = extractDbe(
@@ -190,5 +200,19 @@ final class RetentionComputationTask extends FxUpdateTask<EquivalentCarbonNumber
       }
     }
     return false;
+  }
+
+  private @NotNull RetentionComputationResult buildTotalLipidClassResult(
+      final @NotNull RetentionTrendMode mode, final @NotNull MatchedLipid selectedMatch,
+      final @NotNull ILipidClass selectedClass) {
+    final long matchCount = rowsWithLipidIds.stream().flatMap(row -> row.getLipidMatches().stream())
+        .filter(match -> match.getLipidAnnotation().getLipidClass().equals(selectedClass))
+        .count();
+    if (matchCount == 0L) {
+      return new RetentionComputationResult(
+          "No lipid annotations available for the selected lipid class.", null);
+    }
+    return new RetentionComputationResult(null,
+        new TotalLipidClassRetentionPayload(mode, selectedMatch, rowsWithLipidIds, selectedClass));
   }
 }
