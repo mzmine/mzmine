@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,7 +37,6 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.LipidOverallQualityScoreType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -58,7 +58,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       new FormulaType(), //
       new CommentType(), //
       new MzPpmDifferenceType(),//
-      new ExplainedIntensityPercentType(), //
       new LipidOverallQualityScoreType(), //
       new LipidSpectrumType());
 
@@ -86,7 +85,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       case FormulaType __ ->
           MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
       case CommentType __ -> match.getComment() != null ? match.getComment() : "";
-      case ExplainedIntensityPercentType __ -> match.getMsMsScore().floatValue();
       case LipidSpectrumType __ -> true;
       case MzPpmDifferenceType __ -> {
         // calc ppm error?
