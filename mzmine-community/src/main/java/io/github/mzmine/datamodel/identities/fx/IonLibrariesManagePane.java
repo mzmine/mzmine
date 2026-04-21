@@ -66,6 +66,9 @@ class IonLibrariesManagePane extends BorderPane {
     // translate list view events to global ion events
     libraryList.addEventListener(event -> {
       switch (event.type()) {
+        case ITEM_ACTIVATED -> {
+          // do nothing
+        }
         case CREATE_NEW -> eventHandler.accept(new CreateNewLibrary());
         case EDIT -> {
           if (!event.selectedItems().isEmpty()) {

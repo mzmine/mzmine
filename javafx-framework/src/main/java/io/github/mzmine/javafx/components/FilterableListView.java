@@ -211,7 +211,7 @@ public class FilterableListView<T> extends BorderPane {
   public void activateSelectedItem() {
     final T item = listView.getSelectionModel().getSelectedItem();
     if (item != null) {
-      handleEvent(ITEM_ACTIVATED);
+      handleEvent(Type.ITEM_ACTIVATED);
     }
   }
 

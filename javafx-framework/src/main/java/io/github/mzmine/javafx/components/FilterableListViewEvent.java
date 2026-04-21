@@ -32,6 +32,6 @@ public record FilterableListViewEvent<T>(@NotNull FilterableListView<T> source, 
                                          @NotNull List<T> selectedItems) {
 
   public enum Type {
-    CREATE_NEW, EDIT, IMPORT, EXPORT
+    ITEM_ACTIVATED, CREATE_NEW, EDIT, IMPORT, EXPORT
   }
 }
