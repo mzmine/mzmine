@@ -37,9 +37,9 @@ import org.jetbrains.annotations.NotNull;
 /// {@link #applyResult} is the outcome of the final service-level apply — typically {@link
 /// ApplyResult.Applied}, but may be {@link ApplyResult.Invalid} or {@link ApplyResult.Conflict}
 /// if the import raced with another writer.
-public record ImportResult(@NotNull List<UUID> added, @NotNull List<UUID> updated,
-                           @NotNull List<UUID> skipped, @NotNull List<RenamedImport> renamed,
-                           @NotNull ApplyResult applyResult) {
+public record IonLibraryImportResult(@NotNull List<UUID> added, @NotNull List<UUID> updated,
+                                     @NotNull List<UUID> skipped, @NotNull List<RenamedImport> renamed,
+                                     @NotNull ApplyResult applyResult) {
 
   public record RenamedImport(@NotNull UUID id, @NotNull String originalName,
                               @NotNull String newName) {

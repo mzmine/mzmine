@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * @param ionTypes ion types that use unique ids to refer to the ion parts
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-record StorableIonLibrary(@Nullable UUID id, //
+record StorableIonLibrary(@NotNull UUID id, //
                           @Nullable LibraryOrigin origin, //
                           @NotNull String name, //
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //

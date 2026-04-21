@@ -25,22 +25,17 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
-import io.github.mzmine.datamodel.identities.cloud.NoopCloudCatalog;
-import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.BrowseCloudCatalog;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
-import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraryFromFile;
-import io.github.mzmine.datamodel.identities.global.ImportResult.MergePolicy;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ExportSelectedLibraries;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ListProperty;
@@ -50,8 +45,6 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,9 +63,23 @@ class IonLibrariesManagePane extends BorderPane {
     final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(), true,
         true, true);
 
-    libraryList.setCreateNewAction(() -> eventHandler.accept(new CreateNewLibrary()));
-    libraryList.setEditSelectedAction(
-        library -> eventHandler.accept(new EditSelectedLibrary(library)));
+    // translate list view events to global ion events
+    libraryList.addEventListener(event -> {
+      switch (event.type()) {
+        case CREATE_NEW -> eventHandler.accept(new CreateNewLibrary());
+        case EDIT -> {
+          if (!event.selectedItems().isEmpty()) {
+            eventHandler.accept(new EditSelectedLibrary(event.selectedItems().getFirst()));
+          }
+        }
+        case EXPORT -> {
+          if (!event.selectedItems().isEmpty()) {
+            eventHandler.accept(new ExportSelectedLibraries(event.selectedItems()));
+          }
+        }
+        case IMPORT -> eventHandler.accept(new ImportLibraries());
+      }
+    });
 
     final IonTypeListView typesList = new IonTypeListView(ionTypes, false);
 
@@ -90,13 +97,7 @@ class IonLibrariesManagePane extends BorderPane {
                 mzmine default libraries cannot be deleted or changed.
                 Click to open the documentation.""",
             "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-libraries"),
-        newBoldTitle("Available ion libraries"),
-        createButton("Import…", FxIcons.LOAD,
-            "Import one or more ion libraries from a JSON file.",
-            () -> chooseAndImportFile(eventHandler)),
-        createButton("Browse cloud…", FxIcons.DOWNLOAD,
-            "Browse the online catalog of shared ion libraries.",
-            () -> eventHandler.accept(new BrowseCloudCatalog(new NoopCloudCatalog()))));
+        newBoldTitle("Available ion libraries"));
 
     final BorderPane librarySelectionLeft = newBorderPane().defaultPadding() //
         .top(titlePane) //
@@ -110,29 +111,6 @@ class IonLibrariesManagePane extends BorderPane {
 
     setCenter(libraryDetailPane);
     setLeft(librarySelectionLeft);
-  }
-
-  private static void chooseAndImportFile(
-      @NotNull Consumer<GlobalIonLibrariesEvent> eventHandler) {
-    final FileChooser chooser = new FileChooser();
-    chooser.setTitle("Import ion library");
-    chooser.getExtensionFilters()
-        .add(new ExtensionFilter("Ion library (JSON)", "*.json", "*.JSON"));
-    final File file = chooser.showOpenDialog(null);
-    if (file == null) {
-      return;
-    }
-    final MergePolicy policy = DialogLoggerUtil.showAndWaitChoiceDialog(
-        MergePolicy.RENAME_ON_COLLISION, MergePolicy.values(), "Merge policy",
-        """
-            How should name/id collisions with existing libraries be handled?
-              • RENAME_ON_COLLISION — import as new library with a suffix
-              • OVERWRITE_BY_ID — replace local library when ids match
-              • SKIP_EXISTING — keep local library, skip the incoming one""");
-    if (policy == null) {
-      return;
-    }
-    eventHandler.accept(new ImportLibraryFromFile(file, policy));
   }
 
 }

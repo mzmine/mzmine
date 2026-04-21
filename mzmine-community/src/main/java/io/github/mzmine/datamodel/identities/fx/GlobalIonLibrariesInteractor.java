@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.BrowseCl
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.DiscardModelChanges;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ExportSelectedLibraries;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraries;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraryFromFile;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ReloadGlobalServiceChanges;
 import io.github.mzmine.datamodel.identities.global.ApplyResult;
@@ -37,7 +39,7 @@ import io.github.mzmine.datamodel.identities.global.ConflictReport;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryDTO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryImporter;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.datamodel.identities.global.ImportResult;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult;
 import io.github.mzmine.datamodel.identities.global.ValidationResult;
 import io.github.mzmine.datamodel.identities.global.ValidationResult.ValidationError;
 import io.github.mzmine.datamodel.identities.global.ValidationResult.ValidationWarning;
@@ -88,6 +90,12 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
       case ReloadGlobalServiceChanges _ -> updateModel();
       case ImportLibraryFromFile(var file, var policy) -> importFromFile(file, policy);
       case BrowseCloudCatalog(var catalog) -> browseCloudCatalog(catalog);
+      case ExportSelectedLibraries(var libraries) -> {
+
+      }
+      case ImportLibraries _ -> {
+        ImportIonLibrariesModule.showDialog();
+      }
     }
   }
 
@@ -198,10 +206,10 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
 
   private void importFromFile(
       @NotNull java.io.File file,
-      @NotNull io.github.mzmine.datamodel.identities.global.ImportResult.MergePolicy policy) {
+      @NotNull IonLibraryImportResult.MergePolicy policy) {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     try {
-      final ImportResult result = new GlobalIonLibraryImporter(global).importFromFile(file,
+      final IonLibraryImportResult result = new GlobalIonLibraryImporter(global).importFromFile(file,
           policy);
       showImportResult(result, file.getName());
     } catch (RuntimeException ex) {
@@ -227,7 +235,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
             entries.size() == 1 ? "y" : "ies"), true);
   }
 
-  private void showImportResult(@NotNull ImportResult result, @NotNull String source) {
+  private void showImportResult(@NotNull IonLibraryImportResult result, @NotNull String source) {
     if (result.applyResult() instanceof ApplyResult.Applied) {
       final int total = result.added().size() + result.updated().size();
       final String renamedNote = result.renamed().isEmpty() ? ""

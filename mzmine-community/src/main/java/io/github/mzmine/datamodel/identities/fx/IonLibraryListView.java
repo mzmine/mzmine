@@ -77,6 +77,9 @@ public class IonLibraryListView extends FilterableListView<IonLibrary> {
     }
     if (allowCreateNew) {
       stdButtons.add(MenuControls.CREATE_NEW_BTN);
+
+      stdButtons.add(MenuControls.IMPORT_BTN);
+      stdButtons.add(MenuControls.EXPORT_BTN);
     }
 
     addMenuFlowPane(Position.TOP, Pos.CENTER_LEFT, stdButtons, additionalNodes);

@@ -27,14 +27,13 @@ package io.github.mzmine.datamodel.identities.global;
 
 import io.github.mzmine.datamodel.identities.cloud.CloudCatalog;
 import io.github.mzmine.datamodel.identities.cloud.CloudCatalog.RemoteLibraryRef;
-import io.github.mzmine.datamodel.identities.global.ImportResult.MergePolicy;
-import io.github.mzmine.datamodel.identities.global.ImportResult.RenamedImport;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.RenamedImport;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
-import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
@@ -57,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
 /// {@link MergePolicy}, unions the parts/types/definitions, and submits the result via
 /// {@link GlobalIonLibraryService#applyUpdates(int, GlobalIonLibraryDTO)}. The final apply is
 /// version-guarded, so if another writer slips in between the current-snapshot and the apply
-/// the caller sees an {@link ApplyResult.Conflict} in the returned {@link ImportResult}.
+/// the caller sees an {@link ApplyResult.Conflict} in the returned {@link IonLibraryImportResult}.
 public final class GlobalIonLibraryImporter {
 
   private final @NotNull GlobalIonLibraryService service;
@@ -67,21 +66,21 @@ public final class GlobalIonLibraryImporter {
   }
 
   /// Read a JSON file and import the library it contains.
-  public @NotNull ImportResult importFromFile(@NotNull File file, @NotNull MergePolicy policy) {
+  public @NotNull IonLibraryImportResult importFromFile(@NotNull File file, @NotNull MergePolicy policy) {
     final LoadedIonLibrary loaded = IonLibraryIO.loadFromJsonFile(file);
     return importLibraries(List.of(loaded.library()), policy);
   }
 
   /// Fetch a library from a cloud catalog and import it. Catalog calls happen off-lock; the final
   /// apply is version-guarded.
-  public @NotNull ImportResult importFromCloud(@NotNull CloudCatalog catalog,
+  public @NotNull IonLibraryImportResult importFromCloud(@NotNull CloudCatalog catalog,
       @NotNull RemoteLibraryRef ref, @NotNull MergePolicy policy) {
     final IonLibrary remote = catalog.fetch(ref);
     return importLibraries(List.of(remote), policy);
   }
 
   /// Core entry point: merge `incoming` into the current service state per `policy` and submit.
-  public @NotNull ImportResult importLibraries(@NotNull List<IonLibrary> incoming,
+  public @NotNull IonLibraryImportResult importLibraries(@NotNull List<IonLibrary> incoming,
       @NotNull MergePolicy policy) {
     final GlobalIonLibraryDTO current = service.getCurrentGlobalLibrary();
 
@@ -146,7 +145,7 @@ public final class GlobalIonLibraryImporter {
         mergedLibraries, mergedTypes, mergedParts, List.copyOf(current.partDefinitions()));
 
     final ApplyResult applyResult = service.applyUpdates(current.version(), proposed);
-    return new ImportResult(List.copyOf(added), List.copyOf(updated), List.copyOf(skipped),
+    return new IonLibraryImportResult(List.copyOf(added), List.copyOf(updated), List.copyOf(skipped),
         List.copyOf(renamed), applyResult);
   }
 
