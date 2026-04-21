@@ -48,8 +48,26 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
   }
 
   public List<CheckResult> runBatchGetCheckResults(String expectedResultsFullPath) {
-    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath,
-        runBatchGetCsvFile(), batchFile().getName());
+    // run batch
+    final File batchExportedFile = runBatchGetCsvFile();
+
+    // This is used to overwrite each expected results csv with the actual processing results
+//    try {
+//      // add local resources path to overwrite files
+//      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
+//      Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
+//          StandardCopyOption.REPLACE_EXISTING);
+//
+//      // copy to res folder and also to out/resources folder so that test succeeds first time
+//      Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()
+//          .getResource(expectedResultsFullPath)).toPath(), StandardCopyOption.REPLACE_EXISTING);
+//    } catch (IOException e) {
+//      throw new RuntimeException(e);
+//    }
+
+    // compare
+    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
+        batchFile().getName());
   }
 
   // -----------------------------------------------------------
