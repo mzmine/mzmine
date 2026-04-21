@@ -104,7 +104,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT, fullIonLibrary,
-            fullIonLibrary, ANNOTATION_REFINEMENTS};
+            ANNOTATION_REFINEMENTS};
       case SUB:
         return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, fullIonLibrary, ANNOTATION_REFINEMENTS};
     }
