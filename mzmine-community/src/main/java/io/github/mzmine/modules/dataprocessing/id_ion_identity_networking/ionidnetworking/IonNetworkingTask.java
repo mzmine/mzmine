@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -55,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -177,8 +177,8 @@ public class IonNetworkingTask extends AbstractTask {
               CorrelateGroupingModule.NAME, featureList.getName()));
         } else {
           setStatus(TaskStatus.FINISHED);
-          return;
         }
+        return;
       }
 
       setStatus(TaskStatus.PROCESSING);
@@ -206,10 +206,6 @@ public class IonNetworkingTask extends AbstractTask {
     // get groups
     List<RowGroup> groups = featureList.getGroups();
 
-    if (groups == null || groups.isEmpty()) {
-      throw new MSDKRuntimeException(
-          "Run grouping before: No groups found for peakList + " + featureList.getName());
-    }
     //
     AtomicInteger compared = new AtomicInteger(0);
     // for all groups
@@ -234,7 +230,8 @@ public class IonNetworkingTask extends AbstractTask {
    * @param compared
    */
   private long annotateGroup(RowGroup g, AtomicInteger compared) {
-    Map<RowIonAnnotation, IonNetwork> results = new HashMap<>();
+    // use linked hashmap to have repeatable results otherwise order might differ
+    Map<RowIonAnnotation, IonNetwork> results = new LinkedHashMap<>();
 
     long annotations = 0;
     for (int i = 0; i < g.size() - 1; i++) {
@@ -316,10 +313,6 @@ public class IonNetworkingTask extends AbstractTask {
 
 
   private void refineAndFinishNetworks() {
-    // create network IDs
-    LOG.info("Corr: create annotation network numbers");
-    IonNetworkLogic.renumberNetworks(featureList);
-
     // recalc annotation networks
     IonNetworkLogic.removeEmptyNetworks(featureList);
 
@@ -344,5 +337,9 @@ public class IonNetworkingTask extends AbstractTask {
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");
     IonNetworkLogic.sortIonIdentities(featureList, true);
+
+    // create network IDs
+    LOG.info("Corr: create annotation network numbers");
+    IonNetworkLogic.renumberNetworks(featureList);
   }
 }
