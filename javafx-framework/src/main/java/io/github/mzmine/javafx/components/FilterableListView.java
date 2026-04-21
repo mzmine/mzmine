@@ -55,11 +55,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -95,6 +99,7 @@ public class FilterableListView<T> extends BorderPane {
   // original items are input into filtering and sorting
   private final ObservableList<T> originalItems;
   private final SortedList<T> sortedFilteredItems;
+  private final TextField searchField;
   private Consumer<T> onRemoveItemListener;
 
   private final List<FilterableListViewEventHandler<T>> eventHandlers = new ArrayList<>();
@@ -130,7 +135,7 @@ public class FilterableListView<T> extends BorderPane {
     this.listView = FxListViews.newListView(filteredItems, false, selectionMode);
 
     // search text field
-    final TextField searchField = TextFields.createClearableTextField();
+    searchField = TextFields.createClearableTextField();
     searchField.setPromptText("Search...");
     searchField.setTooltip(new Tooltip("Enter text to search in list."));
 
@@ -163,9 +168,69 @@ public class FilterableListView<T> extends BorderPane {
       if (event.getCode() == KeyCode.ESCAPE) {
         getListView().getSelectionModel().clearSelection();
       }
+      if (event.getCode() == KeyCode.ENTER) {
+        activateSelectedItem();
+//        event.consume();
+      }
+    });
+
+    // Allow Up/Down arrows to move list selection while the search field keeps focus.
+    // Also accept Enter on the search field to activate the currently selected item.
+    searchField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.ENTER) {
+        activateSelectedItem();
+//        event.consume();
+      } else if (event.getCode() == KeyCode.DOWN) {
+        moveListSelection(1);
+//        event.consume();
+      } else if (event.getCode() == KeyCode.UP) {
+        moveListSelection(-1);
+//        event.consume();
+      }
+    });
+
+    // Primary mouse click on a non-empty cell activates the item.
+    listView.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+      if (event.getButton() != MouseButton.PRIMARY) {
+        return;
+      }
+      Node node = event.getPickResult().getIntersectedNode();
+      while (node != null && node != listView) {
+        if (node instanceof ListCell<?> cell && !cell.isEmpty()) {
+          activateSelectedItem();
+          return;
+        }
+        node = node.getParent();
+      }
     });
   }
 
+  /**
+   * handle event for activated item
+   */
+  public void activateSelectedItem() {
+    final T item = listView.getSelectionModel().getSelectedItem();
+    if (item != null) {
+      handleEvent(ITEM_ACTIVATED);
+    }
+  }
+
+  /**
+   * Move the list selection by {@code delta} (clamped to the filtered, visible item range) and
+   * scroll the new selection into view. Used to navigate the list while the search field retains
+   * focus.
+   */
+  private void moveListSelection(int delta) {
+    final int size = listView.getItems().size();
+    if (size == 0) {
+      return;
+    }
+    final int current = listView.getSelectionModel().getSelectedIndex();
+    final int base = current < 0 ? (delta > 0 ? -1 : 0) : current;
+    final int target = Math.clamp(base + delta, 0, size - 1);
+    listView.getSelectionModel().clearAndSelect(target);
+    listView.scrollTo(target);
+  }
 
   /**
    * Creates a menu with options for standard controls and additional nodes
@@ -327,6 +392,13 @@ public class FilterableListView<T> extends BorderPane {
 
   public ListView<T> getListView() {
     return listView;
+  }
+
+  /**
+   * Requests focus on the search field so the user can immediately start typing to filter.
+   */
+  public void focusSearchField() {
+    searchField.requestFocus();
   }
 
   public BooleanProperty searchFieldVisibleProperty() {
