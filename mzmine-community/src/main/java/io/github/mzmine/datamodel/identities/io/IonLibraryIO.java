@@ -214,6 +214,8 @@ public class IonLibraryIO {
     }
     final StorableIonLibrary storable = new StorableIonLibrary(library);
 
+
+
     final Document doc = parent.getOwnerDocument();
     Element xmlElement = doc.createElement("ionLibrary");
     parent.appendChild(xmlElement);

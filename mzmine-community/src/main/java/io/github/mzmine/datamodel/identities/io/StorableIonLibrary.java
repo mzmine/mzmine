@@ -63,7 +63,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 record StorableIonLibrary(@NotNull UUID id, //
-                          @Nullable LibraryOrigin origin, //
+                          @NotNull LibraryOrigin origin, //
                           @NotNull String name, //
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
                           @JsonSerialize(using = LocalDateTimeSerializer.class) //
