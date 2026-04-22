@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.cloud.CloudCatalog;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.BrowseCloudCatalog;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
@@ -51,6 +52,8 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -62,12 +65,8 @@ import org.jetbrains.annotations.NotNull;
  */
 class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel> {
 
-  private static final ButtonType BUTTON_KEEP_MINE = new ButtonType("Keep my changes",
-      ButtonData.OTHER);
-  private static final ButtonType BUTTON_TAKE_EXTERNAL = new ButtonType("Discard and reload",
-      ButtonData.OTHER);
-  private static final ButtonType BUTTON_REVIEW_MANUALLY = new ButtonType("Review manually",
-      ButtonData.CANCEL_CLOSE);
+  private static final Logger logger = Logger.getLogger(
+      GlobalIonLibrariesInteractor.class.getName());
 
   protected GlobalIonLibrariesInteractor(GlobalIonLibrariesModel model) {
     super(model);
@@ -84,7 +83,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
   public void handleEvent(@NotNull GlobalIonLibrariesEvent event) {
     switch (event) {
       case DiscardModelChanges _ -> askDiscardModelChanges();
-      case ApplyModelChangesToGlobalService _ -> applyToGlobalIons();
+      case ApplyModelChangesToGlobalService _ -> applyToGlobalIons(false);
       case CreateNewLibrary _ -> createNewLibraryInTab();
       case EditSelectedLibrary(IonLibrary library) -> editLibraryInTab(library);
       case ReloadGlobalServiceChanges _ -> updateModel();
@@ -107,41 +106,55 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
   }
 
   /**
-   * Push changes to {@link GlobalIonLibraryService} via the versioned apply API. Handles the
-   * three possible outcomes: applied, invalid, or conflicting with external changes.
+   * Push changes to {@link GlobalIonLibraryService} via the versioned apply API. Handles the three
+   * possible outcomes: applied, invalid, or conflicting with external changes.
+   *
+   * @param applyDirectlyIgnoreValidation
    */
-  public void applyToGlobalIons() {
+  public void applyToGlobalIons(boolean applyDirectlyIgnoreValidation) {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     final ApplyResult result = global.applyUpdates(model.getRetrievalVersion(),
-        snapshotModelAsDto(global.getVersion()));
+        snapshotModelAsDto(global.getVersion()), applyDirectlyIgnoreValidation);
 
     switch (result) {
-      case ApplyResult.Applied(int newVersion) -> onApplied(global, newVersion);
+      case ApplyResult.Applied(int newVersion) -> onApplied(newVersion);
       case ApplyResult.Invalid(ValidationResult vr) -> showValidationErrors(vr);
       case ApplyResult.Conflict(int currentVersion, ConflictReport report) ->
           showConflictDialog(currentVersion, report);
     }
   }
 
-  private void onApplied(@NotNull GlobalIonLibraryService global, int newVersion) {
-    // preset-store writes land on the FX thread via onChangeListDelayed, so the service's
-    // observable version may trail by one tick — stay one ahead so the user doesn't see a
-    // spurious "external change" banner for their own save.
-    model.setRetrievalVersion(Math.max(newVersion, global.getVersion() + 1));
+  private void onApplied(int newVersion) {
+    model.setRetrievalVersion(newVersion);
     model.setLastModelUpdate(null);
   }
 
   private void showValidationErrors(@NotNull ValidationResult vr) {
     final String errors = vr.errors().stream().map(ValidationError::message)
         .collect(Collectors.joining("\n• ", "• ", ""));
-    final String warnings = vr.warnings().isEmpty() ? "" : vr.warnings().stream()
-        .map(ValidationWarning::message)
-        .collect(Collectors.joining("\n• ", "\n\nWarnings:\n• ", ""));
-    DialogLoggerUtil.showErrorDialog("Can't apply changes",
-        "Please fix the following before saving:\n\n" + errors + warnings);
+    final String warnings = vr.warnings().isEmpty() ? ""
+        : vr.warnings().stream().map(ValidationWarning::message)
+          .collect(Collectors.joining("\n• ", "\n\nWarnings:\n• ", ""));
+
+    logger.fine(
+        "Ion library validation errors of view state and model state: " + errors + ", warnings: "
+            + warnings);
+
+    final Optional<ButtonType> choice = DialogLoggerUtil.showDialog(AlertType.WARNING,
+        "Mismatch of libraries contents",
+        "There are conflicts with the libraries view and model states. Either fix them or directly apply the changes.\n\n"
+            + errors + warnings, true, ButtonType.APPLY, ButtonType.CANCEL);
+
+    if (choice.isPresent() && choice.get() == ButtonType.APPLY) {
+      applyToGlobalIons(true);
+    }
   }
 
   private void showConflictDialog(int currentVersion, @NotNull ConflictReport report) {
+    final ButtonType BUTTON_KEEP_MINE = new ButtonType("Keep my changes", ButtonData.OTHER);
+    final ButtonType BUTTON_TAKE_EXTERNAL = new ButtonType("Discard and reload", ButtonData.OTHER);
+    final ButtonType BUTTON_REVIEW_MANUALLY = new ButtonType("Review manually",
+        ButtonData.CANCEL_CLOSE);
     final String summary = summariseConflict(report);
     DialogLoggerUtil.showDialog(AlertType.WARNING, "Global ion library changed elsewhere",
         "Someone or something else updated the ion library while you were editing.\n\n" + summary
@@ -150,7 +163,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
       if (btn == BUTTON_KEEP_MINE) {
         // user wants to overwrite external changes — rebase onto currentVersion and retry
         model.setRetrievalVersion(currentVersion);
-        applyToGlobalIons();
+        applyToGlobalIons(false);
       } else if (btn == BUTTON_TAKE_EXTERNAL) {
         updateModel();
       }
@@ -161,9 +174,9 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
   private static @NotNull String summariseConflict(@NotNull ConflictReport report) {
     return "• %d librar%s changed on both sides\n• %d librar%s added/renamed locally\n• %d librar%s added/removed externally".formatted(
         report.sameIdDifferentContent().size(),
-        report.sameIdDifferentContent().size() == 1 ? "y" : "ies",
-        report.onlyInProposed().size(), report.onlyInProposed().size() == 1 ? "y" : "ies",
-        report.onlyInCurrent().size(), report.onlyInCurrent().size() == 1 ? "y" : "ies");
+        report.sameIdDifferentContent().size() == 1 ? "y" : "ies", report.onlyInProposed().size(),
+        report.onlyInProposed().size() == 1 ? "y" : "ies", report.onlyInCurrent().size(),
+        report.onlyInCurrent().size() == 1 ? "y" : "ies");
   }
 
   private @NotNull GlobalIonLibraryDTO snapshotModelAsDto(int baseVersion) {
@@ -204,13 +217,12 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     new IonLibraryEditController(model, library).showTab();
   }
 
-  private void importFromFile(
-      @NotNull java.io.File file,
+  private void importFromFile(@NotNull java.io.File file,
       @NotNull IonLibraryImportResult.MergePolicy policy) {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     try {
-      final IonLibraryImportResult result = new GlobalIonLibraryImporter(global).importFromFile(file,
-          policy);
+      final IonLibraryImportResult result = new GlobalIonLibraryImporter(global).importFromFile(
+          file, policy);
       showImportResult(result, file.getName());
     } catch (RuntimeException ex) {
       DialogLoggerUtil.showErrorDialog("Import failed",
@@ -220,8 +232,10 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     updateModel();
   }
 
-  private void browseCloudCatalog(
-      @NotNull io.github.mzmine.datamodel.identities.cloud.CloudCatalog catalog) {
+  /**
+   * Currently not used but later to connect to shared libraries
+   */
+  private void browseCloudCatalog(@NotNull CloudCatalog catalog) {
     final var entries = catalog.list();
     if (entries.isEmpty()) {
       DialogLoggerUtil.showDialog(AlertType.INFORMATION, "Cloud catalog",

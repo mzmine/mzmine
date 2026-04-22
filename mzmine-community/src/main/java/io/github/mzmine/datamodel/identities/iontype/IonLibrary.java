@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.List;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,6 @@ public interface IonLibrary {
   @NotNull String name();
 
   /// Stable identifier for this library. Survives rename, content changes, and cloud round-trips —
-  /// use it to answer "is this the same library?" when user names might clash.
   @NotNull UUID id();
 
   /// Where this library came from. See {@link LibraryOrigin} for the discriminator.

@@ -61,7 +61,7 @@ public final class GlobalIonLibraryValidator {
   ///
   /// @param proposed the state the caller wants to apply
   /// @param current  the service state at the version the caller read (used for builtin-immutable
-  ///                 checks; pass {@code null} if no baseline is available)
+  ///                 checks)
   public @NotNull ValidationResult validate(@NotNull GlobalIonLibraryDTO proposed,
       @NotNull GlobalIonLibraryDTO current) {
     final List<ValidationError> errors = new ArrayList<>();

@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.identities.global;
 
 import org.jetbrains.annotations.NotNull;
 
-/// The three possible outcomes of {@link GlobalIonLibraryService#applyUpdates}: the update went
+/// The three possible outcomes of {@link GlobalIonLibraryService#applyUpdates(int, GlobalIonLibraryDTO)}: the update went
 /// through, the caller's base version was stale, or the proposed state failed validation.
 ///
 /// Using a sealed return type instead of exceptions keeps the happy path and the conflict path

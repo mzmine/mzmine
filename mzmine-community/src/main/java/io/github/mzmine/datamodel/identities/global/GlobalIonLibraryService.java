@@ -135,7 +135,7 @@ public final class GlobalIonLibraryService {
     // load presets from disk once for global library
     presetStore.loadAllPresetsOrDefaults();
     // the preset store has an observable list and is only updated on the fx thread
-    // this means that there is already a delay between calling the change and the change happining on fx thread
+    // this means that there is already a delay between calling the change and the change happening on fx thread
     // accumulate multiple changes here to avoid each addition/removal to trigger a change
     PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
         presetStore.getCurrentPresets());
@@ -194,56 +194,33 @@ public final class GlobalIonLibraryService {
     }
   }
 
-  /**
-   * Update the internal data structures to the lists of libraries, types and parts. This is
-   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
-   * to the global library.
-   * <p>
-   * All internal lists are cleared and exchanged for the arguments.
-   * <p>
-   * This overload skips the optimistic-concurrency check — reserve it for internal or migration
-   * paths that really intend to overwrite whatever the current state is. UI-initiated writes
-   * should go through {@link #applyUpdates(int, GlobalIonLibraryDTO)} so stale base versions
-   * surface as a conflict instead of a silent overwrite.
-   */
-  public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts,
-      List<IonPartDefinition> partDefinitions) {
-    applyLockedChange(() -> {
-      setIonPartDefinitions(partDefinitions);
-      setIonParts(parts);
-      setIonTypes(types);
-      setLibraries(libraries);
-    });
-  }
-
   /// Versioned apply: validate, check that the caller's base version is still current, and only
   /// then mutate. All three phases run inside a single write lock so a racing writer can't slip in
   /// between the version check and the mutation.
   ///
-  /// Returns one of {@link ApplyResult.Applied}, {@link ApplyResult.Invalid}, or {@link
-  /// ApplyResult.Conflict}. Callers must handle all three — the sealed return type makes that
-  /// obligation visible at the type level.
+  /// Returns one of {@link ApplyResult.Applied}, {@link ApplyResult.Invalid}, or
+  /// {@link ApplyResult.Conflict}. Callers must handle all three — the sealed return type makes
+  /// that obligation visible at the type level.
   ///
   /// @param expectedBaseVersion the service version the caller built {@code proposed} against;
-  ///                            typically {@code model.getRetrievalVersion()}
+  /// typically {@code model.getRetrievalVersion()}
   /// @param proposed            the full desired state (libraries, types, parts, part definitions)
+  /// @param applyDirectlyIgnoreValidation
   public @NotNull ApplyResult applyUpdates(int expectedBaseVersion,
-      @NotNull GlobalIonLibraryDTO proposed) {
+      @NotNull GlobalIonLibraryDTO proposed, boolean applyDirectlyIgnoreValidation) {
+
     try (var _ = lock.lockWrite()) {
       final int currentVersion = getVersion();
-      if (currentVersion != expectedBaseVersion) {
-        final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
-        return new ApplyResult.Conflict(currentVersion,
-            diffLibraries(proposed.libraries(), currentDto.libraries()));
-      }
-
       final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
-      final ValidationResult vr = validator.validate(proposed, currentDto);
-      if (vr.hasErrors()) {
-        return new ApplyResult.Invalid(vr);
+      if (!applyDirectlyIgnoreValidation && currentVersion != expectedBaseVersion) {
+        // base version is different so validate the changes first
+        final ValidationResult vr = validator.validate(proposed, currentDto);
+        if (vr.hasErrors()) {
+          return new ApplyResult.Invalid(vr);
+        }
       }
 
-      // validation passed and nobody has raced us — mutate atomically
+      // validation passed
       final boolean oldNotify = notifyChanges.getAndSet(false);
       try {
         setIonPartDefinitions(proposed.partDefinitions());

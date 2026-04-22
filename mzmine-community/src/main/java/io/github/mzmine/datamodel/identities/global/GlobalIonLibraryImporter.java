@@ -144,7 +144,7 @@ public final class GlobalIonLibraryImporter {
     final GlobalIonLibraryDTO proposed = new GlobalIonLibraryDTO(current.version(),
         mergedLibraries, mergedTypes, mergedParts, List.copyOf(current.partDefinitions()));
 
-    final ApplyResult applyResult = service.applyUpdates(current.version(), proposed);
+    final ApplyResult applyResult = service.applyUpdates(current.version(), proposed, false);
     return new IonLibraryImportResult(List.copyOf(added), List.copyOf(updated), List.copyOf(skipped),
         List.copyOf(renamed), applyResult);
   }
