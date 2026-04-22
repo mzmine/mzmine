@@ -27,8 +27,13 @@ package io.github.mzmine.datamodel.identities.io;
 
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.util.XMLUtils;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 class IonLibraryIOTest {
 
@@ -51,6 +56,25 @@ class IonLibraryIOTest {
     Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL.getNumIons(),
         library.getNumIons());
     Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL.ions(), library.ions());
+  }
+
+  @Test
+  void saveLoadXML() throws ParserConfigurationException, TransformerException {
+    final Document document = XMLUtils.newDocument();
+    final Element element = document.createElement("root");
+    document.appendChild(element);
+    IonLibraryIO.saveToXML(element, IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
+
+    String xml = XMLUtils.saveToString(document);
+
+    final LoadedIonLibrary loadedIonLibrary = IonLibraryIO.loadFromXML(element);
+    Assertions.assertNotNull(loadedIonLibrary);
+
+//    final IonLibrary library = IonLibraryIO.loadFromXML(element);
+//
+//    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL.getNumIons(),
+//        library.getNumIons());
+//    Assertions.assertEquals(IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL.ions(), library.ions());
   }
 
 }
