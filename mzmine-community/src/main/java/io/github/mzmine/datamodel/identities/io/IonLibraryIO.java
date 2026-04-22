@@ -49,7 +49,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * Load and save ion libraries as json or xml
@@ -154,11 +154,7 @@ public class IonLibraryIO {
    * @return the library or null if this element does not contain any library
    */
   @Nullable
-  public static LoadedIonLibrary loadFromXML(Element parent) {
-    final Element xmlElement = (Element) parent.getElementsByTagName("ionLibrary").item(0);
-    if (xmlElement == null) {
-      return null;
-    }
+  public static LoadedIonLibrary loadFromXML(Node parent) {
     try {
       StorableIonLibrary storable = XMLUtils.loadFromDOM(parent, StorableIonLibrary.class);
 
@@ -168,7 +164,7 @@ public class IonLibraryIO {
     }
   }
 
-  public static void saveToXML(Element parent, @Nullable IonLibrary library) {
+  public static void saveToXML(Node parent, @Nullable IonLibrary library) {
     if (library == null || library.ions().isEmpty()) {
       // null just dont save anything
       return;

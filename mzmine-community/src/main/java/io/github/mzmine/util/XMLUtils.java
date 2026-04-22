@@ -433,7 +433,7 @@ public class XMLUtils {
       }
       return storable;
     } catch (XMLStreamException | IOException e) {
-      throw new RuntimeException("Failed save object to XML DOM", e);
+      throw new RuntimeException("Failed to load object from XML DOM", e);
     }
   }
 }

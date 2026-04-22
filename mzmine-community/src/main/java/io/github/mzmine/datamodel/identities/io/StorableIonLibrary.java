@@ -59,8 +59,10 @@ import org.jetbrains.annotations.Nullable;
  * @param origin   where the library came from ({@link LibraryOrigin})
  * @param name     the library name
  * @param parts    all part definitions without count — name, formula, charge, mass + a unique id
- *                 referenced from {@link IonTypeDTO#parts}.
- * @param ionTypes ion types that reference parts by id.
+ *                 referenced from {@link IonTypeDTO#parts}. Serialized as a wrapped list: the
+ *                 wrapper name matches the record component (plural) and each inner element is
+ *                 named {@code part} (singular).
+ * @param ionTypes ion types that reference parts by id. Wrapped list following the same pattern.
  */
 @JacksonXmlRootElement(localName = "ionLibrary")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -74,11 +76,8 @@ record StorableIonLibrary(@JacksonXmlProperty(isAttribute = true)//
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
                           @JsonSerialize(using = LocalDateTimeSerializer.class) //
                           @NotNull LocalDateTime savedDate, //
-                          @JacksonXmlElementWrapper(localName = "parts") //
-                          @JacksonXmlProperty(localName = "part") //
                           @NotNull List<IonPartDTO> parts, //
-                          @JacksonXmlElementWrapper(localName = "ionTypes") //
-                          @JacksonXmlProperty(localName = "ionType") //
+//                          @JacksonXmlElementWrapper(useWrapping = false)
                           @NotNull List<IonTypeDTO> ionTypes) {
 
   StorableIonLibrary {
@@ -157,7 +156,8 @@ record StorableIonLibrary(@JacksonXmlProperty(isAttribute = true)//
   }
 
   /**
-   * @param parts     ids that reference entries in {@link StorableIonLibrary#parts}
+   * @param parts     ids that reference entries in {@link StorableIonLibrary#parts}. Serialized
+   *                  unwrapped, with each item rendered as a {@code <part>} element.
    * @param molecules num molecules
    */
   record IonTypeDTO(@JacksonXmlElementWrapper(useWrapping = false) //
