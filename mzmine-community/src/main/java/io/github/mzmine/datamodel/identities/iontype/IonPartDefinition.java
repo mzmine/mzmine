@@ -165,4 +165,16 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
     return result;
   }
 
+  /**
+   * Requires the definition because this is not only an uncharged formula like H2O.
+   *
+   * @return true if charge is different to 0 or if name is different to formula
+   */
+  public boolean isDefinitionRequired() {
+    if (singleCharge() != 0 || !Objects.equals(singleFormula, name)) {
+      return true;
+    }
+
+    return false;
+  }
 }

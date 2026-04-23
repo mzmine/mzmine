@@ -55,7 +55,10 @@ public record GlobalIonLibraryDTO(int version, @NotNull List<IonLibrary> librari
       for (IonType ion : library.ions()) {
         np.addAll(ion.parts());
         for (IonPart part : ion.parts()) {
-          npd.add(IonPartDefinition.of(part));
+          final IonPartDefinition def = IonPartDefinition.of(part);
+          if (def.isDefinitionRequired()) {
+            npd.add(def);
+          }
         }
       }
     }
