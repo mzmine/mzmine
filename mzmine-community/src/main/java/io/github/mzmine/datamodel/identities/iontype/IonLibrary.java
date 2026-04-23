@@ -26,12 +26,15 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface IonLibrary {
+
+  @NotNull LocalDateTime lastUpdatedDate();
 
   @NotNull String name();
 

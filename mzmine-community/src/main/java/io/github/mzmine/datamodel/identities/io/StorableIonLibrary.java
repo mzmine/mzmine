@@ -76,6 +76,10 @@ record StorableIonLibrary(@JacksonXmlProperty(isAttribute = true)//
                           @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
                           @JsonSerialize(using = LocalDateTimeSerializer.class) //
                           @NotNull LocalDateTime savedDate, //
+                          @JacksonXmlProperty(isAttribute = true) //
+                          @JsonDeserialize(using = LocalDateTimeDeserializer.class) //
+                          @JsonSerialize(using = LocalDateTimeSerializer.class) //
+                          @NotNull LocalDateTime lastUpdatedDate, //
                           @NotNull List<IonPartDTO> parts, //
 //                          @JacksonXmlElementWrapper(useWrapping = false)
                           @NotNull List<IonTypeDTO> ionTypes) {
@@ -111,7 +115,7 @@ record StorableIonLibrary(@JacksonXmlProperty(isAttribute = true)//
             .toList(), ion.molecules())).toList();
 
     return new StorableIonLibrary(library.id(), library.origin(), library.name(),
-        LocalDateTime.now(), parts, types);
+        LocalDateTime.now(), library.lastUpdatedDate(), parts, types);
   }
 
   private static IonPartDTO noCountKey(IonPart part) {

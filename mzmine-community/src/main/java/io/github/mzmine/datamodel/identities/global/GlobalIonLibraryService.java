@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.io.File;
@@ -105,6 +106,11 @@ public final class GlobalIonLibraryService {
    */
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
 
+  /**
+   * Libraries are first written to this object and then to the presetStore if they were updated.
+   * Use map for uniqueness
+   */
+  private final Map<UUID, IonLibrary> libraries = new ConcurrentHashMap<>();
 
 
   /// maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
@@ -135,18 +141,32 @@ public final class GlobalIonLibraryService {
     // first parts then types
     addParts(IonParts.PREDEFINED_PARTS);
     addIonTypes(IonTypes.valuesAsIonType());
-
-    // the preset store has an observable list and is only updated on the fx thread
-    // this means that there is already a delay between calling the change and the change happening on fx thread
-    // accumulate multiple changes here to avoid each addition/removal to trigger a change
-//    PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
-//        presetStore.getCurrentPresets());
   }
 
   private void init() {
+    addLibraries(IonLibraries.createDefaultLibrariesModifiable());
     // below already requires globalLibrary initialized
     // load presets from disk once for global library
     presetStore.loadAllPresetsOrDefaults();
+  }
+
+  private void addLibraries(List<IonLibrary> libs) {
+    applyLockedChange(() -> {
+      for (IonLibrary lib : libs) {
+        final IonLibrary oldLib = libraries.get(lib.id());
+        if (oldLib != null && !oldLib.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
+          continue; // skip library is up to date
+        }
+
+        // add library and all ion types and definitions
+        libraries.put(lib.id(), lib);
+        presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
+
+        addIonTypes(lib.ions());
+        addParts(IonTypeUtils.extractUniqueParts(lib.ions()));
+        addPartDefinitions(IonTypeUtils.extractUniquePartsIgnoreCounts(lib.ions(), true));
+      }
+    });
   }
 
   public synchronized void addChangeListener(GlobalIonLibraryChangedListener listener) {
@@ -369,6 +389,8 @@ public final class GlobalIonLibraryService {
    */
   public List<IonLibrary> getIonLibrariesUnmodifiable() {
     // need to add the internal mzmine default libraries here as they should not be saved as presets
+
+    return List.copyOf(libraries);
     final List<IonLibrary> allLibraries = IonLibraries.createDefaultLibrariesModifiable();
     final List<IonLibraryPreset> presets = List.copyOf(presetStore.getCurrentPresets());
     for (IonLibraryPreset preset : presets) {
@@ -425,7 +447,7 @@ public final class GlobalIonLibraryService {
    */
   private void addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
     // so that Fe might be defined as 2+ or 3+
-    if (part.name().equals(part.singleFormula()) && part.isNeutralModification()) {
+    if (!part.isDefinitionRequired()) {
       // name and formula are equal and no charge means this is the default behavior of the parsing.
       // no need to keep an instance of this, so skip
       // only add definitions where name is different from formula or where charge is defined
@@ -542,6 +564,18 @@ public final class GlobalIonLibraryService {
   public void addPartDefinition(IonPartDefinition partDef) {
     try (var _ = lock.lockWrite()) {
       addIonPartDefinitionInternal(partDef);
+    }
+  }
+
+  /**
+   * Just add part definition. will not trigger a change as {@link GlobalIonLibrariesController} and
+   * this service are at the same state for the definitions.
+   */
+  public void addPartDefinitions(List<IonPartDefinition> partDefinitions) {
+    try (var _ = lock.lockWrite()) {
+      for (IonPartDefinition partDef : partDefinitions) {
+        addIonPartDefinitionInternal(partDef);
+      }
     }
   }
 

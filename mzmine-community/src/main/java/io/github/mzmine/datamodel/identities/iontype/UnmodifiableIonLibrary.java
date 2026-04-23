@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
   private final @NotNull UUID id;
   private final @NotNull LibraryOrigin origin;
   private final @NotNull String name;
+  private final @NotNull LocalDateTime lastUpdatedDate;
   private final @NotNull List<IonType> ions;
 
   /**
@@ -73,6 +75,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
     List<IonType> sorted = new ArrayList<>(ions);
     sorted.sort(IonTypeSorting.MOLECULES_THEN_CHARGE_THEN_MASS.getComparator());
     this.ions = Collections.unmodifiableList(sorted);
+    lastUpdatedDate = LocalDateTime.now();
   }
 
   /**
@@ -127,6 +130,11 @@ public class UnmodifiableIonLibrary implements IonLibrary {
   @Override
   public @NotNull IonLibrary copy() {
     return new UnmodifiableIonLibrary(true, id, origin, name, ions);
+  }
+
+  @Override
+  public @NotNull LocalDateTime lastUpdatedDate() {
+    return lastUpdatedDate;
   }
 
   @Override
