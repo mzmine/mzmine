@@ -105,6 +105,8 @@ public final class GlobalIonLibraryService {
    */
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
 
+
+
   /// maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
   /// We only store definitions for ion parts where the name is unequal to the formula. For example,
   /// to capture alternative names of chemicals or to use a different formula order.
@@ -217,6 +219,10 @@ public final class GlobalIonLibraryService {
       @NotNull GlobalIonLibraryDTO proposed, boolean applyDirectlyIgnoreValidation) {
 
     try (var _ = lock.lockWrite()) {
+      // cascade libraries -> ion types -> ion parts -> definitions
+      // so that we add all definitions from libraries
+      proposed = proposed.cascadeIonDefinitionsFromLibraries();
+
       final int currentVersion = getVersion();
       final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
       if (!applyDirectlyIgnoreValidation && currentVersion != expectedBaseVersion) {

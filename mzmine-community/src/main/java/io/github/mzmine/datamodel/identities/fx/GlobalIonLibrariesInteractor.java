@@ -125,8 +125,9 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
   }
 
   private void onApplied(int newVersion) {
-    model.setRetrievalVersion(newVersion);
     model.setLastModelUpdate(null);
+    // get latest model from global after applying
+    updateModel();
   }
 
   private void showValidationErrors(@NotNull ValidationResult vr) {
