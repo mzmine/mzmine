@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
-import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +55,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 /// The global ion library that is used to create new ion libraries, types, and parts.
@@ -83,6 +81,10 @@ public final class GlobalIonLibraryService {
   private static class Holder {
 
     private static final GlobalIonLibraryService globalLibrary = new GlobalIonLibraryService();
+
+    static {
+      globalLibrary.init();
+    }
   }
 
   // on changes just count up the current version so that other parts like the tab can see if changes happened
@@ -132,13 +134,17 @@ public final class GlobalIonLibraryService {
     addParts(IonParts.PREDEFINED_PARTS);
     addIonTypes(IonTypes.valuesAsIonType());
 
-    // load presets from disk once for global library
-    presetStore.loadAllPresetsOrDefaults();
     // the preset store has an observable list and is only updated on the fx thread
     // this means that there is already a delay between calling the change and the change happening on fx thread
     // accumulate multiple changes here to avoid each addition/removal to trigger a change
-    PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
-        presetStore.getCurrentPresets());
+//    PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
+//        presetStore.getCurrentPresets());
+  }
+
+  private void init() {
+    // below already requires globalLibrary initialized
+    // load presets from disk once for global library
+    presetStore.loadAllPresetsOrDefaults();
   }
 
   public synchronized void addChangeListener(GlobalIonLibraryChangedListener listener) {
@@ -202,9 +208,10 @@ public final class GlobalIonLibraryService {
   /// {@link ApplyResult.Conflict}. Callers must handle all three — the sealed return type makes
   /// that obligation visible at the type level.
   ///
-  /// @param expectedBaseVersion the service version the caller built {@code proposed} against;
-  /// typically {@code model.getRetrievalVersion()}
-  /// @param proposed            the full desired state (libraries, types, parts, part definitions)
+  /// @param expectedBaseVersion           the service version the caller built {@code proposed}
+  /// against; typically {@code model.getRetrievalVersion()}
+  /// @param proposed                      the full desired state (libraries, types, parts, part
+  /// definitions)
   /// @param applyDirectlyIgnoreValidation
   public @NotNull ApplyResult applyUpdates(int expectedBaseVersion,
       @NotNull GlobalIonLibraryDTO proposed, boolean applyDirectlyIgnoreValidation) {
@@ -244,6 +251,7 @@ public final class GlobalIonLibraryService {
         getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
   }
 
+  // currently not used but maybe later to have finer report on changes
   private static @NotNull ConflictReport diffLibraries(@NotNull List<IonLibrary> proposed,
       @NotNull List<IonLibrary> current) {
     final Map<UUID, IonLibrary> proposedById = HashMap.newHashMap(proposed.size());

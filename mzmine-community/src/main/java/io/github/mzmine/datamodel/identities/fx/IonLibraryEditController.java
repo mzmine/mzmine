@@ -25,13 +25,14 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -148,7 +149,7 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
     final boolean keepsOriginalName = original != null && original.name().equals(newName);
     if (saveAsCopy && keepsOriginalName) {
       // name was never changed - only needed for save copy
-      DialogLoggerUtil.showErrorNotification("Requires name change to save copy!",
+      DialogLoggerUtil.showErrorNotification("Requires name change to save a copy!",
           "Please change the name before saving a copy.");
       return;
     }
@@ -169,10 +170,10 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
 
         // overwrite: keep the original identity/origin so references upstream stay valid.
         // save-as-copy (or brand-new library): fresh id + local origin.
+        final List<IonType> ions = List.copyOf(model.getIonTypes());
         final UnmodifiableIonLibrary newLibrary = (!saveAsCopy && original != null) //
-            ? new UnmodifiableIonLibrary(original.id(), original.origin(), newName,
-                List.copyOf(model.getIonTypes())) //
-            : new UnmodifiableIonLibrary(newName, List.copyOf(model.getIonTypes()));
+            ? new UnmodifiableIonLibrary(original.id(), original.origin(), newName, ions) //
+            : new UnmodifiableIonLibrary(newName, ions);
 
         if (!saveAsCopy) {
           parentModel.getLibraries().remove(original);
@@ -182,6 +183,8 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
         }
         parentModel.getLibraries().add(newLibrary);
         model.setLibrary(newLibrary);
+        // trigger model to global update directly
+        parentModel.getEventHandler().accept(new ApplyModelChangesToGlobalService());
       }
     }
   }

@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
@@ -156,6 +157,13 @@ public class IonLibraryIO {
   @Nullable
   public static LoadedIonLibrary loadFromXML(Node parent) {
     try {
+      if (parent instanceof Element elParent && !"ionLibrary".equals(elParent.getTagName())) {
+        try {
+          parent = XMLUtils.findChildElement(elParent, "ionLibrary");
+        } catch (Exception e) {
+          return null;
+        }
+      }
       StorableIonLibrary storable = XMLUtils.loadFromDOM(parent, StorableIonLibrary.class);
 
       return new LoadedIonLibrary(storable.savedDate(), convert(storable));

@@ -25,21 +25,39 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.time.Instant;
+import java.util.function.Consumer;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 class GlobalIonLibrariesModel {
+
+
+  private final ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandler = new SimpleObjectProperty<>();
+
+  public Consumer<GlobalIonLibrariesEvent> getEventHandler() {
+    return eventHandler.get();
+  }
+
+  public ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandlerProperty() {
+    return eventHandler;
+  }
+
+  public void setEventHandler(Consumer<GlobalIonLibrariesEvent> eventHandler) {
+    this.eventHandler.set(eventHandler);
+  }
 
   /**
    * All defined libraries

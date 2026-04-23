@@ -49,19 +49,18 @@ import javafx.scene.layout.Region;
 
 class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesModel> {
 
-  private final Consumer<GlobalIonLibrariesEvent> eventHandler;
-
-  public GlobalIonLibrariesViewBuilder(final GlobalIonLibrariesModel model,
-      final Consumer<GlobalIonLibrariesEvent> eventHandler) {
+  public GlobalIonLibrariesViewBuilder(final GlobalIonLibrariesModel model) {
     super(model);
-    this.eventHandler = eventHandler;
   }
 
+  private Consumer<GlobalIonLibrariesEvent> getEventHandler() {
+    return model.getEventHandler();
+  }
 
   @Override
   public Region build() {
     var tabPane = new TabPane(//
-        FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model, eventHandler)),
+        FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model, getEventHandler())),
         FxTabs.newTab("Define ion types", createIonTypesPane()),
         FxTabs.newTab("Define building blocks", createIonPartsPane()));
 
@@ -80,10 +79,10 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
         FxLabels.newBoldLabel("Ion definitions were changed in tab, apply?"),
         createButton("Apply", FxIcons.CHECK_CIRCLE,
             "Apply changes made in this tab to the global ion libraries which are used for ion parsing and matching.",
-            () -> eventHandler.accept(new ApplyModelChangesToGlobalService())), //
+            () -> getEventHandler().accept(new ApplyModelChangesToGlobalService())), //
         createButton("Discard", FxIcons.X_CIRCLE,
             "Discard changes made in this tab and reset lists.",
-            () -> eventHandler.accept(new DiscardModelChanges())) //
+            () -> getEventHandler().accept(new DiscardModelChanges())) //
     );
     modelChangePane.visibleProperty().bind(modelChangedProperty);
 
@@ -93,7 +92,7 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
         FxLabels.newBoldLabel("Global ion libraries were changed, load?"),
         createButton("Load", FxIcons.CHECK_CIRCLE,
             "The global ion definitions were changed internally, load these changes? The global ion definitions are used for ion parsing.",
-            () -> eventHandler.accept(new ReloadGlobalServiceChanges())) //
+            () -> getEventHandler().accept(new ReloadGlobalServiceChanges())) //
     );
     globalChangePane.visibleProperty().bind(model.globalVersionChangedProperty());
 
@@ -108,7 +107,7 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
 
     return main;
   }
-
+  
   private Node createIonTypesPane() {
     return new IonTypeCreatorPane(model.ionTypesProperty(), model.getPartsDefinitions());
   }

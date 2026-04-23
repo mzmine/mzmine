@@ -25,10 +25,10 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -57,8 +57,9 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
     super(new GlobalIonLibrariesModel());
 
     interactor = new GlobalIonLibrariesInteractor(model);
+    model.setEventHandler(interactor::handleEvent);
 
-    viewBuilder = new GlobalIonLibrariesViewBuilder(model, interactor::handleEvent);
+    viewBuilder = new GlobalIonLibrariesViewBuilder(model);
   }
 
   public ReadOnlyListProperty<IonLibrary> librariesProperty() {

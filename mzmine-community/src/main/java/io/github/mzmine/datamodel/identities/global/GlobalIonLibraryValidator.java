@@ -53,10 +53,6 @@ public final class GlobalIonLibraryValidator {
   /// Anything Jackson / the filesystem / the preset store dislikes when used as a file name.
   private static final Pattern UNSAFE_NAME_CHARS = Pattern.compile("[\\\\/:*?\"<>|\\p{Cntrl}]");
 
-  /// Relative tolerance for flagging near-duplicate parts: two parts with the same name differing
-  /// in mass by less than this ratio are considered "close enough to be a typo."
-  private static final double NEAR_DUPLICATE_MASS_TOLERANCE_PPM = 10.0;
-
   /// Validate a proposed state against the current service state.
   ///
   /// @param proposed the state the caller wants to apply
@@ -73,7 +69,6 @@ public final class GlobalIonLibraryValidator {
     checkBuiltinLibrariesImmutable(proposed.libraries(), current.libraries(), errors);
     checkReferencedPartsExist(proposed, errors);
     checkReferencedTypesExist(proposed, errors);
-    warnNearDuplicateParts(proposed.parts(), warnings);
 
     if (errors.isEmpty() && warnings.isEmpty()) {
       return ValidationResult.ok();
@@ -200,35 +195,4 @@ public final class GlobalIonLibraryValidator {
     }
   }
 
-  private static void warnNearDuplicateParts(@NotNull List<IonPart> parts,
-      @NotNull List<ValidationWarning> warnings) {
-    final Map<String, List<IonPart>> byName = new HashMap<>();
-    for (IonPart part : parts) {
-      byName.computeIfAbsent(part.name(), _ -> new ArrayList<>(1)).add(part);
-    }
-    for (List<IonPart> group : byName.values()) {
-      if (group.size() < 2) {
-        continue;
-      }
-      for (int i = 0; i < group.size(); i++) {
-        for (int j = i + 1; j < group.size(); j++) {
-          final IonPart a = group.get(i);
-          final IonPart b = group.get(j);
-          if (a.singleCharge() != b.singleCharge()) {
-            continue; // different charge states are a legitimate "Fe+2 vs Fe+3" case
-          }
-          final double base = Math.max(Math.abs(a.absSingleMass()), Math.abs(b.absSingleMass()));
-          if (base == 0d) {
-            continue;
-          }
-          final double ppmDiff = Math.abs(a.absSingleMass() - b.absSingleMass()) / base * 1e6;
-          if (ppmDiff < NEAR_DUPLICATE_MASS_TOLERANCE_PPM) {
-            warnings.add(new ValidationWarning("part.near-duplicate",
-                "Two parts named '%s' have nearly identical mass but different formulas ('%s' vs '%s'). Is one a typo?"
-                    .formatted(a.name(), a.singleFormula(), b.singleFormula())));
-          }
-        }
-      }
-    }
-  }
 }

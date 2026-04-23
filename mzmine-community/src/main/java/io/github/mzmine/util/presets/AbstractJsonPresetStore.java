@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public abstract class AbstractJsonPresetStore<T extends Preset> extends Abstract
       // make sure to add all json Presets to the annotation on {@link Preset} class
       return (T) getMapper().readValue(file, Preset.class);
     } catch (IOException e) {
-      logger.warning("Preset file is broken: %s\n%s".formatted(file.getName(), e.getMessage()));
+      logger.log(Level.WARNING, "Preset file is broken: %s\n%s".formatted(file.getName(), e.getMessage()), e);
       return null;
     }
   }
