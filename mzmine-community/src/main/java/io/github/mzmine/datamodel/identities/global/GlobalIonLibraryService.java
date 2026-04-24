@@ -53,6 +53,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -162,18 +163,22 @@ public final class GlobalIonLibraryService {
 
   /**
    * Checks IDs and update dates and uses latest library
+   *
+   * @return true if model changed
    */
-  private void addLibraries(List<IonLibrary> libs) {
-    applyLockedChange(() -> {
+  private boolean addLibraries(List<IonLibrary> libs) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
       for (IonLibrary lib : libs) {
         final IonLibrary oldLib = libraries.get(lib.id());
         if (oldLib != null && !oldLib.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
           continue; // skip library is up to date
         }
-
+        logger.fine("Adding library " + lib.name());
         // add library and all ion types and definitions
         libraries.put(lib.id(), lib);
+        wasChanged = true;
 
         final IonLibraryPreset oldPreset = presetMap.get(lib.id());
         if (!lib.isInternalLibrary() && (oldPreset == null || oldPreset.library().lastUpdatedDate()
@@ -185,23 +190,28 @@ public final class GlobalIonLibraryService {
         addParts(IonTypeUtils.extractUniqueParts(lib.ions()));
         addPartDefinitions(IonTypeUtils.extractUniquePartsIgnoreCounts(lib.ions(), true));
       }
+
+      return wasChanged;
     });
   }
 
   /**
    * Checks IDs and update dates and uses latest library
+   *
+   * @return true if model changed
    */
-  private void removeLibraries(List<IonLibrary> libs) {
-    applyLockedChange(() -> {
+  private boolean removeLibraries(List<IonLibrary> libs) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
       for (IonLibrary lib : libs) {
         if (lib.isInternalLibrary()) {
           continue;
         }
 
-        libraries.remove(lib.id());
-
-        final List<@NotNull UUID> removeIds = libs.stream().map(IonLibrary::id).toList();
+        if (libraries.remove(lib.id()) != null) {
+          wasChanged = true;
+        }
 
         // remove old presets that were changed and keep track which libraries were changed and need saving
         final IonLibraryPreset old = presetMap.get(lib.id());
@@ -210,6 +220,7 @@ public final class GlobalIonLibraryService {
           presetStore.removePresetsWithName(old);
         }
       }
+      return wasChanged;
     });
   }
 
@@ -253,17 +264,21 @@ public final class GlobalIonLibraryService {
   /**
    * Applies write lock and accumulates multiple changes into a single change event
    */
-  private void applyLockedChange(Runnable runnable) {
+  private boolean applyLockedChange(BooleanSupplier runnable) {
+    boolean wasChanged = false;
     try (var _ = lock.lockWrite()) {
       final boolean oldNotify = notifyChanges.getAndSet(false);
       try {
-        runnable.run();
+        wasChanged = runnable.getAsBoolean();
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Failed to update global ions" + ex.getMessage(), ex);
       }
       notifyChanges.set(oldNotify);
-      notifyChange();
+      if (wasChanged) {
+        notifyChange();
+      }
     }
+    return wasChanged;
   }
 
   /// Versioned apply: validate, check that the caller's base version is still current, and only
@@ -354,12 +369,31 @@ public final class GlobalIonLibraryService {
         Set.copyOf(onlyInCurrent));
   }
 
-  private void setIonPartDefinitions(List<IonPartDefinition> definitions) {
-    applyLockedChange(() -> {
-      this.partDefinitions.clear();
-      for (IonPartDefinition def : definitions) {
-        addIonPartDefinitionInternal(def);
+  /**
+   * @return true if model changed
+   */
+  private boolean setIonPartDefinitions(List<IonPartDefinition> definitions) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
+      final Set<IonPartDefinition> toInclude = Set.copyOf(definitions);
+
+      // remove from each list if does not exist
+      for (List<IonPartDefinition> oldList : partDefinitions.values()) {
+        int oldSize = oldList.size();
+        oldList.removeIf(def -> !toInclude.contains(def));
+        if (oldSize != oldList.size()) {
+          wasChanged = true;
+        }
       }
+      partDefinitions.entrySet().removeIf(e -> e.getValue().isEmpty());
+
+      // add all
+      for (IonPartDefinition def : definitions) {
+        if (addIonPartDefinitionInternal(def)) {
+          wasChanged = true;
+        }
+      }
+      return wasChanged;
     });
   }
 
@@ -372,8 +406,19 @@ public final class GlobalIonLibraryService {
    */
   private void setIonTypes(List<IonType> types) {
     applyLockedChange(() -> {
-      this.singletonIons.clear();
-      addIonTypes(types);
+      boolean wasChanged = false;
+      final Set<IonType> toInclude = Set.copyOf(types);
+
+      int oldSize = singletonIons.size();
+      this.singletonIons.entrySet().removeIf(e -> !toInclude.contains(e.getValue()));
+      if (oldSize != singletonIons.size()) {
+        wasChanged = true;
+      }
+
+      if (addIonTypes(types)) {
+        wasChanged = true;
+      }
+      return wasChanged;
     });
   }
 
@@ -386,8 +431,19 @@ public final class GlobalIonLibraryService {
    */
   private void setIonParts(List<IonPart> parts) {
     applyLockedChange(() -> {
-      this.singletonParts.clear();
-      addParts(parts);
+      boolean wasChanged = false;
+      final Set<IonPart> toInclude = Set.copyOf(parts);
+
+      int oldSize = singletonParts.size();
+      this.singletonParts.entrySet().removeIf(e -> !toInclude.contains(e.getValue()));
+      if (oldSize != singletonParts.size()) {
+        wasChanged = true;
+      }
+
+      if (addParts(parts)) {
+        wasChanged = true;
+      }
+      return wasChanged;
     });
   }
 
@@ -397,17 +453,23 @@ public final class GlobalIonLibraryService {
    * to the global library.
    * <p>
    * All internal lists are cleared and exchanged for the arguments.
+   *
+   * @return true if model changed
    */
-  private void setLibraries(List<IonLibrary> newLibs) {
-    applyLockedChange(() -> {
+  private boolean setLibraries(List<IonLibrary> newLibs) {
+    return applyLockedChange(() -> {
       final Set<@NotNull UUID> newIds = newLibs.stream().map(IonLibrary::id)
           .collect(Collectors.toSet());
       // remove all libraries that are not part of newLibs, they were deleted
       final List<IonLibrary> libsToRemove = libraries.values().stream()
           .filter(lib -> !lib.isInternalLibrary() && !newIds.contains(lib.id())).toList();
-      removeLibraries(libsToRemove);
 
-      addLibraries(newLibs);
+      boolean wasChanged = removeLibraries(libsToRemove);
+
+      if (addLibraries(newLibs)) {
+        wasChanged = true;
+      }
+      return wasChanged;
     });
   }
 
@@ -474,24 +536,27 @@ public final class GlobalIonLibraryService {
 
   /**
    * adds an ion part definition. caller should call notify changes once all changes are done
+   *
+   * @return true if model was changed
    */
-  private void addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
+  private boolean addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
     // so that Fe might be defined as 2+ or 3+
     if (!part.isDefinitionRequired()) {
       // name and formula are equal and no charge means this is the default behavior of the parsing.
       // no need to keep an instance of this, so skip
       // only add definitions where name is different from formula or where charge is defined
       // do not add to many to reduce number of definitions in {@link GlobalIonLibrariesController}
-      return;
+      return false;
     }
 
     final String key = part.name();
     List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
 
     if (values.contains(part)) {
-      return;
+      return false;
     }
     values.add(part);
+    return true;
   }
 
   /**
@@ -510,12 +575,21 @@ public final class GlobalIonLibraryService {
 
   /**
    * Adds all new types to the global list of singletons (checks for existing)
+   *
+   * @return true if model changed
    */
-  public void addIonTypes(List<IonType> ions) {
-    applyLockedChange(() -> {
+  public boolean addIonTypes(List<IonType> ions) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       for (final IonType type : ions) {
+        IonType single = singletonIons.get(type);
+        if (single != null) {
+          continue;
+        }
         deduplicateTypeAndAdd(type);
+        wasChanged = true;
       }
+      return wasChanged;
     });
   }
 
@@ -578,12 +652,21 @@ public final class GlobalIonLibraryService {
 
   /**
    * Add all parts to the global list
+   *
+   * @return true if model changed
    */
-  public void addParts(List<IonPart> parts) {
-    applyLockedChange(() -> {
+  public boolean addParts(List<IonPart> parts) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       for (final IonPart part : parts) {
+        IonPart single = singletonParts.get(part);
+        if (single != null) {
+          continue;
+        }
         deduplicateAndAdd(part);
+        wasChanged = true;
       }
+      return wasChanged;
     });
   }
 

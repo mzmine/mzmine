@@ -30,13 +30,16 @@ import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.PresetCategory;
 import io.github.mzmine.util.presets.PresetGroup;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPreset> {
+
+  private static final Logger logger = Logger.getLogger(IonLibraryPresetStore.class.getName());
 
   @Override
   public @NotNull PresetCategory getPresetCategory() {
@@ -60,6 +63,23 @@ public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPre
 
   public Map<UUID, IonLibraryPreset> getPresetMapCopy() {
     final List<IonLibraryPreset> copy = List.copyOf(getCurrentPresets());
-    return copy.stream().collect(Collectors.toMap(p -> p.library().id(), p -> p));
+    final Map<UUID, IonLibraryPreset> map = HashMap.newHashMap(copy.size());
+    for (IonLibraryPreset preset : copy) {
+      // conflict with unique ID, delete older copy of preset
+      map.compute(preset.library().id(), (_, old) -> {
+        if (old != null) {
+          if (old.library().lastUpdatedDate().isBefore(preset.library().lastUpdatedDate())) {
+            deletePresetFile(old);
+            return preset;
+          } else {
+            deletePresetFile(preset);
+            return old;
+          }
+        }
+        return preset;
+      });
+    }
+
+    return map;
   }
 }

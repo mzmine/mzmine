@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.time.Instant;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -44,7 +45,7 @@ import javafx.collections.ObservableList;
 
 class GlobalIonLibrariesModel {
 
-
+  private static final Logger logger = Logger.getLogger(GlobalIonLibrariesModel.class.getName());
   private final ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandler = new SimpleObjectProperty<>();
 
   public Consumer<GlobalIonLibrariesEvent> getEventHandler() {
@@ -144,6 +145,12 @@ class GlobalIonLibrariesModel {
   }
 
   public void setGlobalIonsVersion(int globalIonsVersion) {
+    // to track when it was set last
+//    try {
+//      throw new RuntimeException("Setting last model update");
+//    } catch (RuntimeException ex) {
+//      logger.log(Level.WARNING, ex.getMessage(), ex);
+//    }
     this.globalIonsVersion.set(globalIonsVersion);
   }
 
