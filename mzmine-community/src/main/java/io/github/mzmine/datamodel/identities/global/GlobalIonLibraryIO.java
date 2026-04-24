@@ -57,7 +57,8 @@ class GlobalIonLibraryIO {
     try {
       // only save ion definitions because those are important
       // we use an ion library here to use latest update date and compatible saving
-      final List<IonType> ions = current.partDefinitions().stream().map(IonType::create).toList();
+      final List<IonType> ions = current.partDefinitions().stream().map(
+          parts -> IonType.create(parts.withCount(1))).toList();
 
       IonLibraryIO.toJsonFile(file,
           new UnmodifiableIonLibrary("mzmine_global_ions_definitions", ions));
