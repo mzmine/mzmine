@@ -90,4 +90,9 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
   public static GlobalIonLibrariesController getInstance() {
     return Holder.INSTANCE;
   }
+
+  public void updateModel() {
+    interactor.updateModel();
+  }
+
 }

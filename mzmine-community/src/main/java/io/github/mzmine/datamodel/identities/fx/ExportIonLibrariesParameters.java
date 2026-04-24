@@ -25,26 +25,17 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
-import java.util.List;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
 /**
- * Keeps track of last loaded file to open the same directory next time
  */
-public class ImportIonLibrariesParameters extends SimpleParameterSet {
+public class ExportIonLibrariesParameters extends SimpleParameterSet {
 
-  public static final FileNamesParameter filename = new FileNamesParameter("Libraries to import",
-      "List of files to import.", List.of(ExtensionFilters.MZ_PRESETS));
+  public static final DirectoryParameter directory = new DirectoryParameter("Output directory",
+      "Choose directory to save ion libraries to", "List of files to import.");
 
-  public static final ComboParameter<MergePolicy> mergePolicy = new ComboParameter<>("Merge policy",
-      "Define how to merge loaded older versions of ion libraries into existing newer libraries.",
-      MergePolicy.values(), MergePolicy.SKIP_OLDER);
-
-  public ImportIonLibrariesParameters() {
-    super(filename, mergePolicy);
+  public ExportIonLibrariesParameters() {
+    super(directory);
   }
 }

@@ -23,28 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.fx;
+package io.github.mzmine.util.presets;
 
-import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
-import java.util.List;
+import static java.util.Objects.requireNonNullElse;
 
-/**
- * Keeps track of last loaded file to open the same directory next time
- */
-public class ImportIonLibrariesParameters extends SimpleParameterSet {
+import org.jetbrains.annotations.NotNull;
 
-  public static final FileNamesParameter filename = new FileNamesParameter("Libraries to import",
-      "List of files to import.", List.of(ExtensionFilters.MZ_PRESETS));
+public class PresetTypeMismatchException extends Exception {
 
-  public static final ComboParameter<MergePolicy> mergePolicy = new ComboParameter<>("Merge policy",
-      "Define how to merge loaded older versions of ion libraries into existing newer libraries.",
-      MergePolicy.values(), MergePolicy.SKIP_OLDER);
-
-  public ImportIonLibrariesParameters() {
-    super(filename, mergePolicy);
+  public <T extends Preset> PresetTypeMismatchException(@NotNull Preset preset,
+      @NotNull PresetStore<T> store) {
+    super("""
+        Preset Category: %s  Group: %s  Name: %s
+         Store Category: %s  Group: %s""".formatted(preset.presetCategory(),
+        requireNonNullElse(preset.presetGroup(), ""), preset.name(), store.getPresetCategory(),
+        store.getPresetGroup().getUniqueID()));
   }
+
 }

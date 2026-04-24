@@ -33,14 +33,11 @@ import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.DiscardM
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ExportSelectedLibraries;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraries;
-import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraryFromFile;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ReloadGlobalServiceChanges;
 import io.github.mzmine.datamodel.identities.global.ApplyResult;
 import io.github.mzmine.datamodel.identities.global.ConflictReport;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryDTO;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryImporter;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult;
 import io.github.mzmine.datamodel.identities.global.ValidationResult;
 import io.github.mzmine.datamodel.identities.global.ValidationResult.ValidationError;
 import io.github.mzmine.datamodel.identities.global.ValidationResult.ValidationWarning;
@@ -161,10 +158,9 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
       case CreateNewLibrary _ -> createNewLibraryInTab();
       case EditSelectedLibrary(IonLibrary library) -> editLibraryInTab(library);
       case ReloadGlobalServiceChanges _ -> updateModel();
-      case ImportLibraryFromFile(var file, var policy) -> importFromFile(file, policy);
       case BrowseCloudCatalog(var catalog) -> browseCloudCatalog(catalog);
       case ExportSelectedLibraries(var libraries) -> {
-
+        ExportIonLibrariesModule.showExportDialog(libraries);
       }
       case ImportLibraries _ -> {
         ImportIonLibrariesModule.showDialog();
@@ -292,21 +288,6 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     new IonLibraryEditController(model, library).showTab();
   }
 
-  private void importFromFile(@NotNull java.io.File file,
-      @NotNull IonLibraryImportResult.MergePolicy policy) {
-    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
-    try {
-      final IonLibraryImportResult result = new GlobalIonLibraryImporter(global).importFromFile(
-          file, policy);
-      showImportResult(result, file.getName());
-    } catch (RuntimeException ex) {
-      DialogLoggerUtil.showErrorDialog("Import failed",
-          "Could not import '%s': %s".formatted(file.getName(), ex.getMessage()));
-    }
-    // pull the new state either way so UI stays in sync
-    updateModel();
-  }
-
   /**
    * Currently not used but later to connect to shared libraries
    */
@@ -324,18 +305,4 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
             entries.size() == 1 ? "y" : "ies"), true);
   }
 
-  private void showImportResult(@NotNull IonLibraryImportResult result, @NotNull String source) {
-    if (result.applyResult() instanceof ApplyResult.Applied) {
-      final int total = result.added().size() + result.updated().size();
-      final String renamedNote = result.renamed().isEmpty() ? ""
-          : "\n(%d renamed to avoid name collision)".formatted(result.renamed().size());
-      DialogLoggerUtil.showDialog(AlertType.INFORMATION, "Import complete",
-          "Imported %d librar%s from %s.%s".formatted(total, total == 1 ? "y" : "ies", source,
-              renamedNote), false);
-    } else if (result.applyResult() instanceof ApplyResult.Invalid(ValidationResult vr)) {
-      showValidationErrors(vr);
-    } else if (result.applyResult() instanceof ApplyResult.Conflict conflict) {
-      showConflictDialog(conflict.currentVersion(), conflict.report());
-    }
-  }
 }

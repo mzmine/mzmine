@@ -33,7 +33,6 @@ import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.Preset;
 import io.github.mzmine.util.presets.PresetCategory;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 
 public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class) //
@@ -51,7 +50,7 @@ public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class
   }
 
   @Override
-  public @Nullable String presetGroup() {
+  public @NotNull String presetGroup() {
     return KnownPresetGroup.ION_LIBRARY_PRESET.getUniqueID();
   }
 
@@ -59,7 +58,8 @@ public record IonLibraryPreset(@JsonSerialize(using = IonLibrarySerializer.class
   public @NotNull IonLibraryPreset withName(String name) {
     // rename preserves identity so a renamed preset still refers to the same library upstream
     return new IonLibraryPreset(
-        new UnmodifiableIonLibrary(library.id(), library.origin(), name, library.ions()));
+        new UnmodifiableIonLibrary(library.id(), library.origin(), library.lastUpdatedDate(), name,
+            library.ions()));
   }
 
 }

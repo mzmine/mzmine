@@ -25,34 +25,39 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.List;
-import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 
 /// Outcome of importing a batch of libraries from a file or a cloud catalog.
-/// <p>
-/// {@link #added} and {@link #updated} are library ids that made it in; {@link #skipped} lists
-/// the ones that collided with an existing library and were left alone per policy; {@link
-/// #renamed} records collisions that were resolved by rename (original id → new library name).
-/// {@link #applyResult} is the outcome of the final service-level apply — typically {@link
-/// ApplyResult.Applied}, but may be {@link ApplyResult.Invalid} or {@link ApplyResult.Conflict}
-/// if the import raced with another writer.
-public record IonLibraryImportResult(@NotNull List<UUID> added, @NotNull List<UUID> updated,
-                                     @NotNull List<UUID> skipped, @NotNull List<RenamedImport> renamed,
-                                     @NotNull ApplyResult applyResult) {
+public record IonLibraryImportResult(@NotNull List<IonLibrary> added,
+                                     @NotNull List<IonLibrary> skipped) {
 
-  public record RenamedImport(@NotNull UUID id, @NotNull String originalName,
-                              @NotNull String newName) {
-
+  public boolean isChanged() {
+    return !added.isEmpty();
   }
 
   /// Policy for how to resolve name/id collisions during import.
-  public enum MergePolicy {
-    /// Keep the existing library untouched; log the incoming one as skipped.
-    SKIP_EXISTING,
-    /// Replace the local library with the incoming one when ids match.
-    OVERWRITE_BY_ID,
-    /// Append a suffix to the incoming library's name so it coexists with the local one.
-    RENAME_ON_COLLISION
+  public enum MergePolicy implements UniqueIdSupplier {
+    SKIP_OLDER, ASK_OLDER_OVERWRITE, OVERWRITE_ALL;
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SKIP_OLDER -> "skip_older";
+        case ASK_OLDER_OVERWRITE -> "ask_older_overwrite";
+        case OVERWRITE_ALL -> "overwrite_all";
+      };
+    }
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case SKIP_OLDER -> "Skip on older versions";
+        case ASK_OLDER_OVERWRITE -> "Ask for older versions";
+        case OVERWRITE_ALL -> "Overwrite all";
+      };
+    }
   }
 }

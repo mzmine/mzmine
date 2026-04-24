@@ -27,9 +27,7 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.cloud.CloudCatalog;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,14 +70,6 @@ sealed interface GlobalIonLibrariesEvent {
    * the internal model also changed
    */
   record ReloadGlobalServiceChanges() implements GlobalIonLibrariesEvent {
-
-  }
-
-  /**
-   * Import one or more libraries from a JSON file using {@code policy} to resolve collisions.
-   */
-  record ImportLibraryFromFile(@NotNull File file, @NotNull MergePolicy policy) implements
-      GlobalIonLibrariesEvent {
 
   }
 

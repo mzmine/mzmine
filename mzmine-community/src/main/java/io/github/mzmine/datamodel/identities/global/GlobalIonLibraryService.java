@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.global;
 
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
@@ -37,8 +38,10 @@ import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.github.mzmine.util.presets.PresetTypeMismatchException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,6 +82,71 @@ import org.jetbrains.annotations.NotNull;
 public final class GlobalIonLibraryService {
 
   private static final Logger logger = Logger.getLogger(GlobalIonLibraryService.class.getName());
+
+  public void addPresetFiles(@NotNull List<File> files, MergePolicy mergePolicy) {
+    List<File> brokenFiles = new ArrayList<>();
+    List<File> otherPresetType = new ArrayList<>();
+    List<IonLibrary> libraries = new ArrayList<>();
+
+    for (File file : files) {
+      final IonLibraryPreset loaded;
+      try {
+        loaded = presetStore.loadFromFileOrThrow(file);
+      } catch (IOException e) {
+        brokenFiles.add(file);
+        continue;
+      } catch (PresetTypeMismatchException e) {
+        otherPresetType.add(file);
+        continue;
+      }
+      if (loaded != null) {
+        libraries.add(loaded.library());
+      }
+    }
+
+    List<String> notLoadedMsg = new ArrayList<>();
+    if (!brokenFiles.isEmpty()) {
+      notLoadedMsg.add("Broken preset files not loaded: " + brokenFiles.stream().map(File::getName)
+          .collect(Collectors.joining(", ")));
+    }
+    if (!otherPresetType.isEmpty()) {
+      notLoadedMsg.add(
+          "Preset files from other preset types not loaded: " + otherPresetType.stream()
+              .map(File::getName).collect(Collectors.joining(", ")));
+    }
+
+    final IonLibraryImportResult results = addLibraries(libraries, mergePolicy);
+
+    if (!results.skipped().isEmpty()) {
+      notLoadedMsg.add("Skipped older libraries and kept existing: " + results.skipped().stream()
+          .map(IonLibrary::name).collect(Collectors.joining(", ")));
+    }
+
+    if (!notLoadedMsg.isEmpty()) {
+      notLoadedMsg.addFirst("Some presets files were skipped:");
+      DialogLoggerUtil.showWarningNotification("Some presets skipped",
+          String.join("\n", notLoadedMsg));
+    }
+
+    // something was added
+    if (results.isChanged()) {
+      GlobalIonLibrariesController.getInstance().updateModel();
+    }
+  }
+
+  public void exportPresetsTo(File directory, @NotNull List<IonLibrary> libraries) {
+    List<String> saved = new ArrayList<>();
+    for (IonLibrary library : libraries) {
+      File file = new File(directory, library.name());
+      file = presetStore.saveToFile(file, new IonLibraryPreset(library));
+      if (file != null) {
+        saved.add(file.getAbsolutePath());
+      }
+    }
+
+    DialogLoggerUtil.showInfoNotification("Exported ion libraries",
+        "Exported to:\n" + String.join("\n", saved));
+  }
 
   // lazy init singleton
   private static class Holder {
@@ -146,7 +214,7 @@ public final class GlobalIonLibraryService {
   }
 
   private void init() {
-    addLibraries(IonLibraries.createDefaultLibrariesModifiable());
+    addLibraries(IonLibraries.createDefaultLibrariesModifiable(), MergePolicy.OVERWRITE_ALL);
     // below already requires globalLibrary initialized
     // load presets from disk once for global library
     PropertyUtils.onChangeListDelayed(this::presetsChanged, Duration.millis(150),
@@ -158,25 +226,58 @@ public final class GlobalIonLibraryService {
     final List<IonLibrary> presets = List.copyOf(presetStore.getCurrentPresets()).stream()
         .map(IonLibraryPreset::library).toList();
     // will automatically check IDs and last update dates and only add if new
-    addLibraries(presets);
+    addLibraries(presets, MergePolicy.ASK_OLDER_OVERWRITE);
   }
 
   /**
    * Checks IDs and update dates and uses latest library
    *
-   * @return true if model changed
+   * @return IonLibraryImportResult with added or skipped libraries
    */
-  private boolean addLibraries(List<IonLibrary> libs) {
-    return applyLockedChange(() -> {
+  private IonLibraryImportResult addLibraries(List<IonLibrary> libs) {
+    return addLibraries(libs, MergePolicy.SKIP_OLDER);
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   *
+   * @return IonLibraryImportResult with added or skipped libraries
+   */
+  private IonLibraryImportResult addLibraries(List<IonLibrary> libs, MergePolicy mergePolicy) {
+    final List<IonLibrary> added = new ArrayList<>();
+    final List<IonLibrary> skipped = new ArrayList<>();
+
+    applyLockedChange(() -> {
       boolean wasChanged = false;
       final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
       for (IonLibrary lib : libs) {
-        final IonLibrary oldLib = libraries.get(lib.id());
-        if (oldLib != null && !oldLib.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
-          continue; // skip library is up to date
+        final IonLibrary existingLib = libraries.get(lib.id());
+        if (existingLib != null) {
+          if (lib.lastUpdatedDate().isEqual(existingLib.lastUpdatedDate())) {
+            continue;
+          } else if (lib.lastUpdatedDate().isBefore(existingLib.lastUpdatedDate())) {
+            // old libraries usually do not overwrite newer version
+            // only possible with user interaction if ask is true
+            boolean skip = switch (mergePolicy) {
+              case SKIP_OLDER -> true;
+              case OVERWRITE_ALL -> false;
+              case ASK_OLDER_OVERWRITE -> !DialogLoggerUtil.showDialogYesNo(
+                  "Overwriting existing newer library with an older version?", """
+                      Should the older version ion library overwrite the already present newer version?
+                      Incoming older version: %s (last updated %s)
+                      Existing newer version: %s (last updated %s)""".formatted(existingLib,
+                      existingLib.lastUpdatedDate(), lib, lib.lastUpdatedDate()));
+            };
+
+            if (skip) {
+              skipped.add(lib);
+              continue;
+            }
+          }
         }
         logger.fine("Adding library " + lib.name());
         // add library and all ion types and definitions
+        added.add(lib);
         libraries.put(lib.id(), lib);
         wasChanged = true;
 
@@ -193,6 +294,7 @@ public final class GlobalIonLibraryService {
 
       return wasChanged;
     });
+    return new IonLibraryImportResult(added, skipped);
   }
 
   /**
@@ -466,7 +568,8 @@ public final class GlobalIonLibraryService {
 
       boolean wasChanged = removeLibraries(libsToRemove);
 
-      if (addLibraries(newLibs)) {
+      final IonLibraryImportResult results = addLibraries(newLibs, MergePolicy.OVERWRITE_ALL);
+      if (results.isChanged()) {
         wasChanged = true;
       }
       return wasChanged;

@@ -26,44 +26,50 @@
 package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
-import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.impl.AbstractMZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
-public class ImportIonLibrariesModule extends AbstractMZmineModule {
+public class ExportIonLibrariesModule extends AbstractMZmineModule {
 
-  private static final Logger logger = Logger.getLogger(ImportIonLibrariesModule.class.getName());
+  private static final Logger logger = Logger.getLogger(ExportIonLibrariesModule.class.getName());
 
-  public ImportIonLibrariesModule() {
-    super("Import ion libraries", ImportIonLibrariesParameters.class);
+  public ExportIonLibrariesModule() {
+    super("Export ion libraries", ExportIonLibrariesParameters.class);
   }
 
-  public static void showDialog() {
-    final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(ImportIonLibrariesModule.class);
+  public static void showExportDialog(@NotNull List<IonLibrary> libraries) {
+    if (libraries.isEmpty()) {
+      return;
+    }
+    libraries = libraries.stream().filter(ionLibrary -> !ionLibrary.isInternalLibrary()).toList();
+    if (libraries.isEmpty()) {
+      DialogLoggerUtil.showInfoNotification("Cannot export internal mzmine ion libraries",
+          "The selected ion library is mzmine internal and cannot be exported. Create a copy first.");
+      return;
+    }
 
     try {
-      ExitCode exitCode = parameters.showSetupDialog(true);
-      if (exitCode != ExitCode.OK) {
-        return;
+      final ParameterSet parameters = ConfigService.getConfiguration()
+          .getModuleParameters(ExportIonLibrariesModule.class);
+
+      final DirectoryParameter param = parameters.getParameter(
+          ExportIonLibrariesParameters.directory);
+      final File selectedDirectory = param.showChooseDirectoryDialog();
+      if (selectedDirectory != null) {
+        // save library presets
+        GlobalIonLibraryService.getGlobalLibrary().exportPresetsTo(selectedDirectory, libraries);
       }
     } catch (Exception e) {
       logger.log(Level.WARNING, e.getMessage(), e);
-    }
-
-    File[] files = parameters.getValue(
-        ImportIonLibrariesParameters.filename);
-    final MergePolicy mergePolicy = parameters.getValue(ImportIonLibrariesParameters.mergePolicy);
-
-    if (files!=null && files.length>0) {
-    // this uses the last selected files to open file chooser at right directory
-      GlobalIonLibraryService.getGlobalLibrary().addPresetFiles(List.of(files), mergePolicy);
     }
   }
 

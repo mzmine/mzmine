@@ -56,6 +56,22 @@ public class UnmodifiableIonLibrary implements IonLibrary {
    */
   UnmodifiableIonLibrary(boolean skipNameCheck, @NotNull UUID id, @NotNull LibraryOrigin origin,
       @NotNull String name, @NotNull List<IonType> ions) {
+    this(skipNameCheck, id, origin, LocalDateTime.now(), name, ions);
+  }
+
+  public UnmodifiableIonLibrary(@NotNull UUID id, @NotNull LibraryOrigin origin,
+      final @NotNull LocalDateTime lastUpdatedDate, @NotNull String name,
+      @NotNull List<IonType> ions) {
+    this(false, id, origin, lastUpdatedDate, name, ions);
+  }
+
+  /**
+   * @param skipNameCheck name check can only be skipped by classes in this package to create
+   *                      default libraries. Outside, there will always be a name check.
+   */
+  UnmodifiableIonLibrary(boolean skipNameCheck, @NotNull UUID id, @NotNull LibraryOrigin origin,
+      final @NotNull LocalDateTime lastUpdatedDate, @NotNull String name,
+      @NotNull List<IonType> ions) {
     if (!skipNameCheck && IonLibraries.isInternalLibrary(name)) {
       // use try catch to get stack trace
       // users might load a library with mzmine default in name
@@ -75,7 +91,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
     List<IonType> sorted = new ArrayList<>(ions);
     sorted.sort(IonTypeSorting.MOLECULES_THEN_CHARGE_THEN_MASS.getComparator());
     this.ions = Collections.unmodifiableList(sorted);
-    lastUpdatedDate = LocalDateTime.now();
+    this.lastUpdatedDate = lastUpdatedDate;
   }
 
   /**
@@ -129,7 +145,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
 
   @Override
   public @NotNull IonLibrary copy() {
-    return new UnmodifiableIonLibrary(true, id, origin, name, ions);
+    return new UnmodifiableIonLibrary(true, id, origin, lastUpdatedDate, name, ions);
   }
 
   @Override

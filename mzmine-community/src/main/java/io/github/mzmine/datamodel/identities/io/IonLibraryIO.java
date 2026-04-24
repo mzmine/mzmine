@@ -145,10 +145,10 @@ public class IonLibraryIO {
     }
 
     // preserve persisted identity when present; generate a fresh one for legacy files
-    final UUID id = storable.id() != null ? storable.id() : UUID.randomUUID();
-    final LibraryOrigin origin =
-        storable.origin() != null ? storable.origin() : LibraryOrigin.LOCAL;
-    return new UnmodifiableIonLibrary(id, origin, storable.name(), types);
+    final UUID id = storable.id();
+    final LibraryOrigin origin = storable.origin();
+    return new UnmodifiableIonLibrary(id, origin, storable.lastUpdatedDate(), storable.name(),
+        types);
   }
 
   /**
