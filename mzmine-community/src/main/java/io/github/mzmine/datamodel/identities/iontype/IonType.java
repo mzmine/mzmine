@@ -27,8 +27,6 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import static java.util.function.Predicate.not;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.main.ConfigService;
@@ -61,8 +59,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * randomly. Try adding common names to {@link IonPartAliases}.
  *
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class IonType {
+public final class IonType implements Comparable<IonType> {
 
   private static final Logger logger = Logger.getLogger(IonType.class.getName());
 
@@ -117,7 +114,7 @@ public final class IonType {
 
   public static final String XML_ELEMENT = "iontype";
 
-  public static final Comparator<IonType> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparingDouble(
+  public static final Comparator<IonType> DEFAULT_ION_ADDUCT_SORTER = Comparator.comparingInt(
       IonType::totalCharge).thenComparingDouble(IonType::totalMass);
   private final @NotNull String name;
   private final @NotNull List<@NotNull IonPart> parts;
@@ -159,12 +156,12 @@ public final class IonType {
     };
   }
 
-  @JsonIgnore
+
   public double absTotalMass() {
     return Math.abs(totalMass);
   }
 
-  @JsonIgnore
+
   public int absTotalCharge() {
     return Math.abs(totalCharge);
   }
@@ -316,6 +313,13 @@ public final class IonType {
     return parts.stream();
   }
 
+  /**
+   * @return a stream of ion parts excluding the silent charges
+   */
+  public Stream<IonPart> streamWithoutSilentCharge() {
+    return stream().filter(not(IonPart::isSilentCharge));
+  }
+
   @NotNull
   public Stream<@NotNull IonPart> streamChargedAdducts() {
     return stream().filter(IonPart::isCharged);
@@ -344,7 +348,6 @@ public final class IonType {
   }
 
 
-  @JsonIgnore
   public PolarityType getPolarity() {
     return PolarityType.fromInt(totalCharge, PolarityType.NEUTRAL);
   }
@@ -359,35 +362,28 @@ public final class IonType {
    */
   @NotNull
   public IMolecularFormula addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
-    IMolecularFormula result = null;
     try {
-      result = (IMolecularFormula) formula.clone();
+      final IMolecularFormula result = (IMolecularFormula) formula.clone();
+
+      // add for n molecules the M formula
+      for (int i = 2; i <= molecules; i++) {
+        FormulaUtils.addFormula(result, formula);
+      }
+
+      // add first then remove — exclude silent charges (they carry no formula contribution)
+      streamWithoutSilentCharge().filter(IonPart::isAddition)
+          .forEach(ion -> ion.addToFormula(result, false));
+      streamWithoutSilentCharge().filter(IonPart::isLoss)
+          .forEach(ion -> ion.addToFormula(result, false));
+      if (ionize) {
+        result.setCharge(totalCharge);
+      }
+      return result;
     } catch (CloneNotSupportedException e) {
       logger.log(Level.WARNING, "Unexpected exception cloning molecular formula " + e.getMessage(),
           e);
       return formula;
     }
-    // add for n molecules the M formula
-    for (int i = 2; i <= molecules; i++) {
-      FormulaUtils.addFormula(result, formula);
-    }
-
-    // add first then remove
-    stream(false).filter(IonPart::isAddition).forEach(ion -> ion.addToFormula(formula, false));
-    stream(false).filter(IonPart::isLoss).forEach(ion -> ion.addToFormula(formula, false));
-    if (ionize) {
-      result.setCharge(totalCharge);
-    }
-    return result;
-  }
-
-  /**
-   * @param includeSilentCharges include the silent charges that are used to add or remove charges
-   *                             when it does not sum up
-   * @return a stream of ion parts
-   */
-  public Stream<IonPart> stream(boolean includeSilentCharges) {
-    return includeSilentCharges ? stream() : stream().filter(not(IonPart::isSilentCharge));
   }
 
   @Override
@@ -395,10 +391,8 @@ public final class IonType {
     if (!(o instanceof final IonType ionType)) {
       return false;
     }
-
-    return molecules == ionType.molecules && totalCharge == ionType.totalCharge
-        && Precision.equalFloatSignificance(totalMass, ionType.totalMass) && name.equals(
-        ionType.name) && parts.equals(ionType.parts);
+    // name, totalMass, and totalCharge are all derived from parts + molecules
+    return molecules == ionType.molecules && parts.equals(ionType.parts);
   }
 
 
@@ -417,12 +411,12 @@ public final class IonType {
 
   @Override
   public int hashCode() {
-    int result = name.hashCode();
-    result = 31 * result + parts.hashCode();
-    result = 31 * result + Double.hashCode(totalMass);
-    result = 31 * result + totalCharge;
-    result = 31 * result + molecules;
-    return result;
+    return 31 * parts.hashCode() + molecules;
+  }
+
+  @Override
+  public int compareTo(@NotNull IonType other) {
+    return DEFAULT_ION_ADDUCT_SORTER.compare(this, other);
   }
 
   public @NotNull String name() {
@@ -492,6 +486,14 @@ public final class IonType {
 
   public boolean isCharged() {
     return !isNeutral();
+  }
+
+  public boolean isPositive() {
+    return totalCharge > 0;
+  }
+
+  public boolean isNegative() {
+    return totalCharge < 0;
   }
 
   /**

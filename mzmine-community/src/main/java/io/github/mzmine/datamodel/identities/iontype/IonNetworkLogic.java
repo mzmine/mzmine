@@ -68,7 +68,7 @@ public class IonNetworkLogic {
     }
 
     // network size, MSMS modification and multimer (2M) verification
-    int result = Integer.compare(a.getLikelyhood(), b.getLikelyhood());
+    int result = Integer.compare(a.getScore(), b.getScore());
     if (result != 0) {
       return result;
     }
@@ -78,16 +78,8 @@ public class IonNetworkLogic {
       return result;
     }
 
-    return compareCharge(a, b);
-  }
-
-  /**
-   * @return True if b is a better choice
-   */
-  private static int compareCharge(IonIdentity a, IonIdentity b) {
-    int ca = a.getIonType().absTotalCharge();
-    int cb = b.getIonType().absTotalCharge();
-    return Integer.compare(ca, cb);
+    // lower charge is better
+    return Integer.compare(b.getIonType().absTotalCharge(), a.getIonType().absTotalCharge());
   }
 
 

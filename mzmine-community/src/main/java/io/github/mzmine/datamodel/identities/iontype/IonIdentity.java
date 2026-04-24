@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  * IonIdentities are connected to {@link IonNetwork}s and represent different ion species (M+H,
  * M+Na, 2M+H, ...) for the same molecule. Typically {@link CorrelateGroupingTask} is performed
  * before identifying ion identities. They can be used to predict molecular formulas in
- * {@link FormulaPredictionIonNetworkModule} and they are part of the Ion Idententity Molecular
+ * {@link FormulaPredictionIonNetworkModule} and they are part of the Ion Identity Molecular
  * Networking workflow on https://gnps.ucsd.edu/, which is accessible through
  * {@link GnpsFbmnExportAndSubmitModule}.
  */
@@ -49,10 +50,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   private final List<ResultFormula> molFormulas;
   @NotNull
   private final IonType ionType;
-  // network id (number)
   private IonNetwork network;
-  // mark as beeing deleted
-  private boolean isDeleted;
 
   /**
    * Create the identity.
@@ -73,10 +71,6 @@ public class IonIdentity implements Comparable<IonIdentity> {
   @NotNull
   public IonType getIonType() {
     return ionType;
-  }
-
-  public String getName() {
-    return toString();
   }
 
   @Override
@@ -120,12 +114,15 @@ public class IonIdentity implements Comparable<IonIdentity> {
     return network.size();
   }
 
+  /**
+   * @return unmodifiable copy of formulas
+   */
   @NotNull
   public List<ResultFormula> getMolFormulas() {
-    return molFormulas == null ? List.of() : molFormulas;
+    return Collections.unmodifiableList(molFormulas);
   }
 
-  public void clearMolFormulas() {
+  public synchronized void clearMolFormulas() {
     molFormulas.clear();
   }
 
@@ -179,25 +176,20 @@ public class IonIdentity implements Comparable<IonIdentity> {
     addMolFormula(formula, true);
   }
 
-  public void removeMolFormula(ResultFormula formula) {
-    if (molFormulas != null && !molFormulas.isEmpty()) {
-      molFormulas.remove(formula);
-    }
+  public synchronized void removeMolFormula(ResultFormula formula) {
+    molFormulas.remove(formula);
   }
 
   @Override
   public int compareTo(@NotNull IonIdentity ion) {
-    return toString().compareTo(ion.toString());
+    return ionType.compareTo(ion.ionType);
   }
 
   /**
-   *
-   * @return likelyhood of this ion ID being true, a score where higher is better
+   * @deprecated Use {@link #getScore()} instead.
    */
+  @Deprecated
   public int getLikelyhood() {
-    if (network == null) {
-      return -1;
-    }
-    return network.size();
+    return getScore();
   }
 }

@@ -73,8 +73,8 @@ public class IonIdentityTest {
   @Mock
   ResultFormula formula;
 
-  IonType hAdduct = IonTypes.H.asIonType();
-  IonType naAdduct = IonTypes.NA.asIonType();
+  final IonType hAdduct = IonTypes.H.asIonType();
+  final IonType naAdduct = IonTypes.NA.asIonType();
 
 
   @Test

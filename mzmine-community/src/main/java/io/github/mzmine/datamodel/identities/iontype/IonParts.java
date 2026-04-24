@@ -27,7 +27,6 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import static java.util.Objects.requireNonNullElse;
 
-import com.sun.xml.bind.v2.TODO;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;

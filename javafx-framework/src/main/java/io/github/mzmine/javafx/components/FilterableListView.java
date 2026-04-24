@@ -54,11 +54,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -95,10 +99,16 @@ public class FilterableListView<T> extends BorderPane {
   private final ObjectProperty<Consumer<T>> editSelectedAction = new SimpleObjectProperty<>();
   // on create new button
   private final ObjectProperty<Runnable> createNewAction = new SimpleObjectProperty<>();
+  /**
+   * triggered by Enter on the list or search field, or by a primary mouse click on a non-empty
+   * cell
+   */
+  private final ObjectProperty<@Nullable Consumer<T>> onItemActivated = new SimpleObjectProperty<>();
 
   // original items are input into filtering and sorting
   private final ObservableList<T> originalItems;
   private final SortedList<T> sortedFilteredItems;
+  private final TextField searchField;
   private Consumer<T> onRemoveItemListener;
 
   // top flow pane
@@ -132,7 +142,7 @@ public class FilterableListView<T> extends BorderPane {
     this.listView = FxListViews.newListView(filteredItems, false, selectionMode);
 
     // search text field
-    final TextField searchField = TextFields.createClearableTextField();
+    searchField = TextFields.createClearableTextField();
     searchField.setPromptText("Search...");
     searchField.setTooltip(new Tooltip("Enter text to search in list."));
 
@@ -158,14 +168,86 @@ public class FilterableListView<T> extends BorderPane {
 
   private void addKeyEventListener() {
     listView.setOnKeyPressed(event -> {
-      if (removeKeyActive.get() && disableRemove.get() && (event.getCode() == KeyCode.DELETE
+      if (removeKeyActive.get() && !disableRemove.get() && (event.getCode() == KeyCode.DELETE
           || event.getCode() == KeyCode.BACK_SPACE)) {
         removeSelectedItems();
       }
       if (event.getCode() == KeyCode.ESCAPE) {
         getListView().getSelectionModel().clearSelection();
       }
+      if (event.getCode() == KeyCode.ENTER) {
+        activateSelectedItem();
+//        event.consume();
+      }
     });
+
+    // Allow Up/Down arrows to move list selection while the search field keeps focus.
+    // Also accept Enter on the search field to activate the currently selected item.
+    searchField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+        // do not consume events because other components may need to react to event
+      if (event.getCode() == KeyCode.ENTER) {
+        activateSelectedItem();
+        event.consume();
+      } else if (event.getCode() == KeyCode.DOWN) {
+        moveListSelection(1);
+        event.consume();
+      } else if (event.getCode() == KeyCode.UP) {
+        moveListSelection(-1);
+        event.consume();
+      }
+    });
+
+    // Primary mouse click on a non-empty cell activates the item.
+    listView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+      if (event.getButton() != MouseButton.PRIMARY) {
+        return;
+      }
+      Node node = event.getPickResult().getIntersectedNode();
+      while (node != null && node != listView) {
+        if (node instanceof ListCell<?> cell && !cell.isEmpty()) {
+          activateSelectedItem();
+          event.consume();
+          return;
+        }
+        node = node.getParent();
+      }
+    });
+  }
+
+  /**
+   * Invoke the registered {@link #onItemActivated} action for the currently selected item, if any.
+   */
+  public void activateSelectedItem() {
+    final T item = listView.getSelectionModel().getSelectedItem();
+    final Consumer<T> action = onItemActivated.get();
+    if (item != null && action != null) {
+      action.accept(item);
+    }
+  }
+
+  /**
+   * Move the list selection by {@code delta} (clamped to the filtered, visible item range) and
+   * scroll the new selection into view. Used to navigate the list while the search field retains
+   * focus.
+   */
+  private void moveListSelection(int delta) {
+    final int size = listView.getItems().size();
+    if (size == 0) {
+      return;
+    }
+    final int current = listView.getSelectionModel().getSelectedIndex();
+    final int base = current < 0 ? (delta > 0 ? -1 : 0) : current;
+    final int target = Math.clamp(base + delta, 0, size - 1);
+    listView.getSelectionModel().clearAndSelect(target);
+    listView.scrollTo(target);
+  }
+
+  /**
+   * Register a callback invoked when the user activates an item (Enter key on the list or search
+   * field, or primary mouse click on a non-empty cell).
+   */
+  public void setOnItemActivated(@Nullable Consumer<T> action) {
+    onItemActivated.set(action);
   }
 
   /**
@@ -306,6 +388,13 @@ public class FilterableListView<T> extends BorderPane {
 
   public ListView<T> getListView() {
     return listView;
+  }
+
+  /**
+   * Requests focus on the search field so the user can immediately start typing to filter.
+   */
+  public void focusSearchField() {
+    searchField.requestFocus();
   }
 
   public BooleanProperty searchFieldVisibleProperty() {
