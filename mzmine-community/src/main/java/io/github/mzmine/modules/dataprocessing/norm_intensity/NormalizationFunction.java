@@ -73,7 +73,7 @@ public sealed interface NormalizationFunction extends UniqueIdSupplier permits
       subfunctions.add(function);
     }
 
-    return new CompositeNormalizationFunction(List.copyOf(subfunctions));
+    return CompositeNormalizationFunction.createComposite(List.copyOf(subfunctions));
   }
 
   /**

@@ -74,7 +74,7 @@ class NormalizationFunctionsParameterTest {
           standardFunction.function(), 0.75d));
 
   final RawFileNormalizationFunction compositeFunction = new RawFileNormalizationFunction(
-      compositeFile, compositeTimestamp, new CompositeNormalizationFunction(
+      compositeFile, compositeTimestamp, CompositeNormalizationFunction.createComposite(
       List.of(factorFunction.function(), standardFunction.function(),
           interpolatedFunction.function())));
 
