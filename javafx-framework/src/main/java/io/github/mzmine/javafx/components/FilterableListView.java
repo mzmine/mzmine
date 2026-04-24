@@ -99,7 +99,10 @@ public class FilterableListView<T> extends BorderPane {
   private final ObjectProperty<Consumer<T>> editSelectedAction = new SimpleObjectProperty<>();
   // on create new button
   private final ObjectProperty<Runnable> createNewAction = new SimpleObjectProperty<>();
-  // triggered by Enter on the list or search field, or by a primary mouse click on a non-empty cell
+  /**
+   * triggered by Enter on the list or search field, or by a primary mouse click on a non-empty
+   * cell
+   */
   private final ObjectProperty<@Nullable Consumer<T>> onItemActivated = new SimpleObjectProperty<>();
 
   // original items are input into filtering and sorting
@@ -165,7 +168,7 @@ public class FilterableListView<T> extends BorderPane {
 
   private void addKeyEventListener() {
     listView.setOnKeyPressed(event -> {
-      if (removeKeyActive.get() && disableRemove.get() && (event.getCode() == KeyCode.DELETE
+      if (removeKeyActive.get() && !disableRemove.get() && (event.getCode() == KeyCode.DELETE
           || event.getCode() == KeyCode.BACK_SPACE)) {
         removeSelectedItems();
       }
@@ -180,21 +183,22 @@ public class FilterableListView<T> extends BorderPane {
 
     // Allow Up/Down arrows to move list selection while the search field keeps focus.
     // Also accept Enter on the search field to activate the currently selected item.
-    searchField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+    searchField.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+        // do not consume events because other components may need to react to event
       if (event.getCode() == KeyCode.ENTER) {
         activateSelectedItem();
-//        event.consume();
+        event.consume();
       } else if (event.getCode() == KeyCode.DOWN) {
         moveListSelection(1);
-//        event.consume();
+        event.consume();
       } else if (event.getCode() == KeyCode.UP) {
         moveListSelection(-1);
-//        event.consume();
+        event.consume();
       }
     });
 
     // Primary mouse click on a non-empty cell activates the item.
-    listView.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+    listView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
       if (event.getButton() != MouseButton.PRIMARY) {
         return;
       }
@@ -202,6 +206,7 @@ public class FilterableListView<T> extends BorderPane {
       while (node != null && node != listView) {
         if (node instanceof ListCell<?> cell && !cell.isEmpty()) {
           activateSelectedItem();
+          event.consume();
           return;
         }
         node = node.getParent();
