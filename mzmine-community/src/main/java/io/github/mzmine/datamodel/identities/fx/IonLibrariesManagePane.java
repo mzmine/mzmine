@@ -29,6 +29,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ExportSelectedLibraries;
@@ -62,6 +63,9 @@ class IonLibrariesManagePane extends BorderPane {
     // create main layout
     final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(), true,
         true, true);
+
+    // apply to model after remove
+    libraryList.onRemoveItem(_ -> eventHandler.accept(new ApplyModelChangesToGlobalService()));
 
     // translate list view events to global ion events
     libraryList.addEventListener(event -> {

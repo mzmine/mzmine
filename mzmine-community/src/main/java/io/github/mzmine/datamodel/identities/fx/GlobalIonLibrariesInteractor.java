@@ -48,13 +48,21 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.NotificationService.NotificationType;
 import io.github.mzmine.javafx.mvci.FxInteractor;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -77,6 +85,72 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     // trigger the update
     GlobalIonLibraryService.getGlobalLibrary().addChangeListener(
         event -> FxThread.runLater(() -> model.setGlobalIonsVersion(event.version())));
+  }
+
+  public boolean askRemoveIonPartDefinition(IonPartDefinition def) {
+    // find all libraries with def in them
+    final LibrariesWithIonPart matchingLibs = findLibraryIonTypesUsingDefinition(def);
+
+    // cannot change any builtin internal lib
+    final boolean anyInternalLib = matchingLibs.libraries().keySet().stream()
+        .anyMatch(IonLibrary::isInternalLibrary);
+    if (anyInternalLib) {
+      DialogLoggerUtil.showNotification(NotificationType.INFO,
+          "Cannot change internally defined ion parts.",
+          "The selected ion building block is used in internal libraries and cannot be changed.");
+      return false;
+    }
+
+    if (DialogLoggerUtil.showDialogYesNo("Cascade remove ion building block?", """
+              Do you want to remove all ion types from all libraries that use ion building block:
+              "%s"
+              Otherwise the ion building block will stay defined.
+              
+              This changes:
+              %s""".formatted(def.toString(), matchingLibs.toString()))) {
+
+      // change all libs
+      model.getIonTypes().removeAll(matchingLibs.types());
+
+      final ObservableList<IonLibrary> targetLibs = model.getLibraries();
+      for (Entry<IonLibrary, List<IonType>> entry : matchingLibs.libraries().entrySet()) {
+        final IonLibrary lib = entry.getKey();
+
+        final Set<IonType> toRemove = Set.copyOf(entry.getValue());
+
+        List<IonType> ions = new ArrayList<>(lib.ions().size() - toRemove.size());
+        for (IonType ion : lib.ions()) {
+          if (!toRemove.contains(ion)) {
+            ions.add(ion);
+          }
+        }
+
+        targetLibs.remove(lib);
+        // add changed library
+        targetLibs.add(new UnmodifiableIonLibrary(lib.id(), lib.origin(), lib.name(), ions));
+
+        model.getEventHandler().accept(new ApplyModelChangesToGlobalService());
+      }
+    }
+    return false;
+  }
+
+  private LibrariesWithIonPart findLibraryIonTypesUsingDefinition(IonPartDefinition def) {
+    final List<IonType> types = model.getIonTypes().stream()
+        .filter(ionType -> ionType.containsPart(def)).toList();
+
+    Map<IonLibrary, List<IonType>> libraries = new HashMap<>();
+
+    for (IonLibrary library : model.getLibraries()) {
+      final List<IonType> libTypes = library.ions().stream()
+          .filter(ionType -> ionType.containsPart(def)).toList();
+      if (libTypes.isEmpty()) {
+        continue;
+      }
+      libraries.put(library, libTypes);
+    }
+
+    return new LibrariesWithIonPart(def, libraries, types);
   }
 
 

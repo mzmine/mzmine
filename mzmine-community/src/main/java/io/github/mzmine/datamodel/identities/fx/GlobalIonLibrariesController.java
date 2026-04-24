@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -60,6 +61,10 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
     model.setEventHandler(interactor::handleEvent);
 
     viewBuilder = new GlobalIonLibrariesViewBuilder(model);
+  }
+
+  public boolean askRemoveIonPartDefinition(IonPartDefinition removed) {
+    return interactor.askRemoveIonPartDefinition(removed);
   }
 
   public ReadOnlyListProperty<IonLibrary> librariesProperty() {

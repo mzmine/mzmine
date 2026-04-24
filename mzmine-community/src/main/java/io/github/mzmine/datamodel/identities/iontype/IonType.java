@@ -295,6 +295,10 @@ public final class IonType implements Comparable<IonType> {
     }).filter(Objects::nonNull);
   }
 
+  public boolean containsPart(IonPart def) {
+    return parts.stream().anyMatch(part -> part.equalsWithoutCount(def));
+  }
+
   /**
    * @param a
    * @return true if all charged parts are the same
@@ -521,7 +525,6 @@ public final class IonType implements Comparable<IonType> {
     merged.addAll(other.parts());
     return IonType.create(merged, Math.min(molecules, other.molecules));
   }
-
 
   public enum IonTypeStringFlavor {
     /**
