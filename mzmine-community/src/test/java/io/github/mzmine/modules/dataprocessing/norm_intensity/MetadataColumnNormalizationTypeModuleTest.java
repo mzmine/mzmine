@@ -28,6 +28,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
@@ -79,9 +80,9 @@ class MetadataColumnNormalizationTypeModuleTest {
           FactorNormalizationFunction.class, summary.get(fileC));
 
       assertEquals(3, functions.size());
-      assertEquals(0.5d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-      assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
-      assertEquals(2.5d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(0.1, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(0.2, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(0.5, functionC.getNormalizationFactor(0d, 0f), 1e-12);
     }
 
     {
@@ -103,14 +104,14 @@ class MetadataColumnNormalizationTypeModuleTest {
           FactorNormalizationFunction.class, summary.get(fileC));
 
       assertEquals(3, summary.size());
-      assertEquals(2d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-      assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
-      assertEquals(2d / 5d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(10d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(5d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+      assertEquals(2d, functionC.getNormalizationFactor(0d, 0f), 1e-12);
     }
   }
 
   @Test
-  void createReferenceFunctionsUsesFactorOneForZeroMetadataValue() {
+  void createReferenceFunctionsUsesNullForZeroMetadataValue() {
     final MetadataColumnNormalizationTypeModule module = new MetadataColumnNormalizationTypeModule();
     final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
     final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
@@ -132,11 +133,9 @@ class MetadataColumnNormalizationTypeModuleTest {
 
     final FactorNormalizationFunction functionA = assertInstanceOf(
         FactorNormalizationFunction.class, summary.get(fileA));
-    final FactorNormalizationFunction functionB = assertInstanceOf(
-        FactorNormalizationFunction.class, summary.get(fileB));
+    assertNull(summary.get(fileB));
 
-    assertEquals(0.5d, functionA.getNormalizationFactor(0d, 0f), 1e-12);
-    assertEquals(1d, functionB.getNormalizationFactor(0d, 0f), 1e-12);
+    assertEquals(0.1, functionA.getNormalizationFactor(0d, 0f), 1e-12);
   }
 
   @Test
@@ -179,7 +178,8 @@ class MetadataColumnNormalizationTypeModuleTest {
             new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': null",
+    assertEquals(
+        "Invalid metadata value (needs to be >=0) in column 'concentration' for file 'file_b': null",
         exception.getMessage());
   }
 
@@ -229,7 +229,8 @@ class MetadataColumnNormalizationTypeModuleTest {
             new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': -1.0",
+    assertEquals(
+        "Invalid metadata value (needs to be >=0) in column 'concentration' for file 'file_b': -1.0",
         exception.getMessage());
   }
 
@@ -255,7 +256,8 @@ class MetadataColumnNormalizationTypeModuleTest {
             new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': NaN",
+    assertEquals(
+        "Invalid metadata value (needs to be >=0) in column 'concentration' for file 'file_b': NaN",
         exception.getMessage());
   }
 
@@ -281,10 +283,10 @@ class MetadataColumnNormalizationTypeModuleTest {
             new SamplesBatch(featureList.getRawDataFiles(), null), metadata,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("Invalid metadata value in column 'concentration' for file 'file_b': Infinity",
+    assertEquals(
+        "Invalid metadata value (needs to be >=0) in column 'concentration' for file 'file_b': Infinity",
         exception.getMessage());
   }
-
 
   private static @NotNull MetadataColumnNormalizationTypeParameters createModuleParameters(
       final @NotNull String metadataColumnName) {
