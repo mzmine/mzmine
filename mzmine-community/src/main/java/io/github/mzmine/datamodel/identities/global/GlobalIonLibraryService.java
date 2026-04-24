@@ -270,7 +270,7 @@ public final class GlobalIonLibraryService {
    *
    * @return IonLibraryImportResult with added or skipped libraries
    */
-  private IonLibraryImportResult addLibraries(List<IonLibrary> libs) {
+  public IonLibraryImportResult addLibraries(List<IonLibrary> libs) {
     return addLibraries(libs, MergePolicy.SKIP_OLDER);
   }
 
@@ -279,7 +279,7 @@ public final class GlobalIonLibraryService {
    *
    * @return IonLibraryImportResult with added or skipped libraries
    */
-  private IonLibraryImportResult addLibraries(List<IonLibrary> libs, MergePolicy mergePolicy) {
+  public IonLibraryImportResult addLibraries(List<IonLibrary> libs, MergePolicy mergePolicy) {
     final List<IonLibrary> added = new ArrayList<>();
     final List<IonLibrary> skipped = new ArrayList<>();
 
