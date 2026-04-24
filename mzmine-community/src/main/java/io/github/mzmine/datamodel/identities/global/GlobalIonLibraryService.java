@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.io.File;
 import java.io.IOException;
@@ -52,10 +53,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 /// The global ion library that is used to create new ion libraries, types, and parts.
@@ -147,11 +148,24 @@ public final class GlobalIonLibraryService {
     addLibraries(IonLibraries.createDefaultLibrariesModifiable());
     // below already requires globalLibrary initialized
     // load presets from disk once for global library
+    PropertyUtils.onChangeListDelayed(this::presetsChanged, Duration.millis(150),
+        presetStore.getCurrentPresets());
     presetStore.loadAllPresetsOrDefaults();
   }
 
+  private void presetsChanged() {
+    final List<IonLibrary> presets = List.copyOf(presetStore.getCurrentPresets()).stream()
+        .map(IonLibraryPreset::library).toList();
+    // will automatically check IDs and last update dates and only add if new
+    addLibraries(presets);
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   */
   private void addLibraries(List<IonLibrary> libs) {
     applyLockedChange(() -> {
+      final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
       for (IonLibrary lib : libs) {
         final IonLibrary oldLib = libraries.get(lib.id());
         if (oldLib != null && !oldLib.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
@@ -160,11 +174,41 @@ public final class GlobalIonLibraryService {
 
         // add library and all ion types and definitions
         libraries.put(lib.id(), lib);
-        presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
+
+        final IonLibraryPreset oldPreset = presetMap.get(lib.id());
+        if (!lib.isInternalLibrary() && (oldPreset == null || oldPreset.library().lastUpdatedDate()
+            .isBefore(lib.lastUpdatedDate()))) {
+          presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
+        }
 
         addIonTypes(lib.ions());
         addParts(IonTypeUtils.extractUniqueParts(lib.ions()));
         addPartDefinitions(IonTypeUtils.extractUniquePartsIgnoreCounts(lib.ions(), true));
+      }
+    });
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   */
+  private void removeLibraries(List<IonLibrary> libs) {
+    applyLockedChange(() -> {
+      final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
+      for (IonLibrary lib : libs) {
+        if (lib.isInternalLibrary()) {
+          continue;
+        }
+
+        libraries.remove(lib.id());
+
+        final List<@NotNull UUID> removeIds = libs.stream().map(IonLibrary::id).toList();
+
+        // remove old presets that were changed and keep track which libraries were changed and need saving
+        final IonLibraryPreset old = presetMap.get(lib.id());
+        if (old != null) {
+          // remove old presets because new ones may have different name or content
+          presetStore.removePresetsWithName(old);
+        }
       }
     });
   }
@@ -354,52 +398,33 @@ public final class GlobalIonLibraryService {
    * <p>
    * All internal lists are cleared and exchanged for the arguments.
    */
-  private void setLibraries(List<IonLibrary> libraries) {
+  private void setLibraries(List<IonLibrary> newLibs) {
     applyLockedChange(() -> {
-      // remove internal libraries to not add them to the list of presets
-      // Add all libraries with true value
-      Map<IonLibrary, Boolean> saveNewLibraries = libraries.stream()
-          .filter(lib -> !IonLibraries.isInternalLibrary(lib))
-          .collect(Collectors.toMap(Function.identity(), _ -> true));
+      final Set<@NotNull UUID> newIds = newLibs.stream().map(IonLibrary::id)
+          .collect(Collectors.toSet());
+      // remove all libraries that are not part of newLibs, they were deleted
+      final List<IonLibrary> libsToRemove = libraries.values().stream()
+          .filter(lib -> !lib.isInternalLibrary() && !newIds.contains(lib.id())).toList();
+      removeLibraries(libsToRemove);
 
-      final List<IonLibraryPreset> oldPresets = List.copyOf(presetStore.getCurrentPresets());
-
-      // remove old presets that were changed and keep track which libraries were changed and need saving
-      for (IonLibraryPreset old : oldPresets) {
-        final boolean isUnchanged = saveNewLibraries.containsKey(old.library());
-        if (isUnchanged) {
-          saveNewLibraries.put(old.library(), false);
-        } else {
-          // remove old presets because new ones may have different name or content
-          presetStore.removePresetsWithName(old);
-        }
-      }
-
-      // save changed libraries
-      saveNewLibraries.forEach((lib, save) -> {
-        if (save) {
-          presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
-        }
-      });
+      addLibraries(newLibs);
     });
   }
+
 
   /**
    * @return The default mzmine libraries and all user preset libraries
    */
   public List<IonLibrary> getIonLibrariesUnmodifiable() {
     // need to add the internal mzmine default libraries here as they should not be saved as presets
-
-    return List.copyOf(libraries);
-    final List<IonLibrary> allLibraries = IonLibraries.createDefaultLibrariesModifiable();
-    final List<IonLibraryPreset> presets = List.copyOf(presetStore.getCurrentPresets());
-    for (IonLibraryPreset preset : presets) {
-      allLibraries.add(preset.library());
-    }
-    return allLibraries;
+    return List.copyOf(libraries.values());
   }
 
 
+  /**
+   * @param name ignores case
+   * @return
+   */
   @NotNull
   public Optional<IonLibrary> getLibraryForName(@NotNull String name) {
     final List<IonLibrary> libraries = getIonLibrariesUnmodifiable();
@@ -409,6 +434,11 @@ public final class GlobalIonLibraryService {
       }
     }
     return Optional.empty();
+  }
+
+  @NotNull
+  public Optional<IonLibrary> getLibraryForID(@NotNull UUID id) {
+    return Optional.ofNullable(libraries.get(id));
   }
 
 

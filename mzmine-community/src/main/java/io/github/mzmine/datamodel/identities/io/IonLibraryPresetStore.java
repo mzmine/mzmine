@@ -31,6 +31,9 @@ import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.PresetCategory;
 import io.github.mzmine.util.presets.PresetGroup;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPreset> {
@@ -55,4 +58,8 @@ public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPre
     return null;
   }
 
+  public Map<UUID, IonLibraryPreset> getPresetMapCopy() {
+    final List<IonLibraryPreset> copy = List.copyOf(getCurrentPresets());
+    return copy.stream().collect(Collectors.toMap(p -> p.library().id(), p -> p));
+  }
 }

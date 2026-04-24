@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin.Builtin;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -95,4 +96,11 @@ public interface IonLibrary {
   }
 
   @NotNull IonLibrary copy();
+
+  /**
+   * @return true if internal library that may not be changed
+   */
+  default boolean isInternalLibrary() {
+    return origin() instanceof Builtin;
+  }
 }
