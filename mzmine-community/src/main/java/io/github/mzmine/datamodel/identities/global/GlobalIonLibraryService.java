@@ -44,6 +44,7 @@ import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.presets.PresetTypeMismatchException;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,8 +55,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -161,6 +166,9 @@ public final class GlobalIonLibraryService {
   // on changes just count up the current version so that other parts like the tab can see if changes happened
   private final AtomicInteger modificationCount = new AtomicInteger(Integer.MIN_VALUE);
   private final AtomicBoolean notifyChanges = new AtomicBoolean(true);
+  private final AtomicReference<LocalDateTime> lastGlobalSaved = new AtomicReference<>(null);
+  private final AtomicReference<LocalDateTime> lastIonDefinitionChanged = new AtomicReference<>(
+      null);
 
   private final List<GlobalIonLibraryChangedListener> changedListeners = new ArrayList<>();
 
@@ -175,6 +183,17 @@ public final class GlobalIonLibraryService {
    * Used to save ion libraries as presets
    */
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
+
+  /**
+   * Scheduled executor for periodic saving of global ion library
+   */
+  private final ScheduledExecutorService saveScheduler = Executors.newSingleThreadScheduledExecutor(
+      r -> {
+        Thread t = new Thread(r, "mzmine global ion libraries save thread");
+        t.setDaemon(true);
+        t.setPriority(Thread.MIN_PRIORITY);
+        return t;
+      });
 
   /**
    * Libraries are first written to this object and then to the presetStore if they were updated.
@@ -214,12 +233,29 @@ public final class GlobalIonLibraryService {
   }
 
   private void init() {
+    // load global ion definitions that may not be in a library already
+    loadGlobalIonDefinitionLibrary();
+
+    // add all internal libraries
     addLibraries(IonLibraries.createDefaultLibrariesModifiable(), MergePolicy.OVERWRITE_ALL);
+
     // below already requires globalLibrary initialized
     // load presets from disk once for global library
     PropertyUtils.onChangeListDelayed(this::presetsChanged, Duration.millis(150),
         presetStore.getCurrentPresets());
     presetStore.loadAllPresetsOrDefaults();
+
+    // schedule periodic saving of global ion library every 5 seconds
+    saveScheduler.scheduleAtFixedRate(() -> {
+      try {
+        if (lastGlobalSaved.get() == null || !Objects.equals(lastGlobalSaved.get(),
+            lastIonDefinitionChanged.get())) {
+          saveGlobalIonDefinitionLibrary();
+        }
+      } catch (IOException e) {
+        logger.log(Level.WARNING, "Failed to save global ion library: " + e.getMessage());
+      }
+    }, 5, 5, TimeUnit.SECONDS);
   }
 
   private void presetsChanged() {
@@ -495,6 +531,10 @@ public final class GlobalIonLibraryService {
           wasChanged = true;
         }
       }
+
+      if (!wasChanged) {
+        lastIonDefinitionChanged.set(LocalDateTime.now());
+      }
       return wasChanged;
     });
   }
@@ -659,6 +699,8 @@ public final class GlobalIonLibraryService {
       return false;
     }
     values.add(part);
+
+    lastIonDefinitionChanged.set(LocalDateTime.now());
     return true;
   }
 
@@ -798,19 +840,25 @@ public final class GlobalIonLibraryService {
   /**
    * Just remove part definition. will not trigger a change as {@link GlobalIonLibrariesController}
    * and this service are at the same state for the definitions.
+   *
+   * @return true if model changed
    */
-  public void removePartDefinition(IonPartDefinition partDef) {
+  public boolean removePartDefinition(IonPartDefinition partDef) {
     try (var _ = lock.lockWrite()) {
       final List<IonPartDefinition> definitions = partDefinitions.get(partDef.name());
       if (definitions == null) {
-        return;
+        return false;
       }
 
       // remove definition from list and remove list if empty
-      definitions.remove(partDef);
+      final boolean removed = definitions.remove(partDef);
       if (definitions.isEmpty()) {
         partDefinitions.remove(partDef.name());
       }
+      if (removed) {
+        lastIonDefinitionChanged.set(LocalDateTime.now());
+      }
+      return removed;
     }
   }
 
@@ -852,7 +900,7 @@ public final class GlobalIonLibraryService {
 
   @NotNull
   public static File getGlobalFile() {
-    return new File(getPresetPath(), "libraries/mzmine_global_ions.json");
+    return new File(getPresetPath(), "mzmine_global_ions_definitions.json");
   }
 
   public static @NotNull File getPresetPath() {
@@ -867,101 +915,15 @@ public final class GlobalIonLibraryService {
     return singletonParts.size();
   }
 
-  // TODO need to see if this is still neeeded. Was the first version of how to safe the global lib
-//  private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
-//    ArrayList<IonPart> merged = new ArrayList<>(first.size() + second.size());
-//    // handle conflicts like same name but different mass - or different ion parts
-//    merged.addAll(first);
-//
-//    //
-//    final Map<String, IonPart> existingNameMap = HashMap.newHashMap(first.size());
-//    for (final IonPart part : first) {
-//      final String chargedName = part.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
-//      final IonPart old = existingNameMap.computeIfAbsent(chargedName, k -> part);
-//      if (old != part) {
-//        logger.warning(
-//            "Ion part was already present. This may point to a duplicate in the first ion part list: %s and %s (using the first one)".formatted(
-//                part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-//                old.toString(IonPartStringFlavor.FULL_WITH_MASS)));
-//      }
-//    }
-//
-//    for (final IonPart part : second) {
-//      final IonPart potentialConflict = existingNameMap.get(
-//          part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
-//      if (potentialConflict != null) {
-//        if (!Objects.equals(potentialConflict, part)) {
-//          // TODO conflict resolution
-//          boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
-//              potentialConflict.totalMass());
-//
-//          logger.warning(
-//              "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-//                  part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-//                  potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
-//        }
-//        // otherwise its equal and nothing to do then
-//      } else {
-//        merged.add(part);
-//      }
-//    }
-//
-//    // sort
-//    merged.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
-//    merged.trimToSize();
-//    return merged;
-//  }
-//
-//  private static List<IonType> mergeTypes(final @NotNull List<IonType> first,
-//      final @NotNull List<IonType> second) {
-//    ArrayList<IonType> merged = new ArrayList<>(first.size() + second.size());
-//    // handle conflicts like same name but different mass - or different ion parts
-//    merged.addAll(first);
-//    final Map<String, IonType> existingNameMap = HashMap.newHashMap(first.size());
-//    for (final IonType ion : first) {
-//      final IonType old = existingNameMap.computeIfAbsent(ion.name(), k -> ion);
-//      if (old != ion) {
-//        logger.warning(
-//            "Ion type was already present. This may point to a duplicate in the first ion type list: %s and %s (using the first one)".formatted(
-//                ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-//                old.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
-//      }
-//    }
-//
-//    // add those from second list check for conflicts
-//    for (IonType ion : second) {
-//      final IonType potentialConflict = existingNameMap.get(ion.name());
-//      if (potentialConflict != null) {
-//        // otherwise its equal, nothing to do then
-//        if (!Objects.equals(potentialConflict, ion)) {
-//          // TODO conflict resolution
-//          boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
-//              potentialConflict.totalMass());
-//
-//          logger.warning(
-//              "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-//                  ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-//                  potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
-//        }
-//      } else {
-//        merged.add(ion);
-//      }
-//    }
-//
-//    // sort by mz etc
-//    merged.sort(IonTypeSorting.getIonTypeDefault().getComparator());
-//
-//    // trim
-//    merged.trimToSize();
-//    return merged;
-//  }
-
-  public static void loadGlobalLibrary() {
-    GlobalIonLibraryIO.loadGlobalIonLibrary();
+  public static void loadGlobalIonDefinitionLibrary() {
+    GlobalIonLibraryIO.loadGlobalIonDefinitionLibrary();
   }
 
-  public void saveGlobalLibrary() throws IOException {
-    GlobalIonLibraryIO.saveGlobalIonLibrary();
+  public void saveGlobalIonDefinitionLibrary() throws IOException {
+    final LocalDateTime time = lastIonDefinitionChanged.get();
+    if (GlobalIonLibraryIO.saveGlobalIonDefinitionLibrary(getGlobalFile())) {
+      lastGlobalSaved.set(time);
+    }
   }
 
   /**

@@ -25,14 +25,18 @@
 
 package io.github.mzmine.datamodel.identities.global;
 
-import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.LoadedIonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Load and save the {@link GlobalIonLibraryService} that holds all ions. Libraries are saved
@@ -46,25 +50,31 @@ class GlobalIonLibraryIO {
    */
   private static final AtomicLong globalFileLastModified = new AtomicLong(-1);
 
-  static void saveGlobalIonLibrary() {
+  static boolean saveGlobalIonDefinitionLibrary(@NotNull File file) {
     final GlobalIonLibraryService library = GlobalIonLibraryService.getGlobalLibrary();
-    final File file = GlobalIonLibraryService.getGlobalFile();
+    final GlobalIonLibraryDTO current = library.getCurrentGlobalLibrary();
 
     try {
+      // only save ion definitions because those are important
+      // we use an ion library here to use latest update date and compatible saving
+      final List<IonType> ions = current.partDefinitions().stream().map(IonType::create).toList();
+
       IonLibraryIO.toJsonFile(file,
-          new UnmodifiableIonLibrary("mzmine_global_ions", library.getIonTypesUnmodifiable()));
+          new UnmodifiableIonLibrary("mzmine_global_ions_definitions", ions));
       globalFileLastModified.set(file.lastModified());
       logger.fine("Saved global ion library to file: " + file.getAbsolutePath());
+      return true;
     } catch (Exception ex) {
       logger.log(Level.WARNING,
           "Could not write global ions library. File might be locked or path not accessible. Skipping step. Try later again.");
     }
+    return false;
   }
 
   /**
    * Loads the global library from file, also if the library has changed since the last import
    */
-  static void loadGlobalIonLibrary() {
+  static void loadGlobalIonDefinitionLibrary() {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
 
     File file = GlobalIonLibraryService.getGlobalFile();
@@ -90,8 +100,9 @@ class GlobalIonLibraryIO {
       return;
     }
 
-    // the global library already has all the internal ions and ion parts
-    // now merge the loaded ones into the data structures. We give priority to the already existing ones.
-    global.addIonTypes(loadedLib.library().ions());
+    // this loaded library represents ion part definitions as ion types but we add the definitions
+    final List<@NotNull IonPartDefinition> definitions = loadedLib.library().ions().stream()
+        .map(ion -> IonPartDefinition.of(ion.parts().getFirst())).toList();
+    global.addPartDefinitions(definitions);
   }
 }

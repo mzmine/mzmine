@@ -36,6 +36,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Used to find all libraries and global types with a specific part
+ *
+ * @param searchedPart the part included in all types
+ */
 record LibrariesWithIonPart(IonPart searchedPart, Map<IonLibrary, List<IonType>> libraries,
                             List<IonType> types) {
 
@@ -46,9 +51,7 @@ record LibrariesWithIonPart(IonPart searchedPart, Map<IonLibrary, List<IonType>>
 
     Set<IonType> allTypes = new HashSet<>();
     allTypes.addAll(types);
-//    for (var type : types) {
-//      allTypes.add(type.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
-//    }
+
     for (List<IonType> list : libraries.values()) {
       allTypes.addAll(list);
     }
