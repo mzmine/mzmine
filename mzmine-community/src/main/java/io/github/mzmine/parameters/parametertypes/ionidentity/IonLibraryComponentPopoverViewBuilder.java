@@ -81,8 +81,9 @@ public class IonLibraryComponentPopoverViewBuilder extends
   public Region build() {
     final BorderPane root = new BorderPane();
     root.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    root.setMinHeight(400);
     root.setPrefWidth(900);
-    root.setPrefHeight(700);
+    root.setPrefHeight(600);
 
     final SplitPane split = new SplitPane(buildLeftSelectedLibInfoPane(), buildLibraryList());
     split.setDividerPositions(0.5);
