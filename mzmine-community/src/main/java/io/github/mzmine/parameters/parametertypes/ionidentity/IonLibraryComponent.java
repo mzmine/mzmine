@@ -73,6 +73,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
   private final StringProperty updateWithGlobalTooltip = new SimpleStringProperty();
   private final BooleanBinding hasConflictWithLocal = conflictWithLocalText.isNotEmpty();
   private final BooleanProperty globalIsNewer = new SimpleBooleanProperty(false);
+  private final StringProperty addToGlobalTooltip = new SimpleStringProperty();
   private final BooleanProperty globalIsMissing = new SimpleBooleanProperty(false);
 
   private final @NotNull ObjectProperty<IonLibrary> library;
@@ -106,10 +107,8 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     updateWithGlobalLibrary.visibleProperty().bind(globalIsNewer);
     updateWithGlobalLibrary.managedProperty().bind(globalIsNewer);
 
-    final ButtonBase addToGlobalLibrary = FxIconUtil.newIconButton(FxIcons.SAVE, """
-            The loaded library is currently only available in this parameter.
-            Do you want to add this ion library to the globally available?""", negativeColor,
-        this::saveToGlobal);
+    final ButtonBase addToGlobalLibrary = FxIconUtil.newIconButton(FxIcons.SAVE, addToGlobalTooltip,
+        negativeColor, this::saveToGlobal);
     addToGlobalLibrary.visibleProperty().bind(globalIsMissing);
     addToGlobalLibrary.managedProperty().bind(globalIsMissing);
 
@@ -128,9 +127,12 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     library.subscribe((nv) -> {
       if (nv == null) {
+        globalIsMissing.setValue(false);
+        globalIsMissing.set(false);
         numIonsText.setValue(null);
         conflictWithLocalText.set(null);
         updateWithGlobalTooltip.set(null);
+        addToGlobalTooltip.set(null);
       } else {
         checkConflictWithGlobalLibrary(nv);
         // also define tooltip
@@ -166,6 +168,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
         .addLibraries(List.of(lib), MergePolicy.ASK_OLDER_OVERWRITE);
     if (results.isChanged()) {
       GlobalIonLibrariesController.getInstance().updateModel();
+      conflictWithLocalText.set(null);
+      addToGlobalTooltip.set(null);
+      globalIsMissing.set(false);
     }
   }
 
@@ -181,7 +186,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
    */
   private void checkConflictWithGlobalLibrary(@Nullable IonLibrary lib) {
     globalIsNewer.set(false);
+    globalIsMissing.set(false);
     conflictWithLocalText.set(null);
+    addToGlobalTooltip.set(null);
     if (lib == null) {
       return;
     }
@@ -192,11 +199,20 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     final IonLibrary existing = global.getLibraryForID(lib.id()).orElse(null);
     if (existing != null) {
       if (lib.lastUpdatedDate().isBefore(existing.lastUpdatedDate())) {
-        conflict = "The local version of this ion library is newer than the loaded parameter library.";
+        conflict = "The local version of this ion library is NEWER than the loaded parameter library.";
         globalIsNewer.set(true);
+      } else if (existing.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
+        conflict = "The local version of this ion library is OLDER than the loaded parameter library.";
+        globalIsMissing.set(true);
+        addToGlobalTooltip.set("""
+            The loaded library of this parameter is NEWER than the local version of this library.
+            Do you want to apply this update to this ion library to the globally available?""");
       }
     } else {
       globalIsMissing.set(true);
+      addToGlobalTooltip.set("""
+          The loaded library is currently only available in this parameter.
+          Do you want to add this ion library to the globally available?""");
     }
     conflictWithLocalText.set(conflict);
   }
