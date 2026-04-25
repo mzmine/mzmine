@@ -258,7 +258,11 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
   public static void addIonIdentitiesToRows(Collection<IonNetwork> networks) {
-    final List<IonNetwork> sortedNetworks = networks.stream().distinct()
+    if (networks.isEmpty()) {
+      return;
+    }
+    final List<IonNetwork> sortedNetworks = networks.stream()
+        .distinct()
         .sorted(Comparator.comparingInt(IonNetwork::size).reversed()).toList();
 
     Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
