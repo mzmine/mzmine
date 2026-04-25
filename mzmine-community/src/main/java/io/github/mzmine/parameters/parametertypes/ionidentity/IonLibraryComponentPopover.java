@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ObjectProperty;
@@ -34,6 +35,7 @@ import javafx.beans.property.ReadOnlyListProperty;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Screen;
 import org.controlsfx.control.PopOver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +93,13 @@ public class IonLibraryComponentPopover extends FxController<IonLibraryComponent
       popOver.setOnShown(_ -> {
         viewBuilder.syncListSelectionFromModel();
         viewBuilder.focusSearchField();
+
+        final Screen screen = DialogLoggerUtil.getCurrentScreen(popOver);
+        if (screen != null) {
+          final double height = screen.getBounds().getHeight() / 3d;
+          popOver.setMinHeight(Math.min(height, 400));
+          popOver.setMaxHeight(height);
+        }
       });
     }
     return popOver;
