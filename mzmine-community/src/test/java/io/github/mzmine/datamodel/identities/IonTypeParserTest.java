@@ -90,24 +90,24 @@ class IonTypeParserTest {
 
   @Test
   void testIonParserRandomString() {
-    testIonParser("[M-TEST]-", "[M-TEST]-", 1, -1);
-    testIonParser("[M+TEST]+", "[M+TEST]+", 1, 1);
+    testIonParser("[M-TESTUNKNOWNSTRING]-", "[M-TESTUNKNOWNSTRING]-", 1, -1);
+    testIonParser("[M+TESTUNKNOWNSTRING]+", "[M+TESTUNKNOWNSTRING]+", 1, 1);
 
 // silent charge is only added if multiple parts are there
-    IonType ion = IonTypeParser.parse("[M+TEST]+");
+    IonType ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING]+");
     Assertions.assertEquals(1, ion.parts().size());
     Assertions.assertEquals(1, ion.parts().getFirst().singleCharge());
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // H is known to carry charge
-    ion = IonTypeParser.parse("[M+TEST+H]+");
+    ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING+H]+");
     Assertions.assertEquals(2, ion.parts().size());
     Assertions.assertEquals(0, ion.parts().getFirst().singleCharge());
     Assertions.assertEquals(1, ion.parts().get(1).singleCharge());
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // two ion types will have silent charge added because we dont know which carries the charge
-    ion = IonTypeParser.parse("[M+TEST+OTHERUNKNOWN]+");
+    ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING+OTHERUNKNOWN]+");
     Assertions.assertEquals(3, ion.parts().size());
     Assertions.assertTrue(ion.parts().contains(IonParts.SILENT_CHARGE));
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
