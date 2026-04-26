@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -595,6 +596,20 @@ public interface FeatureList {
    * has changed.
    */
   void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig);
+
+  // --- Structural versioning for compound list invalidation ---
+
+  /** Incremented on every structural change (add / remove / replace rows). */
+  long getStructuralVersion();
+
+  @Nullable CompoundList getCompoundList();
+
+  void setCompoundList(@Nullable CompoundList cl);
+
+  default boolean hasCompoundList() {
+    final CompoundList cl = getCompoundList();
+    return cl != null && !cl.isStale();
+  }
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
