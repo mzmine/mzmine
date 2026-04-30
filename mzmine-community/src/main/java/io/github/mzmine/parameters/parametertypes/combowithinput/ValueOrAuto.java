@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,28 +25,25 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import org.jetbrains.annotations.NotNull;
 
-public class ComboWithIntOrAutoParameter extends
-    ComboWithInputParameter<ValueOrAuto, IntOrAutoValue, IntegerParameter> {
+public enum ValueOrAuto implements UniqueIdSupplier {
+    AUTO, MANUAL;
 
-  public ComboWithIntOrAutoParameter(IntegerParameter embeddedParameter) {
-    super(embeddedParameter, ValueOrAuto.values(), ValueOrAuto.MANUAL,
-        new IntOrAutoValue(ValueOrAuto.AUTO, 5));
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case AUTO -> "auto";
+        case MANUAL -> "manual";
+      };
+    }
   }
-
-  @Override
-  public IntOrAutoValue createValue(ValueOrAuto option, IntegerParameter embeddedParameter) {
-    return new IntOrAutoValue(option, embeddedParameter.getValue());
-  }
-
-  @Override
-  public ComboWithIntOrAutoParameter cloneParameter() {
-    final IntegerParameter embeddedClone = embeddedParameter.cloneParameter();
-    embeddedClone.setValue(value.manual());
-    final ComboWithIntOrAutoParameter clone = new ComboWithIntOrAutoParameter(
-        embeddedClone);
-    clone.setValue(new IntOrAutoValue(value.value(), value.manual()));
-    return clone;
-  }
-}
