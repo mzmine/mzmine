@@ -3,8 +3,10 @@ package io.github.mzmine.datamodel.features.compoundlist;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.util.CompoundSchemaTypes;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds a columnar schema and an ordered list of {@link ModularCompoundRow}s derived from a
+ * Holds columnar schemas and an ordered list of {@link ModularCompoundRow}s derived from a
  * {@link ModularFeatureList}. Tracks the structural version of the source feature list at
  * construction time; call {@link #isStale()} to detect if the feature list changed since then.
  */
@@ -25,7 +27,8 @@ public class CompoundList {
   private static final Logger logger = Logger.getLogger(CompoundList.class.getName());
 
   @NotNull private final ModularFeatureList featureList;
-  @NotNull private final ColumnarModularDataModelSchema schema;
+  @NotNull private final ColumnarModularFeatureListRowsSchema compoundRowSchema;
+  @NotNull private final ColumnarModularDataModelSchema compoundFeaturesSchema;
   private final long sourceStructuralVersion;
 
   private final ObservableList<ModularCompoundRow> rows = FXCollections.observableArrayList();
@@ -40,15 +43,25 @@ public class CompoundList {
       final int estimatedRows) {
     this.featureList = featureList;
     this.sourceStructuralVersion = featureList.getStructuralVersion();
-    this.schema = new ColumnarModularDataModelSchema(
-        storage, featureList.getName() + "_compounds", Math.max(estimatedRows, 1000));
-    // pre-register compound columns so the schema is queryable before any row is written
-    schema.addDataTypes(CompoundSchemaTypes.REGISTERED.toArray(new DataType[0]));
+
+    final int rows = Math.max(estimatedRows, 1000);
+    final int nFiles = featureList.getRawDataFiles().size();
+    // row schema: one feature column per raw file, mirrors ModularFeatureList.rowsSchema
+    this.compoundRowSchema = new ColumnarModularFeatureListRowsSchema(
+        storage, featureList.getName() + "_compound_rows", rows,
+        featureList.getRawDataFiles());
+    // feature schema: stores compound-level feature data (height, area, etc.)
+    this.compoundFeaturesSchema = new ColumnarModularDataModelSchema(
+        storage, featureList.getName() + "_compound_features",
+        FeatureListUtils.estimateFeatures(rows, nFiles));
+
+    // pre-register compound column types so the schema is queryable before any row is written
+    compoundRowSchema.addDataTypes(CompoundSchemaTypes.REGISTERED.toArray(new DataType[0]));
   }
 
   /**
-   * @return true if the source feature list changed structurally (rows added / removed) since
-   *     this compound list was built.
+   * @return true if the source feature list changed structurally (rows added / removed) since this
+   *     compound list was built.
    */
   public boolean isStale() {
     return sourceStructuralVersion != featureList.getStructuralVersion();
@@ -77,8 +90,12 @@ public class CompoundList {
     return rows.size();
   }
 
-  public @NotNull ColumnarModularDataModelSchema getSchema() {
-    return schema;
+  public @NotNull ColumnarModularFeatureListRowsSchema getCompoundRowSchema() {
+    return compoundRowSchema;
+  }
+
+  public @NotNull ColumnarModularDataModelSchema getCompoundFeaturesSchema() {
+    return compoundFeaturesSchema;
   }
 
   public @NotNull ModularFeatureList getFeatureList() {

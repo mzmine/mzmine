@@ -645,8 +645,27 @@ public class FeatureTableFX extends BorderPane {
     FxThread.runLater(() -> {
       // create new list - filtering is applied automatically and table items updated
       // work with copy of rows as rows may change during stream throwing exception
-      final List<TreeItem<ModularFeatureListRow>> newRows = featureListProperty.get().getRowsCopy()
-          .stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      final List<FeatureListRow> rows = featureListProperty.get().getRowsCopy();
+      final List<TreeItem<ModularFeatureListRow>> newRows = rows.stream()
+          .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+////
+//
+//      final List<TreeItem<ModularFeatureListRow>> newRows = IonNetworkLogic.streamNetworks(featureListProperty.get(), true).map(net -> {
+//        final Set<FeatureListRow> netrows = net.keySet();
+//        TreeItem<ModularFeatureListRow> first = null;
+//
+//      List<TreeItem<ModularFeatureListRow>> children = new ArrayList<>(netrows.size());
+//        for (FeatureListRow row : netrows) {
+//      if(first==null)
+//          first = new TreeItem<>((ModularFeatureListRow) row);
+//
+//        children.add(new TreeItem<>((ModularFeatureListRow) row));
+//        }
+//
+//        first.getChildren().addAll(children);
+//        return first;
+//          }).toList();
+
       rowItems.setAll(newRows);
       table.sort();
     });
@@ -1099,7 +1118,8 @@ public class FeatureTableFX extends BorderPane {
   @Nullable
   public ModularFeatureListRow getSelectedRow() {
     return table.getSelectionModel().getSelectedItem() != null ? table.getSelectionModel()
-        .getSelectedItem().getValue() : null;
+                                                                 .getSelectedItem().getValue()
+        : null;
   }
 
   /**
@@ -1252,9 +1272,11 @@ public class FeatureTableFX extends BorderPane {
     final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
         .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
 
-    final List<TreeItem<ModularFeatureListRow>> newRows = sortedRows.stream()
-        .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
-    rowItems.setAll(newRows);
+    updateRows();
+
+//    final List<TreeItem<ModularFeatureListRow>> newRows = sortedRows.stream()
+//        .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+//    rowItems.setAll(newRows);
 
     // reflect the changes to the feature list in the table
     newFeatureList.getRows().addListener(rowsChangedListener);

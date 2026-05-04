@@ -1,13 +1,18 @@
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface CompoundRow extends ModularDataModel {
+/**
+ * A compound row grouping multiple {@link FeatureListRow}s under a single compound identity.
+ * Extends {@link FeatureListRow} so compound rows can be used wherever feature list rows are
+ * expected. Compound-specific data types are stored in the row's own schema; all other
+ * {@link FeatureListRow} values fall back to the preferred row via
+ * {@link io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow#get}.
+ */
+public interface CompoundRow extends FeatureListRow {
 
   @NotNull FeatureListRow getPreferredRow();
 
@@ -30,18 +35,5 @@ public interface CompoundRow extends ModularDataModel {
   default @NotNull List<FeatureListRow> getMemberRowsByRole(@NotNull final CompoundMemberRole role) {
     return getCompoundMembers().stream()
         .filter(m -> m.role() == role).map(CompoundFeatureMember::row).toList();
-  }
-
-  // Delegating convenience accessors — not DataType-backed, avoid round-trip through schema
-  default @Nullable Double getAverageMZ() {
-    return getPreferredRow().getAverageMZ();
-  }
-
-  default @Nullable Float getAverageRT() {
-    return getPreferredRow().getAverageRT();
-  }
-
-  default @Nullable IonIdentity getBestIonIdentity() {
-    return getPreferredRow().getBestIonIdentity();
   }
 }

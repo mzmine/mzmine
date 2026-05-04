@@ -127,6 +127,18 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   /**
+   * Protected constructor for subclasses (e.g. ModularCompoundRow) that store their row data in a
+   * separate schema rather than flist.getRowsSchema(). The flist reference satisfies
+   * getFeatureList() — it is the compound's source feature list, not its storage owner.
+   */
+  protected ModularFeatureListRow(@NotNull ModularFeatureList flist,
+      @NotNull ColumnarModularFeatureListRowsSchema schema, int id) {
+    super(schema);
+    this.flist = flist;
+    set(IDType.class, id);
+  }
+
+  /**
    * Constructor for row with only one feature.
    *
    * @param flist   the feature list
