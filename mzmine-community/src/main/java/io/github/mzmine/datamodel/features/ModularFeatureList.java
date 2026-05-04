@@ -33,9 +33,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -240,7 +240,12 @@ public class ModularFeatureList implements FeatureList {
       }
       if (structural) {
         structuralVersion.incrementAndGet();
-        compoundList = null;  // implicit invalidation
+        // implicit invalidation — dispose the old compound list so its listeners are removed
+        final CompoundList old = compoundList;
+        compoundList = null;
+        if (old != null) {
+          old.dispose();
+        }
       }
     });
   }
@@ -1054,6 +1059,10 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public synchronized void setCompoundList(@Nullable final CompoundList cl) {
+    final CompoundList old = this.compoundList;
     this.compoundList = cl;
+    if (old != null && old != cl) {
+      old.dispose();
+    }
   }
 }

@@ -15,6 +15,7 @@ import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersTyp
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundSizeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,17 +72,30 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   }
 
   // -- Feature access via compoundRowSchema (not flist.getRowsSchema()) --
+  // Per-RawDataFile fallback: if the compound row has no own feature for a raw file (or it is
+  // UNKNOWN), the preferred row's feature for that raw file is returned instead.
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return owner.getCompoundRowSchema().streamFeatures(modelRowIndex)
-        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN);
+    final List<ModularFeature> own = owner.getCompoundRowSchema().streamFeatures(modelRowIndex)
+        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN).toList();
+    final Set<RawDataFile> covered = new HashSet<>(own.size());
+    for (final ModularFeature f : own) {
+      covered.add(f.getRawDataFile());
+    }
+    final Stream<ModularFeature> fallback = preferredRow.streamFeatures()
+        .filter(f -> !covered.contains(f.getRawDataFile()));
+    return Stream.concat(own.stream(), fallback);
   }
 
   @Override
   public @Nullable ModularFeature getFeature(RawDataFile raw) {
-    ModularFeature f = owner.getCompoundRowSchema().getFeature(modelRowIndex, raw);
-    return (f != null && f.getFeatureStatus() == FeatureStatus.UNKNOWN) ? null : f;
+    final ModularFeature own = owner.getCompoundRowSchema().getFeature(modelRowIndex, raw);
+    if (own != null && own.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+      return own;
+    }
+    final Feature pref = preferredRow.getFeature(raw);
+    return pref instanceof ModularFeature mf ? mf : null;
   }
 
   @Override
