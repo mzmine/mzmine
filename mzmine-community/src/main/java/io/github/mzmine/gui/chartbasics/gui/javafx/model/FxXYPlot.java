@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -98,10 +98,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.setDataset(dataset);
     plotModel.setRenderer(renderer);
 
-    // add the cursor marker at all times - will be invisible if no value or visible false
-    addPermanentDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND);
-    addPermanentRangeMarker(0, getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND);
-
     // init listeners now and call manual update once
     initListeners();
     updateAll();
@@ -137,6 +133,8 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> updateRangeMarkers());
     applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> updateDomainMarkers());
     applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> updateRangeMarkers());
+    applyNotifyLater(plotModel.getCursorConfigModel().rangeCursorMarkerAxisIndexProperty(),
+        _ -> updateRangeMarkers());
   }
 
   private void updateAll() {
@@ -194,6 +192,14 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
       }
     }
 
+    super.addRangeMarker(getCursorConfigModel().getRangeCursorMarkerAxisIndex(),
+        getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND, false);
+    if (getCursorConfigModel().getRangeCursorMarker() instanceof FxMarker fxMarker) {
+      final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+          .subscribe((_, _) -> fireChangeEvent());
+      subscriptions.add(subscription);
+    }
+
     // set subscription
     rangeMarkerVisibleChangeSubscription = Subscription.combine(
         subscriptions.toArray(new Subscription[0]));
@@ -243,6 +249,14 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
           subscriptions.add(subscription);
         }
       }
+    }
+
+    super.addDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND,
+        false);
+    if (getCursorConfigModel().getDomainCursorMarker() instanceof FxMarker fxMarker) {
+      final Subscription subscription = fxMarker.lastVisibleChangeProperty()
+          .subscribe((_, _) -> fireChangeEvent());
+      subscriptions.add(subscription);
     }
 
     // set subscription

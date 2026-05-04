@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.dash_lipidqc.retention;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -35,13 +36,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvid
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModel;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.entity.XYItemEntity;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
@@ -55,27 +54,8 @@ final class RetentionChartController {
   private final @NotNull LipidAnnotationQCDashboardModel model;
   private final @NotNull SimpleXYChart<PlotXYDataProvider> chart;
   private final @NotNull RetentionChartSpecFactory specFactory;
-  private final @NotNull ChartMouseListenerFX manualCombinedSelectionListener = new ChartMouseListenerFX() {
-    @Override
-    public void chartMouseClicked(final @NotNull ChartMouseEventFX event) {
-      if (!(event.getEntity() instanceof XYItemEntity entity)) {
-        return;
-      }
-      final @Nullable RetentionPointRef pointRef = extractPointRef(entity.getDataset(),
-          entity.getItem());
-      if (pointRef == null || pointRef.row() == null) {
-        return;
-      }
-      selectRow(pointRef.row());
-    }
-
-    @Override
-    public void chartMouseMoved(final @NotNull ChartMouseEventFX event) {
-    }
-  };
 
   private @Nullable RetentionChartSpec currentSpec;
-  private boolean manualCombinedSelectionInstalled;
 
   RetentionChartController(final @NotNull EquivalentCarbonNumberPane pane,
       final @NotNull LipidAnnotationQCDashboardModel model,
@@ -85,7 +65,7 @@ final class RetentionChartController {
     this.chart = chart;
     specFactory = new RetentionChartSpecFactory(model);
     chart.setMinSize(250d, 120d);
-    chart.setShowCrosshair(false);
+    chart.setShowCrosshair(true);
     chart.cursorPositionProperty()
         .addListener((_, _, newPosition) -> handleCursorSelection(newPosition));
   }
@@ -117,6 +97,12 @@ final class RetentionChartController {
   }
 
   private void applySpec(final @NotNull RetentionChartSpec spec) {
+    final @Nullable PlotCursorPosition previousCursorPosition = chart.getCursorPosition();
+    final @Nullable RetentionPointRef previousCursorPoint = previousCursorPosition == null ? null
+        : extractPointRef(previousCursorPosition.getDataset(),
+            previousCursorPosition.getValueIndex());
+    final @Nullable FeatureListRow previousCursorRow =
+        previousCursorPoint == null ? null : previousCursorPoint.row();
     chart.applyWithNotifyChanges(false, () -> {
       resetChart();
       currentSpec = spec;
@@ -137,17 +123,14 @@ final class RetentionChartController {
       if (spec.axisSyncSpec() != null) {
         installAxisSynchronizer(plot, spec.axisSyncSpec());
       }
-      if (spec.manualSelection()) {
-        installManualCombinedSelection();
-      }
 
       pane.updatePaneTitle(spec.title());
       pane.showRetentionChart(chart);
+      restoreCursorPosition(previousCursorPosition, previousCursorRow);
     });
   }
 
   private void resetChart() {
-    removeManualCombinedSelection();
     currentSpec = null;
     chart.setCursorPosition(null);
     chart.setLegendItemsVisible(false);
@@ -190,7 +173,7 @@ final class RetentionChartController {
   }
 
   private void handleCursorSelection(final @Nullable PlotCursorPosition newPosition) {
-    if (newPosition == null || currentSpec == null || currentSpec.manualSelection()) {
+    if (newPosition == null || currentSpec == null) {
       return;
     }
     final @Nullable RetentionPointRef pointRef = extractPointRef(newPosition.getDataset(),
@@ -199,22 +182,6 @@ final class RetentionChartController {
       return;
     }
     selectRow(pointRef.row());
-  }
-
-  private void installManualCombinedSelection() {
-    if (manualCombinedSelectionInstalled) {
-      return;
-    }
-    chart.addChartMouseListener(manualCombinedSelectionListener);
-    manualCombinedSelectionInstalled = true;
-  }
-
-  private void removeManualCombinedSelection() {
-    if (!manualCombinedSelectionInstalled) {
-      return;
-    }
-    chart.removeChartMouseListener(manualCombinedSelectionListener);
-    manualCombinedSelectionInstalled = false;
   }
 
   private void installAxisSynchronizer(final @NotNull XYPlot plot,
@@ -252,6 +219,40 @@ final class RetentionChartController {
     }
     final Object itemObject = itemObjectProvider.getItemObject(itemIndex);
     return itemObject instanceof RetentionPointRef pointRef ? pointRef : null;
+  }
+
+  private void restoreCursorPosition(final @Nullable PlotCursorPosition previousCursorPosition,
+      final @Nullable FeatureListRow previousCursorRow) {
+    if (previousCursorPosition != null && previousCursorRow != null && Objects.equals(
+        previousCursorRow, model.getRow())) {
+      final List<XYDataset> datasets = List.copyOf(chart.getAllDatasets().values());
+      final PlotCursorPosition restoredPosition = PlotCursorUtils.moveCursorFindInData(
+          previousCursorPosition, datasets, previousCursorPosition.getDomainValue(),
+          previousCursorPosition.getRangeValue());
+      if (restoredPosition.getDataset() != null) {
+        chart.setCursorPosition(restoredPosition);
+        return;
+      }
+    }
+
+    final @Nullable FeatureListRow selectedRow = model.getRow();
+    if (selectedRow == null) {
+      return;
+    }
+    for (final XYDataset dataset : chart.getAllDatasets().values()) {
+      if (!(dataset instanceof ColoredXYDataset coloredDataset)) {
+        continue;
+      }
+      for (int item = 0; item < coloredDataset.getItemCount(0); item++) {
+        final @Nullable RetentionPointRef pointRef = extractPointRef(dataset, item);
+        if (pointRef == null || !Objects.equals(pointRef.row(), selectedRow)) {
+          continue;
+        }
+        chart.setCursorPosition(new PlotCursorPosition(coloredDataset.getXValue(0, item),
+            coloredDataset.getYValue(0, item), item, dataset));
+        return;
+      }
+    }
   }
 
   private void setAxisRangeToData(final @NotNull NumberAxis axis, final double min,

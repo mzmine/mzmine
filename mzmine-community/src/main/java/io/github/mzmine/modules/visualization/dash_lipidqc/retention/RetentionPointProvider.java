@@ -46,13 +46,15 @@ final class RetentionPointProvider implements PlotXYDataProvider,
   private final @NotNull Color awtColor;
   private final @NotNull javafx.scene.paint.Color fxColor;
   private final @NotNull List<RetentionPointRef> points;
+  private final boolean cursorSelectable;
 
   RetentionPointProvider(final @NotNull String seriesKey, final @NotNull Color awtColor,
-      final @NotNull List<RetentionPointRef> points) {
+      final @NotNull List<RetentionPointRef> points, final boolean cursorSelectable) {
     this.seriesKey = seriesKey;
     this.awtColor = awtColor;
     fxColor = FxColorUtil.awtColorToFX(awtColor);
     this.points = List.copyOf(points);
+    this.cursorSelectable = cursorSelectable;
   }
 
   @Override
@@ -113,5 +115,10 @@ final class RetentionPointProvider implements PlotXYDataProvider,
   @Override
   public @Nullable RetentionPointRef getItemObject(final int item) {
     return item >= 0 && item < points.size() ? points.get(item) : null;
+  }
+
+  @Override
+  public boolean isCursorSelectable() {
+    return cursorSelectable;
   }
 }

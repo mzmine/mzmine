@@ -68,6 +68,7 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     super("Select a row with lipid annotations.");
     this.model = model;
     chartController = new RetentionChartController(this, model, sharedChart);
+    sharedChart.setShowCrosshair(false);
 
     model.featureListProperty().subscribe(flist -> {
       if (model.isRetentionTimeAnalysisEnabled()) {

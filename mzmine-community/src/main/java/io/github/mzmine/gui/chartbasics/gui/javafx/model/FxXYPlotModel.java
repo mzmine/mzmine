@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,7 +117,7 @@ public class FxXYPlotModel implements FxPlotModel {
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
     chart.bind(this.plot.map(xyPlot -> xyPlot != null ? xyPlot.getChart() : null).orElse(null));
-    cursorConfigModel = new PlotCursorConfigModel(this::getAllDatasets);
+    cursorConfigModel = new PlotCursorConfigModel(this::getAllDatasets, this::getPlot);
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,10 @@ import java.awt.Paint;
 import java.util.List;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +67,8 @@ public class PlotCursorConfigModel {
   private final FxValueMarker domainCursorMarker = new FxValueMarker();
   private final FxValueMarker rangeCursorMarker = new FxValueMarker();
   private Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier;
+  private Supplier<@Nullable XYPlot> plotSupplier;
+  private final IntegerProperty rangeCursorMarkerAxisIndex = new SimpleIntegerProperty(0);
 
   public PlotCursorConfigModel() {
     // bind props
@@ -73,9 +77,11 @@ public class PlotCursorConfigModel {
   }
 
   public PlotCursorConfigModel(
-      @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier) {
+      @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier,
+      @NotNull Supplier<@Nullable XYPlot> plotSupplier) {
     this();
     this.allDatasetsSupplier = allDatasetsSupplier;
+    this.plotSupplier = plotSupplier;
   }
 
   @NotNull
@@ -95,9 +101,11 @@ public class PlotCursorConfigModel {
     if (pos == null) {
       domainCursorMarker.setValue(null);
       rangeCursorMarker.setValue(null);
+      rangeCursorMarkerAxisIndex.set(0);
     } else {
       domainCursorMarker.setValue(pos.getDomainValue());
       rangeCursorMarker.setValue(pos.getRangeValue());
+      rangeCursorMarkerAxisIndex.set(resolveRangeCursorMarkerAxisIndex(pos));
     }
   }
 
@@ -168,5 +176,39 @@ public class PlotCursorConfigModel {
   public void setCursorCrosshairPaint(Paint color) {
     getDomainCursorMarker().setPaint(color);
     getRangeCursorMarker().setPaint(color);
+  }
+
+  public int getRangeCursorMarkerAxisIndex() {
+    return rangeCursorMarkerAxisIndex.get();
+  }
+
+  public IntegerProperty rangeCursorMarkerAxisIndexProperty() {
+    return rangeCursorMarkerAxisIndex;
+  }
+
+  private int resolveRangeCursorMarkerAxisIndex(final @NotNull PlotCursorPosition pos) {
+    if (plotSupplier == null || pos.getDataset() == null) {
+      return 0;
+    }
+    final @Nullable XYPlot plot = plotSupplier.get();
+    if (plot == null) {
+      return 0;
+    }
+
+    final int datasetIndex = plot.indexOf(pos.getDataset());
+    if (datasetIndex < 0) {
+      return 0;
+    }
+
+    final var axis = plot.getRangeAxisForDataset(datasetIndex);
+    if (axis == null) {
+      return 0;
+    }
+    for (int i = 0; i < plot.getRangeAxisCount(); i++) {
+      if (plot.getRangeAxis(i) == axis) {
+        return i;
+      }
+    }
+    return plot.getRangeAxis() == axis ? 0 : 0;
   }
 }
