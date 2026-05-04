@@ -80,6 +80,10 @@ import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.Range;
+import org.jfree.data.general.DatasetUtils;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -837,92 +841,67 @@ public class EquivalentCarbonNumberPane extends DashboardComputationPane {
     }
   }
 
-  private static double minDatasetY(final @NotNull RetentionTrendDataset dataset) {
-    double min = Double.POSITIVE_INFINITY;
-    for (int i = 0; i < dataset.getItemCount(0); i++) {
-      final double value = dataset.getYValue(0, i);
-      if (Double.isFinite(value)) {
-        min = Math.min(min, value);
-      }
-    }
-    return min;
+  private static double minDatasetY(final @NotNull XYDataset dataset) {
+    final Range range = DatasetUtils.findRangeBounds(dataset, false);
+    return range == null ? Double.POSITIVE_INFINITY : range.getLowerBound();
   }
 
-  private static double minDatasetY(final @NotNull GroupedRetentionTrendDataset dataset) {
-    double min = Double.POSITIVE_INFINITY;
-    for (int series = 0; series < dataset.getSeriesCount(); series++) {
-      for (int item = 0; item < dataset.getItemCount(series); item++) {
-        final double value = dataset.getYValue(series, item);
-        if (Double.isFinite(value)) {
-          min = Math.min(min, value);
-        }
-      }
-    }
-    return min;
+  private static double maxDatasetY(final @NotNull XYDataset dataset) {
+    final Range range = DatasetUtils.findRangeBounds(dataset, false);
+    return range == null ? Double.NEGATIVE_INFINITY : range.getUpperBound();
   }
 
-  private static double maxDatasetY(final @NotNull RetentionTrendDataset dataset) {
-    double max = Double.NEGATIVE_INFINITY;
-    for (int i = 0; i < dataset.getItemCount(0); i++) {
-      final double value = dataset.getYValue(0, i);
-      if (Double.isFinite(value)) {
-        max = Math.max(max, value);
-      }
-    }
-    return max;
+  private static double minDatasetX(final @NotNull XYDataset dataset) {
+    final Range range = DatasetUtils.findDomainBounds(dataset, false);
+    return range == null ? Double.POSITIVE_INFINITY : range.getLowerBound();
   }
 
-  private static double maxDatasetY(final @NotNull GroupedRetentionTrendDataset dataset) {
-    double max = Double.NEGATIVE_INFINITY;
-    for (int series = 0; series < dataset.getSeriesCount(); series++) {
-      for (int item = 0; item < dataset.getItemCount(series); item++) {
-        final double value = dataset.getYValue(series, item);
-        if (Double.isFinite(value)) {
-          max = Math.max(max, value);
-        }
-      }
-    }
-    return max;
+  private static double maxDatasetX(final @NotNull XYDataset dataset) {
+    final Range range = DatasetUtils.findDomainBounds(dataset, false);
+    return range == null ? Double.NEGATIVE_INFINITY : range.getUpperBound();
   }
 
-  private static double minDatasetX(final @NotNull GroupedRetentionTrendDataset dataset) {
-    double min = Double.POSITIVE_INFINITY;
-    for (int series = 0; series < dataset.getSeriesCount(); series++) {
-      min = Math.min(min, minDatasetX(dataset, series));
-    }
-    return min;
+  private static double minDatasetX(final @NotNull XYDataset dataset, final int series) {
+    final Range range = DatasetUtils.findDomainBounds(singleSeriesDatasetView(dataset, series),
+        false);
+    return range == null ? Double.POSITIVE_INFINITY : range.getLowerBound();
   }
 
-  private static double maxDatasetX(final @NotNull GroupedRetentionTrendDataset dataset) {
-    double max = Double.NEGATIVE_INFINITY;
-    for (int series = 0; series < dataset.getSeriesCount(); series++) {
-      max = Math.max(max, maxDatasetX(dataset, series));
-    }
-    return max;
-  }
-
-  private static double minDatasetX(final @NotNull GroupedRetentionTrendDataset dataset,
+  private static double maxDatasetX(final @NotNull XYDataset dataset,
       final int series) {
-    double min = Double.POSITIVE_INFINITY;
-    for (int item = 0; item < dataset.getItemCount(series); item++) {
-      final double value = dataset.getXValue(series, item);
-      if (Double.isFinite(value)) {
-        min = Math.min(min, value);
-      }
-    }
-    return min;
+    final Range range = DatasetUtils.findDomainBounds(singleSeriesDatasetView(dataset, series),
+        false);
+    return range == null ? Double.NEGATIVE_INFINITY : range.getUpperBound();
   }
 
-  private static double maxDatasetX(final @NotNull GroupedRetentionTrendDataset dataset,
+  private static @NotNull XYDataset singleSeriesDatasetView(final @NotNull XYDataset dataset,
       final int series) {
-    double max = Double.NEGATIVE_INFINITY;
-    for (int item = 0; item < dataset.getItemCount(series); item++) {
-      final double value = dataset.getXValue(series, item);
-      if (Double.isFinite(value)) {
-        max = Math.max(max, value);
+    return new AbstractXYDataset() {
+      @Override
+      public int getSeriesCount() {
+        return 1;
       }
-    }
-    return max;
+
+      @Override
+      public @NotNull Comparable<?> getSeriesKey(final int viewSeries) {
+        return dataset.getSeriesKey(series);
+      }
+
+      @Override
+      public int getItemCount(final int viewSeries) {
+        return dataset.getItemCount(series);
+      }
+
+      @Override
+      public @NotNull Number getX(final int viewSeries, final int item) {
+        return dataset.getX(series, item);
+      }
+
+      @Override
+      public @NotNull Number getY(final int viewSeries, final int item) {
+        return dataset.getY(series, item);
+      }
+    };
   }
 
   private static void setAxisRangeToData(final @NotNull NumberAxis axis, final double min,
