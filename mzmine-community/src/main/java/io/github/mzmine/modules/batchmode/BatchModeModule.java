@@ -31,6 +31,10 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -67,13 +71,17 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
    * @param overrideOutBaseFile          change all output files with this out path and base
    *                                     filename
+   * @param overrideProjectImport        project file to replace the project import with.
+   * @param overrideCsvDatabase          path to a compound database to replace the current step
+   *                                     with.
    * @return the batch task if successful or null on error
    */
   @Nullable
   public static BatchTask runBatchFile(@NotNull MZmineProject project, File batchFile,
       @Nullable File[] overrideDataFiles, @Nullable final File overrideMetadataFile,
       final File[] overrideSpectralLibraryFiles, @Nullable final String overrideOutBaseFile,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, @Nullable File overrideProjectImport,
+      @Nullable File overrideCsvDatabase) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -111,7 +119,8 @@ public class BatchModeModule implements MZmineProcessingModule {
       }
 
       return runBatchQueue(newQueue, project, overrideDataFiles, overrideMetadataFile,
-          overrideSpectralLibraryFiles, overrideOutBaseFile, moduleCallDate);
+          overrideSpectralLibraryFiles, overrideOutBaseFile, moduleCallDate, overrideProjectImport,
+          overrideCsvDatabase);
 
     } catch (Throwable e) {
       logger.log(Level.SEVERE, "Error while running batch. " + e.getMessage(), e);
@@ -127,12 +136,15 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
    * @param overrideOutBaseFile          change all output files with this out path and base
    *                                     filename
+   * @param overrideProjectFile          file to override the project import with.
+   * @param overrideCompDb               file to override the compound db search with.
    * @return the batch task if successful or null on error
    */
   public static @Nullable BatchTask runBatchQueue(BatchQueue newQueue,
       @NotNull MZmineProject project, @Nullable File @Nullable [] overrideDataFiles,
       @Nullable File overrideMetadataFile, File[] overrideSpectralLibraryFiles,
-      @Nullable String overrideOutBaseFile, @NotNull Instant moduleCallDate) {
+      @Nullable String overrideOutBaseFile, @NotNull Instant moduleCallDate,
+      @Nullable File overrideProjectFile, @Nullable File overrideCompDb) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -143,7 +155,6 @@ public class BatchModeModule implements MZmineProcessingModule {
           "Currently loading a project, cannot run a batch until project load is finished.");
       return null;
     }
-
 
     // change input files and spectral libraries, e.g., by command line arguments
     if (overrideDataFiles != null || overrideSpectralLibraryFiles != null
@@ -172,6 +183,18 @@ public class BatchModeModule implements MZmineProcessingModule {
     }
     if (overrideOutBaseFile != null) {
       newQueue.setOutputBaseFile(overrideOutBaseFile);
+    }
+    if (overrideCompDb != null) {
+      if (!newQueue.overrideStepParameter(LocalCSVDatabaseSearchModule.class,
+          LocalCSVDatabaseSearchParameters.dataBaseFile, overrideCompDb)) {
+        return null;
+      }
+    }
+    if (overrideProjectFile != null) {
+      if (!newQueue.overrideStepParameter(ProjectLoadModule.class,
+          ProjectLoaderParameters.projectFile, overrideProjectFile)) {
+        return null;
+      }
     }
 
     ParameterSet parameters = new BatchModeParameters();
