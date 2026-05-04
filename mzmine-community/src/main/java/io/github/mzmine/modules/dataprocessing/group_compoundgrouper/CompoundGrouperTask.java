@@ -6,7 +6,6 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -24,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
  * Builds a {@link CompoundList} for a single {@link ModularFeatureList} using
  * {@link SimpleSeederComponentizer}.
  * <p>
- * Requires the source feature list to have at least one IonIdentity Network OR a non-empty
- * RowGroup list — otherwise the task fails fast with a clear error.
+ * Requires the source feature list to have at least one IonIdentity Network OR a non-empty RowGroup
+ * list — otherwise the task fails fast with a clear error.
  * <p>
  * Captures the source feature list's structural version at start; if it changes by the time the
  * compound list is attached, the result is dropped (with a warning).
@@ -34,10 +33,14 @@ public class CompoundGrouperTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(CompoundGrouperTask.class.getName());
 
-  @NotNull private final ModularFeatureList featureList;
-  @NotNull private final ParameterSet parameters;
-  @NotNull private final MZTolerance mzTolerance;
-  @NotNull private final RTTolerance rtTolerance;
+  @NotNull
+  private final ModularFeatureList featureList;
+  @NotNull
+  private final ParameterSet parameters;
+  @NotNull
+  private final MZTolerance mzTolerance;
+  @NotNull
+  private final RTTolerance rtTolerance;
   private final long sourceStructuralVersion;
 
   private volatile double progress = 0d;
@@ -66,8 +69,9 @@ public class CompoundGrouperTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.log(Level.INFO, () -> "Starting compound grouping for feature list "
-        + featureList.getName() + " (" + featureList.getNumberOfRows() + " rows)");
+    logger.log(Level.INFO,
+        () -> "Starting compound grouping for feature list " + featureList.getName() + " ("
+            + featureList.getNumberOfRows() + " rows)");
     try {
       if (!precheck()) {
         return;
@@ -95,16 +99,8 @@ public class CompoundGrouperTask extends AbstractTask {
         return;
       }
 
-      // attach on the FX thread (UI components may be observing setRows)
-      FxThread.runLater(() -> {
-        if (featureList.getStructuralVersion() != sourceStructuralVersion) {
-          logger.warning(() -> "Feature list " + featureList.getName()
-              + " mutated before compound list attachment; dropping result.");
-          return;
-        }
-        compoundList.setRows(rows);
-        featureList.setCompoundList(compoundList);
-      });
+      compoundList.setRows(rows);
+      featureList.setCompoundList(compoundList);
 
       featureList.addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod(CompoundGrouperModule.class, parameters,
@@ -112,8 +108,9 @@ public class CompoundGrouperTask extends AbstractTask {
 
       progress = 1d;
       setStatus(TaskStatus.FINISHED);
-      logger.log(Level.INFO, () -> "Compound grouping finished: " + rows.size()
-          + " compound(s) for feature list " + featureList.getName());
+      logger.log(Level.INFO,
+          () -> "Compound grouping finished: " + rows.size() + " compound(s) for feature list "
+              + featureList.getName());
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Compound grouping failed for " + featureList.getName(), e);
       setErrorMessage(e.getMessage());

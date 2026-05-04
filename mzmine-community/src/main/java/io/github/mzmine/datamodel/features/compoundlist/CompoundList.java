@@ -117,4 +117,9 @@ public class CompoundList {
         .filter(m -> m.row().getID() == row.getID())
         .findFirst().map(CompoundFeatureMember::role).orElse(null);
   }
+
+  @NotNull
+  public List<ModularCompoundRow> getRowsCopy() {
+    return List.copyOf(getRows());
+  }
 }

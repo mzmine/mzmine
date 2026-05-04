@@ -33,6 +33,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.AreaBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -643,11 +646,23 @@ public class FeatureTableFX extends BorderPane {
    */
   public void updateRows() {
     FxThread.runLater(() -> {
-      // create new list - filtering is applied automatically and table items updated
-      // work with copy of rows as rows may change during stream throwing exception
-      final List<FeatureListRow> rows = featureListProperty.get().getRowsCopy();
-      final List<TreeItem<ModularFeatureListRow>> newRows = rows.stream()
-          .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      final ModularFeatureList flist = getFeatureList();
+      if (flist == null) {
+        rowItems.clear();
+        return;
+      }
+      final List<TreeItem<ModularFeatureListRow>> newRows;
+
+      final CompoundList compoundList = flist.getCompoundList();
+      if (compoundList != null) {
+        newRows = compoundList.getRowsCopy().stream().map(this::createTreeRow).toList();
+      } else {
+        // create new list - filtering is applied automatically and table items updated
+        // work with copy of rows as rows may change during stream throwing exception
+        final List<FeatureListRow> rows = flist.getRowsCopy();
+        newRows = rows.stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      }
+
 ////
 //
 //      final List<TreeItem<ModularFeatureListRow>> newRows = IonNetworkLogic.streamNetworks(featureListProperty.get(), true).map(net -> {
@@ -669,6 +684,16 @@ public class FeatureTableFX extends BorderPane {
       rowItems.setAll(newRows);
       table.sort();
     });
+  }
+
+  private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
+    TreeItem<ModularFeatureListRow> root = new TreeItem<>(
+        (ModularFeatureListRow) compound.getPreferredRow());
+
+    for (CompoundFeatureMember member : compound.getCompoundMembers()) {
+      root.getChildren().add(new TreeItem<>((ModularFeatureListRow) member.row()));
+    }
+    return root;
   }
 
   /**
