@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -36,6 +37,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.RangeUtils;
 import java.text.DecimalFormat;
+import javafx.beans.binding.Bindings;
 import org.jetbrains.annotations.Nullable;
 
 public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> {
@@ -62,6 +64,17 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
         model.rowsRetentionTimeRangeProperty());
 
     model.getFilterModel().combinedRowFilterProperty().subscribe(this::applyRowsFilter);
+
+    // bidirectional bind: toggle in filter menu ↔ compound row selection on the table
+    model.getFeatureTable().compoundRowSelectionProperty()
+        .bindBidirectional(model.getFilterModel().compoundRowSelectionProperty());
+
+    // derive whether the current feature list has a valid compound list
+    model.getFilterModel().compoundListAvailableProperty().bind(
+        Bindings.createBooleanBinding(() -> {
+          final ModularFeatureList flist = model.getFeatureList();
+          return flist != null && flist.hasCompoundList();
+        }, model.featureListProperty()));
   }
 
   private void applyRowsFilter(@Nullable TableFeatureListRowFilter filter) {

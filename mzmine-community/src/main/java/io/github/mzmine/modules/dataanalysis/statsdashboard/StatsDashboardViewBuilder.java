@@ -98,6 +98,10 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
         model.selectedRowsProperty().set(List.of(row.getValue()));
       }
     });
+
+    // keep the dashboard model's compound row selection in sync with the table's toggle
+    table.compoundRowSelectionProperty()
+        .subscribe((sel) -> model.compoundRowSelectionProperty().set(sel));
   }
 
   @NotNull

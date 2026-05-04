@@ -29,7 +29,9 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoGrowTextField;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -43,11 +45,14 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -125,13 +130,20 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     initValidation(idField, mzField, rtField);
 
+    // toggle between compound list rows and flat feature list rows
+    final Button compoundsToggle = FxButtons.createEnumToggleButton(CompoundRowSelection.values(), model.compoundRowSelectionProperty(), "Toggle between compound-grouped rows and flat feature list rows");
+    compoundsToggle.disableProperty().bind(model.compoundListAvailableProperty().not());
+    compoundsToggle.visibleProperty().bind(model.compoundListAvailableProperty());
+    compoundsToggle.managedProperty().bind(model.compoundListAvailableProperty());
+
     // layout
     return FxLayout.newFlowPane( //
         FxIconUtil.getFontIcon(FxIcons.SEARCH), //
         newBoldLabel("ID="), idField, //
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
-        rowTypeFilter);
+        rowTypeFilter, //
+        compoundsToggle);
   }
 
   private void initValidation(TextField idField, TextField mzField, TextField rtField) {
@@ -194,6 +206,12 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     private final StringProperty rtFilterPrompt = new SimpleStringProperty("");
     // specific
     private final ObjectProperty<RowTypeFilter> specialRowTypeFilter = new SimpleObjectProperty<>();
+
+    // null = feature list rows; non-null = compound list with that selection level
+    private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+        null);
+    // true when the current feature list has a valid compound list
+    private final BooleanProperty compoundListAvailable = new SimpleBooleanProperty(false);
 
     // the actual filter
     private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilter = new ReadOnlyObjectWrapper<>();
@@ -264,6 +282,26 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     public ObjectProperty<RowTypeFilter> specialRowTypeFilterProperty() {
       return specialRowTypeFilter;
+    }
+
+    public @Nullable CompoundRowSelection getCompoundRowSelection() {
+      return compoundRowSelection.get();
+    }
+
+    public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+      return compoundRowSelection;
+    }
+
+    public void setCompoundRowSelection(@Nullable CompoundRowSelection selection) {
+      compoundRowSelection.set(selection);
+    }
+
+    public boolean isCompoundListAvailable() {
+      return compoundListAvailable.get();
+    }
+
+    public BooleanProperty compoundListAvailableProperty() {
+      return compoundListAvailable;
     }
   }
 }

@@ -28,8 +28,10 @@ package io.github.mzmine.modules.dataanalysis.statsdashboard;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedCompoundRowSelectionBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
@@ -44,10 +46,11 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StatsDashboardController extends FxController<StatsDashboardModel> implements
     SelectedFeatureListsBinding, SelectedRowsBinding, SelectedAbundanceMeasureBinding,
-    SelectedMetadataColumnBinding {
+    SelectedMetadataColumnBinding, SelectedCompoundRowSelectionBinding {
 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
@@ -93,5 +96,10 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   @Override
   public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
     return model.metadataColumnProperty();
+  }
+
+  @Override
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return model.compoundRowSelectionProperty();
   }
 }

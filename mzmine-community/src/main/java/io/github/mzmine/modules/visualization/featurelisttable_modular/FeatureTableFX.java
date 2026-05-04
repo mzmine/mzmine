@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.AreaBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
@@ -181,6 +182,9 @@ public class FeatureTableFX extends BorderPane {
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
   private final BooleanProperty sampleColVisibleParameter = new SimpleBooleanProperty();
+  // null = use feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
   private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
   private final FeatureTableContextMenu contextMenu;
   private final FeatureTableColumnMenuHelper contextMenuHelper;
@@ -228,6 +232,9 @@ public class FeatureTableFX extends BorderPane {
     filteredRowItems = new FilteredList<>(rowItems);
     // auto reflect filtered items to table
     Bindings.bindContent(root.getChildren(), filteredRowItems);
+
+    // re-populate rows when the display mode is changed by the user
+    compoundRowSelection.subscribe(_ -> updateRows());
 
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
@@ -653,9 +660,17 @@ public class FeatureTableFX extends BorderPane {
       }
       final List<TreeItem<ModularFeatureListRow>> newRows;
 
+      final CompoundRowSelection selection = compoundRowSelection.get();
       final CompoundList compoundList = flist.getCompoundList();
-      if (compoundList != null) {
-        newRows = compoundList.getRowsCopy().stream().map(this::createTreeRow).toList();
+      if (selection != null && compoundList != null) {
+        if (selection == CompoundRowSelection.COMPOUNDS) {
+          newRows = compoundList.getRowsCopy().stream().map(this::createTreeRow).toList();
+        } else {
+          // ALL_MAJOR_IONS or ALL_ISOTOPES: flat list of member rows
+          // TODO check if we want to show isotopes again as tree
+          newRows = compoundList.getRowsCopy(selection).stream()
+              .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+        }
       } else {
         // create new list - filtering is applied automatically and table items updated
         // work with copy of rows as rows may change during stream throwing exception
@@ -1238,6 +1253,18 @@ public class FeatureTableFX extends BorderPane {
     return featureListProperty;
   }
 
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public void setCompoundRowSelection(@Nullable CompoundRowSelection selection) {
+    compoundRowSelection.set(selection);
+  }
+
   /**
    * Initialises a listener to update the tables' contents to the current feature list. Also adds
    * and removes the row changed listener.
@@ -1286,6 +1313,11 @@ public class FeatureTableFX extends BorderPane {
     // too many samples slow down the table - therefore do not show sample specific columns then
     sampleColVisibleParameter.setValue(
         newFeatureList.getNumberOfRawDataFiles() <= SAMPLE_COLUMNS_THRESHOLD);
+
+    // decision: prefer compound list if available when a new feature list is loaded
+    compoundRowSelection.set(
+        newFeatureList.hasCompoundList() ? CompoundRowSelection.COMPOUNDS : null);
+
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();

@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.components.util.FxControls;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
+import java.util.Objects;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableBooleanValue;
@@ -207,6 +208,34 @@ public class FxButtons {
           "Either both selected and unselected labels are set or null. Here one is null and one is set.");
     }
 
+    return button;
+  }
+
+  public static <E extends Enum<?>> Button createEnumToggleButton(E[] options,
+      ObjectProperty<E> selected, @Nullable String tooltip) {
+    final Button button = new Button();
+    if (tooltip != null) {
+      button.setTooltip(new Tooltip(tooltip));
+    }
+    button.textProperty().bind(selected.map(Objects::toString).orElse("N/A"));
+    button.setOnAction(event -> {
+      final E value = selected.get();
+      if (value != null) {
+        for (int i = 0; i < options.length; i++) {
+          if (options[i] == value) {
+            if (i + 1 < options.length) {
+              selected.set(options[i + 1]);
+            } else {
+              selected.set(options[0]);
+            }
+          }
+        }
+      }
+      // nothing matched selected so set first
+      if (options.length > 0) {
+        selected.set(options[0]);
+      }
+    });
     return button;
   }
 }
