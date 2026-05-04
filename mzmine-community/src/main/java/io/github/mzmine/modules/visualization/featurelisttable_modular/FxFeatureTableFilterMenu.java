@@ -31,7 +31,7 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoG
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -52,7 +52,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -131,10 +130,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     initValidation(idField, mzField, rtField);
 
     // toggle between compound list rows and flat feature list rows
-    final Button compoundsToggle = FxButtons.createEnumToggleButton(CompoundRowSelection.values(), model.compoundRowSelectionProperty(), "Toggle between compound-grouped rows and flat feature list rows");
-    compoundsToggle.disableProperty().bind(model.compoundListAvailableProperty().not());
-    compoundsToggle.visibleProperty().bind(model.compoundListAvailableProperty());
-    compoundsToggle.managedProperty().bind(model.compoundListAvailableProperty());
+    final var rowSelection = FxComboBox.createComboBox("Toggle between compound-grouped rows and flat feature list rows", CompoundRowSelection.values(), model.compoundRowSelectionProperty());
+    rowSelection.disableProperty().bind(model.compoundListAvailableProperty().not());
+    rowSelection.visibleProperty().bind(model.compoundListAvailableProperty());
+    rowSelection.managedProperty().bind(model.compoundListAvailableProperty());
 
     // layout
     return FxLayout.newFlowPane( //
@@ -143,7 +142,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
         rowTypeFilter, //
-        compoundsToggle);
+        rowSelection);
   }
 
   private void initValidation(TextField idField, TextField mzField, TextField rtField) {
