@@ -41,6 +41,7 @@ import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import io.github.mzmine.util.web.proxy.ManualProxyConfig;
 import io.github.mzmine.util.web.proxy.ProxyConfigOption;
 import io.mzio.events.EventService;
+import java.net.Authenticator;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -58,6 +59,20 @@ public class ProxyUtils {
 
   private static final Logger logger = Logger.getLogger(ProxyUtils.class.getName());
   private static volatile boolean allowChanges = true;
+
+  static {
+    // Register a system-default Authenticator so that java.net.http.HttpClient and
+    // java.net.HttpURLConnection will attempt Negotiate/Kerberos and NTLM on proxy 407 challenges.
+    // Without any Authenticator, the JDK skips proxy auth entirely regardless of disabledSchemes.
+    // An empty Authenticator (returning null) is enough: the JDK then handles SPNEGO/Kerberos
+    // transparently via GSSAPI, while NTLM would need explicit credentials (not supported here).
+    if (Authenticator.getDefault() == null) {
+      Authenticator.setDefault(new Authenticator() {
+        // Returns null → JDK uses GSSAPI/Kerberos for Negotiate, skips Basic/NTLM
+      });
+      logger.info("Registered default Authenticator to enable Kerberos/SPNEGO proxy auth");
+    }
+  }
 
   @NotNull
   private static volatile FullProxyConfig currentConfig = FullProxyConfig.create(

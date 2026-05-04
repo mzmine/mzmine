@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67725,
-          "sha512": "2a637421c36e90b778c2b64477030b93629da29493f17bded7ed39a764a0a9a36c5cd196536f70344b5b4b85a6975ef53d31e5f1b97bc1850e3b01506f41001f",
-          "sha256": "b99cc399c02629b2cf4097611f1bd0f10eb53b480f37e6069270cec7871d721f",
-          "sha1": "bb185be282cc5de9fb9ad049525a65ff010d443e",
-          "md5": "fc32508d8c8aa1fb921425648e9b7d44"
+          "size": 70139,
+          "sha512": "203c27867620c46c7cfdf90c7a399938b6106f6fdf7e3e5e15b35562d946b2847a3c66da4f5a46566f3d818c73cd1fcae9fb5a7b440ea8cdb726af360ed425ab",
+          "sha256": "8ba02c620621eec12c39f70ab1cf8df5f8bc7c76c554aca7164e70ecf6b8c606",
+          "sha1": "1ad078109b259a3b5c22676676cfc3cb129ab610",
+          "md5": "7aaaf8491de0a2f0e376af45e80e8f5c"
         }
       ]
     },
@@ -86,17 +86,24 @@
           "version": {
             "requires": "24.0.3"
           }
+        },
+        {
+          "group": "org.apache.httpcomponents",
+          "module": "httpclient-win",
+          "version": {
+            "requires": "4.5.14"
+          }
         }
       ],
       "files": [
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 67725,
-          "sha512": "2a637421c36e90b778c2b64477030b93629da29493f17bded7ed39a764a0a9a36c5cd196536f70344b5b4b85a6975ef53d31e5f1b97bc1850e3b01506f41001f",
-          "sha256": "b99cc399c02629b2cf4097611f1bd0f10eb53b480f37e6069270cec7871d721f",
-          "sha1": "bb185be282cc5de9fb9ad049525a65ff010d443e",
-          "md5": "fc32508d8c8aa1fb921425648e9b7d44"
+          "size": 70139,
+          "sha512": "203c27867620c46c7cfdf90c7a399938b6106f6fdf7e3e5e15b35562d946b2847a3c66da4f5a46566f3d818c73cd1fcae9fb5a7b440ea8cdb726af360ed425ab",
+          "sha256": "8ba02c620621eec12c39f70ab1cf8df5f8bc7c76c554aca7164e70ecf6b8c606",
+          "sha1": "1ad078109b259a3b5c22676676cfc3cb129ab610",
+          "md5": "7aaaf8491de0a2f0e376af45e80e8f5c"
         }
       ]
     }

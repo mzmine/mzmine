@@ -26,6 +26,7 @@
 package io.github.mzmine.util.web;
 
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -36,13 +37,36 @@ import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.http.Header;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.impl.auth.KerberosSchemeFactory;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProxyTestUtils {
 
   private static final Logger logger = Logger.getLogger(ProxyTestUtils.class.getName());
+  private static final int HTTP_PROXY_AUTH_REQUIRED = 407;
+  private static final boolean IS_WINDOWS = System.getProperty("os.name", "")
+      .toLowerCase(Locale.ENGLISH).contains("win");
 
   /**
    * logs and returns the test results
@@ -76,9 +100,15 @@ public class ProxyTestUtils {
   private static void logSystemProperties(StringBuilder sb) {
     sb.append("Checking Java System Properties for Proxies...\n");
 
-    String[] properties = {"java.net.useSystemProxies", "http.proxyHost", "http.proxyPort",
-        "http.nonProxyHosts", "https.proxyHost", "https.proxyPort", "ftp.proxyHost",
-        "ftp.proxyPort", "socksProxyHost", "socksProxyPort"};
+    String[] properties = {
+        // proxy routing
+        "java.net.useSystemProxies", "http.proxyHost", "http.proxyPort", "http.nonProxyHosts",
+        "https.proxyHost", "https.proxyPort", "ftp.proxyHost", "ftp.proxyPort", "socksProxyHost",
+        "socksProxyPort",
+        // Kerberos / NTLM proxy auth
+        "javax.security.auth.useSubjectCredsOnly", "jdk.http.auth.proxying.disabledSchemes",
+        "jdk.http.auth.tunneling.disabledSchemes", "sun.security.krb5.debug",
+        "sun.security.spnego.debug", "sun.security.jgss.debug"};
 
     boolean found = false;
     for (String prop : properties) {
@@ -93,6 +123,12 @@ public class ProxyTestUtils {
     if (!found) {
       sb.append("No standard proxy system properties are set.\n");
     }
+
+    // Log Authenticator presence — required for JDK HttpClient to attempt Kerberos/NTLM on 407
+    final java.net.Authenticator auth = java.net.Authenticator.getDefault();
+    sb.append("System Authenticator: ").append(
+            auth != null ? auth.getClass().getName() : "<none — JDK HttpClient will skip proxy auth>")
+        .append("\n");
   }
 
   private static void logProxyDetails(StringBuilder sb, List<String> urls) {
@@ -160,19 +196,21 @@ public class ProxyTestUtils {
 
   public static String testUrls(List<String> urls) {
     StringBuilder sb = new StringBuilder();
+
+    // test kerberos info
+    logKerberosDebugInfo(sb);
+
     final ProxySelector selector = ProxySelector.getDefault();
     sb.append(testJdkClient(urls, "JDK NULL selector", null, Redirect.NORMAL));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.NORMAL));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.NEVER));
-    sb.append("\n");
     sb.append(testJdkClient(urls, "JDK default selector", selector, Redirect.ALWAYS));
-    sb.append("\n");
     // test apache client - not in this package and java client should work
-//    sb.append(testApacheClient(urls, "Apache NULL SYSTEM selector", null, true));
-//    sb.append(testApacheClient(urls, "Apache NULL selector", null));
-//    sb.append(testApacheClient(urls, "Apache default selector", selector));
+    sb.append(testApacheClient(urls, "Apache NULL SYSTEM selector", null, true));
+    sb.append(testApacheClient(urls, "Apache NULL selector", null));
+    sb.append(testApacheClient(urls, "Apache default selector", selector));
+
+    logger.info("Proxy test results:\n" + sb.toString());
 
     return sb.toString();
   }
@@ -199,7 +237,8 @@ public class ProxyTestUtils {
   public static String testJdkClient(List<String> urls, String title, ProxySelector selector,
       Redirect redirect) {
     StringBuilder sb = new StringBuilder();
-    sb.append(title).append(" using redirect: ").append(redirect).append("; results: \n");
+    sb.append("\n\n").append(title).append(" using redirect: ").append(redirect)
+        .append("; results: ");
 
     final Builder builder = HttpClient.newBuilder().followRedirects(redirect);
     if (selector != null) {
@@ -215,9 +254,9 @@ public class ProxyTestUtils {
               HttpResponse.BodyHandlers.ofString());
 
           if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            sb.append("success (%s); ".formatted(url));
+            sb.append("\nsuccess (%s); ".formatted(url));
           } else {
-            sb.append("failed %d".formatted(response.statusCode()));
+            sb.append("\nfailed %d".formatted(response.statusCode()));
 
             // Log authentication headers if present
             var wwwAuth = response.headers().firstValue("WWW-Authenticate");
@@ -241,7 +280,6 @@ public class ProxyTestUtils {
       sb.append("error creating client: ").append(e.getMessage()).append("; ");
     }
     final String message = sb.toString();
-    logger.info(message);
     return message;
   }
 
@@ -249,46 +287,171 @@ public class ProxyTestUtils {
    * APACHE CLIENT IS NOT AVAILABLE IN UTILS PACKAGE. This is only needed if the default http client
    * does not work then maybe we should use apache or other client.
    */
-//  private static String testApacheClient(List<String> urls, String title, ProxySelector selector) {
-//    return testApacheClient(urls, title, selector, false);
-//  }
+  private static @NotNull String testApacheClient(final @NotNull List<String> urls,
+      final @NotNull String title, final @Nullable ProxySelector selector) {
+    return testApacheClient(urls, title, selector, false);
+  }
 
-//  private static String testApacheClient(List<String> urls, String title, ProxySelector selector,
-//      boolean useSystemProxy) {
-//    StringBuilder sb = new StringBuilder();
-//    sb.append(title).append(" useSystemProxy: ").append(useSystemProxy).append("; results: \n");
-//
-//    final HttpClientBuilder clientBuilder = HttpClients.custom();
-//    if (useSystemProxy) {
-//      clientBuilder.useSystemProperties();
-//    }
-//
-//    if (selector != null) {
-//      clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(selector));
-//    }
-//
-//    try (org.apache.http.impl.client.CloseableHttpClient client = clientBuilder.build()) {
-//
-//      for (String url : urls) {
-//        try {
-//          HttpGet request = new HttpGet(url);
-//          var response = client.execute(request);
-//
-//          if (response.getStatusLine().getStatusCode() >= 200
-//              && response.getStatusLine().getStatusCode() < 300) {
-//            sb.append("success (%s); ".formatted(url));
-//          } else {
-//            sb.append("failed %d (%s); ".formatted(response.getStatusLine().getStatusCode(), url));
-//          }
-//        } catch (Exception e) {
-//          sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));
-//        }
-//      }
-//    } catch (Exception e) {
-//      sb.append("error creating client: ").append(e.getMessage()).append("; ");
-//    }
-//    final String message = sb.toString();
-//    logger.info(message);
-//    return message;
-//  }
+  /**
+   * Logs Kerberos / GSSAPI configuration to help diagnose proxy auth failures. Called before each
+   * Apache client test run.
+   */
+  private static void logKerberosDebugInfo(final StringBuilder sb) {
+    // Java GSSAPI credential acquisition flag
+    final String subjectCredsOnly = System.getProperty("javax.security.auth.useSubjectCredsOnly",
+        "<not set>");
+    sb.append("[Kerberos diag] javax.security.auth.useSubjectCredsOnly=").append(subjectCredsOnly)
+        .append("\n");
+
+    // Kerberos realm / KDC overrides (normally come from krb5.conf)
+    final String realm = System.getProperty("java.security.krb5.realm", "<not set>");
+    final String kdc = System.getProperty("java.security.krb5.kdc", "<not set>");
+    sb.append("[Kerberos diag] java.security.krb5.realm=").append(realm)
+        .append("; java.security.krb5.kdc=").append(kdc).append("\n");
+
+    // Explicit krb5 config file override
+    final String krb5Conf = System.getProperty("java.security.krb5.conf", "<not set>");
+    sb.append("[Kerberos diag] java.security.krb5.conf=").append(krb5Conf).append("\n");
+
+    // Default OS krb5 config file existence
+    final String defaultKrb5 =
+        IS_WINDOWS ? System.getenv("WINDIR") + "\\krb5.ini" : "/etc/krb5.conf";
+    final boolean krb5Exists = new File(defaultKrb5).exists();
+    sb.append("[Kerberos diag] default krb5 config ").append(defaultKrb5)
+        .append(krb5Exists ? " EXISTS" : " NOT FOUND").append("\n");
+
+    // Debug flags
+    final String krb5Debug = System.getProperty("sun.security.krb5.debug", "false");
+    final String gssDebug = System.getProperty("sun.security.jgss.debug", "false");
+    sb.append("[Kerberos diag] sun.security.krb5.debug=").append(krb5Debug)
+        .append("; sun.security.jgss.debug=").append(gssDebug).append("\n\n");
+  }
+
+  private static @NotNull String testApacheClient(final @NotNull List<String> urls,
+      final @NotNull String title, final @Nullable ProxySelector selector,
+      final boolean useSystemProxy) {
+
+    final StringBuilder sb = new StringBuilder();
+    sb.append("\n\n").append(title).append(" useSystemProxy: ").append(useSystemProxy)
+        .append("; results: ");
+
+    final HttpClientBuilder clientBuilder = createApacheHttpClientBuilder(selector, useSystemProxy,
+        sb);
+
+    try (org.apache.http.impl.client.CloseableHttpClient client = clientBuilder.build()) {
+      for (final String url : urls) {
+        try {
+          final HttpGet request = new HttpGet(url);
+          try (final CloseableHttpResponse response = client.execute(request)) {
+            appendApacheResponseResult(sb, url, response);
+          }
+        } catch (Exception e) {
+          sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));
+        }
+      }
+    } catch (Exception e) {
+      sb.append("error creating client: ").append(e.getMessage()).append("; ");
+    }
+
+    final String message = sb.toString();
+    return message;
+  }
+
+  private static @NotNull HttpClientBuilder createApacheHttpClientBuilder(
+      @Nullable ProxySelector selector, boolean useSystemProxy, StringBuilder sb) {
+    final HttpClientBuilder clientBuilder = createApacheClientBuilder(useSystemProxy);
+    configureApacheRoutePlanner(clientBuilder, selector);
+    try {
+      configureApacheProxyAuthentication(clientBuilder);
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to configure SPNEGO authentication", e);
+      if (sb != null) {
+        sb.append("error configuring SPNEGO: ").append(e.getMessage()).append("; ");
+      }
+    }
+    return clientBuilder;
+  }
+
+  private static @NotNull HttpClientBuilder createApacheClientBuilder(
+      final boolean useSystemProxy) {
+    final HttpClientBuilder clientBuilder = HttpClients.custom();
+    if (useSystemProxy) {
+      clientBuilder.useSystemProperties();
+    }
+    return clientBuilder;
+  }
+
+  private static void configureApacheRoutePlanner(final @NotNull HttpClientBuilder clientBuilder,
+      final @Nullable ProxySelector selector) {
+    if (selector != null) {
+      clientBuilder.setRoutePlanner(new SystemDefaultRoutePlanner(selector));
+    }
+  }
+
+  private static void configureApacheProxyAuthentication(
+      final @NotNull HttpClientBuilder clientBuilder) {
+    // Always needed: route proxy auth challenges to the right strategy and supply OS credentials.
+    clientBuilder.setProxyAuthenticationStrategy(ProxyAuthenticationStrategy.INSTANCE);
+    clientBuilder.setDefaultCredentialsProvider(new SystemDefaultCredentialsProvider());
+    // Non-Windows: Java GSSAPI handles Kerberos/SPNEGO. The JVM must be allowed to acquire
+    // a Kerberos TGT from the OS ticket cache, not only from an active JAAS Subject.
+    // already set in build.gradle globally
+//      System.setProperty("javax.security.auth.useSubjectCredsOnly", "false");
+    final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
+        .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(true)).build();
+    clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+    clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+        .setProxyPreferredAuthSchemes(List.of(AuthSchemes.SPNEGO, AuthSchemes.KERBEROS)).build());
+  }
+
+  private static void appendApacheResponseResult(final @NotNull StringBuilder sb,
+      final @NotNull String url, final @NotNull CloseableHttpResponse response) {
+    final int statusCode = response.getStatusLine().getStatusCode();
+    if (statusCode >= 200 && statusCode < 300) {
+      sb.append("\nsuccess (%s); ".formatted(url));
+      return;
+    }
+
+    sb.append("\nfailed %d (%s)".formatted(statusCode, url));
+    final String proxyAuthenticate = getHeaderValues(response, "Proxy-Authenticate");
+    if (!proxyAuthenticate.isBlank()) {
+      sb.append("; Proxy-Authenticate: ").append(proxyAuthenticate);
+    }
+    final String wwwAuthenticate = getHeaderValues(response, "WWW-Authenticate");
+    if (!wwwAuthenticate.isBlank()) {
+      sb.append("; WWW-Authenticate: ").append(wwwAuthenticate);
+    }
+    if (statusCode == HTTP_PROXY_AUTH_REQUIRED) {
+      sb.append("; isWindows: ")
+          .append(IS_WINDOWS ? "true" : "false");
+      sb.append("; hint: ").append(buildProxyAuthHint(proxyAuthenticate));
+    }
+    sb.append("; ");
+  }
+
+  private static @NotNull String getHeaderValues(final @NotNull CloseableHttpResponse response,
+      final @NotNull String headerName) {
+    final Header[] headers = response.getHeaders(headerName);
+    if (headers == null || headers.length == 0) {
+      return "";
+    }
+    return Arrays.stream(headers).map(Header::getValue)
+        .filter(value -> value != null && !value.isBlank()).collect(Collectors.joining(", "));
+  }
+
+  private static @NotNull String buildProxyAuthHint(final @Nullable String proxyAuthenticate) {
+    if (proxyAuthenticate == null || proxyAuthenticate.isBlank()) {
+      return "proxy did not advertise an authentication scheme";
+    }
+
+    final String lower = proxyAuthenticate.toLowerCase(Locale.ENGLISH);
+    if (lower.contains("negotiate") || lower.contains("spnego") || lower.contains("kerberos")) {
+      return "verify domain login, Kerberos ticket availability, proxy SPN, and clock synchronization";
+    }
+    if (lower.contains("ntlm")) {
+      return "proxy requires NTLM; prefer native Windows client path";
+    }
+    return "proxy advertised an unsupported authentication scheme";
+  }
 }

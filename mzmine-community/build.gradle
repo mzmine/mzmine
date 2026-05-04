@@ -298,7 +298,19 @@ application {
             '--add-opens=java.logging/java.util.logging=ALL-UNNAMED',
 
             // logging
-            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+
+            // --- proxy & Kerberos/NTLM authentication (production) ---
+            "-Djava.net.useSystemProxies=true",
+            "-Djavax.security.auth.useSubjectCredsOnly=false",
+            "-Djdk.http.auth.proxying.disabledSchemes=",
+            "-Djdk.http.auth.tunneling.disabledSchemes=",
+
+            // --- proxy auth debug logging (remove after diagnosing) ---
+            "-Dsun.security.krb5.debug=true",
+            "-Dsun.security.spnego.debug=true",
+            "-Dsun.security.jgss.debug=true",
+            "-Djava.security.debug=gssloginconfig,logincontext,configfile"
     ]
 }
 
@@ -415,7 +427,17 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
+                   // --- proxy & Kerberos/NTLM authentication (production) ---
                    "-Djava.net.useSystemProxies=true",
+                   "-Djavax.security.auth.useSubjectCredsOnly=false",
+                   "-Djdk.http.auth.proxying.disabledSchemes=",
+                   "-Djdk.http.auth.tunneling.disabledSchemes=",
+                   // --- proxy auth debug logging (remove after diagnosing) ---
+                   "-Dsun.security.krb5.debug=true",
+                   "-Dsun.security.spnego.debug=true",
+                   "-Dsun.security.jgss.debug=true",
+                   "-Djava.security.debug=gssloginconfig,logincontext,configfile",
+                // end of debug
                    "--add-opens=java.logging/java.util.logging=ALL-UNNAMED",
                    "--enable-preview",
         ]

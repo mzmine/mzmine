@@ -26,6 +26,7 @@
 package io.github.mzmine.util.web;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -81,10 +82,17 @@ public class HttpUtils {
    * @return an http client
    */
   public static HttpClient createHttpClient(boolean useDefaultProxy) {
-    return HttpClient.newBuilder()
+    final Builder builder = HttpClient.newBuilder()
         // redirects are required for zenodo for example: master record ID points to latest
         .followRedirects(Redirect.NORMAL)
-        .proxy(useDefaultProxy ? ProxySelector.getDefault() : Builder.NO_PROXY).build();
+        .proxy(useDefaultProxy ? ProxySelector.getDefault() : Builder.NO_PROXY);
+    // An Authenticator is required for the JDK client to attempt Negotiate/Kerberos or NTLM on
+    // proxy 407 challenges. Without it, the JDK ignores proxy auth regardless of disabledSchemes.
+    final Authenticator auth = Authenticator.getDefault();
+    if (auth != null) {
+      builder.authenticator(auth);
+    }
+    return builder.build();
   }
 
   /**
