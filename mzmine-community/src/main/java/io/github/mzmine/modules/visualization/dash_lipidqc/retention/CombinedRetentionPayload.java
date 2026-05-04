@@ -32,16 +32,15 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Computation payload for the combined carbon-count + DBE retention trend visualisation, carrying
- * the selected match, class, separate carbon and DBE datasets, and the axis indices used in the
- * shared chart.
+ * the selected match, class, and the neutral carbon and DBE series used to populate the shared
+ * chart.
  */
 record CombinedRetentionPayload(@NotNull RetentionTrendMode mode,
                                 @NotNull MatchedLipid selectedMatch,
                                 @NotNull ILipidClass selectedClass,
                                 int selectedCarbons,
-                                int selectedDbe,
-                                @Nullable RetentionTrendDataset carbonsDataset,
-                                @Nullable RetentionTrendDataset dbeDataset)
+                                int selectedDbe, @Nullable RetentionSeriesData carbonsSeries,
+                                @Nullable RetentionSeriesData dbeSeries)
     implements RetentionComputationPayload {
 
 }

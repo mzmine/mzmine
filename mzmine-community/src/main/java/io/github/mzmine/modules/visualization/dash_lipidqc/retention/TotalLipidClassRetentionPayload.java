@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc.retention;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import java.util.List;
@@ -33,12 +32,13 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Computation payload for the full lipid-class retention view, carrying the selected lipid class
- * and the rows that contain annotations used to build grouped trend lines.
+ * and the grouped neutral trend series to plot.
  */
 record TotalLipidClassRetentionPayload(@NotNull RetentionTrendMode mode,
                                        @NotNull MatchedLipid selectedMatch,
-                                       @NotNull List<FeatureListRow> rowsWithLipidIds,
-                                       @NotNull ILipidClass selectedClass)
+                                       @NotNull ILipidClass selectedClass,
+                                       @NotNull List<RetentionSeriesData> series,
+                                       int annotationCount)
     implements RetentionComputationPayload {
 
 }

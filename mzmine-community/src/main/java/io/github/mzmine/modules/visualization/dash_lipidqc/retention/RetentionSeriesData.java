@@ -25,19 +25,16 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc.retention;
 
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Computation payload for the ECN (equivalent carbon number) vs. retention-time trend
- * visualisation, carrying the selected match, selected class, fixed DBE, and the neutral trend
- * series built in the background task.
+ * Neutral computation-layer series used as the boundary between the background retention
+ * computation and chart rendering.
  */
-record EcnRetentionPayload(@NotNull RetentionTrendMode mode,
-                           @NotNull MatchedLipid selectedMatch,
-                           @NotNull ILipidClass selectedClass,
-                           int dbe, int matchCount, @NotNull RetentionSeriesData series) implements
-    RetentionComputationPayload {
+record RetentionSeriesData(@NotNull String seriesKey, @NotNull List<RetentionSeriesPoint> points) {
 
+  RetentionSeriesData {
+    points = List.copyOf(points);
+  }
 }

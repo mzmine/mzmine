@@ -31,14 +31,14 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Computation payload for the DBE (degree of unsaturation) vs. retention-time trend
- * visualisation, carrying the selected match, class, fixed carbon count, and the trend dataset.
+ * visualisation, carrying the selected match, class, fixed carbon count, and the neutral trend
+ * series.
  */
 record DbeRetentionPayload(@NotNull RetentionTrendMode mode,
                            @NotNull MatchedLipid selectedMatch,
                            @NotNull ILipidClass selectedClass,
                            int carbons,
-                           int selectedDbe,
-                           @NotNull RetentionTrendDataset dataset)
+                           int selectedDbe, @NotNull RetentionSeriesData series)
     implements RetentionComputationPayload {
 
 }
