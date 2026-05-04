@@ -41,7 +41,7 @@ public class CompoundList {
     this.featureList = featureList;
     this.sourceStructuralVersion = featureList.getStructuralVersion();
     this.schema = new ColumnarModularDataModelSchema(
-        storage, featureList.getName() + "_compounds", Math.max(estimatedRows, 1));
+        storage, featureList.getName() + "_compounds", Math.max(estimatedRows, 1000));
     // pre-register compound columns so the schema is queryable before any row is written
     schema.addDataTypes(CompoundSchemaTypes.REGISTERED.toArray(new DataType[0]));
   }
