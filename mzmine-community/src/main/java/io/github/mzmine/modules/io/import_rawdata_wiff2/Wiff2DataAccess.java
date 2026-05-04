@@ -114,6 +114,10 @@ public class Wiff2DataAccess implements AutoCloseable {
   private final boolean centroid;
   @NotNull
   private final ScanImportProcessorConfig scanProcessorConfig;
+  /**
+   * cached samples list. need to cache to properly close in {@link #close()}
+   */
+  private List<Sample> samples;
 
   public Wiff2DataAccess(@NotNull final File file, final boolean centroid,
       @NotNull final ScanImportProcessorConfig scanProcessorConfig) throws IOException {
@@ -445,12 +449,14 @@ public class Wiff2DataAccess implements AutoCloseable {
 
   @NotNull List<Sample> getSamples() {
 
-    final ListSamplesRequest samplesRequest = ListSamplesRequest.newBuilder()
-        .setAbsolutePathToWiffFile(file.getAbsolutePath()).setSkipCorrupted(true).build();
-    final Iterator<Sample> samplesDescriptions = dataProvider.getSamplesDescriptions(
-        samplesRequest);
+    if(samples == null) {
+      final ListSamplesRequest samplesRequest = ListSamplesRequest.newBuilder()
+          .setAbsolutePathToWiffFile(file.getAbsolutePath()).setSkipCorrupted(true).build();
+      final Iterator<Sample> samplesDescriptions = dataProvider.getSamplesDescriptions(
+          samplesRequest);
+      samples = IteratorUtils.toList(samplesDescriptions);
+    }
 
-    List<Sample> samples = IteratorUtils.toList(samplesDescriptions);
     return samples;
   }
 
@@ -547,9 +553,15 @@ public class Wiff2DataAccess implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    dataProvider.closeFile(
-        SourceFile.newBuilder().setLocation(file.getParentFile().toURI().toString())
-            .setName(file.getName()).build());
+
+    //dataProvider.closeFile(
+    //    SourceFile.newBuilder().setLocation(file.getParentFile().toURI().toString())
+    //        .setName(file.getName()).build());
+    List<SourceFile> sources = samples.stream().flatMap(s -> s.getSourcesList().stream()).distinct()
+        .toList();
+    for (SourceFile source : sources) {
+      dataProvider.closeFile(source);
+    }
     channel.shutdown();
 //    ClearcoreServer.terminateSeverIfRunning();
   }

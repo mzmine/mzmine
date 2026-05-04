@@ -70,7 +70,7 @@ public class Wiff2LauncherLib_h$shared {
   public static final AddressLayout C_POINTER = ((AddressLayout) Linker.nativeLinker()
       .canonicalLayouts().get("void*")).withTargetLayout(
       MemoryLayout.sequenceLayout(Long.MAX_VALUE, C_CHAR));
-  public static final OfInt C_LONG = (OfInt) Linker.nativeLinker().canonicalLayouts().get("long");
+  public static final ValueLayout C_LONG = (ValueLayout) Linker.nativeLinker().canonicalLayouts().get("long");
   public static final OfDouble C_LONG_DOUBLE = (OfDouble) Linker.nativeLinker().canonicalLayouts()
       .get("double");
 
