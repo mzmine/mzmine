@@ -381,6 +381,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
           The parameter %s of module %s cannot be set to value %s because the appears %d times \
           in the batch. Can only override if it appears exactly once.""".formatted(
           parameter.getName(), module.getName(), String.valueOf(newValue), parameterSets.size()));
+      return false;
     }
 
     final var stepParameters = parameterSets.getFirst();
