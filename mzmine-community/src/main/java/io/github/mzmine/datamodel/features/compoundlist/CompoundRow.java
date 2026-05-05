@@ -36,4 +36,6 @@ public interface CompoundRow extends FeatureListRow {
     return getCompoundMembers().stream()
         .filter(m -> m.role() == role).map(CompoundFeatureMember::row).toList();
   }
+
+  @NotNull CompoundList getCompoundList();
 }

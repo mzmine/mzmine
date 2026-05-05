@@ -16,6 +16,6 @@ public final class CompoundRowBindings {
    * The bindings applied by every {@link CompoundList} unless an explicit list is provided.
    */
   public static @NotNull List<CompoundRowBinding> defaultBindings() {
-    return List.of(new AverageRtBinding());
+    return List.of(new AverageRtBinding(), new CompoundIntensitySumBinding());
   }
 }

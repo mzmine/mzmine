@@ -35,18 +35,18 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   private static final Logger logger = Logger.getLogger(ModularCompoundRow.class.getName());
 
-  @NotNull private final CompoundList owner;
+  @NotNull private final CompoundList compoundList;
   @NotNull private final FeatureListRow preferredRow;
 
-  public ModularCompoundRow(@NotNull final CompoundList owner,
+  public ModularCompoundRow(@NotNull final CompoundList compoundList,
       final int compoundId,
       @NotNull final FeatureListRow preferredRow,
       @NotNull final List<CompoundFeatureMember> members,
       final float confidence,
       @Nullable final Double neutralMass) {
     // Protected ModularFeatureListRow constructor: flist = source feature list, schema = compound row schema
-    super(owner.getFeatureList(), owner.getCompoundRowSchema(), compoundId);
-    this.owner = owner;
+    super(compoundList.getFeatureList(), compoundList.getCompoundRowSchema(), compoundId);
+    this.compoundList = compoundList;
     this.preferredRow = preferredRow;
     set(CompoundIdType.class, compoundId);
     set(CompoundPreferredRowIdType.class, preferredRow.getID());
@@ -77,7 +77,7 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    final List<ModularFeature> own = owner.getCompoundRowSchema().streamFeatures(modelRowIndex)
+    final List<ModularFeature> own = compoundList.getCompoundRowSchema().streamFeatures(modelRowIndex)
         .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN).toList();
     final Set<RawDataFile> covered = new HashSet<>(own.size());
     for (final ModularFeature f : own) {
@@ -90,7 +90,7 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   @Override
   public @Nullable ModularFeature getFeature(RawDataFile raw) {
-    final ModularFeature own = owner.getCompoundRowSchema().getFeature(modelRowIndex, raw);
+    final ModularFeature own = compoundList.getCompoundRowSchema().getFeature(modelRowIndex, raw);
     if (own != null && own.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return own;
     }
@@ -102,37 +102,37 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   public synchronized void addFeature(RawDataFile raw, Feature feature,
       boolean updateByRowBindings) {
     if (feature == null) {
-      owner.getCompoundRowSchema().setFeature(modelRowIndex, raw, null);
+      compoundList.getCompoundRowSchema().setFeature(modelRowIndex, raw, null);
       return;
     }
     if (!(feature instanceof ModularFeature mf)) {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to compound row.");
     }
-    if (!owner.getFeatureList().equals(feature.getFeatureList())) {
+    if (!compoundList.getFeatureList().equals(feature.getFeatureList())) {
       throw new IllegalArgumentException(
           "Cannot add feature from a different feature list to this compound row.");
     }
-    owner.getCompoundRowSchema().setFeature(modelRowIndex, raw, mf);
+    compoundList.getCompoundRowSchema().setFeature(modelRowIndex, raw, mf);
     mf.setRow(this);
     // assumption: compound rows are not part of the feature list event system — no event fired
   }
 
   @Override
   public void clearFeatures(boolean updateByRowBindings) {
-    owner.getCompoundRowSchema().clearFeatures(modelRowIndex);
+    compoundList.getCompoundRowSchema().clearFeatures(modelRowIndex);
   }
 
   // -- Type and listener resolution via compoundRowSchema --
 
   @Override
   public Set<DataType> getTypes() {
-    return owner.getCompoundRowSchema().getTypes();
+    return compoundList.getCompoundRowSchema().getTypes();
   }
 
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
-    return owner.getCompoundRowSchema().getValueChangeListeners();
+    return compoundList.getCompoundRowSchema().getValueChangeListeners();
   }
 
   // -- CompoundRow accessors --
@@ -160,5 +160,10 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   @Override
   public @Nullable Double getCompoundNeutralMass() {
     return get(NeutralMassType.class);
+  }
+
+  @Override
+  public @NotNull CompoundList getCompoundList() {
+    return compoundList;
   }
 }

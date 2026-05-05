@@ -28,6 +28,7 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -36,6 +37,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -90,9 +92,32 @@ public class FeatureTableFXUtil {
 
   public static void selectAndScrollTo(@Nullable FeatureListRow row,
       @NotNull FeatureTableFX table) {
+    if (row == null) {
+      return;
+    }
+    final FeatureListRow targetRow;
+    final boolean isCompound;
+    if (row instanceof ModularCompoundRow targetCompound) {
+      isCompound = true;
+      targetRow = targetCompound.getPreferredRow();
+    } else {
+      isCompound = false;
+      targetRow = row;
+    }
+
     final ObservableList<TreeItem<ModularFeatureListRow>> children = table.getFilteredRowItems();
-    final Optional<TreeItem<ModularFeatureListRow>> selected = children.stream()
-        .filter(item -> item.getValue().equals(row)).findAny();
+    final Optional<TreeItem<ModularFeatureListRow>> selected = children.stream().filter(item -> {
+      // might be FeatureListRow or CompoundRow
+      final ModularFeatureListRow value = item.getValue();
+      if (isCompound) {
+        // check compound then target representative row
+        return (value instanceof ModularCompoundRow comp && Objects.equals(row, comp))
+            || Objects.equals(targetRow, value);
+      } else {
+        return (value instanceof ModularCompoundRow comp && Objects.equals(targetRow,
+            comp.getPreferredRow())) || Objects.equals(targetRow, value);
+      }
+    }).findAny();
     selectAndScrollTo(selected.orElse(null), table);
   }
 

@@ -93,6 +93,7 @@ import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModu
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -355,6 +356,7 @@ public class BatchModeModulesList {
            */
           CorrelateGroupingModule.class, //
           CompoundGrouperModule.class, //
+          ConfigCompoundRepresentationModule.class, //
           ImageCorrelateGroupingModule.class, //
           MainSpectralNetworkingModule.class, //
           AnnotateIsomersModule.class, //

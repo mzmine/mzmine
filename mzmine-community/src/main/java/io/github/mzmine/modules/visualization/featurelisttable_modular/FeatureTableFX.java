@@ -653,6 +653,9 @@ public class FeatureTableFX extends BorderPane {
    */
   public void updateRows() {
     FxThread.runLater(() -> {
+      final TreeItem<ModularFeatureListRow> selectedRow = table.getSelectionModel()
+          .getSelectedItem();
+      table.getSelectionModel().clearSelection(); // leads to npe or index out of bound
       final ModularFeatureList flist = getFeatureList();
       if (flist == null) {
         rowItems.clear();
@@ -678,25 +681,12 @@ public class FeatureTableFX extends BorderPane {
         newRows = rows.stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
       }
 
-////
-//
-//      final List<TreeItem<ModularFeatureListRow>> newRows = IonNetworkLogic.streamNetworks(featureListProperty.get(), true).map(net -> {
-//        final Set<FeatureListRow> netrows = net.keySet();
-//        TreeItem<ModularFeatureListRow> first = null;
-//
-//      List<TreeItem<ModularFeatureListRow>> children = new ArrayList<>(netrows.size());
-//        for (FeatureListRow row : netrows) {
-//      if(first==null)
-//          first = new TreeItem<>((ModularFeatureListRow) row);
-//
-//        children.add(new TreeItem<>((ModularFeatureListRow) row));
-//        }
-//
-//        first.getChildren().addAll(children);
-//        return first;
-//          }).toList();
-
       rowItems.setAll(newRows);
+
+      if (selectedRow != null) {
+        FeatureTableFXUtil.selectAndScrollTo(selectedRow.getValue(), this);
+      }
+
       table.sort();
     });
   }

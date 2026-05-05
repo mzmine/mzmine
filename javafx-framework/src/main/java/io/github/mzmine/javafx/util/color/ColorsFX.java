@@ -48,6 +48,7 @@ public class ColorsFX {
   private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
   private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
 
+  public static final Color MAGENTA = new Color(0.749f, 0.1725f, 0.5176f, 1f);
   /**
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
    * green, yellow, blue, vermillion (darker orange), reddish purple
@@ -63,7 +64,7 @@ public class ColorsFX {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
+      MAGENTA}; // reddish purple
 
   /**
    * Color palette with black+7colors for color blindness: <br> Orange, sky blue, bluish green,

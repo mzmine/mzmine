@@ -2,6 +2,7 @@ package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
@@ -44,11 +45,16 @@ public class CompoundList {
   // background threads can safely read while setRows rebuilds on the FX thread.
   private final Map<Integer, ModularCompoundRow> byMemberRowId = new ConcurrentHashMap<>();
 
-  @NotNull private final List<CompoundRowBinding> bindings;
+  @NotNull
+  private final List<CompoundRowBinding> bindings;
   // Each entry undoes one listener registration on dispose.
   private final List<Runnable> listenerRemovers = new ArrayList<>();
   private boolean listenersWired = false;
   private boolean disposed = false;
+  // True while applyAllBindings() is running. Listeners check this to avoid redundant cascading
+  // re-applies caused by binding writes firing change events (inner compound writes propagate to
+  // outer compounds during the bulk pass — but the outer is already scheduled to apply next).
+  private volatile boolean bulkApplyInProgress = false;
 
   public CompoundList(@NotNull final ModularFeatureList featureList,
       @Nullable final MemoryMapStorage storage, final int estimatedRows) {
@@ -163,17 +169,38 @@ public class CompoundList {
 
   /**
    * Apply every binding's {@link CompoundRowBinding#apply} to every compound row. Used to
-   * initialize derived values after {@link #setRows(List)}.
+   * initialize derived values after {@link #setRows(List)} and to refresh after configuration
+   * changes via {@link #reapplyBindings()}.
+   * <p>
+   * {@link #bulkApplyInProgress} is set during the pass so that listeners on values written by
+   * bindings short-circuit instead of triggering redundant re-applies.
    */
   private void applyAllBindings() {
-    for (final ModularCompoundRow row : rows) {
-      applyBindingsTo(row);
+    bulkApplyInProgress = true;
+    try {
+      for (final ModularCompoundRow row : rows) {
+        applyBindingsTo(row);
+      }
+    } finally {
+      bulkApplyInProgress = false;
     }
   }
 
   /**
-   * Apply every binding to a single compound row, recursing into nested compound members first
-   * so inner aggregates exist before the outer aggregates that depend on them are computed.
+   * Re-run all bindings on every compound row. Use this after writing a configuration applied
+   * method on the source feature list so bindings that read configuration from applied methods pick
+   * up the new values.
+   */
+  public void reapplyBindings() {
+    if (disposed) {
+      throw new IllegalStateException("reapplyBindings called on a disposed CompoundList");
+    }
+    applyAllBindings();
+  }
+
+  /**
+   * Apply every binding to a single compound row, recursing into nested compound members first so
+   * inner aggregates exist before the outer aggregates that depend on them are computed.
    */
   private void applyBindingsTo(@NotNull final ModularCompoundRow row) {
     for (final CompoundFeatureMember m : row.getCompoundMembers()) {
@@ -187,17 +214,23 @@ public class CompoundList {
   }
 
   /**
-   * Register a listener on both the source feature list's row schema and on this compound list's
-   * own row schema for each binding. Each registration's removal is tracked in
+   * Register listeners on the source feature list's row + features schemas and on this compound
+   * list's own row + features schemas for each binding. Each registration's removal is tracked in
    * {@link #listenerRemovers} so {@link #dispose()} can undo it.
    * <p>
-   * The compound-schema registration covers the nested case where one compound row is itself a
-   * member of an outer compound: when the inner compound's value is recomputed, the listener fires
-   * on the compound schema and looks up the outer owner.
+   * The compound-schema registrations cover the nested case where one compound row is itself a
+   * member of an outer compound: when the inner compound's value or feature is recomputed, the
+   * listener fires on the compound schema and looks up the outer owner.
+   * <p>
+   * Listeners short-circuit while {@link #bulkApplyInProgress} is true so that the bulk pass
+   * (already inner-first then outer) is not duplicated by cascading single re-applies.
    */
   private void wireListeners() {
     for (final CompoundRowBinding binding : bindings) {
-      final DataTypeValueChangeListener<?> listener = (model, type, oldValue, newValue) -> {
+      final DataTypeValueChangeListener<?> rowListener = (model, type, oldValue, newValue) -> {
+        if (bulkApplyInProgress) {
+          return;
+        }
         if (!(model instanceof FeatureListRow row)) {
           return;
         }
@@ -208,21 +241,64 @@ public class CompoundList {
         }
         binding.apply(owner);
       };
+      final DataTypeValueChangeListener<?> featureListener = (model, type, oldValue, newValue) -> {
+        if (bulkApplyInProgress) {
+          return;
+        }
+        if (!(model instanceof ModularFeature feature)) {
+          return;
+        }
+        final FeatureListRow row = feature.getRow();
+        if (row == null) {
+          return;
+        }
+        final ModularCompoundRow owner = findCompoundOf(row);
+        if (owner == null) {
+          return;
+        }
+        binding.apply(owner);
+      };
+
+      // primary row-level type — source list and compound row schema
       final DataType<?> memberType = binding.getMemberRowType();
       final DataType<?> compoundType = binding.getCompoundRowType();
-      featureList.addRowTypeValueListener(memberType, listener);
-      listenerRemovers.add(
-          () -> featureList.removeRowTypeValueListener(memberType, listener));
+      featureList.addRowTypeValueListener(memberType, rowListener);
+      listenerRemovers.add(() -> featureList.removeRowTypeValueListener(memberType, rowListener));
 
-      compoundRowSchema.addDataTypeValueChangeListener(compoundType, listener);
+      compoundRowSchema.addDataTypeValueChangeListener(compoundType, rowListener);
       listenerRemovers.add(
-          () -> compoundRowSchema.removeDataTypeValueChangeListener(compoundType, listener));
+          () -> compoundRowSchema.removeDataTypeValueChangeListener(compoundType, rowListener));
+
+      // additional row-level types
+      for (final DataType<?> additional : binding.getAdditionalMemberRowTypes()) {
+        featureList.addRowTypeValueListener(additional, rowListener);
+        listenerRemovers.add(() -> featureList.removeRowTypeValueListener(additional, rowListener));
+        compoundRowSchema.addDataTypeValueChangeListener(additional, rowListener);
+        listenerRemovers.add(
+            () -> compoundRowSchema.removeDataTypeValueChangeListener(additional, rowListener));
+      }
+
+      // member feature-level types — register on source feature list's features schema
+      for (final DataType<?> memberFeatureType : binding.getMemberFeatureTypes()) {
+        featureList.addFeatureTypeValueListener(memberFeatureType, featureListener);
+        listenerRemovers.add(
+            () -> featureList.removeFeatureTypeListener(memberFeatureType, featureListener));
+      }
+
+      // compound feature-level types — register on this compound list's features schema, so a
+      // nested compound's feature change propagates to its outer owner.
+      for (final DataType<?> compoundFeatureType : binding.getCompoundFeatureTypes()) {
+        compoundFeaturesSchema.addDataTypeValueChangeListener(compoundFeatureType, featureListener);
+        listenerRemovers.add(
+            () -> compoundFeaturesSchema.removeDataTypeValueChangeListener(compoundFeatureType,
+                featureListener));
+      }
     }
   }
 
   /**
-   * Remove all listeners registered by {@link #wireListeners()}. Idempotent — safe to call
-   * multiple times. After dispose, the CompoundList must not be used again.
+   * Remove all listeners registered by {@link #wireListeners()}. Idempotent — safe to call multiple
+   * times. After dispose, the CompoundList must not be used again.
    */
   public synchronized void dispose() {
     if (disposed) {
@@ -253,6 +329,8 @@ public class CompoundList {
   }
 
   /**
+   * TODO think if we can support a single row being mapped to multiple parent rows, then all of those should update.
+   *
    * O(1) lookup: which compound owns this row? Returns null if not a member of any compound.
    */
   public @Nullable ModularCompoundRow findCompoundOf(@NotNull final FeatureListRow row) {

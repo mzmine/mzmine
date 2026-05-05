@@ -130,19 +130,21 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     initValidation(idField, mzField, rtField);
 
     // toggle between compound list rows and flat feature list rows
-    final var rowSelection = FxComboBox.createComboBox("Toggle between compound-grouped rows and flat feature list rows", CompoundRowSelection.values(), model.compoundRowSelectionProperty());
+    final var rowSelection = FxComboBox.createComboBox(
+        "Toggle between compound-grouped rows and flat feature list rows",
+        CompoundRowSelection.values(), model.compoundRowSelectionProperty());
     rowSelection.disableProperty().bind(model.compoundListAvailableProperty().not());
     rowSelection.visibleProperty().bind(model.compoundListAvailableProperty());
     rowSelection.managedProperty().bind(model.compoundListAvailableProperty());
 
     // layout
     return FxLayout.newFlowPane( //
-        FxIconUtil.getFontIcon(FxIcons.SEARCH), //
-        newBoldLabel("ID="), idField, //
-        newBoldLabel("m/z="), mzField, //
-        newBoldLabel("RT="), rtField, //
-        rowTypeFilter, //
-        rowSelection);
+        rowSelection, //
+        FxIconUtil.getFontIcon(FxIcons.SEARCH), newBoldLabel("ID="), //
+        idField, newBoldLabel("m/z="), //
+        mzField, newBoldLabel("RT="), //
+        rtField, //
+        rowTypeFilter);
   }
 
   private void initValidation(TextField idField, TextField mzField, TextField rtField) {

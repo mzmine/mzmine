@@ -57,6 +57,7 @@ import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeat
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -294,7 +295,8 @@ public abstract class AbstractWorkspace implements Workspace {
         FormulaPredictionIonNetworkModule.class, CreateAvgNetworkFormulasModule.class,
         IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
-    addModuleMenuItems(groupingMenu, CompoundGrouperModule.class);
+    addModuleMenuItems(groupingMenu, CompoundGrouperModule.class,
+        ConfigCompoundRepresentationModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, AnnotateIsomersModule.class);
     groupingMenu.getItems().addAll(new SeparatorMenuItem(),

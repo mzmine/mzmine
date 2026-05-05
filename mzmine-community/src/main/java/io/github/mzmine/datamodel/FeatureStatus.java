@@ -26,12 +26,12 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.javafx.util.color.Colors;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.Vision;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.javafx.util.color.Vision;
 import org.jetbrains.annotations.NotNull;
 
 public enum FeatureStatus implements UniqueIdSupplier {
@@ -52,6 +52,11 @@ public enum FeatureStatus implements UniqueIdSupplier {
   ESTIMATED,
 
   /**
+   * feature was created as a compound aggregate
+   */
+  COMPOUND_AGGREGATE,
+
+  /**
    * Peak was defined manually
    */
   MANUAL;
@@ -61,17 +66,13 @@ public enum FeatureStatus implements UniqueIdSupplier {
         (ConfigService.getDefaultColorPalette() != null) ? ConfigService.getDefaultColorPalette()
             : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
 
-    switch (this) {
-      case DETECTED:
-        return palette.getPositiveColorAWT();
-      case ESTIMATED:
-        return palette.getNeutralColorAWT();
-      case MANUAL:
-        return Color.BLACK;
-      case UNKNOWN:
-      default:
-        return palette.getNegativeColorAWT();
-    }
+    return switch (this) {
+      case DETECTED -> palette.getPositiveColorAWT();
+      case ESTIMATED -> palette.getNeutralColorAWT();
+      case MANUAL -> Color.BLACK;
+      case UNKNOWN -> palette.getNegativeColorAWT();
+      case COMPOUND_AGGREGATE -> Colors.MAGENTA;
+    };
   }
 
   public javafx.scene.paint.Color getColorFX() {
@@ -79,17 +80,13 @@ public enum FeatureStatus implements UniqueIdSupplier {
         (ConfigService.getDefaultColorPalette() != null) ? ConfigService.getDefaultColorPalette()
             : SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
 
-    switch (this) {
-      case DETECTED:
-        return palette.getPositiveColor();
-      case ESTIMATED:
-        return palette.getNeutralColor();
-      case MANUAL:
-        return javafx.scene.paint.Color.BLACK;
-      case UNKNOWN:
-      default:
-        return palette.getNegativeColor();
-    }
+    return switch (this) {
+      case DETECTED -> palette.getPositiveColor();
+      case ESTIMATED -> palette.getNeutralColor();
+      case MANUAL -> javafx.scene.paint.Color.BLACK;
+      case UNKNOWN -> palette.getNegativeColor();
+      case COMPOUND_AGGREGATE -> ColorsFX.MAGENTA;
+    };
   }
 
   @Override
@@ -99,6 +96,30 @@ public enum FeatureStatus implements UniqueIdSupplier {
       case ESTIMATED -> "ESTIMATED";
       case MANUAL -> "MANUAL";
       case UNKNOWN -> "UNKNOWN";
+      case  COMPOUND_AGGREGATE -> "COMPOUND_AGGREGATE";
     };
   }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case DETECTED -> "Detected";
+      case ESTIMATED -> "Estimated";
+      case MANUAL -> "Manual";
+      case UNKNOWN -> "Unknown";
+      case COMPOUND_AGGREGATE -> "Compound aggregate";
+    };
+  }
+
+  @NotNull
+  public String getDescription() {
+    return switch (this) {
+      case DETECTED -> "Feature was found in primary peak picking";
+      case ESTIMATED -> "Feature was estimated in secondary peak picking (gap-filling)";
+      case MANUAL -> "Feature was defined manually";
+      case UNKNOWN -> "Feature was not found";
+      case COMPOUND_AGGREGATE -> "Feature was created as a compound aggregate";
+    };
+  }
+
 }
