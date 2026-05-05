@@ -140,7 +140,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     if (MZmineCore.isHeadLessMode()) {
-      FxThread.initJavaFxInHeadlessMode();
+      FxThread.initJavaFx();
     }
 
     try {

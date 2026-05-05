@@ -24,9 +24,12 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,17 +38,20 @@ import java.util.logging.Logger;
 import javafx.scene.control.Label;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class NormalizationFunctionsParameter implements
-    UserParameter<List<NormalizationFunction>, Label> {
+    UserParameter<IntensityNormalizationSummary, Label> {
 
   private static final Logger logger = Logger.getLogger(
       NormalizationFunctionsParameter.class.getName());
 
   @NotNull
-  private final List<NormalizationFunction> normalizationFunctions = new ArrayList<>();
+  private IntensityNormalizationSummary summary = new IntensityNormalizationSummary(
+      List.of());
 
   @Override
   public @NotNull String getName() {
@@ -54,7 +60,7 @@ public class NormalizationFunctionsParameter implements
 
   @Override
   public @NotNull String getDescription() {
-    return "Stores per-file normalization functions used to normalize this feature list.";
+    return "Stores per-file normalization functions used to normalize this feature list. Summary contains multiple steps, applied in sequence.";
   }
 
   @Override
@@ -69,28 +75,28 @@ public class NormalizationFunctionsParameter implements
 
   @Override
   public void setValueToComponent(final @NotNull Label component,
-      final @Nullable List<NormalizationFunction> newValue) {
+      final @Nullable IntensityNormalizationSummary newValue) {
     // no UI component editing for hidden parameter
   }
 
   @Override
-  public @NotNull UserParameter<List<NormalizationFunction>, Label> cloneParameter() {
+  public @NotNull UserParameter<IntensityNormalizationSummary, Label> cloneParameter() {
     final NormalizationFunctionsParameter clonedParameter = new NormalizationFunctionsParameter();
-    clonedParameter.setValue(List.copyOf(normalizationFunctions));
+    clonedParameter.setValue(summary.copy());
     return clonedParameter;
   }
 
+  /**
+   * @return defensive copy of summary
+   */
   @Override
-  public @NotNull List<NormalizationFunction> getValue() {
-    return List.copyOf(normalizationFunctions);
+  public @NotNull IntensityNormalizationSummary getValue() {
+    return summary.copy();
   }
 
   @Override
-  public void setValue(final @Nullable List<NormalizationFunction> newValue) {
-    normalizationFunctions.clear();
-    if (newValue != null) {
-      normalizationFunctions.addAll(newValue);
-    }
+  public void setValue(final @Nullable IntensityNormalizationSummary newValue) {
+    summary = requireNonNullElse(newValue, IntensityNormalizationSummary.EMPTY);
   }
 
   @Override
@@ -104,41 +110,75 @@ public class NormalizationFunctionsParameter implements
       return false;
     }
 
-    if (normalizationFunctions.size() != other.normalizationFunctions.size()) {
-      return false;
-    }
-
-    for (int i = 0; i < normalizationFunctions.size(); i++) {
-      if (!normalizationFunctions.get(i).equals(other.normalizationFunctions.get(i))) {
-        return false;
-      }
-    }
-    return true;
+    return summary.equals(other.summary);
   }
 
   @Override
   public void loadValueFromXML(final @NotNull Element xmlElement) {
-    normalizationFunctions.clear();
+    ArrayList<RawFileNormalizationFunction> functions = new ArrayList<>();
+    ArrayList<String> messages = new ArrayList<>();
 
-    final NodeList functionElements = xmlElement.getElementsByTagName(
-        NormalizationFunction.XML_FUNCTION_ELEMENT);
+    final Element functionsElement;
+    try {
+      functionsElement = XMLUtils.findChildElement(xmlElement, "functions");
+    } catch (Exception e) {
+      // no valid xml
+      logger.log(Level.WARNING, "Error while loading normalization functions from XML. No functions tag.", e);
+      summary = IntensityNormalizationSummary.EMPTY;
+      return;
+    }
+    final NodeList functionElements = functionsElement.getElementsByTagName(
+        RawFileNormalizationFunction.XML_PARENT_ELEMENT);
     for (int i = 0; i < functionElements.getLength(); i++) {
-      final org.w3c.dom.Node node = functionElements.item(i);
-      if (!(node instanceof Element functionElement) || node.getParentNode() != xmlElement) {
+      final Node node = functionElements.item(i);
+      if (!(node instanceof Element functionElement) || node.getParentNode() != functionsElement) {
         continue;
       }
       try {
-        normalizationFunctions.add(NormalizationFunction.loadFromXML(functionElement));
+        functions.add(RawFileNormalizationFunction.loadFromXML(functionElement));
       } catch (RuntimeException e) {
         logger.log(Level.WARNING, "Error while loading normalization function", e);
+        // do not set a summary if loading of a function fails. This will result in wrong results
+        // normalization has to be applied a new
+        summary = IntensityNormalizationSummary.EMPTY;
+        return;
       }
     }
+
+    // messages
+    final Element messagesElements = XMLUtils.findChildElement(xmlElement, "messages");
+    final NodeList msgElements = messagesElements.getElementsByTagName("msg");
+    for (int i = 0; i < msgElements.getLength(); i++) {
+      final Node node = msgElements.item(i);
+      if (!(node instanceof Element element) || node.getParentNode() != messagesElements) {
+        continue;
+      }
+      messages.add(element.getTextContent());
+    }
+
+    // finally loaded summary
+    summary = new IntensityNormalizationSummary(functions, messages);
   }
 
   @Override
   public void saveValueToXML(final @NotNull Element xmlElement) {
-    for (final NormalizationFunction normalizationFunction : normalizationFunctions) {
-      NormalizationFunction.appendFunctionElement(xmlElement, normalizationFunction);
+    final Document doc = xmlElement.getOwnerDocument();
+
+    final Element funcElement = doc.createElement("functions");
+    xmlElement.appendChild(funcElement);
+
+    for (var function : summary.functions()) {
+      function.appendFunctionElement(funcElement);
     }
+
+    final Element messagesElement = doc.createElement("messages");
+    xmlElement.appendChild(messagesElement);
+
+    for (var message : summary.messages()) {
+      final Element msgElement = doc.createElement("msg");
+      msgElement.setTextContent(message);
+      messagesElement.appendChild(msgElement);
+    }
+
   }
 }

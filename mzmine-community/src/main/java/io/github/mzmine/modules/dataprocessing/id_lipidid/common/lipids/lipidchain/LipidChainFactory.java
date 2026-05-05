@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -139,8 +139,8 @@ public class LipidChainFactory {
       case AMID_CHAIN -> chainLength + ":" + numberOfDBE;
       case AMID_MONO_HYDROXY_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
       case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";O";
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";2O";
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";3O";
+      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";O2";
+      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN -> chainLength + ":" + numberOfDBE + ";O3";
     };
   }
 

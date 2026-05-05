@@ -48,6 +48,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -62,8 +63,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.zip.ZipFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -141,9 +140,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       StreamCopy copyMachine = new StreamCopy();
       copyMachine.copy(batchFileStream, fstream);
 
-      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      final Document batchQueuesDocument = dBuilder.parse(tempFile);
+      final Document batchQueuesDocument = XMLUtils.load(tempFile);
 
       final XPathFactory factory = XPathFactory.newInstance();
       final XPath xpath = factory.newXPath();

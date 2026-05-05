@@ -302,36 +302,8 @@ application {
     ]
 }
 
-// add external libraries to the built product
-def EXTERNAL_TOOLS_DESTINATION =
-        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/$APPNAME/external_tools").get()
-                : getLayout().getBuildDirectory().dir("jpackage/${APPNAME}.app/Contents/external_tools").get()
-def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
-tasks.jpackage.doFirst {
-    copy {
-        from EXTERNAL_TOOLS_SRC
-        into EXTERNAL_TOOLS_DESTINATION
-    }
-
-    if (OperatingSystem.current().isMacOsX()) {
-        def execOps = project.services.get(ExecOperations)
-        // Ensure external tools are executable and not quarantined on macOS
-        try {
-            def externalToolsDir = EXTERNAL_TOOLS_DESTINATION.asFile
-            def trfpMac = new File(externalToolsDir, "thermo_raw_file_parser/ThermoRawFileParser")
-            if (trfpMac.exists()) {
-                execOps.exec { commandLine(['chmod', '+x', trfpMac.absolutePath]) }
-            }
-            // Remove quarantine attributes recursively (ignore failures on files without the attribute)
-            execOps.exec {
-                commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
-                ignoreExitValue = true
-            }
-        } catch (Exception ignored) {
-            // best-effort; continue
-        }
-    }
-}
+// Bundle external tools directly through jpackage on all operating systems.
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools").asFile.absolutePath
 
 /*
  * Build the JVM runtime using jlink
@@ -372,6 +344,7 @@ runtime {
             installerName = APPNAME + "_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
+                            "--app-content", EXTERNAL_TOOLS_SRC,
                             "--add-launcher", APPNAME + "_console=gradle/win_console_launcher.properties"
             ]
             installerOptions = [
@@ -392,13 +365,15 @@ runtime {
             if (!macSigning) {
                 imageOptions = [
                         "--vendor", "mzio GmbH",
-                        "--icon", "src/main/resources/mzmineIcon.icns"
+                        "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--app-content", EXTERNAL_TOOLS_SRC
                 ]
 //                installerOptions = ["--license-file", "LICENSE.txt"] not required
                 installerOptions = []
             } else {
                 imageOptions = [
                         "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--app-content", EXTERNAL_TOOLS_SRC,
                         "--mac-sign",
                         "--mac-package-name", APPNAME,
                         "--mac-package-identifier", "io.github.mzmine.main",
@@ -418,7 +393,8 @@ runtime {
             // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
             // installerType = "deb"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
+            imageOptions = ["--icon", "src/main/resources/mzmineIcon.png",
+                            "--app-content", EXTERNAL_TOOLS_SRC]
             installerOptions = [
                     "--vendor", "mzio GmbH",
                     "--linux-package-name", APPNAME,

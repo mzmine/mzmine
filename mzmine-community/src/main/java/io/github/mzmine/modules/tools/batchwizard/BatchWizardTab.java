@@ -83,7 +83,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
-import javafx.scene.control.Tooltip;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -94,7 +93,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import org.controlsfx.control.ToggleSwitch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -410,7 +408,7 @@ public class BatchWizardTab extends SimpleTab {
     schemaPane.setAlignment(Pos.CENTER);
 
     // advanced mode toggle switch
-    ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
+    /*ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
     advancedToggle.setTooltip(new Tooltip("Show or hide the advanced parameter customization tab"));
     advancedToggle.selectedProperty().bindBidirectional(advancedMode);
     advancedMode.addListener((_, _, _) -> {
@@ -418,7 +416,7 @@ public class BatchWizardTab extends SimpleTab {
         // When a preset is loaded the listeners are not enabled
         createParameterPanes();
       }
-    });
+    });*/
 
     // add a wrapper around the top pane with combo boxes and buttons so the overlay buttons do not overlap
     final HBox topPaneWrapper = FxLayout.newHBox(
@@ -430,7 +428,7 @@ public class BatchWizardTab extends SimpleTab {
         "Open the mzwizard documentation", () -> DesktopService.getDesktop()
             .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
     VBox topRightControls = FxLayout.newVBox(Pos.CENTER_RIGHT, FxLayout.DEFAULT_PADDING_INSETS,
-        help, advancedToggle);
+        help/*, advancedToggle*/);
     topRightControls.setPickOnBounds(false);
     final StackPane stackPane = new StackPane(controlSchemaPane, topRightControls);
     StackPane.setAlignment(topRightControls, Pos.TOP_RIGHT);

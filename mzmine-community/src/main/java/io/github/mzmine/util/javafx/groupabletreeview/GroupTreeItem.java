@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,45 +22,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx.groupablelistview;
+package io.github.mzmine.util.javafx.groupabletreeview;
+
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.scene.control.TreeItem;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Class designed to be used as a value item of {@link GroupableListView}.
+ * A {@link TreeItem} that represents a group node in a {@link GroupableTreeView}. The value is
+ * always null; the group is identified by its name.
  *
- * @param <T> type of the value
+ * @param <T> the type of items in the tree
  */
-public class ValueEntity<T> implements GroupableListViewEntity {
+public final class GroupTreeItem<T> extends TreeItem<T> {
 
-  private T value;
-  private GroupEntity group;
+  private final StringProperty groupNameProperty;
 
-  public ValueEntity(T value) {
-    this.value = value;
+  public GroupTreeItem(@NotNull final String groupName) {
+    super(null);
+    this.groupNameProperty = new SimpleStringProperty(groupName);
+    setExpanded(true);
   }
 
-  public T getValue() {
-    return value;
+  public @NotNull String getGroupName() {
+    return groupNameProperty.get();
   }
 
-  public void setValue(T value) {
-    this.value = value;
+  public @NotNull StringProperty groupNameProperty() {
+    return groupNameProperty;
   }
-
-  public void setGroup(GroupEntity group) {
-    this.group = group;
-  }
-
-  public GroupEntity getGroup() {
-    return group;
-  }
-
-  public boolean isGrouped() {
-    return getGroup() != null;
-  }
-
-  @Override
-  public String toString() {
-    return value.toString();
-  }
-
 }

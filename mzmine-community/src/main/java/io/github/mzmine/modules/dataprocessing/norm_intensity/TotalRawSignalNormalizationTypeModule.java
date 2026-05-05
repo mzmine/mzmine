@@ -25,28 +25,52 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Normalize by average TIC across mass lists in selected scans (used to build chromatograms).
+ * Average to factor out the number of scans and scan rate. Use mass lists because they remove
+ * already parts of the noise that may skew the normalization.
+ */
 public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormalizationTypeModule {
 
   @Override
   public @NotNull String getName() {
-    return "TIC normalization";
+    return NormalizationType.TotalRawSignal.toString();
   }
 
   @Override
-  protected double getNormalizationMetricForFile(@NotNull final RawDataFile file,
+  public final @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return TotalRawSignalNormalizationTypeParameters.class;
+  }
+
+  @Override
+  protected double getNormalizationMetricForFile(
+      @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile file,
       @NotNull final ModularFeatureList featureList,
       @NotNull final ParameterSet linearNormalizerParameters,
       @NotNull final ParameterSet moduleSpecificParameters) {
-    final double ticSum = file.stream().filter(scan -> scan.getMSLevel() == 1)
-        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getTIC(), 0d)).sum();
-    if (Double.compare(ticSum, 0d) == 0) {
+
+    // only use selected scans for data file might be limited to actual data region
+    final List<? extends Scan> scans = featureList.getSeletedScans(file);
+    // calculate average TIC of mass lists instead of raw scans - raw scans may be dominated by noise
+    // average TIC to factor out the scan rate
+    if (scans == null) {
+      throw new IllegalStateException("No scans selected for datafile: " + file.getName());
+    }
+    ScanUtils.assertMassLists(scans);
+
+    final double avgTIC = scans.stream().map(Scan::getMassList)
+        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getTIC(), 0d)).average().orElse(0d);
+    if (Double.compare(avgTIC, 0d) == 0) {
       throw new IllegalStateException("No TIC found for file: " + file.getName());
     }
-    return ticSum;
+    return avgTIC;
   }
 }

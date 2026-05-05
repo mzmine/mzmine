@@ -57,8 +57,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javafx.collections.ObservableList;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -134,9 +132,7 @@ public class FeatureListSaveTask extends AbstractTask {
     }
 
     try {
-      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      final Document document = dBuilder.newDocument();
+      final Document document = XMLUtils.newDocument();
       final Element root = document.createElement(CONST.XML_ROOT_ELEMENT);
       document.appendChild(root);
 

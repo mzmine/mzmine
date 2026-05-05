@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -74,6 +75,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
+import io.github.mzmine.modules.io.spectraldbsubmit.row.SendRowsToSpectralLibraryModule;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
 import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
@@ -334,10 +336,18 @@ public class FeatureTableContextMenu extends ContextMenu {
     exportImageToCsv.setOnAction(
         _ -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
 
+    final MenuItem sendToLibraryItem = new ConditionalMenuItem("Send to spectral library",
+        () -> !selectedRows.isEmpty() && selectedRows.stream().anyMatch(
+            row -> row.getMostIntenseFragmentScan() != null && row.streamAllFeatureAnnotations()
+                .findAny().isPresent()));
+    sendToLibraryItem.setOnAction(
+        _ -> SendRowsToSpectralLibraryModule.showDialogAndSubmitTask(new ArrayList<>(selectedRows),
+            Instant.now()));
+
     // export menu
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
-            exportImageToCsv);
+            exportImageToCsv, new SeparatorMenuItem(), sendToLibraryItem);
   }
 
   private void initSearchMenu() {

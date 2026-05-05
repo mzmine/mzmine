@@ -27,24 +27,17 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 class InterpolatedNormalizationFunctionTest {
 
   @Test
   void constructorThrowsIfWeightsDoNotSumToOne() {
-    final RawDataFile file = RawDataFile.createDummyFile();
-    final LocalDateTime timestamp = LocalDateTime.of(2026, 1, 1, 10, 0);
-    final FactorNormalizationFunction previousFunction = new FactorNormalizationFunction(file,
-        timestamp, 2d);
-    final FactorNormalizationFunction nextFunction = new FactorNormalizationFunction(file,
-        timestamp, 4d);
+    final FactorNormalizationFunction previousFunction = new FactorNormalizationFunction(2d);
+    final FactorNormalizationFunction nextFunction = new FactorNormalizationFunction(4d);
 
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> new InterpolatedNormalizationFunction(file, timestamp, previousFunction, 0.8d,
-            nextFunction, 0.8d));
+        () -> new InterpolatedNormalizationFunction(previousFunction, 0.8d, nextFunction, 0.8d));
 
     assertEquals("Sum of previous and next run weight must be 1. prev=0.800000, next=0.800000",
         exception.getMessage());
@@ -52,15 +45,11 @@ class InterpolatedNormalizationFunctionTest {
 
   @Test
   void getNormalizationFactorInterpolatesPreviousAndNextFunctions() {
-    final RawDataFile file = RawDataFile.createDummyFile();
-    final LocalDateTime timestamp = LocalDateTime.of(2026, 1, 1, 10, 0);
-    final FactorNormalizationFunction previousFunction = new FactorNormalizationFunction(file,
-        timestamp, 2d);
-    final FactorNormalizationFunction nextFunction = new FactorNormalizationFunction(file,
-        timestamp, 4d);
+    final FactorNormalizationFunction previousFunction = new FactorNormalizationFunction(2d);
+    final FactorNormalizationFunction nextFunction = new FactorNormalizationFunction(4d);
 
     final InterpolatedNormalizationFunction interpolation = new InterpolatedNormalizationFunction(
-        file, timestamp, previousFunction, 0.25d, nextFunction, 0.75d);
+        previousFunction, 0.25d, nextFunction, 0.75d);
 
     assertEquals(3.5d, interpolation.getNormalizationFactor(100d, 5f), 1e-12);
   }

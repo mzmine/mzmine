@@ -24,45 +24,17 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.XMLUtils;
-import java.time.LocalDateTime;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Factor normalization function represented by one global factor.
  */
-public record FactorNormalizationFunction(@NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
-                                          @Nullable LocalDateTime acquisitionTimestamp,
-                                          double factor) implements NormalizationFunction {
+public record FactorNormalizationFunction(double factor) implements NormalizationFunction {
 
   public static final String XML_TYPE = "factor";
   private static final String XML_FACTOR_ATTR = "factor";
-
-  public FactorNormalizationFunction(@NotNull final RawDataFile referenceFile,
-      @Nullable final LocalDateTime acquisitionTimestamp, final double factor) {
-    this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, factor);
-  }
-
-  public FactorNormalizationFunction(@NotNull final RawDataFilePlaceholder rawDataFilePlaceholder,
-      @Nullable final LocalDateTime acquisitionTimestamp, final double factor) {
-    this.rawDataFilePlaceholder = rawDataFilePlaceholder;
-    this.acquisitionTimestamp = acquisitionTimestamp;
-    this.factor = factor;
-  }
-
-  @Override
-  public @NotNull RawDataFilePlaceholder rawDataFilePlaceholder() {
-    return rawDataFilePlaceholder;
-  }
-
-  @Override
-  public @Nullable LocalDateTime acquisitionTimestamp() {
-    return acquisitionTimestamp;
-  }
 
   @Override
   public @NotNull String getUniqueID() {
@@ -77,20 +49,14 @@ public record FactorNormalizationFunction(@NotNull RawDataFilePlaceholder rawDat
   @Override
   public void saveToXML(final @NotNull Element functionElement) {
     functionElement.setAttribute(XML_FUNCTION_TYPE_ATTR, getUniqueID());
-    rawDataFilePlaceholder.saveToXML(functionElement);
-    NormalizationFunction.saveAcquisitionTimestamp(functionElement, acquisitionTimestamp);
     functionElement.setAttribute(XML_FACTOR_ATTR, Double.toString(factor));
   }
 
   public static @NotNull FactorNormalizationFunction loadFromXML(
       final @NotNull Element functionElement) {
-    final RawDataFilePlaceholder rawDataFilePlaceholder = RawDataFilePlaceholder.loadFromXML(
-        functionElement);
-    final LocalDateTime acquisitionTimestamp = NormalizationFunction.loadAcquisitionTimestamp(
-        functionElement);
     final double factor = Double.parseDouble(
         XMLUtils.requireAttribute(functionElement, XML_FACTOR_ATTR));
-    return new FactorNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp, factor);
+    return new FactorNormalizationFunction(factor);
   }
 
 }

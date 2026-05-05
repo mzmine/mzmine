@@ -24,33 +24,22 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.parameters.ParameterSet;
-import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Creates one normalization function per reference file.
+ * A base normalization module. {@link NormalizationTypeWithReferencesModule} if the normalization
+ * may be applied to references samples and then interpolated for others.
  */
 public interface NormalizationTypeModule extends MZmineModule {
 
-  @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
-      @NotNull List<@NotNull RawDataFile> referenceFiles, @NotNull ModularFeatureList featureList,
+  void createAllNormalizationFunctionsToSummary(
+      @NotNull IntensityNormalizationSearchableSummary summary,
+      @NotNull ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
       @NotNull MetadataTable metadata, @NotNull ParameterSet mainParameters,
       @NotNull ParameterSet moduleSpecificParameters);
 
-  @NotNull NormalizationFunction createInterpolatedFunction(@NotNull RawDataFile fileToInterpolate,
-      @NotNull NormalizationFunction previousRunCalibration,
-      @NotNull NormalizationFunction nextRunCalibration,
-      @NotNull InterpolationWeights interpolationWeights, @NotNull MetadataTable metadata,
-      @NotNull ParameterSet parameters, @NotNull ParameterSet normalizerParameters);
-
-  @NotNull List<RawDataFile> getReferenceSamples(@NotNull final FeatureList flist,
-      @NotNull final ParameterSet normalizationModuleParameters);
 }

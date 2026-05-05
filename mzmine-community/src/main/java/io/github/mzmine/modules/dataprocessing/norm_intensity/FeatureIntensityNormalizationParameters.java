@@ -27,10 +27,11 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class FactorNormalizationModuleParameters extends SimpleParameterSet {
+public class FeatureIntensityNormalizationParameters extends SimpleParameterSet {
 
   public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
       "Reference samples", """
@@ -39,14 +40,22 @@ public class FactorNormalizationModuleParameters extends SimpleParameterSet {
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
       """, SampleType.values(), List.of(SampleType.QC));
 
-  public FactorNormalizationModuleParameters() {
-    super(sampleTypes);
+  public static final ComboParameter<FeatureIntensityNormalizationMode> mode = new ComboParameter<>(
+      "Normalize by feature abundances", """
+      Use intensity median (default), TIC (total sum), or other to normalize feature abundances.""",
+      FeatureIntensityNormalizationMode.values(), FeatureIntensityNormalizationMode.getDefault());
+
+  public FeatureIntensityNormalizationParameters() {
+    super(sampleTypes, mode);
   }
 
-  public static @NotNull FactorNormalizationModuleParameters create(
-      final @NotNull List<SampleType> selectedSampleTypes) {
-    final FactorNormalizationModuleParameters parameters = (FactorNormalizationModuleParameters) new FactorNormalizationModuleParameters().cloneParameterSet();
-    parameters.setParameter(FactorNormalizationModuleParameters.sampleTypes, selectedSampleTypes);
+  public static @NotNull FeatureIntensityNormalizationParameters create(
+      final @NotNull List<SampleType> selectedSampleTypes,
+      final @NotNull FeatureIntensityNormalizationMode selectedMode) {
+    final FeatureIntensityNormalizationParameters parameters = (FeatureIntensityNormalizationParameters) new FeatureIntensityNormalizationParameters().cloneParameterSet();
+    parameters.setParameter(FeatureIntensityNormalizationParameters.sampleTypes,
+        selectedSampleTypes);
+    parameters.setParameter(FeatureIntensityNormalizationParameters.mode, selectedMode);
     return parameters;
   }
 }

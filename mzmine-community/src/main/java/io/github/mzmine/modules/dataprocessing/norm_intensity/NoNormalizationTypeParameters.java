@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,43 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx.groupablelistview;
+package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-/**
- * Class designed to be used as a group item of {@link GroupableListView}.
- */
-public class GroupEntity implements GroupableListViewEntity {
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 
-  private String groupName;
-  private boolean isExpanded = true;
+public class NoNormalizationTypeParameters extends SimpleParameterSet {
 
-  public GroupEntity(String groupName) {
-    this.groupName = groupName;
+  public NoNormalizationTypeParameters() {
+    super();
   }
-
-  public String getGroupName() {
-    return groupName;
-  }
-
-  public void setGroupName(String groupName) {
-    this.groupName = groupName;
-  }
-
-  public void invertState() {
-    isExpanded = !isExpanded;
-  }
-
-  public boolean isExpanded() {
-    return isExpanded;
-  }
-
-  public boolean isHidden() {
-    return !isExpanded;
-  }
-
-  @Override
-  public String toString() {
-    return groupName;
-  }
-
 }

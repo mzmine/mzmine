@@ -48,6 +48,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -70,8 +71,6 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -323,13 +322,10 @@ public class FeatureListLoadTask extends AbstractTask {
    */
   private ModularFeatureList readMetadataCreateFeatureList(File file, MemoryMapStorage storage) {
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final Document configuration = XMLUtils.load(file);
 
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
-
-      XPathFactory factory = XPathFactory.newInstance();
-      XPath xpath = factory.newXPath();
+      final XPathFactory factory = XPathFactory.newInstance();
+      final XPath xpath = factory.newXPath();
 
       XPathExpression metadataExpr = xpath.compile(
           "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_METADATA_ELEMENT);

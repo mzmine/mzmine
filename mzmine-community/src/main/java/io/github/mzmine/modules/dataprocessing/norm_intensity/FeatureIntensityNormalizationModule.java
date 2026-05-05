@@ -26,22 +26,30 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.MathUtils;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MaximumFeatureHeightNormalizationTypeModule extends
-    AbstractFactorNormalizationTypeModule {
+public class FeatureIntensityNormalizationModule extends AbstractFactorNormalizationTypeModule {
 
   @Override
   public @NotNull String getName() {
-    return "Maximum peak intensity";
+    return NormalizationType.ByFeatureIntensity.toString();
   }
 
   @Override
-  protected double getNormalizationMetricForFile(@NotNull final RawDataFile file,
+  public final @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return FeatureIntensityNormalizationParameters.class;
+  }
+
+  @Override
+  protected double getNormalizationMetricForFile(
+      @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile file,
       @NotNull final ModularFeatureList featureList,
       @NotNull final ParameterSet linearNormalizerParameters,
       @NotNull final ParameterSet moduleSpecificParameters) {
@@ -50,20 +58,36 @@ public class MaximumFeatureHeightNormalizationTypeModule extends
     if (abundanceMeasure == null) {
       throw new IllegalStateException("No feature abundance measure selected for normalization.");
     }
+    final FeatureIntensityNormalizationMode mode = moduleSpecificParameters.getValue(
+        FeatureIntensityNormalizationParameters.mode);
 
-    double maximumIntensity = 0d;
-    for (final FeatureListRow featureListRow : featureList.getRows()) {
-      final ModularFeature feature = (ModularFeature) featureListRow.getFeature(file);
-      if (feature != null) {
-        final Float abundance = abundanceMeasure.get(feature);
-        if (abundance != null && maximumIntensity < abundance) {
-          maximumIntensity = abundance;
-        }
-      }
+    // need to apply any previous normalization function if it is available
+    // to apply the next normalization on top of the existing
+    final @Nullable RawFileNormalizationFunction existingNormFunction = summary.functions().get(file);
+    final double[] abundances = featureList.stream().map(r -> (ModularFeature) r.getFeature(file))
+        .filter(Objects::nonNull)
+        .mapToDouble(feature -> abundanceMeasure.getOrNaN(feature, existingNormFunction))
+        .filter(d -> !Double.isNaN(d)).toArray();
+
+    if (abundances.length == 0) {
+      throw new IllegalStateException(
+          "No feature abundances found for file %s in feature list %s.".formatted(file.getName(),
+              featureList.getName()));
     }
-    if (Double.compare(maximumIntensity, 0d) == 0) {
-      throw new IllegalStateException("No features found for file: " + file.getName());
+
+    final double result = switch (mode) {
+      case MEDIAN -> MathUtils.calcMedian(abundances);
+      case AVERAGE -> MathUtils.calcAvg(abundances);
+      case SUM_TIC -> ArrayUtils.sum(abundances);
+      case MAX -> ArrayUtils.max(abundances).orElse(0d);
+    };
+
+    if (!Double.isFinite(result) || Double.compare(result, 0d) == 0) {
+      throw new IllegalStateException(
+          "No features found or %s of feature intensities is 0 for file: %s".formatted(mode,
+              file.getName()));
     }
-    return maximumIntensity;
+
+    return result;
   }
 }
