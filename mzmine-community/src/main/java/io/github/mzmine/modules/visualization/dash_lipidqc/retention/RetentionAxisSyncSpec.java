@@ -25,13 +25,7 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc.retention;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import org.jetbrains.annotations.NotNull;
-
-/**
- * Result record holding a rendered single-series retention trend chart viewer and the
- * corresponding R² goodness-of-fit value.
- */
-record TrendChartResult(@NotNull EChartViewer chart, double r2) {
+record RetentionAxisSyncSpec(int primaryAxisIndex, int secondaryAxisIndex, double primaryValue,
+                             double secondaryValue) {
 
 }

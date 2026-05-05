@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -82,6 +83,8 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
   public Region build() {
     final VBox content = FxLayout.newVBox();
     content.getStyleClass().add("quality-content");
+    content.setFillWidth(true);
+    content.setMaxWidth(Double.MAX_VALUE);
     final ScrollPane scrollPane = new ScrollPane(content);
     scrollPane.setFitToWidth(true);
 
@@ -153,6 +156,8 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
   private @NotNull Region createQualityCard(final @NotNull QualityCardData qualityCardData) {
     final VBox card = new VBox(6);
     card.getStyleClass().add("quality-card");
+    card.setFillWidth(true);
+    card.setMaxWidth(Double.MAX_VALUE);
     card.getChildren().add(createQualityCardHeader(qualityCardData.match()));
     card.getChildren().add(createMetricRow("Overall quality", qualityCardData.overall(),
         qualityCardData.overall() >= 0.75 ? "High confidence"
@@ -193,6 +198,8 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
       final @NotNull QualityCardData qualityCardData, final @NotNull VBox content) {
     final VBox card = new VBox(6);
     card.getStyleClass().add("quality-card");
+    card.setFillWidth(true);
+    card.setMaxWidth(Double.MAX_VALUE);
     final var title = FxLabels.newBoldLabel(
         "Potentially missed annotation: " + formatCardTitle(candidate.match()));
     title.setWrapText(true);
@@ -248,6 +255,7 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
     actionButtons.setAlignment(Pos.CENTER_LEFT);
     final VBox alertContainer = new VBox(6, rowLinks, actionButtons);
     alertContainer.setFillWidth(true);
+    alertContainer.setMaxWidth(Double.MAX_VALUE);
     alertContainer.getStyleClass().add("quality-warning");
     return alertContainer;
   }

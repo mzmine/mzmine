@@ -25,14 +25,19 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc.retention;
 
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Result record for the combined carbon + DBE retention trend chart, holding the rendered chart
- * viewer together with the R² goodness-of-fit values and dataset axis indices for both trends.
- */
-record CombinedTrendChartResult(@NotNull EChartViewer chart, double carbonsR2, double dbeR2,
-                                int carbonsAxisIndex, int dbeAxisIndex) {
+record RetentionChartSpec(@NotNull RetentionTrendMode mode, @NotNull String title,
+                          @NotNull RetentionAxisSpec domainAxis,
+                          @NotNull List<RetentionAxisSpec> rangeAxes,
+                          @NotNull List<RetentionDatasetSpec> datasets,
+                          @Nullable RetentionAxisSyncSpec axisSyncSpec, boolean showLegend,
+                          boolean manualSelection) {
 
+  RetentionChartSpec {
+    rangeAxes = List.copyOf(rangeAxes);
+    datasets = List.copyOf(datasets);
+  }
 }
