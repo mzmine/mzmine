@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
 import com.sun.jna.Platform;
+import io.github.mzmine.util.ShellUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import io.github.mzmine.util.concurrent.CloseableResourceLock;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +50,13 @@ public class ClearcoreServer {
 
   private static final Logger logger = Logger.getLogger(ClearcoreServer.class.getName());
   private static final CloseableReentrantReadWriteLock startLock = new CloseableReentrantReadWriteLock();
+  // 461808 is the minimum release key for .NET Framework 4.7.2. Later versions use larger keys.
+  private static final int DOT_NET_FRAMEWORK_472_RELEASE_KEY = 461808;
+  private static final Pattern WINDOWS_DOT_NET_RELEASE_PATTERN = Pattern.compile(
+      "(?m)^\\s*Release\\s+REG_DWORD\\s+(0x[0-9a-fA-F]+|\\d+)\\s*$");
+  private static final String WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH = "HKLM\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full";
+  private static final Pattern LINUX_DOT_NET_6_RUNTIME_PATTERN = Pattern.compile(
+      "(?m)^Microsoft\\.NETCore\\.App\\s+6\\.\\d+\\.\\d+\\b.*$");
 
   /**
    * current instance. may change if the server crashes or so.
@@ -145,6 +154,13 @@ public class ClearcoreServer {
       if (server != null) {
         server.terminateClearcoreInstance();
       }
+      if (Platform.isWindows() && !checkDependenciesWindows()) {
+        throw new RuntimeException(
+            "SCIEX Clearcore on Windows requires .NET Framework 4.7.2 or later.");
+      }
+      if (Platform.isLinux() && !checkDependenciesLinux()) {
+        throw new RuntimeException("SCIEX Clearcore on Linux requires .NET 6.0.");
+      }
       server = new ClearcoreServer();
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Error while starting SCIEX Clearcore server.", e);
@@ -177,5 +193,36 @@ public class ClearcoreServer {
 
   public String address() {
     return address;
+  }
+
+  private static boolean checkDependenciesWindows() {
+    // decision: query the 64-bit registry view because the bundled Clearcore server is x64.
+    final String output = ShellUtils.runGetOutput("reg", "query",
+        WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH, "/v", "Release", "/reg:64");
+    if (output == null || output.isBlank()) {
+      return false;
+    }
+
+    final var matcher = WINDOWS_DOT_NET_RELEASE_PATTERN.matcher(output);
+    if (!matcher.find()) {
+      return false;
+    }
+
+    try {
+      final int releaseKey = Integer.decode(matcher.group(1));
+      return releaseKey >= DOT_NET_FRAMEWORK_472_RELEASE_KEY;
+    } catch (NumberFormatException e) {
+      logger.fine("Cannot parse .NET Framework release key from registry output: " + output);
+      return false;
+    }
+  }
+
+  private static boolean checkDependenciesLinux() {
+    final String output = ShellUtils.runGetOutput("dotnet", "--list-runtimes");
+    if (output == null || output.isBlank()) {
+      return false;
+    }
+
+    return LINUX_DOT_NET_6_RUNTIME_PATTERN.matcher(output).find();
   }
 }
