@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class NormalizedAreaType extends AreaType {
 
+  public static final String UNIQUE_ID = "area_norm";
+
   @Override
   public @NotNull String getUniqueID() {
-    return "area_norm";
+    return UNIQUE_ID;
   }
 
   @Override

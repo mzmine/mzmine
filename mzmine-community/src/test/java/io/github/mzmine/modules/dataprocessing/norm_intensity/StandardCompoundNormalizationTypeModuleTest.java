@@ -30,6 +30,7 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.toFeatureSelections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,7 +40,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils.InterpolationWeights;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,8 +58,11 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersWithoutStandards(
         StandardUsageType.Nearest, true);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(file), featureList, new MetadataTable(false),
+        () -> module.createReferenceFunctions(summary, List.of(file), featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("No internal standard features selected.", exception.getMessage());
@@ -77,10 +80,12 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
         StandardUsageType.Nearest, true, standardRow);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final RuntimeException exception = assertThrows(RuntimeException.class,
-        () -> module.createReferenceFunctions(List.of(fileA, fileB), featureList,
-            new MetadataTable(false), createMainParameters(AbundanceMeasure.Height),
-            moduleParameters));
+        () -> module.createReferenceFunctions(summary, List.of(fileA, fileB), featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
+            createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertTrue(exception.getMessage().contains("was not detected in file file_b"));
   }
@@ -96,8 +101,11 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
         StandardUsageType.Weighted, false, standardRow);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA), featureList, new MetadataTable(false),
+        () -> module.createReferenceFunctions(summary, List.of(fileA), featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertEquals("No intensity normalization standards found for file: file_a",
@@ -115,8 +123,11 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
         StandardUsageType.Nearest, true, standardRow);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final IllegalStateException exception = assertThrows(IllegalStateException.class,
-        () -> module.createReferenceFunctions(List.of(fileA), featureList, new MetadataTable(false),
+        () -> module.createReferenceFunctions(summary, List.of(fileA), featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
     assertTrue(exception.getMessage().contains("Invalid standard abundance found for row"));
@@ -134,8 +145,11 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
         StandardUsageType.Nearest, true, standardRow);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
-        List.of(fileA, fileB), featureList, new MetadataTable(false),
+        summary, List.of(fileA, fileB), featureList,
+        new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
         createMainParameters(AbundanceMeasure.Height), moduleParameters);
 
     final StandardCompoundNormalizationFunction functionA = assertInstanceOf(
@@ -167,9 +181,11 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
         StandardUsageType.Nearest, false, standardRow1, standardRow2);
 
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
     final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
-        List.of(fileA), featureList, new MetadataTable(false),
-        createMainParameters(AbundanceMeasure.Height), moduleParameters);
+        summary, List.of(fileA), featureList, new SamplesBatch(featureList.getRawDataFiles(), null),
+        new MetadataTable(false), createMainParameters(AbundanceMeasure.Height), moduleParameters);
 
     final StandardCompoundNormalizationFunction functionA = assertInstanceOf(
         StandardCompoundNormalizationFunction.class, functions.get(fileA));
@@ -182,24 +198,36 @@ class StandardCompoundNormalizationTypeModuleTest {
   void createInterpolatedFunctionCreatesInterpolatedNormalizationFunction() {
     final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
     final RawDataFileImpl prevFile = createRawFile("prev", LocalDateTime.of(2026, 1, 1, 10, 0));
-    final RawDataFileImpl nextFile = createRawFile("next", LocalDateTime.of(2026, 1, 1, 10, 10));
-    final RawDataFileImpl targetFile = createRawFile("target", LocalDateTime.of(2026, 1, 1, 10, 5));
+    final RawDataFileImpl nextFile = createRawFile("next", LocalDateTime.of(2026, 1, 1, 10, 8));
+    final RawDataFileImpl targetFile = createRawFile("target", LocalDateTime.of(2026, 1, 1, 10, 6));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null,
+        List.of(prevFile, targetFile, nextFile));
 
     final StandardCompoundNormalizationFunction prevFunction = new StandardCompoundNormalizationFunction(
-        prevFile, prevFile.getStartTimeStamp(), StandardUsageType.Nearest, 1.0d,
+        StandardUsageType.Nearest, 1.0d,
         List.of(new StandardCompoundReferencePoint(100d, 5f, 400d)));
     final StandardCompoundNormalizationFunction nextFunction = new StandardCompoundNormalizationFunction(
-        nextFile, nextFile.getStartTimeStamp(), StandardUsageType.Nearest, 1.0d,
+        StandardUsageType.Nearest, 1.0d,
         List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
 
-    // InterpolationWeights(nextRun, previousRun, previousWeight, nextRunWeight)
-    final InterpolationWeights weights = new InterpolationWeights(nextFile, prevFile, 0.25d, 0.75d);
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    summary.addMergeFunction(prevFile, prevFunction);
+    summary.addMergeFunction(nextFile, nextFunction);
 
-    final NormalizationFunction result = module.createInterpolatedFunction(targetFile, prevFunction,
-        nextFunction, weights, new MetadataTable(false),
-        createMainParameters(AbundanceMeasure.Height),
-        createModuleParametersWithoutStandards(StandardUsageType.Nearest, true));
+    // internally we never use summary.functions for interpolation because
+    // interpolation should be based on a single steps functions not on the merged composite function
+    Map<RawDataFile, NormalizationFunction> functions = Map.of(prevFile, prevFunction, nextFile,
+        nextFunction);
 
+    module.interpolateAllFunctionsToSummary(summary, featureList,
+        new SamplesBatch(featureList.getRawDataFiles()), new MetadataTable(false),
+        functions, createMainParameters(AbundanceMeasure.Height),
+        createModuleParametersWithoutStandards(StandardUsageType.Nearest, false));
+
+    var result = summary.get(targetFile);
+    assertNotNull(result);
     final InterpolatedNormalizationFunction interpolated = assertInstanceOf(
         InterpolatedNormalizationFunction.class, result);
     assertEquals(0.25d, interpolated.previousWeight(), 1e-12);

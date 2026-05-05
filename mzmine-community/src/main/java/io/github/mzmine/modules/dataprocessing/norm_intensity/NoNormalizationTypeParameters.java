@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,29 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
-public class FactorNormalizationModuleParameters extends SimpleParameterSet {
+public class NoNormalizationTypeParameters extends SimpleParameterSet {
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
-      "Reference samples", """
-      Select all sample types that shall be used to calculate the recalibration from.
-      The recalibration of all other samples will be based on the acquisition order, which is
-      determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      """, SampleType.values(), List.of(SampleType.QC));
-
-  public FactorNormalizationModuleParameters() {
-    super(sampleTypes);
-  }
-
-  public static @NotNull FactorNormalizationModuleParameters create(
-      final @NotNull List<SampleType> selectedSampleTypes) {
-    final FactorNormalizationModuleParameters parameters = (FactorNormalizationModuleParameters) new FactorNormalizationModuleParameters().cloneParameterSet();
-    parameters.setParameter(FactorNormalizationModuleParameters.sampleTypes, selectedSampleTypes);
-    return parameters;
+  public NoNormalizationTypeParameters() {
+    super();
   }
 }

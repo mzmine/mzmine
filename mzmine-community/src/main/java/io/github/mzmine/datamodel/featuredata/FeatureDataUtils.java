@@ -411,10 +411,12 @@ public class FeatureDataUtils {
     }
 
     // auto-apply normalization if present
-    final NormalizationFunction normalizer = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
-        feature.getFeatureList(), feature.getRawDataFile());
-    if (normalizer != null) {
-      normalizeAbundances(feature, normalizer);
+    if (feature.getRawDataFile() != null) {
+      // normalize or reset normalized intensities
+      IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
+              feature.getFeatureList(), feature.getRawDataFile())
+          .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
+              () -> clearIntensityNormalization(feature));
     }
   }
 
@@ -505,5 +507,17 @@ public class FeatureDataUtils {
     final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
     feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
     feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
+  }
+
+  /**
+   * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
+   */
+  public static void clearIntensityNormalization(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  }
+
+  private static void clearIntensityNormalization(ModularFeature feature) {
+    feature.set(NormalizedAreaType.class, null);
+    feature.set(NormalizedHeightType.class, null);
   }
 }

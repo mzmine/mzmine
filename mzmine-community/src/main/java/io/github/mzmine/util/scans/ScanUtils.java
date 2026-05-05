@@ -2578,6 +2578,17 @@ public class ScanUtils {
   }
 
   /**
+   * Checks that all scans have mass lists
+   */
+  public static void assertMassLists(@NotNull Collection<? extends Scan> scans) {
+    for (Scan scan : scans) {
+      if (scan.getMassList() == null) {
+        throw new MissingMassListException(scan);
+      }
+    }
+  }
+
+  /**
    * Binning modes
    */
   public enum BinningType {

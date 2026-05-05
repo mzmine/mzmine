@@ -24,25 +24,19 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.util.XMLUtils;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
  * File-specific standard compound normalization function.
  */
-public record StandardCompoundNormalizationFunction(
-    @NotNull RawDataFilePlaceholder rawDataFilePlaceholder,
-    @Nullable LocalDateTime acquisitionTimestamp, @NotNull StandardUsageType usageType,
-    double mzVsRtBalance,
-    @NotNull List<@NotNull StandardCompoundReferencePoint> referencePoints) implements
+public record StandardCompoundNormalizationFunction(@NotNull StandardUsageType usageType,
+                                                    double mzVsRtBalance,
+                                                    @NotNull List<@NotNull StandardCompoundReferencePoint> referencePoints) implements
     NormalizationFunction {
 
   public static final String XML_TYPE = "standardCompound";
@@ -58,25 +52,6 @@ public record StandardCompoundNormalizationFunction(
     if (referencePoints.isEmpty()) {
       throw new IllegalStateException("No standard reference points available.");
     }
-  }
-
-  public StandardCompoundNormalizationFunction(@NotNull final RawDataFile referenceFile,
-      @Nullable final LocalDateTime acquisitionTimestamp,
-      @NotNull final StandardUsageType usageType,
-      final double mzVsRtBalance,
-      @NotNull final List<StandardCompoundReferencePoint> referencePoints) {
-    this(new RawDataFilePlaceholder(referenceFile), acquisitionTimestamp, usageType, mzVsRtBalance,
-        referencePoints);
-  }
-
-  @Override
-  public @NotNull RawDataFilePlaceholder rawDataFilePlaceholder() {
-    return rawDataFilePlaceholder;
-  }
-
-  @Override
-  public @Nullable LocalDateTime acquisitionTimestamp() {
-    return acquisitionTimestamp;
   }
 
   @Override
@@ -152,8 +127,6 @@ public record StandardCompoundNormalizationFunction(
   @Override
   public void saveToXML(final @NotNull Element functionElement) {
     functionElement.setAttribute(XML_FUNCTION_TYPE_ATTR, getUniqueID());
-    rawDataFilePlaceholder.saveToXML(functionElement);
-    NormalizationFunction.saveAcquisitionTimestamp(functionElement, acquisitionTimestamp);
     functionElement.setAttribute(XML_STANDARD_USAGE_TYPE_ATTR, usageType.name());
     functionElement.setAttribute(XML_MZ_VS_RT_BALANCE_ATTR, Double.toString(mzVsRtBalance));
 
@@ -170,10 +143,6 @@ public record StandardCompoundNormalizationFunction(
 
   public static @NotNull StandardCompoundNormalizationFunction loadFromXML(
       final @NotNull Element functionElement) {
-    final RawDataFilePlaceholder rawDataFilePlaceholder = RawDataFilePlaceholder.loadFromXML(
-        functionElement);
-    final LocalDateTime acquisitionTimestamp = NormalizationFunction.loadAcquisitionTimestamp(
-        functionElement);
     final StandardUsageType standardUsageType = StandardUsageType.valueOf(
         XMLUtils.requireAttribute(functionElement, XML_STANDARD_USAGE_TYPE_ATTR));
     final double mzVsRtBalance = Double.parseDouble(
@@ -192,8 +161,8 @@ public record StandardCompoundNormalizationFunction(
       referencePoints.add(new StandardCompoundReferencePoint(mz, rt, abundance));
     }
 
-    return new StandardCompoundNormalizationFunction(rawDataFilePlaceholder, acquisitionTimestamp,
-        standardUsageType, mzVsRtBalance, referencePoints);
+    return new StandardCompoundNormalizationFunction(standardUsageType, mzVsRtBalance,
+        referencePoints);
   }
 
   @Override

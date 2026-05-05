@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.projectmetadata;
 import io.github.mzmine.datamodel.RawDataFile;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public enum SampleType {
   BLANK, SAMPLE, QC, CALIBRATION;
@@ -35,7 +36,12 @@ public enum SampleType {
   /**
    * checks for naming patterns in the sample name. default return is {@link #SAMPLE}.
    */
-  public static SampleType ofString(String sampleType) {
+  @NotNull
+  public static SampleType ofString(@Nullable String sampleType) {
+    if (sampleType == null) {
+      // TODO maybe change to UNDEFINED
+      return SAMPLE;
+    }
     final String name = sampleType.toLowerCase();
     final Pattern qcPattern = Pattern.compile(".*(?<![a-z])*([-_0-9]*qc[-_0-9]*)(?![a-z])*.*");
     final Pattern blankPattern = Pattern.compile(

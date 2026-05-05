@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -62,13 +63,19 @@ final class NormIntensityTestUtils {
   static @NotNull ParameterSet createMainParameters(
       final @NotNull AbundanceMeasure abundanceMeasure) {
     return IntensityNormalizerParameters.create(
-        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "norm",
-        NormalizationType.MedianFeatureIntensity, createFactorParameters(), abundanceMeasure,
-        OriginalFeatureListOption.KEEP, List.of());
+        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "norm", null,
+        NormalizationType.NoNormalization, null,
+        NormalizationType.ByFeatureIntensity, createFeatureIntensityParameters(
+            FeatureIntensityNormalizationMode.MEDIAN), null, abundanceMeasure, OriginalFeatureListOption.KEEP, null);
   }
 
-  static @NotNull FactorNormalizationModuleParameters createFactorParameters() {
-    return FactorNormalizationModuleParameters.create(List.of(SampleType.QC));
+  static @NotNull FeatureIntensityNormalizationParameters createFeatureIntensityParameters(
+      FeatureIntensityNormalizationMode mode) {
+    return FeatureIntensityNormalizationParameters.create(List.of(SampleType.QC), mode);
+  }
+  static @NotNull FeatureIntensityNormalizationParameters createFeatureIntensityParametersAllSamples(
+      FeatureIntensityNormalizationMode mode) {
+    return FeatureIntensityNormalizationParameters.create(List.of(SampleType.values()), mode);
   }
 
   static @NotNull List<FeatureSelection> toFeatureSelections(
@@ -134,6 +141,7 @@ final class NormIntensityTestUtils {
     final SimpleScan scan = new SimpleScan(file, scanNumber, msLevel, rt, null, mzValues,
         intensityValues, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(0d, 2000d));
+    scan.addMassList(new ScanPointerMassList(scan));
     file.addScan(scan);
   }
 }

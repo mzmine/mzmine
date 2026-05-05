@@ -66,6 +66,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
@@ -207,9 +209,10 @@ public class DataTypes {
         MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
-        MobilityUnitType.class, AreaType.class, HeightType.class, IntensityRangeType.class,
-        ChargeType.class, FragmentScanNumbersType.class, IsotopePatternType.class,
-        TailingFactorType.class, AsymmetryFactorType.class,
+        MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
+        NormalizedHeightType.class, IntensityRangeType.class, ChargeType.class,
+        FragmentScanNumbersType.class, IsotopePatternType.class, TailingFactorType.class,
+        AsymmetryFactorType.class,
         // annotation specific
         CompoundNameType.class, DatasetIdType.class, FormulaType.class, SmilesStructureType.class,
         InChIStructureType.class, InChIKeyStructureType.class, SplashType.class, UsiType.class,
@@ -234,14 +237,15 @@ public class DataTypes {
 
   /**
    * Default sorter is based on {@link DataType} order in {@link #getDataTypeOrderFeatureTable()}
+   *
    * @return default sorter
    */
   @NotNull
   public static Comparator<DataType> getDefaultSorterFeatureTable() {
     final Map<DataType, Integer> order = DataTypes.getDataTypeOrderFeatureTable();
 
-    return Comparator.<DataType>comparingInt(
-        t -> order.getOrDefault(t, 99999999)).thenComparing(DataType::getUniqueID);
+    return Comparator.<DataType>comparingInt(t -> order.getOrDefault(t, 99999999))
+        .thenComparing(DataType::getUniqueID);
   }
 
   /**

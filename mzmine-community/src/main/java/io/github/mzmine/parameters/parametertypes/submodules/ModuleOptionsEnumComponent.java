@@ -47,9 +47,9 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -67,7 +67,7 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
   protected final Map<EnumType, ParameterSetupPane> paramPanesMap;
   protected @Nullable ParameterSetupPane paramPane;
-  private final BooleanProperty hidden = new SimpleBooleanProperty(true);
+  private final BooleanProperty hidden = new SimpleBooleanProperty(false);
   private final DoubleProperty estimatedHeightProperty = new SimpleDoubleProperty(0);
   private final DoubleProperty estimatedWidthProperty = new SimpleDoubleProperty(0);
   private final ObjectProperty<EnumType> selectedValue = new SimpleObjectProperty<>();
@@ -79,7 +79,6 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
       final EnumMap<EnumType, ParameterSet> parametersMap, final EnumType startValue,
       final boolean alwaysOpen) {
     super();
-    hidden.set(!alwaysOpen);
     this.selectedValue.set(startValue);
     combo = FxComboBox.createComboBox("Options", parametersMap.keySet(), this.selectedValue);
 
@@ -109,6 +108,16 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
         onSubParametersChanged.run();
       }
 
+      final boolean visiblePane = paramPane != null && !paramPane.getComponents().isEmpty();
+      paramHolder.setVisible(visiblePane);
+      paramHolder.setManaged(visiblePane);
+
+      // estimate new height
+      var params = visiblePane && !hidden.get() ? paramPane.getParametersAndComponents().size() : 0;
+      setEstimatedHeight(params);
+
+      setEstimatedDefaultWidth(params == 0);
+
       var parent = getParent();
       if (parent != null) {
         parent.layout();
@@ -117,8 +126,9 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
 
     paramHolder.setBottom(new Separator(Orientation.HORIZONTAL));
 
-    Button setButton = FxButtons.createButton("Show", () -> hidden.set(!hidden.get()));
-    setButton.textProperty().bind(hidden.map(hidden -> hidden ? "Show" : "Hide"));
+    ToggleButton setButton = FxButtons.createToggleButton("Show", "Hide", hidden);
+    // not shown if pane has no components
+    setButton.visibleProperty().bind(paramHolder.visibleProperty());
     // auto show paramPane
     centerProperty().bind(hidden.map(hidden -> hidden ? null : paramHolder));
 
