@@ -692,8 +692,7 @@ public class FeatureTableFX extends BorderPane {
   }
 
   private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
-    TreeItem<ModularFeatureListRow> root = new TreeItem<>(
-        (ModularFeatureListRow) compound.getPreferredRow());
+    TreeItem<ModularFeatureListRow> root = new TreeItem<>(compound);
 
     for (CompoundFeatureMember member : compound.getCompoundMembers()) {
       root.getChildren().add(new TreeItem<>((ModularFeatureListRow) member.row()));
