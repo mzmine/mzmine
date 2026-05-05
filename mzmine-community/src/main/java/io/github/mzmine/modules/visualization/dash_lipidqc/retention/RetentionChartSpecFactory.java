@@ -63,9 +63,6 @@ import org.jfree.data.xy.XYDataset;
  */
 final class RetentionChartSpecFactory {
 
-  private static final @NotNull Color SELECTED_POINT_COLOR = ConfigService.getDefaultColorPalette()
-      .getPositiveColorAWT();
-
   private final @NotNull LipidAnnotationQCDashboardModel model;
 
   RetentionChartSpecFactory(final @NotNull LipidAnnotationQCDashboardModel model) {
@@ -405,9 +402,9 @@ final class RetentionChartSpecFactory {
   private void addSelectedPointDataset(final @NotNull List<RetentionDatasetSpec> datasets,
       final int rangeAxisIndex, final double xValue, final double yValue,
       final @NotNull String seriesKey) {
-    datasets.add(new RetentionDatasetSpec(createDataset(seriesKey, SELECTED_POINT_COLOR,
+    datasets.add(new RetentionDatasetSpec(createDataset(seriesKey, selectedPointColor(),
         List.of(new RetentionPointRef(null, null, xValue, yValue, null, null))),
-        createSelectedOverlayRenderer(SELECTED_POINT_COLOR,
+        createSelectedOverlayRenderer(selectedPointColor(),
             new Ellipse2D.Double(-5d, -5d, 10d, 10d)), rangeAxisIndex,
         RetentionDatasetRole.SELECTED_POINT));
   }
@@ -741,6 +738,10 @@ final class RetentionChartSpecFactory {
   }
 
   private @NotNull Color falseNegativeColor() {
+    return ConfigService.getDefaultColorPalette().getPositiveColorAWT();
+  }
+
+  private @NotNull Color selectedPointColor() {
     return ConfigService.getDefaultColorPalette().getPositiveColorAWT();
   }
 

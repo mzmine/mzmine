@@ -233,11 +233,9 @@ final class RetentionChartController {
   }
 
   private void selectRow(final @NotNull FeatureListRow row) {
-    if (Objects.equals(row, model.getRow())) {
-      FeatureTableFXUtil.selectAndScrollTo(row, model.getFeatureTableFx());
-      return;
+    if (!Objects.equals(row, model.getRow())) {
+      model.setRow(row);
     }
-    model.setRow(row);
     FeatureTableFXUtil.selectAndScrollTo(row, model.getFeatureTableFx());
   }
 
