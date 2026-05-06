@@ -45,6 +45,10 @@ public sealed interface LibraryOrigin {
   Builtin BUILTIN = new Builtin();
   Local LOCAL = new Local();
 
+  default boolean isCloud() {
+    return this instanceof Cloud;
+  }
+
   /// Bundled with mzmine. Immutable; never persisted as a user preset.
   record Builtin() implements LibraryOrigin {
 

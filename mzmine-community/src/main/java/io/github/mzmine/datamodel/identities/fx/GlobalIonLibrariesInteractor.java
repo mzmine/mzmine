@@ -97,6 +97,10 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
           "The selected ion building block is used in internal libraries and cannot be changed.");
       return false;
     }
+    final long cloudLibs = matchingLibs.libraries().keySet().stream().filter(IonLibrary::isCloudLibrary)
+        .count();
+
+    String cloudMessage = cloudLibs == 0 ? "" : "Cloud libraries changed: %d\n".formatted(cloudLibs);
 
     if (DialogLoggerUtil.showDialogYesNo("Cascade remove ion building block?", """
               Do you want to remove all ion types from all libraries that use ion building block:
@@ -104,7 +108,7 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
               Otherwise the ion building block will stay defined.
               
               This changes:
-              %s""".formatted(def.toString(), matchingLibs.toString()))) {
+              %s%s""".formatted(def.toString(), cloudMessage, matchingLibs.toString()))) {
 
       // change all libs
       model.getIonTypes().removeAll(matchingLibs.types());

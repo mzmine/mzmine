@@ -79,7 +79,7 @@ public interface IonLibrary {
    * @return true if other has the same content of ions like this library
    */
   default boolean equalIons(@NotNull IonLibrary other) {
-    if(other.getNumIons() != getNumIons()) {
+    if (other.getNumIons() != getNumIons()) {
       return false;
     }
 
@@ -88,7 +88,7 @@ public interface IonLibrary {
 
     // same sorting
     for (int i = 0; i < ions.size(); i++) {
-      if(!ions.get(i).equals(otherIons.get(i))) {
+      if (!ions.get(i).equals(otherIons.get(i))) {
         return false;
       }
     }
@@ -102,5 +102,12 @@ public interface IonLibrary {
    */
   default boolean isInternalLibrary() {
     return origin() instanceof Builtin;
+  }
+
+  /**
+   * @return true if cloud library
+   */
+  default boolean isCloudLibrary() {
+    return origin().isCloud();
   }
 }

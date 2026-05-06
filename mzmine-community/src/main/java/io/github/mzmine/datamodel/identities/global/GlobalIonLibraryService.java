@@ -441,7 +441,7 @@ public final class GlobalIonLibraryService {
       proposed = proposed.cascadeIonDefinitionsFromLibraries();
 
       final int currentVersion = getVersion();
-      final GlobalIonLibraryDTO currentDto = snapshotWithinLock(currentVersion);
+      final GlobalIonLibraryDTO currentDto = snapshotGlobalLibrary(currentVersion);
       if (!applyDirectlyIgnoreValidation && currentVersion != expectedBaseVersion) {
         // base version is different so validate the changes first
         final ValidationResult vr = validator.validate(proposed, currentDto);
@@ -469,9 +469,11 @@ public final class GlobalIonLibraryService {
   }
 
   /// Snapshot without re-acquiring the read lock (we hold the write lock already).
-  private @NotNull GlobalIonLibraryDTO snapshotWithinLock(int version) {
-    return new GlobalIonLibraryDTO(version, getIonLibrariesUnmodifiable(),
-        getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
+  private @NotNull GlobalIonLibraryDTO snapshotGlobalLibrary(int version) {
+    try (var _ = lock.lockRead()) {
+      return new GlobalIonLibraryDTO(version, getIonLibrariesUnmodifiable(),
+          getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
+    }
   }
 
   // currently not used but maybe later to have finer report on changes
