@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -54,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureD
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
@@ -310,7 +312,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,
-        LipidAnnotationCleanupModule.class,
+        LipidAnnotationCleanupModule.class, SetLipidAnnotationLevelModule.class,
         PreferredAnnotationRankingModule.class);
     return menu;
   }

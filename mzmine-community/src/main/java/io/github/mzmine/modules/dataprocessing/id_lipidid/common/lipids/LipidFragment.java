@@ -246,15 +246,12 @@ public class LipidFragment {
     int relativeIntensityWeight = 0;
     String originatingRuleFormula = "";
 
-    if (reader.getAttributeValue(null, XML_ELEMENT)
-        .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
-      lipidFragmentInformationLevelType = LipidAnnotationLevel.SPECIES_LEVEL;
-    } else if (reader.getAttributeValue(null, XML_ELEMENT)
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
-      lipidFragmentInformationLevelType = LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
+    if (reader.getAttributeValue(null, XML_ELEMENT) != null) {
+      lipidFragmentInformationLevelType = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
+          reader.getAttributeValue(null, XML_ELEMENT));
     }
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;

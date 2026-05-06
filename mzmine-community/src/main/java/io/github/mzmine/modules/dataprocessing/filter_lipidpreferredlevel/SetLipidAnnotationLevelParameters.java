@@ -23,32 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
+package io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public enum LipidAnnotationLevel implements UniqueIdSupplier {
+public class SetLipidAnnotationLevelParameters extends SimpleParameterSet {
 
-  SPECIES_LEVEL("Species level"), //
-  MOLECULAR_SPECIES_LEVEL("Molecular species level"); //
+  public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  private final @NotNull String label;
+  public static final ComboParameter<LipidAnnotationLevel> level = new ComboParameter<>(
+      "Annotation level",
+      "Select the lipid annotation level to set to. Setting to molecular species level will only apply to annotations that actually have enough evidence for a molecular species level annotation.",
+      LipidAnnotationLevel.values(), LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL);
 
-  LipidAnnotationLevel(final @NotNull String label) {
-    this.label = label;
-  }
-
-  @Override
-  public @NotNull String toString() {
-    return label;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case SPECIES_LEVEL -> "species_level";
-      case MOLECULAR_SPECIES_LEVEL -> "molec_species_level";
-    };
+  public SetLipidAnnotationLevelParameters() {
+    super(flists, level);
   }
 }

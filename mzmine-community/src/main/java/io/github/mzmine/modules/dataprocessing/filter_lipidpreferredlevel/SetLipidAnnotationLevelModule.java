@@ -23,32 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
+package io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public enum LipidAnnotationLevel implements UniqueIdSupplier {
+public class SetLipidAnnotationLevelModule extends TaskPerFeatureListModule {
 
-  SPECIES_LEVEL("Species level"), //
-  MOLECULAR_SPECIES_LEVEL("Molecular species level"); //
-
-  private final @NotNull String label;
-
-  LipidAnnotationLevel(final @NotNull String label) {
-    this.label = label;
+  public SetLipidAnnotationLevelModule() {
+    super("Set preferred lipid annotation level", SetLipidAnnotationLevelParameters.class,
+        MZmineModuleCategory.ANNOTATION, false,
+        "Select if lipid annotations should be displayed as species or molecular species level by default.");
   }
 
   @Override
-  public @NotNull String toString() {
-    return label;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case SPECIES_LEVEL -> "species_level";
-      case MOLECULAR_SPECIES_LEVEL -> "molec_species_level";
-    };
+  public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
+      @NotNull FeatureList featureList) {
+    return new SetLipidAnnotationLevelTask(null, moduleCallDate, parameters, this.getClass(),
+        featureList);
   }
 }

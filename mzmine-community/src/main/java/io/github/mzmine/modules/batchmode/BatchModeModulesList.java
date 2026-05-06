@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -77,6 +78,7 @@ import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.A
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
@@ -389,6 +391,7 @@ public class BatchModeModulesList {
           FormulaPredictionFeatureListModule.class, //
           IsotopePeakScannerModule.class, //
           LipidAnnotationModule.class, //
+          SetLipidAnnotationLevelModule.class, //
           LocalCSVDatabaseSearchModule.class, //
           Ms2SearchModule.class, //
           NistMsSearchModule.class, //
