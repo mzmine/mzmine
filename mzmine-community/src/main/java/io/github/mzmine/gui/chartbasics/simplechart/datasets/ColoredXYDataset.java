@@ -57,6 +57,9 @@ import org.jfree.data.xy.IntervalXYDataset;
  * {@link PlotXYDataProvider} can be used to construct this dataset. The dataset implements the
  * interfaces, too, because the default renderers can then generate labels and tooltips based on the
  * interface methods and therefore be more reusable.
+ * <br>
+ * When using a ColoredXYDataset, also use a renderer that respects the color set in the dataset.
+ * Available renderers are located in io.github.mzmine.gui.chartbasics.simplechart.renderers
  *
  * @author https://github.com/SteffenHeu
  */

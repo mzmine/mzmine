@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
@@ -52,7 +54,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtils;
@@ -89,15 +90,15 @@ final class RetentionChartSpecFactory {
     final ColoredXYDataset primaryDataset = createDataset(payload.series().seriesKey(), seriesColor,
         primaryPoints, true);
     datasets.add(new RetentionDatasetSpec(primaryDataset,
-        createPointRenderer(primaryDataset, seriesColor,
-            new Ellipse2D.Double(-3.2d, -3.2d, 6.4d, 6.4d), false), 0,
+        createPointRenderer(primaryDataset, new Ellipse2D.Double(-3.2d, -3.2d, 6.4d, 6.4d), false),
+        0,
         RetentionDatasetRole.PRIMARY_POINTS));
 
     final double[] regression = calculateLinearRegression(primaryDataset);
     if (hasValidRegression(primaryDataset, regression)) {
       datasets.add(new RetentionDatasetSpec(createDataset("Regression", seriesColor,
           createRegressionPoints(regression, primaryDataset), false),
-          createRegressionRenderer(seriesColor, new BasicStroke(1.6f), false), 0,
+          createRegressionRenderer(new BasicStroke(1.6f), false), 0,
           RetentionDatasetRole.REGRESSION));
     }
 
@@ -143,14 +144,14 @@ final class RetentionChartSpecFactory {
     final ColoredXYDataset primaryDataset = createDataset(payload.series().seriesKey(), seriesColor,
         primaryPoints, true);
     datasets.add(new RetentionDatasetSpec(primaryDataset,
-        createPointRenderer(primaryDataset, seriesColor, new Ellipse2D.Double(-3d, -3d, 6d, 6d),
-            false), 0, RetentionDatasetRole.PRIMARY_POINTS));
+        createPointRenderer(primaryDataset, new Ellipse2D.Double(-3d, -3d, 6d, 6d), false), 0,
+        RetentionDatasetRole.PRIMARY_POINTS));
 
     final double[] regression = calculateLinearRegression(primaryDataset);
     if (hasValidRegression(primaryDataset, regression)) {
       datasets.add(new RetentionDatasetSpec(createDataset("Regression", seriesColor,
           createRegressionPoints(regression, primaryDataset), false),
-          createRegressionRenderer(seriesColor, new BasicStroke(1.6f), false), 0,
+          createRegressionRenderer(new BasicStroke(1.6f), false), 0,
           RetentionDatasetRole.REGRESSION));
     }
 
@@ -206,16 +207,16 @@ final class RetentionChartSpecFactory {
       final ColoredXYDataset primaryDataset = createDataset(carbonSeries.seriesKey(),
           ecnTrendDatasetColor(), primaryPoints, true);
       datasets.add(new RetentionDatasetSpec(primaryDataset,
-          createPointRenderer(primaryDataset, ecnTrendDatasetColor(),
-              new Ellipse2D.Double(-3.2d, -3.2d, 6.4d, 6.4d), false), carbonAxisIndex,
+          createPointRenderer(primaryDataset, new Ellipse2D.Double(-3.2d, -3.2d, 6.4d, 6.4d),
+              false), carbonAxisIndex,
           RetentionDatasetRole.PRIMARY_POINTS));
       final double[] regression = calculateLinearRegression(primaryDataset);
       if (hasValidRegression(primaryDataset, regression)) {
         datasets.add(new RetentionDatasetSpec(
             createDataset("Carbon regression", ecnTrendDatasetColor(),
                 createRegressionPoints(regression, primaryDataset), false),
-            createRegressionRenderer(ecnTrendDatasetColor(), new BasicStroke(1.6f), false),
-            carbonAxisIndex, RetentionDatasetRole.REGRESSION));
+            createRegressionRenderer(new BasicStroke(1.6f), false), carbonAxisIndex,
+            RetentionDatasetRole.REGRESSION));
       }
 
       final List<RetentionPointRef> falsePositivePoints = createFalsePositiveOverlayPoints(
@@ -235,16 +236,16 @@ final class RetentionChartSpecFactory {
       final ColoredXYDataset primaryDataset = createDataset(dbeSeries.seriesKey(),
           dbeTrendDatasetColor(), primaryPoints, true);
       datasets.add(new RetentionDatasetSpec(primaryDataset,
-          createPointRenderer(primaryDataset, dbeTrendDatasetColor(),
-              new Rectangle2D.Double(-3d, -3d, 6d, 6d), false), dbeAxisIndex,
+          createPointRenderer(primaryDataset, new Rectangle2D.Double(-3d, -3d, 6d, 6d), false),
+          dbeAxisIndex,
           RetentionDatasetRole.PRIMARY_POINTS));
       final double[] regression = calculateLinearRegression(primaryDataset);
       if (hasValidRegression(primaryDataset, regression)) {
         datasets.add(new RetentionDatasetSpec(
             createDataset("DBE regression", dbeTrendDatasetColor(),
                 createRegressionPoints(regression, primaryDataset), false),
-            createRegressionRenderer(dbeTrendDatasetColor(), new BasicStroke(1.6f), false),
-            dbeAxisIndex, RetentionDatasetRole.REGRESSION));
+            createRegressionRenderer(new BasicStroke(1.6f), false), dbeAxisIndex,
+            RetentionDatasetRole.REGRESSION));
       }
 
       final List<RetentionPointRef> falsePositivePoints = createFalsePositiveOverlayPoints(
@@ -321,14 +322,14 @@ final class RetentionChartSpecFactory {
       final ColoredXYDataset primaryDataset = createDataset(series.seriesKey(), color,
           primaryPoints, true);
       datasets.add(new RetentionDatasetSpec(primaryDataset,
-          createPointRenderer(primaryDataset, color, new Ellipse2D.Double(-3d, -3d, 6d, 6d), false),
-          0, RetentionDatasetRole.PRIMARY_POINTS));
+          createPointRenderer(primaryDataset, new Ellipse2D.Double(-3d, -3d, 6d, 6d), false), 0,
+          RetentionDatasetRole.PRIMARY_POINTS));
 
       final double[] regression = calculateLinearRegression(primaryDataset);
       if (hasValidRegression(primaryDataset, regression)) {
         datasets.add(new RetentionDatasetSpec(createDataset(series.seriesKey(), color,
             createRegressionPoints(regression, primaryDataset), false),
-            createRegressionRenderer(color, groupedRegressionStroke(), true), 0,
+            createRegressionRenderer(groupedRegressionStroke(), true), 0,
             RetentionDatasetRole.REGRESSION));
         trendCount++;
       }
@@ -408,8 +409,7 @@ final class RetentionChartSpecFactory {
       final @NotNull String seriesKey) {
     datasets.add(new RetentionDatasetSpec(createDataset(seriesKey, selectedPointColor(),
         List.of(new RetentionPointRef(null, null, xValue, yValue, null, null)), false),
-        createSelectedOverlayRenderer(selectedPointColor(),
-            new Ellipse2D.Double(-5d, -5d, 10d, 10d)), rangeAxisIndex,
+        createSelectedOverlayRenderer(new Ellipse2D.Double(-5d, -5d, 10d, 10d)), rangeAxisIndex,
         RetentionDatasetRole.SELECTED_POINT));
   }
 
@@ -490,36 +490,47 @@ final class RetentionChartSpecFactory {
         RunOption.THIS_THREAD);
   }
 
-  private @NotNull XYLineAndShapeRenderer createPointRenderer(
-      final @NotNull ColoredXYDataset dataset, final @NotNull Paint seriesPaint,
-      final @NotNull Shape seriesShape, final boolean showLegend) {
-    final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-    renderer.setSeriesPaint(0, seriesPaint);
-    renderer.setSeriesShape(0, seriesShape);
+  /**
+   * Creates the marker renderer for {@link RetentionDatasetRole#PRIMARY_POINTS} datasets.
+   *
+   * <p>Used for the main colored point datasets that represent the measured retention trend values
+   * in ECN, DBE, combined, and total-class charts.
+   */
+  private @NotNull ColoredXYShapeRenderer createPointRenderer(
+      final @NotNull ColoredXYDataset dataset, final @NotNull Shape seriesShape,
+      final boolean showLegend) {
+    final ColoredXYShapeRenderer renderer = new ColoredXYShapeRenderer(false, seriesShape);
     renderer.setSeriesVisibleInLegend(0, showLegend);
     renderer.setDefaultItemLabelGenerator((xyDataset, series, item) -> dataset.getLabel(item));
     renderer.setDefaultItemLabelsVisible(true);
     renderer.setDefaultItemLabelPaint(retentionLabelPaint());
-    renderer.setDefaultToolTipGenerator((xyDataset, series, item) -> dataset.getToolTipText(item));
     return renderer;
   }
 
-  private @NotNull XYLineAndShapeRenderer createRegressionRenderer(final @NotNull Paint linePaint,
-      final @NotNull BasicStroke stroke, final boolean showLegend) {
-    final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, false);
-    renderer.setSeriesPaint(0, linePaint);
+  /**
+   * Creates the line renderer for {@link RetentionDatasetRole#REGRESSION} datasets.
+   *
+   * <p>Used for the synthetic colored regression datasets that contain the fitted trend line
+   * points.
+   */
+  private @NotNull ColoredXYLineRenderer createRegressionRenderer(final @NotNull BasicStroke stroke,
+      final boolean showLegend) {
+    final ColoredXYLineRenderer renderer = new ColoredXYLineRenderer();
     renderer.setSeriesStroke(0, stroke);
     renderer.setSeriesVisibleInLegend(0, showLegend);
     return renderer;
   }
 
-  private @NotNull XYLineAndShapeRenderer createSelectedOverlayRenderer(
-      final @NotNull Paint strokePaint, final @NotNull Shape marker) {
-    final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-    renderer.setSeriesPaint(0, strokePaint);
-    renderer.setSeriesStroke(0, new BasicStroke(2f));
-    renderer.setSeriesShape(0, marker);
-    renderer.setDefaultShapesFilled(true);
+  /**
+   * Creates the highlight renderer for {@link RetentionDatasetRole#SELECTED_POINT} datasets.
+   *
+   * <p>Used for the single-point overlay dataset that marks the currently selected lipid in the
+   * retention chart.
+   */
+  private @NotNull ColoredXYShapeRenderer createSelectedOverlayRenderer(
+      final @NotNull Shape marker) {
+    final ColoredXYShapeRenderer renderer = new ColoredXYShapeRenderer(false, marker);
+    renderer.setDrawOutlines(true);
     renderer.setUseOutlinePaint(true);
     renderer.setSeriesOutlinePaint(0,
         ConfigService.getConfiguration().isDarkMode() ? Color.WHITE : Color.BLACK);
@@ -528,15 +539,16 @@ final class RetentionChartSpecFactory {
     return renderer;
   }
 
-  private @NotNull XYLineAndShapeRenderer createOutlinedOverlayRenderer(final @NotNull Color color,
+  /**
+   * Creates the outline-only overlay renderer for {@link RetentionDatasetRole#FALSE_POSITIVE} and
+   * {@link RetentionDatasetRole#FALSE_NEGATIVE} datasets.
+   *
+   * <p>Used for colored overlay datasets that circle flagged points and may optionally add a fixed
+   * annotation label such as {@code FN}.
+   */
+  private @NotNull ColoredXYShapeRenderer createOutlinedOverlayRenderer(final @NotNull Color color,
       final @NotNull Shape shape, final @Nullable String label) {
-    final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-    renderer.setSeriesPaint(0, color);
-    renderer.setSeriesStroke(0, new BasicStroke(2.2f));
-    renderer.setSeriesShape(0, shape);
-    renderer.setDefaultShapesFilled(false);
-    renderer.setUseOutlinePaint(true);
-    renderer.setSeriesOutlinePaint(0, color);
+    final ColoredXYShapeRenderer renderer = new ColoredXYShapeRenderer(true, shape);
     renderer.setSeriesOutlineStroke(0, new BasicStroke(2.2f));
     renderer.setSeriesVisibleInLegend(0, false);
     if (label != null) {
