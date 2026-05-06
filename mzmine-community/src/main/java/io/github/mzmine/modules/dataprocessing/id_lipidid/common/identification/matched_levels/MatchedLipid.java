@@ -256,7 +256,13 @@ public class MatchedLipid implements FeatureAnnotation {
 
   public void setPreferredAnnotationLevel(
       final @NotNull LipidAnnotationLevel preferredAnnotationLevel) {
-    this.preferredAnnotationLevel = preferredAnnotationLevel;
+    switch (lipidAnnotation) {
+      case SpeciesLevelAnnotation _ ->
+        // cannot set preferred level to molecular species for species level annotation
+          this.preferredAnnotationLevel = LipidAnnotationLevel.SPECIES_LEVEL;
+      case MolecularSpeciesLevelAnnotation _ ->
+          this.preferredAnnotationLevel = preferredAnnotationLevel;
+    }
   }
 
   @Override
