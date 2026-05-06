@@ -6,7 +6,6 @@ import io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidence
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundSizeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import java.util.List;
 
@@ -26,7 +25,6 @@ public final class CompoundSchemaTypes {
 
   public static final List<DataType<?>> REGISTERED = List.of(
       DataTypes.get(CompoundIdType.class),
-      DataTypes.get(CompoundSizeType.class),
       DataTypes.get(CompoundPreferredRowIdType.class),
       DataTypes.get(CompoundConfidenceType.class),
       DataTypes.get(NeutralMassType.class),

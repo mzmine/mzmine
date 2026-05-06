@@ -13,7 +13,6 @@ import io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidence
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundSizeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +50,6 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
     set(CompoundIdType.class, compoundId);
     set(CompoundPreferredRowIdType.class, preferredRow.getID());
     set(CompoundMembersType.class, List.copyOf(members));
-    set(CompoundSizeType.class, members.size());
     set(CompoundConfidenceType.class, confidence);
     if (neutralMass != null) {
       set(NeutralMassType.class, neutralMass);
