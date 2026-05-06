@@ -54,7 +54,7 @@ public enum FeatureStatus implements UniqueIdSupplier {
   /**
    * feature was created as a compound aggregate
    */
-  COMPOUND_AGGREGATE,
+  COMPOUND_AGGREGATED,
 
   /**
    * Peak was defined manually
@@ -71,7 +71,7 @@ public enum FeatureStatus implements UniqueIdSupplier {
       case ESTIMATED -> palette.getNeutralColorAWT();
       case MANUAL -> Color.BLACK;
       case UNKNOWN -> palette.getNegativeColorAWT();
-      case COMPOUND_AGGREGATE -> Colors.MAGENTA;
+      case COMPOUND_AGGREGATED -> Colors.MAGENTA;
     };
   }
 
@@ -85,7 +85,7 @@ public enum FeatureStatus implements UniqueIdSupplier {
       case ESTIMATED -> palette.getNeutralColor();
       case MANUAL -> javafx.scene.paint.Color.BLACK;
       case UNKNOWN -> palette.getNegativeColor();
-      case COMPOUND_AGGREGATE -> ColorsFX.MAGENTA;
+      case COMPOUND_AGGREGATED -> ColorsFX.MAGENTA;
     };
   }
 
@@ -96,18 +96,18 @@ public enum FeatureStatus implements UniqueIdSupplier {
       case ESTIMATED -> "ESTIMATED";
       case MANUAL -> "MANUAL";
       case UNKNOWN -> "UNKNOWN";
-      case  COMPOUND_AGGREGATE -> "COMPOUND_AGGREGATE";
+      case COMPOUND_AGGREGATED -> "COMPOUND_AGGREGATE";
     };
   }
 
   @Override
   public String toString() {
     return switch (this) {
-      case DETECTED -> "Detected";
-      case ESTIMATED -> "Estimated";
-      case MANUAL -> "Manual";
-      case UNKNOWN -> "Unknown";
-      case COMPOUND_AGGREGATE -> "Compound aggregate";
+      case DETECTED -> "DETECTED";
+      case ESTIMATED -> "ESTIMATED";
+      case MANUAL -> "MANUAL";
+      case UNKNOWN -> "UNKNOWN";
+      case COMPOUND_AGGREGATED -> "AGGREGATED";
     };
   }
 
@@ -118,7 +118,7 @@ public enum FeatureStatus implements UniqueIdSupplier {
       case ESTIMATED -> "Feature was estimated in secondary peak picking (gap-filling)";
       case MANUAL -> "Feature was defined manually";
       case UNKNOWN -> "Feature was not found";
-      case COMPOUND_AGGREGATE -> "Feature was created as a compound aggregate";
+      case COMPOUND_AGGREGATED -> "Feature was created as a compound aggregate";
     };
   }
 

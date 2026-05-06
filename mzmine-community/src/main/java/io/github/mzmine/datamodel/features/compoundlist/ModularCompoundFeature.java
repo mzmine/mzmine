@@ -31,7 +31,7 @@ public class ModularCompoundFeature extends ModularFeature implements CompoundFe
     this.compoundList = compoundList;
     this.compoundRow = compoundRow;
     set(RawFileType.class, raw);
-    set(DetectionType.class, FeatureStatus.COMPOUND_AGGREGATE);
+    set(DetectionType.class, FeatureStatus.COMPOUND_AGGREGATED);
   }
 
   @Override
