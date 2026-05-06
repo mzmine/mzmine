@@ -129,12 +129,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
           }
         });
 
-    applyNotifyLater(plotModel.domainMarkersProperty(), _ -> updateDomainMarkers());
-    applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> updateRangeMarkers());
-    applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> updateDomainMarkers());
-    applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> updateRangeMarkers());
-    applyNotifyLater(plotModel.getCursorConfigModel().rangeCursorMarkerAxisIndexProperty(),
-        _ -> updateRangeMarkers());
+    applyNotifyLater(plotModel.domainMarkersProperty(), _ -> this.updateDomainMarkers());
+    applyNotifyLater(plotModel.rangeMarkersProperty(), _ -> this.updateRangeMarkers());
+    applyNotifyLater(plotModel.permanentDomainMarkersProperty(), _ -> this.updateDomainMarkers());
+    applyNotifyLater(plotModel.permanentRangeMarkersProperty(), _ -> this.updateRangeMarkers());
   }
 
   private void updateAll() {
@@ -192,14 +190,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
       }
     }
 
-    super.addRangeMarker(getCursorConfigModel().getRangeCursorMarkerAxisIndex(),
-        getCursorConfigModel().getRangeCursorMarker(), Layer.FOREGROUND, false);
-    if (getCursorConfigModel().getRangeCursorMarker() instanceof FxMarker fxMarker) {
-      final Subscription subscription = fxMarker.lastVisibleChangeProperty()
-          .subscribe((_, _) -> fireChangeEvent());
-      subscriptions.add(subscription);
-    }
-
     // set subscription
     rangeMarkerVisibleChangeSubscription = Subscription.combine(
         subscriptions.toArray(new Subscription[0]));
@@ -249,14 +239,6 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
           subscriptions.add(subscription);
         }
       }
-    }
-
-    super.addDomainMarker(0, getCursorConfigModel().getDomainCursorMarker(), Layer.FOREGROUND,
-        false);
-    if (getCursorConfigModel().getDomainCursorMarker() instanceof FxMarker fxMarker) {
-      final Subscription subscription = fxMarker.lastVisibleChangeProperty()
-          .subscribe((_, _) -> fireChangeEvent());
-      subscriptions.add(subscription);
     }
 
     // set subscription
@@ -688,6 +670,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
     plotModel.addPermanentDomainMarker(index, marker, layer);
   }
 
+  public void addPermanentDomainMarker(final @NotNull MarkerDefinition markerDefinition) {
+    plotModel.addPermanentDomainMarker(markerDefinition);
+  }
+
   /**
    * Separation between permanent markers that are always kept on the chart and those that are often
    * cleared, removed, and new ones added ({@link #domainMarkersProperty()} and
@@ -698,6 +684,10 @@ public class FxXYPlot extends XYPlot implements FxBaseChartModel {
    */
   public void addPermanentRangeMarker(int index, Marker marker, Layer layer) {
     plotModel.addPermanentRangeMarker(index, marker, layer);
+  }
+
+  public void addPermanentRangeMarker(final @NotNull MarkerDefinition markerDefinition) {
+    plotModel.addPermanentRangeMarker(markerDefinition);
   }
 
   /**

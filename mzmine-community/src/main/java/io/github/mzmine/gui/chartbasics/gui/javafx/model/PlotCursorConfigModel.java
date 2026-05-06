@@ -68,7 +68,8 @@ public class PlotCursorConfigModel {
   private final FxValueMarker rangeCursorMarker = new FxValueMarker();
   private Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier;
   private Supplier<@Nullable XYPlot> plotSupplier;
-  private final IntegerProperty rangeCursorMarkerAxisIndex = new SimpleIntegerProperty(0);
+  // decision: XYPlot markers attach to a dataset/renderer index and resolve the mapped axis later.
+  private final IntegerProperty rangeCursorMarkerDatasetIndex = new SimpleIntegerProperty(0);
 
   public PlotCursorConfigModel() {
     // bind props
@@ -101,11 +102,11 @@ public class PlotCursorConfigModel {
     if (pos == null) {
       domainCursorMarker.setValue(null);
       rangeCursorMarker.setValue(null);
-      rangeCursorMarkerAxisIndex.set(0);
+      rangeCursorMarkerDatasetIndex.set(0);
     } else {
       domainCursorMarker.setValue(pos.getDomainValue());
       rangeCursorMarker.setValue(pos.getRangeValue());
-      rangeCursorMarkerAxisIndex.set(resolveRangeCursorMarkerAxisIndex(pos));
+      rangeCursorMarkerDatasetIndex.set(resolveRangeCursorMarkerDatasetIndex(pos));
     }
   }
 
@@ -178,15 +179,15 @@ public class PlotCursorConfigModel {
     getRangeCursorMarker().setPaint(color);
   }
 
-  public int getRangeCursorMarkerAxisIndex() {
-    return rangeCursorMarkerAxisIndex.get();
+  public int getRangeCursorMarkerDatasetIndex() {
+    return rangeCursorMarkerDatasetIndex.get();
   }
 
-  public IntegerProperty rangeCursorMarkerAxisIndexProperty() {
-    return rangeCursorMarkerAxisIndex;
+  public IntegerProperty rangeCursorMarkerDatasetIndexProperty() {
+    return rangeCursorMarkerDatasetIndex;
   }
 
-  private int resolveRangeCursorMarkerAxisIndex(final @NotNull PlotCursorPosition pos) {
+  private int resolveRangeCursorMarkerDatasetIndex(final @NotNull PlotCursorPosition pos) {
     if (plotSupplier == null || pos.getDataset() == null) {
       return 0;
     }
@@ -199,16 +200,6 @@ public class PlotCursorConfigModel {
     if (datasetIndex < 0) {
       return 0;
     }
-
-    final var axis = plot.getRangeAxisForDataset(datasetIndex);
-    if (axis == null) {
-      return 0;
-    }
-    for (int i = 0; i < plot.getRangeAxisCount(); i++) {
-      if (plot.getRangeAxis(i) == axis) {
-        return i;
-      }
-    }
-    return plot.getRangeAxis() == axis ? 0 : 0;
+    return datasetIndex;
   }
 }
