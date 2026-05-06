@@ -125,6 +125,17 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
       return this;
     }
 
+    public @NotNull Builder rawFilesAbsPath(@Nullable final String... rawFiles) {
+      if (rawFiles == null) {
+        return this;
+      }
+      // attach base directory
+      this.rawFiles = ArrayUtils.combine(
+          Arrays.stream(rawFiles).filter(Objects::nonNull).map(File::new)
+              .toArray(File[]::new), this.rawFiles);
+      return this;
+    }
+
     /**
      * Adds spectra libraries relative to the base path
      */

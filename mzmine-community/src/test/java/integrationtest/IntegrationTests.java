@@ -243,4 +243,18 @@ public class IntegrationTests {
             .tempDir(tempDir).build().runBatchGetCheckResults(
                 "rawdatafiles/integration_tests/thermo_import/test_msconvert.csv").size());
   }
+
+  @Test
+  void testEnhancedPeakScanner(@TempDir File tempDir) {
+    if (!new File("D:\\OneDrive - mzio GmbH").exists()) {
+      logger.info("Skipping tims full batch integration test.");
+      return;
+    }
+
+    IntegrationTest.builder("rawdatafiles/integration_tests/isotopepeakscanner",
+            "enhanced_peak_scanner.mzbatch").tempDir(tempDir)
+        .rawFilesAbsPath("F:\\Testdaten\\230328_GdMix1_10um_RA5_1_3881.d").build()
+        .runBatchGetCheckResults(
+            "rawdatafiles/integration_tests/isotopepeakscanner/expected_results.csv");
+  }
 }

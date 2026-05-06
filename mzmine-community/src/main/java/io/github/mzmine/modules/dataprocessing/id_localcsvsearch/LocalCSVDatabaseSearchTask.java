@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -82,8 +83,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final @Nullable Double ccsTolerance;
   private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
   private final MZTolerance isotopeMzTolerance;
+  private RTTolerance isotopeRtTolerance;
   private final double minRelativeIsotopeIntensity;
   private final double minIsotopeScore;
+  boolean removeIsotopes;
+  private String suffix;
+  private final MZmineProject project;
   private final ParameterSet parameters;
   private final List<ImportType<?>> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
@@ -94,18 +99,21 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final boolean calcMainSignal;
   private final ChargeFilterType chargeFilter;
   private IonNetworkLibrary ionNetworkLibrary;
+  private final DatabaseIsotopeRefinerScanBased refiner = new DatabaseIsotopeRefinerScanBased(storage,
+      moduleCallDate);
 
   private List<String[]> databaseValues;
   private int finishedLines = 0;
   private int sampleColIndex = -1;
   private boolean importOtherColumns = true;
 
-  LocalCSVDatabaseSearchTask(FeatureList[] featureLists, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  LocalCSVDatabaseSearchTask(MZmineProject project, FeatureList[] featureLists,
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.featureLists = featureLists;
     this.parameters = parameters;
+    this.project = project;
 
     dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
         .getValue();
@@ -146,10 +154,14 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
       isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
           IsotopePatternMatcherParameters.isotopeMzTolerance).getValue();
+      isotopeRtTolerance = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.isotopeRtTolerance).getValue();
       minRelativeIsotopeIntensity = isotopePatternMatcherParameters.getParameter(
           IsotopePatternMatcherParameters.minIntensity).getValue();
       minIsotopeScore = isotopePatternMatcherParameters.getParameter(
           IsotopePatternMatcherParameters.minIsotopeScore).getValue();
+      removeIsotopes = isotopePatternMatcherParameters.getValue(IsotopePatternMatcherParameters.suffix);
+      suffix = isotopePatternMatcherParameters.getEmbeddedParameterValueIfSelectedOrElse(IsotopePatternMatcherParameters.suffix, null);
     } else {
       isotopePatternMatcherParameters = null;
       isotopeMzTolerance = null;
@@ -270,8 +282,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotationsByIsotopes(FeatureList flist) {
-    DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(),
-        isotopeMzTolerance, minRelativeIsotopeIntensity, minIsotopeScore);
+    refiner.refineAnnotationsByIsotopesDifferentResolutions(parameters, project, flist,
+        flist.getRows(), isotopeMzTolerance, rtTolerance, minRelativeIsotopeIntensity,
+        minIsotopeScore, removeIsotopes, suffix);
   }
 
   private boolean matchSample(final List<RawDataFile> raws, final String sample) {

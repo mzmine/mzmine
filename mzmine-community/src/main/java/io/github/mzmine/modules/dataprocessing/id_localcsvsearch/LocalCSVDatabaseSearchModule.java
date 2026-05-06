@@ -62,7 +62,7 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
     FeatureList[] featureLists = parameters.getParameter(LocalCSVDatabaseSearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();
 
-    Task newTask = new LocalCSVDatabaseSearchTask(featureLists, parameters, moduleCallDate);
+    Task newTask = new LocalCSVDatabaseSearchTask(project, featureLists, parameters, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;
