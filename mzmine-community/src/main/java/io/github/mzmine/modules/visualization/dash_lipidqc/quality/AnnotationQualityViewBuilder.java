@@ -46,6 +46,7 @@ import java.util.Objects;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
@@ -114,7 +115,7 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
 
   private void applyQualityResult(final @Nullable QualityComputationResult result,
       final @NotNull VBox content, final @NotNull ScrollPane scrollPane,
-      final @NotNull BorderPane rootPane, final @NotNull javafx.scene.control.Label placeholder) {
+      final @NotNull BorderPane rootPane, final @NotNull Label placeholder) {
     if (result == null || result.placeholderText() != null) {
       final String text =
           result != null ? result.placeholderText() : "Select a row with lipid annotations.";
@@ -200,6 +201,7 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
       final @NotNull KendrickFalseNegativeCandidate candidate,
       final @NotNull QualityCardData qualityCardData, final @NotNull VBox content) {
     final VBox card = new VBox(6);
+    card.setAlignment(Pos.TOP_LEFT);
     card.getStyleClass().add("quality-card");
     card.setFillWidth(true);
     card.setMaxWidth(Double.MAX_VALUE);
@@ -308,11 +310,12 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
     return barPane;
   }
 
-  private static @NotNull javafx.scene.control.Label warningLabel(final @NotNull String text) {
+  private static @NotNull Region warningLabel(final @NotNull String text) {
     final var label = FxLabels.newLabel(text);
     label.setMaxWidth(Double.MAX_VALUE);
-    label.getStyleClass().add("quality-warning");
-    return label;
+    HBox hBox = FxLayout.newHBox(label);
+    hBox.getStyleClass().add("quality-warning");
+    return hBox;
   }
 
   private static @NotNull String formatCardTitle(final @NotNull MatchedLipid match) {
