@@ -157,9 +157,9 @@ public class IntegrationTestUtils {
 
   public static List<CheckResult> runBatchCompareToCsv(@NotNull final IntegrationTest test,
       String expectedResultsFullPath) {
-    final URL resource = IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFullPath);
-    return runBatchCompareToCsv(test.batchFile(),
-        urlToFile(resource), test.tempDir(),
+    final URL resource = IntegrationTestUtils.class.getClassLoader()
+        .getResource(expectedResultsFullPath);
+    return runBatchCompareToCsv(test.batchFile(), urlToFile(resource), test.tempDir(),
         test.rawFiles(), test.specLibs());
   }
 
@@ -218,7 +218,7 @@ public class IntegrationTestUtils {
     final File csvExportFile = addOrModifyModularCsvExportStep(batchFileName, tempDir, queue);
 
     final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, overrideDataFiles,
-        null, overrideSpectralLibraries, null, Instant.now());
+        null, overrideSpectralLibraries, null, Instant.now(), null, null);
 
     checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
         project);
@@ -265,8 +265,8 @@ public class IntegrationTestUtils {
 
   /**
    * @param expectedResultsFullPath path string to the expected results.
-   * @param batchExportedFile   the exported csv file.
-   * @param batchFileName       the batch name for logging.
+   * @param batchExportedFile       the exported csv file.
+   * @param batchFileName           the batch name for logging.
    * @return A list of check results. empty if everything was ok.
    */
   public static List<@NotNull CheckResult> getCsvComparisonResults(
