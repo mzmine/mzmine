@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 public class LipidAnnotationQCDashboardModule extends AbstractRunnableModule {
 
   public LipidAnnotationQCDashboardModule() {
-    super("Lipid annotation quality control dashboard", LipidAnnotationQCDashboardParameters.class,
+    super("Lipid dashboard", LipidAnnotationQCDashboardParameters.class,
         MZmineModuleCategory.VISUALIZATIONFEATURELIST,
         "Inspect lipid annotation quality for selected feature list rows.");
   }

@@ -164,8 +164,8 @@
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
                               <MenuItem onAction="#handleShowIntegrationDashboard"
                                 text="Show integration dashboard"/>
-                              <MenuItem onAction="#handleShowLipidAnnotationQCDashboard"
-                                text="Show lipid annotation QC dashboard"/>
+                              <MenuItem onAction="#handleShowLipidDashboard"
+                                text="Show Lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>

@@ -847,7 +847,7 @@ public class MainWindowController {
     }
   }
 
-  public void handleShowLipidAnnotationQCDashboard(Event event) {
+  public void handleShowLipidDashboard(Event event) {
     final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
         .toList();
     if (!selected.isEmpty()) {
