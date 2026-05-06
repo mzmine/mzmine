@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,15 +26,10 @@
 package io.github.mzmine.modules.visualization.dash_lipidqc;
 
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnalysisType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
-import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,38 +86,4 @@ class LipidAnnotationQCDashboardInteractor {
     return true;
   }
 
-  /**
-   * Reorders lipid annotations on every row so that matches at the requested annotation level
-   * appear first, without removing any annotations.
-   */
-  private static void applyPreferredLipidLevel(final @NotNull ModularFeatureList featureList,
-      final @NotNull LipidAnnotationLevel level) {
-
-    // todo: add logic to cleanup task
-    for (final FeatureListRow row : featureList.getRows()) {
-      final List<MatchedLipid> matches = row.getLipidMatches();
-      if (matches.isEmpty()) {
-        continue;
-      }
-      final List<MatchedLipid> preferredLevel = matches.stream()
-          .filter(match -> isMatchingLevel(match, level)).toList();
-      if (preferredLevel.isEmpty()) {
-        continue;
-      }
-      final List<MatchedLipid> reordered = new ArrayList<>(preferredLevel);
-      reordered.addAll(matches.stream().filter(match -> !isMatchingLevel(match, level)).toList());
-      row.setLipidAnnotations(reordered);
-    }
-  }
-
-  private static boolean isMatchingLevel(final @NotNull MatchedLipid match,
-      final @NotNull LipidAnnotationLevel level) {
-    // decision: species level matches all annotations since species-level properties
-    // (total carbons/DBEs) can be derived from any annotation type via ILipidAnnotation
-    return switch (level) {
-      case SPECIES_LEVEL -> true;
-      case MOLECULAR_SPECIES_LEVEL ->
-          match.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation;
-    };
-  }
 }

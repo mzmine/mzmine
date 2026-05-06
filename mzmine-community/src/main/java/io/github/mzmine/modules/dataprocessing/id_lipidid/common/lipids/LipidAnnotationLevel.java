@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,9 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
-public enum LipidAnnotationLevel {
+public enum LipidAnnotationLevel implements UniqueIdSupplier {
 
   SPECIES_LEVEL("Species level"), //
   MOLECULAR_SPECIES_LEVEL("Molecular species level"); //
@@ -40,5 +42,13 @@ public enum LipidAnnotationLevel {
   @Override
   public @NotNull String toString() {
     return label;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case SPECIES_LEVEL -> "species_level";
+      case MOLECULAR_SPECIES_LEVEL -> "molec_species_level";
+    };
   }
 }
