@@ -67,6 +67,10 @@ public class PlotCursorConfigModel {
   private final FxValueMarker domainCursorMarker = new FxValueMarker();
   private final FxValueMarker rangeCursorMarker = new FxValueMarker();
   private Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier;
+  /**
+   * Use a supplier for the plot since the plot of a {@link FxXYPlotModel} may change in the
+   * future.
+   */
   private Supplier<@Nullable XYPlot> plotSupplier;
   // decision: XYPlot markers attach to a dataset/renderer index and resolve the mapped axis later.
   private final IntegerProperty rangeCursorMarkerDatasetIndex = new SimpleIntegerProperty(0);

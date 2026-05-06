@@ -65,7 +65,7 @@ import org.jfree.data.xy.XYDataset;
 public class FxXYPlotModel implements FxPlotModel {
 
   private static final Logger logger = Logger.getLogger(FxXYPlotModel.class.getName());
-  private final ObjectProperty<@Nullable XYPlot> plot = new SimpleObjectProperty<>();
+  private final ReadOnlyObjectWrapper<@Nullable XYPlot> plot = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<@Nullable JFreeChart> chart = new ReadOnlyObjectWrapper<>();
 
   private final ListProperty<MarkerDefinition> domainMarkers = new SimpleListProperty<>(
@@ -114,7 +114,6 @@ public class FxXYPlotModel implements FxPlotModel {
 
   private final List<DatasetChangeListener> datasetChangeListeners = new ArrayList<>();
 
-
   public FxXYPlotModel(@Nullable XYPlot plot) {
     this.plot.set(plot);
     chart.bind(this.plot.map(xyPlot -> xyPlot != null ? xyPlot.getChart() : null).orElse(null));
@@ -151,13 +150,12 @@ public class FxXYPlotModel implements FxPlotModel {
     return plot.get();
   }
 
-
   public @Nullable JFreeChart getChart() {
     return chart.get();
   }
 
-  public ObjectProperty<@Nullable XYPlot> plotProperty() {
-    return plot;
+  public ReadOnlyObjectProperty<@Nullable XYPlot> plotProperty() {
+    return plot.getReadOnlyProperty();
   }
 
   public ReadOnlyObjectProperty<JFreeChart> chartProperty() {
