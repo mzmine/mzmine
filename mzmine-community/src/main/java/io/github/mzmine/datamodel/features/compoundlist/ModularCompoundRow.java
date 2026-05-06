@@ -8,15 +8,15 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidenceType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -27,46 +27,58 @@ import org.jetbrains.annotations.Nullable;
  * A compound row in a {@link CompoundList}. Extends {@link ModularFeatureListRow} so compound rows
  * can be passed wherever feature list rows are expected. Row data is stored in
  * {@link CompoundList#getCompoundRowSchema()} — not in the underlying feature list's row schema.
- * Calling {@link #get(DataType)} returns the compound row's own value first; if null it falls back
- * to the preferred row's value.
+ * <p>
+ * Membership state (preferred row, member list, confidence) lives inside a single
+ * {@link CompoundMembers} carrier under {@link CompoundMembersType}. {@link #get(DataType)} returns
+ * the compound row's own value first; if null it dispatches sub-column reads to the carrier (e.g.
+ * {@link io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidenceType}); otherwise
+ * it falls back to the preferred row's value.
+ * <p>
+ * {@code IDType} is intentionally never set on a compound row — the canonical compound identifier
+ * is {@link CompoundIdType}, which lives in a separate id space from source-row {@code IDType}.
  */
 public class ModularCompoundRow extends ModularFeatureListRow implements CompoundRow {
 
   private static final Logger logger = Logger.getLogger(ModularCompoundRow.class.getName());
+  private static final CompoundMembersType COMPOUND_MEMBERS_TYPE = DataTypes.get(
+      CompoundMembersType.class);
 
-  @NotNull private final CompoundList compoundList;
-  @NotNull private final FeatureListRow preferredRow;
+  @NotNull
+  private final CompoundList compoundList;
 
-  public ModularCompoundRow(@NotNull final CompoundList compoundList,
-      final int compoundId,
+  public ModularCompoundRow(@NotNull final CompoundList compoundList, final int compoundId,
       @NotNull final FeatureListRow preferredRow,
-      @NotNull final List<CompoundFeatureMember> members,
-      final float confidence,
+      @NotNull final List<CompoundFeatureMember> members, final float confidence,
       @Nullable final Double neutralMass) {
-    // Protected ModularFeatureListRow constructor: flist = source feature list, schema = compound row schema
-    super(compoundList.getFeatureList(), compoundList.getCompoundRowSchema(), compoundId);
+    // ModularFeatureListRow(flist, schema): schema = compound row schema; IDType is intentionally
+    // not set so compound ids do not collide with source-row ids IdType is only for FeatureListRow IDs.
+    super(compoundList.getFeatureList(), compoundList.getCompoundRowSchema());
+    if (!(preferredRow instanceof ModularFeatureListRow mflr)) {
+      throw new IllegalArgumentException(
+          "preferredRow must be a ModularFeatureListRow — got " + preferredRow.getClass()
+              .getName());
+    }
     this.compoundList = compoundList;
-    this.preferredRow = preferredRow;
     set(CompoundIdType.class, compoundId);
-    set(CompoundPreferredRowIdType.class, preferredRow.getID());
-    set(CompoundMembersType.class, List.copyOf(members));
-    set(CompoundConfidenceType.class, confidence);
+    set(CompoundMembersType.class, new CompoundMembers(mflr, List.copyOf(members), confidence));
     if (neutralMass != null) {
       set(NeutralMassType.class, neutralMass);
     }
   }
 
   /**
-   * Returns the compound row's own value first; falls back to the preferred row for any type not
-   * explicitly set on this compound row.
+   * Returns the compound row's own value first; for sub-columns of {@link CompoundMembersType}
+   * (preferred row id, confidence, members list) dispatches to the carrier; otherwise falls back to
+   * the preferred row.
    */
   @Override
-  public <T> @Nullable T get(DataType<T> key) {
-    T ownValue = super.get(key);
-    if (ownValue != null) {
-      return ownValue;
+  @SuppressWarnings("unchecked")
+  public <T> @Nullable T get(final DataType<T> key) {
+    final T own = super.get(key);
+    if (own != null) {
+      return own;
     }
-    return preferredRow.get(key);
+    return getPreferredRow().get(key);
   }
 
   // -- Feature access via compoundRowSchema (not flist.getRowsSchema()) --
@@ -75,37 +87,42 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    final List<ModularFeature> own = compoundList.getCompoundRowSchema().streamFeatures(modelRowIndex)
+    final List<ModularFeature> own = compoundList.getCompoundRowSchema()
+        .streamFeatures(modelRowIndex)
         .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN).toList();
     final Set<RawDataFile> covered = new HashSet<>(own.size());
     for (final ModularFeature f : own) {
       covered.add(f.getRawDataFile());
     }
-    final Stream<ModularFeature> fallback = preferredRow.streamFeatures()
+    final Stream<ModularFeature> fallback = getPreferredRow().streamFeatures()
         .filter(f -> !covered.contains(f.getRawDataFile()));
     return Stream.concat(own.stream(), fallback);
   }
 
   @Override
-  public @Nullable ModularFeature getFeature(RawDataFile raw) {
+  public @Nullable ModularFeature getFeature(final RawDataFile raw) {
     final ModularFeature own = compoundList.getCompoundRowSchema().getFeature(modelRowIndex, raw);
     if (own != null && own.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return own;
     }
-    final Feature pref = preferredRow.getFeature(raw);
+    final Feature pref = getPreferredRow().getFeature(raw);
     return pref instanceof ModularFeature mf ? mf : null;
   }
 
   @Override
-  public synchronized void addFeature(RawDataFile raw, Feature feature,
-      boolean updateByRowBindings) {
+  public synchronized void addFeature(final RawDataFile raw, final Feature feature,
+      final boolean updateByRowBindings) {
     if (feature == null) {
       compoundList.getCompoundRowSchema().setFeature(modelRowIndex, raw, null);
       return;
     }
-    if (!(feature instanceof ModularFeature mf)) {
+    if (!(feature instanceof CompoundFeature)) {
       throw new IllegalArgumentException(
-          "Cannot add non-modular feature to compound row.");
+          "Compound rows accept CompoundFeature instances only — got " + feature.getClass()
+              .getName());
+    }
+    if (!(feature instanceof ModularFeature mf)) {
+      throw new IllegalArgumentException("Cannot add non-modular feature to compound row.");
     }
     if (!compoundList.getFeatureList().equals(feature.getFeatureList())) {
       throw new IllegalArgumentException(
@@ -117,13 +134,14 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   }
 
   @Override
-  public void clearFeatures(boolean updateByRowBindings) {
+  public void clearFeatures(final boolean updateByRowBindings) {
     compoundList.getCompoundRowSchema().clearFeatures(modelRowIndex);
   }
 
   // -- Type and listener resolution via compoundRowSchema --
 
   @Override
+  @SuppressWarnings("rawtypes")
   public Set<DataType> getTypes() {
     return compoundList.getCompoundRowSchema().getTypes();
   }
@@ -135,9 +153,18 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   // -- CompoundRow accessors --
 
+  /**
+   * @return the carrier holding preferred row + members + confidence. Always non-null for a
+   * properly-constructed compound row.
+   */
+  public @NotNull CompoundMembers getCompoundMembersData() {
+    return Objects.requireNonNull(super.get(COMPOUND_MEMBERS_TYPE),
+        "compound row has no CompoundMembers carrier — invalid construction");
+  }
+
   @Override
   public @NotNull FeatureListRow getPreferredRow() {
-    return preferredRow;
+    return getCompoundMembersData().preferredRow();
   }
 
   @Override
@@ -147,12 +174,12 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   @Override
   public @NotNull List<CompoundFeatureMember> getCompoundMembers() {
-    return getNonNullElse(CompoundMembersType.class, List.of());
+    return getCompoundMembersData().members();
   }
 
   @Override
   public float getCompoundConfidenceScore() {
-    return getOrDefault(CompoundConfidenceType.class, 0f);
+    return getCompoundMembersData().confidence();
   }
 
   @Override

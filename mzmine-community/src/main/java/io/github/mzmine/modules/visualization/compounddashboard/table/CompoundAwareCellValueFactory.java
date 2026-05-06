@@ -54,7 +54,7 @@ public class CompoundAwareCellValueFactory
       if (type instanceof CompoundMemberRoleType) {
         return null;  // role column is blank at the compound level
       }
-      if (CompoundSchemaTypes.REGISTERED.contains(type)) {
+      if (CompoundSchemaTypes.isCompoundOwned(type)) {
         return cr.get((DataType<Object>) type);
       }
       // row-level types (mz, rt, annotations…) delegate to preferred row
@@ -67,7 +67,7 @@ public class CompoundAwareCellValueFactory
         final CompoundMemberRole role = compoundList.getRoleOf(mflr);
         return role == null ? null : role.getLabel();
       }
-      if (CompoundSchemaTypes.REGISTERED.contains(type)) {
+      if (CompoundSchemaTypes.isCompoundOwned(type)) {
         return null;  // compound-schema columns are blank for member rows
       }
       return mflr.get((DataType<Object>) type);

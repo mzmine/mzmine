@@ -8,8 +8,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -97,7 +95,6 @@ public final class CompoundIntensitySumBinding implements CompoundRowBinding {
       float heightSum = 0f;
       float normAreaSum = 0f;
       float normHeightSum = 0f;
-      boolean any = false;
 
       for (final FeatureListRow contributor : contributors) {
         final Feature feature = contributor.getFeature(raw);
@@ -108,23 +105,20 @@ public final class CompoundIntensitySumBinding implements CompoundRowBinding {
           // assumption: only ModularFeature carries the typed columns we need to sum
           continue;
         }
-        any = true;
         areaSum += nullableToFloat(mf.get(AREA_TYPE));
         heightSum += nullableToFloat(mf.get(HEIGHT_TYPE));
         normAreaSum += nullableToFloat(mf.get(NORMALIZED_AREA_TYPE));
         normHeightSum += nullableToFloat(mf.get(NORMALIZED_HEIGHT_TYPE));
       }
 
-      if (!any) {
+      if (heightSum <= 0f) {
         // no contributor → make sure no stale compound feature lingers for this raw file
-        compoundRow.addFeature(raw, null, false);
+        compoundRow.removeFeature(raw, false);
         continue;
       }
 
-      // decision: ESTIMATED — the synthesized intensity is derived, not directly measured.
-      final ModularFeature compoundFeature = new ModularFeature(compoundRow.getCompoundList());
-      compoundFeature.set(RawFileType.class, raw);
-      compoundFeature.set(DetectionType.class, FeatureStatus.COMPOUND_AGGREGATE);
+      final ModularCompoundFeature compoundFeature = new ModularCompoundFeature(
+          compoundRow.getCompoundList(), compoundRow, raw);
 
       compoundFeature.set(AREA_TYPE, areaSum);
       compoundFeature.set(HEIGHT_TYPE, heightSum);
