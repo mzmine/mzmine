@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModel;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import java.util.Objects;
@@ -143,6 +144,9 @@ final class RetentionChartController {
 
       pane.updatePaneTitle(spec.title());
       pane.showRetentionChart(chart);
+
+      // need to reapply chart theme since axis are being rebuild.
+      ConfigService.getConfiguration().getDefaultChartTheme().apply(plot.getChart());
     });
   }
 
