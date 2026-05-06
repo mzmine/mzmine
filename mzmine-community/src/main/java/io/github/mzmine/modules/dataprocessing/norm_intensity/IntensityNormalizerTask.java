@@ -166,6 +166,18 @@ class IntensityNormalizerTask extends AbstractTask {
 
     final MetadataTable metadata = ProjectService.getMetadata();
 
+
+    // ── Pass 1: pre-normalization by metadata column (dilution factor, sample weight, …) ──
+    // should happen before separating samples into batches because factor may be scaled to median
+    // and this should happen for all samples together and not within batches
+    if (byMetadataEnabled) {
+      normalizeByMetadataColumn(summary, metadata);
+      if (isCanceled()) {
+        return;
+      }
+    }
+
+
     // split samples into batches so that the QC of 2nd batch does not influence the first batch
     final @NotNull List<SamplesBatch> sampleBatches = splitSampleBatches(metadata);
     totalNormalizationSteps += sampleBatches.size() <= 1 ? 0 : 1;
@@ -218,7 +230,6 @@ class IntensityNormalizerTask extends AbstractTask {
    */
   private void normalizeSamplesInterBatches(@NotNull List<SamplesBatch> sampleBatches,
       IntensityNormalizationSearchableSummary summary) {
-    final MetadataTable metadata = ProjectService.getMetadata();
 
     // norm factors are already set by
     final double[] batchNormMetrics = sampleBatches.stream()
@@ -255,8 +266,11 @@ class IntensityNormalizerTask extends AbstractTask {
   /// Applies normalization to a single samples batch (intra batch) which may be selected by
   /// metadata. If no batching is applied, all samples may be handled as a single batch.
   ///
+  /// Metadata factor normalization should be applied to all samples without batching as there is an
+  /// option to normalize the metadata factor medians to keep intensity scale similar. Applying
+  /// batching changes the median per batch and this may result in wrong normalization.
+  ///
   /// Applies:
-  /// - Metadata normalization by factor or division
   /// - internal standards normalization sample-wise.
   /// - Reference samples (QC)-based intra batch correction
   ///
@@ -266,14 +280,6 @@ class IntensityNormalizerTask extends AbstractTask {
   private void normalizeSamplesBatch(SamplesBatch samplesBatch,
       IntensityNormalizationSearchableSummary summary) {
     final MetadataTable metadata = ProjectService.getMetadata();
-
-    // ── Pass 1: pre-normalization by metadata column (dilution factor, sample weight, …) ──
-    if (byMetadataEnabled) {
-      normalizeByMetadataColumn(samplesBatch, summary, metadata);
-      if (isCanceled()) {
-        return;
-      }
-    }
 
     // ── Pass 2: pre-normalization by internal standard compounds ──
     // usually applied by internal standards to each sample
@@ -307,17 +313,17 @@ class IntensityNormalizerTask extends AbstractTask {
     }
   }
 
-  private void normalizeByMetadataColumn(SamplesBatch samplesBatch,
-      IntensityNormalizationSearchableSummary summary, MetadataTable metadata) {
+  private void normalizeByMetadataColumn(IntensityNormalizationSearchableSummary summary, MetadataTable metadata) {
     final MetadataColumnNormalizationTypeModule metadataModule = new MetadataColumnNormalizationTypeModule();
     final MetadataColumnNormalizationTypeParameters metadataModuleParams = MetadataColumnNormalizationTypeParameters.create(
         byMetadataColumn);
     // MetadataColumn normalization covers all files (no interpolation needed).
     try {
+      // use all raw data files here, batching not needed
       metadataModule.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
-          samplesBatch, metadata, mainParameters, metadataModuleParams);
+          new SamplesBatch(normalizedFeatureList.getRawDataFiles()), metadata, mainParameters, metadataModuleParams);
 
-      processedFiles += samplesBatch.size();
+      processedFiles += normalizedFeatureList.getNumberOfRawDataFiles();
     } catch (IllegalStateException e) {
       error("Error during pre-normalization by metadata column (" + byMetadataColumn + "): "
           + e.getMessage());

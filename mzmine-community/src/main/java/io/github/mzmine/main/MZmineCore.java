@@ -285,11 +285,13 @@ public final class MZmineCore {
       final File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       final File overrideMetadataFile = argsParser.getMetadataFile();
       final File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
+      final File overrideProjectImport = argsParser.getProjectImport();
+      final File overrideCsvDatabase = argsParser.getCsvDatabase();
 
       // run batch file
       batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
           overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
-          Instant.now());
+          Instant.now(), overrideProjectImport, overrideCsvDatabase);
     }
 
     // option to keep MZmine running after the batch is finished

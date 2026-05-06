@@ -51,9 +51,10 @@ public class MetadataNormalizationConfigParameter extends
   public MetadataNormalizationConfigParameter(String name, String description,
       @NotNull MetadataNormalizationConfig defaultVal) {
     super(name, description);
-    mode = new ComboParameter<>("mode", "", MetadataNormalizationConfig.Mode.values(),
+    mode = new ComboParameter<>("mode", description, MetadataNormalizationConfig.Mode.values(),
         Mode.multiply);
-    metadataCol = new MetadataGroupingParameter("metadata column", "", AvailableTypes.NUMBER);
+    metadataCol = new MetadataGroupingParameter("metadata column", description,
+        AvailableTypes.NUMBER);
 
     setValue(defaultVal);
   }

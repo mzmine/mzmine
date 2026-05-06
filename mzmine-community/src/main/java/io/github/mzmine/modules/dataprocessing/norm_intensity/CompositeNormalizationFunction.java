@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.util.XMLUtils;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -35,10 +36,63 @@ import org.w3c.dom.Element;
  * @param functions a list of all functions to be applied. Each factor is multiplied to get the
  *                  total factor.
  */
-public record CompositeNormalizationFunction(
+record CompositeNormalizationFunction(
     @NotNull List<@NotNull NormalizationFunction> functions) implements NormalizationFunction {
 
   public static final String XML_TYPE = "composite_list_normalization";
+
+  CompositeNormalizationFunction(@NotNull List<@NotNull NormalizationFunction> functions) {
+    this.functions = mergeAllFactorFunctions(functions);
+  }
+
+  /**
+   * @return composite function or a simpler normalization function if the list of functions can be
+   * simplified by merging functions
+   */
+  public static @NotNull NormalizationFunction createComposite(
+      @NotNull List<@NotNull NormalizationFunction> functions) {
+    final CompositeNormalizationFunction composite = new CompositeNormalizationFunction(functions);
+    return composite.size() == 1 ? composite.functions.getFirst() : composite;
+  }
+
+  private int size() {
+    return functions.size();
+  }
+
+  /**
+   * Merges all functions of type {@link FactorNormalizationFunction} to simplify list. The factor
+   * function will then be the last function in the list. Currently all functions apply factors and
+   * therefore the order is irrelevant. Other functions that are feature specific cannot be merged
+   * into existing functions.
+   *
+   * @return a new list of functions
+   */
+  public static @NotNull List<@NotNull NormalizationFunction> mergeAllFactorFunctions(
+      @NotNull List<@NotNull NormalizationFunction> functions) {
+    if (functions.size() <= 1) {
+      return functions;
+    }
+
+    final ArrayList<@NotNull NormalizationFunction> merged = new ArrayList<>(4);
+    double accumulatedFactor = 1.0;
+    boolean hasFactorFunction = false;
+
+    for (NormalizationFunction function : functions) {
+      if (function instanceof FactorNormalizationFunction(double factor)) {
+        accumulatedFactor *= factor;
+        hasFactorFunction = true;
+      } else {
+        merged.add(function);
+      }
+    }
+
+    if (hasFactorFunction) {
+      merged.add(new FactorNormalizationFunction(accumulatedFactor));
+    }
+
+    // immutable copy
+    return List.copyOf(merged);
+  }
 
   @Override
   public double getNormalizationFactor(@NotNull Double mz, @NotNull Float rt) {
