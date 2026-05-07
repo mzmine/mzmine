@@ -291,29 +291,51 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     final IonLibraryEditModel editModel = editController.getModel();
     // tab handles the defense of internal libraries from being changed
     final boolean editActive = model.isLibraryEditActive();
-    if (editActive) {
+    // library is build edited already and was changed
+    if (editActive && !editModel.isSameAsOriginal()) {
+      final ButtonType save = new ButtonType("Save changes", ButtonData.YES);
+      final ButtonType discard = new ButtonType("Discard changes", ButtonData.APPLY);
+      final ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+
       String typing = library == null ? "creating" : "editing";
       String type = library == null ? "create new" : "edit";
       final String oldLibName = editModel.getName();
-      final String title = "Save library before %s another?".formatted(typing);
-      final String message = """
+
+      final boolean isNameRestricted = editModel.nameRestrictedProperty().get();
+      if (isNameRestricted) {
+        final String message = """
+          Requesting to %s library.
+          You currently have unsaved changes while working on library:
+          %s
+          
+          The name is reserved for internal libraries,
+          so either cancel and change name first or discard any changes and continue?""".formatted(type, oldLibName);
+
+        final String title = "Discard changes to library before %s another?".formatted(typing);
+        final ButtonType userAction = DialogLoggerUtil.showDialog(AlertType.WARNING, title, message,
+            discard, cancel).orElse(cancel);
+        if (userAction.equals(cancel)) {
+          return;
+        }
+
+      } else {
+        final String message = """
           Requesting to %s library.
           You currently have unsaved changes while working on library:
           %s
           
           Do you want to save these changes first?""".formatted(type, oldLibName);
-      final ButtonType save = new ButtonType("Save changes", ButtonData.YES);
-      final ButtonType discard = new ButtonType("Discard changes", ButtonData.OTHER);
-      final ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
-      final ButtonType userAction = DialogLoggerUtil.showDialog(AlertType.WARNING, title, message,
-          save, discard, cancel).orElse(cancel);
-      if (userAction.equals(cancel)) {
-        return;
-      } else if(userAction.equals(save)) {
-        // save old library first
-        if (!editController.saveLibrary(false)) {
-          // issue while saving
+        final String title = "Save library before %s another?".formatted(typing);
+        final ButtonType userAction = DialogLoggerUtil.showDialog(AlertType.WARNING, title, message,
+            save, discard, cancel).orElse(cancel);
+        if (userAction.equals(cancel)) {
           return;
+        } else if(userAction.equals(save)) {
+          // save old library first
+          if (!editController.saveLibrary(false)) {
+            // issue while saving
+            return;
+          }
         }
       }
     }

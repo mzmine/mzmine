@@ -62,7 +62,7 @@ class IonLibraryEditModel {
   // some names are restricted
   private final StringProperty nameIssue = new SimpleStringProperty("");
   private final ReadOnlyBooleanWrapper nameRestricted = new ReadOnlyBooleanWrapper(false);
-  private final BooleanBinding canSave = sameAsOriginalProperty().or(nameRestrictedProperty());
+  private final BooleanBinding saveBlocked = sameAsOriginalProperty().or(nameRestrictedProperty());
 
   public IonLibraryEditModel(@Nullable IonLibrary library) {
     setLibrary(library);
@@ -176,11 +176,11 @@ class IonLibraryEditModel {
     return title;
   }
 
-  public Boolean getCanSave() {
-    return canSave.get();
+  public boolean isSaveBlocked() {
+    return saveBlocked.get();
   }
 
-  public BooleanBinding canSaveProperty() {
-    return canSave;
+  public BooleanBinding isSaveBlockedProperty() {
+    return saveBlocked;
   }
 }

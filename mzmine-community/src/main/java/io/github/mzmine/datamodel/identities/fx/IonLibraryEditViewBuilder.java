@@ -177,10 +177,10 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     return newHBox(new Insets(0, 0, DEFAULT_SPACE * 3, 0), FxLabels.newBoldLabel("Name:"),
         nameField,
         FxButtons.createDisabledButton("Save", FxIcons.SAVE, "Save and overwrite the ion library",
-            model.canSaveProperty(), () -> eventHandler.accept(new Save(false))),
+            model.isSaveBlockedProperty(), () -> eventHandler.accept(new Save(false))),
         FxButtons.createDisabledButton("Save copy", FxIcons.PLUS_CIRCLE,
             "Create a copy (requires a new name) and saves this copy. The original list stays unchanged.",
-            model.canSaveProperty(), () -> eventHandler.accept(new Save(true))),
+            model.isSaveBlockedProperty(), () -> eventHandler.accept(new Save(true))),
         FxButtons.createButton("Close tab & discard changes", FxIcons.X, "Close tab and discard changes",
             () -> eventHandler.accept(new CloseTab()))
         );
