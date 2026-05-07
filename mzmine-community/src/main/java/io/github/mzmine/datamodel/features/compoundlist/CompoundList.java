@@ -1,8 +1,8 @@
 package io.github.mzmine.datamodel.features.compoundlist;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRowID;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
@@ -14,6 +14,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -44,7 +45,8 @@ public class CompoundList {
 
   // O(1) reverse lookup: member row ID → owning compound. ConcurrentHashMap so listeners on
   // background threads can safely read while setRows rebuilds on the FX thread.
-  private final Map<Integer, ModularCompoundRow> byMemberRowId = new ConcurrentHashMap<>();
+  // contains all members: classical featureListRow and CompoundRow
+  private final Map<FeatureListRowID, ModularCompoundRow> byMemberRowId = new ConcurrentHashMap<>();
 
   // O(1) lookup compoundId → compound row. Populated by setRows() and addCompoundRowStub() so
   // findRowByCompoundId resolves in either runtime construction or load-time stub-first flows.
@@ -206,7 +208,7 @@ public class CompoundList {
   private void indexMembers(@NotNull final ModularCompoundRow compound) {
     for (final CompoundFeatureMember m : compound.getCompoundMembers()) {
       final FeatureListRow member = m.row();
-      byMemberRowId.put(member.getID(), compound);
+      byMemberRowId.put(member.getTypedID(), compound);
       if (member instanceof ModularCompoundRow nested) {
         indexMembers(nested);
       }
@@ -375,12 +377,10 @@ public class CompoundList {
   }
 
   /**
-   * TODO think if we can support a single row being mapped to multiple parent rows, then all of those should update.
-   *
    * O(1) lookup: which compound owns this row? Returns null if not a member of any compound.
    */
   public @Nullable ModularCompoundRow findCompoundOf(@NotNull final FeatureListRow row) {
-    return byMemberRowId.get(row.getID());
+    return byMemberRowId.get(row.getTypedID());
   }
 
   /**
@@ -393,26 +393,15 @@ public class CompoundList {
   }
 
   /**
-   * Schema-direct read of a compound feature: returns null when the compound row never wrote a
-   * feature for {@code rf} (vs returning a delegated feature through {@link
-   * ModularCompoundRow#getFeature(RawDataFile)}). Used by save to persist only schema-resident
-   * compound features.
-   */
-  public @Nullable ModularCompoundFeature getOwnFeature(@NotNull final ModularCompoundRow row,
-      @NotNull final RawDataFile rf) {
-    return row.getOwnFeature(rf);
-  }
-
-  /**
    * O(1) role lookup. Returns null if the row is not a member of any compound.
    */
-  public @Nullable CompoundMemberRole getRoleOf(@NotNull final FeatureListRow row) {
+  public @Nullable Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
     final ModularCompoundRow cr = findCompoundOf(row);
     if (cr == null) {
-      return null;
+      return Optional.empty();
     }
-    return cr.getCompoundMembers().stream().filter(m -> m.row().getID() == row.getID()).findFirst()
-        .map(CompoundFeatureMember::role).orElse(null);
+    return cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID()))
+        .findFirst().map(CompoundFeatureMember::role);
   }
 
   @NotNull

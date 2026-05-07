@@ -18,7 +18,6 @@ package datamodel;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
@@ -96,24 +95,24 @@ public class CompoundListSaveLoadTest {
     setUp();
 
     // bindings disabled → the saved values are exactly what we set
-    final CompoundList cl = new CompoundList(flist, null, 4, List.of());
+    final CompoundList compList = new CompoundList(flist, null, 4, List.of());
 
-    final ModularCompoundRow cr = new ModularCompoundRow(cl, 42, source1,
+    final ModularCompoundRow cr = new ModularCompoundRow(compList, 42, source1,
         List.of(new CompoundFeatureMember(source1, CompoundMemberRole.REPRESENTATIVE, 1.0f),
             new CompoundFeatureMember(source2, CompoundMemberRole.ADDUCT, 0.91f)),
         0.83f, 317.0532);
 
     // attach a compound feature with its own area/height (compound row schema)
-    final ModularCompoundFeature cfA = new ModularCompoundFeature(cl, cr, fileA);
-    cfA.setOwnValue(DataTypes.get(AreaType.class), 1.20e5f);
-    cfA.setOwnValue(DataTypes.get(HeightType.class), 3.40e4f);
+    final ModularCompoundFeature cfA = new ModularCompoundFeature(compList, cr, fileA);
+    cfA.set(DataTypes.get(AreaType.class), 1.20e5f);
+    cfA.set(DataTypes.get(HeightType.class), 3.40e4f);
     cr.addFeature(fileA, cfA, false);
 
-    cl.setRows(List.of(cr));
-    flist.setCompoundList(cl);
+    compList.setRows(List.of(cr));
+    flist.setCompoundList(compList);
 
     // round trip
-    final CompoundList loaded = roundTrip(cl);
+    final CompoundList loaded = roundTrip(compList);
 
     Assertions.assertEquals(1, loaded.size(), "loaded compound count");
     final ModularCompoundRow lcr = loaded.findRowByCompoundId(42);
@@ -137,14 +136,14 @@ public class CompoundListSaveLoadTest {
     Assertions.assertEquals(0.91f, members.get(1).score(), 1e-6f);
 
     // compound feature for fileA was saved → should reload via getOwnFeature
-    final ModularCompoundFeature loadedCfA = lcr.getOwnFeature(fileA);
+    final ModularCompoundFeature loadedCfA = lcr.getCompoundFeature(fileA);
     Assertions.assertNotNull(loadedCfA, "compound feature for fileA should round-trip");
-    Assertions.assertEquals(1.20e5f, loadedCfA.getOwnValue(DataTypes.get(AreaType.class)), 1e-3f);
-    Assertions.assertEquals(3.40e4f, loadedCfA.getOwnValue(DataTypes.get(HeightType.class)),
+    Assertions.assertEquals(1.20e5f, loadedCfA.getCompoundValue(DataTypes.get(AreaType.class)), 1e-3f);
+    Assertions.assertEquals(3.40e4f, loadedCfA.getCompoundValue(DataTypes.get(HeightType.class)),
         1e-3f);
 
     // no compound feature for fileB
-    Assertions.assertNull(lcr.getOwnFeature(fileB),
+    Assertions.assertNull(lcr.getCompoundFeature(fileB),
         "compound feature for fileB was never written; should remain null after load");
 
     fileA.close();

@@ -9,11 +9,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,6 +83,7 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   @Override
   @SuppressWarnings("unchecked")
   public <T> @Nullable T get(final DataType<T> key) {
+    // check own value first
     final T own = super.get(key);
     if (own != null) {
       return own;
@@ -97,34 +96,13 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
    * project save/load to read/write only schema-resident values (binding outputs, compound-only
    * types) and avoid re-persisting values that already live on the preferred row.
    */
-  public <T> @Nullable T getOwnValue(@NotNull final DataType<T> key) {
+  public <T> @Nullable T getCompoundValue(@NotNull final DataType<T> key) {
     return super.get(key);
   }
 
-  /**
-   * Write the compound row's own value for {@code key} bypassing any fallback semantics. Used by
-   * the loader to populate parsed values directly into the compound row schema.
-   */
-  public <T> void setOwnValue(@NotNull final DataType<T> key, @Nullable final T value) {
-    super.set(key, value);
-  }
-
-  // -- Feature access via compoundRowSchema (not flist.getRowsSchema()) --
-  // Per-RawDataFile fallback: if the compound row has no own feature for a raw file (or it is
-  // UNKNOWN), the preferred row's feature for that raw file is returned instead.
-
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    final List<ModularFeature> own = compoundList.getCompoundRowSchema()
-        .streamFeatures(modelRowIndex)
-        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN).toList();
-    final Set<RawDataFile> covered = new HashSet<>(own.size());
-    for (final ModularFeature f : own) {
-      covered.add(f.getRawDataFile());
-    }
-    final Stream<ModularFeature> fallback = getPreferredRow().streamFeatures()
-        .filter(f -> !covered.contains(f.getRawDataFile()));
-    return Stream.concat(own.stream(), fallback);
+    return getFeatureList().getRawDataFiles().stream().map(this::getFeature);
   }
 
   @Override
@@ -142,7 +120,7 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
    * representative-feature fallback in {@link #getFeature(RawDataFile)}. Returns null when the
    * compound row never wrote a feature for that file.
    */
-  public @Nullable ModularCompoundFeature getOwnFeature(@NotNull final RawDataFile raw) {
+  public @Nullable ModularCompoundFeature getCompoundFeature(@NotNull final RawDataFile raw) {
     final ModularFeature f = compoundList.getCompoundRowSchema().getFeature(modelRowIndex, raw);
     return f instanceof ModularCompoundFeature ccf ? ccf : null;
   }

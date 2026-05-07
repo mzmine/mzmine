@@ -400,7 +400,7 @@ public class FeatureListLoadTask extends AbstractTask {
       final Object value = parseDataType(reader, type, project, flist, row, cf, rf);
       if (type != null && value != null) {
         try {
-          cf.setOwnValue(type, value);
+          cf.set(type, value);
         } catch (RuntimeException e) {
           logger.log(Level.WARNING, () -> String.format(
               "DataType %s and value %s were not set to compound feature. Maybe incompatible during loading?",

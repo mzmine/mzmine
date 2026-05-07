@@ -64,8 +64,7 @@ public class CompoundAwareCellValueFactory
     }
     if (row instanceof ModularFeatureListRow mflr) {
       if (type instanceof CompoundMemberRoleType) {
-        final CompoundMemberRole role = compoundList.getRoleOf(mflr);
-        return role == null ? null : role.getLabel();
+        return compoundList.getRoleOf(mflr).map(CompoundMemberRole::getLabel).orElse(null);
       }
       if (CompoundSchemaTypes.isCompoundOwned(type)) {
         return null;  // compound-schema columns are blank for member rows

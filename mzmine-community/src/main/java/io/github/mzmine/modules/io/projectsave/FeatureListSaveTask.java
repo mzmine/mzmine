@@ -343,8 +343,8 @@ public class FeatureListSaveTask extends AbstractTask {
    * {@code <featurelist>} XML. Iterates the compound row schema and the compound features schema
    * directly so any schema-resident DataType — including binding outputs and future compound-only
    * types — serializes via its own {@code saveToXML} without per-type branches here. The
-   * preferred-row fallback is bypassed via {@link ModularCompoundRow#getOwnValue(DataType)} and
-   * {@link ModularCompoundRow#getOwnFeature(RawDataFile)}, so values that are merely delegated from
+   * preferred-row fallback is bypassed via {@link ModularCompoundRow#getCompoundValue(DataType)} and
+   * {@link ModularCompoundRow#getCompoundFeature(RawDataFile)}, so values that are merely delegated from
    * the source row/feature are not re-saved on the compound row.
    */
   public static void saveCompoundList(XMLStreamWriter writer, ModularFeatureList flist,
@@ -376,7 +376,7 @@ public class FeatureListSaveTask extends AbstractTask {
       writer.writeAttribute(CONST.XML_COMPOUND_ID_ATTR, String.valueOf(row.getCompoundId()));
 
       for (final DataType type : rowTypes) {
-        final Object value = row.getOwnValue(type);
+        final Object value = row.getCompoundValue(type);
         if (value == null) {
           continue;
         }
@@ -384,14 +384,14 @@ public class FeatureListSaveTask extends AbstractTask {
       }
 
       for (final RawDataFile rf : rawFiles) {
-        final ModularCompoundFeature cf = row.getOwnFeature(rf);
+        final ModularCompoundFeature cf = row.getCompoundFeature(rf);
         if (cf == null) {
           continue;
         }
         writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
         writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rf.getName());
         for (final DataType type : featureTypes) {
-          final Object value = cf.getOwnValue(type);
+          final Object value = cf.getCompoundValue(type);
           if (value == null) {
             continue;
           }

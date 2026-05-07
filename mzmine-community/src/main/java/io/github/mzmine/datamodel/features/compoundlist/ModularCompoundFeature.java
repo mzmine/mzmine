@@ -45,7 +45,7 @@ public class ModularCompoundFeature extends ModularFeature implements CompoundFe
   }
 
   @Override
-  public @NotNull ModularFeatureListRow getRepresentativeRow() {
+  public @NotNull ModularFeatureListRow getPreferredRow() {
     return compoundRow.getCompoundMembersData().preferredRow();
   }
 
@@ -54,15 +54,8 @@ public class ModularCompoundFeature extends ModularFeature implements CompoundFe
    * fallback. Used by project save/load to persist only schema-resident values (binding outputs,
    * compound-only feature types).
    */
-  public <T> @Nullable T getOwnValue(@NotNull final DataType<T> key) {
+  public <T> @Nullable T getCompoundValue(@NotNull final DataType<T> key) {
     return super.get(key);
-  }
-
-  /**
-   * Write the compound feature's own value for {@code key} bypassing any fallback semantics.
-   */
-  public <T> void setOwnValue(@NotNull final DataType<T> key, @Nullable final T value) {
-    super.set(key, value);
   }
 
   /**
@@ -83,7 +76,7 @@ public class ModularCompoundFeature extends ModularFeature implements CompoundFe
       return null;
     }
     // get other datatypes from representative row.feature
-    final Feature repFeature = getRepresentativeRow().getFeature(raw);
+    final Feature repFeature = getPreferredRow().getFeature(raw);
     if (repFeature instanceof ModularFeature mf) {
       return mf.get(key);
     }

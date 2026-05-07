@@ -124,12 +124,12 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
       try {
         final int id = Integer.parseInt(idStr);
         final boolean isCompound = "true".equalsIgnoreCase(compoundStr);
-        final ModularFeatureListRow mflr = isCompound
+        final ModularFeatureListRow member = isCompound
             ? resolveCompound(row, id)
             : resolveSource(flist, id);
         final CompoundMemberRole role = CompoundMemberRole.valueOf(roleStr);
         final float score = Float.parseFloat(scoreStr);
-        members.add(new CompoundFeatureMember(mflr, role, score));
+        members.add(new CompoundFeatureMember(member, role, score));
       } catch (IllegalArgumentException e) {
         logger.log(Level.WARNING, "Failed to parse <member> element: " + e.getMessage(), e);
       }
