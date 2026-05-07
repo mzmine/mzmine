@@ -46,7 +46,6 @@ import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReacti
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -200,6 +199,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns the most common charge for features on this row. (most common or the lowest charge if
    * multiple charges have the same number of features).
+   *
    * @return most common charge state
    */
   Integer getRowCharge();
@@ -383,7 +383,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return null or the current list. First element is the "preferred" element
    */
-  @Nullable List<IonIdentity> getIonIdentities();
+  @NotNull List<IonIdentity> getIonIdentities();
 
   /**
    * Set the list of ion identities with the first element being the preferred
@@ -597,13 +597,13 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} or MS2 scans.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} of the first
+   * feature.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    // checks best feature first
-    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
-        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+    return streamFeatures().map(Feature::getRepresentativePolarity).filter(Objects::nonNull)
+        .filter(p -> p.isDefined()).findFirst().orElse(null);
   }
 
 }

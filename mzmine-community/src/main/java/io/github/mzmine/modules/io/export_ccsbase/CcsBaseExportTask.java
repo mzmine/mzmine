@@ -84,9 +84,9 @@ public class CcsBaseExportTask extends AbstractTask {
               ? m.get(MolecularClassType.class) : fallbackClassLabel;
 
       final var entry = new CcsBaseEntry(annotation.getCompoundName(),
-          annotation.getAdductType().getName(),
-          annotation.getPrecursorMZ() * annotation.getAdductType().getCharge(),
-          annotation.getAdductType().getCharge(), annotation.getPrecursorMZ(),
+          annotation.getAdductType().name(),
+          annotation.getPrecursorMZ() * annotation.getAdductType().totalCharge(),
+          annotation.getAdductType().totalCharge(), annotation.getPrecursorMZ(),
           row.getAverageCCS().doubleValue(), annotation.getSmiles(), classLabel,
           row.getBestFeature().getMobilityUnit().getCcsBaseEntryString(), calibrationString,
           row.getBestFeature().getHeight());

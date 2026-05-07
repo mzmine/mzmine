@@ -63,11 +63,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -94,7 +94,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     Comparable<CompoundDBAnnotation> {
@@ -110,11 +109,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
-      CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
+      CompoundDBAnnotation neutralAnnotation, IonLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
-    for (IonType adduct : library.getAllAdducts()) {
-      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
-          .contains("?")) {
+    for (IonType adduct : library.ions()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedMass()) {
         continue;
       }
       try {
@@ -189,8 +187,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
             : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFormulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
-      return MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic);
+      return FormulaUtils.getMonoisotopicMass(neutralFormula);
     }
     return null;
   }
@@ -621,18 +618,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         formula = structure.formulaString();
       }
 
-      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
+      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
           formula);
 
       if (majorIsotopeMolFormula == null) {
         continue;
       }
       final IMolecularFormula majorIsotopeIon;
-      try {
         majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
-      } catch (CloneNotSupportedException e) {
-        continue;
-      }
 
       // skip pattern calculation if not needed
       // check ion as ionization might be Cl- or Br- with strong influence on isotope pattern
@@ -642,7 +635,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
       final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
       final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
-          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.getCharge(),
+          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.totalCharge(),
           adduct.getPolarity(), true);
 
       if (resolutionAdjustedPattern.getNumberOfDataPoints() <= 1) {
@@ -674,7 +667,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
         // find the most intense individual isotope signal as representative
         final IsotopePattern highResPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
-            majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
+            majorIsotopeIon, 0.005, 0d, adduct.totalCharge(), adduct.getPolarity(), true);
         final double mainPeak = mainIsotopePeak.getPrecursorMZ();
         Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
         IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,

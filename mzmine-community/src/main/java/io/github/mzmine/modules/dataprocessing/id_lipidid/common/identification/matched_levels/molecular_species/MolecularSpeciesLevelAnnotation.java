@@ -41,7 +41,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
@@ -136,7 +135,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CHAINS);
     if (lipidChains != null) {
@@ -184,7 +183,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
               reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
-          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              reader.getElementText());
           break;
         case XML_LIPID_CHAINS:
           lipidChains = loadLipidChainsFromXML(reader);

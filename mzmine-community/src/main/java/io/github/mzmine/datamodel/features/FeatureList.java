@@ -431,6 +431,7 @@ public interface FeatureList {
    *
    * @return
    */
+  @NotNull
   List<RowGroup> getGroups();
 
   /**

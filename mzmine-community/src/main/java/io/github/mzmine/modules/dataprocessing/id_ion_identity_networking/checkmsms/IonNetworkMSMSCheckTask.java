@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,10 +35,10 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MSMSLogic;
@@ -83,10 +83,10 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     // tolerances
     mzTolerance = parameterSet.getParameter(IonNetworkMSMSCheckParameters.MZ_TOLERANCE).getValue();
     minHeight = parameterSet.getParameter(IonNetworkMSMSCheckParameters.MIN_HEIGHT).getValue();
-    checkMultimers =
-        parameterSet.getParameter(IonNetworkMSMSCheckParameters.CHECK_MULTIMERS).getValue();
-    checkNeutralLosses =
-        parameterSet.getParameter(IonNetworkMSMSCheckParameters.CHECK_NEUTRALLOSSES).getValue();
+    checkMultimers = parameterSet.getParameter(IonNetworkMSMSCheckParameters.CHECK_MULTIMERS)
+        .getValue();
+    checkNeutralLosses = parameterSet.getParameter(
+        IonNetworkMSMSCheckParameters.CHECK_NEUTRALLOSSES).getValue();
     neutralLossCheck = parameterSet.getParameter(IonNetworkMSMSCheckParameters.CHECK_NEUTRALLOSSES)
         .getEmbeddedParameter().getValue();
   }
@@ -113,8 +113,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
         neutralLossCheck);
   }
 
-  public static void doCheck(boolean parallel, ModularFeatureList pkl,
-      MZTolerance mzTolerance, double minHeight, boolean checkMultimers, boolean checkNeutralLosses,
+  public static void doCheck(boolean parallel, ModularFeatureList pkl, MZTolerance mzTolerance,
+      double minHeight, boolean checkMultimers, boolean checkNeutralLosses,
       NeutralLossCheck neutralLossCheck) {
     // do parallel or not
     pkl.stream(parallel).forEach(
@@ -122,8 +122,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
             neutralLossCheck));
   }
 
-  public static void doCheck(ModularFeatureList pkl, FeatureListRow row,
-      MZTolerance mzTolerance, double minHeight, boolean checkMultimers, boolean checkNeutralLosses,
+  public static void doCheck(ModularFeatureList pkl, FeatureListRow row, MZTolerance mzTolerance,
+      double minHeight, boolean checkMultimers, boolean checkNeutralLosses,
       NeutralLossCheck neutralLossCheck) {
 
     // has annotations?
@@ -158,8 +158,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
    * @param minHeight
    */
   public static void checkNeutralLosses(ModularFeatureList pkl, NeutralLossCheck neutralLossCheck,
-      FeatureListRow row, List<IonIdentity> ident, MZTolerance mzTolerance,
-      double minHeight) {
+      FeatureListRow row, List<IonIdentity> ident, MZTolerance mzTolerance, double minHeight) {
     if (ident == null || ident.isEmpty()) {
       return;
     }
@@ -167,7 +166,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     int c = 0;
     for (IonIdentity ad : ident) {
       // do not test the unmodified
-      if (ad.getIonType().getModCount() <= 0) {
+      if (ad.getIonType().isUndefinedMass()) {
         continue;
       }
 
@@ -175,12 +174,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       IonType mod = ad.getIonType();
 
       // for all rows in network
-      FeatureListRow[] rows = null;
-      if (net != null) {
-        rows = net.keySet().toArray(new FeatureListRow[0]);
-      } else {
-        rows = ad.getPartner().keySet().toArray(new FeatureListRow[0]);
-      }
+      List<FeatureListRow> rows = net.getRows();
 
       // check group for correlation
       RowGroup group = row.getGroup();
@@ -242,9 +236,10 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     // loss for precursor mz
     DataPoint loss = MSMSLogic.findDPAt(dps, precursorMZ, mzTolerance, minHeight);
     if (loss != null) {
-      MSMSIonRelationIdentity relation =
-          new MSMSIonRelationIdentity(mzTolerance, loss, mod, precursorMZ);
-      identity.addMsMsIdentity(relation);
+      MSMSIonRelationIdentity relation = new MSMSIonRelationIdentity(mzTolerance, loss, mod,
+          precursorMZ);
+      // TODO decide how to present msms identity
+//      identity.addMsMsIdentity(relation);
       result = true;
     }
 
@@ -253,7 +248,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
 
       // found?
       for (MsMsIdentity id : msmsIdent) {
-        identity.addMsMsIdentity(id);
+        // TODO decide how to present msms identity
+//        identity.addMsMsIdentity(id);
         result = true;
       }
     }
@@ -275,8 +271,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       if (msmsScan != null) {
         for (int i = 0; i < ident.size(); i++) {
           IonIdentity adduct = ident.get(i);
-          boolean isMultimer = checkMultimers(row, adduct, msmsScan, ident, mzTolerance,
-              minHeight, f.getMZ());
+          boolean isMultimer = checkMultimers(row, adduct, msmsScan, ident, mzTolerance, minHeight,
+              f.getMZ());
           if (isMultimer) {
             break;
           }
@@ -285,20 +281,20 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     }
   }
 
-  public static boolean checkMultimers(FeatureListRow row, IonIdentity adduct,
-      Scan msmsScan, List<IonIdentity> ident, MZTolerance mzTolerance, double minHeight,
-      double precursorMZ) {
+  public static boolean checkMultimers(FeatureListRow row, IonIdentity adduct, Scan msmsScan,
+      List<IonIdentity> ident, MZTolerance mzTolerance, double minHeight, double precursorMZ) {
     Feature f = row.getFeature(msmsScan.getDataFile());
     // only for M>1
-    if (adduct.getIonType().getMolecules() > 1) {
+    if (adduct.getIonType().molecules() > 1) {
       List<MsMsIdentity> msmsIdent = MSMSLogic.checkMultiMolCluster(msmsScan, precursorMZ,
-          adduct.getIonType(), mzTolerance, minHeight);
+          adduct.getIonType(), adduct.getIonType().molecules(), mzTolerance, minHeight);
 
       // found?
       if (msmsIdent != null && msmsIdent.size() > 0) {
         // add all
         for (MsMsIdentity msms : msmsIdent) {
-          adduct.addMsMsIdentity(msms);
+          // TODO decide how to present msms identity
+//          adduct.addMsMsIdentity(msms);
         }
         return true;
       }

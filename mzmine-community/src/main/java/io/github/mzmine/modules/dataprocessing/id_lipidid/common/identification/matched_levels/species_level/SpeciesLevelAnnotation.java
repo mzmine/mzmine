@@ -111,8 +111,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     }
     SpeciesLevelAnnotation that = (SpeciesLevelAnnotation) o;
     return numberOfCarbons == that.numberOfCarbons && numberOfDBEs == that.numberOfDBEs
-        && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
-        && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
+           && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
+           && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
         that.molecularFormula);
   }
 
@@ -135,7 +135,7 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_NUMBER_OF_CARBONS);
     writer.writeCharacters(String.valueOf(numberOfCarbons));
@@ -187,7 +187,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
               reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
-          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              reader.getElementText());
           break;
         case XML_NUMBER_OF_CARBONS:
           numberOfCarbons = Integer.parseInt(reader.getElementText());
