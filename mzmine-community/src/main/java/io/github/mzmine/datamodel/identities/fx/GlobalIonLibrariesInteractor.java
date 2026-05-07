@@ -294,8 +294,8 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
     // library is build edited already and was changed
     if (editActive && !editModel.isSameAsOriginal()) {
       final ButtonType save = new ButtonType("Save changes", ButtonData.YES);
-      final ButtonType discard = new ButtonType("Discard changes", ButtonData.APPLY);
-      final ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+      final ButtonType discard = new ButtonType("Discard changes", ButtonData.YES);
+      final ButtonType cancel = new ButtonType("Cancel", ButtonData.NO);
 
       String typing = library == null ? "creating" : "editing";
       String type = library == null ? "create new" : "edit";
