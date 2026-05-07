@@ -6,7 +6,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidenceType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberListType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberRoleType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public record CompoundMembers(@NotNull ModularFeatureListRow preferredRow,
   @Override
   public Object getValue(@NotNull final DataType<?> sub) {
     return switch (sub) {
-      case CompoundPreferredRowIdType _ -> preferredRow.getID();
+      case CompoundPreferredRowType _ -> preferredRow;
       case CompoundConfidenceType _ -> confidence;
       case CompoundMemberListType _ -> members;
       // role is per-member, not per-compound — supplied by the cell factory

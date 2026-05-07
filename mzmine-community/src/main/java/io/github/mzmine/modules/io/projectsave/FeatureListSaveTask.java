@@ -34,6 +34,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundFeature;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -243,6 +246,12 @@ public class FeatureListSaveTask extends AbstractTask {
 
         processedRows++;
       }
+
+      final CompoundList cl = flist.getCompoundList();
+      if (cl != null && !cl.getRows().isEmpty()) {
+        saveCompoundList(writer, flist, cl);
+      }
+
       writer.writeEndElement();
       writer.writeEndDocument();
       writer.flush();
@@ -324,6 +333,74 @@ public class FeatureListSaveTask extends AbstractTask {
     final List<Entry<DataType, Object>> entries = feature.stream().toList();
     for (Entry<DataType, Object> entry : entries) {
       writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature, rawDataFile);
+    }
+
+    writer.writeEndElement();
+  }
+
+  /**
+   * Persist the {@link CompoundList} as a {@code <compoundlist>} block at the end of the
+   * {@code <featurelist>} XML. Iterates the compound row schema and the compound features schema
+   * directly so any schema-resident DataType — including binding outputs and future compound-only
+   * types — serializes via its own {@code saveToXML} without per-type branches here. The
+   * preferred-row fallback is bypassed via {@link ModularCompoundRow#getOwnValue(DataType)} and
+   * {@link ModularCompoundRow#getOwnFeature(RawDataFile)}, so values that are merely delegated from
+   * the source row/feature are not re-saved on the compound row.
+   */
+  public static void saveCompoundList(XMLStreamWriter writer, ModularFeatureList flist,
+      CompoundList cl) throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_COMPOUND_LIST_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_ROWS_ATTR, String.valueOf(cl.size()));
+    writer.writeAttribute(CONST.XML_COMPOUND_SOURCE_STRUCTURAL_VERSION_ATTR,
+        String.valueOf(flist.getStructuralVersion()));
+
+    // Up-front <ids> block: lets the loader create all compound row stubs in a single forward XML
+    // scan before any <compoundrow> content is parsed (mirrors createRows' two-pass approach).
+    writer.writeStartElement(CONST.XML_COMPOUND_IDS_ELEMENT);
+    final StringBuilder ids = new StringBuilder();
+    for (final ModularCompoundRow row : cl.getRows()) {
+      if (ids.length() > 0) {
+        ids.append(' ');
+      }
+      ids.append(row.getCompoundId());
+    }
+    writer.writeCharacters(ids.toString());
+    writer.writeEndElement();
+
+    final List<DataType> rowTypes = List.copyOf(cl.getCompoundRowSchema().getTypes());
+    final List<DataType> featureTypes = List.copyOf(cl.getCompoundFeaturesSchema().getTypes());
+    final List<RawDataFile> rawFiles = flist.getRawDataFiles();
+
+    for (final ModularCompoundRow row : cl.getRows()) {
+      writer.writeStartElement(CONST.XML_COMPOUND_ROW_ELEMENT);
+      writer.writeAttribute(CONST.XML_COMPOUND_ID_ATTR, String.valueOf(row.getCompoundId()));
+
+      for (final DataType type : rowTypes) {
+        final Object value = row.getOwnValue(type);
+        if (value == null) {
+          continue;
+        }
+        writeDataType(writer, type, value, flist, row, null, null);
+      }
+
+      for (final RawDataFile rf : rawFiles) {
+        final ModularCompoundFeature cf = row.getOwnFeature(rf);
+        if (cf == null) {
+          continue;
+        }
+        writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
+        writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rf.getName());
+        for (final DataType type : featureTypes) {
+          final Object value = cf.getOwnValue(type);
+          if (value == null) {
+            continue;
+          }
+          writeDataType(writer, type, value, flist, row, cf, rf);
+        }
+        writer.writeEndElement();
+      }
+
+      writer.writeEndElement();
     }
 
     writer.writeEndElement();

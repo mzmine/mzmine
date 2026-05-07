@@ -34,6 +34,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundFeature;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -258,12 +261,166 @@ public class FeatureListLoadTask extends AbstractTask {
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
             parseRow(reader, storage, project, flist);
             processedRows++;
+          } else if (CONST.XML_COMPOUND_LIST_ELEMENT.equals(localName)) {
+            parseCompoundList(reader, project, flist);
           }
         }
       }
 
     } catch (IOException | XMLStreamException e) {
       logger.log(Level.WARNING, "Error opening file " + flistFile.getAbsolutePath(), e);
+    }
+  }
+
+  /**
+   * Parse a {@code <compoundlist>} block in two passes within a single forward StAX scan:
+   * <ul>
+   * <li>Pass A: read the leading {@code <ids>} element and create a {@link ModularCompoundRow}
+   * stub for each compound id, registered in the {@link CompoundList}'s id index. After this,
+   * {@link CompoundList#findRowByCompoundId(int)} resolves any forward reference (compound A
+   * referring to compound B that appears later in the XML).</li>
+   * <li>Pass B: for each {@code <compoundrow id="X">}, look up the stub and populate its data
+   * types (compound row schema) and compound features (compound features schema) by iterating
+   * the XML directly — all DataType resolution goes through {@link DataTypes#getTypeForId}, so
+   * no schema-type enumeration is hardcoded here.</li>
+   * </ul>
+   * Finally calls {@link CompoundList#finalizeLoaded()} to wire listeners and
+   * {@link ModularFeatureList#setCompoundList(CompoundList)}.
+   */
+  public static void parseCompoundList(@NotNull final XMLStreamReader reader,
+      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist)
+      throws XMLStreamException {
+    final String numRowsStr = reader.getAttributeValue(null, CONST.XML_NUM_ROWS_ATTR);
+    final int numRows = numRowsStr != null ? Integer.parseInt(numRowsStr) : 0;
+
+    final CompoundList cl = new CompoundList(flist, flist.getMemoryMapStorage(), numRows);
+
+    while (reader.hasNext()) {
+      final int event = reader.next();
+      if (event == XMLEvent.END_ELEMENT && CONST.XML_COMPOUND_LIST_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (event != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      final String localName = reader.getLocalName();
+      if (CONST.XML_COMPOUND_IDS_ELEMENT.equals(localName)) {
+        // Pass A: stub creation
+        final String text = reader.getElementText().trim();
+        if (!text.isEmpty()) {
+          for (final String idStr : text.split("\\s+")) {
+            final int id = Integer.parseInt(idStr);
+            cl.addCompoundRowStub(new ModularCompoundRow(cl, id));
+          }
+        }
+      } else if (CONST.XML_COMPOUND_ROW_ELEMENT.equals(localName)) {
+        // Pass B: populate content of an existing stub
+        final int compoundId = Integer.parseInt(
+            reader.getAttributeValue(null, CONST.XML_COMPOUND_ID_ATTR));
+        final ModularCompoundRow row = cl.findRowByCompoundId(compoundId);
+        if (row == null) {
+          logger.log(Level.WARNING,
+              () -> "Skipping <compoundrow id=" + compoundId
+                  + "> because no stub was created for it (missing <ids>?)");
+          // skip the element
+          skipElement(reader, CONST.XML_COMPOUND_ROW_ELEMENT);
+          continue;
+        }
+        parseCompoundRow(reader, project, flist, cl, row);
+      }
+    }
+
+    cl.finalizeLoaded();
+    flist.setCompoundList(cl);
+  }
+
+  private static void parseCompoundRow(@NotNull final XMLStreamReader reader,
+      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
+      @NotNull final CompoundList cl, @NotNull final ModularCompoundRow row)
+      throws XMLStreamException {
+    while (reader.hasNext()) {
+      final int event = reader.next();
+      if (event == XMLEvent.END_ELEMENT && CONST.XML_COMPOUND_ROW_ELEMENT.equals(
+          reader.getLocalName())) {
+        return;
+      }
+      if (event != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      final String localName = reader.getLocalName();
+      if (CONST.XML_DATA_TYPE_ELEMENT.equals(localName)) {
+        final DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        final Object value = parseDataType(reader, type, project, flist, row, null, null);
+        if (type != null && value != null) {
+          try {
+            row.setOwnValue(type, value);
+          } catch (RuntimeException e) {
+            logger.log(Level.WARNING, () -> String.format(
+                "DataType %s and value %s were not set to compound row. Maybe incompatible during loading?",
+                type, value));
+          }
+        }
+      } else if (CONST.XML_FEATURE_ELEMENT.equals(localName)) {
+        final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+        final RawDataFile rf = project.getCurrentRawDataFiles().stream()
+            .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
+        if (rf == null) {
+          logger.warning(
+              () -> "Cannot load compound feature for compound row id " + row.getCompoundId()
+                  + " for file " + fileName + ". File does not exist in project.");
+          skipElement(reader, CONST.XML_FEATURE_ELEMENT);
+          continue;
+        }
+        parseCompoundFeature(reader, project, flist, cl, row, rf);
+      }
+    }
+  }
+
+  private static void parseCompoundFeature(@NotNull final XMLStreamReader reader,
+      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
+      @NotNull final CompoundList cl, @NotNull final ModularCompoundRow row,
+      @NotNull final RawDataFile rf) throws XMLStreamException {
+    final ModularCompoundFeature cf = new ModularCompoundFeature(cl, row, rf);
+    while (reader.hasNext()) {
+      final int event = reader.next();
+      if (event == XMLEvent.END_ELEMENT && CONST.XML_FEATURE_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (event != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      if (!CONST.XML_DATA_TYPE_ELEMENT.equals(reader.getLocalName())) {
+        continue;
+      }
+      final DataType type = DataTypes.getTypeForId(
+          reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      final Object value = parseDataType(reader, type, project, flist, row, cf, rf);
+      if (type != null && value != null) {
+        try {
+          cf.setOwnValue(type, value);
+        } catch (RuntimeException e) {
+          logger.log(Level.WARNING, () -> String.format(
+              "DataType %s and value %s were not set to compound feature. Maybe incompatible during loading?",
+              type, value));
+        }
+      }
+    }
+    row.addFeature(rf, cf, false);
+  }
+
+  private static void skipElement(@NotNull final XMLStreamReader reader,
+      @NotNull final String localName) throws XMLStreamException {
+    int depth = 1;
+    while (reader.hasNext() && depth > 0) {
+      final int event = reader.next();
+      if (event == XMLEvent.START_ELEMENT && localName.equals(reader.getLocalName())) {
+        depth++;
+      } else if (event == XMLEvent.END_ELEMENT && localName.equals(reader.getLocalName())) {
+        depth--;
+      }
     }
   }
 

@@ -12,7 +12,6 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
 import io.github.mzmine.datamodel.features.types.modifiers.IgnoreAutoColumn;
-import io.github.mzmine.util.exceptions.MissingFeatureListRowException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +46,7 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers>
   @Override
   @SuppressWarnings({"rawtypes"})
   public @NotNull List<DataType> getSubDataTypes() {
-    return List.of(DataTypes.get(CompoundPreferredRowIdType.class),
+    return List.of(DataTypes.get(CompoundPreferredRowType.class),
         DataTypes.get(CompoundConfidenceType.class),
         DataTypes.get(CompoundMemberRoleType.class),
         DataTypes.get(CompoundMemberListType.class));
@@ -89,9 +88,7 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers>
     if (model.isEmpty()) {
       return null;
     }
-    final Integer prefId = model.get(CompoundPreferredRowIdType.class);
-    final ModularFeatureListRow preferred =
-        prefId != null ? resolveRow(flist, prefId) : null;
+    final ModularFeatureListRow preferred = model.get(CompoundPreferredRowType.class);
     final List<CompoundFeatureMember> members = model.get(CompoundMemberListType.class);
     final Float confidence = model.get(CompoundConfidenceType.class);
     if (preferred == null || members == null) {
@@ -100,14 +97,5 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers>
       return null;
     }
     return new CompoundMembers(preferred, members, confidence != null ? confidence : 0f);
-  }
-
-  private static @Nullable ModularFeatureListRow resolveRow(@NotNull final ModularFeatureList flist,
-      final int id) {
-    final var resolved = flist.findRowByID(id);
-    if (resolved == null) {
-      throw new MissingFeatureListRowException("Cannot reconstruct compound row from xml", flist, id);
-    }
-    return resolved instanceof ModularFeatureListRow mflr ? mflr : null;
   }
 }

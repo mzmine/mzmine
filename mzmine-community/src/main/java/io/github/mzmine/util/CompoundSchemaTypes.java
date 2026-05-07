@@ -7,7 +7,7 @@ import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberListType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberRoleType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +47,7 @@ public final class CompoundSchemaTypes {
       DataTypes.get(CompoundIdType.class),
       DataTypes.get(CompoundMembersType.class),
       DataTypes.get(NeutralMassType.class),
-      DataTypes.get(CompoundPreferredRowIdType.class),
+      DataTypes.get(CompoundPreferredRowType.class),
       DataTypes.get(CompoundConfidenceType.class),
       DataTypes.get(CompoundMemberRoleType.class),
       DataTypes.get(CompoundMemberListType.class)

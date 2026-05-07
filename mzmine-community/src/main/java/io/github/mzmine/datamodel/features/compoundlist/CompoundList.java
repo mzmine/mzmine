@@ -1,5 +1,6 @@
 package io.github.mzmine.datamodel.features.compoundlist;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -44,6 +45,10 @@ public class CompoundList {
   // O(1) reverse lookup: member row ID → owning compound. ConcurrentHashMap so listeners on
   // background threads can safely read while setRows rebuilds on the FX thread.
   private final Map<Integer, ModularCompoundRow> byMemberRowId = new ConcurrentHashMap<>();
+
+  // O(1) lookup compoundId → compound row. Populated by setRows() and addCompoundRowStub() so
+  // findRowByCompoundId resolves in either runtime construction or load-time stub-first flows.
+  private final Map<Integer, ModularCompoundRow> byCompoundId = new ConcurrentHashMap<>();
 
   @NotNull
   private final List<CompoundRowBinding> bindings;
@@ -142,13 +147,54 @@ public class CompoundList {
     }
     rows.setAll(newRows);
     byMemberRowId.clear();
+    byCompoundId.clear();
     for (final ModularCompoundRow cr : newRows) {
       indexMembers(cr);
+      byCompoundId.put(cr.getCompoundId(), cr);
     }
     applyAllBindings();
     if (!listenersWired) {
       wireListeners();
       listenersWired = true;
+    }
+  }
+
+  /**
+   * Add a compound row stub to the list and id index without applying bindings or wiring listeners.
+   * Used during project load (pass A) so that {@link #findRowByCompoundId(int)} resolves before any
+   * compound row's content is parsed (forward references inside nested-compound member lists).
+   * <p>
+   * Must be followed by {@link #finalizeLoaded()} once all stubs are populated.
+   */
+  public void addCompoundRowStub(@NotNull final ModularCompoundRow stub) {
+    if (disposed) {
+      throw new IllegalStateException("addCompoundRowStub called on a disposed CompoundList");
+    }
+    rows.add(stub);
+    byCompoundId.put(stub.getCompoundId(), stub);
+  }
+
+  /**
+   * Finalize a load: rebuild the {@code byMemberRowId} reverse index from each row's now-populated
+   * {@link CompoundMembers} and wire listeners on source-row/feature and compound-row/feature
+   * schemas. Skips {@code applyAllBindings()} — saved binding outputs are authoritative.
+   */
+  public void finalizeLoaded() {
+    if (disposed) {
+      throw new IllegalStateException("finalizeLoaded called on a disposed CompoundList");
+    }
+    bulkApplyInProgress = true;
+    try {
+      byMemberRowId.clear();
+      for (final ModularCompoundRow cr : rows) {
+        indexMembers(cr);
+      }
+      if (!listenersWired) {
+        wireListeners();
+        listenersWired = true;
+      }
+    } finally {
+      bulkApplyInProgress = false;
     }
   }
 
@@ -335,6 +381,26 @@ public class CompoundList {
    */
   public @Nullable ModularCompoundRow findCompoundOf(@NotNull final FeatureListRow row) {
     return byMemberRowId.get(row.getID());
+  }
+
+  /**
+   * O(1) lookup by compound id. Returns null if no compound row exists for this id. During project
+   * load this resolves stubs registered by {@link #addCompoundRowStub(ModularCompoundRow)} before
+   * their content has been populated.
+   */
+  public @Nullable ModularCompoundRow findRowByCompoundId(final int compoundId) {
+    return byCompoundId.get(compoundId);
+  }
+
+  /**
+   * Schema-direct read of a compound feature: returns null when the compound row never wrote a
+   * feature for {@code rf} (vs returning a delegated feature through {@link
+   * ModularCompoundRow#getFeature(RawDataFile)}). Used by save to persist only schema-resident
+   * compound features.
+   */
+  public @Nullable ModularCompoundFeature getOwnFeature(@NotNull final ModularCompoundRow row,
+      @NotNull final RawDataFile rf) {
+    return row.getOwnFeature(rf);
   }
 
   /**

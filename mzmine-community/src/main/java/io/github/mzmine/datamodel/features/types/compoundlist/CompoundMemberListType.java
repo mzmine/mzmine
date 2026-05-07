@@ -7,9 +7,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.modifiers.IgnoreAutoColumn;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.util.exceptions.MissingCompoundRowException;
 import io.github.mzmine.util.exceptions.MissingFeatureListRowException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,7 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
   private static final String XML_ID_ATTR = "id";
   private static final String XML_ROLE_ATTR = "role";
   private static final String XML_SCORE_ATTR = "score";
+  private static final String XML_COMPOUND_ATTR = "compound";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -80,7 +84,11 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
         continue;
       }
       writer.writeStartElement(XML_MEMBER_ELEMENT);
-      writer.writeAttribute(XML_ID_ATTR, String.valueOf(m.row().getID()));
+      final boolean isCompound = m.row() instanceof ModularCompoundRow;
+      final int idRef =
+          isCompound ? ((ModularCompoundRow) m.row()).getCompoundId() : m.row().getID();
+      writer.writeAttribute(XML_ID_ATTR, String.valueOf(idRef));
+      writer.writeAttribute(XML_COMPOUND_ATTR, String.valueOf(isCompound));
       writer.writeAttribute(XML_ROLE_ATTR, m.role().name());
       writer.writeAttribute(XML_SCORE_ATTR, String.valueOf(m.score()));
       writer.writeEndElement();
@@ -108,16 +116,17 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
       final String idStr = reader.getAttributeValue(null, XML_ID_ATTR);
       final String roleStr = reader.getAttributeValue(null, XML_ROLE_ATTR);
       final String scoreStr = reader.getAttributeValue(null, XML_SCORE_ATTR);
+      final String compoundStr = reader.getAttributeValue(null, XML_COMPOUND_ATTR);
       if (idStr == null || roleStr == null || scoreStr == null) {
         logger.log(Level.WARNING, "Skipping <member> element with missing attributes");
         continue;
       }
       try {
         final int id = Integer.parseInt(idStr);
-        final FeatureListRow resolved = flist.findRowByID(id);
-        if (!(resolved instanceof ModularFeatureListRow mflr)) {
-          throw new MissingFeatureListRowException("Compound member row not found. Cannot construct compound row.", flist, id);
-        }
+        final boolean isCompound = "true".equalsIgnoreCase(compoundStr);
+        final ModularFeatureListRow mflr = isCompound
+            ? resolveCompound(row, id)
+            : resolveSource(flist, id);
         final CompoundMemberRole role = CompoundMemberRole.valueOf(roleStr);
         final float score = Float.parseFloat(scoreStr);
         members.add(new CompoundFeatureMember(mflr, role, score));
@@ -126,5 +135,30 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
       }
     }
     return members.isEmpty() ? null : List.copyOf(members);
+  }
+
+  private static @NotNull ModularFeatureListRow resolveSource(
+      @NotNull final ModularFeatureList flist, final int id) {
+    final FeatureListRow resolved = flist.findRowByID(id);
+    if (!(resolved instanceof ModularFeatureListRow mflr)) {
+      throw new MissingFeatureListRowException(
+          "Compound member row not found. Cannot construct compound row.", flist, id);
+    }
+    return mflr;
+  }
+
+  private static @NotNull ModularFeatureListRow resolveCompound(
+      @NotNull final ModularFeatureListRow row, final int compoundId) {
+    if (!(row instanceof ModularCompoundRow ccr)) {
+      throw new IllegalStateException(
+          "CompoundMemberListType compound member can only be read on a ModularCompoundRow");
+    }
+    final CompoundList cl = ccr.getCompoundList();
+    final ModularCompoundRow resolved = cl.findRowByCompoundId(compoundId);
+    if (resolved == null) {
+      throw new MissingCompoundRowException(
+          "Compound member compound row not found", cl, compoundId);
+    }
+    return resolved;
   }
 }

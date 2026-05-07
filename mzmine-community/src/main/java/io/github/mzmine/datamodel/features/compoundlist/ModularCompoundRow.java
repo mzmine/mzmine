@@ -67,6 +67,17 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   }
 
   /**
+   * Load-time constructor: creates a stub compound row with only the compound id and back-reference
+   * to its {@link CompoundList}. {@link CompoundMembersType}, {@link NeutralMassType}, binding-output
+   * values, and features are populated by the loader after all stubs are created.
+   */
+  public ModularCompoundRow(@NotNull final CompoundList compoundList, final int compoundId) {
+    super(compoundList.getFeatureList(), compoundList.getCompoundRowSchema());
+    this.compoundList = compoundList;
+    set(CompoundIdType.class, compoundId);
+  }
+
+  /**
    * Returns the compound row's own value first; for sub-columns of {@link CompoundMembersType}
    * (preferred row id, confidence, members list) dispatches to the carrier; otherwise falls back to
    * the preferred row.
@@ -79,6 +90,23 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
       return own;
     }
     return getPreferredRow().get(key);
+  }
+
+  /**
+   * Read the compound row's own value for {@code key} bypassing the preferred-row fallback. Used by
+   * project save/load to read/write only schema-resident values (binding outputs, compound-only
+   * types) and avoid re-persisting values that already live on the preferred row.
+   */
+  public <T> @Nullable T getOwnValue(@NotNull final DataType<T> key) {
+    return super.get(key);
+  }
+
+  /**
+   * Write the compound row's own value for {@code key} bypassing any fallback semantics. Used by
+   * the loader to populate parsed values directly into the compound row schema.
+   */
+  public <T> void setOwnValue(@NotNull final DataType<T> key, @Nullable final T value) {
+    super.set(key, value);
   }
 
   // -- Feature access via compoundRowSchema (not flist.getRowsSchema()) --
@@ -107,6 +135,16 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
     }
     final Feature pref = getPreferredRow().getFeature(raw);
     return pref instanceof ModularFeature mf ? mf : null;
+  }
+
+  /**
+   * Schema-direct read of this compound row's own compound feature for {@code raw}, bypassing the
+   * representative-feature fallback in {@link #getFeature(RawDataFile)}. Returns null when the
+   * compound row never wrote a feature for that file.
+   */
+  public @Nullable ModularCompoundFeature getOwnFeature(@NotNull final RawDataFile raw) {
+    final ModularFeature f = compoundList.getCompoundRowSchema().getFeature(modelRowIndex, raw);
+    return f instanceof ModularCompoundFeature ccf ? ccf : null;
   }
 
   @Override

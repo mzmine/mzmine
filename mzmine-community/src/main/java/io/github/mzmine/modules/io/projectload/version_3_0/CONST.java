@@ -77,6 +77,16 @@ public class CONST {
   public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
   public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
   /**
+   * Compound list stuff
+   */
+  public static final String XML_COMPOUND_LIST_ELEMENT = "compoundlist";
+  public static final String XML_COMPOUND_ROW_ELEMENT = "compoundrow";
+  public static final String XML_COMPOUND_IDS_ELEMENT = "ids";
+  public static final String XML_COMPOUND_ID_ATTR = "id";
+  public static final String XML_COMPOUND_ATTR = "compound";
+  public static final String XML_COMPOUND_ID_REF_ATTR = "id_ref";
+  public static final String XML_COMPOUND_SOURCE_STRUCTURAL_VERSION_ATTR = "source_structural_version";
+  /**
    * Other data file stuff
    */
   public static final String XML_OTHER_TIME_VALUES_ELEMENT = "otherdata_times";

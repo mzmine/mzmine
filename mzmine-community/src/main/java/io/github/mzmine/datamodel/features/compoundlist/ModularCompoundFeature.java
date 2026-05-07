@@ -50,6 +50,22 @@ public class ModularCompoundFeature extends ModularFeature implements CompoundFe
   }
 
   /**
+   * Read the compound feature's own value for {@code key} bypassing the representative-feature
+   * fallback. Used by project save/load to persist only schema-resident values (binding outputs,
+   * compound-only feature types).
+   */
+  public <T> @Nullable T getOwnValue(@NotNull final DataType<T> key) {
+    return super.get(key);
+  }
+
+  /**
+   * Write the compound feature's own value for {@code key} bypassing any fallback semantics.
+   */
+  public <T> void setOwnValue(@NotNull final DataType<T> key, @Nullable final T value) {
+    super.set(key, value);
+  }
+
+  /**
    * Compound-feature-level fallback: if the requested key is not set on this compound feature,
    * return the representative source row's feature value for the same {@link RawDataFile}.
    */
