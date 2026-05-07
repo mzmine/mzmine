@@ -70,6 +70,10 @@ public class ClearcoreServer {
 
   private ClearcoreServer() throws IOException {
     final File dataAccessExe = FileAndPathUtil.resolveInExternalToolsDir(getDataAccessPath());
+    if (!dataAccessExe.exists()) {
+      throw new RuntimeException(
+          "SCIEX data API executable does not exist. Run gradlew build first to download.");
+    }
     if (!Platform.isWindows() && !dataAccessExe.setExecutable(true, false)) {
       // make sure file is set as executable on linux
       throw new RuntimeException(
