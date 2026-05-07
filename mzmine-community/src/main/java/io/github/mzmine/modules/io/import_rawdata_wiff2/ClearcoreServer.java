@@ -70,6 +70,11 @@ public class ClearcoreServer {
 
   private ClearcoreServer() throws IOException {
     final File dataAccessExe = FileAndPathUtil.resolveInExternalToolsDir(getDataAccessPath());
+    if (!Platform.isWindows() && !dataAccessExe.setExecutable(true, false)) {
+      // make sure file is set as executable on linux
+      throw new RuntimeException(
+          "Failed to make SCIEX data API executable: " + dataAccessExe.getAbsolutePath());
+    }
 
     // Write appsettings.json (non-secret) before the native call so the server
     // finds the license path on startup.
