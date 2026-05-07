@@ -165,7 +165,7 @@
                               <MenuItem onAction="#handleShowIntegrationDashboard"
                                 text="Show integration dashboard"/>
                               <MenuItem onAction="#handleShowLipidDashboard"
-                                text="Show Lipid dashboard"/>
+                                text="Show lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>

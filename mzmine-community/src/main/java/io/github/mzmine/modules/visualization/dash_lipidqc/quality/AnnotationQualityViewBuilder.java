@@ -98,9 +98,8 @@ class AnnotationQualityViewBuilder extends FxViewBuilder<AnnotationQualityModel>
         "Remove multi-row annotations", interactor::removeMultiRowAnnotations);
     final Button setPreferredAnnotationLevelButton = FxButtons.createButton(
         "Set preferred annotation level (global)", interactor::setPreferredLipidAnnotationLevel);
-    final VBox actionBox = new VBox(6, removeMultiRowAnnotationsButton,
+    final FlowPane actionBox = FxLayout.newFlowPane(Pos.TOP_LEFT, removeMultiRowAnnotationsButton,
         setPreferredAnnotationLevelButton);
-    actionBox.setAlignment(Pos.TOP_LEFT);
     final TitledPane actionsPane = new TitledPane("Annotation actions", actionBox);
     actionsPane.setCollapsible(true);
     final Accordion actionsAccordion = new Accordion(actionsPane);
