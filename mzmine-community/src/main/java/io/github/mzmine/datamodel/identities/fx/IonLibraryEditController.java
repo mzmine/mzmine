@@ -27,20 +27,21 @@ package io.github.mzmine.datamodel.identities.fx;
 
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.CloseTab;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.components.util.FxTabs;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.MZmineCore;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Tab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,20 +67,15 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
    */
   IonLibraryEditController(@NotNull GlobalIonLibrariesModel parentModel,
       @Nullable IonLibrary library) {
-    if (IonLibraries.isInternalLibrary(library)) {
-      // cannot change internal library so create copy with different name
-      library = new UnmodifiableIonLibrary("unnamed library", library.ions());
-    }
-
     super(new IonLibraryEditModel(library));
     this.parentModel = parentModel;
+    parentModel.editTabTitleProperty().bind(model.titleProperty());
     viewBuilder = new IonLibraryEditViewBuilder(parentModel, model, this::handleEvent);
   }
 
-  public Tab showTab() {
-    final SimpleTab tab = new SimpleTab("", buildView());
-    tab.titleProperty().bind(model.titleProperty());
-    MZmineCore.getDesktop().addTab(tab);
+  public Tab createEditTab() {
+    final Tab tab = FxTabs.newTab(model.titleProperty(), buildView());
+    tab.setClosable(true);
 
     tab.setOnCloseRequest(e -> {
       if (model.isSameAsOriginal() || DialogLoggerUtil.showDialogYesNo("Discard unsaved changes?",
@@ -92,11 +88,23 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
     return tab;
   }
 
-  private void handleEvent(@NotNull IonLibraryEditEvent event) {
+  void handleEvent(@NotNull IonLibraryEditEvent event) {
     switch (event) {
-      case Save(boolean saveAsCopy) -> saveLibrary(saveAsCopy);
+      case Save(boolean saveAsCopy) -> {
+        if (saveLibrary(saveAsCopy)) {
+          parentModel.setLibraryEditActive(false);
+        }
+      }
       case AddIons(List<IonType> ions) -> addIons(ions);
       case ComposeAddLibraries(List<IonLibrary> libraries) -> composeAddLibraries(libraries);
+      case CloseTab _ -> {
+        if (model.isSameAsOriginal() || DialogLoggerUtil.showDialogYesNo(AlertType.WARNING,
+            "Discard unsaved changes?",
+            "There are unsaved changes for the current library. Discard and close the tab?")) {
+          parentModel.setLibraryEditActive(false);
+          model.setLibrary(null);
+        }
+      }
     }
   }
 
@@ -132,16 +140,17 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
    *
    * @param saveAsCopy save as a copy (requires new name) otherwise overwrite an original input
    *                   library.
+   * @return true if saved
    */
-  public void saveLibrary(boolean saveAsCopy) {
+  public boolean saveLibrary(boolean saveAsCopy) {
     // requires a change
     if (model.isSameAsOriginal()) {
-      return;
+      return true;
     }
     // cannot overwrite name of internal libs
     final String newName = model.getName().trim();
     if (IonLibraries.isInternalLibrary(newName)) {
-      return;
+      return false;
     }
 
     // check if name was changed
@@ -151,14 +160,14 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
       // name was never changed - only needed for save copy
       DialogLoggerUtil.showErrorNotification("Requires name change to save a copy!",
           "Please change the name before saving a copy.");
-      return;
+      return false;
     }
 
     // on save overwrite original library always ask if user is sure
     if (!saveAsCopy && original != null && !DialogLoggerUtil.showDialogYesNo(
         "Overwrite original library named " + original.name(),
         "Do you want to overwrite the original library?")) {
-      return;
+      return false;
     }
 
     synchronized (parentModel.getLibraries()) {
@@ -185,8 +194,14 @@ class IonLibraryEditController extends FxController<IonLibraryEditModel> {
         model.setLibrary(newLibrary);
         // trigger model to global update directly
         parentModel.getEventHandler().accept(new ApplyModelChangesToGlobalService());
+        return true;
       }
     }
+    return false;
+  }
+
+  public IonLibraryEditModel getModel() {
+    return model;
   }
 
   /**

@@ -45,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GlobalIonLibrariesController extends FxController<GlobalIonLibrariesModel> {
 
+  private final IonLibraryEditController editLibraryController;
+
   // lazy init singleton
   private static class Holder {
 
@@ -56,11 +58,13 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
 
   private GlobalIonLibrariesController() {
     super(new GlobalIonLibrariesModel());
+    editLibraryController = new IonLibraryEditController(model);
+    model.setEditLibraryController(editLibraryController);
 
     interactor = new GlobalIonLibrariesInteractor(model);
     model.setEventHandler(interactor::handleEvent);
 
-    viewBuilder = new GlobalIonLibrariesViewBuilder(model);
+    viewBuilder = new GlobalIonLibrariesViewBuilder(model, editLibraryController);
   }
 
   public boolean askRemoveIonPartDefinition(IonPartDefinition removed) {

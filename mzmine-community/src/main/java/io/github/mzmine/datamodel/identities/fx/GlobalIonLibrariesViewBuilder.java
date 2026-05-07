@@ -30,10 +30,12 @@ import static io.github.mzmine.javafx.components.factories.FxButtons.createButto
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.DiscardModelChanges;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ReloadGlobalServiceChanges;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.CloseTab;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxTabs;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import java.util.function.Consumer;
@@ -42,6 +44,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -49,8 +52,12 @@ import javafx.scene.layout.Region;
 
 class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesModel> {
 
-  public GlobalIonLibrariesViewBuilder(final GlobalIonLibrariesModel model) {
+  private final IonLibraryEditController editLibraryController;
+
+  public GlobalIonLibrariesViewBuilder(final GlobalIonLibrariesModel model,
+      IonLibraryEditController editLibraryController) {
     super(model);
+    this.editLibraryController = editLibraryController;
   }
 
   private Consumer<GlobalIonLibrariesEvent> getEventHandler() {
@@ -61,8 +68,31 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
   public Region build() {
     var tabPane = new TabPane(//
         FxTabs.newTab("Ion libraries", new IonLibrariesManagePane(model, getEventHandler())),
-        FxTabs.newTab("Define ion types", createIonTypesPane()),
+// no need to add the IonTypes pane. In edit library tab, users will mostly interact with global ions
+// list or just generate new types by typing free string in the same tab.
+//        FxTabs.newTab("Define ion types", createIonTypesPane()),
         FxTabs.newTab("Define building blocks", createIonPartsPane()));
+
+    final Tab editTab = editLibraryController.createEditTab();
+    final IonLibraryEditController editController = model.getEditLibraryController();
+    editTab.setOnCloseRequest(_ -> editController.handleEvent(new CloseTab()));
+    // auto add or remove the tab
+    PropertyUtils.onChange(() -> {
+          final boolean active = model.isLibraryEditActive();
+          if (active && !tabPane.getTabs().contains(editTab)) {
+            tabPane.getTabs().add(editTab);
+          } else if (!active) {
+            tabPane.getTabs().remove(editTab);
+            tabPane.getSelectionModel().select(0);
+            return;
+          }
+
+          if (active) {
+            // select tab if new library set or if active changed to true
+            tabPane.getSelectionModel().select(editTab);
+          }
+        }, model.libraryEditActiveProperty(), editTab.tabPaneProperty(),
+        editController.getModel().libraryProperty());
 
     var topNotificationsMenu = createNotificationsMenu();
     final BorderPane main = new BorderPane();
@@ -107,7 +137,7 @@ class GlobalIonLibrariesViewBuilder extends FxViewBuilder<GlobalIonLibrariesMode
 
     return main;
   }
-  
+
   private Node createIonTypesPane() {
     return new IonTypeCreatorPane(model.ionTypesProperty(), model.getPartsDefinitions());
   }

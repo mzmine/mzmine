@@ -35,11 +35,15 @@ import java.time.Instant;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -47,17 +51,10 @@ class GlobalIonLibrariesModel {
 
   private static final Logger logger = Logger.getLogger(GlobalIonLibrariesModel.class.getName());
   private final ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandler = new SimpleObjectProperty<>();
+  private IonLibraryEditController editLibraryController;
 
   public Consumer<GlobalIonLibrariesEvent> getEventHandler() {
     return eventHandler.get();
-  }
-
-  public ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandlerProperty() {
-    return eventHandler;
-  }
-
-  public void setEventHandler(Consumer<GlobalIonLibrariesEvent> eventHandler) {
-    this.eventHandler.set(eventHandler);
   }
 
   /**
@@ -110,6 +107,10 @@ class GlobalIonLibrariesModel {
    */
   private final LastUpdateProperty lastModelUpdate = new LastUpdateProperty(libraries, ionTypes,
       parts);
+
+  // currently editing
+  private final BooleanProperty libraryEditActive = new SimpleBooleanProperty(false);
+  private final StringProperty editTabTitle = new SimpleStringProperty("");
 
 
   public GlobalIonLibrariesModel() {
@@ -222,4 +223,45 @@ class GlobalIonLibrariesModel {
     this.retrievalVersion.set(retrievalVersion);
   }
 
+  public ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandlerProperty() {
+    return eventHandler;
+  }
+
+  public void setEventHandler(Consumer<GlobalIonLibrariesEvent> eventHandler) {
+    this.eventHandler.set(eventHandler);
+  }
+
+  public boolean isLibraryEditActive() {
+    return libraryEditActive.get();
+  }
+
+  public BooleanProperty libraryEditActiveProperty() {
+    return libraryEditActive;
+  }
+
+  public void setLibraryEditActive(boolean libraryEditActive) {
+    this.libraryEditActive.set(libraryEditActive);
+  }
+
+  public String getEditTabTitle() {
+    return editTabTitle.get();
+  }
+
+  public StringProperty editTabTitleProperty() {
+    return editTabTitle;
+  }
+
+  /**
+   * Set after initialization
+   */
+  public void setEditLibraryController(IonLibraryEditController editLibraryController) {
+    this.editLibraryController = editLibraryController;
+  }
+
+  /**
+   * Set after initialization
+   */
+  public IonLibraryEditController getEditLibraryController() {
+    return editLibraryController;
+  }
 }

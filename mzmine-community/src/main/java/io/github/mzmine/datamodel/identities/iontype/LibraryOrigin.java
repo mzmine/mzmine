@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.time.Instant;
@@ -45,6 +46,7 @@ public sealed interface LibraryOrigin {
   Builtin BUILTIN = new Builtin();
   Local LOCAL = new Local();
 
+  @JsonIgnore
   default boolean isCloud() {
     return this instanceof Cloud;
   }

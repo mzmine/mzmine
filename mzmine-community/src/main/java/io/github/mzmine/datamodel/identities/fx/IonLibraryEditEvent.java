@@ -35,6 +35,10 @@ sealed interface IonLibraryEditEvent {
 
   }
 
+  record CloseTab() implements IonLibraryEditEvent {
+
+  }
+
   record AddIons(List<IonType> ions) implements IonLibraryEditEvent {
 
   }

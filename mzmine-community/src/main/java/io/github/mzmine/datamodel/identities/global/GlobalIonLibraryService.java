@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -602,11 +603,15 @@ public final class GlobalIonLibraryService {
    */
   private boolean setLibraries(List<IonLibrary> newLibs) {
     return applyLockedChange(() -> {
-      final Set<@NotNull UUID> newIds = newLibs.stream().map(IonLibrary::id)
-          .collect(Collectors.toSet());
+      final Map<@NotNull UUID, IonLibrary> newIds = newLibs.stream()
+          .collect(Collectors.toMap(IonLibrary::id, Function.identity()));
       // remove all libraries that are not part of newLibs, they were deleted
       final List<IonLibrary> libsToRemove = libraries.values().stream()
-          .filter(lib -> !lib.isInternalLibrary() && !newIds.contains(lib.id())).toList();
+          .filter(lib -> {
+            if(lib.isInternalLibrary()) return false;
+            final IonLibrary newLib = newIds.get(lib.id());
+            return newLib!=null && !lib.equals(newLib); // has actually changed
+          }).toList();
 
       boolean wasChanged = removeLibraries(libsToRemove);
 

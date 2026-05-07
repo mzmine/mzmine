@@ -64,6 +64,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Updates in the {@link GlobalIonLibraryService}
@@ -97,18 +98,19 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
           "The selected ion building block is used in internal libraries and cannot be changed.");
       return false;
     }
-    final long cloudLibs = matchingLibs.libraries().keySet().stream().filter(IonLibrary::isCloudLibrary)
-        .count();
+    final long cloudLibs = matchingLibs.libraries().keySet().stream()
+        .filter(IonLibrary::isCloudLibrary).count();
 
-    String cloudMessage = cloudLibs == 0 ? "" : "Cloud libraries changed: %d\n".formatted(cloudLibs);
+    String cloudMessage =
+        cloudLibs == 0 ? "" : "Cloud libraries changed: %d\n".formatted(cloudLibs);
 
     if (DialogLoggerUtil.showDialogYesNo("Cascade remove ion building block?", """
-              Do you want to remove all ion types from all libraries that use ion building block:
-              "%s"
-              Otherwise the ion building block will stay defined.
-              
-              This changes:
-              %s%s""".formatted(def.toString(), cloudMessage, matchingLibs.toString()))) {
+        Do you want to remove all ion types from all libraries that use ion building block:
+        "%s"
+        Otherwise the ion building block will stay defined.
+        
+        This changes:
+        %s%s""".formatted(def.toString(), cloudMessage, matchingLibs.toString()))) {
 
       // change all libs
       model.getIonTypes().removeAll(matchingLibs.types());
@@ -281,15 +283,43 @@ class GlobalIonLibrariesInteractor extends FxInteractor<GlobalIonLibrariesModel>
   }
 
   public void createNewLibraryInTab() {
-    new IonLibraryEditController(model).showTab();
+    editLibraryInTab(null);
   }
 
-  public void editLibraryInTab(IonLibrary library) {
-    if (library == null) {
-      return;
-    }
+  public void editLibraryInTab(@Nullable IonLibrary library) {
+    final IonLibraryEditController editController = model.getEditLibraryController();
+    final IonLibraryEditModel editModel = editController.getModel();
     // tab handles the defense of internal libraries from being changed
-    new IonLibraryEditController(model, library).showTab();
+    final boolean editActive = model.isLibraryEditActive();
+    if (editActive) {
+      String typing = library == null ? "creating" : "editing";
+      String type = library == null ? "create new" : "edit";
+      final String oldLibName = editModel.getName();
+      final String title = "Save library before %s another?".formatted(typing);
+      final String message = """
+          Requesting to %s library.
+          You currently have unsaved changes while working on library:
+          %s
+          
+          Do you want to save these changes first?""".formatted(type, oldLibName);
+      final ButtonType save = new ButtonType("Save changes", ButtonData.YES);
+      final ButtonType discard = new ButtonType("Discard changes", ButtonData.OTHER);
+      final ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+      final ButtonType userAction = DialogLoggerUtil.showDialog(AlertType.WARNING, title, message,
+          save, discard, cancel).orElse(cancel);
+      if (userAction.equals(cancel)) {
+        return;
+      } else if(userAction.equals(save)) {
+        // save old library first
+        if (!editController.saveLibrary(false)) {
+          // issue while saving
+          return;
+        }
+      }
+    }
+      // discard changes by setting new edit library
+    editModel.setLibrary(library);
+    model.setLibraryEditActive(true);
   }
 
   /**

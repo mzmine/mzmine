@@ -32,12 +32,13 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 import static javafx.geometry.Insets.EMPTY;
 
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.CloseTab;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
+import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
-import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.Save;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
@@ -169,9 +170,6 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
 
   private @NotNull HBox createNameSavePane() {
     // more space to bottom for clearer separation
-    final BooleanBinding canSave = model.sameAsOriginalProperty()
-        .or(model.nameRestrictedProperty());
-
     final TextField nameField = FxTextFields.newAutoGrowTextField(model.nameProperty(),
         "The current library name");
     FxValidation.registerErrorValidator(nameField, model.nameIssueProperty());
@@ -179,10 +177,13 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     return newHBox(new Insets(0, 0, DEFAULT_SPACE * 3, 0), FxLabels.newBoldLabel("Name:"),
         nameField,
         FxButtons.createDisabledButton("Save", FxIcons.SAVE, "Save and overwrite the ion library",
-            canSave, () -> eventHandler.accept(new Save(false))),
+            model.canSaveProperty(), () -> eventHandler.accept(new Save(false))),
         FxButtons.createDisabledButton("Save copy", FxIcons.PLUS_CIRCLE,
             "Create a copy (requires a new name) and saves this copy. The original list stays unchanged.",
-            canSave, () -> eventHandler.accept(new Save(true))));
+            model.canSaveProperty(), () -> eventHandler.accept(new Save(true))),
+        FxButtons.createButton("Close tab & discard changes", FxIcons.X, "Close tab and discard changes",
+            () -> eventHandler.accept(new CloseTab()))
+        );
   }
 
 }
