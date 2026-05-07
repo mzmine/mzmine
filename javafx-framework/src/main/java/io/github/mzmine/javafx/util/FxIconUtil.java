@@ -267,10 +267,21 @@ public class FxIconUtil {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
   }
 
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @Nullable Color color, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, color, onAction);
+  }
+
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons,
       @NotNull ObservableValue<String> tooltip, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, tooltip, null, onAction);
+  }
 
-    final ButtonBase btn = newIconButton(fxIcons, DEFAULT_ICON_SIZE, null, onAction);
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons,
+      @NotNull ObservableValue<String> tooltip, @Nullable Color color,
+      @Nullable Runnable onAction) {
+
+    final ButtonBase btn = newIconButton(fxIcons, DEFAULT_ICON_SIZE, null, color, onAction);
     btn.tooltipProperty().bind(tooltip.map(Tooltip::new));
     return btn;
   }
@@ -282,13 +293,24 @@ public class FxIconUtil {
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable String tooltip, @Nullable Runnable onAction) {
-    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, onAction);
+    return newIconButton(fxIcons, size, tooltip, (Color) null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Color color, @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, tooltip, EventHandling.DEFAULT_PASS, color, onAction);
   }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Runnable onAction) {
-    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).tooltip(tooltip)
-        .onAction(onAction).build();
+    return newIconButton(fxIcons, size, tooltip, eventHandling, null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @NotNull EventHandling eventHandling, @Nullable Color color,
+      @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons, eventHandling).size(size).color(color)
+        .tooltip(tooltip).onAction(onAction).build();
   }
 
   public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size,

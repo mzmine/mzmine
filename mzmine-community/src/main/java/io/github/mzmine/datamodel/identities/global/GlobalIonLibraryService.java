@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.identities.global;
 
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryChangedEvent.SimpleGlobalIonLibraryChangedEvent;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPresetStore;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
@@ -35,19 +36,32 @@ import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import io.github.mzmine.util.presets.PresetTypeMismatchException;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,15 +89,87 @@ public final class GlobalIonLibraryService {
 
   private static final Logger logger = Logger.getLogger(GlobalIonLibraryService.class.getName());
 
+  public void addPresetFiles(@NotNull List<File> files, MergePolicy mergePolicy) {
+    List<File> brokenFiles = new ArrayList<>();
+    List<File> otherPresetType = new ArrayList<>();
+    List<IonLibrary> libraries = new ArrayList<>();
+
+    for (File file : files) {
+      final IonLibraryPreset loaded;
+      try {
+        loaded = presetStore.loadFromFileOrThrow(file);
+      } catch (IOException e) {
+        brokenFiles.add(file);
+        continue;
+      } catch (PresetTypeMismatchException e) {
+        otherPresetType.add(file);
+        continue;
+      }
+      if (loaded != null) {
+        libraries.add(loaded.library());
+      }
+    }
+
+    List<String> notLoadedMsg = new ArrayList<>();
+    if (!brokenFiles.isEmpty()) {
+      notLoadedMsg.add("Broken preset files not loaded: " + brokenFiles.stream().map(File::getName)
+          .collect(Collectors.joining(", ")));
+    }
+    if (!otherPresetType.isEmpty()) {
+      notLoadedMsg.add(
+          "Preset files from other preset types not loaded: " + otherPresetType.stream()
+              .map(File::getName).collect(Collectors.joining(", ")));
+    }
+
+    final IonLibraryImportResult results = addLibraries(libraries, mergePolicy);
+
+    if (!results.skipped().isEmpty()) {
+      notLoadedMsg.add("Skipped older libraries and kept existing: " + results.skipped().stream()
+          .map(IonLibrary::name).collect(Collectors.joining(", ")));
+    }
+
+    if (!notLoadedMsg.isEmpty()) {
+      notLoadedMsg.addFirst("Some presets files were skipped:");
+      DialogLoggerUtil.showWarningNotification("Some presets skipped",
+          String.join("\n", notLoadedMsg));
+    }
+
+    // something was added
+    if (results.isChanged()) {
+      GlobalIonLibrariesController.getInstance().updateModel();
+    }
+  }
+
+  public void exportPresetsTo(File directory, @NotNull List<IonLibrary> libraries) {
+    List<String> saved = new ArrayList<>();
+    for (IonLibrary library : libraries) {
+      File file = new File(directory, library.name());
+      file = presetStore.saveToFile(file, new IonLibraryPreset(library));
+      if (file != null) {
+        saved.add(file.getAbsolutePath());
+      }
+    }
+
+    DialogLoggerUtil.showInfoNotification("Exported ion libraries",
+        "Exported to:\n" + String.join("\n", saved));
+  }
+
   // lazy init singleton
   private static class Holder {
 
     private static final GlobalIonLibraryService globalLibrary = new GlobalIonLibraryService();
+
+    static {
+      globalLibrary.init();
+    }
   }
 
   // on changes just count up the current version so that other parts like the tab can see if changes happened
   private final AtomicInteger modificationCount = new AtomicInteger(Integer.MIN_VALUE);
   private final AtomicBoolean notifyChanges = new AtomicBoolean(true);
+  private final AtomicReference<LocalDateTime> lastGlobalSaved = new AtomicReference<>(null);
+  private final AtomicReference<LocalDateTime> lastIonDefinitionChanged = new AtomicReference<>(
+      null);
 
   private final List<GlobalIonLibraryChangedListener> changedListeners = new ArrayList<>();
 
@@ -92,10 +178,30 @@ public final class GlobalIonLibraryService {
    */
   private final CloseableReentrantReadWriteLock lock = new CloseableReentrantReadWriteLock();
 
+  private final GlobalIonLibraryValidator validator = new GlobalIonLibraryValidator();
+
   /**
    * Used to save ion libraries as presets
    */
   private final IonLibraryPresetStore presetStore = new IonLibraryPresetStore();
+
+  /**
+   * Scheduled executor for periodic saving of global ion library
+   */
+  private final ScheduledExecutorService saveScheduler = Executors.newSingleThreadScheduledExecutor(
+      r -> {
+        Thread t = new Thread(r, "mzmine global ion libraries save thread");
+        t.setDaemon(true);
+        t.setPriority(Thread.MIN_PRIORITY);
+        return t;
+      });
+
+  /**
+   * Libraries are first written to this object and then to the presetStore if they were updated.
+   * Use map for uniqueness
+   */
+  private final Map<UUID, IonLibrary> libraries = new ConcurrentHashMap<>();
+
 
   /// maps the short name often used to the ion part without count: like Fe will match Fe+3 and Fe+2
   /// We only store definitions for ion parts where the name is unequal to the formula. For example,
@@ -125,14 +231,136 @@ public final class GlobalIonLibraryService {
     // first parts then types
     addParts(IonParts.PREDEFINED_PARTS);
     addIonTypes(IonTypes.valuesAsIonType());
+  }
 
+  private void init() {
+    // load global ion definitions that may not be in a library already
+    loadGlobalIonDefinitionLibrary();
+
+    // add all internal libraries
+    addLibraries(IonLibraries.createDefaultLibrariesModifiable(), MergePolicy.OVERWRITE_ALL);
+
+    // below already requires globalLibrary initialized
     // load presets from disk once for global library
-    presetStore.loadAllPresetsOrDefaults();
-    // the preset store has an observable list and is only updated on the fx thread
-    // this means that there is already a delay between calling the change and the change happining on fx thread
-    // accumulate multiple changes here to avoid each addition/removal to trigger a change
-    PropertyUtils.onChangeListDelayed(this::notifyChange, Duration.millis(30),
+    PropertyUtils.onChangeListDelayed(this::presetsChanged, Duration.millis(150),
         presetStore.getCurrentPresets());
+    presetStore.loadAllPresetsOrDefaults();
+
+    // schedule periodic saving of global ion library every 5 seconds
+    saveScheduler.scheduleAtFixedRate(() -> {
+      try {
+        if (lastGlobalSaved.get() == null || !Objects.equals(lastGlobalSaved.get(),
+            lastIonDefinitionChanged.get())) {
+          saveGlobalIonDefinitionLibrary();
+        }
+      } catch (IOException e) {
+        logger.log(Level.WARNING, "Failed to save global ion library: " + e.getMessage());
+      }
+    }, 5, 5, TimeUnit.SECONDS);
+  }
+
+  private void presetsChanged() {
+    final List<IonLibrary> presets = List.copyOf(presetStore.getCurrentPresets()).stream()
+        .map(IonLibraryPreset::library).toList();
+    // will automatically check IDs and last update dates and only add if new
+    addLibraries(presets, MergePolicy.ASK_OLDER_OVERWRITE);
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   *
+   * @return IonLibraryImportResult with added or skipped libraries
+   */
+  public IonLibraryImportResult addLibraries(List<IonLibrary> libs) {
+    return addLibraries(libs, MergePolicy.SKIP_OLDER);
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   *
+   * @return IonLibraryImportResult with added or skipped libraries
+   */
+  public IonLibraryImportResult addLibraries(List<IonLibrary> libs, MergePolicy mergePolicy) {
+    final List<IonLibrary> added = new ArrayList<>();
+    final List<IonLibrary> skipped = new ArrayList<>();
+
+    applyLockedChange(() -> {
+      boolean wasChanged = false;
+      final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
+      for (IonLibrary lib : libs) {
+        final IonLibrary existingLib = libraries.get(lib.id());
+        if (existingLib != null) {
+          if (lib.lastUpdatedDate().isEqual(existingLib.lastUpdatedDate())) {
+            continue;
+          } else if (lib.lastUpdatedDate().isBefore(existingLib.lastUpdatedDate())) {
+            // old libraries usually do not overwrite newer version
+            // only possible with user interaction if ask is true
+            boolean skip = switch (mergePolicy) {
+              case SKIP_OLDER -> true;
+              case OVERWRITE_ALL -> false;
+              case ASK_OLDER_OVERWRITE -> !DialogLoggerUtil.showDialogYesNo(
+                  "Overwriting existing newer library with an older version?", """
+                      Should the older version ion library overwrite the already present newer version?
+                      Incoming older version: %s (last updated %s)
+                      Existing newer version: %s (last updated %s)""".formatted(existingLib,
+                      existingLib.lastUpdatedDate(), lib, lib.lastUpdatedDate()));
+            };
+
+            if (skip) {
+              skipped.add(lib);
+              continue;
+            }
+          }
+        }
+        logger.fine("Adding library " + lib.name());
+        // add library and all ion types and definitions
+        added.add(lib);
+        libraries.put(lib.id(), lib);
+        wasChanged = true;
+
+        final IonLibraryPreset oldPreset = presetMap.get(lib.id());
+        if (!lib.isInternalLibrary() && (oldPreset == null || oldPreset.library().lastUpdatedDate()
+            .isBefore(lib.lastUpdatedDate()))) {
+          presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
+        }
+
+        addIonTypes(lib.ions());
+        addParts(IonTypeUtils.extractUniqueParts(lib.ions()));
+        addPartDefinitions(IonTypeUtils.extractUniquePartsIgnoreCounts(lib.ions(), true));
+      }
+
+      return wasChanged;
+    });
+    return new IonLibraryImportResult(added, skipped);
+  }
+
+  /**
+   * Checks IDs and update dates and uses latest library
+   *
+   * @return true if model changed
+   */
+  private boolean removeLibraries(List<IonLibrary> libs) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
+      final Map<UUID, IonLibraryPreset> presetMap = presetStore.getPresetMapCopy();
+      for (IonLibrary lib : libs) {
+        if (lib.isInternalLibrary()) {
+          continue;
+        }
+
+        if (libraries.remove(lib.id()) != null) {
+          wasChanged = true;
+        }
+
+        // remove old presets that were changed and keep track which libraries were changed and need saving
+        final IonLibraryPreset old = presetMap.get(lib.id());
+        if (old != null) {
+          // remove old presets because new ones may have different name or content
+          presetStore.removePresetsWithName(old);
+        }
+      }
+      return wasChanged;
+    });
   }
 
   public synchronized void addChangeListener(GlobalIonLibraryChangedListener listener) {
@@ -175,42 +403,142 @@ public final class GlobalIonLibraryService {
   /**
    * Applies write lock and accumulates multiple changes into a single change event
    */
-  private void applyLockedChange(Runnable runnable) {
+  private boolean applyLockedChange(BooleanSupplier runnable) {
+    boolean wasChanged = false;
     try (var _ = lock.lockWrite()) {
       final boolean oldNotify = notifyChanges.getAndSet(false);
       try {
-        runnable.run();
+        wasChanged = runnable.getAsBoolean();
       } catch (Exception ex) {
         logger.log(Level.WARNING, "Failed to update global ions" + ex.getMessage(), ex);
       }
       notifyChanges.set(oldNotify);
+      if (wasChanged) {
+        notifyChange();
+      }
+    }
+    return wasChanged;
+  }
+
+  /// Versioned apply: validate, check that the caller's base version is still current, and only
+  /// then mutate. All three phases run inside a single write lock so a racing writer can't slip in
+  /// between the version check and the mutation.
+  ///
+  /// Returns one of {@link ApplyResult.Applied}, {@link ApplyResult.Invalid}, or
+  /// {@link ApplyResult.Conflict}. Callers must handle all three — the sealed return type makes
+  /// that obligation visible at the type level.
+  ///
+  /// @param expectedBaseVersion           the service version the caller built {@code proposed}
+  /// against; typically {@code model.getRetrievalVersion()}
+  /// @param proposed                      the full desired state (libraries, types, parts, part
+  /// definitions)
+  /// @param applyDirectlyIgnoreValidation
+  public @NotNull ApplyResult applyUpdates(int expectedBaseVersion,
+      @NotNull GlobalIonLibraryDTO proposed, boolean applyDirectlyIgnoreValidation) {
+
+    try (var _ = lock.lockWrite()) {
+      // cascade libraries -> ion types -> ion parts -> definitions
+      // so that we add all definitions from libraries
+      proposed = proposed.cascadeIonDefinitionsFromLibraries();
+
+      final int currentVersion = getVersion();
+      final GlobalIonLibraryDTO currentDto = snapshotGlobalLibrary(currentVersion);
+      if (!applyDirectlyIgnoreValidation && currentVersion != expectedBaseVersion) {
+        // base version is different so validate the changes first
+        final ValidationResult vr = validator.validate(proposed, currentDto);
+        if (vr.hasErrors()) {
+          return new ApplyResult.Invalid(vr);
+        }
+      }
+
+      // validation passed
+      final boolean oldNotify = notifyChanges.getAndSet(false);
+      try {
+        setIonPartDefinitions(proposed.partDefinitions());
+        setIonParts(proposed.parts());
+        setIonTypes(proposed.types());
+        setLibraries(proposed.libraries());
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Failed to apply global ion library update: " + ex.getMessage(),
+            ex);
+      } finally {
+        notifyChanges.set(oldNotify);
+      }
       notifyChange();
+      return new ApplyResult.Applied(getVersion());
     }
   }
 
-  /**
-   * Update the internal data structures to the lists of libraries, types and parts. This is
-   * important when the {@link GlobalIonLibrariesController} applies changes and pushes the changes
-   * to the global library.
-   * <p>
-   * All internal lists are cleared and exchanged for the arguments.
-   */
-  public void applyUpdates(List<IonLibrary> libraries, List<IonType> types, List<IonPart> parts,
-      List<IonPartDefinition> partDefinitions) {
-    applyLockedChange(() -> {
-      setIonPartDefinitions(partDefinitions);
-      setIonParts(parts);
-      setIonTypes(types);
-      setLibraries(libraries);
-    });
+  /// Snapshot without re-acquiring the read lock (we hold the write lock already).
+  private @NotNull GlobalIonLibraryDTO snapshotGlobalLibrary(int version) {
+    try (var _ = lock.lockRead()) {
+      return new GlobalIonLibraryDTO(version, getIonLibrariesUnmodifiable(),
+          getIonTypesUnmodifiable(), getIonPartsUnmodifiable(), getIonPartDefinitionsCopy());
+    }
   }
 
-  private void setIonPartDefinitions(List<IonPartDefinition> definitions) {
-    applyLockedChange(() -> {
-      this.partDefinitions.clear();
-      for (IonPartDefinition def : definitions) {
-        addIonPartDefinitionInternal(def);
+  // currently not used but maybe later to have finer report on changes
+  private static @NotNull ConflictReport diffLibraries(@NotNull List<IonLibrary> proposed,
+      @NotNull List<IonLibrary> current) {
+    final Map<UUID, IonLibrary> proposedById = HashMap.newHashMap(proposed.size());
+    for (IonLibrary lib : proposed) {
+      proposedById.put(lib.id(), lib);
+    }
+    final Map<UUID, IonLibrary> currentById = HashMap.newHashMap(current.size());
+    for (IonLibrary lib : current) {
+      currentById.put(lib.id(), lib);
+    }
+
+    final Set<UUID> sameIdDifferentContent = new HashSet<>();
+    final Set<UUID> onlyInProposed = new HashSet<>();
+    final Set<UUID> onlyInCurrent = new HashSet<>();
+
+    for (Map.Entry<UUID, IonLibrary> e : proposedById.entrySet()) {
+      final IonLibrary other = currentById.get(e.getKey());
+      if (other == null) {
+        onlyInProposed.add(e.getKey());
+      } else if (!e.getValue().name().equals(other.name()) || !e.getValue().equalIons(other)) {
+        sameIdDifferentContent.add(e.getKey());
       }
+    }
+    for (UUID id : currentById.keySet()) {
+      if (!proposedById.containsKey(id)) {
+        onlyInCurrent.add(id);
+      }
+    }
+    return new ConflictReport(Set.copyOf(sameIdDifferentContent), Set.copyOf(onlyInProposed),
+        Set.copyOf(onlyInCurrent));
+  }
+
+  /**
+   * @return true if model changed
+   */
+  private boolean setIonPartDefinitions(List<IonPartDefinition> definitions) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
+      final Set<IonPartDefinition> toInclude = Set.copyOf(definitions);
+
+      // remove from each list if does not exist
+      for (List<IonPartDefinition> oldList : partDefinitions.values()) {
+        int oldSize = oldList.size();
+        oldList.removeIf(def -> !toInclude.contains(def));
+        if (oldSize != oldList.size()) {
+          wasChanged = true;
+        }
+      }
+      partDefinitions.entrySet().removeIf(e -> e.getValue().isEmpty());
+
+      // add all
+      for (IonPartDefinition def : definitions) {
+        if (addIonPartDefinitionInternal(def)) {
+          wasChanged = true;
+        }
+      }
+
+      if (!wasChanged) {
+        lastIonDefinitionChanged.set(LocalDateTime.now());
+      }
+      return wasChanged;
     });
   }
 
@@ -223,8 +551,19 @@ public final class GlobalIonLibraryService {
    */
   private void setIonTypes(List<IonType> types) {
     applyLockedChange(() -> {
-      this.singletonIons.clear();
-      addIonTypes(types);
+      boolean wasChanged = false;
+      final Set<IonType> toInclude = Set.copyOf(types);
+
+      int oldSize = singletonIons.size();
+      this.singletonIons.entrySet().removeIf(e -> !toInclude.contains(e.getValue()));
+      if (oldSize != singletonIons.size()) {
+        wasChanged = true;
+      }
+
+      if (addIonTypes(types)) {
+        wasChanged = true;
+      }
+      return wasChanged;
     });
   }
 
@@ -237,8 +576,19 @@ public final class GlobalIonLibraryService {
    */
   private void setIonParts(List<IonPart> parts) {
     applyLockedChange(() -> {
-      this.singletonParts.clear();
-      addParts(parts);
+      boolean wasChanged = false;
+      final Set<IonPart> toInclude = Set.copyOf(parts);
+
+      int oldSize = singletonParts.size();
+      this.singletonParts.entrySet().removeIf(e -> !toInclude.contains(e.getValue()));
+      if (oldSize != singletonParts.size()) {
+        wasChanged = true;
+      }
+
+      if (addParts(parts)) {
+        wasChanged = true;
+      }
+      return wasChanged;
     });
   }
 
@@ -248,51 +598,45 @@ public final class GlobalIonLibraryService {
    * to the global library.
    * <p>
    * All internal lists are cleared and exchanged for the arguments.
+   *
+   * @return true if model changed
    */
-  private void setLibraries(List<IonLibrary> libraries) {
-    applyLockedChange(() -> {
-      // remove internal libraries to not add them to the list of presets
-      // Add all libraries with true value
-      Map<IonLibrary, Boolean> saveNewLibraries = libraries.stream()
-          .filter(lib -> !IonLibraries.isInternalLibrary(lib))
-          .collect(Collectors.toMap(Function.identity(), _ -> true));
+  private boolean setLibraries(List<IonLibrary> newLibs) {
+    return applyLockedChange(() -> {
+      final Map<@NotNull UUID, IonLibrary> newIds = newLibs.stream()
+          .collect(Collectors.toMap(IonLibrary::id, Function.identity()));
+      // remove all libraries that are not part of newLibs, they were deleted
+      final List<IonLibrary> libsToRemove = libraries.values().stream()
+          .filter(lib -> {
+            if(lib.isInternalLibrary()) return false;
+            final IonLibrary newLib = newIds.get(lib.id());
+            return newLib!=null && !lib.equals(newLib); // has actually changed
+          }).toList();
 
-      final List<IonLibraryPreset> oldPresets = List.copyOf(presetStore.getCurrentPresets());
+      boolean wasChanged = removeLibraries(libsToRemove);
 
-      // remove old presets that were changed and keep track which libraries were changed and need saving
-      for (IonLibraryPreset old : oldPresets) {
-        final boolean isUnchanged = saveNewLibraries.containsKey(old.library());
-        if (isUnchanged) {
-          saveNewLibraries.put(old.library(), false);
-        } else {
-          // remove old presets because new ones may have different name or content
-          presetStore.removePresetsWithName(old);
-        }
+      final IonLibraryImportResult results = addLibraries(newLibs, MergePolicy.OVERWRITE_ALL);
+      if (results.isChanged()) {
+        wasChanged = true;
       }
-
-      // save changed libraries
-      saveNewLibraries.forEach((lib, save) -> {
-        if (save) {
-          presetStore.addAndSavePreset(new IonLibraryPreset(lib), true);
-        }
-      });
+      return wasChanged;
     });
   }
+
 
   /**
    * @return The default mzmine libraries and all user preset libraries
    */
   public List<IonLibrary> getIonLibrariesUnmodifiable() {
     // need to add the internal mzmine default libraries here as they should not be saved as presets
-    final List<IonLibrary> allLibraries = IonLibraries.createDefaultLibrariesModifiable();
-    final List<IonLibraryPreset> presets = List.copyOf(presetStore.getCurrentPresets());
-    for (IonLibraryPreset preset : presets) {
-      allLibraries.add(preset.library());
-    }
-    return allLibraries;
+    return List.copyOf(libraries.values());
   }
 
 
+  /**
+   * @param name ignores case
+   * @return
+   */
   @NotNull
   public Optional<IonLibrary> getLibraryForName(@NotNull String name) {
     final List<IonLibrary> libraries = getIonLibrariesUnmodifiable();
@@ -302,6 +646,11 @@ public final class GlobalIonLibraryService {
       }
     }
     return Optional.empty();
+  }
+
+  @NotNull
+  public Optional<IonLibrary> getLibraryForID(@NotNull UUID id) {
+    return Optional.ofNullable(libraries.get(id));
   }
 
 
@@ -337,24 +686,29 @@ public final class GlobalIonLibraryService {
 
   /**
    * adds an ion part definition. caller should call notify changes once all changes are done
+   *
+   * @return true if model was changed
    */
-  private void addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
+  private boolean addIonPartDefinitionInternal(@NotNull IonPartDefinition part) {
     // so that Fe might be defined as 2+ or 3+
-    if (part.name().equals(part.singleFormula()) && part.isNeutralModification()) {
+    if (!part.isDefinitionRequired()) {
       // name and formula are equal and no charge means this is the default behavior of the parsing.
       // no need to keep an instance of this, so skip
       // only add definitions where name is different from formula or where charge is defined
       // do not add to many to reduce number of definitions in {@link GlobalIonLibrariesController}
-      return;
+      return false;
     }
 
     final String key = part.name();
     List<IonPartDefinition> values = partDefinitions.computeIfAbsent(key, _ -> new ArrayList<>(1));
 
     if (values.contains(part)) {
-      return;
+      return false;
     }
     values.add(part);
+
+    lastIonDefinitionChanged.set(LocalDateTime.now());
+    return true;
   }
 
   /**
@@ -373,12 +727,21 @@ public final class GlobalIonLibraryService {
 
   /**
    * Adds all new types to the global list of singletons (checks for existing)
+   *
+   * @return true if model changed
    */
-  public void addIonTypes(List<IonType> ions) {
-    applyLockedChange(() -> {
+  public boolean addIonTypes(List<IonType> ions) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       for (final IonType type : ions) {
+        IonType single = singletonIons.get(type);
+        if (single != null) {
+          continue;
+        }
         deduplicateTypeAndAdd(type);
+        wasChanged = true;
       }
+      return wasChanged;
     });
   }
 
@@ -441,12 +804,21 @@ public final class GlobalIonLibraryService {
 
   /**
    * Add all parts to the global list
+   *
+   * @return true if model changed
    */
-  public void addParts(List<IonPart> parts) {
-    applyLockedChange(() -> {
+  public boolean addParts(List<IonPart> parts) {
+    return applyLockedChange(() -> {
+      boolean wasChanged = false;
       for (final IonPart part : parts) {
+        IonPart single = singletonParts.get(part);
+        if (single != null) {
+          continue;
+        }
         deduplicateAndAdd(part);
+        wasChanged = true;
       }
+      return wasChanged;
     });
   }
 
@@ -461,21 +833,39 @@ public final class GlobalIonLibraryService {
   }
 
   /**
+   * Just add part definition. will not trigger a change as {@link GlobalIonLibrariesController} and
+   * this service are at the same state for the definitions.
+   */
+  public void addPartDefinitions(List<IonPartDefinition> partDefinitions) {
+    try (var _ = lock.lockWrite()) {
+      for (IonPartDefinition partDef : partDefinitions) {
+        addIonPartDefinitionInternal(partDef);
+      }
+    }
+  }
+
+  /**
    * Just remove part definition. will not trigger a change as {@link GlobalIonLibrariesController}
    * and this service are at the same state for the definitions.
+   *
+   * @return true if model changed
    */
-  public void removePartDefinition(IonPartDefinition partDef) {
+  public boolean removePartDefinition(IonPartDefinition partDef) {
     try (var _ = lock.lockWrite()) {
       final List<IonPartDefinition> definitions = partDefinitions.get(partDef.name());
       if (definitions == null) {
-        return;
+        return false;
       }
 
       // remove definition from list and remove list if empty
-      definitions.remove(partDef);
+      final boolean removed = definitions.remove(partDef);
       if (definitions.isEmpty()) {
         partDefinitions.remove(partDef.name());
       }
+      if (removed) {
+        lastIonDefinitionChanged.set(LocalDateTime.now());
+      }
+      return removed;
     }
   }
 
@@ -517,7 +907,7 @@ public final class GlobalIonLibraryService {
 
   @NotNull
   public static File getGlobalFile() {
-    return new File(getPresetPath(), "libraries/mzmine_global_ions.json");
+    return new File(getPresetPath(), "mzmine_global_ions_definitions.json");
   }
 
   public static @NotNull File getPresetPath() {
@@ -532,101 +922,15 @@ public final class GlobalIonLibraryService {
     return singletonParts.size();
   }
 
-  // TODO need to see if this is still neeeded. Was the first version of how to safe the global lib
-//  private static List<IonPart> mergeParts(final List<IonPart> first, final List<IonPart> second) {
-//    ArrayList<IonPart> merged = new ArrayList<>(first.size() + second.size());
-//    // handle conflicts like same name but different mass - or different ion parts
-//    merged.addAll(first);
-//
-//    //
-//    final Map<String, IonPart> existingNameMap = HashMap.newHashMap(first.size());
-//    for (final IonPart part : first) {
-//      final String chargedName = part.toString(IonPartStringFlavor.SIMPLE_WITH_CHARGE);
-//      final IonPart old = existingNameMap.computeIfAbsent(chargedName, k -> part);
-//      if (old != part) {
-//        logger.warning(
-//            "Ion part was already present. This may point to a duplicate in the first ion part list: %s and %s (using the first one)".formatted(
-//                part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-//                old.toString(IonPartStringFlavor.FULL_WITH_MASS)));
-//      }
-//    }
-//
-//    for (final IonPart part : second) {
-//      final IonPart potentialConflict = existingNameMap.get(
-//          part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE));
-//      if (potentialConflict != null) {
-//        if (!Objects.equals(potentialConflict, part)) {
-//          // TODO conflict resolution
-//          boolean massDiff = Precision.equalDoubleSignificance(part.totalMass(),
-//              potentialConflict.totalMass());
-//
-//          logger.warning(
-//              "Detected conflict between two ion parts: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-//                  part.toString(IonPartStringFlavor.FULL_WITH_MASS),
-//                  potentialConflict.toString(IonPartStringFlavor.FULL_WITH_MASS), massDiff));
-//        }
-//        // otherwise its equal and nothing to do then
-//      } else {
-//        merged.add(part);
-//      }
-//    }
-//
-//    // sort
-//    merged.sort(IonPartSorting.DEFAULT_NEUTRAL_THEN_LOSSES_THEN_ADDED.getComparator());
-//    merged.trimToSize();
-//    return merged;
-//  }
-//
-//  private static List<IonType> mergeTypes(final @NotNull List<IonType> first,
-//      final @NotNull List<IonType> second) {
-//    ArrayList<IonType> merged = new ArrayList<>(first.size() + second.size());
-//    // handle conflicts like same name but different mass - or different ion parts
-//    merged.addAll(first);
-//    final Map<String, IonType> existingNameMap = HashMap.newHashMap(first.size());
-//    for (final IonType ion : first) {
-//      final IonType old = existingNameMap.computeIfAbsent(ion.name(), k -> ion);
-//      if (old != ion) {
-//        logger.warning(
-//            "Ion type was already present. This may point to a duplicate in the first ion type list: %s and %s (using the first one)".formatted(
-//                ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-//                old.toString(IonTypeStringFlavor.FULL_WITH_MASS)));
-//      }
-//    }
-//
-//    // add those from second list check for conflicts
-//    for (IonType ion : second) {
-//      final IonType potentialConflict = existingNameMap.get(ion.name());
-//      if (potentialConflict != null) {
-//        // otherwise its equal, nothing to do then
-//        if (!Objects.equals(potentialConflict, ion)) {
-//          // TODO conflict resolution
-//          boolean massDiff = Precision.equalDoubleSignificance(ion.totalMass(),
-//              potentialConflict.totalMass());
-//
-//          logger.warning(
-//              "Detected conflict between two ion types: %s and %s (mass within precisions=%s). Will use the first one.".formatted(
-//                  ion.toString(IonTypeStringFlavor.FULL_WITH_MASS),
-//                  potentialConflict.toString(IonTypeStringFlavor.FULL_WITH_MASS), massDiff));
-//        }
-//      } else {
-//        merged.add(ion);
-//      }
-//    }
-//
-//    // sort by mz etc
-//    merged.sort(IonTypeSorting.getIonTypeDefault().getComparator());
-//
-//    // trim
-//    merged.trimToSize();
-//    return merged;
-//  }
-
-  public static void loadGlobalLibrary() {
-    GlobalIonLibraryIO.loadGlobalIonLibrary();
+  public static void loadGlobalIonDefinitionLibrary() {
+    GlobalIonLibraryIO.loadGlobalIonDefinitionLibrary();
   }
 
-  public void saveGlobalLibrary() throws IOException {
-    GlobalIonLibraryIO.saveGlobalIonLibrary();
+  public void saveGlobalIonDefinitionLibrary() throws IOException {
+    final LocalDateTime time = lastIonDefinitionChanged.get();
+    if (GlobalIonLibraryIO.saveGlobalIonDefinitionLibrary(getGlobalFile())) {
+      lastGlobalSaved.set(time);
+    }
   }
 
   /**

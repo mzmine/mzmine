@@ -25,10 +25,11 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -44,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GlobalIonLibrariesController extends FxController<GlobalIonLibrariesModel> {
 
+  private final IonLibraryEditController editLibraryController;
+
   // lazy init singleton
   private static class Holder {
 
@@ -55,10 +58,17 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
 
   private GlobalIonLibrariesController() {
     super(new GlobalIonLibrariesModel());
+    editLibraryController = new IonLibraryEditController(model);
+    model.setEditLibraryController(editLibraryController);
 
     interactor = new GlobalIonLibrariesInteractor(model);
+    model.setEventHandler(interactor::handleEvent);
 
-    viewBuilder = new GlobalIonLibrariesViewBuilder(model, interactor::handleEvent);
+    viewBuilder = new GlobalIonLibrariesViewBuilder(model, editLibraryController);
+  }
+
+  public boolean askRemoveIonPartDefinition(IonPartDefinition removed) {
+    return interactor.askRemoveIonPartDefinition(removed);
   }
 
   public ReadOnlyListProperty<IonLibrary> librariesProperty() {
@@ -84,4 +94,9 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
   public static GlobalIonLibrariesController getInstance() {
     return Holder.INSTANCE;
   }
+
+  public void updateModel() {
+    interactor.updateModel();
+  }
+
 }

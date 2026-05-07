@@ -27,6 +27,7 @@ package io.github.mzmine.javafx.components;
 
 import static io.github.mzmine.util.StringUtils.allWordsSubMatchPredicate;
 
+import io.github.mzmine.javafx.components.FilterableListViewEvent.Type;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxListViews;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -95,21 +96,13 @@ public class FilterableListView<T> extends BorderPane {
   // search field
   private final StringProperty searchText;
 
-  // on edit button
-  private final ObjectProperty<Consumer<T>> editSelectedAction = new SimpleObjectProperty<>();
-  // on create new button
-  private final ObjectProperty<Runnable> createNewAction = new SimpleObjectProperty<>();
-  /**
-   * triggered by Enter on the list or search field, or by a primary mouse click on a non-empty
-   * cell
-   */
-  private final ObjectProperty<@Nullable Consumer<T>> onItemActivated = new SimpleObjectProperty<>();
-
   // original items are input into filtering and sorting
   private final ObservableList<T> originalItems;
   private final SortedList<T> sortedFilteredItems;
   private final TextField searchField;
   private Consumer<T> onRemoveItemListener;
+
+  private final List<FilterableListViewEventHandler<T>> eventHandlers = new ArrayList<>();
 
   // top flow pane
 
@@ -215,13 +208,12 @@ public class FilterableListView<T> extends BorderPane {
   }
 
   /**
-   * Invoke the registered {@link #onItemActivated} action for the currently selected item, if any.
+   * handle event for activated item
    */
   public void activateSelectedItem() {
     final T item = listView.getSelectionModel().getSelectedItem();
-    final Consumer<T> action = onItemActivated.get();
-    if (item != null && action != null) {
-      action.accept(item);
+    if (item != null) {
+      handleEvent(Type.ITEM_ACTIVATED);
     }
   }
 
@@ -240,14 +232,6 @@ public class FilterableListView<T> extends BorderPane {
     final int target = Math.clamp(base + delta, 0, size - 1);
     listView.getSelectionModel().clearAndSelect(target);
     listView.scrollTo(target);
-  }
-
-  /**
-   * Register a callback invoked when the user activates an item (Enter key on the list or search
-   * field, or primary mouse click on a non-empty cell).
-   */
-  public void setOnItemActivated(@Nullable Consumer<T> action) {
-    onItemActivated.set(action);
   }
 
   /**
@@ -290,7 +274,7 @@ public class FilterableListView<T> extends BorderPane {
             this::clearFilteredItems));
         case CREATE_NEW_BTN -> nodesToAdd.add(
             FxButtons.createButton("Create new", FxIcons.ADD, "Create a new item",
-                this::createNewItem));
+                () -> handleEvent(Type.CREATE_NEW)));
         case REMOVE_BTN -> {
           final Button btn = FxButtons.createDisabledButton("Remove", FxIcons.X_CIRCLE,
               "Removes all selected items", disableRemove.or(nothingSelectedBinding),
@@ -299,9 +283,15 @@ public class FilterableListView<T> extends BorderPane {
         }
         case EDIT_BTN -> {
           final Button btn = FxButtons.createDisabledLabelButton(editButtonText, FxIcons.EDIT,
-              "Edit the selected item", nothingSelectedBinding, this::editSelectedItem);
+              "Edit the selected item", nothingSelectedBinding, () -> handleEvent(Type.EDIT));
           nodesToAdd.add(btn);
         }
+        case IMPORT_BTN -> nodesToAdd.add(
+            FxButtons.createButton("Import", FxIcons.LOAD, "Import items",
+                () -> handleEvent(Type.IMPORT)));
+        case EXPORT_BTN -> nodesToAdd.add(
+            FxButtons.createButton("Export", FxIcons.SAVE, "Export selected items",
+                () -> handleEvent(Type.EXPORT)));
       }
     }
 
@@ -312,32 +302,48 @@ public class FilterableListView<T> extends BorderPane {
     return flowPane;
   }
 
-  private void editSelectedItem() {
-    final T selected = listView.getSelectionModel().getSelectedItem();
-    if (selected == null) {
-      return;
-    }
-    final Consumer<T> editAction = editSelectedAction.get();
-    if (editAction == null) {
-      throw new IllegalStateException("No edit action defined for this list view.");
-    }
-    editAction.accept(selected);
+  /**
+   * @return copy of selected items
+   */
+  @NotNull
+  public List<T> getSelectedItems() {
+    return List.copyOf(listView.getSelectionModel().getSelectedItems());
   }
 
-  private void createNewItem() {
-    final Runnable createAction = createNewAction.get();
-    if (createAction == null) {
-      throw new IllegalStateException("No create new item action defined for this list view.");
+  private void handleEvent(@NotNull Type type) {
+    final FilterableListViewEvent<T> event = new FilterableListViewEvent<>(this, type,
+        getSelectedItems());
+    for (FilterableListViewEventHandler<T> handler : eventHandlers) {
+      handler.onEvent(event);
     }
-    createAction.run();
   }
 
-  public void setEditSelectedAction(Consumer<T> editSelectedAction) {
-    this.editSelectedAction.set(editSelectedAction);
+  /**
+   * Add an event listener to handle FilterableListViewEvent
+   *
+   * @param handler the event handler to be added
+   */
+  public void addEventListener(FilterableListViewEventHandler<T> handler) {
+    if (handler != null && !eventHandlers.contains(handler)) {
+      eventHandlers.add(handler);
+    }
   }
 
-  public void setCreateNewAction(Runnable createNewAction) {
-    this.createNewAction.set(createNewAction);
+  /**
+   * Remove a specific event listener
+   *
+   * @param handler the event handler to be removed
+   * @return true if the handler was removed, false otherwise
+   */
+  public boolean removeEventListener(FilterableListViewEventHandler<T> handler) {
+    return eventHandlers.remove(handler);
+  }
+
+  /**
+   * Clear all event listeners
+   */
+  public void clearEventListeners() {
+    eventHandlers.clear();
   }
 
   public void removeSelectedItems() {
@@ -482,6 +488,6 @@ public class FilterableListView<T> extends BorderPane {
 
 
   public enum MenuControls {
-    REMOVE_BTN, CLEAR_BTN, EDIT_BTN, CREATE_NEW_BTN
+    REMOVE_BTN, CLEAR_BTN, EDIT_BTN, CREATE_NEW_BTN, IMPORT_BTN, EXPORT_BTN
   }
 }

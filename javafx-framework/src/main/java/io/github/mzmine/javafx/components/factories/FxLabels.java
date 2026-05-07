@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.components.util.FxStyles;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
+import io.github.mzmine.util.StringUtils;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
@@ -43,6 +44,24 @@ import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxLabels {
+
+  /**
+   * visible if text otherwise invisible label
+   *
+   * @param label   label to be bound
+   * @param managed also bind managed state to value
+   * @return input label
+   */
+  public static Label bindVisibleToText(Label label, boolean managed) {
+    label.textProperty().subscribe(v -> {
+      final boolean visible = StringUtils.hasValue(v);
+      label.setVisible(visible);
+      if (managed) {
+        label.setManaged(visible);
+      }
+    });
+    return label;
+  }
 
   public enum Styles {
     REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored

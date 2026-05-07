@@ -29,7 +29,9 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,5 +41,30 @@ import org.jetbrains.annotations.NotNull;
 public record GlobalIonLibraryDTO(int version, @NotNull List<IonLibrary> libraries,
                                   @NotNull List<IonType> types, @NotNull List<IonPart> parts,
                                   List<IonPartDefinition> partDefinitions) {
+
+  public @NotNull GlobalIonLibraryDTO cascadeIonDefinitionsFromLibraries() {
+    Set<IonType> nt = HashSet.newHashSet(types.size());
+    nt.addAll(types);
+    Set<IonPart> np = HashSet.newHashSet(parts.size());
+    np.addAll(parts);
+    Set<IonPartDefinition> npd = HashSet.newHashSet(partDefinitions.size());
+    npd.addAll(partDefinitions);
+
+    for (IonLibrary library : libraries) {
+      nt.addAll(library.ions());
+      for (IonType ion : library.ions()) {
+        np.addAll(ion.parts());
+        for (IonPart part : ion.parts()) {
+          final IonPartDefinition def = IonPartDefinition.of(part);
+          if (def.isDefinitionRequired()) {
+            npd.add(def);
+          }
+        }
+      }
+    }
+
+    return new GlobalIonLibraryDTO(version, libraries, List.copyOf(nt), List.copyOf(np),
+        List.copyOf(npd));
+  }
 
 }

@@ -115,8 +115,11 @@ class IonPartCreatorPane extends BorderPane {
   }
 
   private void removePart(IonPartDefinition removed) {
-    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
-    global.removePartDefinition(removed);
+    boolean result = GlobalIonLibrariesController.getInstance().askRemoveIonPartDefinition(removed);
+    if (result) {
+      final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
+      global.removePartDefinition(removed);
+    }
   }
 
   /**

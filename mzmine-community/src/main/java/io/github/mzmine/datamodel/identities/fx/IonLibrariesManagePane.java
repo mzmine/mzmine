@@ -29,8 +29,11 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle
 import static io.github.mzmine.javafx.components.util.FxLayout.newBorderPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ApplyModelChangesToGlobalService;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.EditSelectedLibrary;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ExportSelectedLibraries;
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.ImportLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -61,9 +64,29 @@ class IonLibrariesManagePane extends BorderPane {
     final IonLibraryListView libraryList = new IonLibraryListView(model.librariesProperty(), true,
         true, true);
 
-    libraryList.setCreateNewAction(() -> eventHandler.accept(new CreateNewLibrary()));
-    libraryList.setEditSelectedAction(
-        library -> eventHandler.accept(new EditSelectedLibrary(library)));
+    // apply to model after remove
+    libraryList.onRemoveItem(_ -> eventHandler.accept(new ApplyModelChangesToGlobalService()));
+
+    // translate list view events to global ion events
+    libraryList.addEventListener(event -> {
+      switch (event.type()) {
+        case ITEM_ACTIVATED -> {
+          // do nothing
+        }
+        case CREATE_NEW -> eventHandler.accept(new CreateNewLibrary());
+        case EDIT -> {
+          if (!event.selectedItems().isEmpty()) {
+            eventHandler.accept(new EditSelectedLibrary(event.selectedItems().getFirst()));
+          }
+        }
+        case EXPORT -> {
+          if (!event.selectedItems().isEmpty()) {
+            eventHandler.accept(new ExportSelectedLibraries(event.selectedItems()));
+          }
+        }
+        case IMPORT -> eventHandler.accept(new ImportLibraries());
+      }
+    });
 
     final IonTypeListView typesList = new IonTypeListView(ionTypes, false);
 

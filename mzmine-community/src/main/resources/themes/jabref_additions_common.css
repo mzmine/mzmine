@@ -244,6 +244,9 @@ Text.contrast-label {
   -fx-stroke-width: 2;
 }
 
+.colored-icon-button .ikonli-font-icon {
+  -fx-icon-color: -my-icon-color;
+}
 
 .icon-button:flash .ikonli-font-icon {
   -fx-icon-color: -jr-selected;

@@ -29,6 +29,9 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
@@ -44,11 +47,12 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.StringUtils;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
@@ -67,9 +71,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 
 class IonTypeDefinitionPane extends BorderPane {
@@ -116,12 +123,24 @@ class IonTypeDefinitionPane extends BorderPane {
         unknownParts.setAll(nv.stream().filter(IonPart::isUndefinedMass).toList());
       }
     });
+
+    listView.addEventListener(event -> {
+      switch (event.type()) {
+        case ITEM_ACTIVATED -> {
+          if (event.selectedItems().isEmpty()) {
+            return;
+          }
+          final IonType selected = event.selectedItems().getFirst();
+          parsedIonTypeString.set(selected.toString(IonTypeStringFlavor.SIMPLE_DEFAULT));
+        }
+      }
+    });
   }
 
   private Node createIonTypeByStringPane() {
 
-    final Region infoPane = FxTextFlows.newTextFlowInAccordion("Info", FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true
-        , FxTexts.text("""
+    final Region infoPane = FxTextFlows.newTextFlowInAccordion("Info",
+        FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true, text("""
             Ion types are defined by a molecule multiplier (2M) and multiple building blocks which define additions or neutral losses with their charge and mass differences.
             Simply write an ion type notation, the parsed result will be shown below, and finally click add. Unknown names of building blocks need to be defined but formulas will be parsed directly."""));
 
@@ -147,13 +166,25 @@ class IonTypeDefinitionPane extends BorderPane {
         : "%d parts unknown: %s".formatted(parts.size(), StringUtils.join(parts, ", ",
             part -> part.toString(IonPartStringFlavor.SIMPLE_NO_CHARGE)))));
 
+    final Color highlightColor = ConfigService.getDefaultColorPalette().getPositiveColor();
+    final TextFlow unchargedFlow = FxTextFlows.newTextFlow(
+        FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE, FxIconUtil.DEFAULT_ICON_SIZE, highlightColor),
+        text("  Check "), colored(boldText("neutral"), highlightColor),
+        text(" definition: May be expected"));
+
+    unchargedFlow.visibleProperty().bind(btnAdd.disabledProperty().not());
+    Tooltip.install(unchargedFlow, new Tooltip("""
+        A neutral definition may be added to libraries. Some modules may decide to use neutrals while \
+        Ion identity networking and others will filter them out by default.
+        Just check if you meant to define without charge or define the charge now."""));
+
     return newGrid2Col( //
         gridRow(infoPane), //
         newLabel("Ion type:"), inputText, //
         newLabel("Result:"), lbParsingResult, //
         gridRow(lbUnknown), //
-        gridRow(btnAdd) //
-    );
+        gridRow(FxLayout.newHBox(Insets.EMPTY, btnAdd, unchargedFlow) //
+        ));
   }
 
   private void ionParsingValidation(TextField inputText) {

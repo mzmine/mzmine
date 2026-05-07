@@ -1966,19 +1966,6 @@
             ]
         },
         {
-            "moduleName": "org.apache.httpcomponents:httpclient-win",
-            "moduleVersion": "4.5.14",
-            "moduleUrls": [
-                "http://hc.apache.org/httpcomponents-client-ga"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
             "moduleName": "org.apache.httpcomponents:httpcore",
             "moduleVersion": "4.4.16",
             "moduleUrls": [

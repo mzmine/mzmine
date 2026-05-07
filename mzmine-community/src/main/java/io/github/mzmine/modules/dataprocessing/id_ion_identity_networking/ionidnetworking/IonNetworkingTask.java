@@ -68,7 +68,7 @@ public class IonNetworkingTask extends AbstractTask {
   private final ModularFeatureList featureList;
   private final ParameterSet parameters;
   private final MZmineProject project;
-  private AtomicDouble stageProgress = new AtomicDouble(0);
+  private final AtomicDouble stageProgress = new AtomicDouble(0);
   private boolean neverStop = false;
 
   private double minHeight;
@@ -258,15 +258,18 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
   public static void addIonIdentitiesToRows(Collection<IonNetwork> networks) {
+    if (networks.isEmpty()) {
+      return;
+    }
     final List<IonNetwork> sortedNetworks = networks.stream()
+        .distinct()
         .sorted(Comparator.comparingInt(IonNetwork::size).reversed()).toList();
 
     Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
-
     for (IonNetwork net : sortedNetworks) {
       for (IonNetworkNode node : net.getNodes()) {
         final List<IonIdentity> rowIons = sortedIons.computeIfAbsent(node.row(),
-            k -> new ArrayList<>());
+            _ -> new ArrayList<>());
         rowIons.add(node.ion());
       }
     }

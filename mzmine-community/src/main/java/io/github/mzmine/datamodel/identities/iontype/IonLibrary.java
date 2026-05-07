@@ -26,14 +26,24 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin.Builtin;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface IonLibrary {
 
+  @NotNull LocalDateTime lastUpdatedDate();
+
   @NotNull String name();
+
+  /// Stable identifier for this library. Survives rename, content changes, and cloud round-trips —
+  @NotNull UUID id();
+
+  /// Where this library came from. See {@link LibraryOrigin} for the discriminator.
+  @NotNull LibraryOrigin origin();
 
   /**
    * @return unmodifiable list of ions sorted by
@@ -69,7 +79,7 @@ public interface IonLibrary {
    * @return true if other has the same content of ions like this library
    */
   default boolean equalIons(@NotNull IonLibrary other) {
-    if(other.getNumIons() != getNumIons()) {
+    if (other.getNumIons() != getNumIons()) {
       return false;
     }
 
@@ -78,7 +88,7 @@ public interface IonLibrary {
 
     // same sorting
     for (int i = 0; i < ions.size(); i++) {
-      if(!ions.get(i).equals(otherIons.get(i))) {
+      if (!ions.get(i).equals(otherIons.get(i))) {
         return false;
       }
     }
@@ -86,4 +96,18 @@ public interface IonLibrary {
   }
 
   @NotNull IonLibrary copy();
+
+  /**
+   * @return true if internal library that may not be changed
+   */
+  default boolean isInternalLibrary() {
+    return origin() instanceof Builtin;
+  }
+
+  /**
+   * @return true if cloud library
+   */
+  default boolean isCloudLibrary() {
+    return origin().isCloud();
+  }
 }

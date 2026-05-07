@@ -128,6 +128,20 @@ public class IonLibraryComponentPopoverViewBuilder extends
     libraryList = new IonLibraryListView(model.librariesProperty(), false, false, false);
     libraryList.getListView().getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
+    libraryList.addEventListener(event -> {
+      switch (event.type()) {
+        case ITEM_ACTIVATED -> {
+          if (!event.selectedItems().isEmpty()) {
+          model.setSelectedLibrary(event.selectedItems().getFirst());
+          }
+        }
+        case CREATE_NEW, EDIT, IMPORT, EXPORT -> {
+          // nothing to do here. those are exclusive for the global ion pane
+        }
+      }
+    });
+
+
     final ButtonBase closeButton = FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Close pane",
         onCloseRequested);
 
@@ -138,14 +152,6 @@ public class IonLibraryComponentPopoverViewBuilder extends
     final BorderPane mainLib = FxLayout.newBorderPane(new Insets(0, 0, 0, FxLayout.DEFAULT_SPACE),
         libraryList);
     mainLib.setTop(info);
-
-    // Replace the selected library only on explicit user activation (Enter / click on a cell).
-    libraryList.setOnItemActivated(lib -> {
-      if (lib == null) {
-        return;
-      }
-      model.setSelectedLibrary(lib);
-    });
 
     // Close on double-click
     libraryList.getListView().setOnMouseClicked(event -> {

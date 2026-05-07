@@ -91,7 +91,7 @@ public class IonLibraries {
    * @return true if input is an internal library that may never be changed
    */
   public static boolean isInternalLibrary(@Nullable IonLibrary library) {
-    return library != null && isInternalLibrary(library.name());
+    return library != null && library.isInternalLibrary();
   }
 
   /**

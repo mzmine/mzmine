@@ -105,7 +105,7 @@ public class IonPartDefinitionPane extends BorderPane {
 
     var mzFormat = new DecimalFormat("0.########");
 
-    var txtName = newTextField(8, name, "Optional name (use formula)",
+    var txtName = newTextField(8, name, "Optional name (prefer formula)",
         "Optional name or empty to use the formula");
     FxTextFields.autoGrowFitText(txtName, 12, 100);
 

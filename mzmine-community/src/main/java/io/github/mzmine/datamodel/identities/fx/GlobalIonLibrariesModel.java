@@ -25,21 +25,37 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.time.Instant;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 class GlobalIonLibrariesModel {
+
+  private static final Logger logger = Logger.getLogger(GlobalIonLibrariesModel.class.getName());
+  private final ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandler = new SimpleObjectProperty<>();
+  private IonLibraryEditController editLibraryController;
+
+  public Consumer<GlobalIonLibrariesEvent> getEventHandler() {
+    return eventHandler.get();
+  }
 
   /**
    * All defined libraries
@@ -75,7 +91,7 @@ class GlobalIonLibrariesModel {
    * Holds the global library version number last retrieved for updating the model
    * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
    */
-  private final IntegerProperty retrivalVersion = new SimpleIntegerProperty();
+  private final IntegerProperty retrievalVersion = new SimpleIntegerProperty();
   /**
    * The current version - mismatch to retrieval date signals change.
    * {@link GlobalIonLibraryService#getVersion()}. This is a modification counter.
@@ -92,9 +108,13 @@ class GlobalIonLibrariesModel {
   private final LastUpdateProperty lastModelUpdate = new LastUpdateProperty(libraries, ionTypes,
       parts);
 
+  // currently editing
+  private final BooleanProperty libraryEditActive = new SimpleBooleanProperty(false);
+  private final StringProperty editTabTitle = new SimpleStringProperty("");
+
 
   public GlobalIonLibrariesModel() {
-    globalVersionChanged = retrivalVersion.isNotEqualTo(globalIonsVersion);
+    globalVersionChanged = retrievalVersion.isNotEqualTo(globalIonsVersion);
   }
 
   /// The part definitions is a subset of parts to define alternative names or charge state for
@@ -126,6 +146,12 @@ class GlobalIonLibrariesModel {
   }
 
   public void setGlobalIonsVersion(int globalIonsVersion) {
+    // to track when it was set last
+//    try {
+//      throw new RuntimeException("Setting last model update");
+//    } catch (RuntimeException ex) {
+//      logger.log(Level.WARNING, ex.getMessage(), ex);
+//    }
     this.globalIonsVersion.set(globalIonsVersion);
   }
 
@@ -185,16 +211,57 @@ class GlobalIonLibrariesModel {
     this.ionTypes.set(ionTypes);
   }
 
-  public int getRetrivalVersion() {
-    return retrivalVersion.get();
+  public int getRetrievalVersion() {
+    return retrievalVersion.get();
   }
 
-  public IntegerProperty retrivalVersionProperty() {
-    return retrivalVersion;
+  public IntegerProperty retrievalVersionProperty() {
+    return retrievalVersion;
   }
 
-  public void setRetrivalVersion(int retrivalVersion) {
-    this.retrivalVersion.set(retrivalVersion);
+  public void setRetrievalVersion(int retrievalVersion) {
+    this.retrievalVersion.set(retrievalVersion);
   }
 
+  public ObjectProperty<Consumer<GlobalIonLibrariesEvent>> eventHandlerProperty() {
+    return eventHandler;
+  }
+
+  public void setEventHandler(Consumer<GlobalIonLibrariesEvent> eventHandler) {
+    this.eventHandler.set(eventHandler);
+  }
+
+  public boolean isLibraryEditActive() {
+    return libraryEditActive.get();
+  }
+
+  public BooleanProperty libraryEditActiveProperty() {
+    return libraryEditActive;
+  }
+
+  public void setLibraryEditActive(boolean libraryEditActive) {
+    this.libraryEditActive.set(libraryEditActive);
+  }
+
+  public String getEditTabTitle() {
+    return editTabTitle.get();
+  }
+
+  public StringProperty editTabTitleProperty() {
+    return editTabTitle;
+  }
+
+  /**
+   * Set after initialization
+   */
+  public void setEditLibraryController(IonLibraryEditController editLibraryController) {
+    this.editLibraryController = editLibraryController;
+  }
+
+  /**
+   * Set after initialization
+   */
+  public IonLibraryEditController getEditLibraryController() {
+    return editLibraryController;
+  }
 }

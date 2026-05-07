@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,10 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.cloud.CloudCatalog;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 sealed interface GlobalIonLibrariesEvent {
@@ -35,7 +37,16 @@ sealed interface GlobalIonLibrariesEvent {
 
   }
 
+  record ImportLibraries() implements GlobalIonLibrariesEvent {
+
+  }
+
   record EditSelectedLibrary(@NotNull IonLibrary library) implements GlobalIonLibrariesEvent {
+
+  }
+
+  record ExportSelectedLibraries(@NotNull List<IonLibrary> libraries) implements
+      GlobalIonLibrariesEvent {
 
   }
 
@@ -59,6 +70,14 @@ sealed interface GlobalIonLibrariesEvent {
    * the internal model also changed
    */
   record ReloadGlobalServiceChanges() implements GlobalIonLibrariesEvent {
+
+  }
+
+  /**
+   * Open the cloud catalog browser. The implementation is a no-op until an HTTP-backed
+   * {@link CloudCatalog} ships; this event documents the seam and lets the UI test against it.
+   */
+  record BrowseCloudCatalog(@NotNull CloudCatalog catalog) implements GlobalIonLibrariesEvent {
 
   }
 }

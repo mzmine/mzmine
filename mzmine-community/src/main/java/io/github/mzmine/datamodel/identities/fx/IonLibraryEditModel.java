@@ -28,11 +28,13 @@ package io.github.mzmine.datamodel.identities.fx;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.util.Collection;
 import java.util.List;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -60,7 +62,7 @@ class IonLibraryEditModel {
   // some names are restricted
   private final StringProperty nameIssue = new SimpleStringProperty("");
   private final ReadOnlyBooleanWrapper nameRestricted = new ReadOnlyBooleanWrapper(false);
-
+  private final BooleanBinding saveBlocked = sameAsOriginalProperty().or(nameRestrictedProperty());
 
   public IonLibraryEditModel(@Nullable IonLibrary library) {
     setLibrary(library);
@@ -114,12 +116,18 @@ class IonLibraryEditModel {
   /**
    * Used when library is saved to reset changed value etc
    */
-  public void setLibrary(IonLibrary library) {
+  public void setLibrary(@Nullable IonLibrary library) {
     this.isNewlyCreated.set(library == null);
+
+    if (IonLibraries.isInternalLibrary(library)) {
+      // cannot change internal library so create copy with different name
+      library = new UnmodifiableIonLibrary("unnamed library", library.ions());
+    }
     this.library.set(library);
 
     if (library == null) {
       name.set("unnamed");
+      ionTypes.clear();
     } else {
       name.set(library.name());
       ionTypes.setAll(library.ions());
@@ -168,4 +176,11 @@ class IonLibraryEditModel {
     return title;
   }
 
+  public boolean isSaveBlocked() {
+    return saveBlocked.get();
+  }
+
+  public BooleanBinding isSaveBlockedProperty() {
+    return saveBlocked;
+  }
 }

@@ -40,7 +40,7 @@ public class IonLibrarySerializer extends JsonSerializer<IonLibrary> {
       gen.writeNull();
       return;
     }
-    StorableIonLibrary storable = new StorableIonLibrary(value);
+    StorableIonLibrary storable = StorableIonLibrary.of(value);
     gen.writeObject(storable);
   }
 }

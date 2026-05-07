@@ -35,6 +35,8 @@ import static io.github.mzmine.javafx.util.FxIconUtil.newIconButtonOpenUrl;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult;
+import io.github.mzmine.datamodel.identities.global.IonLibraryImportResult.MergePolicy;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -43,8 +45,12 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterComponent;
+import java.util.List;
+import java.util.Optional;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -66,6 +72,9 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
   private final StringProperty conflictWithLocalText = new SimpleStringProperty();
   private final StringProperty updateWithGlobalTooltip = new SimpleStringProperty();
   private final BooleanBinding hasConflictWithLocal = conflictWithLocalText.isNotEmpty();
+  private final BooleanProperty globalIsNewer = new SimpleBooleanProperty(false);
+  private final StringProperty addToGlobalTooltip = new SimpleStringProperty();
+  private final BooleanProperty globalIsMissing = new SimpleBooleanProperty(false);
 
   private final @NotNull ObjectProperty<IonLibrary> library;
 
@@ -94,13 +103,19 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     libraryPopover.installOn(selectLibraryButton);
 
     final ButtonBase updateWithGlobalLibrary = FxIconUtil.newIconButton(FxIcons.RELOAD,
-        updateWithGlobalTooltip, this::exchangeIonLibraryForGlobalVersion);
-    updateWithGlobalLibrary.visibleProperty().bind(hasConflictWithLocal);
-    updateWithGlobalLibrary.managedProperty().bind(hasConflictWithLocal);
+        updateWithGlobalTooltip, negativeColor, this::exchangeIonLibraryForGlobalVersion);
+    updateWithGlobalLibrary.visibleProperty().bind(globalIsNewer);
+    updateWithGlobalLibrary.managedProperty().bind(globalIsNewer);
+
+    final ButtonBase addToGlobalLibrary = FxIconUtil.newIconButton(FxIcons.SAVE, addToGlobalTooltip,
+        negativeColor, this::saveToGlobal);
+    addToGlobalLibrary.visibleProperty().bind(globalIsMissing);
+    addToGlobalLibrary.managedProperty().bind(globalIsMissing);
 
     final var topBox = FxLayout.newIconPane(Orientation.HORIZONTAL, //
         selectLibraryButton, //
         updateWithGlobalLibrary, //
+        addToGlobalLibrary, //
         newIconButton(FxIcons.GEAR_PREFERENCES, tooltip, this::showGlobalTab), //
         newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE,
             tooltip + "\nClick to open the documentation.",
@@ -112,9 +127,12 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
 
     library.subscribe((nv) -> {
       if (nv == null) {
+        globalIsMissing.setValue(false);
+        globalIsMissing.set(false);
         numIonsText.setValue(null);
         conflictWithLocalText.set(null);
         updateWithGlobalTooltip.set(null);
+        addToGlobalTooltip.set(null);
       } else {
         checkConflictWithGlobalLibrary(nv);
         // also define tooltip
@@ -141,6 +159,21 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
     });
   }
 
+  private void saveToGlobal() {
+    final IonLibrary lib = getValue();
+    if (lib == null) {
+      return;
+    }
+    final IonLibraryImportResult results = GlobalIonLibraryService.getGlobalLibrary()
+        .addLibraries(List.of(lib), MergePolicy.ASK_OLDER_OVERWRITE);
+    if (results.isChanged()) {
+      GlobalIonLibrariesController.getInstance().updateModel();
+      conflictWithLocalText.set(null);
+      addToGlobalTooltip.set(null);
+      globalIsMissing.set(false);
+    }
+  }
+
   private void showGlobalTab() {
     DialogLoggerUtil.showInfoNotification("Define ion libraries in the main window",
         "The '%s' tab (in the main window) enables ion library creation and modification.".formatted(
@@ -152,35 +185,51 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
    * Check for conflicts with global libraries where the name is equal but content is different
    */
   private void checkConflictWithGlobalLibrary(@Nullable IonLibrary lib) {
+    globalIsNewer.set(false);
+    globalIsMissing.set(false);
+    conflictWithLocalText.set(null);
+    addToGlobalTooltip.set(null);
     if (lib == null) {
-      conflictWithLocalText.set(null);
       return;
     }
     String conflict = null;
 
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
-    final IonLibrary existing = global.getLibraryForName(lib.name()).orElse(null);
-    if (existing != null && !existing.equalIons(lib)) {
-      conflict = "The ion library '%s' selected in the parameter component differs from the local version. ";
-      if (existing.getNumIons() == lib.getNumIons()) {
-        conflict = "The sizes are the same, but the defined ions may differ slightly.";
-      } else if (existing.getNumIons() < lib.getNumIons()) {
-        conflict = "The local library is smaller than the currently selected.";
-      } else if (existing.getNumIons() < lib.getNumIons()) {
-        conflict = "The local library is larger than the currently selected.";
+
+    final IonLibrary existing = global.getLibraryForID(lib.id()).orElse(null);
+    if (existing != null) {
+      if (lib.lastUpdatedDate().isBefore(existing.lastUpdatedDate())) {
+        conflict = "The local version of this ion library is NEWER than the loaded parameter library.";
+        globalIsNewer.set(true);
+      } else if (existing.lastUpdatedDate().isBefore(lib.lastUpdatedDate())) {
+        conflict = "The local version of this ion library is OLDER than the loaded parameter library.";
+        globalIsMissing.set(true);
+        addToGlobalTooltip.set("""
+            The loaded library of this parameter is NEWER than the local version of this library.
+            Do you want to apply this update to this ion library to the globally available?""");
       }
+    } else {
+      globalIsMissing.set(true);
+      addToGlobalTooltip.set("""
+          The loaded library is currently only available in this parameter.
+          Do you want to add this ion library to the globally available?""");
     }
     conflictWithLocalText.set(conflict);
   }
 
   private void exchangeIonLibraryForGlobalVersion() {
-    final IonLibrary current = this.library.getValue();
+    final IonLibrary current = this.getValue();
     if (current == null) {
       return;
     }
 
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
-    global.getLibraryForName(current.name()).ifPresent(library::setValue);
+    final Optional<IonLibrary> existing = global.getLibraryForID(current.id());
+    if (existing.isPresent() && DialogLoggerUtil.showDialogYesNo(
+        "Exchange ion library with global?",
+        "Do you want to replace the parameter ion library with the globally defined?")) {
+      library.setValue(existing.get());
+    }
   }
 
   @Override
