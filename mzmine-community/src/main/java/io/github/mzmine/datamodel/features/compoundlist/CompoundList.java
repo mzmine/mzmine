@@ -12,6 +12,7 @@ import io.github.mzmine.util.CompoundSchemaTypes;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,10 +44,11 @@ public class CompoundList {
   private final ObservableList<ModularCompoundRow> rowsReadOnly = FXCollections.unmodifiableObservableList(
       rows);
 
-  // O(1) reverse lookup: member row ID → owning compound. ConcurrentHashMap so listeners on
-  // background threads can safely read while setRows rebuilds on the FX thread.
-  // contains all members: classical featureListRow and CompoundRow
-  private final Map<FeatureListRowID, ModularCompoundRow> byMemberRowId = new ConcurrentHashMap<>();
+  // O(1) reverse lookup: member row ID → owning compounds. A row may belong to multiple compounds
+  // (e.g. a non-IIN row correlated to two distinct IIN-seeded compounds is a member of both).
+  // ConcurrentHashMap so listeners on background threads can safely read while setRows rebuilds
+  // on the FX thread. Contains all members: classical FeatureListRow and CompoundRow.
+  private final Map<FeatureListRowID, List<ModularCompoundRow>> byMemberRowId = new ConcurrentHashMap<>();
 
   // O(1) lookup compoundId → compound row. Populated by setRows() and addCompoundRowStub() so
   // findRowByCompoundId resolves in either runtime construction or load-time stub-first flows.
@@ -208,7 +210,8 @@ public class CompoundList {
   private void indexMembers(@NotNull final ModularCompoundRow compound) {
     for (final CompoundFeatureMember m : compound.getCompoundMembers()) {
       final FeatureListRow member = m.row();
-      byMemberRowId.put(member.getTypedID(), compound);
+      // append — a row may be a member of multiple compounds (bridge rows)
+      byMemberRowId.computeIfAbsent(member.getTypedID(), id -> new ArrayList<>(1)).add(compound);
       if (member instanceof ModularCompoundRow nested) {
         indexMembers(nested);
       }
@@ -282,12 +285,15 @@ public class CompoundList {
         if (!(model instanceof FeatureListRow row)) {
           return;
         }
-        final ModularCompoundRow owner = findCompoundOf(row);
-        if (owner == null) {
+        final List<ModularCompoundRow> owners = findCompoundsOf(row);
+        if (owners.isEmpty()) {
           // top-level compound or unrelated row — stop propagation
           return;
         }
-        binding.apply(owner);
+        // a row may belong to multiple compounds; re-apply for each owner
+        for (final ModularCompoundRow owner : owners) {
+          binding.apply(owner);
+        }
       };
       final DataTypeValueChangeListener<?> featureListener = (model, type, oldValue, newValue) -> {
         if (bulkApplyInProgress) {
@@ -300,11 +306,13 @@ public class CompoundList {
         if (row == null) {
           return;
         }
-        final ModularCompoundRow owner = findCompoundOf(row);
-        if (owner == null) {
+        final List<ModularCompoundRow> owners = findCompoundsOf(row);
+        if (owners.isEmpty()) {
           return;
         }
-        binding.apply(owner);
+        for (final ModularCompoundRow owner : owners) {
+          binding.apply(owner);
+        }
       };
 
       // primary row-level type — source list and compound row schema
@@ -377,10 +385,24 @@ public class CompoundList {
   }
 
   /**
-   * O(1) lookup: which compound owns this row? Returns null if not a member of any compound.
+   * O(1) lookup: which compounds contain this row? A row may belong to multiple compounds (bridge
+   * rows in correlation-aware grouping). Returns an empty list if the row is not a member of any
+   * compound.
    */
-  public @Nullable ModularCompoundRow findCompoundOf(@NotNull final FeatureListRow row) {
-    return byMemberRowId.get(row.getTypedID());
+  public @NotNull List<ModularCompoundRow> findCompoundsOf(@NotNull final FeatureListRow row) {
+    final List<ModularCompoundRow> owners = byMemberRowId.get(row.getTypedID());
+    return owners == null ? List.of() : Collections.unmodifiableList(owners);
+  }
+
+  /**
+   * Convenience: the first compound this row belongs to, or empty if none. Equivalent to the old
+   * single-owner contract; suitable for UI display where a row's role only needs to be picked from
+   * one compound (the primary owner).
+   */
+  public @NotNull Optional<ModularCompoundRow> findFirstCompoundOf(
+      @NotNull final FeatureListRow row) {
+    final List<ModularCompoundRow> owners = byMemberRowId.get(row.getTypedID());
+    return owners == null || owners.isEmpty() ? Optional.empty() : Optional.of(owners.get(0));
   }
 
   /**
@@ -393,15 +415,30 @@ public class CompoundList {
   }
 
   /**
-   * O(1) role lookup. Returns null if the row is not a member of any compound.
+   * O(1) role lookup. Returns the role of the row in its first owning compound, or empty if the
+   * row is not a member of any compound. For multi-membership cases use {@link #getRolesOf}.
    */
-  public @Nullable Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
-    final ModularCompoundRow cr = findCompoundOf(row);
-    if (cr == null) {
-      return Optional.empty();
+  public @NotNull Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
+    return findFirstCompoundOf(row).flatMap(cr -> cr.getCompoundMembers().stream()
+        .filter(m -> m.row().getID().equals(row.getID())).findFirst()
+        .map(CompoundFeatureMember::role));
+  }
+
+  /**
+   * Returns the role this row plays in each compound it belongs to. A row can have different roles
+   * in different compounds (e.g. CORRELATED in compound A, ADDUCT in compound B if it's bridged).
+   */
+  public @NotNull List<CompoundMemberRole> getRolesOf(@NotNull final FeatureListRow row) {
+    final List<ModularCompoundRow> owners = byMemberRowId.get(row.getTypedID());
+    if (owners == null || owners.isEmpty()) {
+      return List.of();
     }
-    return cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID()))
-        .findFirst().map(CompoundFeatureMember::role);
+    final List<CompoundMemberRole> roles = new ArrayList<>(owners.size());
+    for (final ModularCompoundRow cr : owners) {
+      cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID())).findFirst()
+          .map(CompoundFeatureMember::role).ifPresent(roles::add);
+    }
+    return roles;
   }
 
   @NotNull

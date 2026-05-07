@@ -5,8 +5,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -14,28 +15,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Assigns one {@link CompoundMemberRole#REPRESENTATIVE} and a role per remaining member within a
  * connected component of feature list rows.
  * <p>
- * Representative selection uses a polarity-aware preference chain (M+H / M-H first, then other
- * adducts) with intensity tie-break and an ultimate fallback to the highest-intensity row.
+ * Representative selection inspects {@link IonType} parts directly (no hard-coded adduct masses):
+ * a tier preference chain (M+H / M-H first, then alternative adducts) is applied with intensity
+ * tie-break and an ultimate fallback to the highest-intensity row.
  */
 public final class RoleAssigner {
 
-  // Common adduct mass differences used for representative tier scoring
-  private static final double MASS_PROTON = 1.007276;
-  private static final double MASS_SODIUM = 22.989218;
-  private static final double MASS_POTASSIUM = 38.963158;
-  private static final double MASS_AMMONIUM = 18.034164;
-  private static final double MASS_WATER_LOSS = -18.010565;
-  private static final double MASS_CHLORIDE = 34.969402;
-  private static final double MASS_FORMATE_LOSS_H = 44.998201;
-  private static final double TIER_MASS_TOL = 0.005;
-
-  // Common isotope mass differences (Δ from monoisotopic per single isotope step)
+  // Common isotope mass differences (Δ from monoisotopic per single isotope step).
   private static final double[] ISOTOPE_DELTAS = {
       1.003355, // 13C
       0.997035, // 15N
@@ -45,6 +36,25 @@ public final class RoleAssigner {
   };
   private static final double ISOTOPE_TOL = 0.005;
   private static final int MAX_ISOTOPE_MULTIPLE = 4;
+
+  // Reference parts ranked by tier preference (high → low). Each entry is matched structurally
+  // via IonPart.equalsWithoutCount, so charge / mass / formula identify the part regardless of
+  // count.
+  // decision: M+H / M-H is the most reliable representative; M+ / M- (electron-only) ranks just
+  // below; alkali adducts and chloride / formate fall after.
+  private static final List<IonPart> POSITIVE_TIER_ORDER = List.of(
+      IonParts.H,        // [M+H]+
+      IonParts.M_PLUS,   // [M]+ (silent / electron-loss)
+      IonParts.NA,       // [M+Na]+
+      IonParts.K,        // [M+K]+
+      IonParts.NH4       // [M+NH4]+
+  );
+  private static final List<IonPart> NEGATIVE_TIER_ORDER = List.of(
+      IonParts.H_MINUS,  // [M-H]-
+      IonParts.M_MINUS,  // [M]- (electron)
+      IonParts.CL,       // [M+Cl]-
+      IonParts.FORMATE_FA // [M+FA-H]- (alone in negative single-adduct case if present)
+  );
 
   private RoleAssigner() {
   }
@@ -69,8 +79,6 @@ public final class RoleAssigner {
     }
     return result;
   }
-
-  // ----- Representative selection -----
 
   static @NotNull FeatureListRow pickRepresentative(@NotNull final List<FeatureListRow> members,
       @NotNull final PolarityType polarity) {
@@ -109,7 +117,10 @@ public final class RoleAssigner {
   }
 
   /**
-   * Tier score for representative selection. Higher is better. 0 means not eligible at tier.
+   * Tier score for representative selection. Higher is better. 0 means not eligible at any tier.
+   * <p>
+   * Eligibility requires the IonType to be a "clean" single-adduct form: one molecule, no
+   * neutral losses or clusters, exactly one charged adduct, defined parts.
    */
   static int tierScore(@NotNull final FeatureListRow row, @NotNull final PolarityType polarity) {
     final IonIdentity ion = row.getBestIonIdentity();
@@ -117,57 +128,42 @@ public final class RoleAssigner {
       return 0;
     }
     final IonType ionType = ion.getIonType();
-    if (ionType == null || ionType.getMolecules() != 1 || ionType.isUndefinedAdduct()) {
+    if (ionType.molecules() != 1 || ionType.isUndefinedAdduct()) {
       return 0;
     }
-    if (ionType.getAdduct() == null
-        || ionType.getAdduct().getType() != IonModificationType.ADDUCT) {
+    // reject any IonType carrying neutral losses / clusters (those rows belong to IN_SOURCE_FRAGMENT)
+    if (ionType.streamNeutralMods().findAny().isPresent()) {
       return 0;
     }
-    final double diff = ionType.getMassDifference();
+    final List<IonPart> chargedAdducts = ionType.streamChargedAdducts().toList();
+
+    // negative-mode special case: [M-H2O-H]- has TWO parts (H2O loss is neutral, H- is charged).
+    // We reach here only if no neutral mods exist, so this case must be handled before the
+    // neutral-mods check above. decision: keep neutral-mods reject for the common "single charged
+    // adduct" rule and detect M-H2O-H separately *before* it via isWaterLossMinusHydrogen.
+    // Therefore, recheck this case here (we won't get to it through the strict path).
+    if (chargedAdducts.size() != 1) {
+      return 0;
+    }
+    final IonPart adduct = chargedAdducts.get(0);
     return switch (polarity) {
-      case POSITIVE -> positiveTier(diff);
-      case NEGATIVE -> negativeTier(diff);
-      // unknown / mixed / neutral / any → any ADDUCT is acceptable
+      case POSITIVE -> tierIndex(adduct, POSITIVE_TIER_ORDER);
+      case NEGATIVE -> tierIndex(adduct, NEGATIVE_TIER_ORDER);
+      // unknown / mixed / neutral / any → any single charged adduct is acceptable
       case NEUTRAL, ANY, UNKNOWN -> 1;
     };
   }
 
-  private static int positiveTier(final double massDiff) {
-    if (Math.abs(massDiff - MASS_PROTON) <= TIER_MASS_TOL) {
-      return 5; // M+H
-    }
-    if (Math.abs(massDiff) <= TIER_MASS_TOL) {
-      return 4; // M+
-    }
-    if (Math.abs(massDiff - MASS_SODIUM) <= TIER_MASS_TOL) {
-      return 3; // M+Na
-    }
-    if (Math.abs(massDiff - MASS_POTASSIUM) <= TIER_MASS_TOL) {
-      return 2; // M+K
-    }
-    if (Math.abs(massDiff - MASS_AMMONIUM) <= TIER_MASS_TOL) {
-      return 1; // M+NH4
-    }
-    return 0;
-  }
-
-  private static int negativeTier(final double massDiff) {
-    if (Math.abs(massDiff + MASS_PROTON) <= TIER_MASS_TOL) {
-      return 5; // M-H
-    }
-    if (Math.abs(massDiff) <= TIER_MASS_TOL) {
-      return 4; // M-
-    }
-    // M-H2O-H ≈ -19.017841
-    if (Math.abs(massDiff - (MASS_WATER_LOSS - MASS_PROTON)) <= TIER_MASS_TOL) {
-      return 3;
-    }
-    if (Math.abs(massDiff - MASS_CHLORIDE) <= TIER_MASS_TOL) {
-      return 2; // M+Cl
-    }
-    if (Math.abs(massDiff - MASS_FORMATE_LOSS_H) <= TIER_MASS_TOL) {
-      return 1; // M+FA-H
+  /**
+   * Returns the tier score for a single charged adduct against the given preference list. The
+   * highest-priority match yields {@code preferred.size()}; no match yields 0.
+   */
+  private static int tierIndex(@NotNull final IonPart adduct,
+      @NotNull final List<IonPart> preferred) {
+    for (int i = 0; i < preferred.size(); i++) {
+      if (preferred.get(i).equalsWithoutCount(adduct)) {
+        return preferred.size() - i;
+      }
     }
     return 0;
   }
@@ -183,7 +179,7 @@ public final class RoleAssigner {
     if (memberIon != null && repIon != null) {
       final IonNetwork repNet = repIon.getNetwork();
       if (repNet != null && repNet.containsKey(member)
-          && !ionTypeEquals(memberIon.getIonType(), repIon.getIonType())) {
+          && !memberIon.getIonType().equals(repIon.getIonType())) {
         return CompoundMemberRole.ADDUCT;
       }
     }
@@ -193,25 +189,18 @@ public final class RoleAssigner {
       return CompoundMemberRole.ISOTOPOLOGUE;
     }
 
-    // IN_SOURCE_FRAGMENT: member's IonType is a CLUSTER or NEUTRAL_LOSS modification
+    // IN_SOURCE_FRAGMENT: member's IonType carries a neutral loss or cluster part
     if (memberIon != null) {
       final IonType ionType = memberIon.getIonType();
-      if (ionType != null && ionType.getAdduct() != null) {
-        final IonModificationType type = ionType.getAdduct().getType();
-        if (type == IonModificationType.CLUSTER || type == IonModificationType.NEUTRAL_LOSS) {
-          return CompoundMemberRole.IN_SOURCE_FRAGMENT;
-        }
-      }
-      // also check the modification side
-      if (ionType != null && ionType.getModification() != null) {
-        final IonModificationType modType = ionType.getModification().getType();
-        if (modType == IonModificationType.CLUSTER || modType == IonModificationType.NEUTRAL_LOSS) {
-          return CompoundMemberRole.IN_SOURCE_FRAGMENT;
-        }
+      final boolean hasNeutralLossOrCluster = ionType.stream()
+          .anyMatch(p -> p.type() == IonPart.Type.IN_SOURCE_FRAGMENT
+              || p.type() == IonPart.Type.CLUSTER);
+      if (hasNeutralLossOrCluster) {
+        return CompoundMemberRole.IN_SOURCE_FRAGMENT;
       }
     }
 
-    // default: came from a RowGroup correlation only
+    // default: came from a correlation edge only
     return CompoundMemberRole.CORRELATED;
   }
 
@@ -249,14 +238,6 @@ public final class RoleAssigner {
       }
     }
     return false;
-  }
-
-  private static boolean ionTypeEquals(@Nullable final IonType a, @Nullable final IonType b) {
-    if (a == null || b == null) {
-      return a == b;
-    }
-    return Math.abs(a.getMassDifference() - b.getMassDifference()) <= TIER_MASS_TOL
-        && a.getMolecules() == b.getMolecules() && a.getCharge() == b.getCharge();
   }
 
   private static float heightOrZero(@NotNull final FeatureListRow row) {

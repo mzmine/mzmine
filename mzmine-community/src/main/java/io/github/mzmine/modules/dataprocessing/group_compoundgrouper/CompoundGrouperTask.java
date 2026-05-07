@@ -2,13 +2,12 @@ package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerModule;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerStrategy;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -20,11 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Builds a {@link CompoundList} for a single {@link ModularFeatureList} using
- * {@link SimpleSeederComponentizer}.
- * <p>
- * Requires the source feature list to have at least one IonIdentity Network OR a non-empty RowGroup
- * list — otherwise the task fails fast with a clear error.
+ * Builds a {@link CompoundList} for a single {@link ModularFeatureList} using the user-selected
+ * {@link CompoundComponentizerStrategy}.
  * <p>
  * Captures the source feature list's structural version at start; if it changes by the time the
  * compound list is attached, the result is dropped (with a warning).
@@ -38,9 +34,7 @@ public class CompoundGrouperTask extends AbstractTask {
   @NotNull
   private final ParameterSet parameters;
   @NotNull
-  private final MZTolerance mzTolerance;
-  @NotNull
-  private final RTTolerance rtTolerance;
+  private final CompoundComponentizerStrategy strategy;
   private final long sourceStructuralVersion;
 
   private volatile double progress = 0d;
@@ -51,9 +45,18 @@ public class CompoundGrouperTask extends AbstractTask {
     super(storage, moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
-    this.mzTolerance = parameters.getValue(CompoundGrouperParameters.MZ_TOLERANCE);
-    this.rtTolerance = parameters.getValue(CompoundGrouperParameters.RT_TOLERANCE);
+    this.strategy = createStrategy(parameters);
     this.sourceStructuralVersion = featureList.getStructuralVersion();
+  }
+
+  private static @NotNull CompoundComponentizerStrategy createStrategy(
+      @NotNull final ParameterSet parameters) {
+    final ModuleOptionsEnumComboParameter<CompoundComponentizerType> combo = parameters
+        .getParameter(CompoundGrouperParameters.COMPONENTIZER);
+    final CompoundComponentizerType type = combo.getValue();
+    final ParameterSet sub = combo.getEmbeddedParameters();
+    final CompoundComponentizerModule module = type.getModuleInstance();
+    return module.createStrategy(sub);
   }
 
   @Override
@@ -73,7 +76,10 @@ public class CompoundGrouperTask extends AbstractTask {
         () -> "Starting compound grouping for feature list " + featureList.getName() + " ("
             + featureList.getNumberOfRows() + " rows)");
     try {
-      if (!precheck()) {
+      final String validation = strategy.validateInputs(featureList);
+      if (validation != null) {
+        setErrorMessage(validation);
+        setStatus(TaskStatus.ERROR);
         return;
       }
       progress = 0.1d;
@@ -82,9 +88,7 @@ public class CompoundGrouperTask extends AbstractTask {
       final CompoundList compoundList = new CompoundList(featureList, getMemoryMapStorage(),
           estimatedCompounds);
 
-      final SimpleSeederComponentizer componentizer = new SimpleSeederComponentizer(mzTolerance,
-          rtTolerance);
-      final List<ModularCompoundRow> rows = componentizer.componentize(featureList, compoundList);
+      final List<ModularCompoundRow> rows = strategy.componentize(featureList, compoundList);
       progress = 0.8d;
 
       if (isCanceled()) {
@@ -116,24 +120,5 @@ public class CompoundGrouperTask extends AbstractTask {
       setErrorMessage(e.getMessage());
       setStatus(TaskStatus.ERROR);
     }
-  }
-
-  private boolean precheck() {
-    if (featureList.getNumberOfRows() == 0) {
-      setErrorMessage("CompoundGrouper requires a non-empty feature list.");
-      setStatus(TaskStatus.ERROR);
-      return false;
-    }
-    final boolean hasIin = IonNetworkLogic.streamNetworks(featureList, false).findAny().isPresent();
-    final List<RowGroup> groups = featureList.getGroups();
-    final boolean hasGroups = groups != null && !groups.isEmpty();
-    if (!hasIin && !hasGroups) {
-      setErrorMessage(
-          "CompoundGrouper requires Ion Identity Networking or Correlation Grouping output. "
-              + "Run those modules first.");
-      setStatus(TaskStatus.ERROR);
-      return false;
-    }
-    return true;
   }
 }
