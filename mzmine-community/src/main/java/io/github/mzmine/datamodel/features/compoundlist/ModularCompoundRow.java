@@ -66,8 +66,8 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   /**
    * Load-time constructor: creates a stub compound row with only the compound id and back-reference
-   * to its {@link CompoundList}. {@link CompoundMembersType}, {@link NeutralMassType}, binding-output
-   * values, and features are populated by the loader after all stubs are created.
+   * to its {@link CompoundList}. {@link CompoundMembersType}, {@link NeutralMassType},
+   * binding-output values, and features are populated by the loader after all stubs are created.
    */
   public ModularCompoundRow(@NotNull final CompoundList compoundList, final int compoundId) {
     super(compoundList.getFeatureList(), compoundList.getCompoundRowSchema());
@@ -102,7 +102,8 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return getFeatureList().getRawDataFiles().stream().map(this::getFeature);
+    return getFeatureList().getRawDataFiles().stream().map(this::getFeature)
+        .filter(Objects::nonNull);
   }
 
   @Override
