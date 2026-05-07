@@ -13,9 +13,11 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -116,25 +118,37 @@ public class CompoundList {
       @NotNull CompoundRowSelection selection) {
     return switch (selection) {
       case COMPOUNDS -> getRowsCopy();
-      case ALL_MAJOR_IONS -> getRowsCopy().stream().<FeatureListRow>mapMulti((comp, up) -> {
-        // compound row is not returned, only the first level of main ions
-        for (FeatureListRow member : comp.getMemberRows()) {
-          up.accept(member);
-        }
-      }).toList();
-      case ALL_ISOTOPES -> getRowsCopy().stream().<FeatureListRow>mapMulti((comp, up) -> {
-        // compound row is not returned, just the first level of main ions and then their isotopes
-        for (FeatureListRow member : comp.getMemberRows()) {
-          if (member instanceof ModularCompoundRow compMember) {
-            final List<FeatureListRow> isotopeRows = compMember.getMemberRows();
-            for (FeatureListRow isotope : isotopeRows) {
-              up.accept(isotope);
+      case ALL_MAJOR_IONS -> {
+        final Set<FeatureListRow> seen = new HashSet<>();
+        yield getRowsCopy().stream().<FeatureListRow>mapMulti((comp, up) -> {
+          // compound row is not returned, only the first level of main ions
+          for (FeatureListRow member : comp.getMemberRows()) {
+            if (seen.add(member)) {
+              up.accept(member);
             }
-          } else {
-            up.accept(member);
           }
-        }
-      }).toList();
+        }).toList();
+      }
+      case ALL_ISOTOPES -> {
+        final Set<FeatureListRow> seen = new HashSet<>();
+        yield getRowsCopy().stream().<FeatureListRow>mapMulti((comp, up) -> {
+          // compound row is not returned, just the first level of main ions and then their isotopes
+          for (FeatureListRow member : comp.getMemberRows()) {
+            if (member instanceof ModularCompoundRow compMember) {
+              final List<FeatureListRow> isotopeRows = compMember.getMemberRows();
+              for (FeatureListRow isotope : isotopeRows) {
+                if (seen.add(member)) {
+                  up.accept(isotope);
+                }
+              }
+            } else {
+              if (seen.add(member)) {
+                up.accept(member);
+              }
+            }
+          }
+        }).toList();
+      }
     };
   }
 
@@ -415,13 +429,13 @@ public class CompoundList {
   }
 
   /**
-   * O(1) role lookup. Returns the role of the row in its first owning compound, or empty if the
-   * row is not a member of any compound. For multi-membership cases use {@link #getRolesOf}.
+   * O(1) role lookup. Returns the role of the row in its first owning compound, or empty if the row
+   * is not a member of any compound. For multi-membership cases use {@link #getRolesOf}.
    */
   public @NotNull Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
-    return findFirstCompoundOf(row).flatMap(cr -> cr.getCompoundMembers().stream()
-        .filter(m -> m.row().getID().equals(row.getID())).findFirst()
-        .map(CompoundFeatureMember::role));
+    return findFirstCompoundOf(row).flatMap(
+        cr -> cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID()))
+            .findFirst().map(CompoundFeatureMember::role));
   }
 
   /**

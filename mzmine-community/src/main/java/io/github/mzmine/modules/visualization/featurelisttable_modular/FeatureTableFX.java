@@ -91,6 +91,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -722,7 +723,10 @@ public class FeatureTableFX extends BorderPane {
     TreeTableColumn<ModularFeatureListRow, String> rowCol = new TreeTableColumn<>();
 
     // Add raw data file label
-    Label headerLabel = new Label(flist.getName());
+    final ObservableValue<String> title = Bindings.size(getFilteredRowItems())
+        .map(nrows -> "%d rows in %s".formatted(nrows.intValue(), flist.getName()));
+    Label headerLabel = FxLabels.newLabel(title);
+
     if (flist.getRawDataFiles().size() == 1) {
       RawDataFile raw = flist.getRawDataFiles().get(0);
       headerLabel.setTextFill(raw.getColor());
