@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,8 +56,8 @@ public class ClearcoreServer {
   private static final Pattern WINDOWS_DOT_NET_RELEASE_PATTERN = Pattern.compile(
       "(?m)^\\s*Release\\s+REG_DWORD\\s+(0x[0-9a-fA-F]+|\\d+)\\s*$");
   private static final String WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH = "HKLM\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full";
-  private static final Pattern LINUX_DOT_NET_6_RUNTIME_PATTERN = Pattern.compile(
-      "(?m)^Microsoft\\.NETCore\\.App\\s+6\\.\\d+\\.\\d+\\b.*$");
+  private static final Pattern LINUX_DOT_NET_RUNTIME_PATTERN = Pattern.compile(
+      "(?m)^Microsoft\\.NETCore\\.App\\s+([\\d]+)\\.\\d\\.\\d\\b.*$");
 
   /**
    * current instance. may change if the server crashes or so.
@@ -178,8 +179,10 @@ public class ClearcoreServer {
 
   private void terminateClearcoreInstance() {
     if (processHandle != null) {
-//      logger.info("Terminating SCIEX clearcore service.");
-      processHandle.destroy();
+      logger.info("Terminating SCIEX clearcore service.");
+      if(!processHandle.destroy()) {
+        processHandle.destroyForcibly();
+      }
     }
   }
 
@@ -223,6 +226,13 @@ public class ClearcoreServer {
       return false;
     }
 
-    return LINUX_DOT_NET_6_RUNTIME_PATTERN.matcher(output).find();
+    Matcher matcher = LINUX_DOT_NET_RUNTIME_PATTERN.matcher(output);
+    if(matcher.find()) {
+      String versionStr = matcher.group(1);
+      if(Integer.parseInt(versionStr) >= 6) {
+        return true;
+      }
+    }
+    return false;
   }
 }

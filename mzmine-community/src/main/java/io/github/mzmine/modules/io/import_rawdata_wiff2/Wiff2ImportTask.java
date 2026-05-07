@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
+import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
@@ -31,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -52,7 +54,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,9 +199,23 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
         files.add(rawDataFile);
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     } catch (Exception e) {
+      error("Error while importing %s".formatted(file.getName()), e);
+      if(Platform.isLinux()) {
+        DialogLoggerUtil.showDialog(AlertType.ERROR, "Error while importing file " + file.getName(),
+            """
+                Sciex WIFF(2) file import failed. The following packages (or newer versions) may be required:
+                
+                Ubuntu:
+                libunwind8, libuuid1, liblttng-ust0, libcurl3, libssl1.0.0, libkrb5-3, zlib1g, libicu60
+                
+                CentOS:
+                libunwind, libuuid, lttng-ust, libcurl, openssl-libs, krb5-libs, zlib
+                
+                Exception:
+                %s
+                """.formatted(e.getMessage()));
+      }
       throw new RuntimeException(e);
     }
 
