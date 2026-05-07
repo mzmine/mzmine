@@ -157,7 +157,7 @@ public class ClearcoreServer {
       }
       if (Platform.isWindows() && !checkDependenciesWindows()) {
         throw new RuntimeException(
-            "SCIEX Clearcore on Windows requires .NET Framework 4.7.2 or later.");
+            "SCIEX Clearcore on Windows requires .NET Framework 4.7.2 or later and Visual Studio C++ Redistributable.");
       }
       if (Platform.isLinux() && !checkDependenciesLinux()) {
         throw new RuntimeException("SCIEX Clearcore on Linux requires .NET 6.0.");
@@ -180,7 +180,7 @@ public class ClearcoreServer {
   private void terminateClearcoreInstance() {
     if (processHandle != null) {
       logger.info("Terminating SCIEX clearcore service.");
-      if(!processHandle.destroy()) {
+      if (!processHandle.destroy()) {
         processHandle.destroyForcibly();
       }
     }
@@ -227,9 +227,9 @@ public class ClearcoreServer {
     }
 
     Matcher matcher = LINUX_DOT_NET_RUNTIME_PATTERN.matcher(output);
-    if(matcher.find()) {
+    if (matcher.find()) {
       String versionStr = matcher.group(1);
-      if(Integer.parseInt(versionStr) >= 6) {
+      if (Integer.parseInt(versionStr) >= 6) {
         return true;
       }
     }

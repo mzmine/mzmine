@@ -27,10 +27,18 @@
 
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
+import static java.lang.foreign.ValueLayout.OfBoolean;
+import static java.lang.foreign.ValueLayout.OfByte;
+import static java.lang.foreign.ValueLayout.OfInt;
+import static java.lang.foreign.ValueLayout.OfLong;
+import static java.lang.foreign.ValueLayout.OfShort;
+
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.lang.foreign.AddressLayout;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.lang.invoke.MethodHandle;
@@ -43,6 +51,7 @@ import java.lang.invoke.MethodHandle;
  *       FileAndPathUtil.resolveInExternalToolsDir(
  *           "sciex_wiff2/%s".formatted(System.mapLibraryName("Wiff2Launcher"))).toPath(),
  *       LIBRARY_ARENA).or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
+ *
  *   }
  *   </pre>
  */
@@ -55,13 +64,683 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
 
   static final Arena LIBRARY_ARENA = Arena.ofAuto();
 
-  static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
+  public static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
       FileAndPathUtil.resolveInExternalToolsDir(
           "sciex_wiff2/%s".formatted(System.mapLibraryName("Wiff2Launcher"))).toPath(),
       LIBRARY_ARENA).or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup());
 
-  private static class wiff2_launch_server {
+  private static final int _VCRT_COMPILER_PREPROCESSOR = (int) 1L;
 
+  /**
+   * {@snippet lang = c:
+   * #define _VCRT_COMPILER_PREPROCESSOR 1
+   *}
+   */
+  public static int _VCRT_COMPILER_PREPROCESSOR() {
+    return _VCRT_COMPILER_PREPROCESSOR;
+  }
+
+  private static final int _SAL_VERSION = (int) 20L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _SAL_VERSION 20
+   *}
+   */
+  public static int _SAL_VERSION() {
+    return _SAL_VERSION;
+  }
+
+  private static final int __SAL_H_VERSION = (int) 180000000L;
+
+  /**
+   * {@snippet lang = c:
+   * #define __SAL_H_VERSION 180000000
+   *}
+   */
+  public static int __SAL_H_VERSION() {
+    return __SAL_H_VERSION;
+  }
+
+  private static final int _USE_DECLSPECS_FOR_SAL = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _USE_DECLSPECS_FOR_SAL 0
+   *}
+   */
+  public static int _USE_DECLSPECS_FOR_SAL() {
+    return _USE_DECLSPECS_FOR_SAL;
+  }
+
+  private static final int _USE_ATTRIBUTES_FOR_SAL = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _USE_ATTRIBUTES_FOR_SAL 0
+   *}
+   */
+  public static int _USE_ATTRIBUTES_FOR_SAL() {
+    return _USE_ATTRIBUTES_FOR_SAL;
+  }
+
+  private static final int _CRT_PACKING = (int) 8L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _CRT_PACKING 8
+   *}
+   */
+  public static int _CRT_PACKING() {
+    return _CRT_PACKING;
+  }
+
+  private static final int _HAS_EXCEPTIONS = (int) 1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_EXCEPTIONS 1
+   *}
+   */
+  public static int _HAS_EXCEPTIONS() {
+    return _HAS_EXCEPTIONS;
+  }
+
+  private static final int _HAS_CXX17 = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_CXX17 0
+   *}
+   */
+  public static int _HAS_CXX17() {
+    return _HAS_CXX17;
+  }
+
+  private static final int _HAS_CXX20 = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_CXX20 0
+   *}
+   */
+  public static int _HAS_CXX20() {
+    return _HAS_CXX20;
+  }
+
+  private static final int _HAS_CXX23 = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_CXX23 0
+   *}
+   */
+  public static int _HAS_CXX23() {
+    return _HAS_CXX23;
+  }
+
+  private static final int _HAS_CXX26 = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_CXX26 0
+   *}
+   */
+  public static int _HAS_CXX26() {
+    return _HAS_CXX26;
+  }
+
+  private static final int _HAS_NODISCARD = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _HAS_NODISCARD 0
+   *}
+   */
+  public static int _HAS_NODISCARD() {
+    return _HAS_NODISCARD;
+  }
+
+  private static final int WCHAR_MIN = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define WCHAR_MIN 0
+   *}
+   */
+  public static int WCHAR_MIN() {
+    return WCHAR_MIN;
+  }
+
+  private static final int WCHAR_MAX = (int) 65535L;
+
+  /**
+   * {@snippet lang = c:
+   * #define WCHAR_MAX 65535
+   *}
+   */
+  public static int WCHAR_MAX() {
+    return WCHAR_MAX;
+  }
+
+  private static final int WINT_MIN = (int) 0L;
+
+  /**
+   * {@snippet lang = c:
+   * #define WINT_MIN 0
+   *}
+   */
+  public static int WINT_MIN() {
+    return WINT_MIN;
+  }
+
+  private static final int WINT_MAX = (int) 65535L;
+
+  /**
+   * {@snippet lang = c:
+   * #define WINT_MAX 65535
+   *}
+   */
+  public static int WINT_MAX() {
+    return WINT_MAX;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long uintptr_t
+   *}
+   */
+  public static final OfLong uintptr_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef char *va_list
+   *}
+   */
+  public static final AddressLayout va_list = Wiff2LauncherLib_h.C_POINTER;
+
+  /**
+   * Variadic invoker class for:
+   * {@snippet lang = c:
+   * void __va_start(va_list *, ...)
+   *}
+   */
+  public static class __va_start {
+
+    private static final FunctionDescriptor BASE_DESC = FunctionDescriptor.ofVoid(
+        Wiff2LauncherLib_h.C_POINTER);
+    private static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("__va_start");
+
+    private final MethodHandle handle;
+    private final FunctionDescriptor descriptor;
+    private final MethodHandle spreader;
+
+    private __va_start(MethodHandle handle, FunctionDescriptor descriptor, MethodHandle spreader) {
+      this.handle = handle;
+      this.descriptor = descriptor;
+      this.spreader = spreader;
+    }
+
+    /**
+     * Variadic invoker factory for:
+     * {@snippet lang = c:
+     * void __va_start(va_list *, ...)
+     *}
+     */
+    public static __va_start makeInvoker(MemoryLayout... layouts) {
+      FunctionDescriptor desc$ = BASE_DESC.appendArgumentLayouts(layouts);
+      Linker.Option fva$ = Linker.Option.firstVariadicArg(BASE_DESC.argumentLayouts().size());
+      var mh$ = Linker.nativeLinker().downcallHandle(ADDR, desc$, fva$);
+      var spreader$ = mh$.asSpreader(Object[].class, layouts.length);
+      return new __va_start(mh$, desc$, spreader$);
+    }
+
+    /**
+     * {@return the address}
+     */
+    public static MemorySegment address() {
+      return ADDR;
+    }
+
+    /**
+     * {@return the specialized method handle}
+     */
+    public MethodHandle handle() {
+      return handle;
+    }
+
+    /**
+     * {@return the specialized descriptor}
+     */
+    public FunctionDescriptor descriptor() {
+      return descriptor;
+    }
+
+    public void apply(MemorySegment x0, Object... x1) {
+      try {
+        if (TRACE_DOWNCALLS) {
+          traceDowncall("__va_start", x0, x1);
+        }
+        spreader.invokeExact(x0, x1);
+      } catch (IllegalArgumentException | ClassCastException ex$) {
+        throw ex$; // rethrow IAE from passing wrong number/type of args
+      } catch (Throwable ex$) {
+        throw new AssertionError("should not reach here", ex$);
+      }
+    }
+  }
+
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long size_t
+   *}
+   */
+  public static final OfLong size_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef long long ptrdiff_t
+   *}
+   */
+  public static final OfLong ptrdiff_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef long long intptr_t
+   *}
+   */
+  public static final OfLong intptr_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef _Bool __vcrt_bool
+   *}
+   */
+  public static final OfBoolean __vcrt_bool = Wiff2LauncherLib_h.C_BOOL;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned short wchar_t
+   *}
+   */
+  public static final OfShort wchar_t = Wiff2LauncherLib_h.C_SHORT;
+
+  private static class __security_init_cookie {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid();
+
+    public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("__security_init_cookie");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * void __security_init_cookie()
+   *}
+   */
+  public static FunctionDescriptor __security_init_cookie$descriptor() {
+    return __security_init_cookie.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * void __security_init_cookie()
+   *}
+   */
+  public static MethodHandle __security_init_cookie$handle() {
+    return __security_init_cookie.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * void __security_init_cookie()
+   *}
+   */
+  public static MemorySegment __security_init_cookie$address() {
+    return __security_init_cookie.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * void __security_init_cookie()
+   *}
+   */
+  public static void __security_init_cookie() {
+    var mh$ = __security_init_cookie.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("__security_init_cookie");
+      }
+      mh$.invokeExact();
+    } catch (Error | RuntimeException ex) {
+      throw ex;
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  private static class __security_check_cookie {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+        Wiff2LauncherLib_h.C_LONG_LONG);
+
+    public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("__security_check_cookie");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * void __security_check_cookie(uintptr_t _StackCookie)
+   *}
+   */
+  public static FunctionDescriptor __security_check_cookie$descriptor() {
+    return __security_check_cookie.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * void __security_check_cookie(uintptr_t _StackCookie)
+   *}
+   */
+  public static MethodHandle __security_check_cookie$handle() {
+    return __security_check_cookie.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * void __security_check_cookie(uintptr_t _StackCookie)
+   *}
+   */
+  public static MemorySegment __security_check_cookie$address() {
+    return __security_check_cookie.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * void __security_check_cookie(uintptr_t _StackCookie)
+   *}
+   */
+  public static void __security_check_cookie(long _StackCookie) {
+    var mh$ = __security_check_cookie.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("__security_check_cookie", _StackCookie);
+      }
+      mh$.invokeExact(_StackCookie);
+    } catch (Error | RuntimeException ex) {
+      throw ex;
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  private static class __report_gsfailure {
+
+    public static final FunctionDescriptor DESC = FunctionDescriptor.ofVoid(
+        Wiff2LauncherLib_h.C_LONG_LONG);
+
+    public static final MemorySegment ADDR = SYMBOL_LOOKUP.findOrThrow("__report_gsfailure");
+
+    public static final MethodHandle HANDLE = Linker.nativeLinker().downcallHandle(ADDR, DESC);
+  }
+
+  /**
+   * Function descriptor for:
+   * {@snippet lang = c:
+   * void __report_gsfailure(uintptr_t _StackCookie)
+   *}
+   */
+  public static FunctionDescriptor __report_gsfailure$descriptor() {
+    return __report_gsfailure.DESC;
+  }
+
+  /**
+   * Downcall method handle for:
+   * {@snippet lang = c:
+   * void __report_gsfailure(uintptr_t _StackCookie)
+   *}
+   */
+  public static MethodHandle __report_gsfailure$handle() {
+    return __report_gsfailure.HANDLE;
+  }
+
+  /**
+   * Address for:
+   * {@snippet lang = c:
+   * void __report_gsfailure(uintptr_t _StackCookie)
+   *}
+   */
+  public static MemorySegment __report_gsfailure$address() {
+    return __report_gsfailure.ADDR;
+  }
+
+  /**
+   * {@snippet lang = c:
+   * void __report_gsfailure(uintptr_t _StackCookie)
+   *}
+   */
+  public static void __report_gsfailure(long _StackCookie) {
+    var mh$ = __report_gsfailure.HANDLE;
+    try {
+      if (TRACE_DOWNCALLS) {
+        traceDowncall("__report_gsfailure", _StackCookie);
+      }
+      mh$.invokeExact(_StackCookie);
+    } catch (Error | RuntimeException ex) {
+      throw ex;
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  private static class __security_cookie$constants {
+
+    public static final OfLong LAYOUT = Wiff2LauncherLib_h.C_LONG_LONG;
+    public static final MemorySegment SEGMENT = SYMBOL_LOOKUP.findOrThrow("__security_cookie")
+        .reinterpret(LAYOUT.byteSize());
+  }
+
+  /**
+   * Layout for variable:
+   * {@snippet lang = c:
+   * extern uintptr_t __security_cookie
+   *}
+   */
+  public static OfLong __security_cookie$layout() {
+    return __security_cookie$constants.LAYOUT;
+  }
+
+  /**
+   * Segment for variable:
+   * {@snippet lang = c:
+   * extern uintptr_t __security_cookie
+   *}
+   */
+  public static MemorySegment __security_cookie$segment() {
+    return __security_cookie$constants.SEGMENT;
+  }
+
+  /**
+   * Getter for variable:
+   * {@snippet lang = c:
+   * extern uintptr_t __security_cookie
+   *}
+   */
+  public static long __security_cookie() {
+    return __security_cookie$constants.SEGMENT.get(__security_cookie$constants.LAYOUT, 0L);
+  }
+
+  /**
+   * Setter for variable:
+   * {@snippet lang = c:
+   * extern uintptr_t __security_cookie
+   *}
+   */
+  public static void __security_cookie(long varValue) {
+    __security_cookie$constants.SEGMENT.set(__security_cookie$constants.LAYOUT, 0L, varValue);
+  }
+
+  /**
+   * {@snippet lang = c:
+   * typedef signed char int8_t
+   *}
+   */
+  public static final OfByte int8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef short int16_t
+   *}
+   */
+  public static final OfShort int16_t = Wiff2LauncherLib_h.C_SHORT;
+  /**
+   * {@snippet lang = c:
+   * typedef int int32_t
+   *}
+   */
+  public static final OfInt int32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef long long int64_t
+   *}
+   */
+  public static final OfLong int64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned char uint8_t
+   *}
+   */
+  public static final OfByte uint8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned short uint16_t
+   *}
+   */
+  public static final OfShort uint16_t = Wiff2LauncherLib_h.C_SHORT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned int uint32_t
+   *}
+   */
+  public static final OfInt uint32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long uint64_t
+   *}
+   */
+  public static final OfLong uint64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef signed char int_least8_t
+   *}
+   */
+  public static final OfByte int_least8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef short int_least16_t
+   *}
+   */
+  public static final OfShort int_least16_t = Wiff2LauncherLib_h.C_SHORT;
+  /**
+   * {@snippet lang = c:
+   * typedef int int_least32_t
+   *}
+   */
+  public static final OfInt int_least32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef long long int_least64_t
+   *}
+   */
+  public static final OfLong int_least64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned char uint_least8_t
+   *}
+   */
+  public static final OfByte uint_least8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned short uint_least16_t
+   *}
+   */
+  public static final OfShort uint_least16_t = Wiff2LauncherLib_h.C_SHORT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned int uint_least32_t
+   *}
+   */
+  public static final OfInt uint_least32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long uint_least64_t
+   *}
+   */
+  public static final OfLong uint_least64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef signed char int_fast8_t
+   *}
+   */
+  public static final OfByte int_fast8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef int int_fast16_t
+   *}
+   */
+  public static final OfInt int_fast16_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef int int_fast32_t
+   *}
+   */
+  public static final OfInt int_fast32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef long long int_fast64_t
+   *}
+   */
+  public static final OfLong int_fast64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned char uint_fast8_t
+   *}
+   */
+  public static final OfByte uint_fast8_t = Wiff2LauncherLib_h.C_CHAR;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned int uint_fast16_t
+   *}
+   */
+  public static final OfInt uint_fast16_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned int uint_fast32_t
+   *}
+   */
+  public static final OfInt uint_fast32_t = Wiff2LauncherLib_h.C_INT;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long uint_fast64_t
+   *}
+   */
+  public static final OfLong uint_fast64_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef long long intmax_t
+   *}
+   */
+  public static final OfLong intmax_t = Wiff2LauncherLib_h.C_LONG_LONG;
+  /**
+   * {@snippet lang = c:
+   * typedef unsigned long long uintmax_t
+   *}
+   */
+  public static final OfLong uintmax_t = Wiff2LauncherLib_h.C_LONG_LONG;
+
+  private static class wiff2_launch_server {
     public static final FunctionDescriptor DESC = FunctionDescriptor.of(
         Wiff2LauncherLib_h.C_LONG_LONG, Wiff2LauncherLib_h.C_POINTER);
 
@@ -73,7 +752,7 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
   /**
    * Function descriptor for:
    * {@snippet lang = c:
-   * long long wiff2_launch_server(const char *server_path)
+   * int64_t wiff2_launch_server(const char *server_path)
    *}
    */
   public static FunctionDescriptor wiff2_launch_server$descriptor() {
@@ -83,7 +762,7 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
   /**
    * Downcall method handle for:
    * {@snippet lang = c:
-   * long long wiff2_launch_server(const char *server_path)
+   * int64_t wiff2_launch_server(const char *server_path)
    *}
    */
   public static MethodHandle wiff2_launch_server$handle() {
@@ -93,7 +772,7 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
   /**
    * Address for:
    * {@snippet lang = c:
-   * long long wiff2_launch_server(const char *server_path)
+   * int64_t wiff2_launch_server(const char *server_path)
    *}
    */
   public static MemorySegment wiff2_launch_server$address() {
@@ -102,7 +781,7 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
 
   /**
    * {@snippet lang = c:
-   * long long wiff2_launch_server(const char *server_path)
+   * int64_t wiff2_launch_server(const char *server_path)
    *}
    */
   public static long wiff2_launch_server(MemorySegment server_path) {
@@ -117,6 +796,545 @@ public class Wiff2LauncherLib_h extends Wiff2LauncherLib_h$shared {
     } catch (Throwable ex$) {
       throw new AssertionError("should not reach here", ex$);
     }
+  }
+
+  private static final int _VCRUNTIME_DISABLED_WARNINGS = (int) 4514L;
+
+  /**
+   * {@snippet lang = c:
+   * #define _VCRUNTIME_DISABLED_WARNINGS 4514
+   *}
+   */
+  public static int _VCRUNTIME_DISABLED_WARNINGS() {
+    return _VCRUNTIME_DISABLED_WARNINGS;
+  }
+
+  private static final MemorySegment NULL = MemorySegment.ofAddress(0L);
+
+  /**
+   * {@snippet lang = c:
+   * #define NULL (void*) 0
+   *}
+   */
+  public static MemorySegment NULL() {
+    return NULL;
+  }
+
+  private static final int INT8_MIN = (int) -128L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT8_MIN -128
+   *}
+   */
+  public static int INT8_MIN() {
+    return INT8_MIN;
+  }
+
+  private static final int INT16_MIN = (int) -32768L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT16_MIN -32768
+   *}
+   */
+  public static int INT16_MIN() {
+    return INT16_MIN;
+  }
+
+  private static final int INT32_MIN = (int) -2147483648L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT32_MIN -2147483648
+   *}
+   */
+  public static int INT32_MIN() {
+    return INT32_MIN;
+  }
+
+  private static final long INT64_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT64_MIN -9223372036854775808
+   *}
+   */
+  public static long INT64_MIN() {
+    return INT64_MIN;
+  }
+
+  private static final byte INT8_MAX = (byte) 127L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT8_MAX 127
+   *}
+   */
+  public static byte INT8_MAX() {
+    return INT8_MAX;
+  }
+
+  private static final short INT16_MAX = (short) 32767L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT16_MAX 32767
+   *}
+   */
+  public static short INT16_MAX() {
+    return INT16_MAX;
+  }
+
+  private static final int INT32_MAX = (int) 2147483647L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT32_MAX 2147483647
+   *}
+   */
+  public static int INT32_MAX() {
+    return INT32_MAX;
+  }
+
+  private static final long INT64_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT64_MAX 9223372036854775807
+   *}
+   */
+  public static long INT64_MAX() {
+    return INT64_MAX;
+  }
+
+  private static final byte UINT8_MAX = (byte) 255L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT8_MAX 255
+   *}
+   */
+  public static byte UINT8_MAX() {
+    return UINT8_MAX;
+  }
+
+  private static final short UINT16_MAX = (short) 65535L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT16_MAX 65535
+   *}
+   */
+  public static short UINT16_MAX() {
+    return UINT16_MAX;
+  }
+
+  private static final int UINT32_MAX = (int) 4294967295L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT32_MAX 4294967295
+   *}
+   */
+  public static int UINT32_MAX() {
+    return UINT32_MAX;
+  }
+
+  private static final long UINT64_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT64_MAX -1
+   *}
+   */
+  public static long UINT64_MAX() {
+    return UINT64_MAX;
+  }
+
+  private static final int INT_LEAST8_MIN = (int) -128L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST8_MIN -128
+   *}
+   */
+  public static int INT_LEAST8_MIN() {
+    return INT_LEAST8_MIN;
+  }
+
+  private static final int INT_LEAST16_MIN = (int) -32768L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST16_MIN -32768
+   *}
+   */
+  public static int INT_LEAST16_MIN() {
+    return INT_LEAST16_MIN;
+  }
+
+  private static final int INT_LEAST32_MIN = (int) -2147483648L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST32_MIN -2147483648
+   *}
+   */
+  public static int INT_LEAST32_MIN() {
+    return INT_LEAST32_MIN;
+  }
+
+  private static final long INT_LEAST64_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST64_MIN -9223372036854775808
+   *}
+   */
+  public static long INT_LEAST64_MIN() {
+    return INT_LEAST64_MIN;
+  }
+
+  private static final byte INT_LEAST8_MAX = (byte) 127L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST8_MAX 127
+   *}
+   */
+  public static byte INT_LEAST8_MAX() {
+    return INT_LEAST8_MAX;
+  }
+
+  private static final short INT_LEAST16_MAX = (short) 32767L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST16_MAX 32767
+   *}
+   */
+  public static short INT_LEAST16_MAX() {
+    return INT_LEAST16_MAX;
+  }
+
+  private static final int INT_LEAST32_MAX = (int) 2147483647L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST32_MAX 2147483647
+   *}
+   */
+  public static int INT_LEAST32_MAX() {
+    return INT_LEAST32_MAX;
+  }
+
+  private static final long INT_LEAST64_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_LEAST64_MAX 9223372036854775807
+   *}
+   */
+  public static long INT_LEAST64_MAX() {
+    return INT_LEAST64_MAX;
+  }
+
+  private static final byte UINT_LEAST8_MAX = (byte) 255L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_LEAST8_MAX 255
+   *}
+   */
+  public static byte UINT_LEAST8_MAX() {
+    return UINT_LEAST8_MAX;
+  }
+
+  private static final short UINT_LEAST16_MAX = (short) 65535L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_LEAST16_MAX 65535
+   *}
+   */
+  public static short UINT_LEAST16_MAX() {
+    return UINT_LEAST16_MAX;
+  }
+
+  private static final int UINT_LEAST32_MAX = (int) 4294967295L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_LEAST32_MAX 4294967295
+   *}
+   */
+  public static int UINT_LEAST32_MAX() {
+    return UINT_LEAST32_MAX;
+  }
+
+  private static final long UINT_LEAST64_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_LEAST64_MAX -1
+   *}
+   */
+  public static long UINT_LEAST64_MAX() {
+    return UINT_LEAST64_MAX;
+  }
+
+  private static final int INT_FAST8_MIN = (int) -128L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST8_MIN -128
+   *}
+   */
+  public static int INT_FAST8_MIN() {
+    return INT_FAST8_MIN;
+  }
+
+  private static final int INT_FAST16_MIN = (int) -2147483648L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST16_MIN -2147483648
+   *}
+   */
+  public static int INT_FAST16_MIN() {
+    return INT_FAST16_MIN;
+  }
+
+  private static final int INT_FAST32_MIN = (int) -2147483648L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST32_MIN -2147483648
+   *}
+   */
+  public static int INT_FAST32_MIN() {
+    return INT_FAST32_MIN;
+  }
+
+  private static final long INT_FAST64_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST64_MIN -9223372036854775808
+   *}
+   */
+  public static long INT_FAST64_MIN() {
+    return INT_FAST64_MIN;
+  }
+
+  private static final byte INT_FAST8_MAX = (byte) 127L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST8_MAX 127
+   *}
+   */
+  public static byte INT_FAST8_MAX() {
+    return INT_FAST8_MAX;
+  }
+
+  private static final int INT_FAST16_MAX = (int) 2147483647L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST16_MAX 2147483647
+   *}
+   */
+  public static int INT_FAST16_MAX() {
+    return INT_FAST16_MAX;
+  }
+
+  private static final int INT_FAST32_MAX = (int) 2147483647L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST32_MAX 2147483647
+   *}
+   */
+  public static int INT_FAST32_MAX() {
+    return INT_FAST32_MAX;
+  }
+
+  private static final long INT_FAST64_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INT_FAST64_MAX 9223372036854775807
+   *}
+   */
+  public static long INT_FAST64_MAX() {
+    return INT_FAST64_MAX;
+  }
+
+  private static final byte UINT_FAST8_MAX = (byte) 255L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_FAST8_MAX 255
+   *}
+   */
+  public static byte UINT_FAST8_MAX() {
+    return UINT_FAST8_MAX;
+  }
+
+  private static final int UINT_FAST16_MAX = (int) 4294967295L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_FAST16_MAX 4294967295
+   *}
+   */
+  public static int UINT_FAST16_MAX() {
+    return UINT_FAST16_MAX;
+  }
+
+  private static final int UINT_FAST32_MAX = (int) 4294967295L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_FAST32_MAX 4294967295
+   *}
+   */
+  public static int UINT_FAST32_MAX() {
+    return UINT_FAST32_MAX;
+  }
+
+  private static final long UINT_FAST64_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINT_FAST64_MAX -1
+   *}
+   */
+  public static long UINT_FAST64_MAX() {
+    return UINT_FAST64_MAX;
+  }
+
+  private static final long INTPTR_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INTPTR_MIN -9223372036854775808
+   *}
+   */
+  public static long INTPTR_MIN() {
+    return INTPTR_MIN;
+  }
+
+  private static final long INTPTR_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INTPTR_MAX 9223372036854775807
+   *}
+   */
+  public static long INTPTR_MAX() {
+    return INTPTR_MAX;
+  }
+
+  private static final long UINTPTR_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINTPTR_MAX -1
+   *}
+   */
+  public static long UINTPTR_MAX() {
+    return UINTPTR_MAX;
+  }
+
+  private static final long INTMAX_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INTMAX_MIN -9223372036854775808
+   *}
+   */
+  public static long INTMAX_MIN() {
+    return INTMAX_MIN;
+  }
+
+  private static final long INTMAX_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define INTMAX_MAX 9223372036854775807
+   *}
+   */
+  public static long INTMAX_MAX() {
+    return INTMAX_MAX;
+  }
+
+  private static final long UINTMAX_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define UINTMAX_MAX -1
+   *}
+   */
+  public static long UINTMAX_MAX() {
+    return UINTMAX_MAX;
+  }
+
+  private static final long PTRDIFF_MIN = -9223372036854775808L;
+
+  /**
+   * {@snippet lang = c:
+   * #define PTRDIFF_MIN -9223372036854775808
+   *}
+   */
+  public static long PTRDIFF_MIN() {
+    return PTRDIFF_MIN;
+  }
+
+  private static final long PTRDIFF_MAX = 9223372036854775807L;
+
+  /**
+   * {@snippet lang = c:
+   * #define PTRDIFF_MAX 9223372036854775807
+   *}
+   */
+  public static long PTRDIFF_MAX() {
+    return PTRDIFF_MAX;
+  }
+
+  private static final long SIZE_MAX = -1L;
+
+  /**
+   * {@snippet lang = c:
+   * #define SIZE_MAX -1
+   *}
+   */
+  public static long SIZE_MAX() {
+    return SIZE_MAX;
+  }
+
+  private static final int SIG_ATOMIC_MIN = (int) -2147483648L;
+
+  /**
+   * {@snippet lang = c:
+   * #define SIG_ATOMIC_MIN -2147483648
+   *}
+   */
+  public static int SIG_ATOMIC_MIN() {
+    return SIG_ATOMIC_MIN;
+  }
+
+  private static final int SIG_ATOMIC_MAX = (int) 2147483647L;
+
+  /**
+   * {@snippet lang = c:
+   * #define SIG_ATOMIC_MAX 2147483647
+   *}
+   */
+  public static int SIG_ATOMIC_MAX() {
+    return SIG_ATOMIC_MAX;
   }
 }
 
