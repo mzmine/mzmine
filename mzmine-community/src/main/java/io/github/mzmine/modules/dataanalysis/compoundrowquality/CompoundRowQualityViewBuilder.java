@@ -5,6 +5,9 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
@@ -16,6 +19,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TitledPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -31,16 +35,11 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQualityModel> {
 
-  private static final int ICON_SIZE = 18;
-
-
-  private static final Color COLOR_PASS = Color.web("#2e7d32");   // green
-  private static final Color COLOR_WARN = Color.web("#ef6c00");   // orange
-  private static final Color COLOR_FAIL = Color.web("#c62828");   // red
-  private static final Color COLOR_NA = Color.web("#9e9e9e");     // grey
+  private SimpleColorPalette colors;
+  public static final int MAIN_WIDTH = 350;
 
   /// Cap the panel width so it does not stretch indefinitely on wide displays.
-  private static final double MAX_PANE_WIDTH = 800;
+  private static final double MAX_PANE_WIDTH = 500;
   /// Approx width reserved for the TitledPane disclosure arrow + insets, used when binding the
   /// header HBox width so the header fills the title bar.
   private static final double TITLE_ARROW_RESERVED = 32d;
@@ -51,10 +50,11 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
 
   @Override
   public Region build() {
+    colors = ConfigService.getDefaultColorPalette();
+
     final VBox itemList = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
 
-    final Label emptyState = FxLabels.newItalicLabel(
-        "Select a compound row to see quality checks");
+    final Label emptyState = FxLabels.newItalicLabel("Select a compound row to see quality checks");
     emptyState.setPadding(new Insets(FxLayout.DEFAULT_SPACE));
 
     final ScrollPane scroll = new ScrollPane(itemList);
@@ -64,7 +64,7 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     VBox.setVgrow(scroll, Priority.ALWAYS);
 
     final ProgressIndicator progress = new ProgressIndicator();
-    progress.setMaxSize(ICON_SIZE, ICON_SIZE);
+    progress.setMaxSize(FxIconUtil.DEFAULT_ICON_SIZE, FxIconUtil.DEFAULT_ICON_SIZE);
     progress.visibleProperty().bind(model.computingProperty());
     progress.managedProperty().bind(progress.visibleProperty());
 
@@ -74,9 +74,10 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
         new Insets(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE,
             FxLayout.DEFAULT_SPACE), title, progress);
 
-    final VBox outer = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, titleBar, scroll);
-    outer.setMinWidth(350);
-    outer.setPrefWidth(400);
+    final BorderPane outer = new BorderPane(scroll);
+    outer.setTop(titleBar);
+    outer.setMinWidth(MAIN_WIDTH);
+    outer.setPrefWidth(MAIN_WIDTH);
     outer.setMaxWidth(MAX_PANE_WIDTH);
 
     final Runnable rebuild = () -> {
@@ -107,7 +108,7 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
   }
 
   private TitledPane buildItem(QualityCheckResult r) {
-    final FontIcon icon = FxIconUtil.getFontIcon(r.status().icon(), ICON_SIZE,
+    final FontIcon icon = FxIconUtil.getFontIcon(r.status().icon(), FxIconUtil.DEFAULT_ICON_SIZE,
         colorFor(r.status()));
 
     final Label title = FxLabels.newBoldLabel(r.type().getLabel());
@@ -129,8 +130,8 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     if (r.detailLines().isEmpty() && r.involvedRows().isEmpty()) {
       pane.setCollapsible(false);
     } else {
-      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT,
-          new Insets(FxLayout.DEFAULT_SPACE, 0, 0, ICON_SIZE + FxLayout.DEFAULT_SPACE), true);
+      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
+          FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true);
       for (final String line : r.detailLines()) {
         final Label detail = FxLabels.newLabel(line);
         detail.setWrapText(true);
@@ -148,12 +149,12 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     return pane;
   }
 
-  private static Color colorFor(QualityCheckStatus status) {
+  private Color colorFor(QualityCheckStatus status) {
     return switch (status) {
-      case PASS -> COLOR_PASS;
-      case WARN -> COLOR_WARN;
-      case FAIL -> COLOR_FAIL;
-      case UNAVAILABLE -> COLOR_NA;
+      case PASS -> colors.getPositiveColor();
+      case WARN -> ColorsFX.YELLOW_WARN; // maybe add additional to color palette
+      case FAIL -> colors.getNegativeColor();
+      case UNAVAILABLE -> colors.getNeutralColor();
     };
   }
 }

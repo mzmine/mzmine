@@ -44,6 +44,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardTab;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
@@ -782,9 +783,14 @@ public class MainWindowController {
   public void handleOpenFeatureList(Event event) {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
-      // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       FxThread.runLater(() -> {
-        FeatureTableFXUtil.addFeatureTableTab(fl);
+        // decision: feature lists carrying a CompoundList open the compound dashboard, which
+        // already embeds a FeatureTableFX. Plain feature lists fall back to the legacy table tab.
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        } else {
+          FeatureTableFXUtil.addFeatureTableTab(fl);
+        }
       });
     }
   }
