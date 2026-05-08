@@ -64,7 +64,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
     final SplitPane chartsSplit = new SplitPane(eicWithToolbar, spectraColumn);
     chartsSplit.setOrientation(Orientation.HORIZONTAL);
-    chartsSplit.setDividerPositions(0.55);
+    chartsSplit.setDividerPositions(0.25);
 
     final BorderPane topArea = new BorderPane(chartsSplit);
     final Region quality = qualityCtrl.buildView();
@@ -72,7 +72,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
     final SplitPane outer = new SplitPane(topArea, tableCtrl.buildView());
     outer.setOrientation(Orientation.VERTICAL);
-    outer.setDividerPositions(0.7);
+    outer.setDividerPositions(0.55);
     return outer;
   }
 
