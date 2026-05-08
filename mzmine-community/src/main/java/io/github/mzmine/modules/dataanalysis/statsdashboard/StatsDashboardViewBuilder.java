@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
@@ -40,6 +41,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,16 +52,19 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   private final VolcanoPlotController volcanoPlotController;
   private final RowsBoxplotController boxplotController;
   private final FxFeatureTableController tableController;
+  private final CompoundRowQualityController qualityController;
 
   public StatsDashboardViewBuilder(StatsDashboardModel model,
       FxFeatureTableController tableController, PCAController pcaController,
-      VolcanoPlotController controller, RowsBoxplotController boxplotController) {
+      VolcanoPlotController controller, RowsBoxplotController boxplotController,
+      CompoundRowQualityController qualityController) {
     super(model);
     this.tableController = tableController;
     this.table = tableController.getFeatureTable();
     this.pcaController = pcaController;
     this.volcanoPlotController = controller;
     this.boxplotController = boxplotController;
+    this.qualityController = qualityController;
   }
 
   @Override
@@ -71,7 +76,14 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     main.getItems().addAll(stats, tableController.buildView());
 
     initFeatureListListeners();
-    return main;
+
+    // place the CompoundRow quality pane on the left of the main SplitPane. visible whenever a
+    // selected row resolves to a compound (the controller handles its own empty state).
+    final Region qualityView = qualityController.buildView();
+
+    final BorderPane outer = new BorderPane(main);
+    outer.setLeft(qualityView);
+    return outer;
   }
 
   private void initFeatureListListeners() {

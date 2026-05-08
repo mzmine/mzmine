@@ -26,8 +26,9 @@
 package io.github.mzmine.gui.framework.fx;
 
 public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBinding,
-    SelectedCompoundRowSelectionBinding, SelectedMetadataColumnBinding, SelectedRowsBinding,
-    SelectedFeaturesBinding, SelectedFilesBinding, SelectedFeatureListsBinding {
+    SelectedCompoundRowBinding, SelectedCompoundRowSelectionBinding, SelectedMetadataColumnBinding,
+    SelectedRowsBinding, SelectedFeaturesBinding, SelectedFilesBinding,
+    SelectedFeatureListsBinding {
 
   public static void bindExposedProperties(Object master, Object child) {
     if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
@@ -49,6 +50,10 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     if (master instanceof SelectedCompoundRowSelectionBinding m
         && child instanceof SelectedCompoundRowSelectionBinding c) {
       c.compoundRowSelectionProperty().bindBidirectional(m.compoundRowSelectionProperty());
+    }
+    if (master instanceof SelectedCompoundRowBinding m
+        && child instanceof SelectedCompoundRowBinding c) {
+      c.selectedCompoundRowProperty().bindBidirectional(m.selectedCompoundRowProperty());
     }
     if (master instanceof SelectedFeatureListsBinding m
         && child instanceof SelectedFeatureListsBinding c) {
@@ -80,6 +85,8 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
       case SelectedAbundanceMeasureBinding _ -> {
       }
       case SelectedCompoundRowSelectionBinding _ -> {
+      }
+      case SelectedCompoundRowBinding _ -> {
       }
       case SelectedFeatureListsBinding _ -> {
       }
