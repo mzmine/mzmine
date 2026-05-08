@@ -287,6 +287,15 @@ public interface FeatureAnnotation {
   @NotNull Class<? extends DataType> getDataType();
 
   /**
+   * @return true if this annotation came from an analog (modification-aware) spectral library
+   * search. Defaults to false. Used by row-level annotation accessors to optionally exclude analog
+   * matches from the standard annotation list.
+   */
+  default boolean isAnalogMatch() {
+    return false;
+  }
+
+  /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
    */
   @NotNull String getXmlAttributeKey();

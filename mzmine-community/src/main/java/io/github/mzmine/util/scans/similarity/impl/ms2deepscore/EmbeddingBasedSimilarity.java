@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MassSpectrum;
 import java.util.List;
 
-public abstract class EmbeddingBasedSimilarity {
+public abstract class EmbeddingBasedSimilarity implements AutoCloseable {
 
   /**
    * Predict embeddings for a list of scans
@@ -41,6 +41,14 @@ public abstract class EmbeddingBasedSimilarity {
    */
   public abstract NDArray predictEmbedding(List<? extends MassSpectrum> scans)
       throws TranslateException;
+
+  /**
+   * Releases native resources (predictor, model, NDManager). Narrowed from
+   * {@link AutoCloseable#close()} so callers can use try-with-resources without catching checked
+   * exceptions.
+   */
+  @Override
+  public abstract void close();
 
   /**
    * Predict similarity matrix from list of scans. The scans are converted into embeddings and then

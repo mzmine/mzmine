@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,12 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AbstractSpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -36,6 +39,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,8 +48,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -76,9 +83,13 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   private static final Logger logger = Logger.getLogger(
       SpectraIdentificationResultsPane.class.getName());
 
+  private final ListProperty<AbstractSpectralLibraryMatchesType> types = new SimpleListProperty<>(
+      FXCollections.observableArrayList(DataTypes.get(SpectralLibraryMatchesType.class)));
+
   // link row selection to results
   private final Font headerFont = new Font("Dialog Bold", 16);
-  private final ObservableList<SpectralDBAnnotation> totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
+  private final ObservableList<SpectralDBAnnotation> totalMatches = FXCollections.observableList(
+      Collections.synchronizedList(new ArrayList<>()));
   private final ObservableList<SpectralDBAnnotation> visibleMatches = FXCollections.observableArrayList();
 
   private final Map<SpectralDBAnnotation, SpectralMatchPanelFX> matchPanels;
@@ -111,6 +122,10 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
 
     matchPanels = new HashMap<>();
     setCoupleZoomY(true);
+
+    types.addListener(
+        (ListChangeListener<AbstractSpectralLibraryMatchesType>) c -> onSelectedRowsChanged(
+            parentGroup.getSelectedRows()));
   }
 
   @Override
@@ -130,8 +145,8 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   public void onSelectedRowsChanged(final @NotNull List<? extends FeatureListRow> selectedRows) {
     super.onSelectedRowsChanged(selectedRows); // required for children
 
-
-    var allMatches = selectedRows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+    var allMatches = selectedRows.stream().map(ModularFeatureListRow.class::cast)
+        .flatMap(r -> types.stream().map(r::get).filter(Objects::nonNull))
         .flatMap(Collection::stream).toList();
     setMatches(allMatches);
     setTitle(selectedRows);
@@ -144,7 +159,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
     btnSetup.setOnAction(e -> {
       FxThread.runLater(() -> {
         if (MZmineCore.getConfiguration()
-                .getModuleParameters(SpectraIdentificationResultsModule.class).showSetupDialog(true)
+            .getModuleParameters(SpectraIdentificationResultsModule.class).showSetupDialog(true)
             == ExitCode.OK) {
           showExportButtonsChanged();
         }
@@ -297,6 +312,18 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
 
     // reversed sorting (highest cosine first
     synchronized (totalMatches) {
+      totalMatches.sort((a, b) -> {
+        if (!a.isAnalogMatch() && !b.isAnalogMatch()) {
+          return 0;
+        }
+        if (a.isAnalogMatch() && !b.isAnalogMatch()) {
+          return 1;
+        }
+        if (!a.isAnalogMatch() && b.isAnalogMatch()) {
+          return -1;
+        }
+        return Double.compare(a.getSimilarity().getScore(), b.getSimilarity().getScore()) * -1;
+      });
       totalMatches.sort((SpectralDBAnnotation a, SpectralDBAnnotation b) -> Double.compare(
           b.getSimilarity().getScore(), a.getSimilarity().getScore()));
     }
@@ -363,4 +390,9 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
     });
   }
 
+
+  public final void setAnnotationTypes(
+      @NotNull Class<? extends AbstractSpectralLibraryMatchesType>... types) {
+    this.types.setAll(Arrays.stream(types).map(DataTypes::get).filter(Objects::nonNull).toList());
+  }
 }

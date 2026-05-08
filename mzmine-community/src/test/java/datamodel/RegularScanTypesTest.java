@@ -246,6 +246,41 @@ public class RegularScanTypesTest {
         file);
   }
 
+  @Test
+  void analogSpectralLibMatchSummaryTypeTest() {
+    final io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType type = new io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType();
+
+    final List<SpectralDBAnnotation> value = generateAnalogLibraryMatches();
+    // every analog match must report itself as analog and carry the analog DataType class
+    Assertions.assertTrue(value.stream().allMatch(SpectralDBAnnotation::isAnalogMatch));
+    Assertions.assertTrue(value.stream().allMatch(a -> a.getDataType().equals(
+        io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class)));
+
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
+  }
+
+  private @NotNull List<SpectralDBAnnotation> generateAnalogLibraryMatches() {
+    // build two annotations with the analog data-type class so the XML attribute is round-tripped
+    final List<SpectralDBAnnotation> base = generateLibraryMatches();
+    final List<SpectralDBAnnotation> analog = new java.util.ArrayList<>(base.size());
+    for (final SpectralDBAnnotation a : base) {
+      final SpectralDBAnnotation an = new SpectralDBAnnotation(a.getEntry(), a.getSimilarity(),
+          a.getQueryScan(), a.getCCSError(), a.getMzAbsoluteError() == null ? null
+          : a.getMzAbsoluteError() + (a.getEntry().getPrecursorMZ() == null ? 0d
+              : a.getEntry().getPrecursorMZ()), a.getRtAbsoluteError(), a.getRiDiff(),
+          io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class);
+      // simulate ML score storage on at least one annotation
+      an.set(io.github.mzmine.datamodel.features.types.numbers.scores.MS2DeepscoreScoreType.class,
+          0.82f);
+      analog.add(an);
+    }
+    return analog;
+  }
+
   private @NotNull List<SpectralDBAnnotation> generateLibraryMatches() {
     var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
     param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);

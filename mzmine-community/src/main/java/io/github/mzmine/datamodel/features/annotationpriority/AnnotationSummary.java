@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -332,6 +333,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         }
       }
       case CompoundDatabaseMatchesType _ -> 4;
+      // analog matches are informational; rank below identity-based annotations but above unannotated
+      case AnalogSpectralLibraryMatchesType _ -> 6;
       case null, default -> 10;
     };
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseable {
+public class DreaMSModel extends EmbeddingBasedSimilarity {
 
     private static final Logger logger = Logger.getLogger(DreaMSModel.class.getName());
     private final DreaMSSpectrumTensorizer spectrumTensorizer;

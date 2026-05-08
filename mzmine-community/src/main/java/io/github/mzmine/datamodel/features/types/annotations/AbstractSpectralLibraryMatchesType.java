@@ -46,7 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public sealed abstract class AbstractSpectralLibraryMatchesType extends
-    ListWithSubsType<SpectralDBAnnotation> permits SpectralLibraryMatchesType {
+    ListWithSubsType<SpectralDBAnnotation> permits AnalogSpectralLibraryMatchesType,
+    SpectralLibraryMatchesType {
 
   @Override
   protected <K> @Nullable K map(@NotNull final DataType<K> subType,
