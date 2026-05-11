@@ -46,9 +46,14 @@ public class FxControls {
   }
 
   public static Node addTooltip(Node node, ObservableValue<@NotNull String> tooltip) {
+    Tooltip.install(node, newTooltip(tooltip));
+    return node;
+  }
+
+  @NotNull
+  public static Tooltip newTooltip(ObservableValue<@NotNull String> tooltip) {
     final Tooltip t = new Tooltip();
     t.textProperty().bind(tooltip);
-    Tooltip.install(node, t);
-    return node;
+    return t;
   }
 }

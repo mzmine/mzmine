@@ -59,11 +59,15 @@ public class CompoundIdTreeCell extends TreeTableCell<ModularFeatureListRow, Obj
     tooltip = rowState.map(RowState::toString);
 
     final HBox stripesPane = new HBox(0);
+      final int width = 3;
+    stripesPane.setMinWidth(width*2);
+    stripesPane.setPrefWidth(width*2);
+    stripesPane.setMaxWidth(width*2);
     final Color[] stripeColors = {ColorsFX.POSITIVE_MARKER_COLORBLIND, ColorsFX.MAGENTA,
         ColorsFX.NEUTRAL_MARKER};
+
     for (int i = 0; i < stripes.length; i++) {
       final Region stripe = new Region();
-      final int width = 8;
       stripe.setPrefWidth(width);
       stripe.setMinWidth(width);
       stripe.setMaxWidth(width);
@@ -71,8 +75,6 @@ public class CompoundIdTreeCell extends TreeTableCell<ModularFeatureListRow, Obj
       stripe.prefHeightProperty().bind(height);
       stripe.minHeightProperty().bind(height);
       stripe.maxHeightProperty().bind(height);
-
-      FxControls.addTooltip(stripe, tooltip);
 
       stripe.setStyle("-fx-background-color: " + ColorsFX.toHexString(stripeColors[i]) + ";");
       stripes[i] = stripe;
@@ -83,10 +85,10 @@ public class CompoundIdTreeCell extends TreeTableCell<ModularFeatureListRow, Obj
     StackPane.setAlignment(label, Pos.CENTER_RIGHT);
     StackPane.setAlignment(stripesPane, Pos.CENTER_LEFT);
 
+    setTooltip(FxControls.newTooltip(tooltip));
+
     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     setGraphic(stackPane);
-
-//    setPadding(Insets.EMPTY);
 
     PropertyUtils.onChange(() -> {
       if (isEmpty() || !(getTableRow().getItem() instanceof ModularFeatureListRow row)) {
