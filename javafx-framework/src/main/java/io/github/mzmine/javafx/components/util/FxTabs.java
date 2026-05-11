@@ -25,8 +25,11 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
+import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
 public class FxTabs {
 
@@ -37,6 +40,12 @@ public class FxTabs {
   public static Tab newTab(final String title, boolean closable, final Node content) {
     var tab = new Tab(title, content);
     tab.setClosable(closable);
+    return tab;
+  }
+
+  public static Tab newTab(@NotNull StringProperty title, @NotNull Region content) {
+    final Tab tab = newTab("", content);
+    tab.textProperty().bind(title);
     return tab;
   }
 }

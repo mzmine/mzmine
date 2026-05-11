@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,21 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+/**
+ * This class will be removed in the future and replaced by {@link IonType} and {@link IonLibrary}
+ * <p>
+ * Use {@link #toIonType()} to convert for now and slowly replace usage.
+ */
+@Deprecated
 public enum IonizationType {
 
   NO_IONIZATION("No ionization", "", "", PolarityType.NEUTRAL, -6, 0, 0), //
@@ -162,6 +170,8 @@ public enum IonizationType {
   private final IMolecularFormula addedFormula;
   private final IMolecularFormula removedFormula;
   private final PolarityType polarity;
+  @Nullable
+  private final IonType ion;
   private final double addedMass;
   private final double log10freq;
   private final int numMol;
@@ -174,20 +184,21 @@ public enum IonizationType {
     this.polarity = polarity;
     this.numMol = numMol;
     this.charge = charge;
-    this.addedFormula =
-        !addedFormula.isBlank() ? MolecularFormulaManipulator.getMolecularFormula(addedFormula,
-            SilentChemObjectBuilder.getInstance()) : null;
-    this.removedFormula =
-        !removedFormula.isBlank() ? MolecularFormulaManipulator.getMolecularFormula(removedFormula,
-            SilentChemObjectBuilder.getInstance()) : null;
+    this.addedFormula = !addedFormula.isBlank() ? FormulaUtils.parse(addedFormula) : null;
+    this.removedFormula = !removedFormula.isBlank() ? FormulaUtils.parse(removedFormula) : null;
 
-    var added = this.addedFormula != null ? MolecularFormulaManipulator.getMass(this.addedFormula,
-        MolecularFormulaManipulator.MonoIsotopic) : 0d;
+    var added =
+        this.addedFormula != null ? FormulaUtils.getMonoisotopicMass(this.addedFormula) : 0d;
     var removed =
-        this.removedFormula != null ? MolecularFormulaManipulator.getMass(this.removedFormula,
-            MolecularFormulaManipulator.MonoIsotopic) : 0d;
+        this.removedFormula != null ? FormulaUtils.getMonoisotopicMass(this.removedFormula) : 0d;
 
     this.addedMass = (added - removed - charge * FormulaUtils.electronMass);
+
+    if (numMol == 0 && polarity == PolarityType.NEUTRAL) {
+      ion = null;
+    } else {
+      ion = IonTypeParser.parse(name);
+    }
   }
 
   public String getAdductName() {
@@ -228,8 +239,7 @@ public enum IonizationType {
    * @return The ionized formula.
    */
   public IMolecularFormula ionizeFormula(@NotNull String formula) {
-    final IMolecularFormula form = MolecularFormulaManipulator.getMolecularFormula(formula,
-        SilentChemObjectBuilder.getInstance());
+    final IMolecularFormula form = FormulaUtils.parse(formula);
     ionizeFormula(form);
     return form;
   }
@@ -254,5 +264,13 @@ public enum IonizationType {
 
   public IMolecularFormula getAddedFormula() {
     return addedFormula;
+  }
+
+  /**
+   *
+   * @return null if no ionization was selected, otherwise returns the ion.
+   */
+  public @Nullable IonType toIonType() {
+    return ion;
   }
 }

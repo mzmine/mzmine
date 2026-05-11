@@ -58,8 +58,9 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -416,7 +417,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     searchFormulaPubChem.setOnAction(_ -> {
       final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
       new PubChemResultsController(selectedRow,
-          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst(),
+          ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst(),
           CompoundAnnotationUtils.getBestFormula(selectedRow)).showInWindow();
     });
 
@@ -424,8 +425,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRow != null);
     searchMassPubChem.setOnAction(_ -> {
       final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
-      final IonType ionType =
-          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst();
+      final IonType ionType = ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst();
       new PubChemResultsController(selectedRow, ionType,
           ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });

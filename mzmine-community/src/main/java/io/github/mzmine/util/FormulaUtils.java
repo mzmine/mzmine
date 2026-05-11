@@ -25,14 +25,23 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
+import io.github.mzmine.datamodel.identities.iontype.IonSearchRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonUtils;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -43,28 +52,22 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Elements;
-import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.exception.InvalidSmilesException;
-import org.openscience.cdk.formula.MolecularFormula;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.MolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
@@ -142,26 +145,47 @@ public class FormulaUtils {
     });
   }
 
-  public static void getAllSubFormulas(IMolecularFormula formula) {
-    String f = "C6H6O2N";
+  /**
+   * Pretty print formula
+   */
+  @Nullable
+  public static String getFormulaString(@Nullable IMolecularFormula formula) {
+    return getFormulaString(formula, true);
+  }
+
+  /**
+   * Pretty print formula
+   *
+   * @param showCharge append charge or not
+   */
+  @Nullable
+  public static String getFormulaString(@Nullable IMolecularFormula formula, boolean showCharge) {
+    return getFormulaString(formula,
+        showCharge ? FormulaStringFlavor.DEFAULT_CHARGED : FormulaStringFlavor.DEFAULT_NO_CHARGE);
+  }
+
+  /**
+   * Pretty print formula
+   */
+  public static String getFormulaString(@Nullable IMolecularFormula formula,
+      @NotNull FormulaStringFlavor flavor) {
+    if (formula == null) {
+      return null;
+    }
+    return FormulaStringConverter.getString(formula, flavor);
   }
 
   /**
    * Returns the exact mass of an element. Mass is obtained from the CDK library.
    */
-  public static double getElementMass(String element) {
-    try {
-      Isotopes isotopeFactory = Isotopes.getInstance();
-      IIsotope majorIsotope = isotopeFactory.getMajorIsotope(element);
-      // If the isotope symbol does not exist, return 0
-      if (majorIsotope == null) {
-        return 0;
-      }
-      return majorIsotope.getExactMass();
-    } catch (IOException e) {
-      e.printStackTrace();
+  public static double getMajorIsotopeMass(String symbol) {
+    Isotopes isotopeFactory = isotopesSilent();
+    IIsotope majorIsotope = isotopeFactory.getMajorIsotope(symbol);
+    // If the isotope symbol does not exist, return 0
+    if (majorIsotope == null) {
       return 0;
     }
+    return majorIsotope.getExactMass();
   }
 
   public static boolean containsElement(IMolecularFormula f, String element) {
@@ -173,6 +197,9 @@ public class FormulaUtils {
     return false;
   }
 
+  /**
+   * @return count all elements with the same symbol
+   */
   public static int countElement(IMolecularFormula f, String element) {
     int count = 0;
     for (IIsotope iso : f.isotopes()) {
@@ -183,152 +210,82 @@ public class FormulaUtils {
     return count;
   }
 
-  @NotNull
-  public static Map<String, Integer> parseFormula(String formula) {
-
-    Map<String, Integer> parsedFormula = new Hashtable<>();
-
-    Pattern pattern = Pattern.compile("([A-Z][a-z]?)(-?[0-9]*)");
-    Matcher matcher = pattern.matcher(formula);
-
-    while (matcher.find()) {
-      String element = matcher.group(1);
-      String countString = matcher.group(2);
-      int addCount = 1;
-      if ((countString.length() > 0) && (!countString.equals("-"))) {
-        addCount = Integer.parseInt(countString);
-      }
-      int currentCount = 0;
-      if (parsedFormula.containsKey(element)) {
-        currentCount = parsedFormula.get(element);
-      }
-      int newCount = currentCount + addCount;
-      parsedFormula.put(element, newCount);
-    }
-    return parsedFormula;
-  }
-
-  @NotNull
-  public static String formatFormula(@NotNull Map<String, Integer> parsedFormula) {
-
-    StringBuilder formattedFormula = new StringBuilder();
-
-    // Use TreeSet to sort the elements by alphabet
-    TreeSet<String> elements = new TreeSet<>(parsedFormula.keySet());
-
-    if (elements.contains("C")) {
-      int countC = parsedFormula.get("C");
-      formattedFormula.append("C");
-      if (countC > 1) {
-        formattedFormula.append(countC);
-      }
-      elements.remove("C");
-      if (elements.contains("H")) {
-        int countH = parsedFormula.get("H");
-        formattedFormula.append("H");
-        if (countH > 1) {
-          formattedFormula.append(countH);
-        }
-        elements.remove("H");
-      }
-    }
-    for (String element : elements) {
-      formattedFormula.append(element);
-      int count = parsedFormula.get(element);
-      if (count > 1) {
-        formattedFormula.append(count);
-      }
-    }
-    return formattedFormula.toString();
-  }
-
   /**
-   * Calculate m/z ratio for given ionic formula string
-   * <p>
-   * This method utilizes existing cdk codebase to parse the ionic formula string and then obtain
-   * its exact mass and charge Seems like the cdk builder used does not support isotopic notation
-   * such as (15N)5 but recursive subformulas should be supported If no charge is given then +1 is
-   * used For charge of more than -1 or +1 use square brackets Uses monoisotopic masses of each atom
-   * present in the compound
-   * <p>
-   * Example outputs C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1) C23H39N7O17P3S- gives
-   * 810.1341472579095 (charge is -1) C10H16N5O10P2+     gives 428.03669139209063 (charge is +1)
-   * C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1) [C21H30N7O17P3]2+  gives
-   * 372.54500261509054 (charge is +2)
-   *
-   * @param ionicFormula ionic formula string
-   * @return ion m/z ratio
+   * @return Count all elements of the same atomic number
    */
-  public static double calculateMzRatio(String ionicFormula) {
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    IMolecularFormula mf = MolecularFormulaManipulator.getMolecularFormula(ionicFormula, builder);
-
-    int charge = 1;
-    char lastChar = ionicFormula.charAt(ionicFormula.length() - 1);
-    if (lastChar == '-') {
-      charge = -1;
+  public static int countElement(IMolecularFormula f, IElement element) {
+    int count = 0;
+    for (IIsotope iso : f.isotopes()) {
+      if (Objects.equals(iso.getAtomicNumber(), element.getAtomicNumber())) {
+        count += f.getIsotopeCount(iso);
+      }
     }
-    if (mf.getCharge() != null) {
-      charge = mf.getCharge();
-    }
-
-    double mass = MolecularFormulaManipulator.getMass(mf, MolecularFormulaManipulator.MonoIsotopic);
-    mass -= charge * electronMass;
-
-    return Math.abs(mass / charge);
+    return count;
   }
 
   /**
    * Calculates the m/z of the given formula. Formula must have a charge, otherwise the neutral mass
-   * is returned
+   * is returned.
+   *
+   * @param formula The formula.
+   * @return the calculated m/z ratio. if the formula's charge is null or 0, the neutral mass is
+   * returned assuming charge 1 without knowledge of polarity for subtracting or adding an electron
+   */
+  public static double calculateMzRatio(@NotNull String formula) {
+    IMolecularFormula mf = parse(formula);
+    if (mf == null) {
+      throw new IllegalArgumentException("Formula could not be parsed: " + formula);
+    }
+
+    return calculateMzRatio(mf);
+  }
+
+  /**
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the neutral mass
+   * is returned.
    *
    * @param formula The formula.
    * @return the calculated m/z ratio. if the formula's charge is null or 0, the neutral mass is
    * returned assuming charge 1 without knowledge of polarity for subtracting or adding an electron
    */
   public static double calculateMzRatio(@NotNull final IMolecularFormula formula) {
-    double neutralmass = MolecularFormulaManipulator.getMass(formula,
-        MolecularFormulaManipulator.MonoIsotopic);
+    double neutralmass = FormulaUtils.getMonoisotopicMass(formula);
     final Integer charge = formula.getCharge();
     if (charge == null || charge == 0) {
       return neutralmass;
     }
 
-    return (neutralmass - charge * electronMass) / Math.abs(charge);
-  }
-
-  public static double calculateExactMass(@NotNull String formula) {
-    return calculateExactMass(formula, 0);
+    // electrons already subtracted from mass
+    return neutralmass / Math.abs(charge);
   }
 
   /**
-   * Calculates exact monoisotopic mass of a given formula. Note that the returned mass may be
-   * negative, in case the formula contains negative such as C3H10P-3. This is important for
-   * calculating the mass of some ionization adducts, such as deprotonation (H-1).
+   * TODO remove and reconsider each caller what mass they actually want
    */
+  @Deprecated
+  public static double calculateExactMass(@NotNull String formula) {
+    final IMolecularFormula molFormula = parse(formula);
+    if (molFormula == null) {
+      throw new IllegalArgumentException("Formula could not be parsed: " + formula);
+    }
+    return getMonoisotopicMass(molFormula);
+  }
+
+  /**
+   * TODO remove and reconsider each caller what mass they actually want
+   */
+  @Deprecated
   public static double calculateExactMass(@NotNull String formula, int charge) {
-
-    if (formula.trim().length() == 0) {
-      return 0;
+    final IMolecularFormula molFormula = parse(formula);
+    if (molFormula == null) {
+      throw new IllegalArgumentException("Formula could not be parsed: " + formula);
     }
-
-    Map<String, Integer> parsedFormula = parseFormula(formula);
-
-    double totalMass = 0;
-    for (String element : parsedFormula.keySet()) {
-      int count = parsedFormula.get(element);
-      double elementMass = getElementMass(element);
-      totalMass += count * elementMass;
-    }
-
-    totalMass -= charge * electronMass;
-
-    return totalMass;
+    return getMonoisotopicMass(molFormula, charge);
   }
 
   public static String ionizeFormula(String formula, IonizationType ionType) {
     final IMolecularFormula form = ionType.ionizeFormula(formula);
-    return MolecularFormulaManipulator.getString(form);
+    return getFormulaString(form);
   }
 
   /**
@@ -338,115 +295,197 @@ public class FormulaUtils {
    * @return true / false
    */
   public static boolean checkMolecularFormula(@NotNull String formula) {
-    if (formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check
-      // for
-      // this
-      // first
-      logger.info("Formula contains illegal characters.");
+    // just try to parse and see if there are isotopes
+    final IMolecularFormula molFormula = parse(formula);
+    if (molFormula == null || molFormula.getIsotopeCount() == 0) {
       return false;
     }
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    IMolecularFormula molFormula;
-
-    try {
-      molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-      if (molFormula == null) {
-        return false;
-      }
-    } catch (RuntimeException e) {
-      logger.info("Cannot parse formula " + formula);
-      return false;
-    }
-
-    boolean valid = true;
 
     for (IIsotope iso : molFormula.isotopes()) {
-      if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
+      if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() <= 0)) {
         // iso.getAtomicNumber() != null has to be checked, e.g. for
         // some reason an element with
         // Symbol "R" and number 0 exists in the CDK
-        valid = false;
+        logger.warning("Formula invalid! Formula contains element symbols that do not exist.");
+        return false;
       }
     }
 
-    if (!valid) {
-      logger.warning("Formula invalid! Formula contains element symbols that do not exist.");
-      return false;
-    }
     return true;
   }
 
   /**
+   * The neutral mass corrected by missing or added electrons. This is not the m/z see
+   * {@link #calculateMzRatio(IMolecularFormula)} for this.
+   *
    * @param formula formula maybe with defined isotopes
-   * @return mono isotopic mass
+   * @return mono isotopic mass corrected by electron mass for replaceCharge
    */
-  public static double getMonoisotopicMass(IMolecularFormula formula) {
-    return formula == null ? 0d
-        : MolecularFormulaManipulator.getMass(formula, MolecularFormulaManipulator.MonoIsotopic);
+  public static double getMonoisotopicMass(IMolecularFormula formula, int replaceCharge) {
+    double mass = getMonoisotopicMass(formula);
+    int oldCharge = requireNonNullElse(formula.getCharge(), 0);
+    return IonUtils.correctByElectronMass(mass, replaceCharge - oldCharge);
   }
 
   /**
-   * Creates a formula with the major isotopes (important to use this method for exact mass
-   * calculation over the CDK version, which generates formulas without an exact mass)
+   * The neutral mass corrected by missing or added electrons. This is not the m/z see
+   * {@link #calculateMzRatio(IMolecularFormula)} for this.
    *
-   * @return the formula or null
+   * @param formula formula maybe with defined isotopes and charge
+   * @return mono isotopic mass corrected by electron mass for formula.getCharge
+   */
+  public static double getMonoisotopicMass(IMolecularFormula formula) {
+    if (formula == null) {
+      return 0d;
+    }
+    double mass = MolecularFormulaManipulator.getMass(formula,
+        MolecularFormulaManipulator.MonoIsotopic);
+    Integer charge = formula.getCharge();
+    return charge == null ? mass : IonUtils.correctByElectronMass(mass, charge);
+  }
+
+  /**
+   * Creates a formula with replaced charge
+   *
+   * @see FormulaUtils#parse(String)
    */
   @Nullable
-  public static IMolecularFormula createMajorIsotopeMolFormula(@Nullable String formula) {
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formula,
+      int overwriteCharge) {
+    var f = createMajorIsotopeMolFormulaWithCharge(formula);
+    if (f != null) {
+      f.setCharge(overwriteCharge);
+    }
+    return f;
+  }
+
+  /**
+   * @see FormulaUtils#parse(String)
+   */
+  @Nullable
+  public static IMolecularFormula createMajorIsotopeMolFormulaWithCharge(@Nullable String formula) {
+    return parse(formula);
+  }
+
+  /**
+   * @see FormulaParser#parseFormula(String)
+   */
+  @Nullable
+  public static IMolecularFormula parse(@Nullable String formula) {
     if (formula == null) {
       return null;
     }
-    try {
-      // new formula consists of isotopes without exact mass
-      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula f = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-          formula.replace(" ", ""), builder);
+    return FormulaParser.parseFormula(formula);
+  }
 
-      if (f == null) {
-        return null;
-      }
-      // replace isotopes
-      // needed, as MolecularFormulaManipulator method returns isotopes
-      // without exact mass info
-      try {
-        return replaceAllIsotopesWithoutExactMass(f);
-      } catch (Exception e) {
-        logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
-        return null;
-      }
+  /**
+   * The isotope with exact mass etc. If no specific isotope is defined then use the major
+   *
+   * @return new instance of isotope with exact mass
+   */
+  public static IIsotope getExactIsotope(final IIsotope iso) {
+    final Isotopes isotopes = isotopesSilent();
+    // return major if no specific isotope defined
+    if (iso.getMassNumber() == null || iso.getMassNumber() == 0) {
+      return isotopes.getMajorIsotope(iso.getAtomicNumber());
+    }
+    // return isotope with correct mass number
+    return isotopes.getIsotope(iso.getSymbol(), iso.getMassNumber());
+  }
+
+  /**
+   * Replace all isotopes for the major most abundant isotope.
+   *
+   * @param f input formula is not changed
+   * @return new instance
+   */
+  public static IMolecularFormula replaceAllToMajorIsotopes(IMolecularFormula f) {
+    // create a new formula because C5[13C] will add 12C twice after conversion and merge it into one iso
+    final MolecularFormula newFormula = new MolecularFormula();
+
+    for (IIsotope iso : f.isotopes()) {
+      final int isotopeCount = f.getIsotopeCount(iso);
+      IIsotope major = isotopesSilent().getMajorIsotope(iso.getAtomicNumber());
+      newFormula.addIsotope(major, isotopeCount);
+    }
+
+    newFormula.setCharge(f.getCharge());
+    return newFormula;
+  }
+
+
+  public static IChemObjectBuilder silentBuilder() {
+    return SilentChemObjectBuilder.getInstance();
+  }
+
+  public static Isotopes isotopesSilent() {
+    try {
+      return Isotopes.getInstance();
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Could not initialize isotopes. This may be a CDK issue. " + e.getMessage(), e);
+    }
+  }
+
+  public static boolean isUncharged(@Nullable IMolecularFormula f) {
+    return getCharge(f) == 0;
+  }
+
+  public static boolean isCharged(@Nullable IMolecularFormula f) {
+    return !isUncharged(f);
+  }
+
+
+  /**
+   * @return the major isotope of an element
+   */
+  @Nullable
+  public static IIsotope getMajorIsotope(@Nullable Integer atomicNumber) {
+    if (atomicNumber == null) {
+      return null;
+    }
+    try {
+      return isotopesSilent().getMajorIsotope(atomicNumber);
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Cannot create formula for: " + formula, e);
       return null;
     }
   }
 
+  public IMolecularFormula clone(IMolecularFormula formula) {
+    final MolecularFormula nf = new MolecularFormula();
+    nf.add(formula);
+    return nf;
+  }
+
   /**
-   * Searches for all isotopes exactmass=null and replaces them with the major isotope
-   *
-   * @throws IOException
+   * Searches for all isotopes exactmass=null and replaces them with the isotope instance with exact
+   * mass
    */
-  public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f)
-      throws IOException {
+  @Nullable
+  public static IMolecularFormula replaceAllIsotopesWithoutExactMass(
+      @Nullable IMolecularFormula f) {
     if (f == null) {
       return null;
     }
-    for (IIsotope iso : f.isotopes()) {
-      // find isotope without exact mass
-      if (iso.getExactMass() == null || iso.getExactMass() == 0) {
-        int isotopeCount = f.getIsotopeCount(iso);
-        f.removeIsotope(iso);
+    // has to be on copy because otherwise the formula chokes in tests
+    // somehow parsing CC(=O)O smiles and then FormulaUtils.getFormula(structure)
+    // with this replace isotopes results in different formulas
+    // first call: C2H4O2 (correct)
+    // second call: CCH4OO
+    final MolecularFormula copy = new MolecularFormula();
+    copy.setCharge(f.getCharge());
 
-        // replace
-        IsotopeFactory iFac = Isotopes.getInstance();
-        IIsotope major = iFac.getMajorIsotope(iso.getAtomicNumber());
-        if (major != null) {
-          f.addIsotope(major, isotopeCount);
-        }
-        return replaceAllIsotopesWithoutExactMass(f);
+    for (IIsotope iso : f.isotopes()) {
+      if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
+        logger.warning("Cannot parse formula %s as there are unknown atoms".formatted(
+            FormulaUtils.getFormulaString(f)));
+        return null;
       }
+      // find isotope without exact mass
+      IIsotope major = getExactIsotope(iso);
+      copy.addIsotope(major, f.getIsotopeCount(iso));
     }
-    // no isotope found
-    return f;
+    return copy;
   }
 
   /**
@@ -457,7 +496,7 @@ public class FormulaUtils {
    * @return the input formula but with changed charge
    */
   public static IMolecularFormula resetAbsCharge(IMolecularFormula formula, int absCharge) {
-    int charge = Objects.requireNonNullElse(formula.getCharge(), 0);
+    int charge = requireNonNullElse(formula.getCharge(), 0);
     formula.setCharge(charge < 0 ? -absCharge : absCharge);
     return formula;
   }
@@ -628,40 +667,173 @@ public class FormulaUtils {
    * @param result is going to be changed. is also the returned value
    */
   public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub) {
-    for (IIsotope isotope : sub.isotopes()) {
-      int count = sub.getIsotopeCount(isotope);
-      boolean found = false;
-      do {
-        found = false;
-        for (IIsotope realIsotope : result.isotopes()) {
-          // there can be different implementations of IIsotope
-          if (equalIsotopes(isotope, realIsotope)) {
-            found = true;
-            int realCount = result.getIsotopeCount(realIsotope);
-            int remaining = realCount - count;
-            result.removeIsotope(realIsotope);
-            if (remaining > 0) {
-              result.addIsotope(realIsotope, remaining);
-            }
-            count -= realCount;
-            break;
-          }
-        }
-      } while (count > 0 && found);
+    return subtractFormula(result, sub, 1);
+  }
+
+  /**
+   *
+   * @param result        is going to be changed. is also the returned value
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   */
+  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
+      int subMultiplier) {
+    return subtractFormula(result, sub, subMultiplier, false);
+  }
+
+  /**
+   *
+   * @param result        the input formula that may be cloned or directly changed
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   * @param clone         clone the input formula to protect input from change. Otherwise do an
+   *                      inplace operation on result
+   * @return the input result formula if clone is false otherwise a copy
+   */
+  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
+      int subMultiplier, boolean clone) {
+    if (clone) {
+      result = cloneFormula(result);
     }
-    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+
+    for (IIsotope isotopeToRemove : sub.isotopes()) {
+      int count = sub.getIsotopeCount(isotopeToRemove) * subMultiplier;
+      addOrRemoveIsotope(result, isotopeToRemove, -count, true);
+    }
+    final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
     result.setCharge(resultCharge - subtractCharge);
     return result;
+  }
+
+  /**
+   *
+   * @param result                        the resulting formula
+   * @param isotopeToChange               the isotope to remove. May have undefined massNumber or
+   *                                      maybe defined isotope like [13]C
+   * @param count                         count to add or remove from result
+   * @param removeMajorForMissingIsotopes in case isotopeToChange is a defined isotope like [13]C,
+   *                                      first the exact isotope will be removed or if this is not
+   *                                      available the first other isotope, usually the major
+   *                                      isotope will be removed. This is important if the result
+   *                                      formula has no massNumbers defined or only has major
+   *                                      isotopes
+   */
+  public static void addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
+      int count, boolean removeMajorForMissingIsotopes) {
+    boolean adding = count > 0;
+    if (adding) {
+      result.addIsotope(isotopeToChange, count);
+      return;
+    }
+
+    // removing, trying first with the exact isotope like [13]C
+    if (isotopeToChange.getMassNumber() != null) {
+      // use copy to not modify list while looping
+      final List<IIsotope> isotopes = getIsotopes(result);
+      for (IIsotope isotope : isotopes) {
+        if (equalElementIsotopes(isotopeToChange, isotope)) {
+          int realCount = result.getIsotopeCount(isotope);
+          int remaining = realCount + count; // count is negative
+          if (remaining <= 0) {
+            result.removeIsotope(isotope);
+            // reduce count but not all were removed so search for more isotopes that match
+            count = remaining; // negative again
+          } else {
+            // this is captured in a test to make sure this call is valid in the future as well
+            result.addIsotope(isotope, count); // count is negative will remove elements
+            return;
+          }
+        }
+      }
+      if (!removeMajorForMissingIsotopes) {
+        logger.fine(
+            "Could not remove %d of isotope %s from formula %s. Will continue with the formula as is.".formatted(
+                -count, isotopeToChange, FormulaUtils.getFormulaString(result)));
+
+        return;
+      }
+    }
+    // Remove the rest of the count from the first element with the same symbol - does not matter
+    final List<IIsotope> isotopes = getIsotopes(result);
+    for (IIsotope isotope : isotopes) {
+      // only check the symbol here
+      if (equalElementSymbols(isotopeToChange, isotope)) {
+        int realCount = result.getIsotopeCount(isotope);
+        int remaining = realCount + count; // count is negative
+        if (remaining <= 0) {
+          result.removeIsotope(isotope);
+          // reduce count but not all were removed so search for more isotopes that match
+          count = remaining; // negative again
+        } else {
+          result.addIsotope(isotope, count); // count is negative will remove elements
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * @return modifiable list of isotopes (sorted by element number and then exact mass to make the
+   * result reproducible, isotopes in formula are in a HashMap)
+   */
+  @NotNull
+  public static List<IIsotope> getIsotopes(@NotNull IMolecularFormula formula) {
+    List<IIsotope> isotopes = new ArrayList<>(formula.getIsotopeCount());
+    formula.isotopes().forEach(isotopes::add);
+    try {
+      // sort otherwise the order is quite random with
+      isotopes.sort( //
+          Comparator.comparing(IIsotope::getAtomicNumber,
+                  nullsLast(naturalOrder())) // might be null but formula utils usually fills it in
+              .thenComparing(IIsotope::getSymbol)   // then rely on the symbol
+              .thenComparing(IIsotope::getExactMass, nullsLast(naturalOrder())));
+    } catch (Exception e) {
+      logger.warning(e.getMessage());
+    }
+
+    return isotopes;
   }
 
   /**
    * @param result is going to be changed. is also the returned value
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add) {
-    result.add(add);
-    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = Objects.requireNonNullElse(add.getCharge(), 0);
+    return addFormula(result, add, 1);
+  }
+
+  /**
+   *
+   * @param result        is going to be changed. is also the returned value
+   * @param add           to be added * times
+   * @param addMultiplier multiply each isotope in add by this number
+   */
+  public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add,
+      int addMultiplier) {
+    return addFormula(result, add, addMultiplier, false);
+  }
+
+  /**
+   *
+   * @param result        the input formula to be changed either in place or as a clone
+   * @param add           to be added * times
+   * @param addMultiplier multiply each isotope in add by this number
+   * @param clone         clone the input formula to not change the input otherwise do an in place
+   *                      operation
+   * @return the changed input formula or a copy if clone is active
+   *
+   */
+  public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add,
+      int addMultiplier, boolean clone) {
+    if (clone) {
+      result = cloneFormula(result);
+    }
+
+    for (int i = 0; i < addMultiplier; i++) {
+      result.add(add);
+    }
+    final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = requireNonNullElse(add.getCharge(), 0) * addMultiplier;
     result.setCharge(resultCharge + subtractCharge);
     return result;
   }
@@ -692,57 +864,61 @@ public class FormulaUtils {
   }
 
   /**
-   * Compare to IIsotope. The method doesn't compare instance but if they have the same symbol,
-   * natural abundance and exact mass. TODO
+   * Compare to IIsotope only by element symbol. If they are the same element even if different
+   * massNumbers (isotopes) then still true.
    *
-   * @param isotopeOne The first Isotope to compare
-   * @param isotopeTwo The second Isotope to compare
-   * @return True, if both isotope are the same
+   * @param a The first Isotope to compare
+   * @param b The second Isotope to compare
+   * @return True, if both isotope are from the same element even it the mass numbers differ.
    */
-  private static boolean equalIsotopes(IIsotope isotopeOne, IIsotope isotopeTwo) {
-    return isotopeOne.getSymbol().equals(isotopeTwo.getSymbol());
-    // exactMass and naturalAbundance is null when using
-    // createMajorIsotopeMolFormula
-    // // XXX: floating point comparision!
-    // if (!Objects.equals(isotopeOne.getNaturalAbundance(),
-    // isotopeTwo.getNaturalAbundance()))
-    // return false;
-    // if (!Objects.equals(isotopeOne.getExactMass(),
-    // isotopeTwo.getExactMass()))
-    // return false;
+  private static boolean equalElementSymbols(IIsotope a, IIsotope b) {
+    return a.getSymbol().equals(b.getSymbol());
   }
 
+  /**
+   * Compare to IIsotope. The method doesn't compare instance but if they have the same symbol and
+   * mass number
+   *
+   * @param a The first Isotope to compare
+   * @param b The second Isotope to compare
+   * @return True, if both isotope are the same so the same element symbol and the same mass number
+   * (or both null as mass numbers)
+   */
+  private static boolean equalElementIsotopes(IIsotope a, IIsotope b) {
+    return equalElementSymbols(a, b) && Objects.equals(a.getMassNumber(), b.getMassNumber());
+  }
+
+  /**
+   * estimates the number of combinations of all natural isotopes from different elements included
+   * Like all isotopes of C x H x Gd multiplied
+   */
   public static long getFormulaSize(String formula) {
     long size = 1;
 
-    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    IMolecularFormula molFormula;
+    // requires correct isotopes
+    final IMolecularFormula molFormula = createMajorIsotopeMolFormulaWithCharge(formula);
+    if (molFormula == null) {
+      return -1;
+    }
+    var isotopeFactory = isotopesSilent();
+    for (IIsotope iso : molFormula.isotopes()) {
 
-    molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-    Isotopes isotopeFactory;
-    try {
-      isotopeFactory = Isotopes.getInstance();
-      for (IIsotope iso : molFormula.isotopes()) {
-
-        int naturalIsotopes = 0;
-        for (IIsotope i : isotopeFactory.getIsotopes(iso.getSymbol())) {
-          if (i.getNaturalAbundance() > 0.0) {
-            naturalIsotopes++;
-          }
-
+      int naturalIsotopes = 0;
+      for (IIsotope i : isotopeFactory.getIsotopes(iso.getSymbol())) {
+        if (i.getNaturalAbundance() > 0.0) {
+          naturalIsotopes++;
         }
 
-        try {
-          size = Math.multiplyExact(size, (molFormula.getIsotopeCount(iso) * naturalIsotopes));
-        } catch (ArithmeticException e) {
-          e.printStackTrace();
-          logger.info("Formula size of " + formula + " is too big.");
-          return -1;
-        }
       }
-    } catch (IOException e) {
-      logger.warning("Unable to initialise Isotopes.");
-      e.printStackTrace();
+
+      try {
+        // estimates the size complexity
+        size = Math.multiplyExact(size, (molFormula.getIsotopeCount(iso) * naturalIsotopes));
+      } catch (ArithmeticException e) {
+        logger.log(Level.WARNING, "Formula size of " + formula + " is too big. " + e.getMessage(),
+            e);
+        return -1;
+      }
     }
 
     return size;
@@ -758,10 +934,10 @@ public class FormulaUtils {
       return null;
     }
     try {
-      final IAtomContainer iAtomContainer = new SmilesParser(
-          SilentChemObjectBuilder.getInstance()).parseSmiles(smiles);
-      return MolecularFormulaManipulator.getMolecularFormula(iAtomContainer);
-    } catch (InvalidSmilesException e) {
+      final MolecularStructure structure = StructureParser.silent()
+          .parseStructure(smiles, StructureInputType.SMILES);
+      return structure == null ? null : structure.formula();
+    } catch (Exception e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
     return null;
@@ -779,7 +955,7 @@ public class FormulaUtils {
     if (formula == null) {
       return null;
     }
-    return neutralizeFormulaWithHydrogen(createMajorIsotopeMolFormula(formula));
+    return neutralizeFormulaWithHydrogen(createMajorIsotopeMolFormulaWithCharge(formula));
   }
 
   /**
@@ -800,7 +976,7 @@ public class FormulaUtils {
       final IMolecularFormula molecularFormula = (IMolecularFormula) formula.clone();
       final Integer charge = molecularFormula.getCharge();
       if (charge != null && charge != 0) {
-        final String string = MolecularFormulaManipulator.getString(molecularFormula);
+        final String string = FormulaUtils.getFormulaString(molecularFormula);
 
         logger.finest(
             () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
@@ -820,8 +996,8 @@ public class FormulaUtils {
     }
   }
 
-  @Nullable
-  public static IMolecularFormula cloneFormula(@Nullable final IMolecularFormula formula) {
+  public static @Nullable IMolecularFormula cloneFormula(
+      @Nullable final IMolecularFormula formula) {
     if (formula == null) {
       return null;
     }
@@ -840,29 +1016,55 @@ public class FormulaUtils {
       return null;
     }
 
-    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
+    // check if formula already charged
+    IMolecularFormula molecularFormula = createMajorIsotopeMolFormulaWithCharge(
         annotation.getFormula());
+
+    if (molecularFormula == null) {
+      return null;
+    }
+
+    // if the mz of formula already matches the mz of annotation then the formula is the correct
+    // ion formula - otherwise might be neutral molecule formula that needs to be ionized by adduct
+    final Double mz = annotation.getPrecursorMZ();
+    final double formulaMZ = FormulaUtils.calculateMzRatio(molecularFormula);
+    if (mz != null && MZTolerance.NARROW_5_PPM_OR_1_MDA.checkWithinTolerance(formulaMZ, mz)) {
+      return molecularFormula;
+    }
+
+    // TODO maybe remove this step or at least add checks as this is not always needed
+    // annotation might already be the correct ion formula
+    molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
     assert molecularFormula != null;
 
     if (annotation.getAdductType() == null && annotation instanceof CompoundDBAnnotation c
-        && annotation.getPrecursorMZ() != null && c.get(
-        NeutralMassType.class) instanceof Double neutralMass) {
-      final IonModification mod = IonModification.getBestIonModification(neutralMass,
-          annotation.getPrecursorMZ(), MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, null);
-      c.put(IonTypeType.class, new IonType(mod));
+        && mz != null && c.get(NeutralMassType.class) instanceof Double neutralMass) {
+      final List<IonType> ionMatches = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
+          new IonSearchRow(annotation.getPrecursorMZ()), neutralMass,
+          MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
+      if (!ionMatches.isEmpty()) {
+        c.put(IonTypeType.class, ionMatches.getFirst());
+      }
     }
 
     if (annotation.getAdductType() == null) {
       return null;
     }
-    try {
-      // ionize formula
-      // considering both 2M etc
-      return annotation.getAdductType().addToFormula(molecularFormula);
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, "Cannot ionize formula");
-      throw new RuntimeException(e);
+    // ionize formula
+    // considering both 2M etc
+    return annotation.getAdductType().addToFormula(molecularFormula, true);
+  }
+
+  /**
+   *
+   * @return 0 for undefined charge or if formula is null otherwise formula.getCharge
+   */
+  public static int getCharge(@Nullable IMolecularFormula f) {
+    if (f == null) {
+      return 0;
     }
+    final Integer c = f.getCharge();
+    return requireNonNullElse(c, 0);
   }
 
   public static boolean isSubFormula(FormulaWithExactMz a, FormulaWithExactMz b) {

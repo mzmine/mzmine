@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
@@ -46,6 +45,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
@@ -59,8 +59,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class MatchedLipid implements FeatureAnnotation {
 
@@ -226,8 +225,8 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   public static double getExactMass(MatchedLipid match) {
-    return MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
-        AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
+    return FormulaUtils.getMonoisotopicMass(match.getLipidAnnotation().getMolecularFormula())
+        + match.getIonizationType().getAddedMass();
   }
 
   public ILipidAnnotation getLipidAnnotation() {
@@ -268,6 +267,11 @@ public class MatchedLipid implements FeatureAnnotation {
   @Override
   public String getComment() {
     return comment;
+  }
+
+  @Override
+  public @Nullable IMolecularFormula getCdkFormula() {
+    return lipidAnnotation.getMolecularFormula();
   }
 
   public void setComment(String comment) {
@@ -383,13 +387,13 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable String getFormula() {
-    return MolecularFormulaManipulator.getString(getLipidAnnotation().getMolecularFormula());
+    return FormulaUtils.getFormulaString(getLipidAnnotation().getMolecularFormula());
   }
 
   @Override
   public @Nullable IonType getAdductType() {
     try {
-      return IonTypeParser.parse(getIonizationType().toString());
+      return getIonizationType().toIonType();
     } catch (Exception e) {
       logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;

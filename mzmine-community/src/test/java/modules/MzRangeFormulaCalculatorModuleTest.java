@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,12 @@
 
 package modules;
 
+import static testutils.CustomAssertions.assertEquals;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class MzRangeFormulaCalculatorModuleTest {
@@ -38,22 +39,28 @@ public class MzRangeFormulaCalculatorModuleTest {
   void getMzRangeFromFormula() {
 
     final MZTolerance tol = new MZTolerance(0.01, 5);
-    Assertions.assertEquals(Range.closed(16.02075154809093, 16.040751548090935),
-        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.POSITIVE, tol));
-    Assertions.assertEquals(Range.closed(16.02184870790906, 16.041848707909065),
-        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NEGATIVE, tol));
-    Assertions.assertEquals(Range.closed(17.02857658009093, 17.048576580090934),
+    final double tolerance = 1E-10;
+
+    assertEquals(Range.closed(16.02075154809093, 16.040751548090935),
+        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.POSITIVE, tol),
+        tolerance);
+    assertEquals(Range.closed(16.02184870790906, 16.041848707909065),
+        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NEGATIVE, tol),
+        tolerance);
+    assertEquals(Range.closed(17.02857658009093, 17.048576580090934),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
-            IonizationType.POSITIVE_HYDROGEN, tol));
-    Assertions.assertEquals(Range.closed(15.014023675909066, 15.034023675909065),
+            IonizationType.POSITIVE_HYDROGEN, tol), tolerance);
+    assertEquals(Range.closed(15.014023675909066, 15.034023675909065),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
-            IonizationType.NEGATIVE_HYDROGEN, tol));
-    Assertions.assertEquals(Range.closed(129.00688760790908, 129.02688760790906),
+            IonizationType.NEGATIVE_HYDROGEN, tol), tolerance);
+    assertEquals(Range.closed(129.00688760790908, 129.02688760790906),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.TRIFLUORACETATE,
-            tol));
-    Assertions.assertEquals(Range.closed(6.998373611909065, 7.018373611909064),
-        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NAME_1, tol));
-    Assertions.assertEquals(Range.closed(13.668357910757603, 13.688357910757603),
-        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NAME7, tol));
+            tol), tolerance);
+    assertEquals(Range.closed(6.998373611909065, 7.018373611909064),
+        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NAME_1, tol),
+        tolerance);
+    assertEquals(Range.closed(13.668357910757603, 13.688357910757603),
+        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NAME7, tol),
+        tolerance);
   }
 }

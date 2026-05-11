@@ -33,7 +33,7 @@ public enum FxIcons implements IconCodeSupplier {
   X_CIRCLE_FILL, EXCLAMATION_CIRCLE_FILL, INFO_CIRCLE_FILL,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, MERGE, QUESTIONMARK, ARROW_IN_RIGHT,
 
   // icons
   FILE, FOLDER, LIST, COLLECTION, GROUPED_PARAMETERS,
@@ -94,6 +94,7 @@ public enum FxIcons implements IconCodeSupplier {
       case DRAW_REGION -> "bi-bounding-box";
       case BATCH -> "bi-layout-split";
       case ADD -> "bi-plus";
+      case MERGE -> "bi-box-arrow-in-left";
       case EDIT -> "bi-pencil-square";
       case DOWNLOAD -> "bi-download";
       case PLUS -> "bi-plus";

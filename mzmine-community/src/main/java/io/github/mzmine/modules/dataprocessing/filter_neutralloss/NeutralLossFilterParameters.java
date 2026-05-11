@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,19 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
-import java.util.Collection;
-import java.util.Locale;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.FormulaUtils;
+import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.Locale;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralLossFilterParameters extends SimpleParameterSet {
 
@@ -47,8 +45,8 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final BooleanParameter checkRT =
-      new BooleanParameter("Check RT", "Compare rt of peaks to parent.");
+  public static final BooleanParameter checkRT = new BooleanParameter("Check RT",
+      "Compare rt of peaks to parent.");
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
@@ -68,23 +66,25 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       "auto");
 
   public NeutralLossFilterParameters() {
-    super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
-        molecule, suffix},
+    super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
+            molecule, suffix},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_neutral_loss/filter_neutral_loss.html");
   }
 
   @Override
   public boolean checkParameterValues(Collection<String> errorMessages) {
-    if (super.checkParameterValues(errorMessages) == false)
+    if (super.checkParameterValues(errorMessages) == false) {
       return false;
+    }
 
     String molecule = this.getParameter(NeutralLossFilterParameters.molecule).getValue();
 
     // no formula -> use deltaMass
-    if (molecule.isEmpty())
+    if (molecule.isEmpty()) {
       return true;
+    }
     // formula can be parsed
-    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(molecule);
     if (formula != null) {
       return true;
     }

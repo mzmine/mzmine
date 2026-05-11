@@ -302,7 +302,8 @@ public class LipidFragmentationRule {
             .append(inQuotes(ruleType.toString()));
       } else {
         try {
-          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              formula);
           if (molFormula == null) {
             errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
                 .append(" -> ").append(" could not parse.\n");

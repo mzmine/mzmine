@@ -34,6 +34,7 @@ import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
@@ -244,15 +245,15 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       annotation.setWrapText(true);
       panelOther.getChildren().addAll(annotation);
 
-      Label formula = new Label("Formula: " + MolecularFormulaManipulator.getString(
+      Label formula = new Label("Formula: " + FormulaUtils.getFormulaString(
           matchedLipid.getLipidAnnotation().getMolecularFormula()));
       formula.setWrapText(true);
       panelOther.getChildren().addAll(formula);
 
       Label ion = new Label(
           "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-              + ConfigService.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-              FormulaUtils.ionizeFormula(MolecularFormulaManipulator.getString(
+              + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
+              FormulaUtils.ionizeFormula(FormulaUtils.getFormulaString(
                       matchedLipid.getLipidAnnotation().getMolecularFormula()),
                   matchedLipid.getIonizationType()))));
       ion.setWrapText(true);

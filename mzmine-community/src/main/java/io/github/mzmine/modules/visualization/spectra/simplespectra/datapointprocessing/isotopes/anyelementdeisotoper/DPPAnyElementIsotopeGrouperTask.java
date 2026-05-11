@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -45,7 +46,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IsotopePatternUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -55,8 +55,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  *
@@ -90,14 +88,14 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     super(spectrum, plot, parameterSet, controller, listener);
 
     // Get parameter values for easier use
-    mzTolerance =
-        parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.mzTolerance).getValue();
+    mzTolerance = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.mzTolerance)
+        .getValue();
     elements = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.element).getValue();
-    autoRemove =
-        parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.autoRemove).getValue();
+    autoRemove = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.autoRemove)
+        .getValue();
     mzrange = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.mzRange).getValue();
-    maxCharge =
-        parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.maximumCharge).getValue();
+    maxCharge = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.maximumCharge)
+        .getValue();
     setDisplayResults(
         parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.displayResults).getValue());
 
@@ -130,8 +128,9 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     }
 
     if (getDataPoints().getNumberOfDataPoints() == 0) {
-      logger.info("Data point/Spectra processing: 0 data points were passed to "
-          + getTaskDescription() + " Please check the parameters.");
+      logger.info(
+          "Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
+              + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
@@ -164,8 +163,9 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
         // for
         ProcessedDataPoint dp = originalDataPoints[i_dp];
 
-        if (!mzrange.contains(dp.getMZ()))
+        if (!mzrange.contains(dp.getMZ())) {
           continue;
+        }
 
         IsotopePatternUtils.findIsotopicPeaks(dp, originalDataPoints, mzTolerance, pattern, mzrange,
             maxCharge);
@@ -173,25 +173,30 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
         processedSteps++;
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
     }
 
     for (int x = 0; x < originalDataPoints.length; x++) {
       ProcessedDataPoint dp = originalDataPoints[x];
-      if (!mzrange.contains(dp.getMZ()))
+      if (!mzrange.contains(dp.getMZ())) {
         continue;
-      if (isCanceled())
+      }
+      if (isCanceled()) {
         return;
+      }
       IsotopePatternUtils.mergeIsotopicPeakResults(dp);
     }
 
     for (int x = 0; x < originalDataPoints.length; x++) {
       ProcessedDataPoint dp = originalDataPoints[x];
-      if (!mzrange.contains(dp.getMZ()))
+      if (!mzrange.contains(dp.getMZ())) {
         continue;
-      if (isCanceled())
+      }
+      if (isCanceled()) {
         return;
+      }
       IsotopePatternUtils.convertIsotopicPeakResultsToPattern(dp, false);
     }
 
@@ -199,10 +204,12 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
 
     for (ProcessedDataPoint dp : originalDataPoints) {
       if (autoRemove) {
-        if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+        if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
           results.add(dp);
-      } else
+        }
+      } else {
         results.add(dp);
+      }
     }
 
     setResults(results.toArray(new ProcessedDataPoint[0]));
@@ -214,17 +221,14 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
    * Returns an array of isotope patterns for the given string. Every element gets its own isotope
    * pattern.
    *
-   * @param elements String of element symbols
+   * @param elements     String of element symbols
    * @param mergeWidth
    * @param minAbundance
    * @return
    */
   public static SimpleIsotopePattern[] getIsotopePatterns(String elements, double mergeWidth,
       double minAbundance) {
-    SilentChemObjectBuilder builder =
-        (SilentChemObjectBuilder) SilentChemObjectBuilder.getInstance();
-    IMolecularFormula form =
-        MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(elements, builder);
+    IMolecularFormula form = FormulaUtils.parse(elements);
 
     SimpleIsotopePattern[] isotopePatterns = new SimpleIsotopePattern[form.getIsotopeCount()];
 
@@ -255,8 +259,9 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
 
   private String dataPointsToString(DataPoint[] dp) {
     String str = "";
-    for (DataPoint p : dp)
+    for (DataPoint p : dp) {
       str += "(m/z = " + format.format(p.getMZ()) + "), ";
+    }
     return str;
   }
 
@@ -271,21 +276,25 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
       // getTargetPlot().addDataSet(compressIsotopeDataSets(getResults()),
       // Color.GREEN, false);
       int i = 0;
-      for (ProcessedDataPoint result : getResults())
-        if (result.resultTypeExists(ResultType.ISOTOPEPATTERN))
+      for (ProcessedDataPoint result : getResults()) {
+        if (result.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
           i++;
-      if (i == 0)
+        }
+      }
+      if (i == 0) {
         i = 1;
+      }
 
       List<Color> clr = generateRainbowColors(i);
       int j = 0;
-      for (ProcessedDataPoint result : getResults())
+      for (ProcessedDataPoint result : getResults()) {
         if (result.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
           getTargetPlot().addDataSet(new IsotopesDataSet(
                   (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
               clr.get(j), false, true);
           j++;
         }
+      }
       // getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" +
       // getResults().length + ")",
       // getResults()), color, false);
