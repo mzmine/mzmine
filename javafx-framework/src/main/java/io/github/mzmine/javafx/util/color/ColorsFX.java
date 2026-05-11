@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,12 @@ public class ColorsFX {
 
   private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
   private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
+
+  // Color used to mark "modified" aligned signals (e.g. modified-cosine pairs that align via the
+  // precursor-mass shift rather than direct m/z match). Distinct from positive (direct match),
+  // negative (no match), and neutral (filtered).
+  private static final Color MODIFIED_MARKER = new Color(0.749f, 0.1725f, 0.5176f,
+      1f); // reddish purple
 
   /**
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
@@ -170,6 +176,16 @@ public class ColorsFX {
 
   public static Color getNeutralColor() {
     return NEUTRAL_MARKER;
+  }
+
+  /**
+   * Color used to mark modified-cosine aligned signals (pairs that align via the precursor-mass
+   * shift rather than direct m/z match). Distinct from {@link #getPositiveColor(Vision)} (direct
+   * match), {@link #getNegativeColor(Vision)} (no match), and {@link #getNeutralColor()}
+   * (filtered).
+   */
+  public static Color getModifiedSignalColor() {
+    return MODIFIED_MARKER;
   }
 
   public static String toHexString(Color color) {
