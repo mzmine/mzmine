@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,28 +24,20 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import org.jetbrains.annotations.NotNull;
 
-public class ComboWithIntOrAutoParameter extends
-    ComboWithInputParameter<ValueOrAuto, IntOrAutoValue, IntegerParameter> {
+public record DoubleOrAutoValue(@NotNull ValueOrAuto value,
+                                double manual) implements
+    ComboWithInputValue<ValueOrAuto, Double> {
 
-  public ComboWithIntOrAutoParameter(IntegerParameter embeddedParameter) {
-    super(embeddedParameter, ValueOrAuto.values(), ValueOrAuto.MANUAL,
-        new IntOrAutoValue(ValueOrAuto.AUTO, 5));
+  @Override
+  public @NotNull ValueOrAuto getSelectedOption() {
+    return value;
   }
 
   @Override
-  public IntOrAutoValue createValue(ValueOrAuto option, IntegerParameter embeddedParameter) {
-    return new IntOrAutoValue(option, embeddedParameter.getValue());
+  public Double getEmbeddedValue() {
+    return manual;
   }
 
-  @Override
-  public ComboWithIntOrAutoParameter cloneParameter() {
-    final IntegerParameter embeddedClone = embeddedParameter.cloneParameter();
-    embeddedClone.setValue(value.manual());
-    final ComboWithIntOrAutoParameter clone = new ComboWithIntOrAutoParameter(
-        embeddedClone);
-    clone.setValue(new IntOrAutoValue(value.value(), value.manual()));
-    return clone;
-  }
 }
