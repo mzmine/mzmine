@@ -43,8 +43,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.DreamsScoreType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.MS2DeepscoreScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
@@ -601,16 +602,17 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Stores the ML similarity score on the annotation under the score type matching the active ML
-   * algorithm. Called only from the ML paths.
+   * Stores the ML similarity score on the annotation as a single {@link MLScore} record carrying
+   * both the score and the model identifier. Called only from the ML paths.
    */
   private void applyMlScore(final SpectralDBAnnotation annotation, final float score) {
-    switch (algorithm) {
-      case MS2_DEEPSCORE -> annotation.set(MS2DeepscoreScoreType.class, score);
-      case DREAMS -> annotation.set(DreamsScoreType.class, score);
+    final MLModelId model = switch (algorithm) {
+      case MS2_DEEPSCORE -> MLModelId.MS2_DEEPSCORE;
+      case DREAMS -> MLModelId.DREAMS;
       case MODIFIED_COSINE, COSINE_NO_PRECURSOR ->
           throw new AssertionError("applyMlScore called for non-ML algorithm: " + algorithm);
-    }
+    };
+    annotation.set(MLScoreType.class, new MLScore(score, model));
   }
 
   /**
@@ -634,18 +636,11 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
   }
 
   private Comparator<SpectralDBAnnotation> mlScoreComparatorDesc() {
-    return switch (algorithm) {
-      case MS2_DEEPSCORE -> Comparator.comparingDouble((SpectralDBAnnotation a) -> {
-        final Float v = a.get(MS2DeepscoreScoreType.class);
-        return v == null ? 0d : v.doubleValue();
-      }).reversed();
-      case DREAMS -> Comparator.comparingDouble((SpectralDBAnnotation a) -> {
-        final Float v = a.get(DreamsScoreType.class);
-        return v == null ? 0d : v.doubleValue();
-      }).reversed();
-      case MODIFIED_COSINE, COSINE_NO_PRECURSOR -> throw new AssertionError(
-          "mlScoreComparatorDesc called for non-ML algorithm: " + algorithm);
-    };
+    // single comparator regardless of model — MLScoreType holds both fields
+    return Comparator.comparingDouble((SpectralDBAnnotation a) -> {
+      final MLScore s = a.get(MLScoreType.class);
+      return s == null ? 0d : s.score();
+    }).reversed();
   }
 
   private @Nullable Scan pickSingleQueryScanForMl(final FeatureListRow row) {

@@ -25,31 +25,49 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Score returned by the DREAMS PyTorch model. Stored on
- * {@link io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation}s produced by the analog
- * spectral library search when the DREAMS algorithm is selected.
+ * Identifier for the ML model that produced an {@link MLScore}. Kept separate from
+ * {@code SpectralNetworkingOptions} so the score record stays ML-only and isn't conflated with
+ * cosine algorithms.
  */
-public class DreamsScoreType extends ScoreType {
+public enum MLModelId {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "dreams_score";
+  MS2_DEEPSCORE("MS2Deepscore", "ms2deepscore"), //
+  DREAMS("DREAMS", "dreams");
+
+  private final String label;
+  private final String xmlId;
+
+  MLModelId(String label, String xmlId) {
+    this.label = label;
+    this.xmlId = xmlId;
   }
 
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "DREAMS";
+  /**
+   * @return short human-readable label, used in score-cell text and tooltips.
+   */
+  public @NotNull String label() {
+    return label;
   }
 
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
+  /**
+   * @return stable identifier used in XML serialization. Never change for an existing enum value.
+   */
+  public @NotNull String xmlId() {
+    return xmlId;
+  }
+
+  /**
+   * @return matching enum value for the given xml id, or null if unknown.
+   */
+  public static MLModelId fromXmlId(@NotNull String id) {
+    for (MLModelId m : values()) {
+      if (m.xmlId.equals(id)) {
+        return m;
+      }
+    }
+    return null;
   }
 }
