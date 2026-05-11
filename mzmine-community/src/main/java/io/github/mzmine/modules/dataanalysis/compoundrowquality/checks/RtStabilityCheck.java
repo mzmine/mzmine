@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -28,7 +29,7 @@ public final class RtStabilityCheck implements QualityCheck {
     final RTTolerance rtTol = context.rtTolerance();
 
     if (members.size() < 2) {
-      return new QualityCheckResult(QualityCheckType.RT_STABILITY, QualityCheckStatus.UNAVAILABLE,
+      return new DefaultQualityCheckResult(QualityCheckType.RT_STABILITY, QualityCheckStatus.UNAVAILABLE,
           "Need at least 2 members to assess RT stability", List.of(),
           members.stream().map(CompoundFeatureMember::row).toList());
     }
@@ -51,7 +52,7 @@ public final class RtStabilityCheck implements QualityCheck {
     }
 
     if (minRt == Float.POSITIVE_INFINITY) {
-      return new QualityCheckResult(QualityCheckType.RT_STABILITY, QualityCheckStatus.UNAVAILABLE,
+      return new DefaultQualityCheckResult(QualityCheckType.RT_STABILITY, QualityCheckStatus.UNAVAILABLE,
           "No RT values available", List.of(), involved);
     }
 
@@ -61,7 +62,7 @@ public final class RtStabilityCheck implements QualityCheck {
         involved.size() == 1 ? "" : "s");
     final List<String> details = List.of("Min RT: %.3f min".formatted(minRt),
         "Max RT: %.3f min".formatted(maxRt), "Tolerance: %s".formatted(rtTol.toString()));
-    return new QualityCheckResult(QualityCheckType.RT_STABILITY,
+    return new DefaultQualityCheckResult(QualityCheckType.RT_STABILITY,
         ok ? QualityCheckStatus.PASS : QualityCheckStatus.WARN, summary, details, involved);
   }
 }

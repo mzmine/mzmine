@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -49,13 +50,13 @@ public final class AnnotationAgreementCheck implements QualityCheck {
     }
 
     if (groups.isEmpty()) {
-      return new QualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT,
+      return new DefaultQualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT,
           QualityCheckStatus.UNAVAILABLE, "No annotations to compare", List.of(), involved);
     }
 
     if (groups.size() == 1) {
       final String name = displayNameByKey.values().iterator().next();
-      return new QualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT,
+      return new DefaultQualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT,
           QualityCheckStatus.PASS, "All point to %s".formatted(name), List.of(), involved);
     }
 
@@ -64,7 +65,7 @@ public final class AnnotationAgreementCheck implements QualityCheck {
       details.add("%s — %d row%s".formatted(displayNameByKey.get(e.getKey()), e.getValue().size(),
           e.getValue().size() == 1 ? "" : "s"));
     }
-    return new QualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT, QualityCheckStatus.FAIL,
+    return new DefaultQualityCheckResult(QualityCheckType.ANNOTATION_AGREEMENT, QualityCheckStatus.FAIL,
         "%d conflicting annotations".formatted(groups.size()), details, involved);
   }
 

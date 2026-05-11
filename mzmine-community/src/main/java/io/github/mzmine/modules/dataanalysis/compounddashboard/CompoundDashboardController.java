@@ -41,7 +41,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   // Coalesces rapid selection changes (arrow-key navigation) into a single recompute.
   private static final Duration DEBOUNCE = Duration.millis(150);
 
-  private final ChromatogramPlotController eicPlot = new ChromatogramPlotController();
+  private final ChromatogramPlotController eicPlot = new ChromatogramPlotController(true);
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
   private final SimpleSpectraChartController ms2Chart = new SimpleSpectraChartController();
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();

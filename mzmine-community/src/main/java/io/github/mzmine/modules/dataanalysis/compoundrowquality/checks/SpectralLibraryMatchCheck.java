@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -48,13 +49,13 @@ public final class SpectralLibraryMatchCheck implements QualityCheck {
     }
 
     if (bestScore == null) {
-      return new QualityCheckResult(QualityCheckType.SPECTRAL_LIBRARY_MATCH,
+      return new DefaultQualityCheckResult(QualityCheckType.SPECTRAL_LIBRARY_MATCH,
           QualityCheckStatus.UNAVAILABLE, "No spectral library matches", List.of(), List.of());
     }
     final String summary =
         bestName != null ? "%s — score %.3f".formatted(bestName, bestScore) : "Best score %.3f".formatted(
             bestScore);
-    return new QualityCheckResult(QualityCheckType.SPECTRAL_LIBRARY_MATCH, QualityCheckStatus.PASS,
+    return new DefaultQualityCheckResult(QualityCheckType.SPECTRAL_LIBRARY_MATCH, QualityCheckStatus.PASS,
         summary, List.of(), involved);
   }
 }

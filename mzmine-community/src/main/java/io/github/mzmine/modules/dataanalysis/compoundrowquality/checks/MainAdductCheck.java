@@ -9,6 +9,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -56,12 +57,12 @@ public final class MainAdductCheck implements QualityCheck {
     }
 
     if (ionsByType.isEmpty()) {
-      return new QualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT,
+      return new DefaultQualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT,
           QualityCheckStatus.UNAVAILABLE, "No ion types annotated", List.of(), involved);
     }
 
     if (!PolarityType.isDefined(polarity)) {
-      return new QualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT,
+      return new DefaultQualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT,
           QualityCheckStatus.UNAVAILABLE, "Unknown polarity — cannot determine main adduct",
           List.of(), involved);
     }
@@ -82,7 +83,7 @@ public final class MainAdductCheck implements QualityCheck {
     }
 
     if (hit != null) {
-      return new QualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT, QualityCheckStatus.PASS,
+      return new DefaultQualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT, QualityCheckStatus.PASS,
           "%s detected".formatted(hit), List.of("Polarity: %s".formatted(polarity)), involved);
     }
 
@@ -90,7 +91,7 @@ public final class MainAdductCheck implements QualityCheck {
         targetIons.stream().map(IonType::toString).toList());
     final String detected = String.join(", ",
         ionsByType.keySet().stream().map(IonType::toString).toList());
-    return new QualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT, QualityCheckStatus.FAIL,
+    return new DefaultQualityCheckResult(QualityCheckType.MAIN_ADDUCT_PRESENT, QualityCheckStatus.FAIL,
         "Missing main %s adduct".formatted(polarity.toString().toLowerCase()),
         List.of("Expected one of: " + expected, "Detected: " + detected), involved);
   }

@@ -111,14 +111,9 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     final FontIcon icon = FxIconUtil.getFontIcon(r.status().icon(), FxIconUtil.DEFAULT_ICON_SIZE,
         colorFor(r.status()));
 
-    final Label title = FxLabels.newBoldLabel(r.type().getLabel());
-    final Label summary = FxLabels.newLabel(r.summary());
-    summary.setWrapText(true);
-
-    final VBox titleBlock = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, title, summary);
-    HBox.setHgrow(titleBlock, Priority.ALWAYS);
-
-    final HBox header = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, icon, titleBlock);
+    final Region mainPane = r.buildMainPane();
+    HBox.setHgrow(mainPane, Priority.ALWAYS);
+    final HBox header = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, icon, mainPane);
 
     final TitledPane pane = new TitledPane();
     pane.setGraphic(header);
@@ -127,21 +122,15 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     // bind header width to the TitledPane width so the graphic fills the title bar
     header.prefWidthProperty().bind(pane.widthProperty().subtract(TITLE_ARROW_RESERVED));
 
-    if (r.detailLines().isEmpty() && r.involvedRows().isEmpty()) {
+    final Region subPane = r.buildSubPane();
+    if (subPane == null) {
       pane.setCollapsible(false);
     } else {
-      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
-          FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true);
-      for (final String line : r.detailLines()) {
-        final Label detail = FxLabels.newLabel(line);
-        detail.setWrapText(true);
-        body.getChildren().add(detail);
-      }
-      if (!r.involvedRows().isEmpty()) {
-        body.getChildren().add(FxLabels.newItalicLabel(
-            "Involves %d row%s".formatted(r.involvedRows().size(),
-                r.involvedRows().size() == 1 ? "" : "s")));
-      }
+      // wrap so the body aligns under the summary (offset by icon width) regardless of what
+      // the result built
+      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT,
+          new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
+              FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true, subPane);
       pane.setContent(body);
       pane.setExpanded(false);
     }

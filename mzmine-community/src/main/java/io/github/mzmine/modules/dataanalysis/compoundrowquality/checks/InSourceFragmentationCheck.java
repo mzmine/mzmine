@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -75,7 +76,7 @@ public final class InSourceFragmentationCheck implements QualityCheck {
     }
 
     if (tagged.isEmpty() && matched.isEmpty()) {
-      return new QualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
+      return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
           QualityCheckStatus.PASS, "No in-source fragments detected", List.of(),
           List.copyOf(involved));
     }
@@ -89,7 +90,7 @@ public final class InSourceFragmentationCheck implements QualityCheck {
       details.add("MS2 hits: " + String.join(", ", matched));
     }
     final int total = tagged.size() + matched.size();
-    return new QualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
+    return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
         QualityCheckStatus.WARN,
         "%d possible in-source fragment%s".formatted(total, total == 1 ? "" : "s"), details,
         List.copyOf(involved));

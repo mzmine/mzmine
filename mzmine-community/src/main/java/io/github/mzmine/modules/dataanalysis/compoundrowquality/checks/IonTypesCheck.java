@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
@@ -45,7 +46,7 @@ public final class IonTypesCheck implements QualityCheck {
     }
 
     if (distinct.isEmpty()) {
-      return new QualityCheckResult(QualityCheckType.ION_TYPES, QualityCheckStatus.UNAVAILABLE,
+      return new DefaultQualityCheckResult(QualityCheckType.ION_TYPES, QualityCheckStatus.UNAVAILABLE,
           "No ion types annotated", List.of(), involved);
     }
 
@@ -55,7 +56,7 @@ public final class IonTypesCheck implements QualityCheck {
       final Double mz = e.getValue().getAverageMZ();
       return "%s — m/z %.4f".formatted(e.getKey(), mz == null ? Double.NaN : mz);
     }).toList();
-    return new QualityCheckResult(QualityCheckType.ION_TYPES, QualityCheckStatus.PASS, summary,
+    return new DefaultQualityCheckResult(QualityCheckType.ION_TYPES, QualityCheckStatus.PASS, summary,
         details, involved);
   }
 }
