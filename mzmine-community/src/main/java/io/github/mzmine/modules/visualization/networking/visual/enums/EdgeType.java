@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,8 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-  ONLINE_REACTION, MS2Deepscore, DREAMS, OTHER;
+  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS, // analog (row → library-compound) edges; reuse the networking palette
+  ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -70,6 +70,8 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> Type.ONLINE_REACTION;
       case MS2Deepscore -> Type.MS2Deepscore;
       case DREAMS -> Type.DREAMS;
+      // analog edges are not row-row relationships and have no R2R type counterpart
+      case ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS -> Type.OTHER;
       case OTHER -> Type.OTHER;
       case null -> Type.OTHER;
     };
@@ -77,7 +79,7 @@ public enum EdgeType implements ElementType {
 
   public static List<EdgeType> getDefaultVisibleColumns() {
     return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-        MS2Deepscore, DREAMS, OTHER);
+        MS2Deepscore, DREAMS, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER);
   }
 
   @Override
@@ -101,6 +103,11 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> "IINREL";
       case MS2Deepscore -> "MS2Deepscore";
       case DREAMS -> "DreaMS";
+      // analog edges adopt the same CSS class as the matching networking edge so they pick up
+      // the networking palette automatically; no new edge.* CSS needed
+      case ANALOG_MS2_COSINE -> "COSINE";
+      case ANALOG_MS2Deepscore -> "MS2Deepscore";
+      case ANALOG_DreaMS -> "DreaMS";
       case OTHER -> "OTHER";
     });
   }

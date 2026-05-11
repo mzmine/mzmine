@@ -273,9 +273,11 @@ public class RegularScanTypesTest {
           : a.getMzAbsoluteError() + (a.getEntry().getPrecursorMZ() == null ? 0d
               : a.getEntry().getPrecursorMZ()), a.getRtAbsoluteError(), a.getRiDiff(),
           io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class);
-      // simulate ML score storage on at least one annotation
-      an.set(io.github.mzmine.datamodel.features.types.numbers.scores.MS2DeepscoreScoreType.class,
-          0.82f);
+      // simulate ML score storage on every analog annotation via the unified MLScoreType (record
+      // carrying score + model identifier)
+      an.set(io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType.class,
+          new io.github.mzmine.datamodel.features.types.numbers.scores.MLScore(0.82f,
+              io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId.MS2_DEEPSCORE));
       analog.add(an);
     }
     return analog;

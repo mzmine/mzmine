@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -48,6 +50,9 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup.RowAnnotation;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGrouper;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -147,6 +152,9 @@ public class FeatureNetworkGenerator {
           getRowNode(row, true);
         }
       }
+
+      // add analog library compound nodes + edges from rows to them
+      addAnalogLibraryCompoundNodes(rows);
 
       // add id name
       for (Node node : graph) {
@@ -551,6 +559,101 @@ public class FeatureNetworkGenerator {
     return node;
   }
 
+
+  /**
+   * Creates one library-compound node per deduplicated cluster of analog spectral-library matches
+   * across all rows, and an analog edge from every contributing row to its cluster's node. Node IDs
+   * use the prefix "LIB_" so they cannot collide with row IDs ({@link #toNodeName(FeatureListRow)})
+   * or with neutral-molecule IDs ("Net*").
+   */
+  private void addAnalogLibraryCompoundNodes(final List<FeatureListRow> rows) {
+    // pool every (row, analog annotation) pair
+    final List<RowAnnotation> pool = new ArrayList<>();
+    for (final FeatureListRow row : rows) {
+      for (final SpectralDBAnnotation annotation : row.getAnalogSpectralLibraryMatches()) {
+        pool.add(new RowAnnotation(row, annotation));
+      }
+    }
+    if (pool.isEmpty()) {
+      return;
+    }
+
+    final List<AnalogCompoundGroup> groups = AnalogCompoundGrouper.group(pool);
+    for (int gIdx = 0; gIdx < groups.size(); gIdx++) {
+      final AnalogCompoundGroup group = groups.get(gIdx);
+      final String nodeId = "LIB_" + gIdx;
+      final Node compoundNode = createAnalogCompoundNode(nodeId, group);
+      // edges from each contributing row → this compound node, styled per algorithm
+      for (final RowAnnotation member : group.members()) {
+        final Node rowNode = getRowNode(member.row(), true);
+        if (rowNode == null) {
+          continue;
+        }
+        addAnalogEdge(rowNode, compoundNode, member.annotation());
+      }
+    }
+  }
+
+  private Node createAnalogCompoundNode(final String nodeId, final AnalogCompoundGroup group) {
+    final SpectralDBAnnotation rep = group.representative();
+    Node node = graph.getNode(nodeId);
+    if (node != null) {
+      return node;
+    }
+    node = graph.addNode(nodeId);
+    node.setAttribute(NodeAtt.ID.toString(), nodeId);
+    node.setAttribute(NodeAtt.TYPE.toString(), NodeType.LIB_ANALOG_COMPOUND);
+
+    final String label = group.compoundKey() != null ? group.compoundKey()
+        : (rep.getCompoundName() != null ? rep.getCompoundName() : nodeId);
+    node.setAttribute(NodeAtt.LABEL.toString(), label);
+    node.setAttribute("ui.label", label);
+
+    // surface the same set of attributes as NEUTRAL_M nodes so the existing inspector / hover
+    // logic renders compound info and structure without further plumbing
+    if (rep.getCompoundName() != null) {
+      node.setAttribute(NodeAtt.COMPOUND_NAME.toString(), rep.getCompoundName());
+      node.setAttribute(NodeAtt.LIB_MATCH.toString(), rep.getCompoundName());
+    }
+    if (rep.getFormula() != null) {
+      node.setAttribute(NodeAtt.FORMULA.toString(), rep.getFormula());
+    }
+    final double bestScore = group.members().stream().mapToDouble(m -> {
+      final MLScore ml = m.annotation().get(MLScoreType.class);
+      return ml != null ? ml.score() : m.annotation().getSimilarity().getScore();
+    }).max().orElse(0d);
+    node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(bestScore));
+    return node;
+  }
+
+  private void addAnalogEdge(final Node rowNode, final Node compoundNode,
+      final SpectralDBAnnotation annotation) {
+    final EdgeType edgeType = analogEdgeTypeFor(annotation);
+    final double score;
+    final MLScore ml = annotation.get(MLScoreType.class);
+    if (ml != null) {
+      score = ml.score();
+    } else {
+      score = annotation.getSimilarity().getScore();
+    }
+    final Edge edge = addNewEdge(rowNode, compoundNode, edgeType,
+        scoreForm.format(score) + " (" + edgeType.name() + ")", false);
+    edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
+    setEdgeWeightQuadraticScore(edge, score);
+  }
+
+  // Pick the analog edge variant based on the annotation's stored score type. ML scores are tagged
+  // with MLModelId; cosine analog matches have only the cosine similarity and fall through.
+  private static EdgeType analogEdgeTypeFor(final SpectralDBAnnotation annotation) {
+    final MLScore ml = annotation.get(MLScoreType.class);
+    if (ml == null) {
+      return EdgeType.ANALOG_MS2_COSINE;
+    }
+    return switch (ml.model()) {
+      case MS2_DEEPSCORE -> EdgeType.ANALOG_MS2Deepscore;
+      case DREAMS -> EdgeType.ANALOG_DreaMS;
+    };
+  }
 
   public String toNodeName(FeatureListRow row) {
     return String.valueOf(row.getID());

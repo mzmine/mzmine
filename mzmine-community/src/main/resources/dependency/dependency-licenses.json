@@ -2,7 +2,7 @@
     "dependencies": [
         {
             "moduleName": "ai.djl.pytorch:pytorch-engine",
-            "moduleVersion": "0.36.0",
+            "moduleVersion": "0.26.0",
             "moduleUrls": [
                 "http://www.djl.ai/engines/pytorch/pytorch-engine"
             ],
@@ -15,7 +15,7 @@
         },
         {
             "moduleName": "ai.djl:api",
-            "moduleVersion": "0.36.0",
+            "moduleVersion": "0.26.0",
             "moduleUrls": [
                 "http://www.djl.ai/api"
             ],
@@ -408,9 +408,9 @@
         },
         {
             "moduleName": "com.google.code.gson:gson",
-            "moduleVersion": "2.13.1",
+            "moduleVersion": "2.10.1",
             "moduleUrls": [
-                "https://github.com/google/gson"
+                "https://github.com/google/gson/gson"
             ],
             "moduleLicenses": [
                 {
@@ -421,7 +421,7 @@
         },
         {
             "moduleName": "com.google.errorprone:error_prone_annotations",
-            "moduleVersion": "2.38.0",
+            "moduleVersion": "2.23.0",
             "moduleUrls": [
                 "https://errorprone.info/error_prone_annotations"
             ],
@@ -698,7 +698,7 @@
         },
         {
             "moduleName": "commons-codec:commons-codec",
-            "moduleVersion": "1.17.1",
+            "moduleVersion": "1.17.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-codec/"
             ],
@@ -1747,7 +1747,7 @@
         },
         {
             "moduleName": "net.java.dev.jna:jna",
-            "moduleVersion": "5.17.0",
+            "moduleVersion": "5.13.0",
             "moduleUrls": [
                 "https://github.com/java-native-access/jna"
             ],
@@ -1872,7 +1872,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-compress",
-            "moduleVersion": "1.27.1",
+            "moduleVersion": "1.26.2",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-compress/"
             ],
@@ -1885,7 +1885,7 @@
         },
         {
             "moduleName": "org.apache.commons:commons-lang3",
-            "moduleVersion": "3.16.0",
+            "moduleVersion": "3.15.0",
             "moduleUrls": [
                 "https://commons.apache.org/proper/commons-lang/"
             ],
