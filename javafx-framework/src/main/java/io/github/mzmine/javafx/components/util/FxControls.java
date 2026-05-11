@@ -26,7 +26,11 @@
 package io.github.mzmine.javafx.components.util;
 
 import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 import javafx.scene.control.Control;
+import javafx.scene.control.Tooltip;
+import org.jetbrains.annotations.NotNull;
 
 public class FxControls {
 
@@ -41,4 +45,10 @@ public class FxControls {
     return control;
   }
 
+  public static Node addTooltip(Node node, ObservableValue<@NotNull String> tooltip) {
+    final Tooltip t = new Tooltip();
+    t.textProperty().bind(tooltip);
+    Tooltip.install(node, t);
+    return node;
+  }
 }

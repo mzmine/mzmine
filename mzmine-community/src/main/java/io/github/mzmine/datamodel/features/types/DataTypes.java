@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.MasstUrlType;
 import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
@@ -205,7 +206,7 @@ public class DataTypes {
    */
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
-    List<Class> priority = List.of(IDType.class, DetectionType.class, MZType.class,
+    List<Class> priority = List.of(CompoundIdType.class, IDType.class, DetectionType.class, MZType.class,
         MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,

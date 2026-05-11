@@ -63,6 +63,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
@@ -733,6 +734,10 @@ public class FeatureTableFX extends BorderPane {
       headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(raw.getColor())));
     }
     rowCol.setGraphic(headerLabel);
+
+    if (flist.getCompoundList() != null) {
+      addColumn(rowCol, DataTypes.get(CompoundIdType.class));
+    }
 
     // add row types
     featureList.getRowTypes().forEach(dataType -> addColumn(rowCol, dataType));
