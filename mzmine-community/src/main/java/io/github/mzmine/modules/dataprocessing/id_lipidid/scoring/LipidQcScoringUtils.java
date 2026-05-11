@@ -840,7 +840,7 @@ public final class LipidQcScoringUtils {
     if (row.getBestIonIdentity() == null || match.getIonizationType() == null) {
       return 0d;
     }
-    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().getAdduct());
+    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().toString());
     final String lipidAdduct = normalizeAdduct(match.getIonizationType().getAdductName());
     return featureAdduct.equals(lipidAdduct) ? 1d : 0d;
   }
@@ -863,7 +863,7 @@ public final class LipidQcScoringUtils {
     if (row.getBestIonIdentity() == null || match.getIonizationType() == null) {
       return componentWeights.adductNoIonIdentityWeight();
     }
-    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().getAdduct());
+    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().toString());
     final String lipidAdduct = normalizeAdduct(match.getIonizationType().getAdductName());
     return featureAdduct.equals(lipidAdduct) ? componentWeights.adductMatchWeight()
         : componentWeights.adductMismatchWeight();

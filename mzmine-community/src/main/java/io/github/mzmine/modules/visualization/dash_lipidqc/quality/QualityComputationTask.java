@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -205,10 +206,10 @@ final class QualityComputationTask extends FxUpdateTask<AnnotationQualityModel> 
     if (row.getBestIonIdentity() == null) {
       return new QualityMetric(0d, "No ion identity available for cross-check");
     }
-    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().getAdduct());
+    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().toString());
     final String lipidAdduct = normalizeAdduct(match.getIonizationType().getAdductName());
     final boolean matchFound = featureAdduct.equals(lipidAdduct);
-    final String detail = "Feature: " + row.getBestIonIdentity().getAdduct() + " vs Lipid: "
+    final String detail = "Feature: " + row.getBestIonIdentity().toString() + " vs Lipid: "
         + match.getIonizationType().getAdductName();
     return new QualityMetric(matchFound ? 1d : 0d, detail);
   }

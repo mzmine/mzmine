@@ -34,9 +34,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassS
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.dash_lipidqc.DashboardComputationPane;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidQcAnnotationSelectionUtils;
-import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
 import java.awt.Color;
@@ -139,18 +139,15 @@ public class IsotopePane extends DashboardComputationPane {
     IsotopePattern pattern = null;
     final IMolecularFormula neutralFormula = selectedMatch.getLipidAnnotation().getMolecularFormula();
     if (neutralFormula != null && adductType != null) {
-      try {
-        final IMolecularFormula ionFormula = adductType.addToFormula(neutralFormula);
-        final double referenceMz =
-            selectedMatch.getAccurateMz() != null ? selectedMatch.getAccurateMz() : row.getAverageMZ();
-        final double mergeWidth = Math.max(MIN_MERGE_WIDTH,
-            referenceMz > 0d ? referenceMz / APPROX_INSTRUMENT_RESOLUTION : MIN_MERGE_WIDTH);
-        pattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
-            MIN_THEORETICAL_ABUNDANCE, mergeWidth, adductType.getAbsCharge(),
-            adductType.getPolarity(), false);
-      } catch (CloneNotSupportedException ignored) {
-        pattern = null;
-      }
+      final IMolecularFormula ionFormula = adductType.addToFormula(neutralFormula, true);
+      final double referenceMz =
+          selectedMatch.getAccurateMz() != null ? selectedMatch.getAccurateMz()
+              : row.getAverageMZ();
+      final double mergeWidth = Math.max(MIN_MERGE_WIDTH,
+          referenceMz > 0d ? referenceMz / APPROX_INSTRUMENT_RESOLUTION : MIN_MERGE_WIDTH);
+      pattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
+          MIN_THEORETICAL_ABUNDANCE, mergeWidth, adductType.absTotalCharge(),
+          adductType.getPolarity(), false);
     }
     final IsotopePattern measured = row.getBestIsotopePattern();
     if (pattern != null && measured != null && measured.getBasePeakIntensity() != null

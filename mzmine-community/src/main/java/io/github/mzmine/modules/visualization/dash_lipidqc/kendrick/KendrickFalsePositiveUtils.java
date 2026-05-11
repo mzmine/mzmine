@@ -35,9 +35,9 @@ import static io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQc
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.visualization.dash_lipidqc.LipidQcAnnotationSelectionUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.ElutionOrderMetrics;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.InterferenceMetrics;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidQcAnnotationSelectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -122,7 +122,7 @@ public final class KendrickFalsePositiveUtils {
     if (row.getBestIonIdentity() == null) {
       return 0d;
     }
-    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().getAdduct());
+    final String featureAdduct = normalizeAdduct(row.getBestIonIdentity().toString());
     final String lipidAdduct = normalizeAdduct(match.getIonizationType().getAdductName());
     return featureAdduct.equals(lipidAdduct) ? 1d : 0d;
   }
