@@ -147,13 +147,14 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
     this.algorithm = mainParameters.getValue(AnalogSpectralLibrarySearchParameters.algorithm);
     this.algoParams = mainParameters.getEmbeddedParameterValue(
         AnalogSpectralLibrarySearchParameters.algorithm);
-    this.maxMzDelta = mainParameters.getValue(AnalogSpectralLibrarySearchParameters.maxMzDelta);
     this.description = "Analog spectral library search";
 
     switch (algorithm) {
       case MODIFIED_COSINE -> {
         mzTolerance = algoParams.getValue(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE);
         minMatch = algoParams.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
+        maxMzDelta = algoParams.getEmbeddedParameterValueIfSelectedOrElse(
+            ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, 1E4);
         minCosine = algoParams.getValue(
             ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
         final SignalFiltersParameters sf = algoParams.getValue(
@@ -185,6 +186,7 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
         mlMinScore = 0d;
         mlMinSignals = 0;
         dreamsBatchSize = 0;
+        maxMzDelta = 1E4;
       }
       case MS2_DEEPSCORE -> {
         mzTolerance = null;
@@ -200,6 +202,7 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
         mlMinScore = algoParams.getValue(MS2DeepscoreNetworkingParameters.minScore);
         mlMinSignals = algoParams.getValue(MS2DeepscoreNetworkingParameters.minSignals);
         dreamsBatchSize = 0;
+        maxMzDelta = 1E4;
       }
       case DREAMS -> {
         mzTolerance = null;
@@ -215,6 +218,7 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
         mlMinScore = algoParams.getValue(DreaMSNetworkingParameters.minScore);
         mlMinSignals = 0;
         dreamsBatchSize = algoParams.getValue(DreaMSNetworkingParameters.batchSize);
+        maxMzDelta = 1E4;
       }
       default -> throw new AssertionError("Unhandled analog search algorithm: " + algorithm);
     }

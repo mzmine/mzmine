@@ -23,7 +23,7 @@ mockito = '5.20.0'
 jackson = '2.18.0'
 ikonli = "12.3.1"
 graphstream = "2.0"
-djl = "0.36.0"
+djl = "0.26.0"
 mzio = "1.0.0"
 jasper = "7.0.3"
 

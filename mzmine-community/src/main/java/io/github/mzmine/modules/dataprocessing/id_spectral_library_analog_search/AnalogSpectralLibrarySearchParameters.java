@@ -25,11 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
@@ -51,16 +49,10 @@ public class AnalogSpectralLibrarySearchParameters extends SimpleParameterSet {
       "Similarity algorithm. PyTorch models (MS2Deepscore, DREAMS) score embedding similarity; the cosine fallback is also computed for visualization when an ML score passes the threshold.",
       SpectralNetworkingOptions.MODIFIED_COSINE);
 
-  // Cosine-only parameter. ML algorithms (MS2Deepscore, DREAMS) score embedding similarity
-  // independent of precursor mass and ignore this value.
-  public static final DoubleParameter maxMzDelta = new DoubleParameter("Max precursor m/z delta",
-      "Cosine algorithms only: maximum |precursor m/z difference| (Da) between the query row and a library entry to be considered an analog candidate. Ignored for MS2Deepscore and DREAMS.",
-      MZmineCore.getConfiguration().getMZFormat(), 500d);
-
   public AnalogSpectralLibrarySearchParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html",
-        featureLists, libraries, algorithm, maxMzDelta);
+        featureLists, libraries, algorithm);
   }
 
   @NotNull
@@ -69,8 +61,4 @@ public class AnalogSpectralLibrarySearchParameters extends SimpleParameterSet {
     return IonMobilitySupport.SUPPORTED;
   }
 
-  @Override
-  public int getVersion() {
-    return 1;
-  }
 }
