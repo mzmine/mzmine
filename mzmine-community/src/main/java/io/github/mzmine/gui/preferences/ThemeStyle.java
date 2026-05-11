@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -31,8 +32,8 @@ package io.github.mzmine.gui.preferences;
  */
 public enum ThemeStyle {
 
-  JABREF("JabRef Classic", "themes/jabref_light.css"), MODERN("Modern",
-      "themes/style_modern.css"), VIVID("Vivid", "themes/style_vivid.css");
+  JABREF("Classic (JabRef)", "themes/jabref_light.css"), MODERN("Modern",
+      "themes/style_modern.css");
 
   private final String displayName;
   private final String stylesheet;
