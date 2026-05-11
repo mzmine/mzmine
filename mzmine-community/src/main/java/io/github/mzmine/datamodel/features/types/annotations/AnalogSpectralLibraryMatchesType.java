@@ -49,9 +49,8 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.DreamsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.MS2DeepscoreScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +58,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Analog spectral library matches in a list. Identical structure to
  * {@link SpectralLibraryMatchesType} but produced by the analog (modification-aware) library search
- * and additionally exposes ML score sub-columns ({@link MS2DeepscoreScoreType},
- * {@link DreamsScoreType}).
+ * and additionally exposes a single {@link MLScoreType} sub-column carrying score + model.
  */
 public final class AnalogSpectralLibraryMatchesType extends
     AbstractSpectralLibraryMatchesType implements AnnotationType {
@@ -71,8 +69,7 @@ public final class AnalogSpectralLibraryMatchesType extends
       new CompoundNameType(), //
       new AnnotationSummaryType(),//
       new SimilarityType(),//
-      new MS2DeepscoreScoreType(), //
-      new DreamsScoreType(), //
+      new MLScoreType(), //
       new MatchingSignalsType(),//
       new ExplainedIntensityPercentType(), //
       new IonAdductType(),//
