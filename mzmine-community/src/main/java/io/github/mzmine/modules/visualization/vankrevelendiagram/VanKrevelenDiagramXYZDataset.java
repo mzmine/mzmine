@@ -30,12 +30,9 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -44,7 +41,6 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -54,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYZDataset;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.interfaces.IElement;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /*
  * XYZDataset for Van Krevelen diagram
@@ -111,8 +107,8 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues).getValue());
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(VanKrevelenDiagramParameters.bubbleSizeValues).getValue());
-    colorVanKrevelenDataType = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
-        .getValue();
+    colorVanKrevelenDataType = parameters.getParameter(
+        VanKrevelenDiagramParameters.colorScaleValues).getValue();
     bubbleVanKrevelenDataType = parameters.getParameter(
         VanKrevelenDiagramParameters.bubbleSizeValues).getValue();
     finishedSteps = 1;
@@ -121,16 +117,12 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
 
   private void initElementRatioValues(IElement elementOne, IElement elementTwo, double[] values) {
     for (int i = 0; i < filteredRows.size(); i++) {
-      Object preferredAnnotation = filteredRows.get(i).getPreferredAnnotation();
+      FeatureAnnotation preferredAnnotation = filteredRows.get(i).getPreferredAnnotation();
       if (preferredAnnotation != null) {
-        String formula = getFormulaFromAnnotation(preferredAnnotation);
+        final IMolecularFormula formula = preferredAnnotation.getCdkFormula();
         if (formula != null) {
-          int elementOneCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
-              elementOne);
-          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
-              elementTwo);
+          int elementOneCount = FormulaUtils.countElement(formula, elementOne);
+          int elementTwoCount = FormulaUtils.countElement(formula, elementTwo);
           values[i] = (elementOneCount > 0 && elementTwoCount > 0) ? (double) elementOneCount
                                                                      / elementTwoCount : 0.0;
         } else {
@@ -138,17 +130,6 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         }
       }
     }
-  }
-
-  private String getFormulaFromAnnotation(Object annotation) {
-    return switch (annotation) {
-      case MatchedLipid lipid ->
-          MolecularFormulaManipulator.getString(lipid.getLipidAnnotation().getMolecularFormula());
-      case FeatureAnnotation ann -> ann.getFormula();
-      case ManualAnnotation ann -> ann.getFormula();
-      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      default -> null;
-    };
   }
 
   FeatureListRow getRow(final int item) {
@@ -163,10 +144,9 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
     return null;
   }
 
-  @Nullable
-  String getFormulaString(final int item) {
-    final Object ann = getRow(item).getPreferredAnnotation();
-    return ann == null ? null : getFormulaFromAnnotation(ann);
+  @Nullable String getFormulaString(final int item) {
+    final FeatureAnnotation ann = getRow(item).getPreferredAnnotation();
+    return ann == null ? null : ann.getFormula();
   }
 
   public VanKrevelenDiagramDataTypes getColorVanKrevelenDataType() {
@@ -186,10 +166,10 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
         case AREA -> values[i] = row.getMaxArea();
         case TAILING_FACTOR -> values[i] =
             (row.getBestFeature().getTailingFactor() != null) ? row.getBestFeature()
-                .getTailingFactor() : 0.0;
+                                                                .getTailingFactor() : 0.0;
         case ASYMMETRY_FACTOR -> values[i] =
             (row.getBestFeature().getAsymmetryFactor() != null) ? row.getBestFeature()
-                .getAsymmetryFactor() : 0.0;
+                                                                  .getAsymmetryFactor() : 0.0;
         case FWHM -> values[i] =
             (row.getBestFeature().getFWHM() != null) ? row.getBestFeature().getFWHM() : 0.0;
         default -> throw new IllegalStateException(

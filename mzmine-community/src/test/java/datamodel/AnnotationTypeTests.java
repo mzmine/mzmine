@@ -60,8 +60,8 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaResultsType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaResult;
@@ -71,6 +71,7 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -84,10 +85,7 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class AnnotationTypeTests {
 
@@ -296,7 +294,7 @@ public class AnnotationTypeTests {
 
     var type = new CompoundDatabaseMatchesType();
 
-    final IonType ionType = new IonType(IonModification.NH4);
+    final IonType ionType = IonTypes.NH4.asIonType();
     final CompoundDBAnnotation newIdentity = new SimpleCompoundDBAnnotation();
     newIdentity.put(new CompoundNameType(), "glucose");
     newIdentity.put(new FormulaType(), "C6H6O6");
@@ -349,24 +347,20 @@ public class AnnotationTypeTests {
 
   @Test
   void formulaListTypeTest() {
-    final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    final IMolecularFormula form1 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "C15H28F2O2", builder);
-    final IMolecularFormula form2 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "C18H34O2", builder);
-    final IMolecularFormula form3 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        "GdC50H80O10N4", builder);
+    final IMolecularFormula form1 = FormulaUtils.parse("C15H28F2O2");
+    final IMolecularFormula form2 = FormulaUtils.parse("C18H34O2");
+    final IMolecularFormula form3 = FormulaUtils.parse("GdC50H80O10N4");
 
     ResultFormula formula1 = new ResultFormula(form1,
         IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),
         0.5f, 0.1f,
         Map.of(new SimpleDataPoint(513.25, 1d), "C132", new SimpleDataPoint(200.26, 1d), "COF"),
-        MolecularFormulaManipulator.getMass(form1, 3));
+        FormulaUtils.getMonoisotopicMass(form1));
     ResultFormula formula2 = new ResultFormula(form2,
         IsotopePatternCalculator.calculateIsotopePattern(form2, 0.01, 1, PolarityType.POSITIVE),
-        0.5f, 0.1f, null, MolecularFormulaManipulator.getMass(form1, 3));
+        0.5f, 0.1f, null, FormulaUtils.getMonoisotopicMass(form1));
     ResultFormula formula3 = new ResultFormula(form3, null, 0.5f, null, null,
-        MolecularFormulaManipulator.getMass(form1, 3));
+        FormulaUtils.getMonoisotopicMass(form1));
 
     final List<ResultFormula> value = List.of(formula1, formula2, formula3);
     final FormulaListType type = new FormulaListType();

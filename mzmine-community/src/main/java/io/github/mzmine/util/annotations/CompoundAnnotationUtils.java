@@ -336,7 +336,7 @@ public class CompoundAnnotationUtils {
 
     IonType adduct = annotation.getAdductType();
     if (adduct != null) {
-      return OptionalInt.of(adduct.getCharge());
+      return OptionalInt.of(adduct.totalCharge());
     }
 
     Integer annCharge = getTypeValue(annotation, ChargeType.class);

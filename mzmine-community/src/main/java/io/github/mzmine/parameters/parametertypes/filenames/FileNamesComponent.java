@@ -120,26 +120,7 @@ public class FileNamesComponent extends BorderPane {
     Button btnFileBrowser = new Button("Select files");
     btnFileBrowser.setMaxWidth(Double.MAX_VALUE);
     btnFileBrowser.setOnAction(e -> {
-      // Create chooser.
-      FileChooser fileChooser = new FileChooser();
-      if (defaultDir != null) {
-        fileChooser.setInitialDirectory(defaultDir.toFile());
-      }
-      fileChooser.setTitle("Select files");
-
-      fileChooser.getExtensionFilters().addAll(this.filters);
-
-      String[] currentPaths = txtFilename.getText().split("\n");
-      if (currentPaths.length > 0) {
-        File currentFile = new File(currentPaths[0].trim());
-        File currentDir = currentFile.getParentFile();
-        if (currentDir != null && currentDir.exists()) {
-          fileChooser.setInitialDirectory(currentDir);
-        }
-      }
-
-      // Open chooser.
-      List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+      final List<File> selectedFiles = showSelectMultiFilesDialog(defaultDir);
       if (selectedFiles == null) {
         return;
       }
@@ -199,6 +180,34 @@ public class FileNamesComponent extends BorderPane {
     // main gridpane
     this.setCenter(stack);
     this.setRight(buttonGrid);
+  }
+
+  /**
+   *
+   * @param defaultDir
+   * @return null if dialog was closed without selection
+   */
+  public @Nullable List<File> showSelectMultiFilesDialog(@Nullable Path defaultDir) {
+    // Create chooser.
+    FileChooser fileChooser = new FileChooser();
+    if (defaultDir != null) {
+      fileChooser.setInitialDirectory(defaultDir.toFile());
+    }
+    fileChooser.setTitle("Select files");
+
+    fileChooser.getExtensionFilters().addAll(this.filters);
+
+    String[] currentPaths = txtFilename.getText().split("\n");
+    if (currentPaths.length > 0) {
+      File currentFile = new File(currentPaths[0].trim());
+      File currentDir = currentFile.getParentFile();
+      if (currentDir != null && currentDir.exists()) {
+        fileChooser.setInitialDirectory(currentDir);
+      }
+    }
+
+    // Open chooser.
+    return fileChooser.showOpenMultipleDialog(null);
   }
 
   private static @NotNull GridPane createButtonGrid(@NotNull Insets insets) {
