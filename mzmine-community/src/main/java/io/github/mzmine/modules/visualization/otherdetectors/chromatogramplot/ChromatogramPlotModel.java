@@ -29,9 +29,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import java.text.NumberFormat;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -56,6 +58,7 @@ public class ChromatogramPlotModel {
   private final ListProperty<XYAnnotation> annotations = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
+  private final BooleanProperty rangeStickyZero =  new SimpleBooleanProperty(false);
   private final StringProperty title = new SimpleStringProperty();
   private final StringProperty domainLabel = new SimpleStringProperty();
   private final StringProperty rangeLabel = new SimpleStringProperty();
@@ -181,4 +184,14 @@ public class ChromatogramPlotModel {
     return chart.get();
   }
 
+  public boolean isRangeStickyZero() {
+    return rangeStickyZero.get();
+  }
+
+  public BooleanProperty rangeStickyZeroProperty() {
+    return rangeStickyZero;
+  }
+  public void setRangeStickyZero(boolean rangeStickyZero) {
+    this.rangeStickyZero.set(rangeStickyZero);
+  }
 }

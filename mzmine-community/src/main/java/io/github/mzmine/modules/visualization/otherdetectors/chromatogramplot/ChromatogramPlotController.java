@@ -57,7 +57,12 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   private final ChromatogramPlotBuilder chromatogramPlotBuilder;
 
   public ChromatogramPlotController() {
+    this(false);
+  }
+
+  public ChromatogramPlotController(boolean rangeStickyZero) {
     super(new ChromatogramPlotModel());
+    model.setRangeStickyZero(rangeStickyZero);
     chromatogramPlotBuilder = new ChromatogramPlotBuilder(model);
   }
 

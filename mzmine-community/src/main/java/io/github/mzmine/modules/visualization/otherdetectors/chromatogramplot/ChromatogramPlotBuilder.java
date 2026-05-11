@@ -55,7 +55,14 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
     chart.setMinHeight(100);
     chart.setMinWidth(100);
-    chart.setStickyZeroRangeAxis(false);
+
+    model.rangeStickyZeroProperty().subscribe(sticky -> {
+      if (sticky) {
+        // otherwise there is a margin on bottom
+        chart.getXYPlot().getRangeAxis().setLowerMargin(0.0);
+      }
+      chart.setStickyZeroRangeAxis(sticky);
+    });
 
     initializeDatasetRendererListener(chart);
     initializeAnnotationListener(chart);
