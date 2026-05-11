@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -105,5 +106,29 @@ public final class CompoundDashboardColoring {
   public static @Nullable String ionTypeLabel(@NotNull final FeatureListRow row) {
     final IonIdentity ion = row.getBestIonIdentity();
     return ion == null ? null : ion.getIonType().toString();
+  }
+
+  /**
+   * Short on-plot label for the parent stick of an ion group. Examples: {@code "[M+H]+"} or, when
+   * no ion identity is set, just the formatted m/z (no {@code "m/z"} prefix).
+   */
+  public static @NotNull String shortIonLabel(@NotNull final FeatureListRow row) {
+    final String ion = ionTypeLabel(row);
+    if (ion != null) {
+      return ion;
+    }
+    final Double mz = row.getAverageMZ();
+    return mz == null ? ("row " + row.getID()) : ConfigService.getGuiFormats().mz(mz);
+  }
+
+  /**
+   * Long descriptive label, used for hover tooltips. Examples: {@code "[M+H]+ m/z 123.4567"} or
+   * {@code "unknown m/z 123.4567"} when no ion identity is set.
+   */
+  public static @NotNull String longIonLabel(@NotNull final FeatureListRow row) {
+    final String ion = ionTypeLabel(row);
+    final Double mz = row.getAverageMZ();
+    final String mzStr = mz == null ? "?" : ConfigService.getGuiFormats().mz(mz);
+    return (ion == null ? "unknown" : ion) + " m/z " + mzStr;
   }
 }

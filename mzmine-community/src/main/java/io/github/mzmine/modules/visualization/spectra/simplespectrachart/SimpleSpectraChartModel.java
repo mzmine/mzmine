@@ -6,9 +6,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.ConfigService;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -51,7 +56,28 @@ public class SimpleSpectraChartModel {
   private final ObjectProperty<@Nullable NumberFormat> rangeAxisFormat = new SimpleObjectProperty<>(
       ConfigService.getGuiFormats().intensityFormat());
 
+  // Screen-space bounds of all labels drawn during the current render pass, shared across every
+  // dataset on the plot so labels from different datasets cannot overlap each other. Written by
+  // SimpleSpectraItemLabelGenerator during JFreeChart's drawItem pass and cleared on
+  // PlotChangeEvent by SimpleSpectraChartViewBuilder. Plain ArrayList is fine because mutation is
+  // confined to the FX/render thread and no JavaFX binding observes this cache.
+  private final @NotNull List<@NotNull Rectangle2D> drawnLabelBounds = new ArrayList<>();
+
+  // Pixels to exclude from the bottom of the dataArea when deciding where labels may appear.
+  // Shrinks the label-allowed rectangle so that low-intensity peaks near the baseline do not
+  // receive labels (their labels would either crowd the axis or sit on the baseline noise).
+  // Default 0 keeps current behaviour — every label inside the dataArea is allowed.
+  private final DoubleProperty bottomLabelMargin = new SimpleDoubleProperty(25);
+
   public SimpleSpectraChartModel() {
+  }
+
+  public @NotNull List<@NotNull Rectangle2D> getDrawnLabelBounds() {
+    return drawnLabelBounds;
+  }
+
+  public void clearDrawnLabelBounds() {
+    drawnLabelBounds.clear();
   }
 
   public MapProperty<@NotNull XYDataset, @NotNull XYItemRenderer> datasetRenderersProperty() {
@@ -112,6 +138,18 @@ public class SimpleSpectraChartModel {
 
   public ObjectProperty<@Nullable NumberFormat> rangeAxisFormatProperty() {
     return rangeAxisFormat;
+  }
+
+  public DoubleProperty bottomLabelMarginProperty() {
+    return bottomLabelMargin;
+  }
+
+  public double getBottomLabelMargin() {
+    return bottomLabelMargin.get();
+  }
+
+  public void setBottomLabelMargin(double pixels) {
+    bottomLabelMargin.set(pixels);
   }
 
   /**

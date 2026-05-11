@@ -10,6 +10,7 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.Map;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -153,6 +154,19 @@ public class SimpleSpectraChartController extends FxController<SimpleSpectraChar
 
   public ObjectProperty<@Nullable NumberFormat> rangeAxisFormatProperty() {
     return model.rangeAxisFormatProperty();
+  }
+
+  /**
+   * Pixels excluded from the bottom of the chart's data area when deciding where labels may
+   * appear. Increasing this margin hides labels for low-intensity peaks whose label would
+   * otherwise sit close to the baseline.
+   */
+  public DoubleProperty bottomLabelMarginProperty() {
+    return model.bottomLabelMarginProperty();
+  }
+
+  public void setBottomLabelMargin(double pixels) {
+    model.setBottomLabelMargin(pixels);
   }
 
   public void setDefaultSpectrumType(@NotNull MassSpectrumType type) {

@@ -65,9 +65,9 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
         continue;
       }
       final Color color = colors.colorFor(row);
-      final String label = labelFor(row);
-      final IonTimeSeriesToXYProvider provider = new IonTimeSeriesToXYProvider(feat.getFeatureData(),
-          label, color);
+      final IonTimeSeriesToXYProvider provider = new IonTimeSeriesToXYProvider(
+          feat.getFeatureData(), CompoundDashboardColoring.shortIonLabel(row), color,
+          CompoundDashboardColoring.longIonLabel(row));
       result.add(new DatasetAndRenderer(new ColoredXYDataset(provider), new ColoredXYLineRenderer()));
     }
     eicOut = result;
@@ -76,12 +76,5 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
   @Override
   protected void updateGuiModel() {
     model.getEicDatasets().setAll(eicOut);
-  }
-
-  private static @NotNull String labelFor(@NotNull final FeatureListRow row) {
-    final String ion = CompoundDashboardColoring.ionTypeLabel(row);
-    final Double mz = row.getAverageMZ();
-    final String mzStr = mz == null ? "?" : String.format("%.4f", mz);
-    return ion == null ? ("m/z " + mzStr) : (ion + " " + mzStr);
   }
 }

@@ -19,4 +19,6 @@ public class CompoundIdType extends IntegerType {
   public boolean getDefaultVisibility() {
     return true;
   }
+
+
 }

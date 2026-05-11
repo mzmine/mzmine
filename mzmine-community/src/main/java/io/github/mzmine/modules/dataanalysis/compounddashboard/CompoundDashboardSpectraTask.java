@@ -87,27 +87,32 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
     // compound first level is all ions
     for (final FeatureListRow row : compound.getMemberRows()) {
-      DoubleArrayList mzs = new DoubleArrayList();
-      DoubleArrayList intensities = new DoubleArrayList();
+      final DoubleArrayList mzs = new DoubleArrayList();
+      final DoubleArrayList intensities = new DoubleArrayList();
 
-      final String label = stickLabel(row);
-      final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(row));
+      // decision: parent (M) row is always at index 0 so IonGroupSpectrumProvider#getLabel(0)
+      // labels exactly the parent stick. Isotopes are appended after.
+      mzs.add(row.getAverageMZ());
+      intensities.add(stickIntensity(row));
 
       if (row instanceof CompoundRow ionRow) {
-        // all isotopes
         for (FeatureListRow isotopeRow : ionRow.getMemberRows()) {
+          // skip isotope row that is the representative row
+          if (isotopeRow.equals(((CompoundRow) row).getPreferredRow())) {
+            continue;
+          }
+
           mzs.add(isotopeRow.getAverageMZ());
           intensities.add(stickIntensity(isotopeRow));
         }
-      } else {
-        // single row no isotopes
-        mzs.add(row.getAverageMZ());
-        intensities.add(stickIntensity(row));
       }
 
+      final String shortLabel = CompoundDashboardColoring.shortIonLabel(row);
+      final String longLabel = CompoundDashboardColoring.longIonLabel(row);
+      final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(row));
       out.add(new DatasetAndRenderer(
-          new MassSpectrumProvider(mzs.toDoubleArray(), intensities.toDoubleArray(), label, awt),
-          new ColoredXYBarRenderer(false)));
+          new IonGroupSpectrumProvider(mzs.toDoubleArray(), intensities.toDoubleArray(), shortLabel,
+              longLabel, shortLabel, awt), new ColoredXYBarRenderer(false)));
     }
     return out;
   }
@@ -133,15 +138,6 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 //    }
     final Float maxH = row.getMaxHeight();
     return maxH == null ? 0d : maxH;
-  }
-
-  private static @NotNull String stickLabel(@NotNull final FeatureListRow row) {
-    final String ion = CompoundDashboardColoring.ionTypeLabel(row);
-    if (ion != null) {
-      return ion;
-    }
-    final Double mz = row.getAverageMZ();
-    return mz == null ? ("row " + row.getID()) : ("m/z " + String.format("%.4f", mz));
   }
 
   // --- MS2 -------------------------------------------------------------------
