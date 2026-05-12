@@ -14,8 +14,8 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Builds the {@link SimpleSpectraChartController} view. Responsible for wiring
- * the {@link SimpleXYChart} to the model's observable state.
+ * Builds the {@link SimpleSpectraChartController} view. Responsible for wiring the
+ * {@link SimpleXYChart} to the model's observable state.
  */
 public class SimpleSpectraChartViewBuilder extends FxViewBuilder<SimpleSpectraChartModel> {
 
@@ -30,6 +30,8 @@ public class SimpleSpectraChartViewBuilder extends FxViewBuilder<SimpleSpectraCh
 
     chart.setMinHeight(100);
     chart.setMinWidth(100);
+    // enough space so that label is shown
+    chart.getXYPlot().getRangeAxis().setUpperMargin(0.10);
     chart.setStickyZeroRangeAxis(true); // spectra start at 0 intensity
     pane.setCenter(chart);
 
@@ -90,8 +92,7 @@ public class SimpleSpectraChartViewBuilder extends FxViewBuilder<SimpleSpectraCh
     });
     model.domainLabelProperty()
         .subscribe(label -> chart.getXYPlot().getDomainAxis().setLabel(label));
-    model.rangeLabelProperty()
-        .subscribe(label -> chart.getXYPlot().getRangeAxis().setLabel(label));
+    model.rangeLabelProperty().subscribe(label -> chart.getXYPlot().getRangeAxis().setLabel(label));
     model.domainAxisFormatProperty().subscribe(format -> {
       if (format != null) {
         ((NumberAxis) chart.getXYPlot().getDomainAxis()).setNumberFormatOverride(format);
