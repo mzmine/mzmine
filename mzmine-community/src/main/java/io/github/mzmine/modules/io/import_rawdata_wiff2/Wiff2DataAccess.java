@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,12 +34,14 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -50,6 +53,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.AdcChannelsDescriptions;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.BinaryData;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.CentroidOptions;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.ChannelTrace;
@@ -57,10 +61,12 @@ import io.github.mzmine.modules.io.import_rawdata_wiff2.api.ControlledVocabulary
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.DataProviderGrpc;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.DataProviderGrpc.DataProviderBlockingStub;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Experiment;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetAdcChannelDescriptionsRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetChannelTracesRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetExperimentsRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetMrmXicRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetSpectraRequest;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetWavelengthSpectraRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.ListSamplesRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.MassRangeConfiguration;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.MrmXic;
@@ -71,6 +77,7 @@ import io.github.mzmine.modules.io.import_rawdata_wiff2.api.SmoothingOptions;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.SourceFile;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Spectrum;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.TimeRange;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.WavelengthSpectrum;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -78,12 +85,14 @@ import io.github.mzmine.util.date.LocalDateTimeParser;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.io.File;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.lang.foreign.ValueLayout.OfDouble;
+import java.lang.foreign.ValueLayout.OfInt;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -94,10 +103,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.collections4.IteratorUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.LoggerFactory;
 
 public class Wiff2DataAccess implements AutoCloseable {
@@ -106,6 +119,8 @@ public class Wiff2DataAccess implements AutoCloseable {
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(Wiff2DataAccess.class);
   private static final OfDouble doubleLayout = ValueLayout.JAVA_DOUBLE.withOrder(
       ByteOrder.LITTLE_ENDIAN).withByteAlignment(1); // byte buffer from protobuf is not aligned.
+  public static final OfInt intLayout = ValueLayout.JAVA_INT.withOrder(ByteOrder.LITTLE_ENDIAN)
+      .withByteAlignment(1); // byte buffer from protobuf is not aligned.
 
   private final ManagedChannel channel;
   private final DataProviderBlockingStub dataProvider;
@@ -157,7 +172,9 @@ public class Wiff2DataAccess implements AutoCloseable {
         // swath
 //        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\ZenoTOF\\RawData\\4_Feces_SWATH-DIA\\Pos\\20230406_feces_SWATH_1-2_POS.wiff2"),
         // mrm
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\QTRAP 7500\\240207_DBS_Berlin_Vergleichsproben\\Messung3.wiff2"),
+//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\QTRAP 7500\\240207_DBS_Berlin_Vergleichsproben\\Messung3.wiff2"),
+        // DAD
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\DAD\\Vet  Panel_sMRM_30Sep15.wiff2"),
         true, ScanImportProcessorConfig.createDefault())) {
 
       List<Sample> samples = access.getSamples();
@@ -196,13 +213,9 @@ public class Wiff2DataAccess implements AutoCloseable {
 
         access.loadAndAddMrms(sample, rawDataFile, experiments);
 
-        // wavelength spectra
-        /*for (Experiment experiment : experiments) {
-          GetWavelengthSpectraRequest spectraRequest = GetWavelengthSpectraRequest.newBuilder()
-              .setSampleId(sample.getId()).setExperimentId(Integer.parseInt(experiment.getId()))
-              .setRange(getFullTimeRange()).build();
-
-        }*/
+        List<OtherDataFile> channelTraces = access.getAnalogTracesFromSpectrumDetectors(sample,
+            experiments, rawDataFile, storage);
+        rawDataFile.addOtherDataFiles(channelTraces);
 
         // chromatograms
         final List<@NotNull OtherDataFile> otherDataFiles = access.getAnalogTraces(sample,
@@ -216,6 +229,93 @@ public class Wiff2DataAccess implements AutoCloseable {
     }
 
     ClearcoreServer.terminateSeverIfRunning();
+  }
+
+  /**
+   * Loads traces from analog channels. Differs from {@link #getAnalogTraces} in a way that these
+   * traces are from another detector that could have also acquired spectral data.
+   */
+  public @NotNull List<OtherDataFile> getAnalogTracesFromSpectrumDetectors(@NotNull Sample sample,
+      @NotNull List<Experiment> experiments, @NotNull RawDataFileImpl rawDataFile,
+      MemoryMapStorage storage) {
+
+    // wavelength spectra
+    // if channel mode = true, its not a spectrum but a trace we recieve. But the only thing we have test data for at the moment.
+    final GetWavelengthSpectraRequest spectraRequest = GetWavelengthSpectraRequest.newBuilder()
+        .setSampleId(sample.getId()).setRange(getFullTimeRange())
+        .setIsRequestingChannelModeData(true).build();
+
+    final Map<Integer, AnalogWavelengthChannelDescription> channelNamesMap = getChannelWavelengths(
+        sample);
+    if (channelNamesMap.isEmpty()) {
+      return List.of();
+    }
+    // traces since this is channel mode
+    final Map<Integer, BuildingAnalogChannelTrace> channelTraceBuffer = channelNamesMap.values()
+        .stream().map(
+            awcd -> new BuildingAnalogChannelTrace(new FloatArrayList(), new DoubleArrayList(),
+                awcd)).collect(Collectors.toMap(awcd -> awcd.description().index(), awcd -> awcd));
+    if (channelTraceBuffer.isEmpty()) {
+      return List.of();
+    }
+
+    final List<OtherDataFile> otherDataFiles = new ArrayList<>();
+    Iterator<WavelengthSpectrum> wavelengthTraceIterator = dataProvider.getWavelengthSpectra(
+        spectraRequest);
+    while (wavelengthTraceIterator.hasNext()) {
+      final WavelengthSpectrum wavelengthSpectrum = wavelengthTraceIterator.next();
+      addChannelTraceDataForSpectrum(wavelengthSpectrum, channelTraceBuffer);
+    }
+
+    final OtherDataFileImpl wavelengthTraceFile = new OtherDataFileImpl(rawDataFile);
+    final OtherTimeSeriesDataImpl otherTimeSeriesData = new OtherTimeSeriesDataImpl(
+        wavelengthTraceFile);
+    otherTimeSeriesData.setChromatogramType(ChromatogramType.ABSORPTION);
+    wavelengthTraceFile.setDetectorType(DetectorType.UV_VIS);
+    wavelengthTraceFile.setDescription("UV_VIS_CHANNELS");
+    wavelengthTraceFile.setOtherTimeSeriesData(otherTimeSeriesData);
+    otherTimeSeriesData.setTimeSeriesRangeLabel("Intensity");
+    otherTimeSeriesData.setTimeSeriesDomainLabel("Retention time");
+    otherTimeSeriesData.setTimeSeriesDomainUnit("min");
+
+    channelTraceBuffer.values().forEach(channelTrace -> {
+      SimpleOtherTimeSeries traceData = new SimpleOtherTimeSeries(storage,
+          channelTrace.rts().toFloatArray(), channelTrace.intensities().toDoubleArray(),
+          channelTrace.description().originalName(), otherTimeSeriesData);
+      OtherFeatureImpl otherFeature = new OtherFeatureImpl(traceData);
+      otherFeature.set(WavelengthType.class, channelTrace.description().wavelength());
+      otherTimeSeriesData.addRawTrace(otherFeature);
+    });
+    otherDataFiles.add(wavelengthTraceFile);
+    return otherDataFiles;
+  }
+
+  /**
+   * DAD "channels" = traces are stored/parsed as wavelength spectra. An additional description
+   * provides the mapping of channel index -> wavelength.
+   *
+   */
+  private @NonNull Map<Integer, AnalogWavelengthChannelDescription> getChannelWavelengths(
+      @NotNull Sample sample) {
+    final AdcChannelsDescriptions adcChannelDescriptions = dataProvider.getAdcChannelDescriptions(
+        GetAdcChannelDescriptionsRequest.newBuilder().setSampleId(sample.getId()).build());
+
+    final Pattern wavelengthPattern = Pattern.compile(",\\s*(\\d+)\\s*nm");
+    final Map<Integer, AnalogWavelengthChannelDescription> channelNamesMap = adcChannelDescriptions.getNamesMap()
+        .entrySet().stream()
+        .<Map.Entry<Integer, AnalogWavelengthChannelDescription>>mapMulti((e, c) -> {
+          Matcher matcher = wavelengthPattern.matcher(e.getValue());
+          if (matcher.find()) {
+            c.accept(Map.entry(e.getKey(),
+                new AnalogWavelengthChannelDescription(e.getKey(), e.getValue(),
+                    Double.valueOf(matcher.group(1)))));
+          } else {
+            logger.fine(
+                "Sample %s contains unknown channel data name %s".formatted(sample.toString(),
+                    e.getValue()));
+          }
+        }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    return channelNamesMap;
   }
 
   private static @NotNull ChromatogramType getChromatogramTypeFromTrace(
@@ -266,6 +366,35 @@ public class Wiff2DataAccess implements AutoCloseable {
       throw new RuntimeException("mzs or intensities not set");
     }
     return new SimpleSpectralArrays(mzs, intensities);
+  }
+
+  private static @NotNull void addChannelTraceDataForSpectrum(@NotNull WavelengthSpectrum spectrum,
+      Map<Integer, BuildingAnalogChannelTrace> channelTrace) {
+    int[] wavelengthIndices = null;
+    double[] intensities = null;
+    for (int i = 0; i < spectrum.getDataCount(); i++) {
+      final BinaryData data = spectrum.getData(i);
+      final ByteBuffer buffer = data.getValues().asReadOnlyByteBuffer();
+      final MemorySegment segment = MemorySegment.ofBuffer(buffer);
+
+      for (ControlledVocabularyParameter cv : data.getAttributesList()) {
+        switch (cv.getAccession()) {
+          case MzMLCV.cvWavelengthArray -> {
+            wavelengthIndices = segment.toArray(intLayout);
+          }
+          case MzMLCV.cvIntensityArray -> {
+            intensities = segment.toArray(doubleLayout);
+          }
+        }
+      }
+    }
+
+    for (int i = 0; i < wavelengthIndices.length; i++) {
+      final int wavelengthIndex = wavelengthIndices[i];
+      BuildingAnalogChannelTrace channelDescription = channelTrace.get(wavelengthIndex);
+      channelDescription.rts().add((float) spectrum.getScanStartTime());
+      channelDescription.intensities().add((float) intensities[i]);
+    }
   }
 
   @Nullable
@@ -449,7 +578,7 @@ public class Wiff2DataAccess implements AutoCloseable {
 
   @NotNull List<Sample> getSamples() {
 
-    if(samples == null) {
+    if (samples == null) {
       final ListSamplesRequest samplesRequest = ListSamplesRequest.newBuilder()
           .setAbsolutePathToWiffFile(file.getAbsolutePath()).setSkipCorrupted(true).build();
       final Iterator<Sample> samplesDescriptions = dataProvider.getSamplesDescriptions(

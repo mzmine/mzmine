@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -48,13 +49,11 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.date.LocalDateTimeParser;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +69,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
   private final ScanImportProcessorConfig scanProcessorConfig;
   private final List<RawDataFile> files = new ArrayList<>();
   private double progress = 0;
+  private String taskStr = null;
 
   public Wiff2ImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       final File file, ParameterSet parameters, MZmineProject project,
@@ -138,7 +138,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
   @Override
   public String getTaskDescription() {
-    return "Importing file " + file;
+    return "Importing file " + file.getName() + ". " + taskStr;
   }
 
   @Override
@@ -149,12 +149,15 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
   @Override
   protected void process() {
 
+    taskStr = "Launching WIFF API...";
     try (Wiff2DataAccess access = new Wiff2DataAccess(file,
         parameters.getEmbeddedParameterValue(AllSpectralDataImportParameters.vendorOptions)
             .getValue(VendorImportParameters.applyVendorCentroiding), scanProcessorConfig)) {
 
+      taskStr = "Retrieving sample information...";
       final List<Sample> samples = access.getSamples();
 
+      logger.finest("File %s contains %d samples".formatted(file, samples.size()));
       for (Sample sample : samples) {
         final int sampleIndex = samples.indexOf(sample);
         final double sampleProgress = (double) sampleIndex / samples.size();
@@ -168,9 +171,15 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
         final List<Experiment> experiments = access.getExperiments(sample);
         for (Experiment experiment : experiments) {
-
+          taskStr =
+              "Importing sample " + rawDataFile.getName() + " experiment " + experiments.indexOf(
+                  experiment) + "/" + experiments.size();
           final Iterator<Spectrum> spectra = access.getSpectrumIterator(sample, experiment);
           while (spectra.hasNext()) {
+            if (isCanceled()) {
+              return;
+            }
+
             final Spectrum spectrum = spectra.next();
             final SimpleScan scan = access.spectrumToMzmineScan(rawDataFile, sample, experiment,
                 spectrum);
@@ -195,13 +204,17 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
             rawDataFile);
         rawDataFile.addOtherDataFiles(otherDataFiles);
 
+        final List<OtherDataFile> channelTraces = access.getAnalogTracesFromSpectrumDetectors(
+            sample, experiments, rawDataFile, storage);
+        rawDataFile.addOtherDataFiles(channelTraces);
+
         access.loadAndAddMrms(sample, rawDataFile, experiments);
 
         files.add(rawDataFile);
       }
     } catch (Exception e) {
       error("Error while importing %s".formatted(file.getName()), e);
-      if(Platform.isLinux()) {
+      if (Platform.isLinux()) {
         DialogLoggerUtil.showDialog(AlertType.ERROR, "Error while importing file " + file.getName(),
             """
                 Sciex WIFF(2) file import failed. The following packages (or newer versions) may be required:
