@@ -3,7 +3,6 @@ package io.github.mzmine.modules.dataanalysis.compounddashboard;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -17,7 +16,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
@@ -27,6 +26,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.ValueAxis;
 
 /**
  * Builds the dashboard layout. Receives the controller for prev/next callbacks and the
@@ -42,8 +42,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   private final FxFeatureTableController tableCtrl;
 
   public CompoundDashboardViewBuilder(@NotNull CompoundDashboardModel model,
-      @NotNull CompoundDashboardController controller,
-      @NotNull ChromatogramPlotController eicPlot,
+      @NotNull CompoundDashboardController controller, @NotNull ChromatogramPlotController eicPlot,
       @NotNull SimpleSpectraChartController ms1Chart,
       @NotNull SimpleSpectraChartController ms2Chart,
       @NotNull CompoundRowQualityController qualityCtrl,
@@ -77,15 +76,19 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   }
 
   private @NotNull Region buildEicWithToolbar() {
-    final Button prev = FxButtons.createButton(FxIconUtil.getFontIcon(FxIcons.ARROW_LEFT),
-        "Previous raw data file", controller::previousRawDataFile);
-    final Button next = FxButtons.createButton(FxIconUtil.getFontIcon(FxIcons.ARROW_RIGHT),
-        "Next raw data file", controller::nextRawDataFile);
+    final ButtonBase prev = FxIconUtil.newIconButton(FxIcons.ARROW_LEFT, "Previous raw data file",
+        controller::previousRawDataFile);
+    final ButtonBase next = FxIconUtil.newIconButton(FxIcons.ARROW_RIGHT, "Next raw data file",
+        controller::nextRawDataFile);
     final ComboBox<RawDataFile> rawCombo = FxComboBox.createComboBox("Raw data file",
         model.getAvailableRawDataFiles(), model.currentRawDataFileProperty());
     rawCombo.setCellFactory(_ -> rawFileCell());
     rawCombo.setButtonCell(rawFileCell());
     HBox.setHgrow(rawCombo, Priority.SOMETIMES);
+
+    final ValueAxis domainAxis = eicPlot.getXYPlot().getDomainAxis();
+    domainAxis.setLowerMargin(0.15);
+    domainAxis.setUpperMargin(0.15);
 
     final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, prev, rawCombo, next);
 

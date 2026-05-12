@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -220,8 +221,9 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   /**
    * If enabled, each added dataset's series key is drawn as a single item label on the point with
-   * the highest range value, and a {@link io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator}
-   * is installed on the renderer (custom renderers added via the model do not otherwise get one).
+   * the highest range value, and a
+   * {@link io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator} is
+   * installed on the renderer (custom renderers added via the model do not otherwise get one).
    */
   public void setShowSeriesLabel(boolean showSeriesLabel) {
     model.setShowSeriesLabel(showSeriesLabel);
@@ -257,5 +259,14 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public MapProperty<XYDataset, XYItemRenderer> datasetsAndRenderersProperty() {
     return model.datasetRenderersProperty();
+  }
+
+
+  @NotNull
+  public SimpleXYChart<PlotXYDataProvider> getChart() {
+    return model.getChart();
+  }
+  public @NotNull FxXYPlot getXYPlot() {
+    return model.getXYPlot();
   }
 }
