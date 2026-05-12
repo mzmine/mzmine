@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SeriesKeyAtMaxLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.XYLabelCollisionResolver;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -38,6 +39,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
@@ -66,6 +68,16 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
       chart.setStickyZeroRangeAxis(sticky);
     });
 
+    // Clear the drawn-label-bounds cache at the start of every chart draw pass. Using
+    // ChartProgressEvent.DRAWING_STARTED (instead of PlotChangeListener) covers every cause of a
+    // repaint — zoom, dataset add/remove, renderer swap AND window/SplitPane resize, the latter of
+    // which does not fire a PlotChangeEvent because the plot's own state hasn't changed.
+    chart.getChart().addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
+        model.clearDrawnLabelBounds();
+      }
+    });
+
     initializeDatasetRendererListener(chart);
     initializeAnnotationListener(chart);
     initializeValueListener(chart);
@@ -89,7 +101,12 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
   private void initializeDatasetRendererListener(SimpleXYChart<PlotXYDataProvider> chart) {
     // shared across renderers: the generator caches max-item indices per dataset reference.
-    final SeriesKeyAtMaxLabelGenerator seriesLabelGenerator = new SeriesKeyAtMaxLabelGenerator();
+    // The collision resolver drops labels whose screen-space rectangle would overlap an already
+    // accepted label — useful when several chromatograms peak close to each other on the time axis.
+    final XYLabelCollisionResolver collisionResolver = new XYLabelCollisionResolver(
+        model::getXYPlot, model::getDrawnLabelBounds, model::getBottomLabelMargin);
+    final SeriesKeyAtMaxLabelGenerator seriesLabelGenerator = new SeriesKeyAtMaxLabelGenerator(
+        collisionResolver);
     final SimpleToolTipGenerator tooltipGenerator = new SimpleToolTipGenerator();
 
     model.datasetRenderersProperty()

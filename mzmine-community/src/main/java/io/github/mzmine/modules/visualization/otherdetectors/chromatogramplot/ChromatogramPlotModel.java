@@ -25,15 +25,21 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,6 +48,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.plot.ValueMarker;
@@ -69,6 +76,18 @@ public class ChromatogramPlotModel {
       FXCollections.observableArrayList());
   private final ObjectProperty<SimpleXYChart<PlotXYDataProvider>> chart = new SimpleObjectProperty<>(
       new SimpleXYChart<>());
+
+  // Screen-space bounds of all labels drawn during the current render pass, shared across every
+  // dataset on the plot so labels from different datasets cannot overlap each other. Written by
+  // SeriesKeyAtMaxLabelGenerator (via XYLabelCollisionResolver) and cleared on
+  // ChartProgressEvent.DRAWING_STARTED by ChromatogramPlotBuilder. Plain ArrayList is fine because
+  // mutation is confined to the FX/render thread and no JavaFX binding observes this cache.
+  private final @NotNull List<@NotNull Rectangle2D> drawnLabelBounds = new ArrayList<>();
+
+  // Pixels to exclude from the bottom of the dataArea when deciding where labels may appear. 0
+  // keeps every label inside the dataArea — set higher to push series labels away from the
+  // baseline / axis labels.
+  private final DoubleProperty bottomLabelMargin = new SimpleDoubleProperty(10);
 
   public @Nullable PlotCursorPosition getCursorPosition() {
     return cursorPosition.get();
@@ -183,6 +202,30 @@ public class ChromatogramPlotModel {
    */
   SimpleXYChart<PlotXYDataProvider> getChart() {
     return chart.get();
+  }
+
+  @NotNull FxXYPlot getXYPlot() {
+    return chart.get().getXYPlot();
+  }
+
+  public @NotNull List<@NotNull Rectangle2D> getDrawnLabelBounds() {
+    return drawnLabelBounds;
+  }
+
+  public void clearDrawnLabelBounds() {
+    drawnLabelBounds.clear();
+  }
+
+  public double getBottomLabelMargin() {
+    return bottomLabelMargin.get();
+  }
+
+  public void setBottomLabelMargin(double pixels) {
+    bottomLabelMargin.set(pixels);
+  }
+
+  public DoubleProperty bottomLabelMarginProperty() {
+    return bottomLabelMargin;
   }
 
   public boolean isRangeStickyZero() {
