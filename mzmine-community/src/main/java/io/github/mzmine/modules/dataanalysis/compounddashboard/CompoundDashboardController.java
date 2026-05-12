@@ -100,6 +100,8 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // Axis labels (set once, the renderers handle the rest).
     eicPlot.setDomainAxisLabel("Retention time (min)");
     eicPlot.setRangeAxisLabel("Intensity");
+    // Show the short ion label on the apex of each EIC trace; the long label is the tooltip.
+    eicPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
     ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
   }

@@ -218,6 +218,15 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     model.getChart().setStickyZeroRangeAxis(stickyZero);
   }
 
+  /**
+   * If enabled, each added dataset's series key is drawn as a single item label on the point with
+   * the highest range value, and a {@link io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator}
+   * is installed on the renderer (custom renderers added via the model do not otherwise get one).
+   */
+  public void setShowSeriesLabel(boolean showSeriesLabel) {
+    model.setShowSeriesLabel(showSeriesLabel);
+  }
+
   public void applyWithNotifyChanges(boolean tempState, @NotNull final Runnable r) {
     model.getChart().applyWithNotifyChanges(tempState, r);
   }

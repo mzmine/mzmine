@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.SeriesKeyAtMaxLabelGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -86,11 +88,18 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
   }
 
   private void initializeDatasetRendererListener(SimpleXYChart<PlotXYDataProvider> chart) {
+    // shared across renderers: the generator caches max-item indices per dataset reference.
+    final SeriesKeyAtMaxLabelGenerator seriesLabelGenerator = new SeriesKeyAtMaxLabelGenerator();
+    final SimpleToolTipGenerator tooltipGenerator = new SimpleToolTipGenerator();
+
     model.datasetRenderersProperty()
         .addListener((MapChangeListener<XYDataset, XYItemRenderer>) change -> {
           if (change.wasAdded()) {
             final XYItemRenderer added = change.getValueAdded();
             final XYDataset key = change.getKey();
+            if (model.isShowSeriesLabel()) {
+              applySeriesLabel(added, seriesLabelGenerator, tooltipGenerator);
+            }
             chart.addDataset(key, added);
           }
           if (change.wasRemoved()) {
@@ -104,6 +113,28 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
             }
           }
         });
+
+    // Late toggles re-configure existing renderers so the flag works even after datasets exist.
+    model.showSeriesLabelProperty().subscribe(show -> {
+      if (!show) {
+        return;
+      }
+      chart.applyWithNotifyChanges(false,
+          () -> model.getDatasetRenderers().values()
+              .forEach(r -> applySeriesLabel(r, seriesLabelGenerator, tooltipGenerator)));
+    });
+  }
+
+  private static void applySeriesLabel(final XYItemRenderer renderer,
+      final SeriesKeyAtMaxLabelGenerator labelGenerator,
+      final SimpleToolTipGenerator tooltipGenerator) {
+    renderer.setDefaultItemLabelGenerator(labelGenerator);
+    renderer.setDefaultItemLabelsVisible(true);
+    // Custom renderers added through the model don't get the chart's default tooltip generator,
+    // so install one here too — without it the IonTimeSeriesToXYProvider tooltip never shows.
+    if (renderer.getDefaultToolTipGenerator() == null) {
+      renderer.setDefaultToolTipGenerator(tooltipGenerator);
+    }
   }
 
   private void initializeValueListener(SimpleXYChart<PlotXYDataProvider> chart) {

@@ -67,7 +67,7 @@ public class SimpleSpectraChartModel {
   // Shrinks the label-allowed rectangle so that low-intensity peaks near the baseline do not
   // receive labels (their labels would either crowd the axis or sit on the baseline noise).
   // Default 0 keeps current behaviour — every label inside the dataArea is allowed.
-  private final DoubleProperty bottomLabelMargin = new SimpleDoubleProperty(25);
+  private final DoubleProperty bottomLabelMargin = new SimpleDoubleProperty(10);
 
   public SimpleSpectraChartModel() {
   }

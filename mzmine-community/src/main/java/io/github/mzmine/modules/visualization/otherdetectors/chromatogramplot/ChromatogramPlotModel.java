@@ -59,6 +59,7 @@ public class ChromatogramPlotModel {
       FXCollections.observableArrayList());
 
   private final BooleanProperty rangeStickyZero =  new SimpleBooleanProperty(false);
+  private final BooleanProperty showSeriesLabel = new SimpleBooleanProperty(false);
   private final StringProperty title = new SimpleStringProperty();
   private final StringProperty domainLabel = new SimpleStringProperty();
   private final StringProperty rangeLabel = new SimpleStringProperty();
@@ -193,5 +194,17 @@ public class ChromatogramPlotModel {
   }
   public void setRangeStickyZero(boolean rangeStickyZero) {
     this.rangeStickyZero.set(rangeStickyZero);
+  }
+
+  public boolean isShowSeriesLabel() {
+    return showSeriesLabel.get();
+  }
+
+  public BooleanProperty showSeriesLabelProperty() {
+    return showSeriesLabel;
+  }
+
+  public void setShowSeriesLabel(boolean showSeriesLabel) {
+    this.showSeriesLabel.set(showSeriesLabel);
   }
 }
