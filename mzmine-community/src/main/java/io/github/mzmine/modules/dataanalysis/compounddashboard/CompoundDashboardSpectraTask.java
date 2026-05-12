@@ -110,9 +110,12 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
       final String shortLabel = CompoundDashboardColoring.shortIonLabel(row);
       final String longLabel = CompoundDashboardColoring.longIonLabel(row);
       final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(row));
+      final ColoredXYBarRenderer renderer = new ColoredXYBarRenderer(false);
+      // match the on-plot stick label color to the dataset color
+      renderer.setDefaultItemLabelPaint(awt);
       out.add(new DatasetAndRenderer(
           new IonGroupSpectrumProvider(mzs.toDoubleArray(), intensities.toDoubleArray(), shortLabel,
-              longLabel, shortLabel, awt), new ColoredXYBarRenderer(false)));
+              longLabel, shortLabel, awt), renderer));
     }
     return out;
   }

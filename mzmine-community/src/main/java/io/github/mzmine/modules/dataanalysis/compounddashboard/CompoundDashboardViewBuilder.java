@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -12,18 +13,21 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQuali
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.ValueAxis;
@@ -110,8 +114,16 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final HBox ms2Toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, adductCombo);
 
     final Region ms2View = ms2Chart.buildView();
-    VBox.setVgrow(ms2View, Priority.ALWAYS);
-    final VBox ms2Box = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, ms2Toolbar, ms2View);
+    // Overlay a centered bold message when no MS2 dataset is available so the user knows the
+    // plot is empty by design, not by glitch.
+    final Label noMs2Label = FxLabels.newBoldTitle("No MS2 for selected ion");
+    noMs2Label.setMouseTransparent(true);
+    noMs2Label.visibleProperty().bind(Bindings.isEmpty(model.getMs2Datasets()));
+    noMs2Label.managedProperty().bind(noMs2Label.visibleProperty());
+    final StackPane ms2Stack = new StackPane(ms2View, noMs2Label);
+    StackPane.setAlignment(noMs2Label, Pos.CENTER);
+    VBox.setVgrow(ms2Stack, Priority.ALWAYS);
+    final VBox ms2Box = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, ms2Toolbar, ms2Stack);
 
     final SplitPane sp = new SplitPane(ms1View, ms2Box);
     sp.setOrientation(Orientation.VERTICAL);

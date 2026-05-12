@@ -55,18 +55,23 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     }
     model.getAvailableRawDataFiles().setAll(union);
 
-    // Pick a default current raw file when the previous one no longer applies.
-    if (model.getCurrentRawDataFile() == null
-        || !union.contains(model.getCurrentRawDataFile())) {
-      model.setCurrentRawDataFile(FeatureListUtils.pickRawDataFileWithMostRowCoverage(allRows));
-    }
+    // decision: always reevaluate the best raw data file for the new compound so the EIC combo
+    // tracks the row that has the strongest coverage for this compound.
+    model.setCurrentRawDataFile(FeatureListUtils.pickRawDataFileWithMostRowCoverage(allRows));
 
-    // Adduct rows = top-level members; these may themselves be CompoundRows for adducts with
-    // isotopes. The MS2 selector picks among these.
-    model.getAdductRows().setAll(compound.getMemberRows());
+    // Adduct rows = top-level members that have an MS2 scan. The MS2 selector only lists rows the
+    // MS2 chart can actually plot.
+    final List<FeatureListRow> ms2Rows = compound.getMemberRows().stream()
+        .filter(row -> row.getMostIntenseFragmentScan() != null).toList();
+    model.getAdductRows().setAll(ms2Rows);
     if (model.getSelectedAdductRow() == null
         || !model.getAdductRows().contains(model.getSelectedAdductRow())) {
-      model.setSelectedAdductRow(compound.getPreferredRow());
+      final FeatureListRow preferred = compound.getPreferredRow();
+      if (preferred != null && ms2Rows.contains(preferred)) {
+        model.setSelectedAdductRow(preferred);
+      } else {
+        model.setSelectedAdductRow(ms2Rows.isEmpty() ? null : ms2Rows.getFirst());
+      }
     }
 
     // Re-snapshot the palette so the next computation starts from index 0.

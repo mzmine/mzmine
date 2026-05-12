@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
@@ -17,12 +18,14 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import javafx.util.Duration;
@@ -61,8 +64,14 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // Quality pane: bind selectedCompoundRow + selectedFeatureLists in both directions.
     FxControllerBinding.bindExposedProperties(this, qualityCtrl);
 
-    // Feature table receives the feature list directly.
-    model.featureListProperty().subscribe(flist -> tableCtrl.setFeatureList(flist));
+    // Feature table receives the feature list directly. After a new list is set, auto-select the
+    // first available row so the dashboard already shows charts.
+    model.featureListProperty().subscribe(flist -> {
+      tableCtrl.setFeatureList(flist);
+      if (flist != null) {
+        selectFirstRowWhenAvailable();
+      }
+    });
 
     // Table -> model: resolve the clicked row to its parent CompoundRow (mirrors
     // StatsDashboardController.resolveCompoundRow). Mute echoes by checking equality first.
@@ -213,6 +222,38 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
       map.put(dr.dataset(), dr.renderer());
     }
     c.addDatasets(map);
+  }
+
+  /**
+   * Select the first available row in the feature table once it is populated. FeatureTableFX
+   * populates rows asynchronously via {@code FxThread.runLater}, so when the filtered list is
+   * empty at the moment of the call, a one-shot listener finishes the work as soon as rows arrive.
+   * Skips when the user already selected a compound, so subsequent feature-list reloads don't
+   * override the user's choice.
+   */
+  private void selectFirstRowWhenAvailable() {
+    final FeatureTableFX table = tableCtrl.getFeatureTable();
+    final ObservableList<TreeItem<ModularFeatureListRow>> rows = table.getFilteredRowItems();
+    if (!rows.isEmpty()) {
+      maybeSelectFirstRow();
+      return;
+    }
+    rows.addListener(new ListChangeListener<TreeItem<ModularFeatureListRow>>() {
+      @Override
+      public void onChanged(final Change<? extends TreeItem<ModularFeatureListRow>> c) {
+        if (!rows.isEmpty()) {
+          rows.removeListener(this);
+          maybeSelectFirstRow();
+        }
+      }
+    });
+  }
+
+  private void maybeSelectFirstRow() {
+    if (model.getSelectedCompoundRow() != null) {
+      return;
+    }
+    tableCtrl.getFeatureTable().getSelectionModel().select(0);
   }
 
   /**

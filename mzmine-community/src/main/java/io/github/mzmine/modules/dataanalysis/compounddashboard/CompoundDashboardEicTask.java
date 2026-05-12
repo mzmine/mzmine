@@ -10,6 +10,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
@@ -68,7 +69,10 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
       final IonTimeSeriesToXYProvider provider = new IonTimeSeriesToXYProvider(
           feat.getFeatureData(), CompoundDashboardColoring.shortIonLabel(row), color,
           CompoundDashboardColoring.longIonLabel(row));
-      result.add(new DatasetAndRenderer(new ColoredXYDataset(provider), new ColoredXYLineRenderer()));
+      final ColoredXYLineRenderer renderer = new ColoredXYLineRenderer();
+      // match the on-plot series label color to the dataset color
+      renderer.setDefaultItemLabelPaint(FxColorUtil.fxColorToAWT(color));
+      result.add(new DatasetAndRenderer(new ColoredXYDataset(provider), renderer));
     }
     eicOut = result;
   }
