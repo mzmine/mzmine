@@ -66,6 +66,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CompoundHierarchyTreeTableRow;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -214,6 +215,10 @@ public class FeatureTableFX extends BorderPane {
     root.setExpanded(true);
     table.setRoot(root);
     table.setShowRoot(false);
+    // colored compound-hierarchy stripe drawn in the disclosure (indent) area; only visible when
+    // the table is showing compound rows so plain feature tables look unchanged.
+    table.setRowFactory(tv -> new CompoundHierarchyTreeTableRow(
+        compoundRowSelection.isEqualTo(CompoundRowSelection.COMPOUNDS)));
     // simple plus button over the scroll bar
     // hard to change layout and add more components as layout is hard coded
     // still use it to show the context menu from there

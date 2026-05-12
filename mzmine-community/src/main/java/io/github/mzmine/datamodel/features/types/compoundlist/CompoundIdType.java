@@ -32,7 +32,6 @@ public class CompoundIdType extends IntegerType {
     final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
         parentType, subColumnIndex);
 
-    column.getStyleClass().add("full-height-cell");
     column.setCellFactory(param -> new CompoundIdTreeCell());
 
     return column;

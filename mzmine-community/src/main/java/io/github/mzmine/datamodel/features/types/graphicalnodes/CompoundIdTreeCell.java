@@ -28,91 +28,53 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxControls;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.javafx.util.color.ColorsFX;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.geometry.Pos;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableCell;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Renders the compound id integer as text. The colored hierarchy stripe is no longer drawn inside
+ * this cell - see {@link CompoundHierarchyTreeTableRow}, which paints it in the tree's disclosure
+ * area instead. The tooltip describing the row's place in the compound hierarchy is kept here.
+ */
 public class CompoundIdTreeCell extends TreeTableCell<ModularFeatureListRow, Object> {
 
-  final Region[] stripes = new Region[3];
-  final ObjectProperty<RowState> rowState = new SimpleObjectProperty<>(null);
+  private final ObjectProperty<RowState> rowState = new SimpleObjectProperty<>(null);
   private final ObservableValue<@NotNull String> tooltip;
 
   public CompoundIdTreeCell() {
     super();
     tooltip = rowState.map(RowState::toString);
-
-    final HBox stripesPane = new HBox(0);
-      final int width = 3;
-    stripesPane.setMinWidth(width*2);
-    stripesPane.setPrefWidth(width*2);
-    stripesPane.setMaxWidth(width*2);
-    final Color[] stripeColors = {ColorsFX.POSITIVE_MARKER_COLORBLIND, ColorsFX.MAGENTA,
-        ColorsFX.NEUTRAL_MARKER};
-
-    for (int i = 0; i < stripes.length; i++) {
-      final Region stripe = new Region();
-      stripe.setPrefWidth(width);
-      stripe.setMinWidth(width);
-      stripe.setMaxWidth(width);
-      final var height = stripesPane.heightProperty().subtract(5);
-      stripe.prefHeightProperty().bind(height);
-      stripe.minHeightProperty().bind(height);
-      stripe.maxHeightProperty().bind(height);
-
-      stripe.setStyle("-fx-background-color: " + ColorsFX.toHexString(stripeColors[i]) + ";");
-      stripes[i] = stripe;
-    }
-
-    final Label label = FxLabels.newLabel(textProperty());
-    final StackPane stackPane = FxLayout.newStackPane(stripesPane, label);
-    StackPane.setAlignment(label, Pos.CENTER_RIGHT);
-    StackPane.setAlignment(stripesPane, Pos.CENTER_LEFT);
-
     setTooltip(FxControls.newTooltip(tooltip));
-
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    setGraphic(stackPane);
 
     PropertyUtils.onChange(() -> {
       if (isEmpty() || !(getTableRow().getItem() instanceof ModularFeatureListRow row)) {
         setText(null);
+        rowState.set(null);
         return;
       }
       final Integer cid = row.get(CompoundIdType.class);
       setText(cid == null ? null : cid.toString());
-
-      final int level = rowParentLevel(row);
-      stripesPane.getChildren().setAll(stripes[level]);
+      updateRowState();
     }, itemProperty(), emptyProperty());
   }
 
-  private int rowParentLevel(ModularFeatureListRow row) {
+  private void updateRowState() {
     if (!isVisible()) {
       rowState.set(null);
-      return 0;
+      return;
     }
 
     final TreeItem<ModularFeatureListRow> item = getTableRow().getTreeItem();
     if (item == null) {
       rowState.set(null);
-      return 0;
+      return;
     }
 
     final TreeItem<ModularFeatureListRow> parent1 = item.getParent();
@@ -121,26 +83,24 @@ public class CompoundIdTreeCell extends TreeTableCell<ModularFeatureListRow, Obj
       if (parent2 != null && parent2.getValue() != null) {
         // has 2 parents so return level 2
         rowState.set(new RowState(parent2.getValue(), parent1.getValue(), item.getValue(), 2));
-        return 2;
+        return;
       }
       rowState.set(new RowState(parent1.getValue(), null, item.getValue(), 1));
-      return 1;
+      return;
     }
     // only target as this is top level
     rowState.set(new RowState(null, null, item.getValue(), 0));
-    return 0;
   }
 
   /**
-   *
    * @param compoundRow from target this would be the 2nd level parent
-   * @param ionParent 1st level parent if target is an isotope otherwise null
-   * @param target the target row
-   * @param level the level of target in tree
+   * @param ionParent   1st level parent if target is an isotope otherwise null
+   * @param target      the target row
+   * @param level       the level of target in tree
    */
   record RowState(@Nullable ModularFeatureListRow compoundRow,
-                  @Nullable ModularFeatureListRow ionParent, @NotNull ModularFeatureListRow target,
-                  int level) {
+                  @Nullable ModularFeatureListRow ionParent,
+                  @NotNull ModularFeatureListRow target, int level) {
 
     @Override
     public @NotNull String toString() {
