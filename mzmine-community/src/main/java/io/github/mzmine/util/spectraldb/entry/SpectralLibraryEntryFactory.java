@@ -224,7 +224,7 @@ public class SpectralLibraryEntryFactory {
     polarity.ifPresent(pol -> entry.putIfNotNull(DBEntryField.POLARITY, pol));
 
     final Optional<IonType> ionType = FeatureUtils.extractBestIonIdentity(match, row);
-    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString(false)));
+    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString()));
 
     // online reactivity workflow
     addOnlineReactivityFlags(entry, row);

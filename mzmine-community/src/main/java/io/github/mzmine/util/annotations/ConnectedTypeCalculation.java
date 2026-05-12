@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * @param typeToCalculate The type to calculate the value for.
@@ -69,7 +68,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
       new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
         final MolecularStructure structure = db.getStructure();
         if (structure != null) {
-          return MolecularFormulaManipulator.getString(structure.formula());
+          return FormulaUtils.getFormulaString(structure.formula());
         }
         return null;
       }),
@@ -77,13 +76,13 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
       new ConnectedTypeCalculation<>(DataTypes.get(PrecursorMZType.class), (row, db) -> {
         final IonType adduct = db.getAdductType(); // adduct defined
         final String formula = db.getFormula(); // formula calculated above
-        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
-        try {
-          final IMolecularFormula ionized = adduct.addToFormula(molFormula);
-          return FormulaUtils.calculateMzRatio(ionized);
-        } catch (CloneNotSupportedException e) {
+        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+            formula);
+        if (molFormula == null || adduct == null) {
           return null;
         }
+        final IMolecularFormula ionized = adduct.addToFormula(molFormula, true);
+        return FormulaUtils.calculateMzRatio(ionized);
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzPpmDifferenceType.class), (row, db) -> {
@@ -126,13 +125,9 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
         if (neutralMass == null) {
           return null;
         }
-        var mod = IonModification.getBestIonModification(neutralMass, row.getAverageMZ(),
-            SpectraMerging.defaultMs1MergeTol,
-            row.getBestFeature().getRepresentativeScan().getPolarity());
-        if (mod == null) {
-          return null;
-        }
-        return new IonType(mod);
+        final List<IonType> matchingIons = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
+            row, neutralMass, SpectraMerging.defaultMs1MergeTol);
+        return matchingIons.isEmpty() ? null : matchingIons.getFirst();
       }));
 
   public static final Map<DataType<?>, ConnectedTypeCalculation<?>> MAP = LIST.stream()

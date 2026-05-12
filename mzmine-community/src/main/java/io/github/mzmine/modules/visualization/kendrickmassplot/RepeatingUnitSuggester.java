@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
@@ -59,7 +60,6 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
@@ -221,8 +221,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
   }
 
   private boolean passesSimpleNitrogenHeuristic(IMolecularFormula formula, Isotopes ifac) {
-    return MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("N"))
-        <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
+    return FormulaUtils.countElement(formula, "N") <= FormulaUtils.countElement(formula, "C");
   }
 
 

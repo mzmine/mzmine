@@ -216,15 +216,16 @@ public class LipidFragmentationRule {
       return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, molecularFormula, lipidFragmentationRuleRating);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
-        && lipidFragmentInformationLevelType != null && molecularFormula != null) {
+               && lipidFragmentInformationLevelType != null && molecularFormula != null) {
       return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, molecularFormula);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
-        && lipidFragmentInformationLevelType != null && lipidFragmentationRuleRating != null) {
+               && lipidFragmentInformationLevelType != null
+               && lipidFragmentationRuleRating != null) {
       return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, lipidFragmentationRuleRating);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
-        && lipidFragmentInformationLevelType != null) {
+               && lipidFragmentInformationLevelType != null) {
       return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
           lipidFragmentInformationLevelType);
     } else if (polarityType != null && ionizationType != null) {
@@ -258,7 +259,8 @@ public class LipidFragmentationRule {
             .append(inQuotes(ruleType.toString()));
       } else {
         try {
-          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              formula);
           if (molFormula == null) {
             errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
                 .append(" -> ").append(" could not parse.\n");

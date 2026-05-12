@@ -1,0 +1,113 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.datamodel.identities.iontype;
+
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.LibraryOrigin.Builtin;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public interface IonLibrary {
+
+  @NotNull LocalDateTime lastUpdatedDate();
+
+  @NotNull String name();
+
+  /// Stable identifier for this library. Survives rename, content changes, and cloud round-trips —
+  @NotNull UUID id();
+
+  /// Where this library came from. See {@link LibraryOrigin} for the discriminator.
+  @NotNull LibraryOrigin origin();
+
+  /**
+   * @return unmodifiable list of ions sorted by
+   * {@link IonTypeSorting#MOLECULES_THEN_CHARGE_THEN_MASS}
+   */
+  List<IonType> ions();
+
+  default int getNumIons() {
+    return ions().size();
+  }
+
+  default SearchableIonLibrary toSearchableLibrary(boolean filterByRowCharge) {
+    return new SearchableIonLibrary(ions(), filterByRowCharge);
+  }
+
+  /**
+   * @return a new filtered library or if polarity is undefined then return this instance
+   */
+  @NotNull
+  default IonLibrary filterPolarity(@Nullable PolarityType polarity) {
+    if (!PolarityType.isDefined(polarity)) {
+      return this;
+    }
+
+    final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
+        .toList();
+    return new UnmodifiableIonLibrary(name() + " filtered " + polarity.name(), ions);
+  }
+
+  /**
+   * IonLibraries are always sorted by {@link IonTypeSorting#MOLECULES_THEN_CHARGE_THEN_MASS}
+   *
+   * @return true if other has the same content of ions like this library
+   */
+  default boolean equalIons(@NotNull IonLibrary other) {
+    if (other.getNumIons() != getNumIons()) {
+      return false;
+    }
+
+    final List<IonType> ions = ions();
+    final List<IonType> otherIons = other.ions();
+
+    // same sorting
+    for (int i = 0; i < ions.size(); i++) {
+      if (!ions.get(i).equals(otherIons.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @NotNull IonLibrary copy();
+
+  /**
+   * @return true if internal library that may not be changed
+   */
+  default boolean isInternalLibrary() {
+    return origin() instanceof Builtin;
+  }
+
+  /**
+   * @return true if cloud library
+   */
+  default boolean isCloudLibrary() {
+    return origin().isCloud();
+  }
+}

@@ -86,7 +86,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
 
@@ -223,7 +222,7 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
       if (lipidChainTypes.length != numberOfCAtomsList.size()) {
         adjustExampleCarbonAndDbeNumbers(lipidChainTypes);
       }
-      if(parameterSet.checkParameterValues(new ArrayList<>(), true)) {
+      if (parameterSet.checkParameterValues(new ArrayList<>(), true)) {
         updateExampleLipid();
       }
     } finally {
@@ -356,7 +355,7 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
       Label formula = new Label("Molecular formula: ");
       lipidGridPane.add(formula, 0, 3);
       Label formulaLabel = new Label(
-          MolecularFormulaManipulator.getString(speciesLevelAnnotation.getMolecularFormula()));
+          FormulaUtils.getFormulaString(speciesLevelAnnotation.getMolecularFormula()));
       lipidGridPane.add(formulaLabel, 1, 3);
 
       Label mass = new Label("Neutral mass: ");
@@ -384,10 +383,9 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
         for (IonizationType ionNotation : ionizationTypeList) {
           lipidGridPane.add(new Label(ionNotation.getAdductName()), 1, ionNotationStartColumn);
           lipidGridPane.add(new Label(MZmineCore.getConfiguration().getMZFormat().format(
-                  FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
-                      MolecularFormulaManipulator.getString(
-                          speciesLevelAnnotation.getMolecularFormula()), ionNotation)))), 2,
-              ionNotationStartColumn);
+              FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
+                  FormulaUtils.getFormulaString(speciesLevelAnnotation.getMolecularFormula()),
+                  ionNotation)))), 2, ionNotationStartColumn);
           ionNotationStartColumn++;
         }
       } else {

@@ -214,7 +214,7 @@ public interface FeatureAnnotation {
         formula = structure.formula();
       }
     } else {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formulaStr);
     }
     return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }
@@ -319,4 +319,13 @@ public interface FeatureAnnotation {
    * A comment
    */
   @Nullable String getComment();
+
+  @Nullable
+  default IMolecularFormula getCdkFormula() {
+    final String formula = getFormula();
+    if (formula == null) {
+      return null;
+    }
+    return FormulaUtils.parse(formula);
+  }
 }
