@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.main.ConfigService;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -70,8 +71,9 @@ public class ChromatogramPlotModel {
   private final StringProperty title = new SimpleStringProperty();
   private final StringProperty domainLabel = new SimpleStringProperty();
   private final StringProperty rangeLabel = new SimpleStringProperty();
-  private final ObjectProperty<NumberFormat> rangeAxisFormat = new SimpleObjectProperty<>();
-  private final ObjectProperty<NumberFormat> domainAxisFormat = new SimpleObjectProperty<>();
+  private final ObjectProperty<NumberFormat> rangeAxisFormat = new SimpleObjectProperty<>(
+      ConfigService.getGuiFormats().intensityFormat());
+  private final ObjectProperty<NumberFormat> domainAxisFormat = new SimpleObjectProperty<>(ConfigService.getGuiFormats().rtFormat());
   private final ListProperty<ValueMarker> domainAxisMarkers = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final ObjectProperty<SimpleXYChart<PlotXYDataProvider>> chart = new SimpleObjectProperty<>(
