@@ -49,6 +49,9 @@ import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
@@ -274,8 +277,7 @@ public class RegularScanTypesTest {
               : a.getEntry().getPrecursorMZ()), a.getRtAbsoluteError(), a.getRiDiff(),
           io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class);
       // simulate ML score storage on at least one annotation
-      an.set(io.github.mzmine.datamodel.features.types.numbers.scores.MS2DeepscoreScoreType.class,
-          0.82f);
+      an.set(MLScoreType.class, new MLScore(0.82f, MLModelId.MS2_DEEPSCORE_2_0));
       analog.add(an);
     }
     return analog;

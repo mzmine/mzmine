@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,42 +33,30 @@ import org.jetbrains.annotations.NotNull;
  * {@code SpectralNetworkingOptions} so the score record stays ML-only and isn't conflated with
  * cosine algorithms.
  */
-public enum MLModelId {
+public enum MLModelId implements UniqueIdSupplier {
 
-  MS2_DEEPSCORE("MS2Deepscore", "ms2deepscore"), //
-  DREAMS("DREAMS", "dreams");
+  MS2_DEEPSCORE_2_0("MS2Deepscore", "ms2deepscore_2.0", "2.0"), //
+  DREAMS("DreaMS", "dreams_1.0", "1.0");
 
   private final String label;
-  private final String xmlId;
+  private final String uniqueId;
+  private final String version;
 
-  MLModelId(String label, String xmlId) {
+  MLModelId(String label, String uniqueId, String version) {
     this.label = label;
-    this.xmlId = xmlId;
+    this.uniqueId = uniqueId;
+    this.version = version;
   }
 
   /**
    * @return short human-readable label, used in score-cell text and tooltips.
    */
-  public @NotNull String label() {
-    return label;
+  public @NotNull String labelVersion() {
+    return label + " " + version;
   }
 
-  /**
-   * @return stable identifier used in XML serialization. Never change for an existing enum value.
-   */
-  public @NotNull String xmlId() {
-    return xmlId;
-  }
-
-  /**
-   * @return matching enum value for the given xml id, or null if unknown.
-   */
-  public static MLModelId fromXmlId(@NotNull String id) {
-    for (MLModelId m : values()) {
-      if (m.xmlId.equals(id)) {
-        return m;
-      }
-    }
-    return null;
+  @Override
+  public @NotNull String getUniqueID() {
+    return uniqueId;
   }
 }

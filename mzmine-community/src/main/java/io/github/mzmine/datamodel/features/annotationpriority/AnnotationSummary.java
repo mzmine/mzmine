@@ -332,7 +332,7 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
           yield 3;
         }
       }
-      case CompoundDatabaseMatchesType _ -> 4;
+      case CompoundDatabaseMatchesType _ -> !annotation.isAnalogMatch() ? 4 : 7;
       // analog matches are informational; rank below identity-based annotations but above unannotated
       case AnalogSpectralLibraryMatchesType _ -> 6;
       case null, default -> 10;

@@ -607,7 +607,7 @@ public class AnalogSpectralLibrarySearchTask extends AbstractFeatureListTask {
    */
   private void applyMlScore(final SpectralDBAnnotation annotation, final float score) {
     final MLModelId model = switch (algorithm) {
-      case MS2_DEEPSCORE -> MLModelId.MS2_DEEPSCORE;
+      case MS2_DEEPSCORE -> MLModelId.MS2_DEEPSCORE_2_0;
       case DREAMS -> MLModelId.DREAMS;
       case MODIFIED_COSINE, COSINE_NO_PRECURSOR ->
           throw new AssertionError("applyMlScore called for non-ML algorithm: " + algorithm);
