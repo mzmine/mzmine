@@ -5,7 +5,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundConfidenceType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberListType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMemberRoleType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundPreferredRowType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Carrier record for the membership state of a {@link ModularCompoundRow}: preferred row, full
  * member list (id+role+score per element), and confidence score. Acts as the single value behind
- * {@link io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType}; sub-column
- * lookups are dispatched by {@link #getValue(DataType)}.
+ * {@link CompoundMembersType}; sub-column lookups are dispatched by {@link #getValue(DataType)}.
  */
 public record CompoundMembers(@NotNull ModularFeatureListRow preferredRow,
                               @NotNull List<CompoundFeatureMember> members,
@@ -30,8 +29,6 @@ public record CompoundMembers(@NotNull ModularFeatureListRow preferredRow,
       case CompoundPreferredRowType _ -> preferredRow;
       case CompoundConfidenceType _ -> confidence;
       case CompoundMemberListType _ -> members;
-      // role is per-member, not per-compound — supplied by the cell factory
-      case CompoundMemberRoleType _ -> null;
       default -> null;
     };
   }

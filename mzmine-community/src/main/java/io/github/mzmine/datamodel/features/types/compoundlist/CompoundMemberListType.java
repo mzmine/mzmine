@@ -10,7 +10,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
-import io.github.mzmine.datamodel.features.types.modifiers.IgnoreAutoColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.util.exceptions.MissingCompoundRowException;
 import io.github.mzmine.util.exceptions.MissingFeatureListRowException;
@@ -30,12 +30,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Sub-column under {@link CompoundMembersType} carrying the actual list of compound members. Each
  * member is persisted as a {@code <member id="..." role="..." score="..."/>} element. On load, row
- * ids are resolved back to {@link ModularFeatureListRow}s via {@link
- * ModularFeatureList#findRowByID(int)}; members whose source row is missing are skipped (a logged
- * warning), accepting the dangling-reference scenario noted in the design review.
+ * ids are resolved back to {@link ModularFeatureListRow}s via
+ * {@link ModularFeatureList#findRowByID(int)}; members whose source row is missing are skipped (a
+ * logged warning), accepting the dangling-reference scenario noted in the design review.
  */
-public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
-    implements IgnoreAutoColumn {
+public class CompoundMemberListType extends ListDataType<CompoundFeatureMember> implements
+    NoTextColumn {
 
   private static final Logger logger = Logger.getLogger(CompoundMemberListType.class.getName());
 
@@ -124,9 +124,8 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
       try {
         final int id = Integer.parseInt(idStr);
         final boolean isCompound = "true".equalsIgnoreCase(compoundStr);
-        final ModularFeatureListRow member = isCompound
-            ? resolveCompound(row, id)
-            : resolveSource(flist, id);
+        final ModularFeatureListRow member =
+            isCompound ? resolveCompound(row, id) : resolveSource(flist, id);
         final CompoundMemberRole role = CompoundMemberRole.valueOf(roleStr);
         final float score = Float.parseFloat(scoreStr);
         members.add(new CompoundFeatureMember(member, role, score));
@@ -156,8 +155,8 @@ public class CompoundMemberListType extends ListDataType<CompoundFeatureMember>
     final CompoundList cl = ccr.getCompoundList();
     final ModularCompoundRow resolved = cl.findRowByCompoundId(compoundId);
     if (resolved == null) {
-      throw new MissingCompoundRowException(
-          "Compound member compound row not found", cl, compoundId);
+      throw new MissingCompoundRowException("Compound member compound row not found", cl,
+          compoundId);
     }
     return resolved;
   }

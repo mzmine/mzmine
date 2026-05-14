@@ -275,17 +275,22 @@ public class FeatureListLoadTask extends AbstractTask {
   /**
    * Parse a {@code <compoundlist>} block in two passes within a single forward StAX scan:
    * <ul>
-   * <li>Pass A: read the leading {@code <ids>} element and create a {@link ModularCompoundRow}
-   * stub for each compound id, registered in the {@link CompoundList}'s id index. After this,
-   * {@link CompoundList#findRowByCompoundId(int)} resolves any forward reference (compound A
-   * referring to compound B that appears later in the XML).</li>
-   * <li>Pass B: for each {@code <compoundrow id="X">}, look up the stub and populate its data
-   * types (compound row schema) and compound features (compound features schema) by iterating
-   * the XML directly — all DataType resolution goes through {@link DataTypes#getTypeForId}, so
-   * no schema-type enumeration is hardcoded here.</li>
+   * <li>Pass A: read the leading {@code <ids>} element (every compound id at every level of the
+   * tree) and register a {@link ModularCompoundRow} stub for each id in the
+   * {@link CompoundList}'s id index. The separate {@code <toplevel_ids>} element lists only the
+   * ids that should appear in {@link CompoundList#getRows()}; this list is remembered for
+   * pass C. After pass A, {@link CompoundList#findRowByCompoundId(int)} resolves any forward
+   * reference, including references to nested-only compound rows that never appear in the
+   * top-level list.</li>
+   * <li>Pass B: for each {@code <compoundrow id="X">} (top-level or nested), look up the stub and
+   * populate its data types (compound row schema) and compound features (compound features
+   * schema) by iterating the XML directly — all DataType resolution goes through
+   * {@link DataTypes#getTypeForId}, so no schema-type enumeration is hardcoded here.</li>
+   * <li>Pass C ({@link CompoundList#finalizeLoaded(List)}): resolve the remembered top-level ids
+   * to populated rows in saved order, set them as the top-level rows, rebuild the member index
+   * recursively, and wire listeners.</li>
    * </ul>
-   * Finally calls {@link CompoundList#finalizeLoaded()} to wire listeners and
-   * {@link ModularFeatureList#setCompoundList(CompoundList)}.
+   * Finally calls {@link ModularFeatureList#setCompoundList(CompoundList)}.
    */
   public static void parseCompoundList(@NotNull final XMLStreamReader reader,
       @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist)
@@ -294,6 +299,10 @@ public class FeatureListLoadTask extends AbstractTask {
     final int numRows = numRowsStr != null ? Integer.parseInt(numRowsStr) : 0;
 
     final CompoundList cl = new CompoundList(flist, flist.getMemoryMapStorage(), numRows);
+
+    // Ordered list of compound ids that should appear in CompoundList.getRows() after load.
+    // Populated when the loader reads <toplevel_ids>; resolved to stubs at finalizeLoaded time.
+    final List<Integer> topLevelIds = new ArrayList<>();
 
     while (reader.hasNext()) {
       final int event = reader.next();
@@ -306,16 +315,23 @@ public class FeatureListLoadTask extends AbstractTask {
       }
       final String localName = reader.getLocalName();
       if (CONST.XML_COMPOUND_IDS_ELEMENT.equals(localName)) {
-        // Pass A: stub creation
+        // Pass A: stub registration for every compound id at every level
         final String text = reader.getElementText().trim();
         if (!text.isEmpty()) {
           for (final String idStr : text.split("\\s+")) {
             final int id = Integer.parseInt(idStr);
-            cl.addCompoundRowStub(new ModularCompoundRow(cl, id));
+            cl.registerCompoundRowStub(new ModularCompoundRow(cl, id));
+          }
+        }
+      } else if (CONST.XML_COMPOUND_TOP_LEVEL_IDS_ELEMENT.equals(localName)) {
+        final String text = reader.getElementText().trim();
+        if (!text.isEmpty()) {
+          for (final String idStr : text.split("\\s+")) {
+            topLevelIds.add(Integer.parseInt(idStr));
           }
         }
       } else if (CONST.XML_COMPOUND_ROW_ELEMENT.equals(localName)) {
-        // Pass B: populate content of an existing stub
+        // Pass B: populate content of an existing stub (top-level or nested)
         final int compoundId = Integer.parseInt(
             reader.getAttributeValue(null, CONST.XML_COMPOUND_ID_ATTR));
         final ModularCompoundRow row = cl.findRowByCompoundId(compoundId);
@@ -331,7 +347,18 @@ public class FeatureListLoadTask extends AbstractTask {
       }
     }
 
-    cl.finalizeLoaded();
+    // Resolve top-level ids to populated stubs. Missing ids degrade gracefully — log + skip.
+    final List<ModularCompoundRow> topLevelRows = new ArrayList<>(topLevelIds.size());
+    for (final int id : topLevelIds) {
+      final ModularCompoundRow row = cl.findRowByCompoundId(id);
+      if (row == null) {
+        logger.log(Level.WARNING,
+            () -> "Top-level compound id " + id + " has no stub — skipping in top-level list");
+        continue;
+      }
+      topLevelRows.add(row);
+    }
+    cl.finalizeLoaded(topLevelRows);
     flist.setCompoundList(cl);
   }
 

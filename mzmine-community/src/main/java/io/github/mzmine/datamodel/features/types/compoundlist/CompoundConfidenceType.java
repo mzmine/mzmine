@@ -1,15 +1,12 @@
 package io.github.mzmine.datamodel.features.types.compoundlist;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
-public class CompoundConfidenceType extends FloatType {
+public class CompoundConfidenceType extends ScoreType {
 
   public CompoundConfidenceType() {
-    super(new DecimalFormat("0.000"));
+    super();
   }
 
   @Override
@@ -20,23 +17,5 @@ public class CompoundConfidenceType extends FloatType {
   @Override
   public @NotNull String getHeaderString() {
     return "Confidence";
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    try {
-      return MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      return DEFAULT_FORMAT;
-    }
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    try {
-      return MZmineCore.getConfiguration().getExportFormats().scoreFormat();
-    } catch (NullPointerException e) {
-      return DEFAULT_FORMAT;
-    }
   }
 }

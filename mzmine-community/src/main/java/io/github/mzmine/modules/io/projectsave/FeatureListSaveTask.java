@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundFeature;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
@@ -44,6 +45,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -53,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -142,10 +145,10 @@ public class FeatureListSaveTask extends AbstractTask {
       appendMetadata(document, root, flist);
 
       XMLUtils.saveToFile(tempFile, document);
-        zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
+      zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
 
-        try (InputStream is = new FileInputStream(tempFile)) {
-          copy.copy(is, zos);
+      try (InputStream is = new FileInputStream(tempFile)) {
+        copy.copy(is, zos);
       }
 
       tempFile.delete();
@@ -267,13 +270,13 @@ public class FeatureListSaveTask extends AbstractTask {
       return false;
     }
 
-      try (FileInputStream is = new FileInputStream(tempFile)) {
-        zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
-        copy.copy(is, zos);
-      } catch (IOException e) {
-        logger.log(Level.SEVERE, e.getMessage(), e);
-        setStatus(TaskStatus.ERROR);
-        return false;
+    try (FileInputStream is = new FileInputStream(tempFile)) {
+      zos.putNextEntry(new ZipEntry(getDataFileName(flist.getName())));
+      copy.copy(is, zos);
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return false;
     }
 
 //    tempFile.delete();
@@ -281,8 +284,7 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   public static void writeRow(XMLStreamWriter writer, ModularFeatureList flist,
-      ModularFeatureListRow row)
-      throws XMLStreamException {
+      ModularFeatureListRow row) throws XMLStreamException {
 
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
     writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
@@ -320,8 +322,7 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   public static void writeFeature(XMLStreamWriter writer, ModularFeatureList flist,
-      ModularFeatureListRow row,
-      ModularFeature feature) throws XMLStreamException {
+      ModularFeatureListRow row, ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
     if (rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return;
@@ -340,12 +341,22 @@ public class FeatureListSaveTask extends AbstractTask {
 
   /**
    * Persist the {@link CompoundList} as a {@code <compoundlist>} block at the end of the
-   * {@code <featurelist>} XML. Iterates the compound row schema and the compound features schema
-   * directly so any schema-resident DataType — including binding outputs and future compound-only
-   * types — serializes via its own {@code saveToXML} without per-type branches here. The
-   * preferred-row fallback is bypassed via {@link ModularCompoundRow#getCompoundValue(DataType)} and
-   * {@link ModularCompoundRow#getCompoundFeature(RawDataFile)}, so values that are merely delegated from
-   * the source row/feature are not re-saved on the compound row.
+   * {@code <featurelist>} XML. Writes a {@code <compoundrow>} element for every compound row in the
+   * tree — top-level rows from {@link CompoundList#getRows()} as well as nested compound rows
+   * reachable through member lists. Two leading id blocks are written
+   * up-front:
+   * <ul>
+   * <li>{@code <ids>} — every compound id at every level, so the loader can create stubs for all
+   * forward references before any {@code <compoundrow>} content is parsed.</li>
+   * <li>{@code <toplevel_ids>} — ids of only the rows that should appear in
+   * {@link CompoundList#getRows()} on load, in their saved order.</li>
+   * </ul>
+   * Iterates the compound row schema and the compound features schema directly so any
+   * schema-resident DataType — including binding outputs and future compound-only types —
+   * serializes via its own {@code saveToXML} without per-type branches here. The preferred-row
+   * fallback is bypassed via {@link ModularCompoundRow#getCompoundValue(DataType)} and
+   * {@link ModularCompoundRow#getCompoundFeature(RawDataFile)}, so values that are merely delegated
+   * from the source row/feature are not re-saved on the compound row.
    */
   public static void saveCompoundList(XMLStreamWriter writer, ModularFeatureList flist,
       CompoundList cl) throws XMLStreamException {
@@ -354,24 +365,38 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeAttribute(CONST.XML_COMPOUND_SOURCE_STRUCTURAL_VERSION_ATTR,
         String.valueOf(flist.getStructuralVersion()));
 
-    // Up-front <ids> block: lets the loader create all compound row stubs in a single forward XML
-    // scan before any <compoundrow> content is parsed (mirrors createRows' two-pass approach).
-    writer.writeStartElement(CONST.XML_COMPOUND_IDS_ELEMENT);
-    final StringBuilder ids = new StringBuilder();
+    // Collect every compound row in the tree (top-level + nested). LinkedHashMap preserves DFS
+    // order (top-level first, then nested rows in the order they're first encountered) and dedups
+    // by compound id — a compound row reachable through multiple parents is saved exactly once.
+    final LinkedHashMap<Integer, ModularCompoundRow> allCompoundRows = new LinkedHashMap<>();
     for (final ModularCompoundRow row : cl.getRows()) {
-      if (ids.length() > 0) {
-        ids.append(' ');
-      }
-      ids.append(row.getCompoundId());
+      collectCompoundRows(row, allCompoundRows);
     }
-    writer.writeCharacters(ids.toString());
+
+    // <ids>: every compound id at every level. Read first by the loader to register stubs in the
+    // CompoundList's byCompoundId index — covers forward references and nested-only rows.
+    writer.writeStartElement(CONST.XML_COMPOUND_IDS_ELEMENT);
+    String ids = StringUtils.join(allCompoundRows.keySet(), " ");
+    writer.writeCharacters(ids);
+    writer.writeEndElement();
+
+    // <toplevel_ids>: ids of only the rows that should appear in CompoundList.getRows() on load.
+    writer.writeStartElement(CONST.XML_COMPOUND_TOP_LEVEL_IDS_ELEMENT);
+    final StringBuilder topIds = new StringBuilder();
+    for (final ModularCompoundRow row : cl.getRows()) {
+      if (topIds.length() > 0) {
+        topIds.append(' ');
+      }
+      topIds.append(row.getCompoundId());
+    }
+    writer.writeCharacters(topIds.toString());
     writer.writeEndElement();
 
     final List<DataType> rowTypes = List.copyOf(cl.getCompoundRowSchema().getTypes());
     final List<DataType> featureTypes = List.copyOf(cl.getCompoundFeaturesSchema().getTypes());
     final List<RawDataFile> rawFiles = flist.getRawDataFiles();
 
-    for (final ModularCompoundRow row : cl.getRows()) {
+    for (final ModularCompoundRow row : allCompoundRows.values()) {
       writer.writeStartElement(CONST.XML_COMPOUND_ROW_ELEMENT);
       writer.writeAttribute(CONST.XML_COMPOUND_ID_ATTR, String.valueOf(row.getCompoundId()));
 
@@ -404,5 +429,23 @@ public class FeatureListSaveTask extends AbstractTask {
     }
 
     writer.writeEndElement();
+  }
+
+  /**
+   * DFS-collect {@code row} and every {@link ModularCompoundRow} reachable through its member list,
+   * into {@code into} keyed by compound id. The map's insertion order is the DFS visit order;
+   * re-entry of an already-seen compound id is a no-op so multiply-reachable compound rows are only
+   * saved once.
+   */
+  private static void collectCompoundRows(@NotNull final ModularCompoundRow row,
+      @NotNull final LinkedHashMap<Integer, ModularCompoundRow> into) {
+    if (into.putIfAbsent(row.getCompoundId(), row) != null) {
+      return;
+    }
+    for (final CompoundFeatureMember m : row.getCompoundMembers()) {
+      if (m.row() instanceof ModularCompoundRow nested) {
+        collectCompoundRows(nested, into);
+      }
+    }
   }
 }
