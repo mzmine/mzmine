@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -64,7 +63,7 @@ public class FxLabels {
   }
 
   public enum Styles {
-    REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, // colored
+    REGULAR, BOLD_TITLE, BOLD_SEMI_TITLE, BOLD, ITALIC, SMALL, // colored
     /**
      * Changes color of LABELS to yellow
      */
@@ -95,6 +94,7 @@ public class FxLabels {
         case BOLD_SEMI_TITLE -> "bold-semititle-label";
         case BOLD -> "bold-label";
         case ITALIC -> "italic-label";
+        case SMALL -> "small-label";
         case CONTRAST_LABEL -> "contrast-label";
       };
     }
@@ -124,6 +124,10 @@ public class FxLabels {
 
   public static Label newItalicLabel(String name) {
     return styled(name, Styles.ITALIC.getStyleClass());
+  }
+
+  public static Label newSmallLabel(String name) {
+    return styled(name, Styles.SMALL.getStyleClass());
   }
 
   public static Label underlined(String name) {

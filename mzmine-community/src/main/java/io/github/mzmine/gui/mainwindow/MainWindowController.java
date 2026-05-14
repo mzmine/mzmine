@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -52,6 +53,8 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
@@ -841,6 +844,17 @@ public class MainWindowController {
       param.setParameter(IntegrationDashboardParameters.flists,
           new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
       MZmineCore.runMZmineModule(IntegrationDashboardModule.class, param);
+    }
+  }
+
+  public void handleShowLipidDashboard(Event event) {
+    final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
+        .toList();
+    if (!selected.isEmpty()) {
+      final ParameterSet param = new LipidAnnotationQCDashboardParameters().cloneParameterSet();
+      param.setParameter(LipidAnnotationQCDashboardParameters.flists,
+          new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
+      MZmineCore.runMZmineModule(LipidAnnotationQCDashboardModule.class, param);
     }
   }
 

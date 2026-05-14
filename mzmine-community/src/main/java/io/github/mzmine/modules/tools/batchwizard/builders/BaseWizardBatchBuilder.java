@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,6 +107,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.AdvancedLipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnalysisType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationMSMSParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
@@ -166,6 +167,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -1393,36 +1395,58 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddLipidAnnotationStep(final BatchQueue q) {
+  protected void makeAndAddLipidAnnotationStep(final @NotNull BatchQueue q) {
     if (!annotateLipids) {
       return;
     }
 
-    var param = MZmineCore.getConfiguration().getModuleParameters(LipidAnnotationModule.class)
+    final var param = MZmineCore.getConfiguration().getModuleParameters(LipidAnnotationModule.class)
         .cloneParameterSet();
 
     param.setParameter(LipidAnnotationParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(LipidAnnotationParameters.lipidClasses,
         LipidClassesProvider.getListOfAllLipidClasses().toArray());
-    param.setParameter(LipidAnnotationParameters.lipidChainParameters,
-        new LipidAnnotationChainParameters());
-    param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
-    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
+
+    final LipidAnnotationChainParameters chainParams = LipidAnnotationChainParameters.createDefault();
+    chainParams.setParameter(LipidAnnotationChainParameters.minChainLength, 4);
+    param.setParameter(LipidAnnotationParameters.lipidChainParameters, chainParams);
+
+    final var instrumentPreset = (MassSpectrometerWizardParameterFactory) steps.get(WizardPart.MS)
+        .get().getFactory();
+    final MZTolerance lipidMzTolerance = switch (instrumentPreset) {
+      case QTOF -> new MZTolerance(mzTolInterSample.getMzTolerance(), 5);
+      case Orbitrap, Orbitrap_Astral, FTICR, LOW_RES -> mzTolInterSample;
+    };
+    param.setParameter(LipidAnnotationParameters.mzTolerance, lipidMzTolerance);
+
+    final LipidAnalysisType analysisType = switch (steps.get(WizardPart.ION_INTERFACE)
+        .orElse(IonInterfaceWizardParameterFactory.UHPLC.create()).getFactory()) {
+      case IonInterfaceWizardParameterFactory.HPLC, IonInterfaceWizardParameterFactory.UHPLC ->
+          LipidAnalysisType.LC_REVERSED_PHASE;
+      case IonInterfaceWizardParameterFactory.HILIC -> LipidAnalysisType.LC_HILIC;
+      case IonInterfaceWizardParameterFactory.DESI, IonInterfaceWizardParameterFactory.MALDI ->
+          LipidAnalysisType.IMAGING;
+      case IonInterfaceWizardParameterFactory.DIRECT_INFUSION,
+           IonInterfaceWizardParameterFactory.FLOW_INJECT -> LipidAnalysisType.DIRECT_INFUSION;
+      default -> LipidAnalysisType.DIRECT_INFUSION;
+    };
+    param.setParameter(LipidAnnotationParameters.lipidAnalysisType, analysisType);
+    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, !isImaging);
+    param.setParameter(LipidAnnotationParameters.minimumOverallQualityScore, 0.6);
     param.setParameter(LipidAnnotationParameters.customLipidClasses, false);
-    var ms2Param = param.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+    final var ms2Param = param.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
         .getEmbeddedParameters();
     // all input scans as default to avoid to many chimeric merged spectra in lipids
     ms2Param.getParameter(LipidAnnotationMSMSParameters.spectraMergeSelect)
         .setUseInputScans(SelectInputScans.ALL_SCANS);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, isImaging);
-    ms2Param.setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.6);
     ms2Param.setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
     param.setParameter(LipidAnnotationParameters.advanced, false);
-    var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
+    final var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
     advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
         IonizationType.values());
-    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+    final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(LipidAnnotationModule.class), param);
     q.add(step);
   }

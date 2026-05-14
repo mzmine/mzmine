@@ -1,12 +1,32 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -49,18 +69,9 @@ public class EquivalentCarbonNumberModelGridPane extends GridPane {
     Map<ILipidClass, Map<Integer, List<MatchedLipid>>> groupedLipids = matchedLipids.stream()
         .collect(
             Collectors.groupingBy(matchedLipid -> matchedLipid.getLipidAnnotation().getLipidClass(),
-                Collectors.groupingBy(matchedLipid -> {
-                  ILipidAnnotation lipidAnnotation = matchedLipid.getLipidAnnotation();
-                  if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation molecularAnnotation) {
-                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
-                        molecularAnnotation.getAnnotation()).getValue();
-                  } else if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
-                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
-                        lipidAnnotation.getAnnotation()).getValue();
-                  } else {
-                    return -1;
-                  }
-                }, Collectors.toList())));
+                Collectors.groupingBy(
+                    matchedLipid -> matchedLipid.getLipidAnnotation().getChainsDoubleBondCount(),
+                    Collectors.toList())));
 
     // sort by lipid class
     Map<ILipidClass, Map<Integer, List<MatchedLipid>>> sortedGroupedLipids = new TreeMap<>(

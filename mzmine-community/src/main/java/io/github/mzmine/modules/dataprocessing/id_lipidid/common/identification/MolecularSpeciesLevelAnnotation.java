@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,9 +22,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification;
 
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
@@ -42,7 +40,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
+public final class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
   private static final String XML_ELEMENT = "lipidannotation";
   private static final String XML_LIPID_CLASS = "lipidclass";
@@ -87,6 +85,21 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
   public List<ILipidChain> getLipidChains() {
     return lipidChains;
+  }
+
+  @Override
+  public int getChainsCarbonCount() {
+    return lipidChains.stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
+  }
+
+  @Override
+  public int getChainsDoubleBondCount() {
+    return lipidChains.stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
+  }
+
+  @Override
+  public int getSpeciesLevelOxygens() {
+    return lipidChains.stream().mapToInt(ILipidChain::getNumberOfOxygens).sum();
   }
 
   @Override
