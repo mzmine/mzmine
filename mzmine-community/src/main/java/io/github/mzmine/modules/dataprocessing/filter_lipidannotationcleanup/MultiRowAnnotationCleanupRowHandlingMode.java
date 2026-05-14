@@ -24,13 +24,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Defines how the remaining annotations of a row are treated when one of its lipid annotations is
  * removed during the multi-row cleanup operation.
  */
-public enum MultiRowAnnotationCleanupRowHandlingMode {
+public enum MultiRowAnnotationCleanupRowHandlingMode implements UniqueIdSupplier {
   DISCARD_LOWER_THAN_REMOVED(
       "Discard all annotations with lower score than removed annotation"), DISCARD_ALL_IF_ANY_REMOVED(
       "Discard all annotations if any annotation of the row is removed"), SELECT_REMAINING_HIGHEST_SCORE(
@@ -45,5 +46,14 @@ public enum MultiRowAnnotationCleanupRowHandlingMode {
   @Override
   public @NotNull String toString() {
     return label;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case DISCARD_LOWER_THAN_REMOVED -> "discard_lower_than_removed";
+      case DISCARD_ALL_IF_ANY_REMOVED -> "discard_all_if_any_removed";
+      case SELECT_REMAINING_HIGHEST_SCORE -> "select_remaining_highest_score";
+    };
   }
 }
