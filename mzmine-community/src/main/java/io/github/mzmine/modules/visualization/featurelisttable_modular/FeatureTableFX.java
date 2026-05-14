@@ -178,6 +178,12 @@ public class FeatureTableFX extends BorderPane {
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
 
+  // option to set an owner so that actions might know if this feature table is in the
+  // stats dashboard or compound dashboard
+  private final ObjectProperty<FeatureTableOwner> tableOwner = new SimpleObjectProperty<>(
+      FeatureTableOwner.UNDEFINED);
+
+
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
@@ -201,6 +207,11 @@ public class FeatureTableFX extends BorderPane {
    * Package private to centralize creation in {@link FxFeatureTableController}
    */
   FeatureTableFX(@NotNull ParameterSet parameters) {
+    this(parameters, FeatureTableOwner.UNDEFINED);
+  }
+
+  FeatureTableFX(@NotNull ParameterSet parameters, FeatureTableOwner tableOwner) {
+    setTableOwner(tableOwner);
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
 
@@ -1525,5 +1536,17 @@ public class FeatureTableFX extends BorderPane {
 
   public ParameterSet getParameters() {
     return parameters;
+  }
+
+  public FeatureTableOwner getTableOwner() {
+    return tableOwner.get();
+  }
+
+  public ObjectProperty<FeatureTableOwner> tableOwnerProperty() {
+    return tableOwner;
+  }
+
+  public void setTableOwner(FeatureTableOwner tableOwner) {
+    this.tableOwner.set(tableOwner);
   }
 }

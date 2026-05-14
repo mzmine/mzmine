@@ -40,6 +40,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
@@ -60,7 +61,7 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
 
   public StatsDashboardController() {
     super(new StatsDashboardModel());
-    tableController = new FxFeatureTableController();
+    tableController = new FxFeatureTableController(FeatureTableOwner.STATS_DASHBOARD);
     builder = new StatsDashboardViewBuilder(model, tableController, pcaController,
         volcanoController, boxplotController);
 

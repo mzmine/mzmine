@@ -39,11 +39,11 @@ public class FxFeatureTableController extends FxCachedViewController<FxFeatureTa
   private final FxFeatureTableViewBuilder viewBuilder;
   private final FxFeatureTableInteractor interactor;
 
-  public FxFeatureTableController() {
+  public FxFeatureTableController(FeatureTableOwner tableOwner) {
     // use a clone, will set parameters to module params after tab close
     var params = ConfigService.getConfiguration().getModuleParameters(FeatureTableFXModule.class)
         .cloneParameterSet();
-    super(new FxFeatureTableModel(params));
+    super(new FxFeatureTableModel(params, tableOwner));
 
     // interactor before view is built
     interactor = new FxFeatureTableInteractor(model);

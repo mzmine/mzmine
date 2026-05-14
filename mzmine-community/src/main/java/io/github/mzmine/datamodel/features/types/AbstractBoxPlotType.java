@@ -41,6 +41,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
@@ -94,7 +95,7 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
       @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
       @Nullable DataType<?> superType, @Nullable Object value) {
     return () -> {
-      if (table == null || table.getFeatureList() == null) {
+      if (table == null || table.getFeatureList() == null || table.getTableOwner() == FeatureTableOwner.STATS_DASHBOARD) {
         return;
       }
       FxThread.runLater(() -> {

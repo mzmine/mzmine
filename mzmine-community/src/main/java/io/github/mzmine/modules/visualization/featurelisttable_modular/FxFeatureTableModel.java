@@ -65,9 +65,9 @@ public class FxFeatureTableModel {
       FXCollections.observableArrayList());
 
 
-  public FxFeatureTableModel(@NotNull ParameterSet parameters) {
+  public FxFeatureTableModel(@NotNull ParameterSet parameters, FeatureTableOwner tableOwner) {
     this.parameters = parameters;
-    featureTable = new FeatureTableFX(parameters);
+    featureTable = new FeatureTableFX(parameters, tableOwner);
 
     internalBindings();
   }
