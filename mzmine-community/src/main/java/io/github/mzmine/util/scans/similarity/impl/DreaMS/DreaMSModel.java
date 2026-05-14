@@ -106,6 +106,11 @@ public class DreaMSModel extends EmbeddingBasedSimilarity {
         return predictEmbeddingFromTensors(tensorizedSpectra);
     }
 
+  @Override
+  public NDManager getNDManager() {
+    return ndManager;
+  }
+
     @Override
     public void close() {
         try {

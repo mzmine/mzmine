@@ -28,12 +28,12 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_searc
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,10 +59,23 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
       @NotNull final Instant moduleCallDate) {
     final ModularFeatureList[] featureLists = parameters.getValue(
         AnalogSpectralLibrarySearchParameters.featureLists).getMatchingFeatureLists();
-    // one task per feature list — keeps progress reporting per list and avoids cross-list lock contention
-    Arrays.stream(featureLists).forEach(flist -> tasks.add(
-        new AnalogSpectralLibrarySearchTask(project, parameters, flist, moduleCallDate,
-            this.getClass())));
+    if (featureLists.length == 0) {
+      return ExitCode.OK;
+    }
+    final SpectralNetworkingOptions algorithm = parameters.getValue(
+        AnalogSpectralLibrarySearchParameters.algorithm);
+    // one task for ALL feature lists in both modes:
+    //  - cosine path is row-parallel inside processCosine; per-list tasks would oversubscribe CPU
+    //  - ML path computes library embeddings once and reuses them across feature lists; per-list
+    //    tasks would each load the model AND re-embed the library
+    switch (algorithm) {
+      case MODIFIED_COSINE, COSINE_NO_PRECURSOR -> tasks.add(
+          new AnalogSpectralLibrarySearchCosineTask(project, parameters, featureLists,
+              moduleCallDate, this.getClass()));
+      case MS2_DEEPSCORE, DREAMS -> tasks.add(
+          new AnalogSpectralLibrarySearchMlTask(project, parameters, featureLists, moduleCallDate,
+              this.getClass()));
+    }
     return ExitCode.OK;
   }
 }

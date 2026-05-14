@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,6 +72,8 @@ import io.github.mzmine.datamodel.features.types.numbers.TotalSamplesType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MathUtils;
@@ -81,6 +83,7 @@ import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,8 +171,22 @@ public enum DBEntryField {
   ONLINE_REACTIVITY,
 
   // number of signals
-  NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
+  NUM_PEAKS(Integer.class),
+
+  // Runtime-only ML embedding caches per MLModelId. Vectors are recomputed when the library is
+  // loaded; no persistence keys, no MSP/JSON/MGF/JDX round-trip. Added as DBEntryFields so a future
+  // change can wire serialization without altering call sites.
+  ML_EMBEDDING_MS2DEEPSCORE_2_0(float[].class), ML_EMBEDDING_DREAMS(float[].class),
+
+  // only used for everything that cannot easily be mapped
   UNSPECIFIED;
+
+  /**
+   * Fields that are populated and consumed in memory only — never written to library files or the
+   * project XML. Used by exporters/serializers to skip these without per-format opt-out logic.
+   */
+  public static final EnumSet<DBEntryField> RUNTIME_ONLY_FIELDS = EnumSet.of(
+      ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS);
 
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
@@ -382,6 +399,14 @@ public enum DBEntryField {
     return clazz;
   }
 
+  /**
+   * @return true if this field is populated and consumed in memory only and must not be written to
+   * library files or the project XML. See {@link #RUNTIME_ONLY_FIELDS}.
+   */
+  public boolean isRuntimeOnly() {
+    return RUNTIME_ONLY_FIELDS.contains(this);
+  }
+
   @Override
   public String toString() {
     return switch (this) {
@@ -454,6 +479,8 @@ public enum DBEntryField {
       case INTERNAL_ID -> InternalIdType.class;
       case JSON_STRING -> JsonStringType.class;
       case RETENTION_INDEX -> RIRecordType.class;
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0 -> MS2DeepscoreEmbeddingType.class;
+      case ML_EMBEDDING_DREAMS -> DreaMSEmbeddingType.class;
     };
   }
 
@@ -536,6 +563,7 @@ public enum DBEntryField {
       case UNSPECIFIED -> "";
       case IUPAC_NAME -> "iupac_name";
       case INTERNAL_ID -> "internal_id";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS -> "";
     };
   }
 
@@ -605,6 +633,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_STATS -> "";
       case UNSPECIFIED -> "";
       case JSON_STRING -> "additional_json";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS -> "";
     };
   }
 
@@ -675,6 +704,7 @@ public enum DBEntryField {
       case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
       case JSON_STRING -> "ADDITIONAL_JSON";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS -> "";
     };
   }
 
@@ -747,6 +777,7 @@ public enum DBEntryField {
       case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
       case JSON_STRING -> "ADDITIONAL_JSON";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS -> "";
     };
   }
 
@@ -818,6 +849,7 @@ public enum DBEntryField {
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
       case JSON_STRING -> "";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS -> "";
     };
   }
 
@@ -997,6 +1029,9 @@ public enum DBEntryField {
       // SIRIUS 6.0.7 had issues with Polarity and would parse the spectrum without extended metadata like the adduct
       // Therefore it was changed from Positive to POSITIVE
       case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "NEGATIVE" : "POSITIVE";
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS ->
+          throw new UnsupportedOperationException(
+              "Runtime-only field " + this + " must not be exported to MGF");
     };
   }
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -58,5 +59,16 @@ public enum MLModelId implements UniqueIdSupplier {
   @Override
   public @NotNull String getUniqueID() {
     return uniqueId;
+  }
+
+  /**
+   * @return the {@link DBEntryField} used to cache this model's embedding vector on a
+   * {@code SpectralLibraryEntry}. Runtime-only — see {@link DBEntryField#isRuntimeOnly()}.
+   */
+  public @NotNull DBEntryField getEmbeddingField() {
+    return switch (this) {
+      case MS2_DEEPSCORE_2_0 -> DBEntryField.ML_EMBEDDING_MS2DEEPSCORE_2_0;
+      case DREAMS -> DBEntryField.ML_EMBEDDING_DREAMS;
+    };
   }
 }
