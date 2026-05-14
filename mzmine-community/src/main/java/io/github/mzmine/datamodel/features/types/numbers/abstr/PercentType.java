@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ import java.text.NumberFormat;
  */
 public abstract class PercentType extends FloatType {
 
-  private static final NumberFormat defaultFormatter = new DecimalFormat("0.00 %");
+  private static final NumberFormat defaultFormatter = new DecimalFormat("0.00%");
 
   protected PercentType() {
     super(defaultFormatter);
