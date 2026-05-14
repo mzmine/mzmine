@@ -52,8 +52,9 @@ public class CompoundList {
   // on the FX thread. Contains all members: classical FeatureListRow and CompoundRow.
   private final Map<FeatureListRowID, List<ModularCompoundRow>> byMemberRowId = new ConcurrentHashMap<>();
 
-  // O(1) lookup compoundId → compound row. Populated by setRows() and addCompoundRowStub() so
-  // findRowByCompoundId resolves in either runtime construction or load-time stub-first flows.
+  /// O(1) lookup compoundId → compound row. Populated by setRows() and registerCompoundRowStub() so
+  /// findRowByCompoundId resolves in either runtime construction or load-time stub-first flows.
+  /// Contains every compound row at every level of the tree (top-level plus nested).
   private final Map<Integer, ModularCompoundRow> byCompoundId = new ConcurrentHashMap<>();
 
   @NotNull
@@ -178,31 +179,39 @@ public class CompoundList {
   }
 
   /**
-   * Add a compound row stub to the list and id index without applying bindings or wiring listeners.
-   * Used during project load (pass A) so that {@link #findRowByCompoundId(int)} resolves before any
-   * compound row's content is parsed (forward references inside nested-compound member lists).
+   * Register a compound row stub in the {@code byCompoundId} id index without adding it to the
+   * top-level {@link #rows} list and without applying bindings or wiring listeners. Used during
+   * project load (pass A) so that {@link #findRowByCompoundId(int)} resolves any compound id —
+   * top-level or nested — before any {@code <compoundrow>} content is parsed (forward references
+   * inside nested-compound member lists, plus references to nested-only compound rows that are not
+   * in the top-level list at all).
    * <p>
-   * Must be followed by {@link #finalizeLoaded()} once all stubs are populated.
+   * Must be followed by {@link #finalizeLoaded(List)} once all stubs are populated, which sets the
+   * top-level rows and wires listeners.
    */
-  public void addCompoundRowStub(@NotNull final ModularCompoundRow stub) {
+  public void registerCompoundRowStub(@NotNull final ModularCompoundRow stub) {
     if (disposed) {
-      throw new IllegalStateException("addCompoundRowStub called on a disposed CompoundList");
+      throw new IllegalStateException("registerCompoundRowStub called on a disposed CompoundList");
     }
-    rows.add(stub);
     byCompoundId.put(stub.getCompoundId(), stub);
   }
 
   /**
-   * Finalize a load: rebuild the {@code byMemberRowId} reverse index from each row's now-populated
-   * {@link CompoundMembers} and wire listeners on source-row/feature and compound-row/feature
-   * schemas. Skips {@code applyAllBindings()} — saved binding outputs are authoritative.
+   * Finalize a load: set the top-level rows from {@code topLevelRows} (the previously-registered
+   * stubs that should appear in {@link #getRows()}), rebuild the {@code byMemberRowId} reverse
+   * index by recursively walking each top-level row's now-populated {@link CompoundMembers}, and
+   * wire listeners on source-row/feature and compound-row/feature schemas. Nested compound rows
+   * (registered via {@link #registerCompoundRowStub(ModularCompoundRow)} but not passed here) stay
+   * resolvable via {@link #findRowByCompoundId(int)} and are reachable through their parent's
+   * member list. Skips {@code applyAllBindings()} — saved binding outputs are authoritative.
    */
-  public void finalizeLoaded() {
+  public void finalizeLoaded(@NotNull final List<ModularCompoundRow> topLevelRows) {
     if (disposed) {
       throw new IllegalStateException("finalizeLoaded called on a disposed CompoundList");
     }
     bulkApplyInProgress = true;
     try {
+      rows.setAll(topLevelRows);
       byMemberRowId.clear();
       for (final ModularCompoundRow cr : rows) {
         indexMembers(cr);
@@ -421,8 +430,9 @@ public class CompoundList {
 
   /**
    * O(1) lookup by compound id. Returns null if no compound row exists for this id. During project
-   * load this resolves stubs registered by {@link #addCompoundRowStub(ModularCompoundRow)} before
-   * their content has been populated.
+   * load this resolves stubs registered by {@link #registerCompoundRowStub(ModularCompoundRow)}
+   * before their content has been populated. Returns nested compound rows too — those that are not
+   * in {@link #getRows()} but are reachable through some top-level compound row's member tree.
    */
   public @Nullable ModularCompoundRow findRowByCompoundId(final int compoundId) {
     return byCompoundId.get(compoundId);

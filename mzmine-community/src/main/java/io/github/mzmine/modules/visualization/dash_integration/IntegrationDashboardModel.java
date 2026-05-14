@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -59,7 +60,7 @@ public class IntegrationDashboardModel {
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
   private final ObjectProperty<@NotNull FxFeatureTableController> featureTableController = new ReadOnlyObjectWrapper<>(
-      new FxFeatureTableController());
+      new FxFeatureTableController(FeatureTableOwner.FEATURE_INTEGRATION_DASHBOARD));
   private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new ReadOnlyObjectWrapper<>(
       featureTableController.get().getFeatureTable());
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();

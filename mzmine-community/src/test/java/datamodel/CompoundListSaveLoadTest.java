@@ -156,36 +156,43 @@ public class CompoundListSaveLoadTest {
 
     final CompoundList cl = new CompoundList(flist, null, 4, List.of());
 
-    // inner compound (id=10): preferred = source1, members = source1+source2
+    // inner compound (id=10): preferred = source1, members = source1+source2 (source feature
+    // list rows). Inner is nested-only — it is NOT in cl.getRows(), so the save/load path must
+    // discover it through the outer's member tree and persist its content anyway.
     final ModularCompoundRow inner = new ModularCompoundRow(cl, 10, source1,
         List.of(new CompoundFeatureMember(source1, CompoundMemberRole.REPRESENTATIVE, 1.0f),
             new CompoundFeatureMember(source2, CompoundMemberRole.ADDUCT, 0.9f)),
-        0.7f, null);
+        0.7f, 217.123);
 
-    // outer compound (id=20): preferred = inner compound, members = inner compound + source3
+    // outer compound (id=20, top-level): preferred = inner compound, members = inner + source3
     final ModularCompoundRow outer = new ModularCompoundRow(cl, 20, inner,
         List.of(new CompoundFeatureMember(inner, CompoundMemberRole.REPRESENTATIVE, 1.0f),
             new CompoundFeatureMember(source3, CompoundMemberRole.ADDUCT, 0.6f)),
         0.5f, 500.0);
 
-    // intentionally save the outer first to exercise forward-reference handling: outer's <member
-    // compound="true" id="10"> appears before inner's <compoundrow id="10">
-    cl.setRows(List.of(outer, inner));
+    // only the outer compound is top-level; inner is reachable only via outer.preferredRow and
+    // outer.members. The save path must still serialize inner's content (members, scores,
+    // preferred row, neutral mass), and the load path must reconstitute it.
+    cl.setRows(List.of(outer));
     flist.setCompoundList(cl);
 
     final CompoundList loaded = roundTrip(cl);
 
-    Assertions.assertEquals(2, loaded.size(), "loaded compound count");
+    // only the top-level outer appears in getRows()
+    Assertions.assertEquals(1, loaded.size(), "only the outer compound is top-level");
+    final ModularCompoundRow loadedOuter = loaded.getRows().get(0);
+    Assertions.assertEquals(20, loadedOuter.getCompoundId(), "top-level row must be the outer");
+
+    // inner is reachable only via findRowByCompoundId (and through outer's member tree)
     final ModularCompoundRow loadedInner = loaded.findRowByCompoundId(10);
-    final ModularCompoundRow loadedOuter = loaded.findRowByCompoundId(20);
-    Assertions.assertNotNull(loadedInner, "inner compound 10 must be loaded");
-    Assertions.assertNotNull(loadedOuter, "outer compound 20 must be loaded");
+    Assertions.assertNotNull(loadedInner,
+        "inner compound 10 must be loaded even though it is not in the top-level rows");
 
     // outer's preferred row is the inner compound (same identity as the loaded inner)
     Assertions.assertSame(loadedInner, loadedOuter.getPreferredRow(),
         "outer's preferred row must be the loaded inner compound");
 
-    // outer's members: 0 = loaded inner, 1 = source3
+    // outer's members: 0 = loaded inner (CompoundRow), 1 = source3 (FeatureListRow)
     final List<CompoundFeatureMember> outerMembers = loadedOuter.getCompoundMembers();
     Assertions.assertEquals(2, outerMembers.size());
     Assertions.assertSame(loadedInner, outerMembers.get(0).row(),
@@ -194,14 +201,24 @@ public class CompoundListSaveLoadTest {
     Assertions.assertSame(source3, outerMembers.get(1).row(),
         "outer's second member must resolve to source row 3");
 
-    // inner's preferred + members are source rows
+    // inner's content survived — its preferred row, members list (source FeatureListRows),
+    // scores, confidence and neutral mass must all be restored.
     Assertions.assertSame(source1, loadedInner.getPreferredRow());
-    Assertions.assertSame(source1, loadedInner.getCompoundMembers().get(0).row());
-    Assertions.assertSame(source2, loadedInner.getCompoundMembers().get(1).row());
+    final List<CompoundFeatureMember> innerMembers = loadedInner.getCompoundMembers();
+    Assertions.assertEquals(2, innerMembers.size(), "inner member count");
+    Assertions.assertSame(source1, innerMembers.get(0).row(),
+        "inner's first member must resolve to source row 1");
+    Assertions.assertEquals(CompoundMemberRole.REPRESENTATIVE, innerMembers.get(0).role());
+    Assertions.assertEquals(1.0f, innerMembers.get(0).score(), 1e-6f);
+    Assertions.assertSame(source2, innerMembers.get(1).row(),
+        "inner's second member must resolve to source row 2");
+    Assertions.assertEquals(CompoundMemberRole.ADDUCT, innerMembers.get(1).role());
+    Assertions.assertEquals(0.9f, innerMembers.get(1).score(), 1e-6f);
+    Assertions.assertEquals(0.7f, loadedInner.getCompoundConfidenceScore(), 1e-6f);
+    Assertions.assertEquals(217.123, loadedInner.getCompoundNeutralMass(), 1e-9);
 
     Assertions.assertEquals(500.0, loadedOuter.getCompoundNeutralMass(), 1e-9);
-    Assertions.assertNull(loadedInner.getCompoundNeutralMass(),
-        "inner compound never had neutral mass set; should remain null after load");
+    Assertions.assertEquals(0.5f, loadedOuter.getCompoundConfidenceScore(), 1e-6f);
 
     fileA.close();
     fileB.close();

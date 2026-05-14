@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -114,7 +114,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final NumberFormatParameter percentFormat = new NumberFormatParameter(
       "Percent format", "Format used for percentages, e.g., relative errors (except ppm) etc.",
-      false, new DecimalFormat("0.0 %"));
+      false, new DecimalFormat("0.0%"), true);
 
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
       "The default unit format to format e.g. axis labels in MZmine.",

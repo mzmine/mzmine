@@ -39,7 +39,7 @@ public class FeatureTableTab extends SimpleTab {
     super("Feature Table", true, false);
     setSubTitle(flist != null ? flist.getName() : null);
 
-    this.controller = new FxFeatureTableController();
+    this.controller = new FxFeatureTableController(FeatureTableOwner.FEATURE_TABLE_TAB);
     controller.setFeatureList(flist);
     setContent(controller.buildView());
 

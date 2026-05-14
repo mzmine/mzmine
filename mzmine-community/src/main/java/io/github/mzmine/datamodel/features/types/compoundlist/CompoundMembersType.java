@@ -11,7 +11,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundMembers;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
-import io.github.mzmine.datamodel.features.types.modifiers.IgnoreAutoColumn;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
  * list sub-column persists ids + roles + scores per element; on load the row references are
  * resolved against the {@link ModularFeatureList} passed to {@link #loadFromXML}.
  */
-public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers>
-    implements IgnoreAutoColumn {
+public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> implements
+    NoTextColumn {
 
   private static final Logger logger = Logger.getLogger(CompoundMembersType.class.getName());
 
@@ -48,7 +48,6 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers>
   public @NotNull List<DataType> getSubDataTypes() {
     return List.of(DataTypes.get(CompoundPreferredRowType.class),
         DataTypes.get(CompoundConfidenceType.class),
-        DataTypes.get(CompoundMemberRoleType.class),
         DataTypes.get(CompoundMemberListType.class));
   }
 
