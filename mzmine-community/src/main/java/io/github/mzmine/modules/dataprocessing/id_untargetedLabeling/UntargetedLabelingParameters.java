@@ -32,7 +32,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -54,9 +53,8 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   /**
    * Metadata column for sample grouping
    */
-  public static final MetadataGroupingParameter metadataGrouping = new MetadataGroupingParameter(
-      "Sample grouping",
-      "Select metadata column to distinguish between labeled and unlabeled samples");
+  public static final StringParameter metadataGrouping = new StringParameter("Sample grouping",
+      "Name of the metadata column that distinguishes labeled from unlabeled samples", "");
 
   /**
    * Value identifying unlabeled samples in metadata
