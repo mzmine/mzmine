@@ -72,8 +72,8 @@ import io.github.mzmine.datamodel.features.types.numbers.TotalSamplesType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType;
-import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType_1_0;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType_2_0;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MathUtils;
@@ -479,8 +479,8 @@ public enum DBEntryField {
       case INTERNAL_ID -> InternalIdType.class;
       case JSON_STRING -> JsonStringType.class;
       case RETENTION_INDEX -> RIRecordType.class;
-      case ML_EMBEDDING_MS2DEEPSCORE_2_0 -> MS2DeepscoreEmbeddingType.class;
-      case ML_EMBEDDING_DREAMS_1_0 -> DreaMSEmbeddingType.class;
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0 -> MS2DeepscoreEmbeddingType_2_0.class;
+      case ML_EMBEDDING_DREAMS_1_0 -> DreaMSEmbeddingType_1_0.class;
     };
   }
 

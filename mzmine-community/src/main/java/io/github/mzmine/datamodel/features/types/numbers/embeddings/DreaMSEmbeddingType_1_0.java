@@ -28,20 +28,20 @@ package io.github.mzmine.datamodel.features.types.numbers.embeddings;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
 import org.jetbrains.annotations.NotNull;
 
-public class MS2DeepscoreEmbeddingType extends AbstractMLEmbeddingType {
+public class DreaMSEmbeddingType_1_0 extends AbstractMLEmbeddingType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "ml_embedding_ms2deepscore_2_0";
+    return "ml_embedding_dreams_1_0";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS2Deepscore embedding";
+    return "DreaMS embedding";
   }
 
   @Override
   public @NotNull MLModelId getMLModelId() {
-    return MLModelId.MS2_DEEPSCORE_2_0;
+    return MLModelId.DREAMS_1_0;
   }
 }

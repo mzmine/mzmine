@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.embeddings.AbstractMLEmbeddingType;
-import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType;
-import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.DreaMSEmbeddingType_1_0;
+import io.github.mzmine.datamodel.features.types.numbers.embeddings.MS2DeepscoreEmbeddingType_2_0;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
@@ -62,9 +62,10 @@ public class MLEmbeddingTypesTest {
 
   @Test
   public void mlEmbeddingTypes_areHiddenColumns() {
-    Assertions.assertTrue(DataTypes.get(MS2DeepscoreEmbeddingType.class) instanceof NullColumnType,
+    Assertions.assertTrue(
+        DataTypes.get(MS2DeepscoreEmbeddingType_2_0.class) instanceof NullColumnType,
         "MS2DeepscoreEmbeddingType must implement NullColumnType");
-    Assertions.assertTrue(DataTypes.get(DreaMSEmbeddingType.class) instanceof NullColumnType,
+    Assertions.assertTrue(DataTypes.get(DreaMSEmbeddingType_1_0.class) instanceof NullColumnType,
         "DreaMSEmbeddingType must implement NullColumnType");
   }
 
