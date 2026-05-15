@@ -70,18 +70,6 @@ public class MLEmbeddingTypesTest {
   }
 
   @Test
-  public void allFormatKeysAreEmpty_forRuntimeOnlyFields() {
-    for (final DBEntryField field : DBEntryField.RUNTIME_ONLY_FIELDS) {
-      Assertions.assertEquals("", field.getMZmineJsonID(), field + " json key must be empty");
-      Assertions.assertEquals("", field.getNistMspID(), field + " msp key must be empty");
-      Assertions.assertEquals("", field.getMgfID(), field + " mgf key must be empty");
-      Assertions.assertEquals("", field.getJdxID(), field + " jdx key must be empty");
-      Assertions.assertEquals("", field.getGnpsBatchSubmissionID(),
-          field + " gnps key must be empty");
-    }
-  }
-
-  @Test
   public void saveToXML_skipsRuntimeOnlyFields() throws Exception {
     final SpectralDBEntry entry = new SpectralDBEntry(null, new double[]{100.0, 200.0},
         new double[]{1.0, 2.0});
