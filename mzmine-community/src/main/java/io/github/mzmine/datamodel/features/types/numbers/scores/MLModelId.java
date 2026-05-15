@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 public enum MLModelId implements UniqueIdSupplier {
 
   MS2_DEEPSCORE_2_0("MS2Deepscore", "ms2deepscore_2.0", "2.0"), //
-  DREAMS("DreaMS", "dreams_1.0", "1.0");
+  DREAMS_1_0("DreaMS", "dreams_1.0", "1.0");
 
   private final String label;
   private final String uniqueId;
@@ -68,7 +68,7 @@ public enum MLModelId implements UniqueIdSupplier {
   public @NotNull DBEntryField getEmbeddingField() {
     return switch (this) {
       case MS2_DEEPSCORE_2_0 -> DBEntryField.ML_EMBEDDING_MS2DEEPSCORE_2_0;
-      case DREAMS -> DBEntryField.ML_EMBEDDING_DREAMS;
+      case DREAMS_1_0 -> DBEntryField.ML_EMBEDDING_DREAMS_1_0;
     };
   }
 }

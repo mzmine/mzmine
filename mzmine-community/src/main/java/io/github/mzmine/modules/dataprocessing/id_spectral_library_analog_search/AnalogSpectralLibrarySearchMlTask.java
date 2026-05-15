@@ -31,6 +31,7 @@ import ai.djl.ndarray.NDArrays;
 import ai.djl.ndarray.NDList;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.translate.TranslateException;
+import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -70,7 +71,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -139,7 +139,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
         batchSize = MS2DEEPSCORE_BATCH_SIZE;
       }
       case DREAMS -> {
-        modelId = MLModelId.DREAMS;
+        modelId = MLModelId.DREAMS_1_0;
         final SpectraMergeSelectParameter mergeParam = algoParams.getParameter(
             DreaMSNetworkingParameters.spectraMergeSelect);
         scanSelect = mergeParam.createFragmentScanSelection(getMemoryMapStorage());
@@ -172,7 +172,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       logger.info("Analog ML search: no library entries available; nothing to do.");
       return;
     }
-    final List<List<SpectralLibraryEntry>> libraryBatches = partition(sortedLibrary, batchSize);
+    final List<List<SpectralLibraryEntry>> libraryBatches = Lists.partition(sortedLibrary,
+        batchSize);
 
     // Progress: 1 unit per library entry during phase 1 + 1 unit per query scan during phase 2.
     // queryScans are counted upfront from each feature list. ML fallback cosine work is cheap
@@ -180,15 +181,14 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
     final long queryScansTotal = Arrays.stream(featureLists)
         .mapToLong(fl -> fl.getNumberOfRows()) // upper bound — collectMlQueryScans may filter
         .sum();
-    totalItems = (long) sortedLibrary.size() + queryScansTotal;
+    totalItems = (long) sortedLibrary.size() * 2 + queryScansTotal;
     finishedItems.set(0);
 
     for (final ModularFeatureList flist : featureLists) {
       flist.addRowType(DataTypes.get(AnalogSpectralLibraryMatchesType.class));
     }
 
-    final String label = mlAlgorithmLabel();
-    description = "Loading " + label + " model";
+    description = "Loading " + algorithm.toString() + " model";
 
     final NDArray[] libBatchEmbeddings = new NDArray[libraryBatches.size()];
     final BitSet freshlyPredicted = new BitSet(libraryBatches.size());
@@ -200,9 +200,11 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       // native-memory lifecycle (and gets cleaned up by model.close()).
       try {
         precomputeLibraryEmbeddings(model, libraryBatches, libBatchEmbeddings, freshlyPredicted,
-            label);
+            algorithm);
       } catch (TranslateException e) {
-        error("Failed to predict " + label + " library embeddings: " + e.getMessage(), e);
+        error(
+            "Failed to predict " + algorithm.toString() + " library embeddings: " + e.getMessage(),
+            e);
         return;
       }
       if (isCanceled()) {
@@ -217,9 +219,10 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
           return;
         }
         try {
-          matchFeatureList(model, flist, libraryBatches, libBatchEmbeddings, label);
+          matchFeatureList(model, flist, libraryBatches, libBatchEmbeddings, algorithm);
         } catch (TranslateException e) {
-          error("Failed to predict " + label + " query embeddings for " + flist.getName() + ": "
+          error("Failed to predict " + algorithm.toString() + " query embeddings for "
+              + flist.getName() + ": "
               + e.getMessage(), e);
           return;
         }
@@ -232,7 +235,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       writeBackPredictedBatches(libraryBatches, libBatchEmbeddings, freshlyPredicted);
 
     } catch (ModelNotFoundException | MalformedModelException | IOException e) {
-      error("Could not load " + label + " model: " + e.getMessage(), e);
+      error("Could not load " + algorithm.toString() + " model: " + e.getMessage(), e);
     }
     // closing the model also closes the NDManager which owns every NDArray in libBatchEmbeddings —
     // no per-array close call needed.
@@ -242,7 +245,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
 
   private void precomputeLibraryEmbeddings(final EmbeddingBasedSimilarity model,
       final List<List<SpectralLibraryEntry>> libraryBatches, final NDArray[] libBatchEmbeddings,
-      final BitSet freshlyPredicted, final String label) throws TranslateException {
+      final BitSet freshlyPredicted, final SpectralNetworkingOptions label)
+      throws TranslateException {
     final DBEntryField field = modelId.getEmbeddingField();
     final int total = libraryBatches.size();
     for (int b = 0; b < total; b++) {
@@ -283,7 +287,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       }
     }
     final long approxMB = (elements * Float.BYTES) / (1024L * 1024L);
-    logger.info(
+    logger.finest(
         "Cached %d ML embeddings (~%d MB) for model %s (%d freshly predicted, %d reused from cache)".formatted(
             predicted + cached, approxMB, modelId.labelVersion(), predicted, cached));
   }
@@ -292,8 +296,9 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
 
   private void matchFeatureList(final EmbeddingBasedSimilarity model,
       final ModularFeatureList flist, final List<List<SpectralLibraryEntry>> libraryBatches,
-      final NDArray[] libBatchEmbeddings, final String label) throws TranslateException {
-    description = label + " analog matching: " + flist.getName();
+      final NDArray[] libBatchEmbeddings, final SpectralNetworkingOptions algorithm)
+      throws TranslateException {
+    description = algorithm.toString() + " analog matching: " + flist.getName();
     final List<FeatureListRow> queryRows = new ArrayList<>();
     final List<Scan> queryScans = new ArrayList<>();
     collectMlQueryScans(flist, queryRows, queryScans);
@@ -303,7 +308,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       return;
     }
 
-    final NDArray queryEmb = predictEmbeddingsBatched(model, queryScans, label, flist.getName());
+    final NDArray queryEmb = predictEmbeddingsBatched(model, queryScans, algorithm,
+        flist.getName());
     try {
       final DataPoint[][] queryDpsCache = new DataPoint[queryScans.size()][];
       for (int b = 0; b < libraryBatches.size(); b++) {
@@ -314,6 +320,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
             libBatchEmbeddings[b]);
         appendBatchMatchesFromSim(simBatch, queryRows, queryScans, libraryBatches.get(b),
             queryDpsCache);
+
+        finishedItems.getAndAdd(libraryBatches.get(b).size());
       }
       sortRowAnalogMatchesByMlScore(queryRows);
     } finally {
@@ -333,7 +341,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
    * the progress bar moves while query embeddings are being computed.
    */
   private NDArray predictEmbeddingsBatched(final EmbeddingBasedSimilarity model,
-      final List<? extends MassSpectrum> spectra, final String label, final String flistName)
+      final List<? extends MassSpectrum> spectra, final SpectralNetworkingOptions algorithm,
+      final String flistName)
       throws TranslateException {
     final NDList batches = new NDList();
     for (int start = 0; start < spectra.size(); start += batchSize) {
@@ -343,8 +352,8 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       final int end = Math.min(start + batchSize, spectra.size());
       batches.add(model.predictEmbedding(spectra.subList(start, end)));
       finishedItems.addAndGet(end - start);
-      description =
-          "Computing " + label + " query embeddings for " + flistName + ": %d / %d".formatted(end,
+      description = "Computing " + algorithm.toString() + " query embeddings for " + flistName
+          + ": %d / %d".formatted(end,
               spectra.size());
     }
     return NDArrays.concat(batches);
@@ -463,7 +472,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
           libBatchEmbeddings[b]);
       final List<SpectralLibraryEntry> batch = libraryBatches.get(b);
       for (int i = 0; i < batch.size(); i++) {
-        batch.get(i).putAll(Map.of(field, rows[i]));
+        batch.get(i).putIfNotNull(field, rows[i]);
       }
     }
   }
@@ -480,15 +489,6 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
     };
   }
 
-  private @NotNull String mlAlgorithmLabel() {
-    return switch (algorithm) {
-      case MS2_DEEPSCORE -> "MS2Deepscore";
-      case DREAMS -> "DREAMS";
-      case MODIFIED_COSINE, COSINE_NO_PRECURSOR ->
-          throw new AssertionError("mlAlgorithmLabel called for non-ML algorithm: " + algorithm);
-    };
-  }
-
   private @NotNull List<SpectralLibraryEntry> loadAndSortLibraryEntries() {
     final List<SpectralLibraryEntry> entries = parameters.getValue(
             AnalogSpectralLibrarySearchParameters.libraries)
@@ -497,12 +497,4 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
         .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ)).toList();
   }
 
-  private static <T> List<List<T>> partition(final List<T> list, final int size) {
-    final int n = list.size();
-    final List<List<T>> out = new ArrayList<>((n + size - 1) / size);
-    for (int start = 0; start < n; start += size) {
-      out.add(list.subList(start, Math.min(start + size, n)));
-    }
-    return out;
-  }
 }

@@ -157,10 +157,6 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
       return;
     }
 
-    final String functionName =
-        algorithm == SpectralNetworkingOptions.MODIFIED_COSINE ? FN_MODIFIED_COSINE
-            : FN_COSINE_NO_PRECURSOR;
-
     for (final ModularFeatureList flist : featureLists) {
       if (isCanceled()) {
         return;
@@ -169,7 +165,7 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
       flist.addRowType(DataTypes.get(AnalogSpectralLibraryMatchesType.class));
       description = "Analog cosine search on " + flist.getName();
       try {
-        processCosine(flist, sortedEntries, functionName);
+        processCosine(flist, sortedEntries, algorithm);
       } catch (MissingMassListException e) {
         error("No mass list found in scan: " + e.getMessage(), e);
         return;
@@ -184,6 +180,7 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
     final List<SpectralLibraryEntry> entries = parameters.getValue(
             AnalogSpectralLibrarySearchParameters.libraries)
         .getMatchingLibraryEntriesAndCheckAvailability();
+    // todo: filter for precursor mz only necessary for modified cosine
     return entries.stream().filter(e -> e.getPrecursorMZ() != null)
         .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ)).toList();
   }
@@ -196,13 +193,13 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
   }
 
   private void processCosine(final ModularFeatureList flist,
-      final List<SpectralLibraryEntry> sortedEntries, final String functionName) {
+      final List<SpectralLibraryEntry> sortedEntries, final SpectralNetworkingOptions algorithm) {
     flist.getRows().parallelStream().forEach(row -> {
       if (isCanceled()) {
         return;
       }
       try {
-        processCosineRow(row, sortedEntries, functionName);
+        processCosineRow(row, sortedEntries, algorithm);
       } finally {
         finishedItems.incrementAndGet();
       }
@@ -210,7 +207,7 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
   }
 
   private void processCosineRow(final FeatureListRow row,
-      final List<SpectralLibraryEntry> sortedEntries, final String functionName) {
+      final List<SpectralLibraryEntry> sortedEntries, final SpectralNetworkingOptions algorithm) {
     final Double rowPrecursor = row.getAverageMZ();
     if (rowPrecursor == null) {
       return;
@@ -258,10 +255,10 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
         final SpectralSimilarity sim;
         if (algorithm == SpectralNetworkingOptions.MODIFIED_COSINE) {
           sim = AnalogSearchSimilarities.computeModifiedCosine(queryDps, sortedEntryDps,
-              mzTolerance, minMatch, rowPrecursor, entry.getPrecursorMZ(), functionName);
+              mzTolerance, minMatch, rowPrecursor, entry.getPrecursorMZ(), algorithm.toString());
         } else {
           sim = AnalogSearchSimilarities.computeModifiedCosine(queryDps, sortedEntryDps,
-              mzTolerance, minMatch, -1d, -1d, functionName);
+              mzTolerance, minMatch, -1d, -1d, algorithm.toString());
         }
         if (sim != null && (best == null || sim.getScore() > best.getScore())) {
           best = sim;

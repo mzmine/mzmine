@@ -32,6 +32,7 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -111,9 +112,8 @@ final class AnalogSearchSimilarities {
     if (scan.getMassList() == null) {
       throw new MissingMassListException(scan);
     }
-    final DataPoint[] dps = scan.getMassList().getDataPoints();
-    final DataPoint[] copy = dps.clone();
-    Arrays.sort(copy, DataPointSorter.DEFAULT_INTENSITY);
-    return copy;
+    @NotNull DataPoint[] dps = ScanUtils.extractDataPoints(scan.getMassList());
+    Arrays.sort(dps, DataPointSorter.DEFAULT_INTENSITY);
+    return dps;
   }
 }

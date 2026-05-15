@@ -111,8 +111,8 @@ public class MLEmbeddingTypesTest {
     Assertions.assertEquals(a.hashCode(), b.hashCode());
 
     // float[] references differ even when contents are equal — must not break equality
-    a.putAll(Map.of(DBEntryField.ML_EMBEDDING_DREAMS, new float[]{0.1f, 0.2f}));
-    b.putAll(Map.of(DBEntryField.ML_EMBEDDING_DREAMS, new float[]{0.9f, 0.8f}));
+    a.putAll(Map.of(DBEntryField.ML_EMBEDDING_DREAMS_1_0, new float[]{0.1f, 0.2f}));
+    b.putAll(Map.of(DBEntryField.ML_EMBEDDING_DREAMS_1_0, new float[]{0.9f, 0.8f}));
     Assertions.assertEquals(a, b, "runtime-only fields must not affect equals");
     Assertions.assertEquals(a.hashCode(), b.hashCode(),
         "runtime-only fields must not affect hashCode");

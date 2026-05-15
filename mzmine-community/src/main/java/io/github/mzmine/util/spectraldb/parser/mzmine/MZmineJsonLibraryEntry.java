@@ -229,7 +229,7 @@ public class MZmineJsonLibraryEntry {
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
       case JSON_STRING -> null;
-      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS ->
+      case ML_EMBEDDING_MS2DEEPSCORE_2_0, ML_EMBEDDING_DREAMS_1_0 ->
           null; // runtime-only, no JSON mapping
     };
   }

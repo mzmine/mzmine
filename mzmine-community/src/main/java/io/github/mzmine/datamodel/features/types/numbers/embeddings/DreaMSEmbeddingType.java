@@ -42,6 +42,6 @@ public class DreaMSEmbeddingType extends AbstractMLEmbeddingType {
 
   @Override
   public @NotNull MLModelId getMLModelId() {
-    return MLModelId.DREAMS;
+    return MLModelId.DREAMS_1_0;
   }
 }
