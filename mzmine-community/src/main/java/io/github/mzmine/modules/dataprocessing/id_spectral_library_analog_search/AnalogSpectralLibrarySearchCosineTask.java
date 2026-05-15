@@ -235,6 +235,12 @@ public class AnalogSpectralLibrarySearchCosineTask extends AbstractFeatureListTa
       if (isCanceled()) {
         return;
       }
+
+      if (entry.getPrecursorMZ() != null && mzTolerance.checkWithinTolerance(row.getAverageMZ(),
+          entry.getPrecursorMZ())) {
+        // if it is a direct match, skip this entry
+        continue;
+      }
       final DataPoint[] entryDps = entry.getDataPoints();
       if (entryDps == null || entryDps.length < minMatch) {
         continue;

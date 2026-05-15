@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -312,20 +313,8 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
 
     // reversed sorting (highest cosine first
     synchronized (totalMatches) {
-      totalMatches.sort((a, b) -> {
-        if (!a.isAnalogMatch() && !b.isAnalogMatch()) {
-          return 0;
-        }
-        if (a.isAnalogMatch() && !b.isAnalogMatch()) {
-          return 1;
-        }
-        if (!a.isAnalogMatch() && b.isAnalogMatch()) {
-          return -1;
-        }
-        return Double.compare(a.getSimilarity().getScore(), b.getSimilarity().getScore()) * -1;
-      });
-      totalMatches.sort((SpectralDBAnnotation a, SpectralDBAnnotation b) -> Double.compare(
-          b.getSimilarity().getScore(), a.getSimilarity().getScore()));
+      totalMatches.sort(Comparator.comparing(SpectralDBAnnotation::isAnalogMatch).reversed()
+          .thenComparingDouble(SpectralDBAnnotation::getScore).reversed());
     }
     // renew layout and show
     renewLayout();
