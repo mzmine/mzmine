@@ -222,8 +222,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
           matchFeatureList(model, flist, libraryBatches, libBatchEmbeddings, algorithm);
         } catch (TranslateException e) {
           error("Failed to predict " + algorithm.toString() + " query embeddings for "
-              + flist.getName() + ": "
-              + e.getMessage(), e);
+              + flist.getName() + ": " + e.getMessage(), e);
           return;
         }
         flist.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
@@ -342,8 +341,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
    */
   private NDArray predictEmbeddingsBatched(final EmbeddingBasedSimilarity model,
       final List<? extends MassSpectrum> spectra, final SpectralNetworkingOptions algorithm,
-      final String flistName)
-      throws TranslateException {
+      final String flistName) throws TranslateException {
     final NDList batches = new NDList();
     for (int start = 0; start < spectra.size(); start += batchSize) {
       if (isCanceled()) {
@@ -353,8 +351,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       batches.add(model.predictEmbedding(spectra.subList(start, end)));
       finishedItems.addAndGet(end - start);
       description = "Computing " + algorithm.toString() + " query embeddings for " + flistName
-          + ": %d / %d".formatted(end,
-              spectra.size());
+          + ": %d / %d".formatted(end, spectra.size());
     }
     return NDArrays.concat(batches);
   }
@@ -392,14 +389,18 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       List<SpectralDBAnnotation> rowBatchMatches = null;
       for (int c = 0; c < entryBatch.size(); c++) {
         final float mlScore = simBatch[q][c];
-        if (mlScore < mlMinScore) {
+        final SpectralLibraryEntry entry = entryBatch.get(c);
+
+        if (mlScore < mlMinScore || (entry.getPrecursorMZ() != null
+            && ML_FALLBACK_MZ_TOL.checkWithinTolerance(entry.getPrecursorMZ(),
+            row.getAverageMZ()))) {
+          // skip direct matches
           continue;
         }
         // lazy — only build the sorted-copy once at least one candidate passes the threshold
         if (queryDpsCache[q] == null) {
           queryDpsCache[q] = AnalogSearchSimilarities.sortAndCopyScan(queryScans.get(q));
         }
-        final SpectralLibraryEntry entry = entryBatch.get(c);
         final SpectralSimilarity cosineForViz = AnalogSearchSimilarities.computeFallbackCosine(
             queryDpsCache[q], entry, ML_FALLBACK_MZ_TOL, rowPrecursor);
         if (cosineForViz == null) {
