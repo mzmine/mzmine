@@ -19,6 +19,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
@@ -48,7 +49,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
   private final SimpleSpectraChartController ms2Chart = new SimpleSpectraChartController();
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();
-  private final FxFeatureTableController tableCtrl = new FxFeatureTableController();
+  private final FxFeatureTableController tableCtrl = new FxFeatureTableController(FeatureTableOwner.COMPOUND_DASHBOARD);
 
   private final CompoundDashboardInteractor interactor;
   private final CompoundDashboardViewBuilder builder;
