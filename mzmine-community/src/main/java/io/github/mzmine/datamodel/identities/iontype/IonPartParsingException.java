@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import org.jetbrains.annotations.NotNull;
 
-public class IonPartParsingException extends RuntimeException {
+public class IonPartParsingException extends Exception {
 
   @NotNull
   private final String input;

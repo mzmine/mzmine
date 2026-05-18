@@ -134,7 +134,7 @@ public class IsotopePane extends DashboardComputationPane {
     }
     IonType adductType = selectedMatch.getAdductType();
     if (adductType == null) {
-      adductType = IonTypeParser.parse(selectedMatch.getIonizationType().getAdductName());
+      adductType = IonTypeParser.parseOptional(selectedMatch.getIonizationType().getAdductName()).orElse(null);
     }
     IsotopePattern pattern = null;
     final IMolecularFormula neutralFormula = selectedMatch.getLipidAnnotation().getMolecularFormula();

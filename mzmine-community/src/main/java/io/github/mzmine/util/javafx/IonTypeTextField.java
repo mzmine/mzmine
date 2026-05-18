@@ -26,9 +26,13 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.validation.FxValidation;
+import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -39,6 +43,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonTypeTextField extends HBox {
@@ -48,6 +53,7 @@ public class IonTypeTextField extends HBox {
   private final TextField tf = new TextField();
   private final Label parsed = new Label();
   private final StringProperty stringProperty = new SimpleStringProperty();
+  private final StringProperty parsingError = new SimpleStringProperty();
 
   public IonTypeTextField() {
     super(FxLayout.DEFAULT_SPACE);
@@ -66,18 +72,34 @@ public class IonTypeTextField extends HBox {
         if (string == null || string.isBlank()) {
           return null;
         }
-        return IonTypeParser.parse(string);
+        try {
+          final IonType ion = IonTypeParser.parseOrThrow(string);
+          if (ion == null) {
+            parsingError.set(null);
+            return null;
+          }
+
+          final List<@NotNull IonPart> undefined = ion.stream().filter(IonPart::isUndefinedMass)
+              .toList();
+          parsingError.set(undefined.isEmpty() ? null : """
+              Ion type contains parts with undefined mass, open the %s tab to define these ion building blocks and re-enter this ion.""");
+          return ion;
+        } catch (IonPartParsingException e) {
+          parsingError.set(e.getMessage());
+          return null;
+        }
       }
     };
 
     Bindings.bindBidirectional(stringProperty, ionTypeProperty, converter);
 
     tf.textProperty().bindBidirectional(stringProperty);
-    tf.textProperty().addListener((_, _, _) -> ionTypeProperty.get());
 
     ionTypeProperty.addListener((__, old, newType) -> {
       parsed.setText(converter.toString(newType));
     });
+
+    FxValidation.registerErrorValidator(tf, parsingError);
 
     setAlignment(Pos.CENTER_LEFT);
     getChildren().addAll(tf, parsed);

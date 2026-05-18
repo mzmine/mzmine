@@ -103,7 +103,12 @@ class IonPartParserTest {
   @ParameterizedTest
   @FieldSource("cases")
   public void testParse(Case c) {
-    IonPart part = IonPartParser.parse(c.input);
+    IonPart part = null;
+    try {
+      part = IonPartParser.parseOrThrow(c.input);
+    } catch (IonPartParsingException e) {
+      throw new RuntimeException(e);
+    }
     final String message = "For input: " + c.input;
     assertNotNull(part, message);
     assertEquals(c.charge, part.singleCharge(), message);
@@ -126,7 +131,7 @@ class IonPartParserTest {
 
   @Test
   void isotopeFormula() {
-    final IonPart part = IonParts.parse("+[C5[13]CH12]+2");
+    final IonPart part = IonParts.parseSilent("+[C5[13]CH12]+2");
 //    final IonPart part = IonParts.parse("+2C5[13]CH12+");
     assertNotNull(part);
     assertEquals(1, part.count());
@@ -134,8 +139,8 @@ class IonPartParserTest {
   }
 
   @Test
-  void testParseElectron() {
-    final IonPart part = IonPartParser.parse("+2e");
+  void testParseElectron() throws IonPartParsingException {
+    final IonPart part = IonPartParser.parseOrThrow("+2e");
     assertNotNull(part);
     assertEquals("e", part.name());
     assertEquals(-1, part.singleCharge());
@@ -144,8 +149,8 @@ class IonPartParserTest {
   }
 
   @Test
-  void testParse1() {
-    final IonPart part = IonPartParser.parse("+3C2ArS+1");
+  void testParse1() throws IonPartParsingException {
+    final IonPart part = IonPartParser.parseOrThrow("+3C2ArS+1");
     assertNotNull(part);
     assertEquals("C2ArS", part.name());
     assertEquals(1, part.singleCharge());
@@ -153,8 +158,8 @@ class IonPartParserTest {
   }
 
   @Test
-  void testParse2() {
-    final IonPart part = IonPartParser.parse("+3Na-");
+  void testParse2() throws IonPartParsingException {
+    final IonPart part = IonPartParser.parseOrThrow("+3Na-");
     assertNotNull(part);
     assertEquals("Na", part.name());
     assertEquals(-1, part.singleCharge());
@@ -163,16 +168,16 @@ class IonPartParserTest {
 
   @Test
   void expectExceptionBraces() {
-    assertThrows(IonPartParsingException.class, () -> IonParts.parse("+(OH2)Ca"));
+    assertThrows(IonPartParsingException.class, () -> IonParts.parseSilent("+(OH2)Ca"));
   }
 
   @Test
   void expectExceptionNoCountMultiplier() {
-    assertThrows(IonPartParsingException.class, () -> IonParts.parse("H"));
+    assertThrows(IonPartParsingException.class, () -> IonParts.parseSilent("H"));
   }
 
   @Test
-  public void testAllowedSpaces() {
+  public void testAllowedSpaces() throws IonPartParsingException {
     List<String> inputs = List.of( //
         // this input without braces () is not preferred. With charge prefer braces
         "-2H2O + H + +Fe +3  -2Na + + H2O", //
@@ -187,7 +192,7 @@ class IonPartParserTest {
         IonParts.NA.withCount(-2), IonParts.H2O.withCount(1));
 
     for (String input : inputs) {
-      List<IonPart> parts = IonParts.parseMultiple(input);
+      List<IonPart> parts = IonPartParser.parseMultipleOrThrow(input);
 
       assertEquals(expected.size(), parts.size(), input);
 
@@ -198,10 +203,10 @@ class IonPartParserTest {
   }
 
   @Test
-  void testAddPartDefinition() {
+  void testAddPartDefinition() throws IonPartParsingException {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
 
-    final IonPart unknown = IonPartParser.parse("+TE");
+    final IonPart unknown = IonPartParser.parseOrThrow("+TE");
     assertEquals(1, unknown.count());
     assertEquals("TE", unknown.name());
     assertNull(unknown.singleFormula());
@@ -211,7 +216,7 @@ class IonPartParserTest {
     final IonPartDefinition def = IonPartDefinition.ofFormula("TE", "C3H6", 1);
     global.addPartDefinition(def);
 
-    final IonPart known = IonPartParser.parse("+TE");
+    final IonPart known = IonPartParser.parseOrThrow("+TE");
     assertNotNull(known);
     assertEquals(def.singleFormula(), known.singleFormula());
     assertEquals(def.absSingleMass(), known.absSingleMass());

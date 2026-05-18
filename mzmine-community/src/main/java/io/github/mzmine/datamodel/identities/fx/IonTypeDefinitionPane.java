@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
@@ -85,10 +86,7 @@ class IonTypeDefinitionPane extends BorderPane {
   private final ObservableList<IonType> types;
   private final ObservableList<IonPartDefinition> partsDefinitions;
 
-  public enum IonTypeDefinition {
-    STRING, COMBINED
-  }
-
+  private final StringProperty parsingError = new SimpleStringProperty();
   private final StringProperty parsedIonTypeString = new SimpleStringProperty();
   private final ObjectProperty<IonType> parsedIonType = new SimpleObjectProperty<>();
   private final ListProperty<IonPart> unknownParts = new SimpleListProperty<>(
@@ -190,12 +188,14 @@ class IonTypeDefinitionPane extends BorderPane {
   private void ionParsingValidation(TextField inputText) {
     StringBinding errorBinding = Bindings.createStringBinding(() -> {
       IonType value = parsedIonType.getValue();
+      String err = parsingError.get()==null? "" : "\n"+parsingError.get();
       if (value == null && StringUtils.hasValue(inputText.getText())) {
-        return "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
-            parsedIonTypeString.getValue());
+        return """
+            Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H%s""".formatted(
+            parsedIonTypeString.getValue(), err);
       }
       return null; // no error
-    }, parsedIonType, inputText.textProperty());
+    }, parsedIonType, inputText.textProperty(), parsingError);
 
     FxValidation.registerErrorValidator(inputText, errorBinding);
   }
@@ -238,8 +238,14 @@ class IonTypeDefinitionPane extends BorderPane {
 
   private void updateCurrentType() {
     String ionStr = parsedIonTypeString.get();
-    IonType ion = IonTypeParser.parse(ionStr);
-    parsedIonType.set(ion);
+    try {
+      IonType ion = IonTypeParser.parseOrThrow(ionStr);
+      parsedIonType.set(ion);
+      parsingError.set(null);
+    } catch (IonPartParsingException e) {
+      // could show where the parsing fails
+      parsingError.set(e.getMessage());
+    }
   }
 
   private void addIonType(final IonType type) {
