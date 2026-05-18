@@ -3,7 +3,6 @@ package io.github.mzmine.modules.visualization.spectra.simplespectrachart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.ConfigService;
 import javafx.collections.MapChangeListener;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -86,10 +85,6 @@ public class SimpleSpectraChartViewBuilder extends FxViewBuilder<SimpleSpectraCh
   }
 
   private void bindAxesAndTitle(@NotNull SimpleXYChart<PlotXYDataProvider> chart) {
-    model.titleProperty().subscribe(title -> {
-      chart.getChart().setTitle(title == null ? "" : title);
-      ConfigService.getConfiguration().getDefaultChartTheme().applyToTitles(chart.getChart());
-    });
     model.domainLabelProperty()
         .subscribe(label -> chart.getXYPlot().getDomainAxis().setLabel(label));
     model.rangeLabelProperty().subscribe(label -> chart.getXYPlot().getRangeAxis().setLabel(label));

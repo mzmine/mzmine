@@ -52,6 +52,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -129,10 +131,11 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     initValidation(idField, mzField, rtField);
 
-    // toggle between compound list rows and flat feature list rows
+    // toggle between compound list rows and flat feature list rows; the items list is maintained
+    // by the interactor so ALL_ISOTOPES is hidden when no compound row has isotope sub-rows.
     final var rowSelection = FxComboBox.createComboBox(
         "Toggle between compound-grouped rows and flat feature list rows",
-        CompoundRowSelection.values(), model.compoundRowSelectionProperty());
+        model.getAvailableCompoundRowSelections(), model.compoundRowSelectionProperty());
     rowSelection.disableProperty().bind(model.compoundListAvailableProperty().not());
     rowSelection.visibleProperty().bind(model.compoundListAvailableProperty());
     rowSelection.managedProperty().bind(model.compoundListAvailableProperty());
@@ -213,6 +216,11 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         null);
     // true when the current feature list has a valid compound list
     private final BooleanProperty compoundListAvailable = new SimpleBooleanProperty(false);
+    // Items shown in the compound row selection ComboBox. Defaults to all values; the interactor
+    // narrows this to {COMPOUNDS, ALL_MAJOR_IONS} when the current compound list has no nested
+    // isotope rows, so ALL_ISOTOPES is hidden in that case.
+    private final ObservableList<CompoundRowSelection> availableCompoundRowSelections = FXCollections.observableArrayList(
+        CompoundRowSelection.values());
 
     // the actual filter
     private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilter = new ReadOnlyObjectWrapper<>();
@@ -303,6 +311,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     public BooleanProperty compoundListAvailableProperty() {
       return compoundListAvailable;
+    }
+
+    public @NotNull ObservableList<CompoundRowSelection> getAvailableCompoundRowSelections() {
+      return availableCompoundRowSelections;
     }
   }
 }

@@ -111,7 +111,8 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     adductCombo.setCellFactory(_ -> adductCell());
     adductCombo.setButtonCell(adductCell());
     HBox.setHgrow(adductCombo, Priority.SOMETIMES);
-    final HBox ms2Toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, adductCombo);
+    final Label ms2OfLabel = FxLabels.newBoldLabel("MS2 of");
+    final HBox ms2Toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, ms2OfLabel, adductCombo);
 
     final Region ms2View = ms2Chart.buildView();
     // Overlay a centered bold message when no MS2 dataset is available so the user knows the
@@ -123,11 +124,13 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final StackPane ms2Stack = new StackPane(ms2View, noMs2Label);
     StackPane.setAlignment(noMs2Label, Pos.CENTER);
     VBox.setVgrow(ms2Stack, Priority.ALWAYS);
-    final VBox ms2Box = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, ms2Toolbar, ms2Stack);
 
-    final SplitPane sp = new SplitPane(ms1View, ms2Box);
+    final BorderPane mainMS2 = new BorderPane(ms2Stack);
+    mainMS2.setTop(ms2Toolbar);
+
+    final SplitPane sp = new SplitPane(ms1View, mainMS2);
     sp.setOrientation(Orientation.VERTICAL);
-    sp.setDividerPositions(0.5);
+    sp.setDividerPositions(0.45);
     return sp;
   }
 

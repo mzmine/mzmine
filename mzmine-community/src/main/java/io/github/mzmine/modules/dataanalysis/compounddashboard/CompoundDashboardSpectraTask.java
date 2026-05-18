@@ -5,6 +5,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
@@ -12,10 +14,13 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.scans.ScanUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +38,9 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   private List<DatasetAndRenderer> ms1Out = List.of();
   private List<DatasetAndRenderer> ms2Out = List.of();
+  private final Map<FeatureListRow, ColoredXYBarRenderer> ms1RenderersOut = new IdentityHashMap<>();
+  private @Nullable String ms1TitleOut = "";
+  private @Nullable String ms2TitleOut = "";
 
   public CompoundDashboardSpectraTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file, @Nullable FeatureListRow ms2Row,
@@ -63,6 +71,12 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   @Override
   protected void updateGuiModel() {
+    // update the reverse map BEFORE the list setAll so list-change subscribers see a consistent
+    // row -> renderer mapping for the new datasets
+    model.getMs1RenderersByRow().clear();
+    model.getMs1RenderersByRow().putAll(ms1RenderersOut);
+    model.setMs1Title(ms1TitleOut);
+    model.setMs2Title(ms2TitleOut);
     model.getMs1Datasets().setAll(ms1Out);
     model.getMs2Datasets().setAll(ms2Out);
     model.setComputing(false);
@@ -80,6 +94,10 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
       out.add(new DatasetAndRenderer(new MassSpectrumProvider(repScan, "MS1 representative",
           FxColorUtil.fxColorToAWT(colors.representativeBackgroundColor())),
           new ColoredXYBarRenderer(false)));
+      ms1TitleOut = "MS1 (feature rows & representative MS1: " + repScan.getDataFile().getName()
+          + ":" + repScan.getScanNumber() + ")";
+    } else {
+      ms1TitleOut = "MS1 (feature rows)";
     }
 
     // 2. one stick per row at row m/z, intensity = maxheight across files).
@@ -113,6 +131,9 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
       final ColoredXYBarRenderer renderer = new ColoredXYBarRenderer(false);
       // match the on-plot stick label color to the dataset color
       renderer.setDefaultItemLabelPaint(awt);
+      // remember the renderer that draws this adduct row's sticks so the controller can widen the
+      // bars when this row becomes the selected adduct.
+      ms1RenderersOut.put(row, renderer);
       out.add(new DatasetAndRenderer(
           new IonGroupSpectrumProvider(mzs.toDoubleArray(), intensities.toDoubleArray(), shortLabel,
               longLabel, shortLabel, awt), renderer));
@@ -147,17 +168,38 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   private @NotNull List<DatasetAndRenderer> buildMs2(@NotNull final ColorAssignment colors) {
     if (ms2Row == null) {
+      ms2TitleOut = "";
       return List.of();
     }
     final Scan ms2 = pickMs2Scan(ms2Row);
     if (ms2 == null) {
+      ms2TitleOut = "";
       return List.of();
     }
+    ms2TitleOut = buildMs2Title(ms2);
     final String label = "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
         ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
     final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(ms2Row));
     return List.of(new DatasetAndRenderer(new MassSpectrumProvider(ms2, label, awt),
         new ColoredXYBarRenderer(false)));
+  }
+
+  private static @NotNull String buildMs2Title(@NotNull final Scan ms2) {
+    final MsMsInfo info = ms2.getMsMsInfo();
+    final ActivationMethod method = info != null ? info.getActivationMethod() : null;
+    final Float energy = ScanUtils.extractCollisionEnergy(ms2);
+    final String methodStr =
+        method == null ? ActivationMethod.UNKNOWN.getAbbreviation() : method.getAbbreviation();
+    final String energyStr;
+    if (energy == null) {
+      energyStr = "N.A.";
+    } else if (method != null && !method.getUnit().isBlank()) {
+      energyStr = energy + " " + method.getUnit();
+    } else {
+      energyStr = String.valueOf(energy);
+    }
+    return "MS2 (" + ms2.getDataFile().getName() + ":" + ms2.getScanNumber() + "; " + methodStr
+        + "; " + energyStr + ")";
   }
 
   private @Nullable Scan pickMs2Scan(@NotNull final FeatureListRow row) {

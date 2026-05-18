@@ -14,7 +14,9 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +33,7 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
   private final @NotNull SimpleColorPalette palette;
 
   private List<DatasetAndRenderer> eicOut = List.of();
+  private final Map<FeatureListRow, ColoredXYLineRenderer> eicRenderersOut = new IdentityHashMap<>();
 
   public CompoundDashboardEicTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file,
@@ -72,6 +75,9 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
       final ColoredXYLineRenderer renderer = new ColoredXYLineRenderer();
       // match the on-plot series label color to the dataset color
       renderer.setDefaultItemLabelPaint(FxColorUtil.fxColorToAWT(color));
+      // remember the renderer that draws this row's EIC so the controller can thicken its line
+      // when this row becomes the selected adduct.
+      eicRenderersOut.put(row, renderer);
       result.add(new DatasetAndRenderer(new ColoredXYDataset(provider), renderer));
     }
     eicOut = result;
@@ -79,6 +85,10 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
 
   @Override
   protected void updateGuiModel() {
+    // update the reverse map BEFORE the list setAll so list-change subscribers see a consistent
+    // row -> renderer mapping for the new datasets
+    model.getEicRenderersByRow().clear();
+    model.getEicRenderersByRow().putAll(eicRenderersOut);
     model.getEicDatasets().setAll(eicOut);
   }
 }

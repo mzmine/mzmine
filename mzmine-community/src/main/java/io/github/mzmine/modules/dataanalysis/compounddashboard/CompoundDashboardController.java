@@ -9,21 +9,28 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedCompoundRowBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
+import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
@@ -44,6 +51,13 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
 
   // Coalesces rapid selection changes (arrow-key navigation) into a single recompute.
   private static final Duration DEBOUNCE = Duration.millis(150);
+
+  // Selected-row highlight: thicker EIC line + wider MS1 sticks for the renderer owned by the
+  // currently selected adduct row. Strokes are reused (not allocated per repaint).
+  private static final Stroke EIC_DEFAULT_STROKE = new BasicStroke(1.0f);
+  private static final Stroke EIC_SELECTED_STROKE = new BasicStroke(2.5f);
+  private static final double MS1_DEFAULT_BAR_MULTIPLIER = 1.0;
+  private static final double MS1_SELECTED_BAR_MULTIPLIER = 2.0;
 
   private final ChromatogramPlotController eicPlot = new ChromatogramPlotController(true);
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
@@ -107,8 +121,24 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     PropertyUtils.onChangeList(() -> applyDatasets(ms2Chart, model.getMs2Datasets()),
         model.getMs2Datasets());
 
+    // Re-apply the selected-row highlight whenever the selection changes or fresh datasets land.
+    // The renderer maps are updated in the task's updateGuiModel before the dataset list setAll,
+    // so by the time these listeners fire the maps already reflect the new datasets.
+    model.selectedAdductRowProperty().subscribe(_ -> applySelectionHighlight());
+    model.getEicDatasets().addListener(
+        (ListChangeListener<DatasetAndRenderer>) _ -> applySelectionHighlight());
+    model.getMs1Datasets().addListener(
+        (ListChangeListener<DatasetAndRenderer>) _ -> applySelectionHighlight());
+
+    // Chart titles are computed by the spectra task per scan and pushed via model properties.
+    ms1Chart.titleProperty().bind(model.ms1TitleProperty());
+    ms2Chart.titleProperty().bind(model.ms2TitleProperty());
+
     // Axis labels (set once, the renderers handle the rest).
-    eicPlot.setDomainAxisLabel("Retention time (min)");
+    final NumberFormats fmt = ConfigService.getGuiFormats();
+    // decision: use the configured unit format (round-bracket / square-bracket / divide) so the
+    // axis label respects the user's preferences instead of hardcoding "(min)".
+    eicPlot.setDomainAxisLabel(fmt.unit("Retention time", "min"));
     eicPlot.setRangeAxisLabel("Intensity");
     // Show the short ion label on the apex of each EIC trace; the long label is the tooltip.
     eicPlot.setShowSeriesLabel(true);
@@ -209,6 +239,25 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
         c.addDataset(dr.dataset(), dr.renderer());
       }
     });
+  }
+
+  /**
+   * Thicken the EIC line and widen the MS1 bars belonging to the currently selected adduct row;
+   * reset all other renderers to defaults. The maps are populated by the EIC and spectra tasks
+   * in their {@code updateGuiModel} step.
+   */
+  private void applySelectionHighlight() {
+    final FeatureListRow selected = model.getSelectedAdductRow();
+    for (final Map.Entry<FeatureListRow, ColoredXYLineRenderer> e :
+        model.getEicRenderersByRow().entrySet()) {
+      e.getValue().setDefaultStroke(
+          e.getKey() == selected ? EIC_SELECTED_STROKE : EIC_DEFAULT_STROKE);
+    }
+    for (final Map.Entry<FeatureListRow, ColoredXYBarRenderer> e :
+        model.getMs1RenderersByRow().entrySet()) {
+      e.getValue().setBarWidthMultiplier(
+          e.getKey() == selected ? MS1_SELECTED_BAR_MULTIPLIER : MS1_DEFAULT_BAR_MULTIPLIER);
+    }
   }
 
   private static void applyDatasets(@NotNull final SimpleSpectraChartController c,

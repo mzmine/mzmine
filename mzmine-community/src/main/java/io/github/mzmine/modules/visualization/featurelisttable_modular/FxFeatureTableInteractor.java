@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -38,6 +40,7 @@ import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.RangeUtils;
 import java.text.DecimalFormat;
 import javafx.beans.binding.Bindings;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> {
@@ -75,6 +78,26 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
           final ModularFeatureList flist = model.getFeatureList();
           return flist != null && flist.hasCompoundList();
         }, model.featureListProperty()));
+
+    // Narrow the row-selection options to hide ALL_ISOTOPES when the compound list has no nested
+    // (isotope) sub-rows; otherwise the option would yield an empty view.
+    model.featureListProperty().subscribe(_ -> updateAvailableCompoundRowSelections());
+  }
+
+  private void updateAvailableCompoundRowSelections() {
+    final FxFeatureTableFilterMenuModel filterModel = model.getFilterModel();
+    final ModularFeatureList flist = model.getFeatureList();
+    final CompoundList cl = flist == null ? null : flist.getCompoundList();
+    final ObservableList<CompoundRowSelection> avail = filterModel.getAvailableCompoundRowSelections();
+    if (cl != null && cl.hasNestedCompoundRows()) {
+      avail.setAll(CompoundRowSelection.values());
+    } else {
+      avail.setAll(CompoundRowSelection.COMPOUNDS, CompoundRowSelection.ALL_MAJOR_IONS);
+      // reset the current selection if it just became invalid
+      if (filterModel.getCompoundRowSelection() == CompoundRowSelection.ALL_ISOTOPES) {
+        filterModel.setCompoundRowSelection(CompoundRowSelection.ALL_MAJOR_IONS);
+      }
+    }
   }
 
   private void applyRowsFilter(@Nullable TableFeatureListRowFilter filter) {

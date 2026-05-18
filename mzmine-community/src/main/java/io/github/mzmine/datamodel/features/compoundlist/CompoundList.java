@@ -469,4 +469,23 @@ public class CompoundList {
   public List<ModularCompoundRow> getRowsCopy() {
     return List.copyOf(getRows());
   }
+
+  /**
+   * @return true if any top-level compound row holds a member that is itself a
+   * {@link ModularCompoundRow} (i.e. a major ion row with isotope sub-rows). Used to decide whether
+   * {@link CompoundRowSelection#ALL_ISOTOPES} is a meaningful option to expose in the UI.
+   */
+  public boolean hasNestedCompoundRows() {
+    for (final ModularCompoundRow cr : rows) {
+      for (final CompoundFeatureMember m : cr.getCompoundMembers()) {
+        if (m.row() instanceof ModularCompoundRow mod) {
+          // should have more than 1 isotope row
+          if (mod.getMemberRows().size() > 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 }

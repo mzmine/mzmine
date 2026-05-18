@@ -6,13 +6,19 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +58,18 @@ public class CompoundDashboardModel {
   private final ObservableList<DatasetAndRenderer> eicDatasets = FXCollections.observableArrayList();
   private final ObservableList<DatasetAndRenderer> ms1Datasets = FXCollections.observableArrayList();
   private final ObservableList<DatasetAndRenderer> ms2Datasets = FXCollections.observableArrayList();
+
+  // Reverse maps row -> renderer so the controller can change stroke/bar width on the renderer
+  // belonging to the selected adduct row without rebuilding the datasets. Populated by the spectra
+  // and EIC tasks in updateGuiModel (before the dataset lists are setAll'd) and consumed by the
+  // controller's selectedAdductRow subscriber. IdentityHashMap because rows compare by reference.
+  private final Map<FeatureListRow, ColoredXYLineRenderer> eicRenderersByRow = new IdentityHashMap<>();
+  private final Map<FeatureListRow, ColoredXYBarRenderer> ms1RenderersByRow = new IdentityHashMap<>();
+
+  // Chart titles for MS1 and MS2; computed by the spectra task so they always match the scans
+  // actually rendered.
+  private final StringProperty ms1Title = new SimpleStringProperty("");
+  private final StringProperty ms2Title = new SimpleStringProperty("");
 
   // --- accessors -------------------------------------------------------------
 
@@ -150,5 +168,37 @@ public class CompoundDashboardModel {
 
   public @NotNull ObservableList<DatasetAndRenderer> getMs2Datasets() {
     return ms2Datasets;
+  }
+
+  public @NotNull Map<FeatureListRow, ColoredXYLineRenderer> getEicRenderersByRow() {
+    return eicRenderersByRow;
+  }
+
+  public @NotNull Map<FeatureListRow, ColoredXYBarRenderer> getMs1RenderersByRow() {
+    return ms1RenderersByRow;
+  }
+
+  public @Nullable String getMs1Title() {
+    return ms1Title.get();
+  }
+
+  public void setMs1Title(@Nullable String title) {
+    ms1Title.set(title);
+  }
+
+  public StringProperty ms1TitleProperty() {
+    return ms1Title;
+  }
+
+  public @Nullable String getMs2Title() {
+    return ms2Title.get();
+  }
+
+  public void setMs2Title(@Nullable String title) {
+    ms2Title.set(title);
+  }
+
+  public StringProperty ms2TitleProperty() {
+    return ms2Title;
   }
 }
