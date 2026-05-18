@@ -30,5 +30,5 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
  * this can be useful when defining double click actions or the right click menu options.
  */
 public enum FeatureTableOwner {
-  UNDEFINED, FEATURE_TABLE_TAB, STATS_DASHBOARD, COMPOUND_DASHBOARD, NETWORK_DASHBOARD, FEATURE_INTEGRATION_DASHBOARD, OTHER_DETECTOR_CORRELATION
+  UNDEFINED, FEATURE_TABLE_TAB, STATS_DASHBOARD, COMPOUND_DASHBOARD, LIPID_DASHBOARD, NETWORK_DASHBOARD, FEATURE_INTEGRATION_DASHBOARD, OTHER_DETECTOR_CORRELATION
 }
