@@ -168,12 +168,12 @@ class IonPartParserTest {
 
   @Test
   void expectExceptionBraces() {
-    assertThrows(IonPartParsingException.class, () -> IonParts.parseSilent("+(OH2)Ca"));
+    assertThrows(IonPartParsingException.class, () -> IonPartParser.parseOrThrow("+(OH2)Ca"));
   }
 
   @Test
   void expectExceptionNoCountMultiplier() {
-    assertThrows(IonPartParsingException.class, () -> IonParts.parseSilent("H"));
+    assertThrows(IonPartParsingException.class, () -> IonPartParser.parseOrThrow("H"));
   }
 
   @Test
