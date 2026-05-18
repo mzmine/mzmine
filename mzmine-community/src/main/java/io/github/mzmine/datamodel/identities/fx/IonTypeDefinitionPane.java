@@ -147,11 +147,13 @@ class IonTypeDefinitionPane extends BorderPane {
         parsedIonType.map(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS))
             .orElse("Cannot parse input"));
 
-    final String prompt = "Format: [2M-H2O+2H]+2 or with charge M+(Cu+2)";
+    final String prompt = "Format: [2M-H2O+2H]+2 or with charge +(Cu+2)";
     final TextField inputText = newAutoGrowTextField(parsedIonTypeString, prompt, """
             Enter ion types like adducts, in source fragments, and clusters.
-            Best format uses brackets and charge state: [M+2H]+2 but both are optional.
-            Define charge of individual parts in (): M+(Cu+2)-H equals [M+(Cu+2)-H]+""",
+            Full format uses M (for molecule), brackets, and charge state: [M+2H]+2 but all three are optional.
+            Simple format just uses defined ion building blocks, e.g., -H2O+H results in [M-H2O+H]+
+            Define charge of individual parts in (): +(Cu+2)-H equals [M+(Cu+2)-H]+
+            Use () to enclose reserved symbols like +- or braces, e.g., +(propan-2-ol)""",
         10, -1);
 
     ionParsingValidation(inputText);

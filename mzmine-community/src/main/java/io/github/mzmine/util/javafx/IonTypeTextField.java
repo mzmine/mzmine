@@ -41,6 +41,7 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +95,16 @@ public class IonTypeTextField extends HBox {
     Bindings.bindBidirectional(stringProperty, ionTypeProperty, converter);
 
     tf.textProperty().bindBidirectional(stringProperty);
+
+    // check if we should use prompt in text field
+//    final String prompt = "Format: [2M-H2O+2H]+2 or with charge +(Cu+2)";
+    final String tooltip = """
+        Enter ion types like adducts, in source fragments, and clusters.
+        Full format uses M (for molecule), brackets, and charge state: [M+2H]+2 but all three are optional.
+        Simple format just uses defined ion building blocks, e.g., -H2O+H results in [M-H2O+H]+
+        Define charge of individual parts in (): +(Cu+2)-H equals [M+(Cu+2)-H]+
+        Use () to enclose reserved symbols like +- or braces, e.g., +(propan-2-ol)""";
+    tf.setTooltip(new Tooltip(tooltip));
 
     ionTypeProperty.addListener((__, old, newType) -> {
       parsed.setText(converter.toString(newType));
