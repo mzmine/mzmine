@@ -40,8 +40,6 @@ import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.properties.PropertyUtils;
-import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
@@ -61,7 +59,6 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
   private final RowsBoxplotController boxplotController = new RowsBoxplotController();
-  private final CompoundRowQualityController qualityController = new CompoundRowQualityController();
   private final StatsDashboardViewBuilder builder;
   private final FxFeatureTableController tableController;
 
@@ -69,34 +66,19 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     super(new StatsDashboardModel());
     tableController = new FxFeatureTableController(FeatureTableOwner.STATS_DASHBOARD);
     builder = new StatsDashboardViewBuilder(model, tableController, pcaController,
-        volcanoController, boxplotController, qualityController);
+        volcanoController, boxplotController);
 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
-    FxControllerBinding.bindExposedProperties(this, qualityController);
     pcaController.waitAndUpdate();
-
-    // forward the first selected row to the quality controller. we always try to resolve to the
-    // parent compound: if the user clicked a member row (adduct, isotope, in-source fragment), we
-    // walk up to its owning compound via CompoundList.findCompoundsOf so the quality view shows
-    // the parent's checks. if the row is itself a CompoundRow, use it directly; otherwise clear.
-    PropertyUtils.onChange(this::syncQualitySelectedRow, model.selectedRowsProperty(),
-        model.compoundRowSelectionProperty());
-    // feature table bindings in view builder
-  }
-
-  private void syncQualitySelectedRow() {
-    final List<FeatureListRow> rows = model.getSelectedRows();
-    final FeatureListRow first = rows == null || rows.isEmpty() ? null : rows.getFirst();
-    qualityController.setSelectedCompoundRow(resolveCompoundRow(first));
   }
 
   /**
    * Resolve the {@link CompoundRow} that should be displayed for the given selected row. Prefers
-   * the parent compound if the row is a member of one; otherwise returns the row itself when it
-   * is already a compound. Returns {@code null} if neither applies (e.g. a plain feature row that
-   * is not part of any compound).
+   * the parent compound if the row is a member of one; otherwise returns the row itself when it is
+   * already a compound. Returns {@code null} if neither applies (e.g. a plain feature row that is
+   * not part of any compound).
    */
   private static @Nullable CompoundRow resolveCompoundRow(@Nullable FeatureListRow row) {
     if (row == null) {
