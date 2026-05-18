@@ -195,6 +195,8 @@ public class MainWindowController {
   public MenuItem mergeLibrariesMenuItem;
 
   @FXML
+  public MenuItem showCompoundDashboardItem;
+  @FXML
   public NotificationPane notificationPane;
 
   @FXML
@@ -379,7 +381,7 @@ public class MainWindowController {
     // Add mouse clicked event handler
     featureListsList.getTreeView().setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleOpenFeatureList(event);
+        handlePreferredDashboardFeatureList();
       }
     });
 
@@ -395,36 +397,44 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getTreeView().getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
-          while (change.next()) {
-            if (change.getList() == null) {
-              return;
-            }
+    final ObservableList<TreeItem<FeatureList>> selectedItems = featureListsList.getTreeView()
+        .getSelectionModel().getSelectedItems();
+    selectedItems.addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
+      while (change.next()) {
+        if (change.getList() == null) {
+          return;
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              openFeatureListMenuItem.setText("Open feature list");
-              showFeatureListSummaryMenuItem.setText("Show feature list summary");
-              featureListsRemoveMenuItem.setText("Remove feature list");
-            } else {
-              openFeatureListMenuItem.setText("Open feature lists");
-              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-              featureListsRemoveMenuItem.setText("Remove feature lists");
-            }
+        if (selectedItems.isEmpty() || (selectedItems.getFirst().getValue() != null
+            && selectedItems.getFirst().getValue().getCompoundList() != null)) {
+          showCompoundDashboardItem.setVisible(false);
+        } else {
+          showCompoundDashboardItem.setVisible(true);
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              featureListsRenameMenuItem.setDisable(false);
-              if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
-                  == null) {
-                featureListsRenameMenuItem.setText("Rename group");
-              } else {
-                featureListsRenameMenuItem.setText("Rename feature list");
-              }
-            } else {
-              featureListsRenameMenuItem.setDisable(true);
-            }
+        if (selectedItems.size() == 1) {
+          openFeatureListMenuItem.setText("Open feature list");
+          showFeatureListSummaryMenuItem.setText("Show feature list summary");
+          featureListsRemoveMenuItem.setText("Remove feature list");
+        } else {
+          openFeatureListMenuItem.setText("Open feature lists");
+          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+          featureListsRemoveMenuItem.setText("Remove feature lists");
+        }
+
+        if (selectedItems.size() == 1) {
+          featureListsRenameMenuItem.setDisable(false);
+          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+              == null) {
+            featureListsRenameMenuItem.setText("Rename group");
+          } else {
+            featureListsRenameMenuItem.setText("Rename feature list");
           }
-        });
+        } else {
+          featureListsRenameMenuItem.setDisable(true);
+        }
+      }
+    });
 
     featureListsList.setRenameConsumer(FeatureList::setName);
   }
@@ -783,7 +793,7 @@ public class MainWindowController {
     }
   }
 
-  public void handleOpenFeatureList(Event event) {
+  public void handlePreferredDashboardFeatureList() {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
       FxThread.runLater(() -> {
@@ -794,6 +804,15 @@ public class MainWindowController {
         } else {
           FeatureTableFXUtil.addFeatureTableTab(fl);
         }
+      });
+    }
+  }
+
+  public void handleOpenFeatureList(Event event) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
+      FxThread.runLater(() -> {
+        FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }
   }
@@ -1084,5 +1103,16 @@ public class MainWindowController {
 
   public void handleMergeLibraries(ActionEvent e) {
     MZmineCore.setupAndRunModule(MergeLibrariesModule.class);
+  }
+
+  public void handleShowCompoundDashboard(ActionEvent actionEvent) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    FxThread.runLater(() -> {
+      for (FeatureList fl : selectedFeatureLists) {
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        }
+      }
+    });
   }
 }

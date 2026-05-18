@@ -156,16 +156,13 @@
                         <contextMenu>
                           <ContextMenu fx:id="featureListContextMenu">
                             <items>
-                              <MenuItem onAction="#handleOpenFeatureList"
-                                text="Open feature list" fx:id="openFeatureListMenuItem"/>
-                              <MenuItem onAction="#handleShowFeatureListSummary"
-                                text="Show feature list summary"
-                                fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleOpenFeatureList" text="Open feature list" fx:id="openFeatureListMenuItem"/>
+                              <MenuItem onAction="#handleShowFeatureListSummary" text="Show feature list summary" fx:id="showFeatureListSummaryMenuItem"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleShowCompoundDashboard" fx:id="showCompoundDashboardItem" text="Show compound dashboard"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowIntegrationDashboard"
-                                text="Show integration dashboard"/>
-                              <MenuItem onAction="#handleShowLipidDashboard"
-                                text="Show lipid dashboard"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard" text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowLipidDashboard" text="Show lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
