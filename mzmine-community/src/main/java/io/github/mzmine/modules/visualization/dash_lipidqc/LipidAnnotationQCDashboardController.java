@@ -30,7 +30,9 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.dash_lipidqc.kendrick.KendrickOutlierPopupController;
 import io.github.mzmine.modules.visualization.dash_lipidqc.quality.AnnotationQualityController;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,8 +47,9 @@ public class LipidAnnotationQCDashboardController extends
 
   private final AnnotationQualityController qualityController = new AnnotationQualityController();
   private final KendrickOutlierPopupController outlierPopupController = new KendrickOutlierPopupController();
+  private final WeakAdapter weak = new WeakAdapter();
 
-  public LipidAnnotationQCDashboardController() {
+  public LipidAnnotationQCDashboardController(@Nullable FeatureTableFX parentFeatureTable) {
     super(new LipidAnnotationQCDashboardModel());
     new LipidAnnotationQCDashboardInteractor(model);
     model.featureListProperty().subscribe(flist -> {
@@ -65,6 +68,21 @@ public class LipidAnnotationQCDashboardController extends
       }
     });
     qualityController.setOnFeatureTableRefresh(() -> model.getFeatureTableFx().refresh());
+
+    bindParentFeatureTable(parentFeatureTable);
+  }
+
+  private void bindParentFeatureTable(@Nullable FeatureTableFX parent) {
+    if (parent == null) {
+      return;
+    }
+
+    // only add weak listener that will update the selection in lipid dashboard if parent selection changes
+    weak.addListChangeListener(parent, parent.getSelectionModel().getSelectedItems(),
+        c -> model.setRow(parent.getSelectedRow()));
+    weak.addApplyChangeListener(parent, parent.featureListProperty(),
+        (_, _, newValue) -> model.setFeatureList(newValue));
+
   }
 
   @Override
@@ -85,5 +103,6 @@ public class LipidAnnotationQCDashboardController extends
   public void dispose() {
     model.getPaneGroup().disposeListeners();
     outlierPopupController.closeStage();
+    weak.dipose();
   }
 }

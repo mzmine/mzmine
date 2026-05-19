@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
@@ -53,6 +54,7 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -123,6 +125,10 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         MZmineCore.getDesktop().addTab(tab);
       } else if (mainType instanceof SpectralLibraryMatchesType) {
         MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
+      } else if (mainType instanceof LipidMatchListType) {
+        final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab(table);
+        new MZmineWindow().addTab(tab);
+//        MZmineCore.getDesktop().addTab(tab);
       }
     });
   }

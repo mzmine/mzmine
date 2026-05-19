@@ -405,8 +405,8 @@ public class MainWindowController {
           return;
         }
 
-        if (selectedItems.isEmpty() || (selectedItems.getFirst().getValue() != null
-            && selectedItems.getFirst().getValue().getCompoundList() != null)) {
+        if (selectedItems.isEmpty() || selectedItems.getFirst().getValue() == null
+            || selectedItems.getFirst().getValue().getCompoundList() == null) {
           showCompoundDashboardItem.setVisible(false);
         } else {
           showCompoundDashboardItem.setVisible(true);

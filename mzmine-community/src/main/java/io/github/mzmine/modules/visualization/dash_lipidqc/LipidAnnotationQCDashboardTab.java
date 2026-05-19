@@ -28,7 +28,9 @@ package io.github.mzmine.modules.visualization.dash_lipidqc;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Main-window tab that hosts the lipid annotation quality control dashboard, delegating feature
@@ -38,9 +40,10 @@ public class LipidAnnotationQCDashboardTab extends SimpleTab {
 
   private final LipidAnnotationQCDashboardController controller;
 
-  public LipidAnnotationQCDashboardTab() {
+  public LipidAnnotationQCDashboardTab(@Nullable FeatureTableFX table) {
     super("Lipid annotation QC dashboard");
-    controller = new LipidAnnotationQCDashboardController();
+
+    controller = new LipidAnnotationQCDashboardController(table);
     setContent(controller.buildView());
     setOnCloseRequest(_ -> controller.dispose());
   }
