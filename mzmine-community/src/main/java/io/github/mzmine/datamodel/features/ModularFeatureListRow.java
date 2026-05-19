@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
@@ -597,6 +598,31 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
     List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(
+          get(AnalogSpectralLibraryMatchesType.class), ArrayList::new);
+      old.addAll(matches);
+      set(AnalogSpectralLibraryMatchesType.class, old);
+    }
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+  }
+
+  @Override
+  public @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches() {
+    List<SpectralDBAnnotation> matches = get(AnalogSpectralLibraryMatchesType.class);
+    return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches) {
+    set(AnalogSpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    }
   }
 
   @Override

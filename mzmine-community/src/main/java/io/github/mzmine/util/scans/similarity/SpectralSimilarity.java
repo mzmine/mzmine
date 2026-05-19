@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -125,9 +125,10 @@ public class SpectralSimilarity {
       List<DataPoint[]> filtered = ScanAlignment.removeUnaligned(alignedDP);
       aligned = ScanAlignment.convertBackToMassLists(filtered);
 
-      for (DataPoint[] dp : aligned) {
-        Arrays.sort(dp, sorter);
-      }
+      // Do NOT sort aligned[0] (library) and aligned[1] (query) independently — that would
+      // destroy the pair-by-index correspondence (aligned[0][i] is paired with aligned[1][i]
+      // by the matcher). Consumers that classify pairs as direct vs modified rely on this
+      // invariant. Charts that want mz-sorted display can sort their own copy.
       double sumAligned = Arrays.stream(Objects.requireNonNull(getAlignedLibrarySignals()))
           .mapToDouble(DataPoint::getIntensity).sum();
       double sumAll = Arrays.stream(library).filter(Objects::nonNull)

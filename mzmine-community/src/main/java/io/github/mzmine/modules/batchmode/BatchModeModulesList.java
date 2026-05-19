@@ -121,6 +121,7 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
@@ -398,6 +399,7 @@ public class BatchModeModulesList {
           NistMsSearchModule.class, //
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //
+          AnalogSpectralLibrarySearchModule.class, //
           BioTransformerModule.class, //
           SiriusApiResultsImportModule.class, //
           SiriusApiFingerIdModule.class, //
