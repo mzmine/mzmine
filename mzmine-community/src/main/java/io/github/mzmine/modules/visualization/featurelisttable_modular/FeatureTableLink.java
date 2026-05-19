@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,31 +25,23 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Region;
+import java.lang.ref.WeakReference;
+import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Combines {@link FeatureTableFX} with {@link FxFeatureTableFilterMenu}
+ * Outgoing link from one {@link FxFeatureTableController} to another. The target is held weakly so
+ * a closed dashboard can be garbage collected. The {@code active} flag gates state propagation at
+ * runtime and can be toggled by the user from the link popover.
  */
-public class FxFeatureTableViewBuilder extends FxViewBuilder<FxFeatureTableModel> {
+public record FeatureTableLink(@NotNull WeakReference<FxFeatureTableController> target,
+                               @NotNull BooleanProperty active) {
 
-  private final @NotNull FxFeatureTableController controller;
-
-  protected FxFeatureTableViewBuilder(FxFeatureTableModel model,
-      @NotNull FxFeatureTableController controller) {
-    super(model);
-    this.controller = controller;
-  }
-
-  @Override
-  public Region build() {
-    // feature table is already built in model as there are many requirements from model to table
-    final BorderPane main = new BorderPane(model.getFeatureTable());
-    final FxFeatureTableFilterMenu filterMenu = new FxFeatureTableFilterMenu(model, controller);
-    main.setBottom(filterMenu);
-
-    return main;
+  /**
+   * @return the target controller, or {@code null} if it has been garbage collected.
+   */
+  public @Nullable FxFeatureTableController getTarget() {
+    return target.get();
   }
 }

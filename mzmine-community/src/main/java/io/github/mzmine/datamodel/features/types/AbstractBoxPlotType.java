@@ -37,11 +37,12 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowChart
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
@@ -112,7 +113,16 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
 
         tab.getController().groupingColumnProperty().set(selectedColumn);
         tab.getController().abundanceMeasureProperty().set(abundanceMeasure);
-        MZmineCore.getDesktop().addTab(tab);
+        new MZmineWindow().addTab(tab);
+
+        // Bidirectional link so selections sync between source feature table and the new Stats
+        // dashboard's table. The user can disable either direction from the link popover.
+        final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
+        final FxFeatureTableController statsCtrl = tab.getController().getTableController();
+        if (sourceCtrl != null) {
+          sourceCtrl.linkTo(statsCtrl, true);
+          statsCtrl.linkTo(sourceCtrl, true);
+        }
       });
     };
   }

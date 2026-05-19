@@ -125,4 +125,8 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
     return model.compoundRowSelectionProperty();
   }
+
+  public @NotNull FxFeatureTableController getTableController() {
+    return tableController;
+  }
 }

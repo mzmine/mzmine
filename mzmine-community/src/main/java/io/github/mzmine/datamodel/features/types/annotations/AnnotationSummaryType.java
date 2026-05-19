@@ -56,6 +56,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.ColorUtils;
@@ -126,9 +127,22 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       } else if (mainType instanceof SpectralLibraryMatchesType) {
         MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
       } else if (mainType instanceof LipidMatchListType) {
-        final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab(table);
+        final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
+        // Seed the new tab with the source feature list so it shows content immediately.
+        if (table != null) {
+          tab.getController().setFeatureList(table.getFeatureList());
+        }
         new MZmineWindow().addTab(tab);
-//        MZmineCore.getDesktop().addTab(tab);
+        // Wire bidirectional cross-dashboard link so selections sync between the source feature
+        // table and the new lipid dashboard. Both directions are active by default; the user can
+        // disable either direction from the link popover.
+        final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
+        final FxFeatureTableController lipidCtrl = tab.getController()
+            .getFeatureTableController();
+        if (sourceCtrl != null) {
+          sourceCtrl.linkTo(lipidCtrl, true);
+          lipidCtrl.linkTo(sourceCtrl, true);
+        }
       }
     });
   }

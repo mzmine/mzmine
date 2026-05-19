@@ -57,7 +57,7 @@ public class LipidAnnotationQCDashboardModule extends AbstractRunnableModule {
       @NotNull Instant moduleCallDate) {
 
     final SimpleRunnableTask task = new SimpleRunnableTask(() -> {
-      final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab(null);
+      final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
       tab.onFeatureListSelectionChanged(Arrays.asList(
           parameters.getValue(LipidAnnotationQCDashboardParameters.flists)
               .getMatchingFeatureLists()));

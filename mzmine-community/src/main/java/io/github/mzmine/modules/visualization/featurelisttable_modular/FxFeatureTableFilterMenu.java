@@ -32,6 +32,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -60,6 +61,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.validation.ValidationSupport;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,12 +73,16 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   private final FxFeatureTableFilterMenuModel model;
   @NotNull
   private final FxFeatureTableModel parentModel;
+  @NotNull
+  private final FxFeatureTableController parentController;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;
 
-  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel) {
+  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel,
+      @NotNull FxFeatureTableController parentController) {
     this.model = parentModel.getFilterModel();
     this.parentModel = parentModel;
+    this.parentController = parentController;
     filterFlow = createFilters();
     rightButtonMenu = createRightButtonMenu();
 
@@ -175,14 +182,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         "Configure the look & feel of the feature table", onOpenParametersDialog);
     final ButtonBase quick = FxIconUtil.newIconButton(FxIcons.COLUMNS_DOTS,
         "Quick configuration of table columns", parentModel.getOnQuickColumnSelectionAction());
+    final ButtonBase links = createLinksButton();
     final ButtonBase docu = FxIconUtil.newIconButton(FxIcons.QUESTION_CIRCLE,
         "Open the documentation of the feature table", () -> DesktopService.getDesktop()
             .openWebPage(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html"));
 
     return FxLayout.newHBox( //
-        docu, quick, config //
+        docu, links, quick, config //
     );
+  }
+
+  /**
+   * Button with links to other feature tables
+   */
+  private ButtonBase createLinksButton() {
+    final ButtonBase btn = FxIconUtil.newIconButton(FxIcons.LINK,
+        "Linked feature tables — sync selection across dashboards", null);
+    final FeatureTableLinksPopoverContent content = new FeatureTableLinksPopoverContent(
+        parentController);
+    final PopOver popover = FxPopOvers.newPopOver(content, ArrowLocation.BOTTOM_RIGHT);
+    // Prune stale weak refs each time the popover opens so closed dashboards drop from the list.
+    popover.setOnShowing(_ -> content.refresh());
+    FxPopOvers.install(btn, popover);
+    return btn;
   }
 
   public FlowPane getFilterFlow() {
