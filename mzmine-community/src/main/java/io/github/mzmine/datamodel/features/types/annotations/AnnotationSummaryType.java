@@ -121,27 +121,34 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
     }
 
     return () -> FxThread.runLater(() -> {
-      if (mainType instanceof CompoundDatabaseMatchesType) {
-        CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
-        MZmineCore.getDesktop().addTab(tab);
-      } else if (mainType instanceof SpectralLibraryMatchesType) {
-        MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
-      } else if (mainType instanceof LipidMatchListType) {
-        final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
-        // Seed the new tab with the source feature list so it shows content immediately.
-        if (table != null) {
-          tab.getController().setFeatureList(table.getFeatureList());
+      switch (mainType) {
+        case CompoundDatabaseMatchesType _ -> {
+          CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
+          MZmineCore.getDesktop().addTab(tab);
         }
-        new MZmineWindow().addTab(tab);
-        // Wire bidirectional cross-dashboard link so selections sync between the source feature
-        // table and the new lipid dashboard. Both directions are active by default; the user can
-        // disable either direction from the link popover.
-        final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
-        final FxFeatureTableController lipidCtrl = tab.getController()
-            .getFeatureTableController();
-        if (sourceCtrl != null) {
-          sourceCtrl.linkTo(lipidCtrl, true);
-          lipidCtrl.linkTo(sourceCtrl, true);
+        case SpectralLibraryMatchesType s -> MZmineCore.getDesktop()
+            .addTab(new SpectralIdentificationResultsTab(table, s.getClass()));
+        case AnalogSpectralLibraryMatchesType a -> MZmineCore.getDesktop()
+            .addTab(new SpectralIdentificationResultsTab(table, a.getClass()));
+        case LipidMatchListType _ -> {
+          final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
+          // Seed the new tab with the source feature list so it shows content immediately.
+          if (table != null) {
+            tab.getController().setFeatureList(table.getFeatureList());
+          }
+          new MZmineWindow().addTab(tab);
+          // Wire bidirectional cross-dashboard link so selections sync between the source feature
+          // table and the new lipid dashboard. Both directions are active by default; the user can
+          // disable either direction from the link popover.
+          final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
+          final FxFeatureTableController lipidCtrl = tab.getController()
+              .getFeatureTableController();
+          if (sourceCtrl != null) {
+            sourceCtrl.linkTo(lipidCtrl, true);
+            lipidCtrl.linkTo(sourceCtrl, true);
+          }
+        }
+        case null, default -> {
         }
       }
     });
@@ -257,7 +264,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       textColor = FxColorUtil.awtColorToFX(defaultChartTheme.getAxisLabelPaint());
       outlineColor = defaultBackgroundTransparent ? textColor.deriveColor(0, 1, 1, 0.3)
           : FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint())
-              .deriveColor(0, 1, 1, 0.3);
+            .deriveColor(0, 1, 1, 0.3);
       bgColor = defaultBackgroundTransparent ? textColor.deriveColor(0, 1, 1, 0.1)
           : FxColorUtil.awtColorToFX(defaultChartTheme.getPlotBackgroundPaint());
     }
@@ -266,6 +273,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       DataType type = DataTypes.get(typeClass);
       return switch (type) {
         case SpectralLibraryMatchesType _ -> new Color(0.749f, 0.1725f, 0.5176f, 1f);
+        // analog spectral matches: lighter shade of the spectral-match color
+        case AnalogSpectralLibraryMatchesType _ -> new Color(0.835f, 0.369f, 0.f, 1f);
         case CompoundDatabaseMatchesType _ -> new Color(0.f, 0.620f, 0.451f, 1f);
         case LipidMatchListType _ -> new Color(0.941f, 0.894f, 0.259f, 1f);
         default -> new Color(0.337f, 0.706f, 0.914f, 1f);
@@ -346,7 +355,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
         final int colIndex = useTwoRows ? (i % numCols) : i;
 
         final double xOffset = colIndex * (barWidth + BAR_SPACING);
-        final double yOffset = (chartMaxHeight - availableHeight) + rowIndex * rowHeight + (rowIndex * BAR_SPACING);
+        final double yOffset =
+            (chartMaxHeight - availableHeight) + rowIndex * rowHeight + (rowIndex * BAR_SPACING);
 
         final OptionalDouble optScore = annotationSummary.score(scoreType);
         final double score = optScore.orElse(0d);
@@ -379,7 +389,8 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
           // value present in library but outside of bounds, change text color to indicate.
           gc.setFill(
               ConfigService.getConfiguration().getTheme().isDark() ? getScoreColor(0).brighter()
-                  .brighter() : getScoreColor(0));
+                                                                     .brighter()
+                  : getScoreColor(0));
         } else {
           // no score calculated, no entry in database
           gc.setFill(textColor);

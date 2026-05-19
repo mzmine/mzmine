@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -170,6 +171,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       final String value = reader.getElementText();
 
       DBEntryField field = DBEntryField.valueOf(keyName);
+      // saveToXML never writes runtime-only fields; defensively skip them on read too
+      if (field.isRuntimeOnly()) {
+        continue;
+      }
       try {
         Object convertValue = field.convertValue(value);
         fields.put(field, convertValue);
@@ -238,6 +243,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     writer.writeStartElement(XML_DB_FIELD_LIST_ELEMENT);
     for (Entry<DBEntryField, Object> entry : fields.entrySet()) {
       var key = entry.getKey();
+      // runtime-only fields (e.g. ML embedding caches) live in the same map but must not persist
+      if (key.isRuntimeOnly()) {
+        continue;
+      }
       var value = entry.getValue();
       writer.writeStartElement(XML_DB_FIELD_ELEMENT);
       writer.writeAttribute(XML_FIELD_NAME_ATTR, key.name());
@@ -258,7 +267,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       return false;
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
-    return Objects.equals(fields, that.fields)
+    return persistedFields().equals(that.persistedFields())
         && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
@@ -270,7 +279,18 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public int hashCode() {
-    return Objects.hash(fields, getNumberOfDataPoints());
+    return Objects.hash(persistedFields(), getNumberOfDataPoints());
+  }
+
+  // exclude runtime-only fields (e.g. ML embedding caches) — they would break equals/hashCode by
+  // mixing reference-equal array values into the map identity
+  private Map<DBEntryField, Object> persistedFields() {
+    if (fields.keySet().stream().noneMatch(DBEntryField::isRuntimeOnly)) {
+      return fields;
+    }
+    final Map<DBEntryField, Object> filtered = new HashMap<>(fields);
+    filtered.keySet().removeIf(DBEntryField::isRuntimeOnly);
+    return filtered;
   }
 
   @Override
