@@ -39,7 +39,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     if (compound == null) {
       model.getAvailableRawDataFiles().clear();
       model.getAdductRows().clear();
-      model.setSelectedAdductRow(null);
+      model.setSelectedMs2Row(null);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMs1Datasets().clear();
@@ -64,13 +64,15 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     final List<FeatureListRow> ms2Rows = compound.getMemberRows().stream()
         .filter(row -> row.getMostIntenseFragmentScan() != null).toList();
     model.getAdductRows().setAll(ms2Rows);
-    if (model.getSelectedAdductRow() == null
-        || !model.getAdductRows().contains(model.getSelectedAdductRow())) {
+    if (model.getSelectedMs2Row() == null
+        || !model.getAdductRows().contains(model.getSelectedMs2Row())) {
       final FeatureListRow preferred = compound.getPreferredRow();
       if (preferred != null && ms2Rows.contains(preferred)) {
-        model.setSelectedAdductRow(preferred);
+        model.setSelectedMs2Row(preferred);
       } else {
-        model.setSelectedAdductRow(ms2Rows.isEmpty() ? null : ms2Rows.getFirst());
+        // null when no member has an MS2 — the controller's selectedAdductRow subscription falls
+        // back to the preferred row so EIC/MS1 highlight still has a target.
+        model.setSelectedMs2Row(ms2Rows.isEmpty() ? null : ms2Rows.getFirst());
       }
     }
 
@@ -96,7 +98,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardSpectraTask(model, compound, model.getCurrentRawDataFile(),
-        model.getSelectedAdductRow(), palette.clone(true));
+        model.getSelectedMs2Row(), palette.clone(true));
   }
 
   /**

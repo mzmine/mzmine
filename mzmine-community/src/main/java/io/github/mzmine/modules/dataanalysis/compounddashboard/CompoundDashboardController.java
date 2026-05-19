@@ -103,9 +103,10 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     PropertyUtils.onChange(interactor::onSelectionChanged, model.selectedCompoundRowProperty(),
         model.featureListProperty());
 
-    // Heavy debounced recompute of MS1+MS2.
+    // Heavy debounced recompute of MS1+MS2. The MS2 source is `selectedMs2Row` (driven by the
+    // adduct ComboBox); `selectedAdductRow` is derived state and would just echo this trigger.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleSpectra, DEBOUNCE,
-        model.selectedCompoundRowProperty(), model.selectedAdductRowProperty(),
+        model.selectedCompoundRowProperty(), model.selectedMs2RowProperty(),
         model.colorPaletteProperty(), model.currentRawDataFileProperty());
     // Heavy debounced recompute of EICs.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleEic, DEBOUNCE,
@@ -120,6 +121,12 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
         model.getMs1Datasets());
     PropertyUtils.onChangeList(() -> applyDatasets(ms2Chart, model.getMs2Datasets()),
         model.getMs2Datasets());
+
+    // Derive selectedAdductRow from the MS2 ComboBox selection: when the user has picked an MS2
+    // row, highlight it; when no MS2 is selected (e.g. compound has no MS2-bearing member), fall
+    // back to the preferred row so the EIC/MS1 highlight always has a target.
+    PropertyUtils.onChange(this::updateSelectedAdductRow, model.selectedMs2RowProperty(),
+        model.selectedCompoundRowProperty());
 
     // Re-apply the selected-row highlight whenever the selection changes or fresh datasets land.
     // The renderer maps are updated in the task's updateGuiModel before the dataset list setAll,
@@ -239,6 +246,20 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
         c.addDataset(dr.dataset(), dr.renderer());
       }
     });
+  }
+
+  /**
+   * Recompute {@code selectedAdductRow}: mirror {@code selectedMs2Row} when set, otherwise fall
+   * back to the selected compound's preferred row (and null when no compound is selected).
+   */
+  private void updateSelectedAdductRow() {
+    final FeatureListRow ms2 = model.getSelectedMs2Row();
+    if (ms2 != null) {
+      model.setSelectedAdductRow(ms2);
+      return;
+    }
+    final CompoundRow compound = model.getSelectedCompoundRow();
+    model.setSelectedAdductRow(compound == null ? null : compound.getPreferredRow());
   }
 
   /**

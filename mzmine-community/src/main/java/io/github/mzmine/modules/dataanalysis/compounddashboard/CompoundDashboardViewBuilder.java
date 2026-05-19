@@ -105,9 +105,11 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     // MS1 (no extra toolbar; gray background + per-row sticks)
     final Region ms1View = ms1Chart.buildView();
 
-    // MS2 with adduct selector above
+    // MS2 with adduct selector above. The ComboBox drives `selectedMs2Row` (can be null when no
+    // member row has an MS2 scan); `selectedAdductRow` is derived from it and always non-null when
+    // a compound is selected, so the EIC/MS1 highlight has a stable target.
     final ComboBox<FeatureListRow> adductCombo = FxComboBox.createComboBox("Adduct (MS2 source)",
-        model.getAdductRows(), model.selectedAdductRowProperty());
+        model.getAdductRows(), model.selectedMs2RowProperty());
     adductCombo.setCellFactory(_ -> adductCell());
     adductCombo.setButtonCell(adductCell());
     HBox.setHgrow(adductCombo, Priority.SOMETIMES);

@@ -41,7 +41,13 @@ public class CompoundDashboardModel {
   private final ObjectProperty<List<FeatureList>> selectedFeatureLists = new SimpleObjectProperty<>(
       List.of());
   private final ObjectProperty<@Nullable RawDataFile> currentRawDataFile = new SimpleObjectProperty<>();
-  // first-level adduct member rows (drives MS2 selector)
+  // The row whose MS2 the MS2 chart draws. Bound bidirectionally to the adduct ComboBox.
+  // Can be null (no MS2 plot) when the compound has no MS2-capable member.
+  private final ObjectProperty<@Nullable FeatureListRow> selectedMs2Row = new SimpleObjectProperty<>();
+  // Highlight target for EIC + MS1 (thicker line / wider sticks). Derived in the controller:
+  // mirrors selectedMs2Row when non-null, otherwise falls back to the preferred row of the
+  // selected compound. This way the highlight always has a target even when no MS2 exists, and
+  // the EIC/MS1 plots and the MS2 selector stay decoupled.
   private final ObjectProperty<@Nullable FeatureListRow> selectedAdductRow = new SimpleObjectProperty<>();
 
   // --- derived ---------------------------------------------------------------
@@ -124,6 +130,18 @@ public class CompoundDashboardModel {
 
   public ObjectProperty<@Nullable FeatureListRow> selectedAdductRowProperty() {
     return selectedAdductRow;
+  }
+
+  public @Nullable FeatureListRow getSelectedMs2Row() {
+    return selectedMs2Row.get();
+  }
+
+  public void setSelectedMs2Row(@Nullable FeatureListRow row) {
+    selectedMs2Row.set(row);
+  }
+
+  public ObjectProperty<@Nullable FeatureListRow> selectedMs2RowProperty() {
+    return selectedMs2Row;
   }
 
   public @NotNull ObservableList<RawDataFile> getAvailableRawDataFiles() {
