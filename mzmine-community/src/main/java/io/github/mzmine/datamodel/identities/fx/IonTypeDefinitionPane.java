@@ -28,7 +28,7 @@ package io.github.mzmine.datamodel.identities.fx;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle;
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
-import static io.github.mzmine.javafx.components.factories.FxTextFields.newTextField;
+import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoGrowTextField;
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.colored;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonType.IonTypeStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
@@ -73,6 +74,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
@@ -85,10 +87,7 @@ class IonTypeDefinitionPane extends BorderPane {
   private final ObservableList<IonType> types;
   private final ObservableList<IonPartDefinition> partsDefinitions;
 
-  public enum IonTypeDefinition {
-    STRING, COMBINED
-  }
-
+  private final StringProperty parsingError = new SimpleStringProperty();
   private final StringProperty parsedIonTypeString = new SimpleStringProperty();
   private final ObjectProperty<IonType> parsedIonType = new SimpleObjectProperty<>();
   private final ListProperty<IonPart> unknownParts = new SimpleListProperty<>(
@@ -148,11 +147,14 @@ class IonTypeDefinitionPane extends BorderPane {
         parsedIonType.map(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS))
             .orElse("Cannot parse input"));
 
-    final TextField inputText = newTextField(10, parsedIonTypeString,
-        "Format: [2M-H2O+2H]+2 or with charge M+(Cu+2)", """
+    final String prompt = "Format: [2M-H2O+2H]+2 or with charge +(Cu+2)";
+    final TextField inputText = newAutoGrowTextField(parsedIonTypeString, prompt, """
             Enter ion types like adducts, in source fragments, and clusters.
-            Best format uses brackets and charge state: [M+2H]+2 but both are optional.
-            Define charge of individual parts in (): M+(Cu+2)-H equals [M+(Cu+2)-H]+""");
+            Full format uses M (for molecule), brackets, and charge state: [M+2H]+2 but all three are optional.
+            Simple format just uses defined ion building blocks, e.g., -H2O+H results in [M-H2O+H]+
+            Define charge of individual parts in (): +(Cu+2)-H equals [M+(Cu+2)-H]+
+            Use () to enclose reserved symbols like +- or braces, e.g., +(propan-2-ol)""",
+        10, -1);
 
     ionParsingValidation(inputText);
 
@@ -180,7 +182,7 @@ class IonTypeDefinitionPane extends BorderPane {
 
     return newGrid2Col( //
         gridRow(infoPane), //
-        newLabel("Ion type:"), inputText, //
+        newLabel("Ion type:"), new HBox(inputText), //
         newLabel("Result:"), lbParsingResult, //
         gridRow(lbUnknown), //
         gridRow(FxLayout.newHBox(Insets.EMPTY, btnAdd, unchargedFlow) //
@@ -190,12 +192,14 @@ class IonTypeDefinitionPane extends BorderPane {
   private void ionParsingValidation(TextField inputText) {
     StringBinding errorBinding = Bindings.createStringBinding(() -> {
       IonType value = parsedIonType.getValue();
+      String err = parsingError.get() == null ? "" : "\n" + parsingError.get();
       if (value == null && StringUtils.hasValue(inputText.getText())) {
-        return "Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H".formatted(
-            parsedIonTypeString.getValue());
+        return """
+            Cannot parse ion type for %s. Input correct format, e.g., [2M-H2O+2H]+2 or M+ACN+H%s""".formatted(
+            parsedIonTypeString.getValue(), err);
       }
       return null; // no error
-    }, parsedIonType, inputText.textProperty());
+    }, parsedIonType, inputText.textProperty(), parsingError);
 
     FxValidation.registerErrorValidator(inputText, errorBinding);
   }
@@ -238,8 +242,14 @@ class IonTypeDefinitionPane extends BorderPane {
 
   private void updateCurrentType() {
     String ionStr = parsedIonTypeString.get();
-    IonType ion = IonTypeParser.parse(ionStr);
-    parsedIonType.set(ion);
+    try {
+      IonType ion = IonTypeParser.parseOrThrow(ionStr);
+      parsedIonType.set(ion);
+      parsingError.set(null);
+    } catch (IonPartParsingException e) {
+      // could show where the parsing fails
+      parsingError.set(e.getMessage());
+    }
   }
 
   private void addIonType(final IonType type) {

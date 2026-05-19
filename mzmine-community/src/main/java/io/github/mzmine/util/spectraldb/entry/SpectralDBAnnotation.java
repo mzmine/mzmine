@@ -384,8 +384,15 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable IonType getAdductType() {
-    final String adduct = entry.getOrElse(DBEntryField.ION_TYPE, null);
-    return IonTypeParser.parse(adduct);
+    final Object adduct = entry.getField(DBEntryField.ION_TYPE).orElse(null) ;
+    if (adduct == null) {
+      return null;
+    }
+    if(adduct instanceof IonType ion) {
+      return ion;
+    }
+
+    return IonTypeParser.parseOptional(adduct.toString()).orElse(null);
   }
 
   @Override
