@@ -5,7 +5,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -62,10 +62,10 @@ public class CompoundDashboardModel {
   // --- dataset outputs (mutated by FxUpdateTask.updateGuiModel on FX thread) -
   // Bare ObservableLists so subscribers get list-change events; the controller pushes the contents
   // onto the sub-controllers in the list listener.
-  private final ObservableList<DatasetAndRenderer> eicDatasets = FXCollections.observableArrayList();
-  private final ObservableList<DatasetAndRenderer> mobilogramDatasets = FXCollections.observableArrayList();
-  private final ObservableList<DatasetAndRenderer> ms1Datasets = FXCollections.observableArrayList();
-  private final ObservableList<DatasetAndRenderer> ms2Datasets = FXCollections.observableArrayList();
+  private final ObservableList<XYDatasetAndRenderer> eicDatasets = FXCollections.observableArrayList();
+  private final ObservableList<XYDatasetAndRenderer> mobilogramDatasets = FXCollections.observableArrayList();
+  private final ObservableList<XYDatasetAndRenderer> ms1Datasets = FXCollections.observableArrayList();
+  private final ObservableList<XYDatasetAndRenderer> ms2Datasets = FXCollections.observableArrayList();
 
   // Reverse maps row -> renderer so the controller can change stroke/bar width on the renderer
   // belonging to the selected adduct row without rebuilding the datasets. Populated by the spectra
@@ -188,19 +188,19 @@ public class CompoundDashboardModel {
     return computing;
   }
 
-  public @NotNull ObservableList<DatasetAndRenderer> getEicDatasets() {
+  public @NotNull ObservableList<XYDatasetAndRenderer> getEicDatasets() {
     return eicDatasets;
   }
 
-  public @NotNull ObservableList<DatasetAndRenderer> getMobilogramDatasets() {
+  public @NotNull ObservableList<XYDatasetAndRenderer> getMobilogramDatasets() {
     return mobilogramDatasets;
   }
 
-  public @NotNull ObservableList<DatasetAndRenderer> getMs1Datasets() {
+  public @NotNull ObservableList<XYDatasetAndRenderer> getMs1Datasets() {
     return ms1Datasets;
   }
 
-  public @NotNull ObservableList<DatasetAndRenderer> getMs2Datasets() {
+  public @NotNull ObservableList<XYDatasetAndRenderer> getMs2Datasets() {
     return ms2Datasets;
   }
 

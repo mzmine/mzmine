@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -42,6 +43,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedCollection;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -278,11 +280,19 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   public SimpleXYChart<PlotXYDataProvider> getChart() {
     return model.getChart();
   }
+
   public @NotNull FxXYPlot getXYPlot() {
     return model.getXYPlot();
   }
 
   public void setLegendItemsVisible(boolean visible) {
     model.getChart().setLegendItemsVisible(visible);
+  }
+
+  public void setDatasets(@NotNull SequencedCollection<XYDatasetAndRenderer> list) {
+    model.getDatasetRenderers().clear();
+    for (XYDatasetAndRenderer dr : list) {
+      addDataset(dr.dataset(), dr.renderer());
+    }
   }
 }

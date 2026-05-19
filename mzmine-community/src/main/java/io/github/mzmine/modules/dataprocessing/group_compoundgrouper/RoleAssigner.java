@@ -128,7 +128,7 @@ public final class RoleAssigner {
       return 0;
     }
     final IonType ionType = ion.getIonType();
-    if (ionType.molecules() != 1 || ionType.isUndefinedAdduct()) {
+    if (ionType.molecules() != 1 || ionType.absTotalCharge()>1 || ionType.isUndefinedAdduct()) {
       return 0;
     }
     // reject any IonType carrying neutral losses / clusters (those rows belong to IN_SOURCE_FRAGMENT)
@@ -145,7 +145,7 @@ public final class RoleAssigner {
     if (chargedAdducts.size() != 1) {
       return 0;
     }
-    final IonPart adduct = chargedAdducts.get(0);
+    final IonPart adduct = chargedAdducts.getFirst();
     return switch (polarity) {
       case POSITIVE -> tierIndex(adduct, POSITIVE_TIER_ORDER);
       case NEGATIVE -> tierIndex(adduct, NEGATIVE_TIER_ORDER);
