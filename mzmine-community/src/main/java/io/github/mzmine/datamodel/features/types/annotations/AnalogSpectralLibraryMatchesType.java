@@ -50,24 +50,26 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Spectral library matches in a list
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * Analog spectral library matches in a list. Identical structure to
+ * {@link SpectralLibraryMatchesType} but produced by the analog (modification-aware) library search
+ * and additionally exposes a single {@link MLScoreType} sub-column carrying score + model.
  */
-public final class SpectralLibraryMatchesType extends AbstractSpectralLibraryMatchesType implements
-    AnnotationType {
+public final class AnalogSpectralLibraryMatchesType extends
+    AbstractSpectralLibraryMatchesType implements AnnotationType {
 
-  // Unmodifiable list of all subtypes
+  // Unmodifiable list of all subtypes — mirrors SpectralLibraryMatchesType plus ML score columns.
   private static final List<DataType> subTypes = List.of( //
-      new SpectralLibraryMatchesType(), //
+      new AnalogSpectralLibraryMatchesType(), //
       new CompoundNameType(), //
       new AnnotationSummaryType(),//
       new SimilarityType(),//
+      new MLScoreType(), //
       new MatchingSignalsType(),//
       new ExplainedIntensityPercentType(), //
       new IonAdductType(),//
@@ -103,13 +105,13 @@ public final class SpectralLibraryMatchesType extends AbstractSpectralLibraryMat
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Spectral match";
+    return "Analog spectral match";
   }
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "spectral_db_matches";
+    return "analog_spectral_db_matches";
   }
 }

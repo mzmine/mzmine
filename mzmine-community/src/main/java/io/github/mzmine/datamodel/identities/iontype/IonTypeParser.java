@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.util.StringUtils;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -144,8 +145,8 @@ public class IonTypeParser {
   ///
   /// @return an ion part or null if not parsed
   @Nullable
-  public static IonType parse(@Nullable String input) {
-    return parse(input, 0);
+  public static IonType parseOrThrow(@Nullable String input) throws IonPartParsingException {
+    return parseOrThrow(input, 0);
   }
 
   /// Parses ion types in format:
@@ -157,10 +158,28 @@ public class IonTypeParser {
   ///
   /// Uses defaultCharge 0 to parse input as is.
   ///
-  /// @param defaultCharge the defaultCharge is applied when no charge state was found
+  /// @return an ion part or empty on error or empty input
+  @NotNull
+  public static Optional<IonType> parseOptional(@Nullable String input) {
+    try {
+      return Optional.ofNullable(parseOrThrow(input, 0));
+    } catch (IonPartParsingException e) {
+      return Optional.empty();
+    }
+  }
+
+  /// Parses ion types in format:
+  ///
+  /// - `[M+Na]+`
+  /// - `[M+(a-OH)+H]+` (use braces if - or + in name)
+  ///
+  /// Do not remove whitespace as this is allowed in part names.
+  ///
+  /// @param defaultCharge the defaultCharge is applied when no charge state was found. If parsing fails then this method still throws.
   /// @return an ion part or null if not parsed
   @Nullable
-  public static IonType parse(@Nullable String input, int defaultCharge) {
+  public static IonType parseOrThrow(@Nullable String input, int defaultCharge)
+      throws IonPartParsingException {
     if (StringUtils.isBlank(input)) {
       return null;
     }
@@ -204,7 +223,7 @@ public class IonTypeParser {
     }
 
     // rest is all parts
-    final List<IonPart> parts = IonParts.parseMultiple(input);
+    final List<IonPart> parts = IonPartParser.parseMultipleOrThrow(input);
 
     IonType ion = IonType.create(parts, molMultiplier);
 

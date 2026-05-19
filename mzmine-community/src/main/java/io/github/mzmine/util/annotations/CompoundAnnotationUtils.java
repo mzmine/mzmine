@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -88,11 +89,12 @@ public class CompoundAnnotationUtils {
 
   /**
    * This list does <b>not</b> represent an absolute order of annotation priorities, but may be used
-   * for rough pre-grouping if required.
+   * for rough pre-grouping if required. Analog spectral library matches are listed last and are
+   * filtered out by default — pass {@code includeAnalog=true} to row accessors to keep them.
    */
   public static final List<DataType> annotationTypePriority = DataTypes.getAll(
-      CompoundDatabaseMatchesType.class, LipidMatchListType.class,
-      SpectralLibraryMatchesType.class);
+      CompoundDatabaseMatchesType.class, LipidMatchListType.class, SpectralLibraryMatchesType.class,
+      AnalogSpectralLibraryMatchesType.class);
 
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 
@@ -371,7 +373,7 @@ public class CompoundAnnotationUtils {
         if (instance.getValueClass().isInstance(value)) {
           db.putIfNotNull((Class) dataType, value);
         } else if (instance instanceof IonTypeType && value instanceof String s) {
-          var ionType = IonTypeParser.parse(s);
+          var ionType = IonTypeParser.parseOptional(s).orElse(null);
           db.putIfNotNull((Class) dataType, ionType);
         } else {
           logger.finest("Skipping value conversion of field\t" + field + "  for type\t"

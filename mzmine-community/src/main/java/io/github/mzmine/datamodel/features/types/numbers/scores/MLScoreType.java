@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.iin;
+package io.github.mzmine.datamodel.features.types.numbers.scores;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -31,13 +31,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
-import io.github.mzmine.javafx.components.factories.TableColumns;
-import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import java.util.function.Function;
-import javafx.beans.property.Property;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -46,80 +42,79 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Specifies an ion type.
- * Todo: remove {@link io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType}, rename this?
+ * Similarity score from an ML model (MS2Deepscore or DREAMS). Value is an {@link MLScore} record
+ * carrying both the numeric score and the model identifier, so consumers can ask for "the ML score"
+ * without enumerating concrete model types.
  */
-public class IonTypeType extends DataType<IonType> {
+public class MLScoreType extends DataType<MLScore> {
 
-  private static final Function<@Nullable String, @Nullable IonType> mapper = input -> IonTypeParser.parseOptional(
-      input).orElse(null);
-
+  @NotNull
   @Override
-  public @NotNull String getUniqueID() {
-    return "adduct";
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ml_score";
+  }
+
+  @NotNull
+  @Override
+  public String getHeaderString() {
+    return "ML score";
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "Adduct";
+  public boolean getDefaultVisibility() {
+    return true;
   }
 
   @Override
-  public Property<IonType> createProperty() {
+  public Class<MLScore> getValueClass() {
+    return MLScore.class;
+  }
+
+  @Override
+  public ObjectProperty<MLScore> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<IonType> getValueClass() {
-    return IonType.class;
+  @NotNull
+  public String getFormattedString(MLScore value, boolean export) {
+    if (value == null) {
+      return "";
+    }
+    final var fmt = export ? MZmineCore.getConfiguration().getExportFormats().scoreFormat()
+        : MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
+    return fmt.format(value.score()) + " (" + value.model().labelVersion() + ")";
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof IonType ionType)) {
+    if (value == null) {
       return;
     }
-    ionType.saveToXML(writer);
+    if (!(value instanceof MLScore mlScore)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
+    mlScore.saveToXML(writer);
   }
 
   @Override
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
-      throw new IllegalStateException("Current type is not a ion type.");
-    }
-
-    while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
-        .equals(IonType.XML_ELEMENT))) {
-      reader.next();
+    do {
+      if (reader.isStartElement() && MLScore.XML_ELEMENT.equals(reader.getLocalName())) {
+        return MLScore.loadFromXML(reader);
+      }
       if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         return null;
       }
-    }
-
-    return IonType.loadFromXML(reader);
-  }
-
-  @Override
-  public @Nullable Function<@Nullable String, @Nullable IonType> getMapper() {
-    return mapper;
-  }
-
-  @Override
-  public double getPrefColumnWidth() {
-    return getFormulaPrefColumnWidth();
-  }
-
-  /**
-   * @return the width of a
-   */
-  public static double getFormulaPrefColumnWidth() {
-    final double width =
-        TextLabelMeasurementUtil.measureWidth("[M-2H2O+Na]+2") + TableColumns.EXTRA_WIDTH_MARGIN;
-    return width;
+      reader.next();
+    } while (reader.hasNext());
+    return null;
   }
 }

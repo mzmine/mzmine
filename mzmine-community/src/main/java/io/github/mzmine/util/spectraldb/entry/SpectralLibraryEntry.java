@@ -113,7 +113,7 @@ public interface SpectralLibraryEntry extends MassList {
           yield (T) ion;
         }
         try {
-          final IonType ion = IonTypeParser.parse(v.toString());
+          final IonType ion = IonTypeParser.parseOptional(v.toString()).orElse(null);
           yield (T) ion;
         } catch (Exception e) {
           yield null;

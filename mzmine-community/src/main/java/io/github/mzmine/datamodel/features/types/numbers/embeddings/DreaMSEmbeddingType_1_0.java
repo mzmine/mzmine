@@ -23,19 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype;
+package io.github.mzmine.datamodel.features.types.numbers.embeddings;
 
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
 import org.jetbrains.annotations.NotNull;
 
-public class IonPartParsingException extends Exception {
+public class DreaMSEmbeddingType_1_0 extends AbstractMLEmbeddingType {
 
-  @NotNull
-  private final String input;
-  private final int errorIndex;
+  @Override
+  public @NotNull String getUniqueID() {
+    return "ml_embedding_dreams_1_0";
+  }
 
-  public IonPartParsingException(@NotNull String input, int errorIndex, String message) {
-    super("%s for input: %s at index %d".formatted(message, input, errorIndex));
-    this.input = input;
-    this.errorIndex = errorIndex;
+  @Override
+  public @NotNull String getHeaderString() {
+    return "DreaMS embedding";
+  }
+
+  @Override
+  public @NotNull MLModelId getMLModelId() {
+    return MLModelId.DREAMS_1_0;
   }
 }

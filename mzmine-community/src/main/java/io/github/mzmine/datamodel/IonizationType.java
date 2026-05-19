@@ -197,7 +197,7 @@ public enum IonizationType {
     if (numMol == 0 && polarity == PolarityType.NEUTRAL) {
       ion = null;
     } else {
-      ion = IonTypeParser.parse(name);
+      ion = IonTypeParser.parseOptional(name).orElse(null);
     }
   }
 
