@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
@@ -78,6 +79,10 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     Comparable<SpectralDBAnnotation> {
 
   public static final String XML_ATTR = "spectral_library_annotation";
+  // attribute on the annotation element that stores the unique-id of the parent DataType class
+  // (SpectralLibraryMatchesType vs AnalogSpectralLibraryMatchesType). Optional for backward
+  // compatibility — missing means regular spectral library match.
+  public static final String XML_DATA_TYPE_CLASS_ATTR = "match_type_class";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
   private static final String XML_TESTED_RT_ELEMENT = "testedrt";
   private static final String XML_TESTED_MZ_ELEMENT = "testedmz";
@@ -90,14 +95,28 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   @Nullable
   private final Scan queryScan;
 
+  // decision: the parent DataType class on the row (SpectralLibraryMatchesType for regular,
+  // AnalogSpectralLibraryMatchesType for analog). Defaults to regular for backward compat.
+  @NotNull
+  private final Class<? extends DataType> dataTypeClass;
+
   private final Map<DataType, Object> map = new HashMap<>();
 
   public SpectralDBAnnotation(SpectralLibraryEntry entry, SpectralSimilarity similarity,
       Scan queryScan, @Nullable Float ccsRelativeError, @Nullable Double testedPrecursorMz,
       @Nullable Float testedRt, @Nullable Float riDiff) {
+    this(entry, similarity, queryScan, ccsRelativeError, testedPrecursorMz, testedRt, riDiff,
+        SpectralLibraryMatchesType.class);
+  }
+
+  public SpectralDBAnnotation(SpectralLibraryEntry entry, SpectralSimilarity similarity,
+      Scan queryScan, @Nullable Float ccsRelativeError, @Nullable Double testedPrecursorMz,
+      @Nullable Float testedRt, @Nullable Float riDiff,
+      @NotNull Class<? extends DataType> dataTypeClass) {
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
+    this.dataTypeClass = dataTypeClass;
 
     if (ccsRelativeError != null) {
       set(CCSRelativeErrorType.class, ccsRelativeError);
@@ -127,9 +146,16 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   public SpectralDBAnnotation(@NotNull SpectralLibraryEntry entry,
       @NotNull SpectralSimilarity similarity, @Nullable Scan queryScan,
       @Nullable Map<DataType, Object> map) {
+    this(entry, similarity, queryScan, map, SpectralLibraryMatchesType.class);
+  }
+
+  public SpectralDBAnnotation(@NotNull SpectralLibraryEntry entry,
+      @NotNull SpectralSimilarity similarity, @Nullable Scan queryScan,
+      @Nullable Map<DataType, Object> map, @NotNull Class<? extends DataType> dataTypeClass) {
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
+    this.dataTypeClass = dataTypeClass;
 
     if (map != null) {
       for (Entry<DataType, Object> e : map.entrySet()) {
@@ -156,6 +182,10 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     if (version == 1) {
       return loadFromXmlVersion1(reader, project, possibleFiles);
     }
+
+    // v2+: optional attribute marking analog vs regular spectral match. Missing → regular.
+    final String typeUniqueId = reader.getAttributeValue(null, XML_DATA_TYPE_CLASS_ATTR);
+    final Class<? extends DataType> matchTypeClass = resolveMatchTypeClass(typeUniqueId);
 
     SpectralLibraryEntry entry = null;
     SpectralSimilarity similarity = null;
@@ -190,7 +220,21 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
       }
     }
 
-    return new SpectralDBAnnotation(entry, similarity, scan, map);
+    return new SpectralDBAnnotation(entry, similarity, scan, map, matchTypeClass);
+  }
+
+  // Resolve the parent DataType class from its unique-id. Returns SpectralLibraryMatchesType
+  // for null/unknown ids so older project files load unchanged.
+  private static @NotNull Class<? extends DataType> resolveMatchTypeClass(
+      @Nullable String uniqueId) {
+    if (uniqueId == null) {
+      return SpectralLibraryMatchesType.class;
+    }
+    final DataType<?> dt = DataTypes.getTypeForId(uniqueId);
+    if (dt instanceof AnalogSpectralLibraryMatchesType) {
+      return AnalogSpectralLibraryMatchesType.class;
+    }
+    return SpectralLibraryMatchesType.class;
   }
 
   private static @NotNull SpectralDBAnnotation loadFromXmlVersion1(XMLStreamReader reader,
@@ -238,6 +282,10 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
       ModularFeatureListRow row) throws XMLStreamException {
     writeOpeningTag(writer);
     writer.writeAttribute(CONST.XML_VERSION_ATTR, "2");
+    // only write when not the regular default to keep older readers happy
+    if (!dataTypeClass.equals(SpectralLibraryMatchesType.class)) {
+      writer.writeAttribute(XML_DATA_TYPE_CLASS_ATTR, DataTypes.get(dataTypeClass).getUniqueID());
+    }
 
     entry.saveToXML(writer);
     similarity.saveToXML(writer);
@@ -384,7 +432,12 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @NotNull Class<? extends DataType> getDataType() {
-    return SpectralLibraryMatchesType.class;
+    return dataTypeClass;
+  }
+
+  @Override
+  public boolean isAnalogMatch() {
+    return dataTypeClass.equals(AnalogSpectralLibraryMatchesType.class);
   }
 
   @Override
@@ -440,21 +493,23 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
       return false;
     }
     SpectralDBAnnotation that = (SpectralDBAnnotation) o;
-    return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
-        that.getSimilarity()) && Objects.equals(getRiDiff(), that.getRiDiff()) && Objects.equals(
-        getCCSError(), that.getCCSError()) && Objects.equals(getQueryScan().getScanNumber(),
-        that.getQueryScan().getScanNumber()) && getQueryScan().getDataFile()
-        .equals(that.getQueryScan().getDataFile());
+    return Objects.equals(dataTypeClass, that.dataTypeClass) && Objects.equals(getEntry(),
+        that.getEntry()) && Objects.equals(getSimilarity(), that.getSimilarity()) && Objects.equals(
+        getRiDiff(), that.getRiDiff()) && Objects.equals(getCCSError(), that.getCCSError())
+        && Objects.equals(getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
+        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getEntry(), getSimilarity(), getCCSError(), getRiDiff(), getQueryScan());
+    return Objects.hash(dataTypeClass, getEntry(), getSimilarity(), getCCSError(), getRiDiff(),
+        getQueryScan());
   }
 
   @Override
   public String toString() {
-    return String.format("%s (%.3f)", getCompoundName(), requireNonNullElse(getScore(), 0f));
+    return String.format((isAnalogMatch() ? "ANALOG: " : "") + "%s (%.3f)", getCompoundName(),
+        requireNonNullElse(getScore(), 0f));
   }
 
   @Override

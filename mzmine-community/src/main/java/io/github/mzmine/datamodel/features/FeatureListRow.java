@@ -559,6 +559,24 @@ public interface FeatureListRow extends ModularDataModel {
 
   void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
 
+  /**
+   * Append analog spectral library matches under
+   * {@link io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType}.
+   * Existing analog matches are preserved.
+   */
+  void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
+
+  /**
+   * @return analog spectral library matches sorted from best (index 0) to last match, or empty
+   * list.
+   */
+  @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches();
+
+  /**
+   * Replace the list of analog matches.
+   */
+  void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches);
+
   @Nullable Range<Float> getMobilityRange();
 
   /**
@@ -588,12 +606,35 @@ public interface FeatureListRow extends ModularDataModel {
 
   @NotNull
   default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
-    return getAllFeatureAnnotations().stream();
+    return streamAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included. Defaults to
+   *                      false because analog matches are informational and rank below regular
+   *                      identity-based annotations.
+   */
+  @NotNull
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations(final boolean includeAnalog) {
+    return getAllFeatureAnnotations(includeAnalog).stream();
   }
 
   @NotNull
   default List<FeatureAnnotation> getAllFeatureAnnotations() {
-    return CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(this);
+    return getAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included.
+   */
+  @NotNull
+  default List<FeatureAnnotation> getAllFeatureAnnotations(final boolean includeAnalog) {
+    final List<FeatureAnnotation> all = CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(
+        this);
+    if (includeAnalog) {
+      return all;
+    }
+    return all.stream().filter(a -> !a.isAnalogMatch()).toList();
   }
 
   /**
