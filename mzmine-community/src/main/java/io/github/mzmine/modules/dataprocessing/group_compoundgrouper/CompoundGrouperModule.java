@@ -49,7 +49,7 @@ public class CompoundGrouperModule implements MZmineProcessingModule {
         CompoundGrouperParameters.FEATURE_LISTS).getMatchingFeatureLists();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (final ModularFeatureList flist : featureLists) {
-      tasks.add(new CompoundGrouperTask(flist, parameters, storage, moduleCallDate));
+      tasks.add(new CompoundGrouperTask(flist, parameters, moduleCallDate, false));
     }
     return ExitCode.OK;
   }
