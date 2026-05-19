@@ -85,8 +85,8 @@ public class SiriusToMzmine {
 
     final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
 
-    final IonType ionType = IonTypeParser.parse(structure.getAdduct());
-    annotation.put(IonTypeType.class, ionType);
+    final IonType ionType = IonTypeParser.parseOptional(structure.getAdduct()).orElse(null);
+    annotation.putIfNotNull(IonTypeType.class, ionType);
     final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         structure.getMolecularFormula());
     final double neutralMass = FormulaUtils.getMonoisotopicMass(formula);

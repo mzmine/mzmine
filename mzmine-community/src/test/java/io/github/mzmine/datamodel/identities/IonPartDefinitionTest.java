@@ -40,8 +40,8 @@ class IonPartDefinitionTest {
   }
 
   @Test
-  void parse() {
-    IonPartDefinition parsed = IonPartDefinition.parse("Cu+2");
+  void parseSilent() {
+    IonPartDefinition parsed = IonPartDefinition.parseSilent("Cu+2");
     assertNotNull(parsed);
     assertEquals(2, parsed.singleCharge());
     assertTrue(parsed.isCharged());
@@ -49,7 +49,7 @@ class IonPartDefinitionTest {
     assertEquals("Cu", parsed.singleFormula());
     assertEquals(FormulaUtils.calculateExactMass("Cu", 2), parsed.absSingleMass(), 0.0000001);
 
-    parsed = IonPartDefinition.parse("Cu+");
+    parsed = IonPartDefinition.parseSilent("Cu+");
     assertNotNull(parsed);
     assertEquals(1, parsed.singleCharge());
     assertTrue(parsed.isCharged());

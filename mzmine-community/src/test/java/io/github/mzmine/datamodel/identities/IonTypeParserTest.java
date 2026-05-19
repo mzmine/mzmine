@@ -48,12 +48,14 @@ class IonTypeParserTest {
     }
   }
 
-  private static void testIonParser(final String input, int mol, int charge) {
+  private static void testIonParser(final String input, int mol, int charge)
+      throws IonPartParsingException {
     testIonParser(input, input, mol, charge);
   }
 
-  private static void testIonParser(final String input, String formatted, int mol, int charge) {
-    IonType ionType = IonTypeParser.parse(input);
+  private static void testIonParser(final String input, String formatted, int mol, int charge)
+      throws IonPartParsingException {
+    IonType ionType = IonTypeParser.parseOrThrow(input);
 
     Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
     Assertions.assertEquals(charge, ionType.totalCharge(),
@@ -69,45 +71,45 @@ class IonTypeParserTest {
 
   @ParameterizedTest
   @FieldSource("nh4")
-  void testIonTypeParsing(String s) {
+  void testIonTypeParsing(String s) throws IonPartParsingException {
     IonType type1 = IonTypes.NH4.asIonType();
 
-    IonType ionType = IonTypeParser.parse(s);
+    IonType ionType = IonTypeParser.parseOrThrow(s);
     Assertions.assertEquals(type1.toString(), ionType.toString());
   }
 
   @Test
-  void testIonTypeParsingMultiple() {
+  void testIonTypeParsingMultiple() throws IonPartParsingException {
     final String[] string = new String[]{"[M +NH4]+", "[M-H2O+H]+", "[M -2H2O +H] +",
         "[M -H2O -H +2Na]+"};
 
     for (String s : string) {
-      IonType ionType = IonTypeParser.parse(s);
+      IonType ionType = IonTypeParser.parseOrThrow(s);
       Assertions.assertNotNull(ionType);
       Assertions.assertEquals(s.replace(" ", ""), ionType.toString());
     }
   }
 
   @Test
-  void testIonParserRandomString() {
+  void testIonParserRandomString() throws IonPartParsingException {
     testIonParser("[M-TESTUNKNOWNSTRING]-", "[M-TESTUNKNOWNSTRING]-", 1, -1);
     testIonParser("[M+TESTUNKNOWNSTRING]+", "[M+TESTUNKNOWNSTRING]+", 1, 1);
 
 // silent charge is only added if multiple parts are there
-    IonType ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING]+");
+    IonType ion = IonTypeParser.parseOrThrow("[M+TESTUNKNOWNSTRING]+");
     Assertions.assertEquals(1, ion.parts().size());
     Assertions.assertEquals(1, ion.parts().getFirst().singleCharge());
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // H is known to carry charge
-    ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING+H]+");
+    ion = IonTypeParser.parseOrThrow("[M+TESTUNKNOWNSTRING+H]+");
     Assertions.assertEquals(2, ion.parts().size());
     Assertions.assertEquals(0, ion.parts().getFirst().singleCharge());
     Assertions.assertEquals(1, ion.parts().get(1).singleCharge());
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
 
     // two ion types will have silent charge added because we dont know which carries the charge
-    ion = IonTypeParser.parse("[M+TESTUNKNOWNSTRING+OTHERUNKNOWN]+");
+    ion = IonTypeParser.parseOrThrow("[M+TESTUNKNOWNSTRING+OTHERUNKNOWN]+");
     Assertions.assertEquals(3, ion.parts().size());
     Assertions.assertTrue(ion.parts().contains(IonParts.SILENT_CHARGE));
     Assertions.assertTrue(ion.parts().stream().anyMatch(IonPart::isUndefinedMass));
@@ -164,12 +166,12 @@ class IonTypeParserTest {
 
   @ParameterizedTest
   @FieldSource("cases")
-  void testIonParse(Case c) {
+  void testIonParse(Case c) throws IonPartParsingException {
     testIonParser(c.input, c.formatted, c.mol, c.charge);
   }
 
   @Test
-  void testWithCharge() {
+  void testWithCharge() throws IonPartParsingException {
     testIonParser("[M-2H2O+(H+)+(Fe+3)-2(Na+)+H2O]+2", "[M-H2O-2Na+Fe+H]2+", 1, 2);
     testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O]+", "[M+H2O-H-2Na+Fe]+", 1, 1);
     testIonParser("[M  -(H+)\t+ (Fe+3)-2(Na+)+H2O] 2+", "[M+H2O-H-2Na+Fe]2+", 1, 2);
@@ -202,16 +204,16 @@ class IonTypeParserTest {
 
   @Test
   void expectExceptionBraces() {
-    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parse("[M+(OH2)Ca]"));
+    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parseOrThrow("[M+(OH2)Ca]"));
   }
 
   @Test
   void expectExceptionNoCountMultiplier() {
-    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parse("[H]"));
+    assertThrows(IonPartParsingException.class, () -> IonTypeParser.parseOrThrow("[H]"));
   }
 
   @Test
-  void test() {
+  void test() throws IonPartParsingException {
     testIonParse(new Case("M+", "[M-e]+", 1, 1));
 
     final Case c = new Case("[M+2(α-OH-)]2-", "[M+2(α-OH)]2-", 1, -2);

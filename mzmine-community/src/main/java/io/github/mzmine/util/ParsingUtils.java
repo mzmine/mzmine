@@ -35,8 +35,6 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
@@ -505,10 +503,6 @@ public class ParsingUtils {
       reader.next();
     }
     return true;
-  }
-
-  public static IonType parseIon(String str) {
-    return IonTypeParser.parse(str);
   }
 
   /**

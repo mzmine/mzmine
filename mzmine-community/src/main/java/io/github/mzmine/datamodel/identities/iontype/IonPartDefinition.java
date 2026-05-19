@@ -103,13 +103,13 @@ public record IonPartDefinition(@NotNull String name, @Nullable String singleFor
     return of(IonParts.ofNamed(name, singleMass, singleCharge, null));
   }
 
-  public static IonPartDefinition parse(String ionPart) {
+  public static IonPartDefinition parseSilent(String ionPart) {
     // simulate the addition if +- is missing.
     // definition does not need the count but parsing through the IonPart is easiest
     if (!ionPart.startsWith("[+-]")) {
       ionPart = "+" + ionPart;
     }
-    final IonPart parsed = IonParts.parse(ionPart);
+    final IonPart parsed = IonParts.parseSilent(ionPart);
     return parsed == null ? null : of(parsed);
   }
 
