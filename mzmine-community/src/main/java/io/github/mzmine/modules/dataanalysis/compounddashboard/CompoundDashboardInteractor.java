@@ -42,6 +42,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.setSelectedMs2Row(null);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
+      model.getMobilogramDatasets().clear();
       model.getMs1Datasets().clear();
       model.getMs2Datasets().clear();
       return;
@@ -111,6 +112,19 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardEicTask(model, compound, model.getCurrentRawDataFile(),
+        palette.clone(true));
+  }
+
+  /**
+   * @return a new mobilogram task ready to run, or null when prerequisites are missing.
+   */
+  public @Nullable CompoundDashboardMobilogramTask buildMobilogramTask() {
+    final CompoundRow compound = model.getSelectedCompoundRow();
+    final SimpleColorPalette palette = model.getColorPalette();
+    if (compound == null || palette == null) {
+      return null;
+    }
+    return new CompoundDashboardMobilogramTask(model, compound, model.getCurrentRawDataFile(),
         palette.clone(true));
   }
 }

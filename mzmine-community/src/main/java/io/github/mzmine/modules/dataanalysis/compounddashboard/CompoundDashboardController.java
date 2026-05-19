@@ -10,7 +10,6 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedCompoundRowBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
@@ -27,8 +26,6 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
-import java.awt.BasicStroke;
-import java.awt.Stroke;
 import java.util.List;
 import java.util.Map;
 import javafx.beans.property.ObjectProperty;
@@ -39,6 +36,7 @@ import javafx.scene.control.TreeItem;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Top-level controller for the Compound Dashboard. Bundles a {@link ChromatogramPlotController}, two
@@ -52,18 +50,22 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   // Coalesces rapid selection changes (arrow-key navigation) into a single recompute.
   private static final Duration DEBOUNCE = Duration.millis(150);
 
-  // Selected-row highlight: thicker EIC line + wider MS1 sticks for the renderer owned by the
-  // currently selected adduct row. Strokes are reused (not allocated per repaint).
-  private static final Stroke EIC_DEFAULT_STROKE = new BasicStroke(1.0f);
-  private static final Stroke EIC_SELECTED_STROKE = new BasicStroke(2.5f);
+  // Selected-row highlight: wider MS1 sticks for the renderer owned by the currently selected
+  // adduct row. EIC line-width highlighting now lives in ChromatogramPlotBuilder, driven by the
+  // chromatogram plot model's selectedDataset property.
   private static final double MS1_DEFAULT_BAR_MULTIPLIER = 1.0;
   private static final double MS1_SELECTED_BAR_MULTIPLIER = 2.0;
 
   private final ChromatogramPlotController eicPlot = new ChromatogramPlotController(true);
+  private final ChromatogramPlotController mobilogramPlot = new ChromatogramPlotController(true);
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
   private final SimpleSpectraChartController ms2Chart = new SimpleSpectraChartController();
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();
   private final FxFeatureTableController tableCtrl = new FxFeatureTableController(FeatureTableOwner.COMPOUND_DASHBOARD);
+
+  // Guards both directions of the selectedAdductRow <-> eicPlot.selectedDataset bridge so we don't
+  // bounce events back and forth when one side updates the other.
+  private boolean syncingSelection = false;
 
   private final CompoundDashboardInteractor interactor;
   private final CompoundDashboardViewBuilder builder;
@@ -71,8 +73,8 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   public CompoundDashboardController() {
     super(new CompoundDashboardModel());
     this.interactor = new CompoundDashboardInteractor(model);
-    this.builder = new CompoundDashboardViewBuilder(model, this, eicPlot, ms1Chart, ms2Chart,
-        qualityCtrl, tableCtrl);
+    this.builder = new CompoundDashboardViewBuilder(model, this, eicPlot, mobilogramPlot, ms1Chart,
+        ms2Chart, qualityCtrl, tableCtrl);
 
     model.setColorPalette(CompoundDashboardInteractor.snapshotPalette());
 
@@ -90,12 +92,28 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
 
     // Table -> model: resolve the clicked row to its parent CompoundRow (mirrors
     // StatsDashboardController.resolveCompoundRow). Mute echoes by checking equality first.
+     // When the clicked row is a child (member) of a compound rather than the compound itself,
+    // also set it as the selectedAdductRow so the EIC/MS1 highlight follows the user's pick. This
+    // runs AFTER the compound update so updateSelectedAdductRow (triggered by the compound change)
+    // has already written its default; our explicit set then wins.
     tableCtrl.getFeatureTable().getSelectionModel().selectedItemProperty()
         .addListener((_, _, item) -> {
-          final CompoundRow resolved = resolveCompoundRow(
-              item == null ? null : item.getValue());
+          final FeatureListRow clicked = item == null ? null : item.getValue();
+          final CompoundRow resolved = resolveCompoundRow(clicked);
           if (resolved != model.getSelectedCompoundRow()) {
             model.setSelectedCompoundRow(resolved);
+          }
+          // If the user clicked a child row (member) rather than the compound itself, override the
+          // adduct selection to that child. For MS2-capable rows we route through selectedMs2Row
+          // so the adduct ComboBox stays in sync; otherwise we set selectedAdductRow directly.
+          if (clicked != null && !(clicked instanceof CompoundRow)) {
+            if (model.getAdductRows().contains(clicked)) {
+              if (model.getSelectedMs2Row() != clicked) {
+                model.setSelectedMs2Row(clicked);
+              }
+            } else if (model.getSelectedAdductRow() != clicked) {
+              model.setSelectedAdductRow(clicked);
+            }
           }
         });
 
@@ -112,15 +130,28 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     PropertyUtils.onChangeDelayedSubscription(this::scheduleEic, DEBOUNCE,
         model.selectedCompoundRowProperty(), model.currentRawDataFileProperty(),
         model.colorPaletteProperty());
+    // Heavy debounced recompute of mobilograms. Shares triggers with the EIC task.
+    PropertyUtils.onChangeDelayedSubscription(this::scheduleMobilogram, DEBOUNCE,
+        model.selectedCompoundRowProperty(), model.currentRawDataFileProperty(),
+        model.colorPaletteProperty());
 
     // Apply prebuilt datasets to the sub-controllers when the model lists change. The lists are
     // mutated by FxUpdateTask.updateGuiModel which already runs on the FX thread.
     PropertyUtils.onChangeList(() -> applyDatasets(eicPlot, model.getEicDatasets()),
         model.getEicDatasets());
+    PropertyUtils.onChangeList(() -> applyDatasets(mobilogramPlot, model.getMobilogramDatasets()),
+        model.getMobilogramDatasets());
     PropertyUtils.onChangeList(() -> applyDatasets(ms1Chart, model.getMs1Datasets()),
         model.getMs1Datasets());
     PropertyUtils.onChangeList(() -> applyDatasets(ms2Chart, model.getMs2Datasets()),
         model.getMs2Datasets());
+
+    // Mobilogram domain axis label tracks the mobility type of the current IMS file.
+    model.mobilogramDomainAxisLabelProperty().subscribe(label -> {
+      if (label != null) {
+        mobilogramPlot.setDomainAxisLabel(label);
+      }
+    });
 
     // Derive selectedAdductRow from the MS2 ComboBox selection: when the user has picked an MS2
     // row, highlight it; when no MS2 is selected (e.g. compound has no MS2-bearing member), fall
@@ -134,8 +165,17 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     model.selectedAdductRowProperty().subscribe(_ -> applySelectionHighlight());
     model.getEicDatasets().addListener(
         (ListChangeListener<DatasetAndRenderer>) _ -> applySelectionHighlight());
+    model.getMobilogramDatasets().addListener(
+        (ListChangeListener<DatasetAndRenderer>) _ -> applySelectionHighlight());
     model.getMs1Datasets().addListener(
         (ListChangeListener<DatasetAndRenderer>) _ -> applySelectionHighlight());
+
+    // Bridge selectedDataset (legend click) -> selectedAdductRow. The forward direction
+    // (selectedAdductRow -> selectedDataset) is handled by applySelectionHighlight. A reentrancy
+    // guard prevents bounce-back when one side updates the other.
+    eicPlot.selectedDatasetProperty().subscribe(ds -> bridgeDatasetToRow(ds, model.getEicDatasetsByRow()));
+    mobilogramPlot.selectedDatasetProperty()
+        .subscribe(ds -> bridgeDatasetToRow(ds, model.getMobilogramDatasetsByRow()));
 
     // Chart titles are computed by the spectra task per scan and pushed via model properties.
     ms1Chart.titleProperty().bind(model.ms1TitleProperty());
@@ -149,6 +189,11 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     eicPlot.setRangeAxisLabel("Intensity");
     // Show the short ion label on the apex of each EIC trace; the long label is the tooltip.
     eicPlot.setShowSeriesLabel(true);
+    // Mobilogram axis defaults; the domain label is overridden per-IMS-file by the task to honour
+    // the actual mobility type (TIMS vs DTIMS etc.).
+    mobilogramPlot.setDomainAxisLabel("Mobility");
+    mobilogramPlot.setRangeAxisLabel("Intensity");
+    mobilogramPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
     ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
   }
@@ -238,6 +283,14 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     onTaskThread(task);
   }
 
+  private void scheduleMobilogram() {
+    final FxUpdateTask<CompoundDashboardModel> task = interactor.buildMobilogramTask();
+    if (task == null) {
+      return;
+    }
+    onTaskThread(task);
+  }
+
   private static void applyDatasets(@NotNull final ChromatogramPlotController c,
       @NotNull final ObservableList<DatasetAndRenderer> list) {
     c.applyWithNotifyChanges(false, () -> {
@@ -263,21 +316,57 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   }
 
   /**
-   * Thicken the EIC line and widen the MS1 bars belonging to the currently selected adduct row;
-   * reset all other renderers to defaults. The maps are populated by the EIC and spectra tasks
-   * in their {@code updateGuiModel} step.
+   * Reflect {@link CompoundDashboardModel#selectedAdductRowProperty()} into the chromatogram plots
+   * (via their {@code selectedDataset}) and into the MS1 bar widths. The EIC line-width
+   * highlighting is performed by the chromatogram plot itself once {@code selectedDataset} is set;
+   * the MS1 bar handling stays here because no equivalent abstraction exists for the spectra chart.
    */
   private void applySelectionHighlight() {
     final FeatureListRow selected = model.getSelectedAdductRow();
-    for (final Map.Entry<FeatureListRow, ColoredXYLineRenderer> e :
-        model.getEicRenderersByRow().entrySet()) {
-      e.getValue().setDefaultStroke(
-          e.getKey() == selected ? EIC_SELECTED_STROKE : EIC_DEFAULT_STROKE);
+    syncingSelection = true;
+    try {
+      final XYDataset eicDs = selected == null ? null : model.getEicDatasetsByRow().get(selected);
+      eicPlot.setSelectedDataset(eicDs);
+      final XYDataset mobDs =
+          selected == null ? null : model.getMobilogramDatasetsByRow().get(selected);
+      mobilogramPlot.setSelectedDataset(mobDs);
+    } finally {
+      syncingSelection = false;
     }
     for (final Map.Entry<FeatureListRow, ColoredXYBarRenderer> e :
         model.getMs1RenderersByRow().entrySet()) {
       e.getValue().setBarWidthMultiplier(
           e.getKey() == selected ? MS1_SELECTED_BAR_MULTIPLIER : MS1_DEFAULT_BAR_MULTIPLIER);
+    }
+  }
+
+  /**
+   * Inverse of {@link #applySelectionHighlight()}: when a plot's selectedDataset changes (legend
+   * click), find the owning row and set it as the selected adduct row. Skips when the change was
+   * just initiated by us to avoid a feedback loop.
+   */
+  private void bridgeDatasetToRow(@Nullable final XYDataset dataset,
+      @NotNull final Map<FeatureListRow, XYDataset> datasetsByRow) {
+    if (syncingSelection) {
+      return;
+    }
+    if (dataset == null) {
+      // Legend deselect -> clear adduct row only when there is one and the user really meant to
+      // deselect; clearing it would lose context, so prefer to leave selectedAdductRow alone.
+      return;
+    }
+    for (final Map.Entry<FeatureListRow, XYDataset> e : datasetsByRow.entrySet()) {
+      if (e.getValue() == dataset) {
+        final FeatureListRow row = e.getKey();
+        if (model.getAdductRows().contains(row)) {
+          if (model.getSelectedMs2Row() != row) {
+            model.setSelectedMs2Row(row);
+          }
+        } else if (model.getSelectedAdductRow() != row) {
+          model.setSelectedAdductRow(row);
+        }
+        return;
+      }
     }
   }
 
@@ -352,6 +441,11 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   @SuppressWarnings("unused")
   ChromatogramPlotController getEicPlot() {
     return eicPlot;
+  }
+
+  @SuppressWarnings("unused")
+  ChromatogramPlotController getMobilogramPlot() {
+    return mobilogramPlot;
   }
 
   @SuppressWarnings("unused")

@@ -25,6 +25,12 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.javafx.ChartGestureMouseAdapterFX;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SeriesKeyAtMaxLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
@@ -32,19 +38,28 @@ import io.github.mzmine.gui.chartbasics.simplechart.generators.XYLabelCollisionR
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.util.List;
+import java.util.Map;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.entity.LegendItemEntity;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
 public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel> {
+
+  // Stroke widths used to visually distinguish the selected dataset from the rest. Shared across
+  // all renderers added through the model; subclasses (e.g. dashed strokes) are not preserved.
+  private static final Stroke DEFAULT_STROKE = new BasicStroke(1.0f);
+  private static final Stroke SELECTED_STROKE = new BasicStroke(2.5f);
 
   protected ChromatogramPlotBuilder(ChromatogramPlotModel model) {
     super(model);
@@ -81,6 +96,7 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
     initializeDatasetRendererListener(chart);
     initializeAnnotationListener(chart);
     initializeValueListener(chart);
+    initializeSelectedDatasetHandling(chart);
 
     model.cursorPositionProperty().bindBidirectional(chart.cursorPositionProperty());
     model.titleProperty().subscribe(title -> {
@@ -168,6 +184,55 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
           }
         }
       });
+    });
+  }
+
+  /**
+   * Wires the selected-dataset property to (1) the legend-item click that toggles it, and (2) the
+   * renderer stroke that visualises which dataset is currently selected. The handler is attached to
+   * the chart's mouse adapter through {@link ChartGestureMouseAdapterFX}, in line with the existing
+   * mzmine ChartGestures pattern.
+   */
+  private void initializeSelectedDatasetHandling(SimpleXYChart<PlotXYDataProvider> chart) {
+    // Toggle selectedDataset on left-click of a legend item.
+    final ChartGestureMouseAdapterFX adapter = chart.getGestureAdapter();
+    if (adapter != null) {
+      adapter.addGestureHandler(new ChartGestureHandler(
+          new ChartGesture(Entity.LEGEND_ITEM, Event.CLICK, GestureButton.BUTTON1), e -> {
+        if (!(e.getEntity() instanceof LegendItemEntity legend)) {
+          return;
+        }
+        // LegendItemEntity#getDataset() returns the dataset the clicked legend item belongs to.
+        // Toggle: same dataset clicked again -> deselect.
+        final Object ds = legend.getDataset();
+        if (ds instanceof XYDataset clicked) {
+          final XYDataset current = model.getSelectedDataset();
+          model.setSelectedDataset(current == clicked ? null : clicked);
+        }
+      }));
+    }
+
+    // Re-apply strokes when the selection changes or new datasets land.
+    model.selectedDatasetProperty().subscribe(_ -> applySelectedDatasetHighlight(chart));
+    model.datasetRenderersProperty().addListener(
+        (MapChangeListener<XYDataset, XYItemRenderer>) _ -> {
+          // If the selected dataset was removed, clear the selection.
+          final XYDataset selected = model.getSelectedDataset();
+          if (selected != null && !model.getDatasetRenderers().containsKey(selected)) {
+            model.setSelectedDataset(null);
+          } else {
+            applySelectedDatasetHighlight(chart);
+          }
+        });
+  }
+
+  private void applySelectedDatasetHighlight(SimpleXYChart<PlotXYDataProvider> chart) {
+    final XYDataset selected = model.getSelectedDataset();
+    chart.applyWithNotifyChanges(false, () -> {
+      for (final Map.Entry<XYDataset, XYItemRenderer> e : model.getDatasetRenderers().entrySet()) {
+        final Stroke stroke = e.getKey() == selected ? SELECTED_STROKE : DEFAULT_STROKE;
+        e.getValue().setDefaultStroke(stroke);
+      }
     });
   }
 

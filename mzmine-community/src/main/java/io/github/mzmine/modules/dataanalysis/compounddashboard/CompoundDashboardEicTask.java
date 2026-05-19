@@ -20,6 +20,7 @@ import java.util.Map;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Off-FX-thread task that builds the EIC datasets for the dashboard. Extracts one dataset per
@@ -34,6 +35,7 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
 
   private List<DatasetAndRenderer> eicOut = List.of();
   private final Map<FeatureListRow, ColoredXYLineRenderer> eicRenderersOut = new IdentityHashMap<>();
+  private final Map<FeatureListRow, XYDataset> eicDatasetsOut = new IdentityHashMap<>();
 
   public CompoundDashboardEicTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file,
@@ -75,20 +77,24 @@ public class CompoundDashboardEicTask extends FxUpdateTask<CompoundDashboardMode
       final ColoredXYLineRenderer renderer = new ColoredXYLineRenderer();
       // match the on-plot series label color to the dataset color
       renderer.setDefaultItemLabelPaint(FxColorUtil.fxColorToAWT(color));
-      // remember the renderer that draws this row's EIC so the controller can thicken its line
-      // when this row becomes the selected adduct.
+      // remember the renderer + dataset that draws this row's EIC so the controller can highlight
+      // this row by setting it as the chromatogram plot's selectedDataset.
       eicRenderersOut.put(row, renderer);
-      result.add(new DatasetAndRenderer(new ColoredXYDataset(provider), renderer));
+      final ColoredXYDataset dataset = new ColoredXYDataset(provider);
+      eicDatasetsOut.put(row, dataset);
+      result.add(new DatasetAndRenderer(dataset, renderer));
     }
     eicOut = result;
   }
 
   @Override
   protected void updateGuiModel() {
-    // update the reverse map BEFORE the list setAll so list-change subscribers see a consistent
-    // row -> renderer mapping for the new datasets
+    // update the reverse maps BEFORE the list setAll so list-change subscribers see a consistent
+    // row -> renderer / row -> dataset mapping for the new datasets
     model.getEicRenderersByRow().clear();
     model.getEicRenderersByRow().putAll(eicRenderersOut);
+    model.getEicDatasetsByRow().clear();
+    model.getEicDatasetsByRow().putAll(eicDatasetsOut);
     model.getEicDatasets().setAll(eicOut);
   }
 }

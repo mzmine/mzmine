@@ -261,6 +261,18 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     return model.datasetRenderersProperty();
   }
 
+  public ObjectProperty<@Nullable XYDataset> selectedDatasetProperty() {
+    return model.selectedDatasetProperty();
+  }
+
+  public @Nullable XYDataset getSelectedDataset() {
+    return model.getSelectedDataset();
+  }
+
+  public void setSelectedDataset(@Nullable XYDataset dataset) {
+    model.setSelectedDataset(dataset);
+  }
+
 
   @NotNull
   public SimpleXYChart<PlotXYDataProvider> getChart() {
@@ -268,5 +280,9 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   }
   public @NotNull FxXYPlot getXYPlot() {
     return model.getXYPlot();
+  }
+
+  public void setLegendItemsVisible(boolean visible) {
+    model.getChart().setLegendItemsVisible(visible);
   }
 }

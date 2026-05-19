@@ -2,6 +2,8 @@ package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -14,6 +16,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeature
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -40,13 +43,16 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
   private final CompoundDashboardController controller;
   private final ChromatogramPlotController eicPlot;
+  private final ChromatogramPlotController mobilogramPlot;
   private final SimpleSpectraChartController ms1Chart;
   private final SimpleSpectraChartController ms2Chart;
   private final CompoundRowQualityController qualityCtrl;
   private final FxFeatureTableController tableCtrl;
+  private SplitPane mainVerticalChartsSplit;
 
   public CompoundDashboardViewBuilder(@NotNull CompoundDashboardModel model,
       @NotNull CompoundDashboardController controller, @NotNull ChromatogramPlotController eicPlot,
+      @NotNull ChromatogramPlotController mobilogramPlot,
       @NotNull SimpleSpectraChartController ms1Chart,
       @NotNull SimpleSpectraChartController ms2Chart,
       @NotNull CompoundRowQualityController qualityCtrl,
@@ -54,6 +60,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     super(model);
     this.controller = controller;
     this.eicPlot = eicPlot;
+    this.mobilogramPlot = mobilogramPlot;
     this.ms1Chart = ms1Chart;
     this.ms2Chart = ms2Chart;
     this.qualityCtrl = qualityCtrl;
@@ -65,11 +72,16 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final Region eicWithToolbar = buildEicWithToolbar();
     final Region spectraColumn = buildSpectraColumn();
 
-    final SplitPane chartsSplit = new SplitPane(eicWithToolbar, spectraColumn);
-    chartsSplit.setOrientation(Orientation.HORIZONTAL);
-    chartsSplit.setDividerPositions(0.25);
+    final ModularFeatureList flist = model.getFeatureList();
+    boolean hasMobilogram = flist != null && flist.hasRowType(FeatureShapeMobilogramType.class);
 
-    final BorderPane topArea = new BorderPane(chartsSplit);
+    mainVerticalChartsSplit = new SplitPane(eicWithToolbar, spectraColumn);
+    mainVerticalChartsSplit.setOrientation(Orientation.HORIZONTAL);
+
+    // more width if mobilogram
+    mainVerticalChartsSplit.setDividerPositions(hasMobilogram? 0.34 : 0.25);
+
+    final BorderPane topArea = new BorderPane(mainVerticalChartsSplit);
     final Region quality = qualityCtrl.buildView();
     topArea.setRight(quality);
 
@@ -98,13 +110,41 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
     final Region eicView = eicPlot.buildView();
     VBox.setVgrow(eicView, Priority.ALWAYS);
-    return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, toolbar, eicView);
+
+    // Mobilogram view sits underneath the EIC in a vertical SplitPane when the feature list
+    // carries the FeatureShapeMobilogramType (i.e. IMS data was detected upstream). For non-IMS
+    // feature lists we add only the EIC view so the split divider doesn't appear at all.
+    final ValueAxis mobDomainAxis = mobilogramPlot.getXYPlot().getDomainAxis();
+    mobDomainAxis.setLowerMargin(0.15);
+    mobDomainAxis.setUpperMargin(0.15);
+    final Region mobilogramView = mobilogramPlot.buildView();
+    // only use legend from eic plot
+    mobilogramPlot.setLegendItemsVisible(false);
+
+    final SplitPane chartsSplit = new SplitPane(eicView);
+    chartsSplit.setOrientation(Orientation.VERTICAL);
+
+    final BooleanBinding hasMobilograms = Bindings.createBooleanBinding(() -> {
+      final ModularFeatureList flist = model.getFeatureList();
+      return flist != null && flist.hasRowType(FeatureShapeMobilogramType.class);
+    }, model.featureListProperty());
+    hasMobilograms.subscribe(show -> {
+      final boolean alreadyShown = chartsSplit.getItems().contains(mobilogramView);
+      if (Boolean.TRUE.equals(show) && !alreadyShown) {
+        chartsSplit.getItems().add(mobilogramView);
+        chartsSplit.setDividerPositions(0.55);
+      } else if (!Boolean.TRUE.equals(show) && alreadyShown) {
+        chartsSplit.getItems().remove(mobilogramView);
+      }
+    });
+
+    VBox.setVgrow(chartsSplit, Priority.ALWAYS);
+    return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, toolbar, chartsSplit);
   }
 
   private @NotNull Region buildSpectraColumn() {
     // MS1 (no extra toolbar; gray background + per-row sticks)
     final Region ms1View = ms1Chart.buildView();
-
     // MS2 with adduct selector above. The ComboBox drives `selectedMs2Row` (can be null when no
     // member row has an MS2 scan); `selectedAdductRow` is derived from it and always non-null when
     // a compound is selected, so the EIC/MS1 highlight has a stable target.

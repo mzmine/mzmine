@@ -63,6 +63,11 @@ public class ChromatogramPlotModel {
   private final MapProperty<XYDataset, XYItemRenderer> datasetRenderers = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
 
+  // The dataset currently considered "selected" — e.g. via a legend item click. Null when nothing is
+  // selected. The plot builder reacts to changes by thickening the matching renderer's default
+  // stroke; other subscribers (compound dashboard) bridge this property to row-based selection.
+  private final ObjectProperty<@Nullable XYDataset> selectedDataset = new SimpleObjectProperty<>();
+
   private final ListProperty<XYAnnotation> annotations = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
@@ -251,5 +256,17 @@ public class ChromatogramPlotModel {
 
   public void setShowSeriesLabel(boolean showSeriesLabel) {
     this.showSeriesLabel.set(showSeriesLabel);
+  }
+
+  public @Nullable XYDataset getSelectedDataset() {
+    return selectedDataset.get();
+  }
+
+  public void setSelectedDataset(@Nullable XYDataset dataset) {
+    selectedDataset.set(dataset);
+  }
+
+  public ObjectProperty<@Nullable XYDataset> selectedDatasetProperty() {
+    return selectedDataset;
   }
 }

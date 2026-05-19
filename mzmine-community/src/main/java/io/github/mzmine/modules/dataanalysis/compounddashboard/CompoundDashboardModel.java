@@ -23,6 +23,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Holds the observable state of the compound dashboard. Pure data — no logic. The Controller wires
@@ -62,6 +63,7 @@ public class CompoundDashboardModel {
   // Bare ObservableLists so subscribers get list-change events; the controller pushes the contents
   // onto the sub-controllers in the list listener.
   private final ObservableList<DatasetAndRenderer> eicDatasets = FXCollections.observableArrayList();
+  private final ObservableList<DatasetAndRenderer> mobilogramDatasets = FXCollections.observableArrayList();
   private final ObservableList<DatasetAndRenderer> ms1Datasets = FXCollections.observableArrayList();
   private final ObservableList<DatasetAndRenderer> ms2Datasets = FXCollections.observableArrayList();
 
@@ -72,10 +74,20 @@ public class CompoundDashboardModel {
   private final Map<FeatureListRow, ColoredXYLineRenderer> eicRenderersByRow = new IdentityHashMap<>();
   private final Map<FeatureListRow, ColoredXYBarRenderer> ms1RenderersByRow = new IdentityHashMap<>();
 
+  // Row -> dataset reverse maps for the EIC and mobilogram plots. Used to bridge selectedAdductRow
+  // <-> ChromatogramPlotModel#selectedDataset so a row selection can highlight the right line and a
+  // legend click on the plot can resolve back to a row.
+  private final Map<FeatureListRow, XYDataset> eicDatasetsByRow = new IdentityHashMap<>();
+  private final Map<FeatureListRow, XYDataset> mobilogramDatasetsByRow = new IdentityHashMap<>();
+
   // Chart titles for MS1 and MS2; computed by the spectra task so they always match the scans
   // actually rendered.
   private final StringProperty ms1Title = new SimpleStringProperty("");
   private final StringProperty ms2Title = new SimpleStringProperty("");
+
+  // Domain axis label for the mobilogram plot; the mobilogram task overrides this per IMS file so
+  // the unit follows the actual mobility type (e.g. "1/K0", "drift time (ms)").
+  private final StringProperty mobilogramDomainAxisLabel = new SimpleStringProperty("Mobility");
 
   // --- accessors -------------------------------------------------------------
 
@@ -180,6 +192,10 @@ public class CompoundDashboardModel {
     return eicDatasets;
   }
 
+  public @NotNull ObservableList<DatasetAndRenderer> getMobilogramDatasets() {
+    return mobilogramDatasets;
+  }
+
   public @NotNull ObservableList<DatasetAndRenderer> getMs1Datasets() {
     return ms1Datasets;
   }
@@ -194,6 +210,14 @@ public class CompoundDashboardModel {
 
   public @NotNull Map<FeatureListRow, ColoredXYBarRenderer> getMs1RenderersByRow() {
     return ms1RenderersByRow;
+  }
+
+  public @NotNull Map<FeatureListRow, XYDataset> getEicDatasetsByRow() {
+    return eicDatasetsByRow;
+  }
+
+  public @NotNull Map<FeatureListRow, XYDataset> getMobilogramDatasetsByRow() {
+    return mobilogramDatasetsByRow;
   }
 
   public @Nullable String getMs1Title() {
@@ -218,5 +242,17 @@ public class CompoundDashboardModel {
 
   public StringProperty ms2TitleProperty() {
     return ms2Title;
+  }
+
+  public @Nullable String getMobilogramDomainAxisLabel() {
+    return mobilogramDomainAxisLabel.get();
+  }
+
+  public void setMobilogramDomainAxisLabel(@Nullable String label) {
+    mobilogramDomainAxisLabel.set(label);
+  }
+
+  public StringProperty mobilogramDomainAxisLabelProperty() {
+    return mobilogramDomainAxisLabel;
   }
 }
