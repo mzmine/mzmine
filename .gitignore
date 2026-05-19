@@ -35,3 +35,6 @@ mlreader.txt
 
 dev-run.sh
 .sdkmanrc
+
+.cursor/
+.tmp-diffms/

@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFi
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSuperclassType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierPathwayType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.NPClassifierSuperclassType;
@@ -86,6 +87,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new SimilarityType(),//
       new MatchingSignalsType(),//
       new ExplainedIntensityPercentType(), //
+      new DatabaseNameType(), //
       new IonAdductType(),//
       new FormulaType(),//
       new MolecularStructureType(),//

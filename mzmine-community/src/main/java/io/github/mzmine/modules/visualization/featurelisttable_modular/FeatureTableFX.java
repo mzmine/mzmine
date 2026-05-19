@@ -52,6 +52,7 @@ import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureT
 import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -511,6 +512,7 @@ public class FeatureTableFX extends BorderPane {
 
     // basic
     setVisible(ColumnType.ROW_TYPE, parentType, SpectralLibraryMatchesType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentType, DatabaseNameType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentType, IonAdductType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentType, MolecularStructureType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentType, SimilarityType.class, toggledState);

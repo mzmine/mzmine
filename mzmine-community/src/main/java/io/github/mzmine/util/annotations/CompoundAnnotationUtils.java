@@ -497,7 +497,7 @@ public class CompoundAnnotationUtils {
   public static @NotNull Map<@NotNull Class<? extends DataType>, @NotNull FeatureAnnotation> getTopAnnotationsPerTypeMap(
       @Nullable ModularDataModel model) {
     return getTopAnnotationsPerType(model).stream()
-        .collect(Collectors.toMap(FeatureAnnotation::getDataType, a -> a));
+        .collect(Collectors.toMap(FeatureAnnotation::getDataType, a -> a, (first, _) -> first));
   }
 
   public static @Nullable AnnotationSummary getBestAnnotationSummary(
