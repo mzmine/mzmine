@@ -755,15 +755,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     refinementParam.getParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD)
         .getEmbeddedParameter().setValue(4);
     refinementParam.setParameter(IonNetworkRefinementParameters.mainIonLibrary, false,
-        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
+        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_SMALLEST);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
 
     // ion library
     final IonLibrary library = switch (polarity) {
-      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL;
-      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_FULL;
-      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_FULL;
+      case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
+      case Positive -> IonLibraries.MZMINE_DEFAULT_POS_MAIN;
+      case Negative -> IonLibraries.MZMINE_DEFAULT_NEG_MAIN;
     };
     param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
 
