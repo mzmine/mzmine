@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerStr
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelector;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -50,12 +51,15 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
   @NotNull private final MZTolerance mzTolerance;
   @NotNull private final RTTolerance rtTolerance;
   private final double minDensity;
+  @NotNull private final CompoundRepresentativeSelector representativeSelector;
 
   public SimpleSeederComponentizer(@NotNull final MZTolerance mzTolerance,
-      @NotNull final RTTolerance rtTolerance, final double minDensity) {
+      @NotNull final RTTolerance rtTolerance, final double minDensity,
+      @NotNull final CompoundRepresentativeSelector representativeSelector) {
     this.mzTolerance = mzTolerance;
     this.rtTolerance = rtTolerance;
     this.minDensity = minDensity;
+    this.representativeSelector = representativeSelector;
   }
 
   @Override
@@ -382,7 +386,7 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
       return null;
     }
     final List<CompoundFeatureMember> assigned = RoleAssigner.assignRoles(members, polarity,
-        mzTolerance, rtTolerance);
+        mzTolerance, rtTolerance, representativeSelector);
     final FeatureListRow preferredRow = findRepresentativeRow(assigned);
     if (preferredRow == null) {
       logger.warning(

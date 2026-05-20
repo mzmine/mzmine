@@ -115,7 +115,8 @@ public class SimpleSeederComponentizerTest {
   }
 
   private SimpleSeederComponentizer newComponentizer() {
-    return new SimpleSeederComponentizer(mzTol, rtTol, minDensity);
+    return new SimpleSeederComponentizer(mzTol, rtTol, minDensity,
+        new PreferredIonTypeRepresentativeSelector());
   }
 
   // ---------- Test 1: 1 IonNetwork with M+H, M+Na + 13C isotopologue via correlation edge ----------

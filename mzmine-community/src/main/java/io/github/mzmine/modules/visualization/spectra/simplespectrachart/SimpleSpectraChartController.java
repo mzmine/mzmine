@@ -2,7 +2,9 @@ package io.github.mzmine.modules.visualization.spectra.simplespectrachart;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
@@ -10,6 +12,7 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.Map;
+import java.util.SequencedCollection;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -189,5 +192,17 @@ public class SimpleSpectraChartController extends FxController<SimpleSpectraChar
       case PROFILE -> new ColoredXYLineRenderer();
       case CENTROIDED, THRESHOLDED, MIXED, ANY -> new ColoredXYBarRenderer(false);
     };
+  }
+
+  public void setDatasets(@NotNull SequencedCollection<XYDatasetAndRenderer> list) {
+    model.getDatasetRenderers().clear();
+    for (XYDatasetAndRenderer dr : list) {
+      addDataset(dr.dataset(), dr.renderer());
+    }
+  }
+
+  @NotNull
+  public SimpleXYChart<PlotXYDataProvider> getChart() {
+    return model.getChart();
   }
 }

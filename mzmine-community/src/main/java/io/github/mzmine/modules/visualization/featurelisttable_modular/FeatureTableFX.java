@@ -739,9 +739,18 @@ public class FeatureTableFX extends BorderPane {
     // add main column for row types to show name of feature list
     TreeTableColumn<ModularFeatureListRow, String> rowCol = new TreeTableColumn<>();
 
+    String totalRowsStr;
+    if (flist.getCompoundList() != null) {
+      totalRowsStr = String.format("%d compound rows; %d total rows", flist.getRows().size(),
+          flist.getCompoundList().size());
+    } else {
+      totalRowsStr = String.format("%d total rows", flist.getRows().size());
+    }
+
     // Add raw data file label
-    final ObservableValue<String> title = Bindings.size(getFilteredRowItems())
-        .map(nrows -> "%d rows in %s".formatted(nrows.intValue(), flist.getName()));
+    final ObservableValue<String> title = Bindings.size(getFilteredRowItems()).map(
+        nrows -> "%d filtered rows (%s) in %s".formatted(nrows.intValue(), totalRowsStr,
+            flist.getName()));
     Label headerLabel = FxLabels.newLabel(title);
 
     if (flist.getRawDataFiles().size() == 1) {

@@ -142,6 +142,9 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddLipidAnnotationStep(q);
     makeAndAddFormulaPredictionStep(q);
 
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q);
+
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
         exportAnnotationGraphics, mzTolScans);

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public enum CompoundComponentizerType implements ModuleOptionsEnum<CompoundComponentizerModule> {
 
-  SimpleSeeder("Simple seeder (IIN + correlation)", "simple_seeder",
+  SimpleSeeder("Simple IIN + correlation", "simple_iin_correlation",
       SimpleSeederComponentizerModule.class);
 
   private final String name;

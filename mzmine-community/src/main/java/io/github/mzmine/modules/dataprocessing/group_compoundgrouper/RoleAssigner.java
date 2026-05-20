@@ -4,25 +4,22 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelector;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
-import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Assigns one {@link CompoundMemberRole#REPRESENTATIVE} and a role per remaining member within a
- * connected component of feature list rows.
- * <p>
- * Representative selection inspects {@link IonType} parts directly (no hard-coded adduct masses):
- * a tier preference chain (M+H / M-H first, then alternative adducts) is applied with intensity
- * tie-break and an ultimate fallback to the highest-intensity row.
+ * connected component of feature list rows. Representative selection is delegated to a
+ * pluggable {@link CompoundRepresentativeSelector}; per-member role classification (adduct,
+ * isotopologue, in-source fragment, correlated) is handled here.
  */
 public final class RoleAssigner {
 
@@ -37,35 +34,17 @@ public final class RoleAssigner {
   private static final double ISOTOPE_TOL = 0.005;
   private static final int MAX_ISOTOPE_MULTIPLE = 4;
 
-  // Reference parts ranked by tier preference (high → low). Each entry is matched structurally
-  // via IonPart.equalsWithoutCount, so charge / mass / formula identify the part regardless of
-  // count.
-  // decision: M+H / M-H is the most reliable representative; M+ / M- (electron-only) ranks just
-  // below; alkali adducts and chloride / formate fall after.
-  private static final List<IonPart> POSITIVE_TIER_ORDER = List.of(
-      IonParts.H,        // [M+H]+
-      IonParts.M_PLUS,   // [M]+ (silent / electron-loss)
-      IonParts.NA,       // [M+Na]+
-      IonParts.K,        // [M+K]+
-      IonParts.NH4       // [M+NH4]+
-  );
-  private static final List<IonPart> NEGATIVE_TIER_ORDER = List.of(
-      IonParts.H_MINUS,  // [M-H]-
-      IonParts.M_MINUS,  // [M]- (electron)
-      IonParts.CL,       // [M+Cl]-
-      IonParts.FORMATE_FA // [M+FA-H]- (alone in negative single-adduct case if present)
-  );
-
   private RoleAssigner() {
   }
 
   public static @NotNull List<CompoundFeatureMember> assignRoles(
       @NotNull final List<FeatureListRow> members, @NotNull final PolarityType polarity,
-      @NotNull final MZTolerance mzTolerance, @NotNull final RTTolerance rtTolerance) {
+      @NotNull final MZTolerance mzTolerance, @NotNull final RTTolerance rtTolerance,
+      @NotNull final CompoundRepresentativeSelector representativeSelector) {
     if (members.isEmpty()) {
       return List.of();
     }
-    final FeatureListRow representative = pickRepresentative(members, polarity);
+    final FeatureListRow representative = representativeSelector.pickRepresentative(members);
     final List<CompoundFeatureMember> result = new ArrayList<>(members.size());
     for (final FeatureListRow row : members) {
       if (row == representative) {
@@ -78,94 +57,6 @@ public final class RoleAssigner {
       }
     }
     return result;
-  }
-
-  static @NotNull FeatureListRow pickRepresentative(@NotNull final List<FeatureListRow> members,
-      @NotNull final PolarityType polarity) {
-    // try preferred adduct tiers first
-    final Comparator<FeatureListRow> tierTieIntensity = Comparator
-        .<FeatureListRow>comparingInt(r -> -tierScore(r, polarity))
-        .thenComparing(Comparator.comparing(RoleAssigner::heightOrZero).reversed());
-    FeatureListRow best = null;
-    int bestTier = 0;
-    for (final FeatureListRow row : members) {
-      final int tier = tierScore(row, polarity);
-      if (tier <= 0) {
-        continue;
-      }
-      if (best == null || tier > bestTier
-          || (tier == bestTier && tierTieIntensity.compare(row, best) < 0)) {
-        best = row;
-        bestTier = tier;
-      }
-    }
-    if (best != null) {
-      return best;
-    }
-    // ultimate fallback: highest-intensity row
-    FeatureListRow fallback = members.get(0);
-    float fallbackHeight = heightOrZero(fallback);
-    for (int i = 1; i < members.size(); i++) {
-      final FeatureListRow row = members.get(i);
-      final float h = heightOrZero(row);
-      if (h > fallbackHeight) {
-        fallback = row;
-        fallbackHeight = h;
-      }
-    }
-    return fallback;
-  }
-
-  /**
-   * Tier score for representative selection. Higher is better. 0 means not eligible at any tier.
-   * <p>
-   * Eligibility requires the IonType to be a "clean" single-adduct form: one molecule, no
-   * neutral losses or clusters, exactly one charged adduct, defined parts.
-   */
-  static int tierScore(@NotNull final FeatureListRow row, @NotNull final PolarityType polarity) {
-    final IonIdentity ion = row.getBestIonIdentity();
-    if (ion == null) {
-      return 0;
-    }
-    final IonType ionType = ion.getIonType();
-    if (ionType.molecules() != 1 || ionType.isUndefinedAdduct()) {
-      return 0;
-    }
-    // reject any IonType carrying neutral losses / clusters (those rows belong to IN_SOURCE_FRAGMENT)
-    if (ionType.streamNeutralMods().findAny().isPresent()) {
-      return 0;
-    }
-    final List<IonPart> chargedAdducts = ionType.streamChargedAdducts().toList();
-
-    // negative-mode special case: [M-H2O-H]- has TWO parts (H2O loss is neutral, H- is charged).
-    // We reach here only if no neutral mods exist, so this case must be handled before the
-    // neutral-mods check above. decision: keep neutral-mods reject for the common "single charged
-    // adduct" rule and detect M-H2O-H separately *before* it via isWaterLossMinusHydrogen.
-    // Therefore, recheck this case here (we won't get to it through the strict path).
-    if (chargedAdducts.size() != 1) {
-      return 0;
-    }
-    final IonPart adduct = chargedAdducts.get(0);
-    return switch (polarity) {
-      case POSITIVE -> tierIndex(adduct, POSITIVE_TIER_ORDER);
-      case NEGATIVE -> tierIndex(adduct, NEGATIVE_TIER_ORDER);
-      // unknown / mixed / neutral / any → any single charged adduct is acceptable
-      case NEUTRAL, ANY, UNKNOWN -> 1;
-    };
-  }
-
-  /**
-   * Returns the tier score for a single charged adduct against the given preference list. The
-   * highest-priority match yields {@code preferred.size()}; no match yields 0.
-   */
-  private static int tierIndex(@NotNull final IonPart adduct,
-      @NotNull final List<IonPart> preferred) {
-    for (int i = 0; i < preferred.size(); i++) {
-      if (preferred.get(i).equalsWithoutCount(adduct)) {
-        return preferred.size() - i;
-      }
-    }
-    return 0;
   }
 
   // ----- Per-member classification -----
@@ -238,11 +129,6 @@ public final class RoleAssigner {
       }
     }
     return false;
-  }
-
-  private static float heightOrZero(@NotNull final FeatureListRow row) {
-    final Float h = row.getMaxHeight();
-    return h == null ? 0f : h;
   }
 
   private static float scoreRoleConfidence(@NotNull final CompoundMemberRole role) {

@@ -96,6 +96,9 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q);
+
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);
     makeAndAddBatchExportStep(q, isExportActive, exportPath);
