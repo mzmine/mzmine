@@ -28,6 +28,7 @@ package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 import static ai.djl.ndarray.types.DataType.FLOAT32;
 
 import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDManager;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MassSpectrum;
 import java.util.List;
@@ -41,6 +42,14 @@ public abstract class EmbeddingBasedSimilarity implements AutoCloseable {
    */
   public abstract NDArray predictEmbedding(List<? extends MassSpectrum> scans)
       throws TranslateException;
+
+  /**
+   * @return the {@link NDManager} that owns embeddings returned from {@link #predictEmbedding}. All
+   * NDArrays from this model are bound to its lifecycle and become invalid once {@link #close()}
+   * runs. Use this manager to rebuild NDArrays from cached {@code float[]} vectors so they share
+   * the same lifecycle as freshly-predicted embeddings.
+   */
+  public abstract NDManager getNDManager();
 
   /**
    * Releases native resources (predictor, model, NDManager). Narrowed from

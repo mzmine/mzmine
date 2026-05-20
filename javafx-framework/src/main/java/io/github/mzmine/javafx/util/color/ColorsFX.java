@@ -51,8 +51,10 @@ public class ColorsFX {
   // Color used to mark "modified" aligned signals (e.g. modified-cosine pairs that align via the
   // precursor-mass shift rather than direct m/z match). Distinct from positive (direct match),
   // negative (no match), and neutral (filtered).
-  private static final Color MODIFIED_MARKER = new Color(0.749f, 0.1725f, 0.5176f,
+  private static final Color MAGENTA = new Color(0.749f, 0.1725f, 0.5176f,
       1f); // reddish purple
+  private static final Color MODIFIED_MARKER = MAGENTA;
+
 
   /**
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
@@ -69,7 +71,7 @@ public class ColorsFX {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
+      MAGENTA}; // reddish purple
 
   /**
    * Color palette with black+7colors for color blindness: <br> Orange, sky blue, bluish green,
@@ -85,7 +87,7 @@ public class ColorsFX {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
+      MAGENTA}; // reddish purple
 
   private static Color[] COLORS_PROTANOPIA = new Color[]{new Color(0.902f, 0.624f, 0f, 1f), // orang
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue

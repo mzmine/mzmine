@@ -103,6 +103,11 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
   }
 
   @Override
+  public NDManager getNDManager() {
+    return ndManager;
+  }
+
+  @Override
   public void close() {
     try {
       ndManager.close();

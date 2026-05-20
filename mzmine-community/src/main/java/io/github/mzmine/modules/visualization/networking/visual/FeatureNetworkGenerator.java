@@ -650,8 +650,8 @@ public class FeatureNetworkGenerator {
       return EdgeType.ANALOG_MS2_COSINE;
     }
     return switch (ml.model()) {
-      case MS2_DEEPSCORE -> EdgeType.ANALOG_MS2Deepscore;
-      case DREAMS -> EdgeType.ANALOG_DreaMS;
+      case MS2_DEEPSCORE_2_0 -> EdgeType.ANALOG_MS2Deepscore;
+      case DREAMS_1_0 -> EdgeType.ANALOG_DreaMS;
     };
   }
 

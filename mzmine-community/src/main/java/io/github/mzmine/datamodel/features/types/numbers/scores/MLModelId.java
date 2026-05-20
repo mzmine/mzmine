@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,42 +34,41 @@ import org.jetbrains.annotations.NotNull;
  * {@code SpectralNetworkingOptions} so the score record stays ML-only and isn't conflated with
  * cosine algorithms.
  */
-public enum MLModelId {
+public enum MLModelId implements UniqueIdSupplier {
 
-  MS2_DEEPSCORE("MS2Deepscore", "ms2deepscore"), //
-  DREAMS("DREAMS", "dreams");
+  MS2_DEEPSCORE_2_0("MS2Deepscore", "ms2deepscore_2.0", "2.0"), //
+  DREAMS_1_0("DreaMS", "dreams_1.0", "1.0");
 
   private final String label;
-  private final String xmlId;
+  private final String uniqueId;
+  private final String version;
 
-  MLModelId(String label, String xmlId) {
+  MLModelId(String label, String uniqueId, String version) {
     this.label = label;
-    this.xmlId = xmlId;
+    this.uniqueId = uniqueId;
+    this.version = version;
   }
 
   /**
    * @return short human-readable label, used in score-cell text and tooltips.
    */
-  public @NotNull String label() {
-    return label;
+  public @NotNull String labelVersion() {
+    return label + " " + version;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return uniqueId;
   }
 
   /**
-   * @return stable identifier used in XML serialization. Never change for an existing enum value.
+   * @return the {@link DBEntryField} used to cache this model's embedding vector on a
+   * {@code SpectralLibraryEntry}. Runtime-only — see {@link DBEntryField#isRuntimeOnly()}.
    */
-  public @NotNull String xmlId() {
-    return xmlId;
-  }
-
-  /**
-   * @return matching enum value for the given xml id, or null if unknown.
-   */
-  public static MLModelId fromXmlId(@NotNull String id) {
-    for (MLModelId m : values()) {
-      if (m.xmlId.equals(id)) {
-        return m;
-      }
-    }
-    return null;
+  public @NotNull DBEntryField getEmbeddingField() {
+    return switch (this) {
+      case MS2_DEEPSCORE_2_0 -> DBEntryField.ML_EMBEDDING_MS2DEEPSCORE_2_0;
+      case DREAMS_1_0 -> DBEntryField.ML_EMBEDDING_DREAMS_1_0;
+    };
   }
 }

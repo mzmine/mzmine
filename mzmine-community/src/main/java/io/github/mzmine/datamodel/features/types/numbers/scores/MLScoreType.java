@@ -84,7 +84,7 @@ public class MLScoreType extends DataType<MLScore> {
     }
     final var fmt = export ? MZmineCore.getConfiguration().getExportFormats().scoreFormat()
         : MZmineCore.getConfiguration().getGuiFormats().scoreFormat();
-    return fmt.format(value.score()) + " (" + value.model().label() + ")";
+    return fmt.format(value.score()) + " (" + value.model().labelVersion() + ")";
   }
 
   @Override

@@ -25,10 +25,12 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Similarity score produced by an ML model (MS2Deepscore or DREAMS). Carries both the numeric score
@@ -50,10 +52,11 @@ public record MLScore(float score, @NotNull MLModelId model) {
   public void saveToXML(@NotNull XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer.writeAttribute(XML_SCORE_ATTR, Float.toString(score));
-    writer.writeAttribute(XML_MODEL_ATTR, model.xmlId());
+    writer.writeAttribute(XML_MODEL_ATTR, model.getUniqueID());
     writer.writeEndElement();
   }
 
+  @Nullable
   public static MLScore loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Expected <" + XML_ELEMENT + "> element");
@@ -63,7 +66,7 @@ public record MLScore(float score, @NotNull MLModelId model) {
     if (scoreStr == null || modelStr == null) {
       return null;
     }
-    final MLModelId model = MLModelId.fromXmlId(modelStr);
+    final MLModelId model = UniqueIdSupplier.parseOrElse(modelStr, MLModelId.values(), null);
     if (model == null) {
       return null;
     }
@@ -72,6 +75,6 @@ public record MLScore(float score, @NotNull MLModelId model) {
 
   @Override
   public String toString() {
-    return String.format("%.3f (%s)", score, model.label());
+    return String.format("%.3f (%s)", score, model.labelVersion());
   }
 }
