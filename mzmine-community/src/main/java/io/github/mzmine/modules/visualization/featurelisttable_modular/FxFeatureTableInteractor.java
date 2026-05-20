@@ -175,11 +175,6 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
       propagate(FxFeatureTableModel::selectedCompoundRowProperty, compound);
     });
 
-    // compoundRowSelection lives on the filter menu model and is already two-way bound to the
-    // FeatureTableFX; just propagate it across the link graph.
-    weak.addChangeListener(this, model.getFilterModel().compoundRowSelectionProperty(),
-        (_, _, sel) -> propagate(
-            m -> m.getFilterModel().compoundRowSelectionProperty(), sel));
   }
 
   private void updateSelectedCompoundFromRows(@Nullable List<FeatureListRow> rows) {
