@@ -161,19 +161,15 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
       propagate(FxFeatureTableModel::selectedRowsProperty, rows);
     });
 
-    // selectedCompoundRow: derived from selectedRows; on external write select the matching row.
+    // selectedCompoundRow: derived from selectedRows. It is observation-only with respect to the
+    // table — external writes are forwarded through the link graph but never drive selectedRows
+    // or the table selection. Otherwise selecting a member row R of compound C would derive
+    // selectedCompoundRow=C, which would write selectedRows=[C] back, clobbering the user's R
+    // selection and re-driving the table.
     weak.addChangeListener(this, selectedRows,
         (_, _, rows) -> updateSelectedCompoundFromRows(rows));
-    weak.addChangeListener(this, selectedCompoundRow, (_, _, compound) -> {
-      if (compound != null) {
-        final FeatureListRow asRow = compound; // CompoundRow extends FeatureListRow
-        final List<FeatureListRow> current = selectedRows.get();
-        if (current == null || !current.contains(asRow)) {
-          selectedRows.set(List.of(asRow));
-        }
-      }
-      propagate(FxFeatureTableModel::selectedCompoundRowProperty, compound);
-    });
+    weak.addChangeListener(this, selectedCompoundRow,
+        (_, _, compound) -> propagate(FxFeatureTableModel::selectedCompoundRowProperty, compound));
 
   }
 
