@@ -24,8 +24,8 @@ public class CompoundGrouperSubParameters extends SimpleParameterSet {
       "Representative row", """
       Strategy for picking the representative row of each compound row.
       %s""".formatted(Arrays.stream(CompoundRepresentativeSelectorOption.values())
-      .map(CompoundRepresentativeSelectorOption::getFullDescription).collect(Collectors.joining("\n"))),
-      CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
+      .map(CompoundRepresentativeSelectorOption::getFullDescription)
+      .collect(Collectors.joining("\n"))), CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
 
   public CompoundGrouperSubParameters() {
     super(COMPONENTIZER, REPRESENTATIVE_SELECTOR);
@@ -34,6 +34,24 @@ public class CompoundGrouperSubParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  /**
+   * Set all parameter values explicitly on {@code param}.
+   */
+  public void setAll(@NotNull final CompoundComponentizerType componentizer,
+      @NotNull final CompoundRepresentativeSelectorOption representativeSelector) {
+    getParameter(COMPONENTIZER).setValue(componentizer);
+    getParameter(REPRESENTATIVE_SELECTOR).setValue(representativeSelector);
+  }
+
+  /**
+   * explicitly apply the default componentizer and representative selector.
+   */
+  public void setAllDefaults() {
+    // explicit defaults so batch wizard output is independent of parameter set defaults
+    setAll(CompoundComponentizerType.SimpleSeeder,
+        CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
   }
 
   public CompoundGrouperParameters toFullParameters(

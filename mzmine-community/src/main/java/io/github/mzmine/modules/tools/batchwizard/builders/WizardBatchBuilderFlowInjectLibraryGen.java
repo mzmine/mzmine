@@ -107,6 +107,9 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     // match against own library
     makeAndAddLibrarySearchStep(q, true);
 
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q);
+
     // export all unannotated scans - after alignment to merge duplicates
     if (exportUnknownScansFile) {
       makeAndAddExportScansStep(q, exportPath, libGenMetadata, true, "_unknown_scans");

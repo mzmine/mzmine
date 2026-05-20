@@ -87,6 +87,8 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpe
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
@@ -759,6 +761,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
 
+    //
+    param.setParameter(IonNetworkingParameters.COMPOUND_GROUPING, false);
+    var compoundGroupingParam = param.getParameter(IonNetworkingParameters.COMPOUND_GROUPING)
+        .getEmbeddedParameters();
+    compoundGroupingParam.setAllDefaults();
+
     // ion library
     final IonLibrary library = switch (polarity) {
       case No_filter -> IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN;
@@ -768,6 +776,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(IonNetworkingParameters.fullIonLibrary, library);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
+        param));
+  }
+
+  /**
+   * Compound grouping. Requires Ion Identity Networking and/or Correlation Grouping output as
+   * input.
+   */
+  protected void makeAndAddCompoundGrouperStep(final BatchQueue q) {
+    final CompoundGrouperParameters param = (CompoundGrouperParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(CompoundGrouperModule.class).cloneParameterSet();
+
+    param.setAll(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CompoundGrouperModule.class),
         param));
   }
 
