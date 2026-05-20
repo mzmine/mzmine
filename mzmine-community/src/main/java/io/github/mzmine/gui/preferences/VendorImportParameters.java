@@ -55,6 +55,7 @@ public class VendorImportParameters extends SimpleParameterSet {
       """, false);*/
 
   public static final MassLynxImportOptions DEFAULT_WATERS_OPTION = MassLynxImportOptions.NATIVE_MZMINE_CENTROIDING;
+  public static final ShimadzuImportOptions DEFAULT_SHIMADZU_OPTION = ShimadzuImportOptions.SHIMADZU_BRIDGE;
   public static final boolean DEFAULT_VENDOR_CENTROIDING = true;
   public static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
   public static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
@@ -72,6 +73,15 @@ public class VendorImportParameters extends SimpleParameterSet {
           slow for IMS data. Centroiding is only applied if "Try vendor centroiding" is enabled.""",
           MassLynxImportOptions.values(), DEFAULT_WATERS_OPTION),
       createJumpToPrefButton("Waters MassLynx data import"));
+
+  public static final ComponentWrapperParameter<ShimadzuImportOptions, ComboParameter<ShimadzuImportOptions>> shimadzuImportChoice = new ComponentWrapperParameter<>(
+      new ComboParameter<>("Shimadzu data import", """
+          Select if Shimadzu LabSolutions data files (.lcd, .qgd) shall be imported via the
+          native ShimadzuBridge child process (uses the closed-source LabSolutions IoModule SDK)
+          or via MSConvert. The native bridge preserves vendor metadata and is recommended
+          when LabSolutions is installed on the local machine. MSConvert is the fallback.""",
+          ShimadzuImportOptions.values(), DEFAULT_SHIMADZU_OPTION),
+      createJumpToPrefButton("Shimadzu data import"));
 
   public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyVendorCentroiding = new ComponentWrapperParameter<>(
       new BooleanParameter("Try vendor centroiding", """
@@ -96,7 +106,7 @@ public class VendorImportParameters extends SimpleParameterSet {
 
   public VendorImportParameters() {
     super(applyVendorCentroiding, excludeThermoExceptionMasses, watersLockmass,
-        massLynxImportChoice);
+        massLynxImportChoice, shimadzuImportChoice);
   }
 
   private static @NotNull Supplier<Node> createJumpToPrefButton(String preferenceParameterName) {
@@ -105,12 +115,14 @@ public class VendorImportParameters extends SimpleParameterSet {
   }
 
   public static VendorImportParameters create(boolean applyCentroiding,
-      MassLynxImportOptions massLynxOption, boolean watersLockmassEnabled,
-      WatersLockmassParameters lockmassParam, boolean removeThermoExceptionMasses) {
+      MassLynxImportOptions massLynxOption, ShimadzuImportOptions shimadzuOption,
+      boolean watersLockmassEnabled, WatersLockmassParameters lockmassParam,
+      boolean removeThermoExceptionMasses) {
     final VendorImportParameters param = (VendorImportParameters) new VendorImportParameters().cloneParameterSet();
 
     param.setParameter(applyVendorCentroiding, applyCentroiding);
     param.setParameter(massLynxImportChoice, massLynxOption);
+    param.setParameter(shimadzuImportChoice, shimadzuOption);
     param.getParameter(watersLockmass).setValue(watersLockmassEnabled);
     param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
     param.setParameter(excludeThermoExceptionMasses, removeThermoExceptionMasses);
@@ -118,7 +130,7 @@ public class VendorImportParameters extends SimpleParameterSet {
   }
 
   public static VendorImportParameters createDefault() {
-    return create(DEFAULT_VENDOR_CENTROIDING, DEFAULT_WATERS_OPTION,
+    return create(DEFAULT_VENDOR_CENTROIDING, DEFAULT_WATERS_OPTION, DEFAULT_SHIMADZU_OPTION,
         DEFAULT_WATERS_LOCKMASS_ENABLED, WatersLockmassParameters.createDefault(),
         DEFAULT_THERMO_EXCEPTION_SIGNALS);
   }
@@ -132,6 +144,7 @@ public class VendorImportParameters extends SimpleParameterSet {
     return create(preferences.getValue(MZminePreferences.applyVendorCentroiding),
         /*preferences.getValue(MZminePreferences.thermoImportChoice)*/
         preferences.getValue(MZminePreferences.massLynxImportChoice),
+        preferences.getValue(MZminePreferences.shimadzuImportChoice),
         preferences.getValue(MZminePreferences.watersLockmass),
         preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters(),
         preferences.getValue(MZminePreferences.excludeThermoExceptionMasses));

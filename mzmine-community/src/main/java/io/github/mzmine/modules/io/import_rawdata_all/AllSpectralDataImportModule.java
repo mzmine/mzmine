@@ -57,6 +57,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
+import io.github.mzmine.modules.io.import_rawdata_shimadzu.ShimadzuImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -422,11 +423,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
+      case SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       case WATERS_RAW, WATERS_RAW_IMS ->
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
+      case SHIMADZU_LCD, SHIMADZU_QGD ->
+          new ShimadzuImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);
     };
   }
@@ -472,9 +476,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, SHIMADZU_LCD, MBI ->
+      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
+      case SHIMADZU_LCD, SHIMADZU_QGD ->
+          new ShimadzuImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
+              project, parameters, module);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case MZDATA, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, scanProcessorConfig, module,

@@ -36,6 +36,7 @@ claude.md
 /external_tools/thermo_raw_file_parser/
 external_tools/sciex_wiff2/*
 mlreader.txt
+/external_tools/shimadzu_wrapper/
 
 # VS Code settings
 .vscode/

@@ -238,6 +238,8 @@ public class MZminePreferences extends SimpleParameterSet {
       .cloneParameter();
   public static final ComboParameter<MassLynxImportOptions> massLynxImportChoice = VendorImportParameters.massLynxImportChoice.getEmbeddedParameter()
       .cloneParameter();
+  public static final ComboParameter<ShimadzuImportOptions> shimadzuImportChoice = VendorImportParameters.shimadzuImportChoice.getEmbeddedParameter()
+      .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
   public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
@@ -290,8 +292,9 @@ public class MZminePreferences extends SimpleParameterSet {
             // silent parameters without controls
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
-            applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses},
+            applyVendorCentroiding, watersLockmass, massLynxImportChoice, shimadzuImportChoice,
+            msConvertPath, keepConvertedFile, thermoRawFileParserPath,
+            excludeThermoExceptionMasses},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -326,8 +329,8 @@ public class MZminePreferences extends SimpleParameterSet {
             chartParam, theme, presentationMode, showPrecursorWindow,
             imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
-            watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
-            excludeThermoExceptionMasses) //
+            shimadzuImportChoice, watersLockmass, msConvertPath, keepConvertedFile,
+            thermoRawFileParserPath, excludeThermoExceptionMasses) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 

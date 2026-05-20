@@ -85,6 +85,7 @@ public class RawDataFileTypeDetector {
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
   private static final String LCD_SUFFIX = ".lcd";
+  private static final String QGD_SUFFIX = ".qgd";
 
   /**
    * @return Detected file type or null if the file is not of any supported type
@@ -161,6 +162,9 @@ public class RawDataFileTypeDetector {
       }
       if (lowerName.endsWith(LCD_SUFFIX)) {
         return RawDataFileType.SHIMADZU_LCD;
+      }
+      if (lowerName.endsWith(QGD_SUFFIX)) {
+        return RawDataFileType.SHIMADZU_QGD;
       }
       if (fileName.getName().endsWith(MBI_SUFFIX)) {
         return RawDataFileType.MBI;
