@@ -132,14 +132,11 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
             .addTab(new SpectralIdentificationResultsTab(table, a.getClass()));
         case LipidMatchListType _ -> {
           final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
-          // Seed the new tab with the source feature list so it shows content immediately.
-          if (table != null) {
-            tab.getController().setFeatureList(table.getFeatureList());
-          }
           new MZmineWindow().addTab(tab);
-          // Wire bidirectional cross-dashboard link so selections sync between the source feature
-          // table and the new lipid dashboard. Both directions are active by default; the user can
-          // disable either direction from the link popover.
+          // Wire bidirectional cross-dashboard link. linkTo(..., true) pushes the source's current
+          // selectedFeatureLists / selectedRows / selectedCompoundRow into the target on creation,
+          // so no separate setFeatureList seed is needed. Both directions are active by default;
+          // the user can disable either direction from the link popover.
           final FxFeatureTableController sourceCtrl = FxFeatureTableController.controllerFor(table);
           final FxFeatureTableController lipidCtrl = tab.getController()
               .getFeatureTableController();

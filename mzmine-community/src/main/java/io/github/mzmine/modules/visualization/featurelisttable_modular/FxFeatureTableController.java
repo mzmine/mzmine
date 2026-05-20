@@ -39,6 +39,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu.FxFeatureTableFilterMenuModel;
 import java.util.List;
+import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
@@ -147,6 +148,24 @@ public class FxFeatureTableController extends FxCachedViewController<FxFeatureTa
       return;
     }
     model.linkTo(target, active);
+    if (active) {
+      // Sync the new target to our current state so it does not have to wait for the next change.
+      // Writes are skipped when values already match; equality on each property short-circuits
+      // downstream propagation. Order matters: feature list first (rebuilds the target's rows),
+      // then row selection (drives scroll/select inside the new rows), then the derived compound.
+      pushBindingTo(model.selectedFeatureListsProperty(),
+          target.getModel().selectedFeatureListsProperty());
+      pushBindingTo(model.selectedRowsProperty(), target.getModel().selectedRowsProperty());
+      pushBindingTo(model.selectedCompoundRowProperty(),
+          target.getModel().selectedCompoundRowProperty());
+    }
+  }
+
+  private static <T> void pushBindingTo(@NotNull Property<T> source, @NotNull Property<T> target) {
+    final T value = source.getValue();
+    if (!Objects.equals(target.getValue(), value)) {
+      target.setValue(value);
+    }
   }
 
   public void unlink(@NotNull FxFeatureTableController target) {

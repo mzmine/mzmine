@@ -260,16 +260,27 @@ public class LipidAnnotationQCDashboardViewBuilder extends
       return;
     }
     final @Nullable FeatureListRow currentRow = model.getRow();
-    if (currentRow != null && filteredItems.stream().map(javafx.scene.control.TreeItem::getValue)
-        .filter(Objects::nonNull).anyMatch(row -> row.getID() == currentRow.getID())) {
-      if (!Objects.equals(table.getSelectedRow(), currentRow)) {
-        FeatureTableFXUtil.selectAndScrollTo(currentRow, table);
+    // Treat a row that came from a different feature list as no selection — comparing by ID across
+    // feature lists could falsely match an unrelated row in the current list, and the row's data
+    // is no longer meaningful for this dashboard.
+    final boolean stale =
+        currentRow != null && currentRow.getFeatureList() != model.getFeatureList();
+    if (!stale && currentRow != null) {
+      final boolean inFilter = filteredItems.stream().map(javafx.scene.control.TreeItem::getValue)
+          .filter(Objects::nonNull).anyMatch(row -> row.getID() == currentRow.getID());
+      if (inFilter) {
+        if (!Objects.equals(table.getSelectedRow(), currentRow)) {
+          FeatureTableFXUtil.selectAndScrollTo(currentRow, table);
+        }
+        return;
       }
+      // Selection is for the current feature list but hidden by the filter — leave it alone
+      // (preserves a meaningful upstream pick instead of overwriting with the first visible row).
       return;
     }
+    // No selection, or selection was stale from a different feature list → pick the first visible.
     final FeatureListRow firstRow = filteredItems.get(0).getValue();
-    if (firstRow != null && (model.getRow() == null
-        || model.getRow().getID() != firstRow.getID())) {
+    if (firstRow != null) {
       FeatureTableFXUtil.selectAndScrollTo(firstRow, table);
       model.setRow(firstRow);
     }
