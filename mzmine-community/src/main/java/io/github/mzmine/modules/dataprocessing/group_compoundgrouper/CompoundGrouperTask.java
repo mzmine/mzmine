@@ -5,6 +5,8 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerModule;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerStrategy;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelector;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelectorModule;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
@@ -51,12 +53,23 @@ public class CompoundGrouperTask extends AbstractTask {
 
   private static @NotNull CompoundComponentizerStrategy createStrategy(
       @NotNull final ParameterSet parameters) {
+    final CompoundRepresentativeSelector selector = createRepresentativeSelector(parameters);
     final ModuleOptionsEnumComboParameter<CompoundComponentizerType> combo = parameters.getParameter(
         CompoundGrouperParameters.COMPONENTIZER);
     final CompoundComponentizerType type = combo.getValue();
     final ParameterSet sub = combo.getEmbeddedParameters();
     final CompoundComponentizerModule module = type.getModuleInstance();
-    return module.createStrategy(sub);
+    return module.createStrategy(sub, selector);
+  }
+
+  private static @NotNull CompoundRepresentativeSelector createRepresentativeSelector(
+      @NotNull final ParameterSet parameters) {
+    final ModuleOptionsEnumComboParameter<CompoundRepresentativeSelectorOption> combo = parameters.getParameter(
+        CompoundGrouperParameters.REPRESENTATIVE_SELECTOR);
+    final CompoundRepresentativeSelectorOption type = combo.getValue();
+    final ParameterSet sub = combo.getEmbeddedParameters();
+    final CompoundRepresentativeSelectorModule module = type.getModuleInstance();
+    return module.createSelector(sub);
   }
 
   @Override

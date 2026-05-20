@@ -16,8 +16,18 @@ public class CompoundGrouperParameters extends SimpleParameterSet {
           + "parameters (tolerances, density thresholds, etc.).",
       CompoundComponentizerType.SimpleSeeder);
 
+  public static final ModuleOptionsEnumComboParameter<CompoundRepresentativeSelectorOption> REPRESENTATIVE_SELECTOR = new ModuleOptionsEnumComboParameter<>(
+      "Representative row",
+      "Strategy for picking the representative FeatureListRow of each CompoundRow. "
+          + "'Annotated first' prefers (1) the highest-intensity row with a compound / spectral "
+          + "library annotation, (2) then the highest-intensity row carrying an IonIdentity, "
+          + "(3) and finally the highest-intensity row. 'Preferred IonType' favors clean "
+          + "single-adduct forms in a tier order (M+H / M-H first), with an intensity tiebreak "
+          + "and an ultimate fallback to the highest-intensity row.",
+      CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
+
   public CompoundGrouperParameters() {
-    super(FEATURE_LISTS, COMPONENTIZER);
+    super(FEATURE_LISTS, COMPONENTIZER, REPRESENTATIVE_SELECTOR);
   }
 
   @Override
