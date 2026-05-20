@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,7 +38,9 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
@@ -55,8 +58,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Imports a Shimadzu LabSolutions {@code .lcd} (LC-MS) or {@code .qgd} (GC-MS)
- * file via the external {@code ShimadzuBridge.exe} child process.
+ * Imports a Shimadzu LabSolutions {@code .lcd} (LC-MS) or {@code .qgd} (GC-MS) file via the
+ * external {@code ShimadzuBridge.exe} child process.
  */
 public class ShimadzuImportTask extends AbstractTask implements RawDataImportTask {
 
@@ -71,21 +74,24 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
   private final MZmineProject project;
   @NotNull
   private final ScanImportProcessorConfig processor;
+  private final boolean centroid;
 
   private int totalScans = 0;
   private int loadedScans = 0;
   private RawDataFileImpl dataFile;
 
   public ShimadzuImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      File file, @NotNull Class<? extends MZmineModule> module,
-      @NotNull ParameterSet parameters, @NotNull MZmineProject project,
-      @NotNull ScanImportProcessorConfig processor) {
+      File file, @NotNull Class<? extends MZmineModule> module, @NotNull ParameterSet parameters,
+      @NotNull MZmineProject project, @NotNull ScanImportProcessorConfig processor) {
     super(storage, moduleCallDate);
     this.file = file;
     this.module = module;
     this.parameters = parameters;
     this.project = project;
     this.processor = processor;
+    VendorImportParameters vendorParam = parameters.getParameter(
+        AllSpectralDataImportParameters.vendorOptions).getValue();
+    centroid = vendorParam.getValue(VendorImportParameters.applyVendorCentroiding);
   }
 
   @Override
@@ -123,7 +129,7 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
       dataFile = new RawDataFileImpl(file.getName(), file.getAbsolutePath(), storage);
 
       if (totalScans > 0) {
-        readAllScans(p, dataFile);
+        readAllScans(p, dataFile, !centroid);
       }
 
       // close + shutdown handled by try-with-resources -> bridge.close()
@@ -134,7 +140,9 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
         // bridge will be torn down anyway
       }
 
-      if (isCanceled()) return;
+      if (isCanceled()) {
+        return;
+      }
 
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
           getModuleCallDate());
@@ -148,26 +156,29 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
     }
   }
 
-  private void readAllScans(ShimadzuProtocol p, RawDataFileImpl out) throws IOException {
+  private void readAllScans(ShimadzuProtocol p, RawDataFileImpl out, boolean profile)
+      throws IOException {
     // SDK scan numbers are 1-based; the wire mirrors that.
-    p.send(ShimadzuProtocol.scanRangeRequest(1, totalScans, /*profile*/ false));
+    p.send(ShimadzuProtocol.scanRangeRequest(1, totalScans, profile));
     final JsonNode outer = p.readHeader();
     if (!outer.path("ok").asBoolean(false)) {
-      throw new IOException(
-          "scanRange failed: " + outer.path("error").asText("unknown"));
+      throw new IOException("scanRange failed: " + outer.path("error").asText("unknown"));
     }
     final int count = outer.path("count").asInt(0);
     if (count != totalScans) {
       // Defensive — should never happen, but if it does we want to know rather
       // than silently truncate or stall reading blobs.
-      logger.warning("ShimadzuBridge scanRange count (" + count
-          + ") differs from open's scanCount (" + totalScans + ")");
+      logger.warning(
+          "ShimadzuBridge scanRange count (" + count + ") differs from open's scanCount ("
+              + totalScans + ")");
     }
 
     int skippedFailedScans = 0;
 
     for (int i = 0; i < count; i++) {
-      if (isCanceled()) return;
+      if (isCanceled()) {
+        return;
+      }
 
       final JsonNode hdr = p.readHeader();
       loadedScans++;
@@ -179,8 +190,7 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
         // shouldn't kill a 10k-scan file.
         skippedFailedScans++;
         if (skippedFailedScans <= 5) {
-          logger.log(Level.WARNING,
-              "Skipping scan #{0}: {1} ({2})",
+          logger.log(Level.WARNING, "Skipping scan #{0}: {1} ({2})",
               new Object[]{i + 1, hdr.path("error").asText("unknown"),
                   hdr.path("code").asText("?")});
         }
@@ -198,14 +208,15 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
       final float rt = (float) hdr.path("rt").asDouble(0d);
       final PolarityType polarity = parsePolarity(hdr.path("polarity").asText(""));
       final boolean isProfile = hdr.path("profile").asBoolean(false);
-      final MassSpectrumType type = isProfile ? MassSpectrumType.PROFILE
-          : MassSpectrumType.CENTROIDED;
+      final MassSpectrumType type =
+          isProfile ? MassSpectrumType.PROFILE : MassSpectrumType.CENTROIDED;
 
       // The bridge zero-filters PrecursorMzList, so [0] is always a real
       // precursor (or the array is omitted entirely for MS1).
       final JsonNode precursors = hdr.path("precursorMz");
-      final double precursorMz = (msLevel >= 2 && precursors.isArray() && precursors.size() > 0)
-          ? precursors.get(0).asDouble(0d) : 0d;
+      final double precursorMz =
+          (msLevel >= 2 && precursors.isArray() && precursors.size() > 0) ? precursors.get(0)
+                                                                            .asDouble(0d) : 0d;
       final int charge = hdr.path("charge").asInt(0);
 
       final SimpleBuildingScan metadataScan = new SimpleBuildingScan(scanNumber, msLevel, polarity,
@@ -226,8 +237,8 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
       if (msLevel >= 2 && precursorMz > 0) {
         // Bridge always emits collisionEnergy (primitive int on SDK side).
         final float ce = (float) hdr.path("collisionEnergy").asDouble(0d);
-        msMs = new DDAMsMsInfoImpl(precursorMz, charge > 0 ? charge : null, ce, null, null,
-            msLevel, ActivationMethod.UNKNOWN, null);
+        msMs = new DDAMsMsInfoImpl(precursorMz, charge > 0 ? charge : null, ce, null, null, msLevel,
+            ActivationMethod.UNKNOWN, null);
       } else {
         msMs = null;
       }
@@ -245,34 +256,45 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
   }
 
   /**
-   * Build a useful {@code scanDefinition} string for {@link SimpleScan} from
-   * the bridge's per-scan header. mzmine uses scan definitions for sorting and
-   * display; combining segment/event/event-mode gives something descriptive
-   * for multi-segment Shimadzu acquisitions where many scans share the same
-   * retention time across different functions.
+   * Build a useful {@code scanDefinition} string for {@link SimpleScan} from the bridge's per-scan
+   * header. mzmine uses scan definitions for sorting and display; combining
+   * segment/event/event-mode gives something descriptive for multi-segment Shimadzu acquisitions
+   * where many scans share the same retention time across different functions.
    */
   private static String buildScanDefinition(JsonNode hdr) {
     final int seg = hdr.path("segmentNo").asInt(-1);
     final int evt = hdr.path("eventNo").asInt(-1);
     final String mode = hdr.path("eventMode").asText("");
     final StringBuilder sb = new StringBuilder(32);
-    if (seg >= 0) sb.append("seg=").append(seg);
+    if (seg >= 0) {
+      sb.append("seg=").append(seg);
+    }
     if (evt >= 0) {
-      if (sb.length() > 0) sb.append(' ');
+      if (sb.length() > 0) {
+        sb.append(' ');
+      }
       sb.append("evt=").append(evt);
     }
     if (!mode.isEmpty()) {
-      if (sb.length() > 0) sb.append(' ');
+      if (sb.length() > 0) {
+        sb.append(' ');
+      }
       sb.append("mode=").append(mode);
     }
     return sb.toString();
   }
 
   private static PolarityType parsePolarity(String s) {
-    if (s == null || s.isEmpty()) return PolarityType.UNKNOWN;
+    if (s == null || s.isEmpty()) {
+      return PolarityType.UNKNOWN;
+    }
     final String u = s.toUpperCase();
-    if (u.contains("POSITIVE") || u.equals("POS") || u.equals("+")) return PolarityType.POSITIVE;
-    if (u.contains("NEGATIVE") || u.equals("NEG") || u.equals("-")) return PolarityType.NEGATIVE;
+    if (u.contains("POSITIVE") || u.equals("POS") || u.equals("+")) {
+      return PolarityType.POSITIVE;
+    }
+    if (u.contains("NEGATIVE") || u.equals("NEG") || u.equals("-")) {
+      return PolarityType.NEGATIVE;
+    }
     return PolarityType.UNKNOWN;
   }
 
