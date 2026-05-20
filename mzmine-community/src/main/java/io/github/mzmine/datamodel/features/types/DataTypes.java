@@ -116,13 +116,18 @@ public class DataTypes {
       classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
           .forEach(classInfo -> {
             try {
-              if (!classInfo.getSimpleName().endsWith("Type")) {
+              final Class<?> clazz = classInfo.load();
+
+              if (clazz==null || !DataType.class.isAssignableFrom(clazz)) {
                 // avoid initializing so many javafx classes that fail with:
 //                Caused by: java.lang.IllegalStateException: Toolkit not initialized
                 return;
               }
+              if(!clazz.getSimpleName().endsWith("Type")) {
+                logger.warning("DataType does not end with Type: "+clazz.getSimpleName());
+              }
 
-              Object o = classInfo.load().getDeclaredConstructor().newInstance();
+              Object o = clazz.getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
                 var value = map.put(dt.getUniqueID(), dt);
                 if (value != null) {

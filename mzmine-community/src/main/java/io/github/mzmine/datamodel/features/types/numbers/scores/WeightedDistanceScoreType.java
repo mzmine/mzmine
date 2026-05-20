@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * Usually ranges defined by mzTolerance etc. summed for multiple dimensions and multiplied by a
  * factor
  */
-public class WeightedDistanceScore extends ScoreType {
+public class WeightedDistanceScoreType extends ScoreType {
 
   @Override
   public @NotNull String getUniqueID() {
