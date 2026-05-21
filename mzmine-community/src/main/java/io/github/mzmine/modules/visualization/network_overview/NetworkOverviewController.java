@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.network_overview;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
@@ -33,14 +35,22 @@ import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlV
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
+import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkPane;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup.RowAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,12 +89,15 @@ public class NetworkOverviewController {
   private FeatureTableFX internalTable;
 
   /**
-   * all interfaces that listen for changes to selected rows
+   * Row-only interfaces that listen for changes to selected rows. The Annotations / Mirror /
+   * All-MS2 tabs are dispatched separately because they also consume analog-compound-node data.
    */
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
   private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
   private ExternalRowHtmlVisualizerController masstController;
+  private MirrorScanWindowController mirrorScanController;
+  private SpectraStackVisualizerPane allMs2Pane;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -111,7 +124,7 @@ public class NetworkOverviewController {
     linkFeatureTableSelections(internalTable, externalTable);
 
     // all MS2
-    SpectraStackVisualizerPane allMs2Pane = new SpectraStackVisualizerPane();
+    allMs2Pane = new SpectraStackVisualizerPane();
 
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
@@ -119,7 +132,7 @@ public class NetworkOverviewController {
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
-    MirrorScanWindowController mirrorScanController = mirrorScanTab.getController();
+    mirrorScanController = mirrorScanTab.getController();
 
     LipidAnnotationMatchTabOld lipidAnnotationMatchTabOld = new LipidAnnotationMatchTabOld(
         internalTable);
@@ -135,9 +148,11 @@ public class NetworkOverviewController {
     masstController = new ExternalRowHtmlVisualizerController();
     tabMasst.setContent(masstController.buildView());
 
-    // all content that listens to selected feature changes
-    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
-        mirrorScanController, lipidAnnotationMatchTabOld, masstController);
+    // Row-only consumers. The Annotations, Mirror, and All-MS2 tabs are dispatched explicitly in
+    // handleSelectedNodesChanged because they also accept analog-compound data and need a richer
+    // signature than setFeatureRows.
+    featureRowInterfaces = List.of(compoundMatchController, lipidAnnotationMatchTabOld,
+        masstController);
     // only annotation interfaces to control visibility
     annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
         lipidAnnotationMatchTabOld);
@@ -236,12 +251,114 @@ public class NetworkOverviewController {
       return;
     }
 
-    var selectedRows = networkController.getNetworkPane().getRowsFromNodes(change.getList());
+    final List<? extends Node> selectedNodes = change.getList();
+    final FeatureNetworkPane networkPane = networkController.getNetworkPane();
+    // disjoint partitions of the selection: feature-row nodes vs analog-compound nodes
+    final List<FeatureListRow> selectedRows = networkPane.getRowsFromNodes(selectedNodes);
+    final List<AnalogCompoundGroup> selectedAnalogs = networkPane.getAnalogGroupsFromNodes(
+        selectedNodes);
 
+    // 1) Annotations tab: union of row library matches + every annotation in each analog group
+    //    (the user asked for "all unique entries in the group", deduplicated across groups)
+    dispatchAnnotations(selectedRows, selectedAnalogs);
+
+    // 2) Mirror tab: pair-based. Two rows -> row1.MS2 vs row2.MS2 (existing behavior).
+    //    Row + analog -> row.MS2 vs library entry. Two analogs -> two library entries.
+    //    Anything other than 2 items clears.
+    dispatchMirror(selectedNodes, networkPane);
+
+    // 3) All MS2 stack: row MS2 charts + one extra chart per analog node's representative
+    //    library entry, rendered as standalone fragment spectra alongside the rows.
+    final List<SpectralDBAnnotation> analogReps = selectedAnalogs.stream()
+        .map(AnalogCompoundGroup::representative).toList();
+    allMs2Pane.setRowsAndAnalogs(selectedRows, analogReps, false);
+
+    // 4) Other row-only consumers (compound DB, lipid, MASST). They ignore analog nodes.
     for (final FeatureRowInterfaceFx interfaceFx : featureRowInterfaces) {
       interfaceFx.setFeatureRows(selectedRows);
     }
     layoutAnnotations();
+  }
+
+  /**
+   * Annotations tab: feed every unique {@link SpectralDBAnnotation} reachable from the current
+   * selection. For feature-row nodes we use their existing {@code getSpectralLibraryMatches()}; for
+   * analog-compound nodes we use every member annotation in the group (so different collision
+   * energies or precursor formats of the same compound each appear as a card).
+   */
+  private void dispatchAnnotations(final List<FeatureListRow> rows,
+      final List<AnalogCompoundGroup> analogs) {
+    // LinkedHashSet preserves insertion order (rows first, then analog members) and dedupes via
+    // SpectralDBAnnotation.equals so identical entries don't render twice
+    final LinkedHashSet<SpectralDBAnnotation> unique = new LinkedHashSet<>();
+    for (final FeatureListRow row : rows) {
+      unique.addAll(row.getSpectralLibraryMatches());
+    }
+    for (final AnalogCompoundGroup group : analogs) {
+      for (final RowAnnotation member : group.members()) {
+        unique.add(member.annotation());
+      }
+    }
+    spectralMatchesController.setMatches(new ArrayList<>(unique));
+    spectralMatchesController.setTitle(buildAnnotationsTitle(rows, analogs));
+  }
+
+  private static @NotNull String buildAnnotationsTitle(final List<FeatureListRow> rows,
+      final List<AnalogCompoundGroup> analogs) {
+    final List<String> parts = new ArrayList<>();
+    rows.stream().map(FeatureUtils::rowToString).forEach(parts::add);
+    for (final AnalogCompoundGroup group : analogs) {
+      final String key = group.compoundKey();
+      final String name = group.representative().getCompoundName();
+      parts.add("Library: " + (key != null ? key : (name != null ? name : "analog")));
+    }
+    return String.join("; ", parts);
+  }
+
+  /**
+   * Mirror tab: build a pair-item list in selection order (each row contributes its most-intense
+   * fragment scan, each analog node contributes its representative library entry), then feed the
+   * first two into the existing pair-mode setScans. Fewer than 2 items -> clear.
+   */
+  private void dispatchMirror(final List<? extends Node> selectedNodes,
+      final FeatureNetworkPane networkPane) {
+    final List<MirrorPairItem> pairItems = new ArrayList<>();
+    for (final Node node : selectedNodes) {
+      final FeatureListRow row = networkPane.getRowFromNode(node);
+      if (row != null) {
+        final Scan scan = row.getMostIntenseFragmentScan();
+        if (scan != null) {
+          // row MS2 path mirrors what setScans(Scan, Scan) does internally
+          pairItems.add(
+              new MirrorPairItem(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan, true),
+                  "Row " + row.getID()));
+        }
+        continue;
+      }
+      final AnalogCompoundGroup group = networkPane.getAnalogGroupFromNode(node);
+      if (group != null) {
+        final SpectralLibraryEntry entry = group.representative().getEntry();
+        final String compoundName = group.representative().getCompoundName();
+        pairItems.add(new MirrorPairItem(entry.getPrecursorMZ(), entry.getDataPoints(),
+            "Library: " + (compoundName != null ? compoundName : "analog")));
+      }
+    }
+    if (pairItems.size() < 2) {
+      mirrorScanController.clearScans();
+      return;
+    }
+    final MirrorPairItem top = pairItems.get(0);
+    final MirrorPairItem bot = pairItems.get(1);
+    mirrorScanController.setScans(top.precursorMz(), top.dataPoints(), bot.precursorMz(),
+        bot.dataPoints(), "", ""); // top.label(), bot.label());
+  }
+
+  /**
+   * A single side of the mirror plot, abstracted over rows and library entries so the dispatcher
+   * can feed mixed pairs through the existing raw-data {@code setScans} overload.
+   */
+  private record MirrorPairItem(Double precursorMz, DataPoint[] dataPoints, String label) {
+
   }
 
   public void close() {

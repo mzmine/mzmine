@@ -77,6 +77,15 @@ import org.jetbrains.annotations.NotNull;
 public class FeatureNetworkGenerator {
 
   private static final Logger logger = Logger.getLogger(FeatureNetworkGenerator.class.getName());
+
+  /**
+   * Internal node attribute key holding the {@link AnalogCompoundGroup} backing an analog compound
+   * node. Not exposed through {@link NodeAtt} because it's never user-displayed — it's a hidden
+   * lookup so the dispatcher can recover the group + member rows + library entries when the user
+   * clicks the node. Read it via {@link FeatureNetworkPane#getAnalogGroupFromNode(Node)}.
+   */
+  public static final String ANALOG_GROUP_ATTR = "analog_compound_group";
+
   private final NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
   private final NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
   private final NumberFormat scoreForm = MZmineCore.getConfiguration().getScoreFormat();
@@ -603,6 +612,10 @@ public class FeatureNetworkGenerator {
     node = graph.addNode(nodeId);
     node.setAttribute(NodeAtt.ID.toString(), nodeId);
     node.setAttribute(NodeAtt.TYPE.toString(), NodeType.LIB_ANALOG_COMPOUND);
+    // store the group itself so the dispatcher can recover the library entries + contributing rows
+    // on click without re-grouping from scratch
+    node.setAttribute(ANALOG_GROUP_ATTR, group);
+    node.setAttribute(NodeAtt.ANNOTATION.toString(), rep.toString());
 
     final String label = group.compoundKey() != null ? group.compoundKey()
         : (rep.getCompoundName() != null ? rep.getCompoundName() : nodeId);

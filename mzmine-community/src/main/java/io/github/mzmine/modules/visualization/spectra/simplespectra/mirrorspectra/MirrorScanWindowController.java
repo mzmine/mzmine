@@ -258,8 +258,10 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     String precursorString =
         !hasPrecursorMz ? MessageFormat.format(": m/z {0}↔{1}; top↔bottom", labelA, labelB)
-            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
-                mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
+            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom; Δm/z={2}",
+                mzFormat.format(precursorMZA) + " " + labelA,
+                mzFormat.format(precursorMZB) + " " + labelB,
+                mzFormat.format(precursorMZB - precursorMZA));
 
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);
@@ -428,6 +430,11 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     tableNLMIrror.getItems().clear();
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);
+    lbTitleCos.setText("");
+    lbMirrorModifiedStats.setText("");
+    lbNeutralLossStats.setText("");
+    lbMirrorStats.setText("");
+    lbTitleNL.setText("");
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
