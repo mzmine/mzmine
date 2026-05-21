@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
 import com.google.common.collect.Range;
-import com.google.protobuf.DoubleValue;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.PolarityType;
@@ -343,8 +342,8 @@ public class Wiff2DataAccess implements AutoCloseable {
     final double isolationTarget = isolationWindow.getIsolationWindowTarget();
 
     if (experiment.hasElectronKe()) {
-      DoubleValue electronEnergy = experiment.getElectronKe();
-      logger.info("has election ke " + electronEnergy.toString());
+      // this has never been the case until now, so we can ignore it for now
+//      DoubleValue electronEnergy = experiment.getElectronKe();
     }
 
     if (Double.compare(isolationTarget, 0) == 0) {
