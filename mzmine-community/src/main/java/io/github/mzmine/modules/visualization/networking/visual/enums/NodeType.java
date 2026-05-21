@@ -44,4 +44,15 @@ public enum NodeType implements ElementType {
       case NEUTRAL_LOSS_CENTER -> Optional.empty();
     };
   }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case NEUTRAL_M -> "Neutral Molecule";
+      case ION_FEATURE, SINGLE_FEATURE -> "Feature";
+      case NEUTRAL_LOSS_CENTER -> "Neutral Loss Center";
+      case LIB_ANALOG_COMPOUND -> "Analog";
+    };
+  }
 }

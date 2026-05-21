@@ -50,6 +50,100 @@ public final class AnalogCompoundGrouper {
   }
 
   /**
+   * Group analog annotations into compound clusters, then attach direct (non-analog) matches that
+   * share at least one {@link CompoundNameIdentifier} value with an existing cluster.
+   *
+   * <p>Direct matches NEVER form new clusters — a row whose only library hit is a direct match
+   * gets attached to a cluster created by analog matches, or is dropped. This keeps the network
+   * focused on analog discoveries while still surfacing rows that hit the same compound directly.
+   * Direct matches that could attach to multiple clusters are assigned to the first match in input
+   * order.
+   *
+   * @param analogMatches every (row, annotation) pair from a feature list's analog matches
+   * @param directMatches every (row, annotation) pair from regular (non-analog) library matches
+   * @return one {@link AnalogCompoundGroup} per cluster, with direct matches folded in
+   */
+  public static @NotNull List<AnalogCompoundGroup> groupWithDirectMatches(
+      @NotNull final List<RowAnnotation> analogMatches,
+      @NotNull final List<RowAnnotation> directMatches) {
+    final List<AnalogCompoundGroup> initialGroups = group(analogMatches);
+    if (initialGroups.isEmpty() || directMatches.isEmpty()) {
+      return initialGroups;
+    }
+
+    // index every identifier value carried by any member of any group -> group index, so a direct
+    // match can find its compound cluster by checking any of its own identifier values
+    final Map<IdentifierValue, Integer> identifierToGroup = new HashMap<>();
+    for (int g = 0; g < initialGroups.size(); g++) {
+      for (final RowAnnotation member : initialGroups.get(g).members()) {
+        indexIdentifiers(member.annotation(), g, identifierToGroup);
+      }
+    }
+
+    // build mutable member lists so we can extend them without rebuilding the entire group
+    final List<List<RowAnnotation>> extendedMembers = new ArrayList<>(initialGroups.size());
+    for (final AnalogCompoundGroup g : initialGroups) {
+      extendedMembers.add(new ArrayList<>(g.members()));
+    }
+
+    for (final RowAnnotation direct : directMatches) {
+      final Integer matchedGroup = findMatchingGroup(direct.annotation(), identifierToGroup);
+      if (matchedGroup != null) {
+        extendedMembers.get(matchedGroup).add(direct);
+      }
+    }
+
+    final List<AnalogCompoundGroup> result = new ArrayList<>(initialGroups.size());
+    for (int i = 0; i < initialGroups.size(); i++) {
+      final AnalogCompoundGroup original = initialGroups.get(i);
+      // representative and compoundKey are picked from the analog-only members so a direct hit
+      // never overrides the analog-discovery identity of the cluster
+      result.add(new AnalogCompoundGroup(extendedMembers.get(i), original.representative(),
+          original.compoundKey()));
+    }
+    return result;
+  }
+
+  // record every identifier value of the annotation against the given group index; ties go to the
+  // first group seen, matching the deterministic "first wins" assignment for direct matches
+  private static void indexIdentifiers(final SpectralDBAnnotation annotation, final int groupIndex,
+      final Map<IdentifierValue, Integer> index) {
+    for (final CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
+      final String normalized = normalize(annotation.getNameIdentifier(id));
+      if (normalized == null) {
+        continue;
+      }
+      index.putIfAbsent(new IdentifierValue(id, normalized), groupIndex);
+      if (id == CompoundNameIdentifier.INCHI_KEY && normalized.length() >= 14) {
+        index.putIfAbsent(new IdentifierValue(id, normalized.substring(0, 14) + "*"), groupIndex);
+      }
+    }
+  }
+
+  // first identifier (in CompoundNameIdentifier enum order) that hits an existing group's index
+  private static Integer findMatchingGroup(final SpectralDBAnnotation annotation,
+      final Map<IdentifierValue, Integer> index) {
+    for (final CompoundNameIdentifier id : CompoundNameIdentifier.values()) {
+      final String normalized = normalize(annotation.getNameIdentifier(id));
+      if (normalized == null) {
+        continue;
+      }
+      final Integer hit = index.get(new IdentifierValue(id, normalized));
+      if (hit != null) {
+        return hit;
+      }
+      if (id == CompoundNameIdentifier.INCHI_KEY && normalized.length() >= 14) {
+        final Integer prefixHit = index.get(
+            new IdentifierValue(id, normalized.substring(0, 14) + "*"));
+        if (prefixHit != null) {
+          return prefixHit;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Group annotations into compound clusters.
    *
    * @param all every (row, annotation) pair from a feature list's analog matches

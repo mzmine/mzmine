@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 graph {
   fill-color: white;
 }
@@ -149,7 +148,7 @@ node.NEUTRAL {
 node.ANALOG {
   /* inherit the base node text-visibility threshold (3) so analog labels show at the same zoom as feature labels */
   text-visibility-mode: under-zoom;
-  text-visibility: 0.99;
+  text-visibility: 0.5;
   fill-color: salmon;
   size: 15px;
 }

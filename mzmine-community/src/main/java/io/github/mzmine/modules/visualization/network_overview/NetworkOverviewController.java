@@ -78,6 +78,7 @@ public class NetworkOverviewController {
   public ToggleSwitch cbBindToExternalTable;
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
+  public Tab tabAnalogs;
   public Tab tabSimilarity;
   public Tab tabMasst;
   public Tab tabAllMs2;
@@ -95,6 +96,9 @@ public class NetworkOverviewController {
   private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
   private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
+  // Separate controller for the new Analogs tab. Same UI as the Annotations panel but driven from
+  // the row's getAnalogSpectralLibraryMatches() instead of getSpectralLibraryMatches().
+  private SpectraIdentificationResultsWindowFX analogMatchesController;
   private ExternalRowHtmlVisualizerController masstController;
   private MirrorScanWindowController mirrorScanController;
   private SpectraStackVisualizerPane allMs2Pane;
@@ -126,8 +130,14 @@ public class NetworkOverviewController {
     // all MS2
     allMs2Pane = new SpectraStackVisualizerPane();
 
-    // create annotations tab
+    // create annotations tab. Pass null so the panel does NOT register its own row-selection
+    // listener on the internal table - the dispatcher in handleSelectedNodesChanged is the single
+    // source of data for both panels. Passing internalTable here would let the panel's built-in
+    // setFeatureRows (which always reads row.getSpectralLibraryMatches()) overwrite the analog
+    // matches we set on the analog tab, producing the "No chart found" symptom on row clicks.
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
+    // Analogs tab uses the same panel implementation but is fed analog matches only
+    analogMatchesController = new SpectraIdentificationResultsWindowFX(null);
     CompoundDatabaseMatchTab compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
 
     // create mirror scan tab
@@ -142,6 +152,9 @@ public class NetworkOverviewController {
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(gridAnnotations);
+    // Pull the analog controller's UI out of its (unused) Tab wrapper and attach to our tab. The
+    // controller's setMatches/setTitle methods continue to work the same way regardless.
+    tabAnalogs.setContent(analogMatchesController.getContent());
     tabAllMs2.setContent(allMs2Pane);
 
     // MASST
@@ -258,9 +271,9 @@ public class NetworkOverviewController {
     final List<AnalogCompoundGroup> selectedAnalogs = networkPane.getAnalogGroupsFromNodes(
         selectedNodes);
 
-    // 1) Annotations tab: union of row library matches + every annotation in each analog group
-    //    (the user asked for "all unique entries in the group", deduplicated across groups)
-    dispatchAnnotations(selectedRows, selectedAnalogs);
+    // 1) Annotations tab: regular library matches only. Analogs tab: analog matches only.
+    //    Split by SpectralDBAnnotation.isAnalogMatch() so each tab shows the matching variant.
+    dispatchAnnotationsAndAnalogs(selectedRows, selectedAnalogs);
 
     // 2) Mirror tab: pair-based. Two rows -> row1.MS2 vs row2.MS2 (existing behavior).
     //    Row + analog -> row.MS2 vs library entry. Two analogs -> two library entries.
@@ -281,26 +294,42 @@ public class NetworkOverviewController {
   }
 
   /**
-   * Annotations tab: feed every unique {@link SpectralDBAnnotation} reachable from the current
-   * selection. For feature-row nodes we use their existing {@code getSpectralLibraryMatches()}; for
-   * analog-compound nodes we use every member annotation in the group (so different collision
-   * energies or precursor formats of the same compound each appear as a card).
+   * Annotations tab + Analogs tab. Both consume {@link SpectralDBAnnotation}s but differ by
+   * {@link SpectralDBAnnotation#isAnalogMatch()}:
+   * <ul>
+   *   <li>Annotations: row's {@code getSpectralLibraryMatches()} + non-analog members of any
+   *       selected analog-compound group (cross-type dedup means analog groups may carry direct
+   *       matches that share the same compound).</li>
+   *   <li>Analogs: row's {@code getAnalogSpectralLibraryMatches()} + analog members of any selected
+   *       analog-compound group.</li>
+   * </ul>
+   * LinkedHashSet preserves insertion order (rows first, then analog members) and dedupes via
+   * SpectralDBAnnotation.equals so identical entries don't render twice.
    */
-  private void dispatchAnnotations(final List<FeatureListRow> rows,
+  private void dispatchAnnotationsAndAnalogs(final List<FeatureListRow> rows,
       final List<AnalogCompoundGroup> analogs) {
-    // LinkedHashSet preserves insertion order (rows first, then analog members) and dedupes via
-    // SpectralDBAnnotation.equals so identical entries don't render twice
-    final LinkedHashSet<SpectralDBAnnotation> unique = new LinkedHashSet<>();
+    final LinkedHashSet<SpectralDBAnnotation> annotationsMatches = new LinkedHashSet<>();
+    final LinkedHashSet<SpectralDBAnnotation> analogsMatches = new LinkedHashSet<>();
+
     for (final FeatureListRow row : rows) {
-      unique.addAll(row.getSpectralLibraryMatches());
+      annotationsMatches.addAll(row.getSpectralLibraryMatches());
+      analogsMatches.addAll(row.getAnalogSpectralLibraryMatches());
     }
     for (final AnalogCompoundGroup group : analogs) {
       for (final RowAnnotation member : group.members()) {
-        unique.add(member.annotation());
+        if (member.annotation().isAnalogMatch()) {
+          analogsMatches.add(member.annotation());
+        } else {
+          annotationsMatches.add(member.annotation());
+        }
       }
     }
-    spectralMatchesController.setMatches(new ArrayList<>(unique));
-    spectralMatchesController.setTitle(buildAnnotationsTitle(rows, analogs));
+
+    final String title = buildAnnotationsTitle(rows, analogs);
+    spectralMatchesController.setMatches(new ArrayList<>(annotationsMatches));
+    spectralMatchesController.setTitle(title);
+    analogMatchesController.setMatches(new ArrayList<>(analogsMatches));
+    analogMatchesController.setTitle(title);
   }
 
   private static @NotNull String buildAnnotationsTitle(final List<FeatureListRow> rows,

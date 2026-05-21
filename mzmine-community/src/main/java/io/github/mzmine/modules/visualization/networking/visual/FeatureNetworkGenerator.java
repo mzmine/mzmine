@@ -68,6 +68,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
@@ -95,6 +97,8 @@ public class FeatureNetworkGenerator {
   private MultiGraph graph;
   private Node neutralNode;
   private boolean ms1FeatureShapeEdges;
+  private final ObservableSet<NodeType> nodeTypes = FXCollections.observableSet(new HashSet<>());
+  private final ObservableSet<EdgeType> edgeTypes = FXCollections.observableSet(new HashSet<>());
 
 
   public MultiGraph createNewGraph(FeatureList flist, boolean useIonIdentity,
@@ -479,6 +483,7 @@ public class FeatureNetworkGenerator {
       neutralNode.setAttribute("ui.class", type.getUiClass().orElse(""));
       neutralNode.setAttribute(NodeAtt.TYPE.toString(), type);
       neutralNode.setAttribute(NodeAtt.ID.toString(), "NEUTRAL_LOSS_NODE");
+      nodeTypes.add(type);
     }
     return neutralNode;
   }
@@ -494,6 +499,7 @@ public class FeatureNetworkGenerator {
     if (uiClass != null) {
       node.setAttribute("ui.class", uiClass);
     }
+    nodeTypes.add(type);
     return node;
   }
 
@@ -536,6 +542,7 @@ public class FeatureNetworkGenerator {
         node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
         node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
             scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
+//        node.setAttribute(NodeAtt.ANNOTATION.toString(), bestMatch.toString());
       }
 
       // add best GNPS match to node
@@ -565,6 +572,7 @@ public class FeatureNetworkGenerator {
       }
     }
 
+    nodeTypes.add(NodeType.NEUTRAL_M);
     return node;
   }
 
@@ -576,18 +584,31 @@ public class FeatureNetworkGenerator {
    * or with neutral-molecule IDs ("Net*").
    */
   private void addAnalogLibraryCompoundNodes(final List<FeatureListRow> rows) {
-    // pool every (row, analog annotation) pair
-    final List<RowAnnotation> pool = new ArrayList<>();
+    // pool every (row, analog annotation) pair - analog matches drive cluster creation
+    final List<RowAnnotation> analogPool = new ArrayList<>();
     for (final FeatureListRow row : rows) {
       for (final SpectralDBAnnotation annotation : row.getAnalogSpectralLibraryMatches()) {
-        pool.add(new RowAnnotation(row, annotation));
+        analogPool.add(new RowAnnotation(row, annotation));
       }
     }
-    if (pool.isEmpty()) {
+    if (analogPool.isEmpty()) {
       return;
     }
+    nodeTypes.add(NodeType.LIB_ANALOG_COMPOUND);
 
-    final List<AnalogCompoundGroup> groups = AnalogCompoundGrouper.group(pool);
+    // Also pool every direct (non-analog) library match. The grouper attaches these to existing
+    // analog clusters when they share a compound identifier, but never creates new clusters from
+    // direct matches alone — so we keep the network focused on the analog discoveries while still
+    // surfacing rows that hit the same compound directly.
+    final List<RowAnnotation> directPool = new ArrayList<>();
+    for (final FeatureListRow row : rows) {
+      for (final SpectralDBAnnotation annotation : row.getSpectralLibraryMatches()) {
+        directPool.add(new RowAnnotation(row, annotation));
+      }
+    }
+
+    final List<AnalogCompoundGroup> groups = AnalogCompoundGrouper.groupWithDirectMatches(
+        analogPool, directPool);
     for (int gIdx = 0; gIdx < groups.size(); gIdx++) {
       final AnalogCompoundGroup group = groups.get(gIdx);
       final String nodeId = "LIB_" + gIdx;
@@ -615,7 +636,10 @@ public class FeatureNetworkGenerator {
     // store the group itself so the dispatcher can recover the library entries + contributing rows
     // on click without re-grouping from scratch
     node.setAttribute(ANALOG_GROUP_ATTR, group);
-    node.setAttribute(NodeAtt.ANNOTATION.toString(), rep.toString());
+    // for analog nodes, don't show the "ANALOG: " prefix in the label
+    node.setAttribute(NodeAtt.ANNOTATION.toString(), rep.toString().replaceAll("ANALOG: ", ""));
+    node.setAttribute(NodeAtt.ANNOTATION_WITH_ANALOGS.toString(),
+        rep.toString().replaceAll("ANALOG: ", ""));
 
     final String label = group.compoundKey() != null ? group.compoundKey()
         : (rep.getCompoundName() != null ? rep.getCompoundName() : nodeId);
@@ -653,6 +677,7 @@ public class FeatureNetworkGenerator {
         scoreForm.format(score) + " (" + edgeType.name() + ")", false);
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
     setEdgeWeightQuadraticScore(edge, score);
+    edgeTypes.add(edgeType);
   }
 
   // Pick the analog edge variant based on the annotation's stored score type. ML scores are tagged
@@ -715,6 +740,7 @@ public class FeatureNetworkGenerator {
     if (type == EdgeType.ION_IDENTITY) {
       setEdgeWeight(e, 0.25);
     }
+    edgeTypes.add(type);
     return e;
   }
 
@@ -732,6 +758,7 @@ public class FeatureNetworkGenerator {
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     e.setAttribute(EdgeAtt.TYPE_STRING.toString(), type.toString());
+    edgeTypes.add(type);
     return e;
   }
 
@@ -750,5 +777,13 @@ public class FeatureNetworkGenerator {
       e.setAttribute("ui.class", uiClass);
     }
     return e;
+  }
+
+  public ObservableSet<NodeType> getNodeTypes() {
+    return nodeTypes;
+  }
+
+  public ObservableSet<EdgeType> getEdgeTypes() {
+    return edgeTypes;
   }
 }
