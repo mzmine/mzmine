@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
@@ -81,7 +80,6 @@ import io.github.mzmine.modules.io.import_rawdata_wiff2.api.WavelengthSpectrum;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.date.LocalDateTimeParser;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -101,7 +99,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -161,74 +158,6 @@ public class Wiff2DataAccess implements AutoCloseable {
     }
     channel = tempChannel;
     dataProvider = DataProviderGrpc.newBlockingStub(channel);
-  }
-
-  static void main() throws Exception {
-    try (Wiff2DataAccess access = new Wiff2DataAccess(new File(
-        // zt scan
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\ZenoTof 8600\\Adriano_confidential\\raw\\038_ZTScan_Zenoon_400msec_150-300mz_30msecMS1_498Da-S_5Da_AT10ms_CE30_2.wiff2"),
-        // DDA
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\ZenoTOF\\RawData\\3_Feces_DDA\\Pos\\20230406_blank_POS_1.wiff2"),
-        // swath
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\ZenoTOF\\RawData\\4_Feces_SWATH-DIA\\Pos\\20230406_feces_SWATH_1-2_POS.wiff2"),
-        // mrm
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\QTRAP 7500\\240207_DBS_Berlin_Vergleichsproben\\Messung3.wiff2"),
-        // DAD
-        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\SCIEX\\DAD\\Vet  Panel_sMRM_30Sep15.wiff2"),
-        true, ScanImportProcessorConfig.createDefault())) {
-
-      List<Sample> samples = access.getSamples();
-      MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
-
-      for (Sample sample : samples) {
-//        logger.info(sample.getId() + ":");
-        final RawDataFileImpl rawDataFile = new RawDataFileImpl(sample.getSampleName(),
-            access.file.getAbsolutePath(), storage);
-
-        final List<Scan> scans = new ArrayList<>();
-        final String startTimestamp = sample.getStartTimestamp();
-        rawDataFile.setStartTimeStamp(LocalDateTimeParser.parseAnyFirstDate(startTimestamp));
-
-        final List<Experiment> experiments = access.getExperiments(sample);
-
-        /*Instant start = Instant.now();
-        for (Experiment experiment : experiments) {
-          final Iterator<Spectrum> spectra = access.getSpectrumIterator(sample, experiment);
-
-          while (spectra.hasNext()) {
-            final Spectrum spectrum = spectra.next();
-            final Scan scan = access.spectrumToMzmineScan(rawDataFile, sample, experiment,
-                spectrum);
-            scans.add(scan);
-          }
-
-          final Duration elapsed = Duration.between(start, Instant.now());
-          logger.info(
-              "Loaded experiment %s in %d ms".formatted(experiment.getId(), elapsed.toMillis()));
-        }
-        final Duration elapsed = Duration.between(start, Instant.now());
-        logger.info("Loaded %d scans in %d ms".formatted(scans.size(), elapsed.toMillis()));
-
-        scans.sort(Scan::compareTo);*/
-
-        access.loadAndAddMrms(sample, rawDataFile, experiments);
-
-        List<OtherDataFile> channelTraces = access.getAnalogTracesFromSpectrumDetectors(sample,
-            experiments, rawDataFile, storage);
-        rawDataFile.addOtherDataFiles(channelTraces);
-
-        // chromatograms
-        final List<@NotNull OtherDataFile> otherDataFiles = access.getAnalogTraces(sample,
-            rawDataFile);
-        rawDataFile.addOtherDataFiles(otherDataFiles);
-      }
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      ClearcoreServer.terminateSeverIfRunning();
-      return;
-    }
-
-    ClearcoreServer.terminateSeverIfRunning();
   }
 
   /**

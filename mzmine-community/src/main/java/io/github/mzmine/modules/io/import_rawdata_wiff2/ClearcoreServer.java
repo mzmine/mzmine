@@ -161,9 +161,13 @@ public class ClearcoreServer {
     }
 
     try (var _ = startLock.lockWrite()) {
-      if (server != null) {
+      if (server != null && server.isAlive()) {
+        return;
+      }
+      if (server != null && !server.isAlive()) {
         server.terminateClearcoreInstance();
       }
+
       if (Platform.isWindows() && !checkDependenciesWindows()) {
         throw new RuntimeException(
             "SCIEX Clearcore on Windows requires .NET Framework 4.7.2 or later and Visual Studio C++ Redistributable.");
