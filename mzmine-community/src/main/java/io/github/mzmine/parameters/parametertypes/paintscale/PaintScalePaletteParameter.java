@@ -64,6 +64,9 @@ public class PaintScalePaletteParameter implements
     palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
     palettes.add(SimpleColorPalette.GREEN_YELLOW);
+    palettes.add(SimpleColorPalette.BLUE_ORANGE_WHITE);
+    palettes.add(SimpleColorPalette.SEQUENTIAL_BLUE_YELLOW_ORANGE);
+    palettes.add(SimpleColorPalette.DIVERGING_BLUE_GRAY_VERMILLION);
     value = SimpleColorPalette.BLUE_YELLOW;
   }
 

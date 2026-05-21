@@ -5,8 +5,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +41,10 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     if (compound == null) {
       model.getAvailableRawDataFiles().clear();
       model.getAdductRows().clear();
+      model.getLegendEntries().clear();
+      // Clear selectedAdductRow (the master selection); the controller's derived listener will
+      // mirror that into selectedMs2Row.
+      model.setSelectedAdductRow(null);
       model.setSelectedMs2Row(null);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
@@ -56,6 +62,17 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     }
     model.getAvailableRawDataFiles().setAll(union);
 
+    // Legend entries mirror the per-row colors used by the EIC / mobilogram / MS1 tasks. Use a
+    // fresh palette snapshot so the assignment matches the tasks (each task also starts from a
+    // reset clone).
+    final ColorAssignment legendColors = CompoundDashboardColoring.assign(compound,
+        snapshotPalette());
+    final List<CompoundDashboardLegendEntry> entries = new ArrayList<>(allRows.size());
+    for (final FeatureListRow row : allRows) {
+      entries.add(new CompoundDashboardLegendEntry(row, legendColors.colorFor(row)));
+    }
+    model.getLegendEntries().setAll(entries);
+
     // decision: always reevaluate the best raw data file for the new compound so the EIC combo
     // tracks the row that has the strongest coverage for this compound.
     model.setCurrentRawDataFile(FeatureListUtils.pickRawDataFileWithMostRowCoverage(allRows));
@@ -65,15 +82,19 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     final List<FeatureListRow> ms2Rows = compound.getMemberRows().stream()
         .filter(row -> row.getMostIntenseFragmentScan() != null).toList();
     model.getAdductRows().setAll(ms2Rows);
-    if (model.getSelectedMs2Row() == null
-        || !model.getAdductRows().contains(model.getSelectedMs2Row())) {
-      final FeatureListRow preferred = compound.getPreferredRow();
-      if (preferred != null && ms2Rows.contains(preferred)) {
-        model.setSelectedMs2Row(preferred);
-      } else {
-        // null when no member has an MS2 — the controller's selectedAdductRow subscription falls
-        // back to the preferred row so EIC/MS1 highlight still has a target.
-        model.setSelectedMs2Row(ms2Rows.isEmpty() ? null : ms2Rows.getFirst());
+    // selectedAdductRow is the master selection (any member row); selectedMs2Row is derived from
+    // it by the controller. Always reset to the compound's preferred row on a compound change so
+    // the dashboard has a sensible default focus.
+    final FeatureListRow preferred = compound.getPreferredRow();
+    if (model.getSelectedAdductRow() != preferred) {
+      model.setSelectedAdductRow(preferred);
+    } else {
+      // Same row instance as before -> no property change would fire, but adductRows may have
+      // changed so selectedMs2Row could be stale. Trigger the derivation explicitly.
+      final FeatureListRow desiredMs2 =
+          (preferred != null && ms2Rows.contains(preferred)) ? preferred : null;
+      if (model.getSelectedMs2Row() != desiredMs2) {
+        model.setSelectedMs2Row(desiredMs2);
       }
     }
 
