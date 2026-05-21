@@ -77,8 +77,29 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       new Color[]{Color.BLACK, Color.web("#1A3399"), Color.web("#D55E00"), Color.WHITE},
       "Blue-Orange-White");
 
+  public static final SimpleColorPalette SEQUENTIAL_BLUE_YELLOW_ORANGE = new SimpleColorPalette(
+      new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+          new Color(0.902f, 0.624f, 0f, 1f), // orange
+          new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
+          new Color(0.749f, 0.1725f, 0.5176f, 1f)}, "mzmine (sequential)");
+
+  public static final SimpleColorPalette DIVERGING_BLUE_GRAY_VERMILLION = new SimpleColorPalette(
+      new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue (-1)
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue (-1)
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.7f, 0.7f, 0.7f, 1f), // light neutral around 0
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+//              new Color(0.902f, 0.624f, 0f, 1f), // orange not added because gray should be middle of the scale
+          new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (+1)
+          new Color(0.749f, 0.1725f, 0.5176f, 1f)}, "mzmine (two-sided)");
+
+
   public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
-      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE);
+      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE, SEQUENTIAL_BLUE_YELLOW_ORANGE,
+      DIVERGING_BLUE_GRAY_VERMILLION);
   protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
       ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
       ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
