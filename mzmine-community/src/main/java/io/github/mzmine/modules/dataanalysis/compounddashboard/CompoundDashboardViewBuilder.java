@@ -11,15 +11,20 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
@@ -27,12 +32,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.ValueAxis;
 
 /**
@@ -81,7 +89,14 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     // more width if mobilogram
     mainVerticalChartsSplit.setDividerPositions(hasMobilogram? 0.34 : 0.25);
 
-    final BorderPane topArea = new BorderPane(mainVerticalChartsSplit);
+    // Legend FlowPane sits directly under the charts SplitPane and lists every member row of the
+    // currently selected compound. Labels mirror the plot colors and are clickable to focus a row.
+    final FlowPane legendPane = buildLegendPane();
+    VBox.setVgrow(mainVerticalChartsSplit, Priority.ALWAYS);
+    final VBox chartsWithLegend = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true,
+        mainVerticalChartsSplit, legendPane);
+
+    final BorderPane topArea = new BorderPane(chartsWithLegend);
     final Region quality = qualityCtrl.buildView();
     topArea.setRight(quality);
 
@@ -105,6 +120,9 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final ValueAxis domainAxis = eicPlot.getXYPlot().getDomainAxis();
     domainAxis.setLowerMargin(0.15);
     domainAxis.setUpperMargin(0.15);
+    eicPlot.setTitle("Chromatographic shapes");
+    // Legend is rendered by the FlowPane under the charts instead of on every plot.
+    eicPlot.setLegendItemsVisible(false);
 
     final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, prev, rawCombo, next);
 
@@ -118,7 +136,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     mobDomainAxis.setLowerMargin(0.15);
     mobDomainAxis.setUpperMargin(0.15);
     final Region mobilogramView = mobilogramPlot.buildView();
-    // only use legend from eic plot
+    mobilogramPlot.setTitle("Mobilograms");
     mobilogramPlot.setLegendItemsVisible(false);
 
     final SplitPane chartsSplit = new SplitPane(eicView);
@@ -145,6 +163,8 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   private @NotNull Region buildSpectraColumn() {
     // MS1 (no extra toolbar; gray background + per-row sticks)
     final Region ms1View = ms1Chart.buildView();
+    // MS2 keeps its legend; MS1 mirrors the dashboard legend FlowPane below the charts.
+    ms1Chart.setLegendItemsVisible(false);
     // MS2 with adduct selector above. The ComboBox drives `selectedMs2Row` (can be null when no
     // member row has an MS2 scan); `selectedAdductRow` is derived from it and always non-null when
     // a compound is selected, so the EIC/MS1 highlight has a stable target.
@@ -174,6 +194,90 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     sp.setOrientation(Orientation.VERTICAL);
     sp.setDividerPositions(0.45);
     return sp;
+  }
+
+  /**
+   * Builds the FlowPane that lists every member row of the currently selected compound, using the
+   * same per-row colors as the EIC / mobilogram / MS1 plots. Ion-identified rows come first
+   * (formatted as {@code [M+H]+ (300.0000)}), followed by an italic {@code "Unknown m/z:"} marker
+   * and the unidentified rows (m/z only). The label of the currently selected adduct row is shown
+   * bold. Each label is clickable: it sets the selected MS2 row when the row carries an MS2 scan
+   * (so the adduct ComboBox stays in sync), otherwise it sets the selected adduct row directly.
+   */
+  private @NotNull FlowPane buildLegendPane() {
+    final FlowPane pane = FxLayout.newFlowPane();
+    // Horizontal breathing room so the labels don't touch the left/right edges of the dashboard.
+    pane.setPadding(new Insets(0, FxLayout.DEFAULT_SPACE, 0, FxLayout.DEFAULT_SPACE));
+    final Runnable rebuild = () -> rebuildLegendPane(pane);
+    model.getLegendEntries()
+        .addListener((ListChangeListener<CompoundDashboardLegendEntry>) _ -> rebuild.run());
+    // Rebuild on selection change to swap the bold marker; cheap because there are few entries.
+    model.selectedAdductRowProperty().subscribe(_ -> rebuild.run());
+    return pane;
+  }
+
+  private void rebuildLegendPane(@NotNull final FlowPane pane) {
+    pane.getChildren().clear();
+    final FeatureListRow selected = model.getSelectedAdductRow();
+    final List<CompoundDashboardLegendEntry> ions = new ArrayList<>();
+    final List<CompoundDashboardLegendEntry> unknowns = new ArrayList<>();
+    for (final CompoundDashboardLegendEntry entry : model.getLegendEntries()) {
+      if (entry.row().getBestIonIdentity() != null) {
+        ions.add(entry);
+      } else {
+        unknowns.add(entry);
+      }
+    }
+    for (final CompoundDashboardLegendEntry entry : ions) {
+      pane.getChildren().add(buildIonLegendLabel(entry, selected));
+    }
+    if (!unknowns.isEmpty()) {
+      pane.getChildren().add(FxLabels.newItalicLabel("Unknown m/z:"));
+      for (final CompoundDashboardLegendEntry entry : unknowns) {
+        pane.getChildren().add(buildUnknownLegendLabel(entry, selected));
+      }
+    }
+  }
+
+  private @NotNull Label buildIonLegendLabel(@NotNull final CompoundDashboardLegendEntry entry,
+      @Nullable final FeatureListRow selected) {
+    final FeatureListRow row = entry.row();
+    // Non-null here: this builder is only invoked for ion-identified rows.
+    final IonIdentity ion = row.getBestIonIdentity();
+    final Double mz = row.getAverageMZ();
+    final String mzStr = mz == null ? "?" : ConfigService.getGuiFormats().mz(mz);
+    final String text = ion.getIonType().toString() + " (" + mzStr + ")";
+    return buildLegendLabel(row, entry.color(), text, selected);
+  }
+
+  private @NotNull Label buildUnknownLegendLabel(@NotNull final CompoundDashboardLegendEntry entry,
+      @Nullable final FeatureListRow selected) {
+    final FeatureListRow row = entry.row();
+    final Double mz = row.getAverageMZ();
+    // Fall back to the row ID when no m/z is available — keeps the label informative.
+    final String text = mz == null ? ("row " + row.getID()) : ConfigService.getGuiFormats().mz(mz);
+    return buildLegendLabel(row, entry.color(), text, selected);
+  }
+
+  private @NotNull Label buildLegendLabel(@NotNull final FeatureListRow row,
+      @NotNull final Color color, @NotNull final String text,
+      @Nullable final FeatureListRow selected) {
+    final Label label = FxLabels.colored(new Label(text), color);
+    if (row == selected) {
+      label.getStyleClass().add("bold-label");
+    }
+    label.setCursor(Cursor.HAND);
+    label.setOnMouseClicked(_ -> onLegendLabelClicked(row));
+    return label;
+  }
+
+  private void onLegendLabelClicked(@NotNull final FeatureListRow row) {
+    // selectedAdductRow is the master selection. The controller derives selectedMs2Row (and the
+    // adduct ComboBox value) from it, so a single write is enough regardless of whether the row
+    // carries MS2.
+    if (model.getSelectedAdductRow() != row) {
+      model.setSelectedAdductRow(row);
+    }
   }
 
   private static @NotNull ListCell<RawDataFile> rawFileCell() {

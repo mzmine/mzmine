@@ -54,6 +54,10 @@ public class CompoundDashboardModel {
   // --- derived ---------------------------------------------------------------
   private final ObservableList<RawDataFile> availableRawDataFiles = FXCollections.observableArrayList();
   private final ObservableList<FeatureListRow> adductRows = FXCollections.observableArrayList();
+  // All member rows of the currently selected compound (flattened) paired with the color the EIC /
+  // mobilogram / MS1 plots use for that row. Maintained by the Interactor so the legend FlowPane
+  // mirrors what the user sees on the plots.
+  private final ObservableList<CompoundDashboardLegendEntry> legendEntries = FXCollections.observableArrayList();
 
   // --- visual state ----------------------------------------------------------
   private final ObjectProperty<@Nullable SimpleColorPalette> colorPalette = new SimpleObjectProperty<>();
@@ -162,6 +166,10 @@ public class CompoundDashboardModel {
 
   public @NotNull ObservableList<FeatureListRow> getAdductRows() {
     return adductRows;
+  }
+
+  public @NotNull ObservableList<CompoundDashboardLegendEntry> getLegendEntries() {
+    return legendEntries;
   }
 
   public @Nullable SimpleColorPalette getColorPalette() {

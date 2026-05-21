@@ -95,9 +95,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // Table -> model: resolve the clicked row to its parent CompoundRow (mirrors
     // StatsDashboardController.resolveCompoundRow). Mute echoes by checking equality first.
     // When the clicked row is a child (member) of a compound rather than the compound itself,
-    // also set it as the selectedAdductRow so the EIC/MS1 highlight follows the user's pick. This
-    // runs AFTER the compound update so updateSelectedAdductRow (triggered by the compound change)
-    // has already written its default; our explicit set then wins.
+    // also set it as the selectedAdductRow so the EIC/MS1 highlight follows the user's pick. The
+    // adduct ComboBox / selectedMs2Row are derived from selectedAdductRow by a separate listener
+    // below, so we only need to write the single master property here.
     tableCtrl.getFeatureTable().getSelectionModel().selectedItemProperty()
         .addListener((_, _, item) -> {
           final FeatureListRow clicked = item == null ? null : item.getValue();
@@ -105,17 +105,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
           if (resolved != model.getSelectedCompoundRow()) {
             model.setSelectedCompoundRow(resolved);
           }
-          // If the user clicked a child row (member) rather than the compound itself, override the
-          // adduct selection to that child. For MS2-capable rows we route through selectedMs2Row
-          // so the adduct ComboBox stays in sync; otherwise we set selectedAdductRow directly.
-          if (clicked != null && !(clicked instanceof CompoundRow)) {
-            if (model.getAdductRows().contains(clicked)) {
-              if (model.getSelectedMs2Row() != clicked) {
-                model.setSelectedMs2Row(clicked);
-              }
-            } else if (model.getSelectedAdductRow() != clicked) {
-              model.setSelectedAdductRow(clicked);
-            }
+          if (clicked != null && !(clicked instanceof CompoundRow)
+              && model.getSelectedAdductRow() != clicked) {
+            model.setSelectedAdductRow(clicked);
           }
         });
 
@@ -123,8 +115,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     PropertyUtils.onChange(interactor::onSelectionChanged, model.selectedCompoundRowProperty(),
         model.featureListProperty());
 
-    // Heavy debounced recompute of MS1+MS2. The MS2 source is `selectedMs2Row` (driven by the
-    // adduct ComboBox); `selectedAdductRow` is derived state and would just echo this trigger.
+    // Heavy debounced recompute of MS1+MS2. The MS2 source is `selectedMs2Row` (derived from
+    // `selectedAdductRow`); triggering on selectedAdductRow as well would be redundant because
+    // every selectedAdductRow change already propagates into selectedMs2Row.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleSpectra, DEBOUNCE,
         model.selectedCompoundRowProperty(), model.selectedMs2RowProperty(),
         model.colorPaletteProperty(), model.currentRawDataFileProperty());
@@ -155,11 +148,15 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
       }
     });
 
-    // Derive selectedAdductRow from the MS2 ComboBox selection: when the user has picked an MS2
-    // row, highlight it; when no MS2 is selected (e.g. compound has no MS2-bearing member), fall
-    // back to the preferred row so the EIC/MS1 highlight always has a target.
-    PropertyUtils.onChange(this::updateSelectedAdductRow, model.selectedMs2RowProperty(),
-        model.selectedCompoundRowProperty());
+    // Selection model: selectedAdductRow is the user's pick (any member row, MS2 or not).
+    // selectedMs2Row is a derived view used by the adduct ComboBox and the MS2 spectra task:
+    //   - selectedAdductRow change -> selectedMs2Row = (in adductRows ? adduct : null)
+    //   - selectedMs2Row change (ComboBox picked or programmatic non-null) -> mirror back into
+    //     selectedAdductRow so the legend bold + EIC/MS1 highlight follow the ComboBox too.
+    // The non-null guard on the inverse direction means clicking a row without MS2 (which sets
+    // selectedMs2Row to null) does NOT clobber selectedAdductRow.
+    PropertyUtils.onChange(this::updateSelectedMs2Row, model.selectedAdductRowProperty());
+    PropertyUtils.onChange(this::updateSelectedAdductRowFromMs2, model.selectedMs2RowProperty());
 
     // Re-apply the selected-row highlight whenever the selection changes or fresh datasets land.
     // The renderer maps are updated in the task's updateGuiModel before the dataset list setAll,
@@ -307,17 +304,32 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   }
 
   /**
-   * Recompute {@code selectedAdductRow}: mirror {@code selectedMs2Row} when set, otherwise fall
-   * back to the selected compound's preferred row (and null when no compound is selected).
+   * Mirror {@code selectedAdductRow} into {@code selectedMs2Row} (the adduct ComboBox value and
+   * MS2 spectra task source). The MS2 chart can only render members that carry an MS2 scan
+   * (== {@link CompoundDashboardModel#getAdductRows()}); for any other row we surface {@code null}
+   * so the ComboBox blanks out and the MS2 chart shows the "no MS2" placeholder.
    */
-  private void updateSelectedAdductRow() {
-    final FeatureListRow ms2 = model.getSelectedMs2Row();
-    if (ms2 != null) {
-      model.setSelectedAdductRow(ms2);
-      return;
+  private void updateSelectedMs2Row() {
+    final FeatureListRow adduct = model.getSelectedAdductRow();
+    final FeatureListRow target =
+        (adduct != null && model.getAdductRows().contains(adduct)) ? adduct : null;
+    if (model.getSelectedMs2Row() != target) {
+      model.setSelectedMs2Row(target);
     }
-    final CompoundRow compound = model.getSelectedCompoundRow();
-    model.setSelectedAdductRow(compound == null ? null : compound.getPreferredRow());
+  }
+
+  /**
+   * Inverse of {@link #updateSelectedMs2Row()}: when {@code selectedMs2Row} is set to a non-null
+   * row (typically via the adduct ComboBox), mirror it back into {@code selectedAdductRow} so the
+   * legend bold + EIC/MS1 highlight follow. When {@code selectedMs2Row} is null we deliberately do
+   * nothing — that null is the derived consequence of a non-MS2 selection and clobbering
+   * selectedAdductRow would undo the user's pick.
+   */
+  private void updateSelectedAdductRowFromMs2() {
+    final FeatureListRow ms2 = model.getSelectedMs2Row();
+    if (ms2 != null && model.getSelectedAdductRow() != ms2) {
+      model.setSelectedAdductRow(ms2);
+    }
   }
 
   /**
@@ -364,11 +376,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     for (final Map.Entry<FeatureListRow, XYDataset> e : datasetsByRow.entrySet()) {
       if (e.getValue() == dataset) {
         final FeatureListRow row = e.getKey();
-        if (model.getAdductRows().contains(row)) {
-          if (model.getSelectedMs2Row() != row) {
-            model.setSelectedMs2Row(row);
-          }
-        } else if (model.getSelectedAdductRow() != row) {
+        if (model.getSelectedAdductRow() != row) {
           model.setSelectedAdductRow(row);
         }
         return;

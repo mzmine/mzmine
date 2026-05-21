@@ -201,6 +201,10 @@ public class SimpleSpectraChartController extends FxController<SimpleSpectraChar
     }
   }
 
+  public void setLegendItemsVisible(boolean visible) {
+    model.getChart().setLegendItemsVisible(visible);
+  }
+
   @NotNull
   public SimpleXYChart<PlotXYDataProvider> getChart() {
     return model.getChart();
