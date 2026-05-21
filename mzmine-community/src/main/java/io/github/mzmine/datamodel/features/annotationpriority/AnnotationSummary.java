@@ -181,7 +181,8 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
     return switch (type) {
       case CCS -> featureList.hasRowType(CCSType.class) && weights.ccs() > 0d;
       case RI -> featureList.hasRowType(RIType.class) && weights.ri() > 0d;
-      case ISOTOPE -> featureList.hasFeatureType(IsotopePatternType.class) && weights.isotopes() > 0d;
+      case ISOTOPE ->
+          featureList.hasFeatureType(IsotopePatternType.class) && weights.isotopes() > 0d;
       case RT -> featureList.hasRowType(RTType.class) && weights.rt() > 0d
           && !FeatureListUtils.hasAllImagingData(featureList);
       case MZ -> weights.mz() > 0d; // GC-EI SpectralDeconvolutionGCTask sets weight to 0
@@ -387,9 +388,10 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         }
         yield MsiAnnotationLevel.LEVEL_4;
       }
-      case SpectralDBAnnotation _ -> MsiAnnotationLevel.LEVEL_2;
+      case SpectralDBAnnotation s ->
+          s.isAnalogMatch() ? MsiAnnotationLevel.LEVEL_3 : MsiAnnotationLevel.LEVEL_2;
       case CompoundDBAnnotation c -> {
-        if (rtScore().orElse(0d) > 0.01 || riScore().orElse(0d) > 0.01) {
+        if ((rtScore().orElse(0d) > 0.01 || riScore().orElse(0d) > 0.01) && !c.isAnalogMatch()) {
           yield MsiAnnotationLevel.LEVEL_2;
         } else if (c.get(SiriusCsiScoreType.class) != null) {
           yield MsiAnnotationLevel.LEVEL_3;
@@ -428,9 +430,14 @@ public class AnnotationSummary implements Comparable<AnnotationSummary> {
         // lipids are hard to judge by isotope scores so default to level 5
         yield ExposomicsAnnotationLevel.LEVEL_5;
       }
-      case SpectralDBAnnotation s ->
-          riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0 ? ExposomicsAnnotationLevel.LEVEL_1
-              : ExposomicsAnnotationLevel.LEVEL_2a;
+      case SpectralDBAnnotation s -> {
+        if (s.isAnalogMatch()) {
+          yield ExposomicsAnnotationLevel.LEVEL_3;
+        } else {
+          yield riScore().orElse(0d) > 0 || rtScore().orElse(0d) > 0
+              ? ExposomicsAnnotationLevel.LEVEL_1 : ExposomicsAnnotationLevel.LEVEL_2a;
+        }
+      }
       case CompoundDBAnnotation c -> {
         if (c.get(SiriusCsiScoreType.class) != null) {
           yield ExposomicsAnnotationLevel.LEVEL_3;
