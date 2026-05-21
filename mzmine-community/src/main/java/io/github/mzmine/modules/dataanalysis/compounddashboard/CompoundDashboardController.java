@@ -25,6 +25,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQuali
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
+import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import java.util.List;
@@ -64,6 +65,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();
   private final FxFeatureTableController tableCtrl = new FxFeatureTableController(
       FeatureTableOwner.COMPOUND_DASHBOARD);
+  private final FeatureRow4DPlotController featurePlot4D = new FeatureRow4DPlotController();
 
   // Guards both directions of the selectedAdductRow <-> eicPlot.selectedDataset bridge so we don't
   // bounce events back and forth when one side updates the other.
@@ -76,17 +78,23 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     super(new CompoundDashboardModel());
     this.interactor = new CompoundDashboardInteractor(model);
     this.builder = new CompoundDashboardViewBuilder(model, this, eicPlot, mobilogramPlot, ms1Chart,
-        ms2Chart, qualityCtrl, tableCtrl);
+        ms2Chart, qualityCtrl, tableCtrl, featurePlot4D);
 
     model.setColorPalette(CompoundDashboardInteractor.snapshotPalette());
 
     // Quality pane: bind selectedCompoundRow + selectedFeatureLists in both directions.
     FxControllerBinding.bindExposedProperties(this, qualityCtrl);
+    // 4D feature plot: share the selected compound row with the dashboard, and the selected rows
+    // with the feature table so a click in the bubble plot drives the table selection (and vice
+    // versa).
+    FxControllerBinding.bindExposedProperties(this, featurePlot4D);
+    FxControllerBinding.bindExposedProperties(tableCtrl, featurePlot4D);
 
     // Feature table receives the feature list directly. After a new list is set, auto-select the
     // first available row so the dashboard already shows charts.
     model.featureListProperty().subscribe(flist -> {
       tableCtrl.setFeatureList(flist);
+      featurePlot4D.setFeatureList(flist);
       if (flist != null) {
         selectFirstRowWhenAvailable();
       }
@@ -218,6 +226,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     super.close();
     qualityCtrl.close();
     tableCtrl.close();
+    featurePlot4D.close();
   }
 
   // --- public API ------------------------------------------------------------

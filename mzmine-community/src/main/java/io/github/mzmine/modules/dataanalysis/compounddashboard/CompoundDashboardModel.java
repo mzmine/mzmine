@@ -89,6 +89,10 @@ public class CompoundDashboardModel {
   // the unit follows the actual mobility type (e.g. "1/K0", "drift time (ms)").
   private final StringProperty mobilogramDomainAxisLabel = new SimpleStringProperty("Mobility");
 
+  // Visibility of the optional 4D feature plot pane. Defaults to true so users can immediately see
+  // the bubble plot when opening the dashboard; the toggle button in the EIC toolbar collapses it.
+  private final BooleanProperty featurePlot4DVisible = new SimpleBooleanProperty(true);
+
   // --- accessors -------------------------------------------------------------
 
   public @Nullable CompoundRow getSelectedCompoundRow() {
@@ -254,5 +258,13 @@ public class CompoundDashboardModel {
 
   public StringProperty mobilogramDomainAxisLabelProperty() {
     return mobilogramDomainAxisLabel;
+  }
+
+  public boolean isFeaturePlot4DVisible() {
+    return featurePlot4DVisible.get();
+  }
+
+  public BooleanProperty featurePlot4DVisibleProperty() {
+    return featurePlot4DVisible;
   }
 }

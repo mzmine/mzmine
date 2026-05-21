@@ -13,6 +13,8 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
+import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
+import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotIcon;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import javafx.beans.binding.Bindings;
@@ -21,11 +23,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -48,6 +52,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   private final SimpleSpectraChartController ms2Chart;
   private final CompoundRowQualityController qualityCtrl;
   private final FxFeatureTableController tableCtrl;
+  private final FeatureRow4DPlotController featurePlot4D;
   private SplitPane mainVerticalChartsSplit;
 
   public CompoundDashboardViewBuilder(@NotNull CompoundDashboardModel model,
@@ -56,7 +61,8 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
       @NotNull SimpleSpectraChartController ms1Chart,
       @NotNull SimpleSpectraChartController ms2Chart,
       @NotNull CompoundRowQualityController qualityCtrl,
-      @NotNull FxFeatureTableController tableCtrl) {
+      @NotNull FxFeatureTableController tableCtrl,
+      @NotNull FeatureRow4DPlotController featurePlot4D) {
     super(model);
     this.controller = controller;
     this.eicPlot = eicPlot;
@@ -65,6 +71,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     this.ms2Chart = ms2Chart;
     this.qualityCtrl = qualityCtrl;
     this.tableCtrl = tableCtrl;
+    this.featurePlot4D = featurePlot4D;
   }
 
   @Override
@@ -75,11 +82,27 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final ModularFeatureList flist = model.getFeatureList();
     boolean hasMobilogram = flist != null && flist.hasRowType(FeatureShapeMobilogramType.class);
 
-    mainVerticalChartsSplit = new SplitPane(eicWithToolbar, spectraColumn);
-    mainVerticalChartsSplit.setOrientation(Orientation.HORIZONTAL);
+    final Region plot4DView = featurePlot4D.buildView();
+    plot4DView.setMinWidth(150);
+    plot4DView.setPadding(new Insets(0, FxLayout.DEFAULT_SPACE, 0, 0));
 
-    // more width if mobilogram
-    mainVerticalChartsSplit.setDividerPositions(hasMobilogram? 0.34 : 0.25);
+    mainVerticalChartsSplit = new SplitPane(plot4DView, eicWithToolbar, spectraColumn);
+    mainVerticalChartsSplit.setOrientation(Orientation.HORIZONTAL);
+    // Plot4D | EIC | Spectra. EIC stays the largest column; spectra column reuses the same width
+    // it had before the 4D pane existed.
+    mainVerticalChartsSplit.setDividerPositions(0.25, hasMobilogram ? 0.55 : 0.50);
+
+    // Toggle hides/restores the 4D pane without rebuilding it. Mirrors the chartsSplit pattern
+    // used for the optional mobilogram view.
+    model.featurePlot4DVisibleProperty().subscribe(show -> {
+      final boolean alreadyShown = mainVerticalChartsSplit.getItems().contains(plot4DView);
+      if (Boolean.TRUE.equals(show) && !alreadyShown) {
+        mainVerticalChartsSplit.getItems().addFirst(plot4DView);
+        mainVerticalChartsSplit.setDividerPositions(0.25, hasMobilogram ? 0.55 : 0.50);
+      } else if (!Boolean.TRUE.equals(show) && alreadyShown) {
+        mainVerticalChartsSplit.getItems().remove(plot4DView);
+      }
+    });
 
     final BorderPane topArea = new BorderPane(mainVerticalChartsSplit);
     final Region quality = qualityCtrl.buildView();
@@ -92,6 +115,27 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   }
 
   private @NotNull Region buildEicWithToolbar() {
+    // Toggle for the optional 4D feature plot pane. The stylised bubble-scatter icon advertises
+    // what the pane contains; opacity drops while the pane is hidden so the button reads as
+    // "currently collapsed — click to show" without changing the icon's identity. The button is
+    // forced to a square size (icon size + symmetric padding) so it lines up cleanly with the
+    // neighbouring icon buttons regardless of platform default insets.
+    final double iconSize = 24.0;
+    final double buttonSize = 28.0;
+    final Button toggle4D = new Button(null, new FeatureRow4DPlotIcon(iconSize));
+    toggle4D.getStyleClass().add("icon-button");
+    toggle4D.setMinSize(buttonSize, buttonSize);
+    toggle4D.setPrefSize(buttonSize, buttonSize);
+    toggle4D.setMaxSize(buttonSize, buttonSize);
+    toggle4D.setPadding(Insets.EMPTY);
+    toggle4D.setOnAction(
+        _ -> model.featurePlot4DVisibleProperty().set(!model.isFeaturePlot4DVisible()));
+    model.featurePlot4DVisibleProperty().subscribe(show -> {
+      toggle4D.getGraphic().setOpacity(Boolean.FALSE.equals(show) ? 1.0 : 0.45);
+      toggle4D.setTooltip(
+          new Tooltip(Boolean.TRUE.equals(show) ? "Hide 4D feature plot" : "Show 4D feature plot"));
+    });
+
     final ButtonBase prev = FxIconUtil.newIconButton(FxIcons.ARROW_LEFT, "Previous raw data file",
         controller::previousRawDataFile);
     final ButtonBase next = FxIconUtil.newIconButton(FxIcons.ARROW_RIGHT, "Next raw data file",
@@ -106,7 +150,8 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     domainAxis.setLowerMargin(0.15);
     domainAxis.setUpperMargin(0.15);
 
-    final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, prev, rawCombo, next);
+    final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, toggle4D, prev, rawCombo,
+        next);
 
     final Region eicView = eicPlot.buildView();
     VBox.setVgrow(eicView, Priority.ALWAYS);
