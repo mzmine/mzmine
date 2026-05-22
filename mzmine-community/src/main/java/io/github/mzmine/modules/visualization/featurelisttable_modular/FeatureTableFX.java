@@ -741,8 +741,8 @@ public class FeatureTableFX extends BorderPane {
 
     String totalRowsStr;
     if (flist.getCompoundList() != null) {
-      totalRowsStr = String.format("%d compound rows; %d total rows", flist.getRows().size(),
-          flist.getCompoundList().size());
+      totalRowsStr = String.format("%d compound rows; %d total rows",
+          flist.getCompoundList().size(), flist.getRows().size());
     } else {
       totalRowsStr = String.format("%d total rows", flist.getRows().size());
     }

@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
@@ -84,17 +85,23 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
 
     // Quality pane: bind selectedCompoundRow + selectedFeatureLists in both directions.
     FxControllerBinding.bindExposedProperties(this, qualityCtrl);
-    // 4D feature plot: share the selected compound row with the dashboard, and the selected rows
-    // with the feature table so a click in the bubble plot drives the table selection (and vice
-    // versa).
+    // 4D feature plot: share the selected compound row + the selected feature list with the
+    // dashboard, and the selected rows with the feature table so a click in the bubble plot drives
+    // the table selection (and vice versa). The SelectedFeatureListsBinding is what propagates the
+    // dashboard's current list into the plot, so no explicit setFeatureList call is needed below.
     FxControllerBinding.bindExposedProperties(this, featurePlot4D);
     FxControllerBinding.bindExposedProperties(tableCtrl, featurePlot4D);
+
+    // The 4D plot owns its own row-subset selector (see FeatureRow4DPlotViewBuilder Options pane),
+    // so we only seed the initial value once. COMPOUNDS shows one bubble per compound and matches
+    // the dashboard's compound-centric view; the plot falls back to ALL_MAJOR_IONS automatically
+    // when the active feature list has no CompoundList.
+    featurePlot4D.setCompoundRowSelection(CompoundRowSelection.COMPOUNDS);
 
     // Feature table receives the feature list directly. After a new list is set, auto-select the
     // first available row so the dashboard already shows charts.
     model.featureListProperty().subscribe(flist -> {
       tableCtrl.setFeatureList(flist);
-      featurePlot4D.setFeatureList(flist);
       if (flist != null) {
         selectFirstRowWhenAvailable();
       }

@@ -9,6 +9,7 @@ import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboard
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,6 +72,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     for (final FeatureListRow row : allRows) {
       entries.add(new CompoundDashboardLegendEntry(row, legendColors.colorFor(row)));
     }
+    entries.sort(Comparator.comparingDouble(row -> row.row().getAverageMZ()));
     model.getLegendEntries().setAll(entries);
 
     // decision: always reevaluate the best raw data file for the new compound so the EIC combo

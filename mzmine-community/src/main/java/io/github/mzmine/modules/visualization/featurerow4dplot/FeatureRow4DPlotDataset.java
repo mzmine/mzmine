@@ -35,17 +35,27 @@ public class FeatureRow4DPlotDataset extends AbstractXYZDataset implements XYZBu
   private final @NotNull String colorAxisLabel;
 
   public FeatureRow4DPlotDataset(@NotNull final FeatureList featureList) {
+    this(featureList, featureList.getRows());
+  }
+
+  /**
+   * Build the dataset from an explicit row list (e.g. derived from a
+   * {@link io.github.mzmine.datamodel.features.compoundlist.CompoundList} via
+   * {@code getRowsCopy(CompoundRowSelection)}). The {@code featureList} is still used for metadata
+   * such as the {@link MobilityType} row binding that drives the colour axis.
+   */
+  public FeatureRow4DPlotDataset(@NotNull final FeatureList featureList,
+      @NotNull final List<? extends FeatureListRow> sourceRows) {
     this.colorByMobility = featureList.hasRowType(MobilityType.class);
     this.colorAxisLabel = colorByMobility ? "Mobility" : "Retention time / min";
 
-    final List<FeatureListRow> source = featureList.getRows();
-    final List<FeatureListRow> kept = new ArrayList<>(source.size());
-    final List<Double> xs = new ArrayList<>(source.size());
-    final List<Double> ys = new ArrayList<>(source.size());
-    final List<Double> zs = new ArrayList<>(source.size());
-    final List<Double> bubbles = new ArrayList<>(source.size());
+    final List<FeatureListRow> kept = new ArrayList<>(sourceRows.size());
+    final List<Double> xs = new ArrayList<>(sourceRows.size());
+    final List<Double> ys = new ArrayList<>(sourceRows.size());
+    final List<Double> zs = new ArrayList<>(sourceRows.size());
+    final List<Double> bubbles = new ArrayList<>(sourceRows.size());
 
-    for (final FeatureListRow row : source) {
+    for (final FeatureListRow row : sourceRows) {
       final Double mz = row.getAverageMZ();
       final Float rt = row.getAverageRT();
       if (mz == null || rt == null || !Double.isFinite(mz) || !Float.isFinite(rt)) {
