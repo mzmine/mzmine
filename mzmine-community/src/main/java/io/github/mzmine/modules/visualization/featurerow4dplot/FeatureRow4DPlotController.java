@@ -2,8 +2,6 @@ package io.github.mzmine.modules.visualization.featurerow4dplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.gui.framework.fx.SelectedCompoundRowBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
@@ -20,7 +18,7 @@ import org.jfree.chart.plot.PlotOrientation;
  * the underlying {@link FeatureRow4DPlotDataset}.
  */
 public class FeatureRow4DPlotController extends FxController<FeatureRow4DPlotModel> implements
-    SelectedRowsBinding, SelectedCompoundRowBinding {
+    SelectedRowsBinding {
 
   private final FeatureRow4DPlotViewBuilder viewBuilder;
 
@@ -53,11 +51,6 @@ public class FeatureRow4DPlotController extends FxController<FeatureRow4DPlotMod
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
-  }
-
-  @Override
-  public ObjectProperty<@Nullable CompoundRow> selectedCompoundRowProperty() {
-    return model.selectedCompoundRowProperty();
   }
 
   // --- internals -------------------------------------------------------------

@@ -2,7 +2,6 @@ package io.github.mzmine.modules.visualization.featurerow4dplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -27,7 +26,6 @@ public class FeatureRow4DPlotModel {
   // to null-guard.
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>(
       List.of());
-  private final ObjectProperty<@Nullable CompoundRow> selectedCompoundRow = new SimpleObjectProperty<>();
 
   // VERTICAL = m/z on the x-axis, RT on the y-axis (the request's default). HORIZONTAL swaps them
   // visually without rebuilding the dataset.
@@ -69,18 +67,6 @@ public class FeatureRow4DPlotModel {
 
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return selectedRows;
-  }
-
-  public @Nullable CompoundRow getSelectedCompoundRow() {
-    return selectedCompoundRow.get();
-  }
-
-  public void setSelectedCompoundRow(@Nullable final CompoundRow value) {
-    selectedCompoundRow.set(value);
-  }
-
-  public ObjectProperty<@Nullable CompoundRow> selectedCompoundRowProperty() {
-    return selectedCompoundRow;
   }
 
   public @NotNull PlotOrientation getPlotOrientation() {
