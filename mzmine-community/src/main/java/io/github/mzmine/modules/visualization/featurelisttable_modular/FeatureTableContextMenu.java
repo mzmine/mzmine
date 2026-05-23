@@ -48,7 +48,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -68,6 +67,9 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.MergeCompoundRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SetRepresentativeRowModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SplitCompoundRowModule;
 import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
@@ -328,7 +330,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     if (!(item.getValue() instanceof ModularFeatureListRow row)) {
       return;
     }
-    CompoundRowUtils.setRepresentative(parent, row);
+    SetRepresentativeRowModule.apply(parent.getFeatureList(), parent, row);
     table.refresh();
   }
 
@@ -347,7 +349,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     }
     table.getSelectionModel().clearSelection();
-    CompoundRowUtils.splitIntoNewCompound(parent.getCompoundList(), parent, rowsToMove);
+    SplitCompoundRowModule.apply(parent.getFeatureList(), parent, rowsToMove);
     table.updateRows();
   }
 
@@ -368,7 +370,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final List<ModularCompoundRow> others =
         compounds.size() > 1 ? compounds.subList(1, compounds.size()) : List.of();
     table.getSelectionModel().clearSelection();
-    CompoundRowUtils.mergeCompoundRows(target.getCompoundList(), target, others, extras);
+    MergeCompoundRowsModule.apply(target.getFeatureList(), target, others, extras);
     table.updateRows();
   }
 

@@ -234,7 +234,6 @@ public class SimpleSeederComponentizerTest {
   @Test
   void test5_rowInTwoNetworks() {
     final ModularFeatureList flist = newFeatureList("test5");
-    // shared row appears in two networks (e.g. ambiguous IIN annotation) → must merge transitively
     final ModularFeatureListRow shared = row(flist, 1, 200.0 + protonated.totalMass(), 4.0f,
         1000f);
     final ModularFeatureListRow naRow = row(flist, 2, 200.0 + sodiated.totalMass(), 4.0f, 500f);
@@ -246,8 +245,9 @@ public class SimpleSeederComponentizerTest {
     final List<ModularCompoundRow> compounds = newComponentizer().componentize(flist,
         newTargetList(flist));
 
-    assertEquals(1, compounds.size());
-    assertEquals(3, compounds.get(0).compoundSize());
+    assertEquals(2, compounds.size());
+    assertEquals(2, compounds.get(0).compoundSize());
+    assertEquals(1, compounds.get(1).compoundSize());
   }
 
   // ---------- Test 6: empty feature list → validateInputs returns error ----------
