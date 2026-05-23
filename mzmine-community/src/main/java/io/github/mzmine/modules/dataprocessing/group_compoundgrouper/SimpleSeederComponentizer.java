@@ -34,10 +34,13 @@ import org.jetbrains.annotations.Nullable;
  * IIN-seeded, correlation-aware compound componentizer.
  * <p>
  * Step 1 — build adjacency lists from {@link ModularFeatureList#getMs1CorrelationMap()}.
- * Step 2 — seed compounds from Ion Identity Networks via Union-Find on IIN rows.
- * Step 3 — for each non-IIN row, attach to every IIN-seeded component reachable through correlation
- * edges. A row connected to two IIN seeds becomes a member of <em>both</em> compounds (dual
- * membership; the compounds stay distinct).
+ * Step 2 — seed compounds only from <em>best</em> Ion Identity Networks (networks where every
+ * member row's best {@code IonIdentity} points to this network) via Union-Find on those rows.
+ * Rows whose best ion identity belongs to a non-best network are left for Step 3 so the remaining
+ * MS1 correlation networks can still form compounds as before.
+ * Step 3 — for each non-IIN-seeded row, attach to every IIN-seeded component reachable through
+ * correlation edges. A row connected to two IIN seeds becomes a member of <em>both</em> compounds
+ * (dual membership; the compounds stay distinct).
  * Step 4 — find dense communities in the residual (no-IIN) correlation subgraph: pick the highest
  * degree seed, take its closed neighborhood, peel low-degree nodes until the induced density
  * reaches {@code MIN_DENSITY}, commit as a compound, repeat. Leftover singletons become 1-member
@@ -210,8 +213,10 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
 
   private static void seedFromIonNetworks(@NotNull final ModularFeatureList featureList,
       @NotNull final Map<Integer, Integer> rowIdToIdx, @NotNull final int[] iinParent) {
-    final List<IonNetwork> networks = IonNetworkLogic.streamNetworks(featureList, false).toList();
-    for (final IonNetwork net : networks) {
+    // decision: only seed from "best" IIN — networks where every member row's best IonIdentity
+    // points to this network. Rows in non-best networks fall through to Step 3 (correlation
+    // attachment) or Step 4 (residual communities), keeping MS1 correlation grouping behavior.
+    IonNetworkLogic.streamNetworks(featureList, true).forEach(net -> {
       // initialize parents for member rows on first sight, then union all together
       int firstIdx = -1;
       for (final FeatureListRow row : net.getRows()) {
@@ -228,7 +233,7 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
           union(iinParent, firstIdx, idx);
         }
       }
-    }
+    });
   }
 
   private static int find(final int[] parent, int i) {
