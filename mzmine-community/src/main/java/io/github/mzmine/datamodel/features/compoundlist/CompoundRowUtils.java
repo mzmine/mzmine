@@ -127,6 +127,35 @@ public final class CompoundRowUtils {
   }
 
   /**
+   * Remove the given {@code compoundsToRemove} from the top-level rows of {@code list}. Member rows
+   * (the underlying {@link ModularFeatureListRow}s) are not touched — only the compound grouping is
+   * dropped. Compound rows that are not present at the top level (e.g. nested compounds) are
+   * silently ignored.
+   *
+   * @return true if at least one compound was removed
+   */
+  public static boolean removeCompoundRows(@NotNull final CompoundList list,
+      @NotNull final Collection<ModularCompoundRow> compoundsToRemove) {
+    if (compoundsToRemove.isEmpty()) {
+      return false;
+    }
+    final Set<ModularCompoundRow> toRemove = newIdentitySet(compoundsToRemove);
+    final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
+    boolean changed = false;
+    for (final ModularCompoundRow cr : list.getRows()) {
+      if (toRemove.contains(cr)) {
+        changed = true;
+      } else {
+        nextRows.add(cr);
+      }
+    }
+    if (changed) {
+      list.setRows(nextRows);
+    }
+    return changed;
+  }
+
+  /**
    * Merge member rows from {@code otherCompounds} and {@code extraMemberRows} into {@code target}.
    * <ul>
    *   <li>{@code otherCompounds}: every compound in this collection is removed from the list and

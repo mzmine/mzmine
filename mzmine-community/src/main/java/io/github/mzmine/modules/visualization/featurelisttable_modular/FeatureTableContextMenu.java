@@ -62,11 +62,13 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.DeleteCompoundRowsModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.MergeCompoundRowsModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SetRepresentativeRowModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SplitCompoundRowModule;
@@ -196,15 +198,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem deleteRowsItem = new ConditionalMenuItem("Delete row(s)",
         () -> !selectedRows.isEmpty());
-    deleteRowsItem.setOnAction(_ -> {
-      if (selectedRows.size() == 1) {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteRows(table.getFeatureList(), selectedRows);
-      } else {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteWithConfirmation(table.getFeatureList(), selectedRows);
-      }
-    });
+    deleteRowsItem.setOnAction(_ -> onDeleteSelectedRows());
 
     // final MenuItem addNewRowItem;
     final MenuItem manuallyDefineItem = new ConditionalMenuItem("Define manually",
@@ -319,6 +313,44 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     // either 2+ compounds (with or without extras), or 1 compound + 1+ child rows from compounds
     return compounds >= 2 || (compounds == 1 && membersUnderCompound >= 1);
+  }
+
+  /**
+   * Split selected rows into compound rows (handled by {@link DeleteCompoundRowsModule}) and plain
+   * feature rows (handled by {@link DeleteRowsModule}). A confirmation dialog is shown when more
+   * than one row will be removed in total.
+   */
+  private void onDeleteSelectedRows() {
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    final List<ModularFeatureListRow> flatRows = new ArrayList<>();
+    for (final ModularFeatureListRow row : selectedRows) {
+      if (row instanceof ModularCompoundRow cr) {
+        compounds.add(cr);
+      } else {
+        flatRows.add(row);
+      }
+    }
+    final int total = compounds.size() + flatRows.size();
+    if (total == 0) {
+      return;
+    }
+    if (total > 1) {
+      final boolean ok = DialogLoggerUtil.showDialogYesNo("Deleting rows?",
+          "Are you sure you want to delete %d row(s) (%d compound row(s), %d feature row(s))?".formatted(
+              total, compounds.size(), flatRows.size()));
+      if (!ok) {
+        return;
+      }
+    }
+    table.getSelectionModel().clearSelection();
+    if (!compounds.isEmpty()) {
+      DeleteCompoundRowsModule.apply(table.getFeatureList(), compounds);
+    }
+    if (!flatRows.isEmpty()) {
+      // skip the module's own confirmation dialog — already confirmed above
+      DeleteRowsModule.deleteRows(table.getFeatureList(), flatRows);
+    }
+    table.updateRows();
   }
 
   private void onSetRepresentative() {
