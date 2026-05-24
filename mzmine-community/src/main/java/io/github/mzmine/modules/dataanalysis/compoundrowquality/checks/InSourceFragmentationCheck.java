@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
@@ -22,7 +23,9 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /// Flags member rows whose precursor m/z appears as a fragment in the MS2 of a higher-m/z member,
-/// suggesting that the member is an in-source fragment of the larger molecule.
+/// suggesting the member is an in-source fragment of the larger molecule. Rows previously tagged
+/// upstream with {@link CompoundMemberRole#IN_SOURCE_FRAGMENT} are also reported even when no MS2
+/// parent can be located in this compound.
 public final class InSourceFragmentationCheck implements QualityCheck {
 
   /// Minimum m/z difference between the parent (MS2 precursor) and the candidate fragment row.
@@ -41,23 +44,18 @@ public final class InSourceFragmentationCheck implements QualityCheck {
     final List<CompoundFeatureMember> members = row.getCompoundMembers();
     final MZTolerance ms2Tol = context.ms2Tolerance();
 
-    // members already explicitly tagged as in-source — count those unconditionally
-    final List<FeatureListRow> tagged = new ArrayList<>();
-    for (final CompoundFeatureMember m : members) {
-      if (m.role() == CompoundMemberRole.IN_SOURCE_FRAGMENT) {
-        tagged.add(m.row());
-      }
-    }
-
-    // For each candidate member: check if any other member with greater m/z (by at least
-    // MIN_PARENT_MZ_OFFSET) has an MS2 spectrum that contains the candidate's precursor m/z.
-    final List<String> matched = new ArrayList<>();
-    final Set<FeatureListRow> involved = new LinkedHashSet<>(tagged);
+    // Walk every member that could conceivably be a fragment (skip the compound's representative
+    // and any pure isotopologue). For each fragment candidate, collect every higher-m/z member
+    // whose MS2 spectrum contains the candidate's precursor m/z within tolerance. Rows tagged
+    // upstream as IN_SOURCE_FRAGMENT are always emitted, even if no MS2 parent shows up here.
+    final List<FragmentParents> fragmentEntries = new ArrayList<>();
+    final Set<FeatureListRow> involvedFragments = new LinkedHashSet<>();
+    int taggedCount = 0;
+    int matchedCount = 0;
 
     for (final CompoundFeatureMember candidate : members) {
       if (candidate.role() == CompoundMemberRole.REPRESENTATIVE
-          || candidate.role() == CompoundMemberRole.ISOTOPOLOGUE
-          || candidate.role() == CompoundMemberRole.IN_SOURCE_FRAGMENT) {
+          || candidate.role() == CompoundMemberRole.ISOTOPOLOGUE) {
         continue;
       }
       final FeatureListRow candidateRow = candidate.row();
@@ -65,44 +63,84 @@ public final class InSourceFragmentationCheck implements QualityCheck {
       if (candidateMz == null) {
         continue;
       }
-
-      if (anyHigherMzMs2HitForMz(members, candidateRow, candidateMz, ms2Tol)) {
-        final IonIdentity ion = candidateRow.getBestIonIdentity();
-        final String label =
-            ion != null ? ion.getIonType().toString() : "m/z %.4f".formatted(candidateMz);
-        matched.add(label);
-        involved.add(candidateRow);
-      }
-    }
-
-    if (tagged.isEmpty() && matched.isEmpty()) {
-      return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
-          QualityCheckStatus.PASS, "No in-source fragments detected", List.of(),
-          List.copyOf(involved));
-    }
-
-    final List<String> details = new ArrayList<>();
-    if (!tagged.isEmpty()) {
-      details.add("%d member%s already tagged as in-source".formatted(tagged.size(),
-          tagged.size() == 1 ? "" : "s"));
-    }
-    if (!matched.isEmpty()) {
-      details.add("MS2 hits: " + String.join(", ", matched));
-    }
-    final int total = tagged.size() + matched.size();
-    return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
-        QualityCheckStatus.WARN,
-        "%d possible in-source fragment%s".formatted(total, total == 1 ? "" : "s"), details,
-        List.copyOf(involved));
-  }
-
-  private static boolean anyHigherMzMs2HitForMz(@NotNull List<CompoundFeatureMember> members,
-      @NotNull FeatureListRow candidate, double candidateMz, @NotNull MZTolerance ms2Tol) {
-    for (final CompoundFeatureMember other : members) {
-      if (other.row() == candidate) {
+      final boolean tagged = candidate.role() == CompoundMemberRole.IN_SOURCE_FRAGMENT;
+      final List<FeatureListRow> parents = collectHigherMzMs2Parents(members, candidateRow,
+          candidateMz, ms2Tol);
+      if (!tagged && parents.isEmpty()) {
         continue;
       }
-      final Double otherMz = other.row().getAverageMZ();
+      parents.sort(FragmentParentsRendering.PARENT_ORDER);
+      fragmentEntries.add(new FragmentParents(candidateRow, List.copyOf(parents)));
+      involvedFragments.add(candidateRow);
+      if (tagged) {
+        taggedCount++;
+      }
+      if (!parents.isEmpty()) {
+        matchedCount++;
+      }
+    }
+
+    if (fragmentEntries.isEmpty()) {
+      return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
+          QualityCheckStatus.PASS, "No in-source fragments detected", List.of(), List.of());
+    }
+
+    final int total = fragmentEntries.size();
+    final String summary = "%d possible in-source fragment%s".formatted(total,
+        total == 1 ? "" : "s");
+
+    // When the host (e.g. CompoundDashboardController) supplied a color assignment, render each
+    // fragment with its parents as colored, clickable chips that mirror the dashboard coloring.
+    // Without an assignment fall back to the plain text default so the pane keeps working
+    // standalone.
+    final ColorAssignment coloring = context.colorAssignment();
+    if (coloring != null) {
+      return new InSourceFragmentationQualityResult(QualityCheckStatus.WARN, summary,
+          fragmentEntries, coloring, context.onRowClick());
+    }
+    return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
+        QualityCheckStatus.WARN, summary,
+        buildPlainDetails(fragmentEntries, taggedCount, matchedCount),
+        List.copyOf(involvedFragments));
+  }
+
+  /// Compact text fallback used when no {@link ColorAssignment} is supplied (e.g. the quality pane
+  /// runs without a host dashboard). Preserves the existing "tagged" / "MS2 hits" split.
+  private static @NotNull List<@NotNull String> buildPlainDetails(
+      @NotNull final List<@NotNull FragmentParents> fragmentEntries, final int taggedCount,
+      final int matchedCount) {
+    final List<String> details = new ArrayList<>();
+    if (taggedCount > 0) {
+      details.add("%d member%s already tagged as in-source".formatted(taggedCount,
+          taggedCount == 1 ? "" : "s"));
+    }
+    if (matchedCount > 0) {
+      final List<String> matchedLabels = new ArrayList<>();
+      for (final FragmentParents entry : fragmentEntries) {
+        if (entry.parents().isEmpty()) {
+          continue;
+        }
+        final FeatureListRow r = entry.fragment();
+        final IonIdentity ion = r.getBestIonIdentity();
+        final Double mz = r.getAverageMZ();
+        matchedLabels.add(ion != null ? ion.getIonType().toString()
+            : (mz == null ? ("row " + r.getID()) : "%.4f".formatted(mz)));
+      }
+      details.add("MS2 hits: " + String.join(", ", matchedLabels));
+    }
+    return details;
+  }
+
+  private static @NotNull List<@NotNull FeatureListRow> collectHigherMzMs2Parents(
+      @NotNull final List<CompoundFeatureMember> members, @NotNull final FeatureListRow candidate,
+      final double candidateMz, @NotNull final MZTolerance ms2Tol) {
+    final List<FeatureListRow> parents = new ArrayList<>();
+    for (final CompoundFeatureMember other : members) {
+      final FeatureListRow otherRow = other.row();
+      if (otherRow == candidate) {
+        continue;
+      }
+      final Double otherMz = otherRow.getAverageMZ();
       if (otherMz == null) {
         continue;
       }
@@ -110,14 +148,22 @@ public final class InSourceFragmentationCheck implements QualityCheck {
       if (otherMz < candidateMz + MIN_PARENT_MZ_OFFSET) {
         continue;
       }
-      for (final Scan scan : other.row().getAllFragmentScans()) {
-        final MassList ml = scan.getMassList();
-        if (ml == null) {
-          continue;
-        }
-        if (massListContains(ml, candidateMz, ms2Tol)) {
-          return true;
-        }
+      if (anyMs2Contains(otherRow, candidateMz, ms2Tol)) {
+        parents.add(otherRow);
+      }
+    }
+    return parents;
+  }
+
+  private static boolean anyMs2Contains(@NotNull final FeatureListRow parent, final double targetMz,
+      @NotNull final MZTolerance tol) {
+    for (final Scan scan : parent.getAllFragmentScans()) {
+      final MassList ml = scan.getMassList();
+      if (ml == null) {
+        continue;
+      }
+      if (massListContains(ml, targetMz, tol)) {
+        return true;
       }
     }
     return false;

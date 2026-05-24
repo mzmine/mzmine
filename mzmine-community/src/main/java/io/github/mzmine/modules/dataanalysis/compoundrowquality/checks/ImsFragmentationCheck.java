@@ -15,9 +15,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckCont
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
-import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationQualityResult.FragmentParents;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +27,6 @@ import org.jetbrains.annotations.NotNull;
 /// suggesting the lower-m/z member is a fragment that survived ion-mobility separation with the
 /// same mobility as the precursor.
 public final class ImsFragmentationCheck implements QualityCheck {
-
-  /// Parent display order: ion-identified rows first, then by ascending m/z. Boolean false sorts
-  /// before true so {@code hasIonIdentity == false} for the no-ion key keeps ion rows first.
-  private static final Comparator<FeatureListRow> PARENT_ORDER = Comparator //
-      .comparing((FeatureListRow r) -> r.getBestIonIdentity() == null) //
-      .thenComparingDouble(FeatureListRow::getAverageMZ);
 
   @Override
   public @NotNull QualityCheckType type() {
@@ -70,7 +62,7 @@ public final class ImsFragmentationCheck implements QualityCheck {
       if (parents.isEmpty()) {
         continue;
       }
-      parents.sort(PARENT_ORDER);
+      parents.sort(FragmentParentsRendering.PARENT_ORDER);
       fragmentEntries.add(new FragmentParents(candidateRow, List.copyOf(parents)));
       involvedFragments.add(candidateRow);
       final IonIdentity ion = candidateRow.getBestIonIdentity();

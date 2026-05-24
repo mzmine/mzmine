@@ -17,24 +17,26 @@ import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/// Custom {@link QualityCheckResult} for the IMS fragmentation check.
+/// Custom {@link QualityCheckResult} for the in-source fragmentation check.
 /// <p>
-/// Renders each fragment as a colored chip followed by an arrow and its mobility-correlated parent
-/// rows (also as colored chips), one line per fragment. Chip colors match the host dashboard's
-/// per-row coloring; chips are clickable and forward the row to the {@code onRowClick} callback
-/// (typically wired to focus the row in the dashboard plots). Layout helpers live in
-/// {@link FragmentParentsRendering} so the matching in-source result class can share them.
-public final class ImsFragmentationQualityResult extends QualityCheckResult {
+/// Renders each fragment as a colored chip followed by an arrow and the higher-m/z parent rows
+/// whose MS2 spectrum contains the fragment's precursor peak (also as colored chips), one line per
+/// fragment. Rows that were upstream-tagged as {@code IN_SOURCE_FRAGMENT} but have no detectable
+/// MS2 parent render as a standalone fragment chip with no arrow. Chip colors match the host
+/// dashboard's per-row coloring; chips are clickable and forward the row to the {@code onRowClick}
+/// callback. Shared rendering helpers live in {@link FragmentParentsRendering}.
+public final class InSourceFragmentationQualityResult extends QualityCheckResult {
 
   private final @NotNull String summary;
   private final @NotNull List<@NotNull FragmentParents> fragments;
   private final @NotNull ColorAssignment colorAssignment;
   private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
 
-  public ImsFragmentationQualityResult(@NotNull QualityCheckStatus status, @NotNull String summary,
-      @NotNull List<@NotNull FragmentParents> fragments, @NotNull ColorAssignment colorAssignment,
+  public InSourceFragmentationQualityResult(@NotNull QualityCheckStatus status,
+      @NotNull String summary, @NotNull List<@NotNull FragmentParents> fragments,
+      @NotNull ColorAssignment colorAssignment,
       @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
-    super(QualityCheckType.IMS_FRAGMENTATION, status,
+    super(QualityCheckType.IN_SOURCE_FRAGMENTATION, status,
         FragmentParentsRendering.flattenInvolved(fragments));
     this.summary = summary;
     this.fragments = List.copyOf(fragments);
