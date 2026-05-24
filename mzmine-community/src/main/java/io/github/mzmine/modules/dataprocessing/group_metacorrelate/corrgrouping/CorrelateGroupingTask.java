@@ -265,7 +265,7 @@ public class CorrelateGroupingTask extends AbstractTask {
         R2RMap<RowsRelationship> imsMap = new R2RMap<>();
         doR2RComparisonMobility(corrMap, imsMap);
         r2rNetworkingMaps.removeAllRowRelationships(Type.MS1_MOBILITY_FEATURE_CORR);
-        r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_MOBILITY_FEATURE_CORR);
+        r2rNetworkingMaps.addAllRowsRelationships(imsMap, Type.MS1_MOBILITY_FEATURE_CORR);
       }
 
       // set correlation map
