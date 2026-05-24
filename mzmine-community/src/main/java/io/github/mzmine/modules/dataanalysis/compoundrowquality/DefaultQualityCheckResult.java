@@ -15,8 +15,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Default text-based {@link QualityCheckResult}: bold check-type label and a wrapping summary line
  * in the main pane; one wrapping label per detail line plus an "Involves N rows" footer in the sub
- * pane. Use this for plain-text outcomes; subclass {@link QualityCheckResult} directly when a check
- * needs custom content (charts, thumbnails, links).
+ * pane. All text labels are configured to wrap to the parent container width and shrink to zero
+ * minimum width so they never force the surrounding panel wider than the {@code ScrollPane}
+ * viewport. Use this for plain-text outcomes; subclass {@link QualityCheckResult} directly when a
+ * check needs custom content (charts, thumbnails, chip lists, links).
  */
 public class DefaultQualityCheckResult extends QualityCheckResult {
 
@@ -39,10 +41,12 @@ public class DefaultQualityCheckResult extends QualityCheckResult {
 
   @Override
   public @NotNull Region buildMainPane() {
-    final Label title = FxLabels.newBoldLabel(type.getLabel());
-    final Label summaryLabel = FxLabels.newLabel(summary);
-    summaryLabel.setWrapText(true);
-    return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, title, summaryLabel);
+    final Label title = configureWrap(FxLabels.newBoldLabel(type.getLabel()));
+    final Label summaryLabel = configureWrap(FxLabels.newLabel(summary));
+    final VBox box = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, title, summaryLabel);
+    // Min 0 so the box can shrink to fit narrow parent containers; wrapping labels handle the rest.
+    box.setMinWidth(0);
+    return box;
   }
 
   @Override
@@ -51,16 +55,25 @@ public class DefaultQualityCheckResult extends QualityCheckResult {
       return null;
     }
     final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
+    body.setMinWidth(0);
     for (final String line : detailLines) {
-      final Label detail = FxLabels.newLabel(line);
-      detail.setWrapText(true);
-      body.getChildren().add(detail);
+      body.getChildren().add(configureWrap(FxLabels.newLabel(line)));
     }
     if (!involvedRows.isEmpty()) {
-      body.getChildren().add(FxLabels.newItalicLabel(
+      body.getChildren().add(configureWrap(FxLabels.newItalicLabel(
           "Involves %d row%s".formatted(involvedRows.size(),
-              involvedRows.size() == 1 ? "" : "s")));
+              involvedRows.size() == 1 ? "" : "s"))));
     }
     return body;
+  }
+
+  /// Configure a Label so it wraps inside a width-constrained parent: zero min width lets the
+  /// parent layout shrink the label below its computed text width, and {@code Double.MAX_VALUE} max
+  /// width pairs with VBox {@code fillWidth=true} so the label always uses the available width.
+  private static @NotNull Label configureWrap(@NotNull Label label) {
+    label.setWrapText(true);
+    label.setMinWidth(0);
+    label.setMaxWidth(Double.MAX_VALUE);
+    return label;
   }
 }

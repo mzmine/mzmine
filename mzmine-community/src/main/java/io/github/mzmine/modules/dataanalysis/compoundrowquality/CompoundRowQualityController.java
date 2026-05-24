@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.framework.fx.SelectedCompoundRowBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
@@ -9,7 +10,9 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.util.Duration;
@@ -35,7 +38,7 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     builder = new CompoundRowQualityViewBuilder(model);
     PropertyUtils.onChangeDelayedSubscription(this::scheduleRecompute, RECOMPUTE_DEBOUNCE,
         model.selectedCompoundRowProperty(), model.rtStabilityToleranceProperty(),
-        model.mzToleranceProperty(), model.ms2ToleranceProperty());
+        model.mzToleranceProperty(), model.ms2ToleranceProperty(), model.colorPaletteProperty());
   }
 
   @Override
@@ -51,6 +54,24 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
   @Override
   public Property<List<FeatureList>> selectedFeatureListsProperty() {
     return model.selectedFeatureListsProperty();
+  }
+
+  /**
+   * Palette used to derive per-member-row colors. Bind to the host dashboard's palette so this
+   * pane's row chips match the dashboard's EIC / mobilogram / MS1 plot colors. Nullable; when
+   * unset, checks render member references as plain text.
+   */
+  public ObjectProperty<@Nullable SimpleColorPalette> colorPaletteProperty() {
+    return model.colorPaletteProperty();
+  }
+
+  /**
+   * Callback invoked when a member-row chip is clicked in a check's sub pane. Typically wired by
+   * the host dashboard to focus that row (e.g. set its {@code selectedAdductRow}). Nullable; when
+   * unset, chips render but are not clickable.
+   */
+  public ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClickProperty() {
+    return model.onMemberRowClickProperty();
   }
 
   /**
@@ -75,10 +96,13 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     final RTTolerance rtTol = model.getRtStabilityTolerance();
     final MZTolerance mzTol = model.getMzTolerance();
     final MZTolerance ms2Tol = model.getMs2Tolerance();
+    final SimpleColorPalette palette = model.getColorPalette();
+    final Consumer<@NotNull FeatureListRow> onRowClick = model.getOnMemberRowClick();
 
     onGuiThread(() -> model.computingProperty().set(true));
     // PropertyUtils.onChangeDelayedSubscription already debounces; FxUpdateTask cancels prior runs by name.
-    onTaskThread(new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol));
+    onTaskThread(
+        new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, onRowClick));
   }
 
 }

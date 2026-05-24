@@ -8,13 +8,16 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckContext;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationQualityResult.FragmentParents;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +29,12 @@ import org.jetbrains.annotations.NotNull;
 /// suggesting the lower-m/z member is a fragment that survived ion-mobility separation with the
 /// same mobility as the precursor.
 public final class ImsFragmentationCheck implements QualityCheck {
+
+  /// Parent display order: ion-identified rows first, then by ascending m/z. Boolean false sorts
+  /// before true so {@code hasIonIdentity == false} for the no-ion key keeps ion rows first.
+  private static final Comparator<FeatureListRow> PARENT_ORDER = Comparator //
+      .comparing((FeatureListRow r) -> r.getBestIonIdentity() == null) //
+      .thenComparingDouble(FeatureListRow::getAverageMZ);
 
   @Override
   public @NotNull QualityCheckType type() {
@@ -46,8 +55,9 @@ public final class ImsFragmentationCheck implements QualityCheck {
     final R2RMap<RowsRelationship> mobilityCorrMap = mapOpt.get();
 
     final List<CompoundFeatureMember> members = row.getCompoundMembers();
-    final List<String> matched = new ArrayList<>();
-    final Set<FeatureListRow> involved = new LinkedHashSet<>();
+    final List<FragmentParents> fragmentEntries = new ArrayList<>();
+    final Set<FeatureListRow> involvedFragments = new LinkedHashSet<>();
+    final List<String> matchedLabels = new ArrayList<>();
 
     for (final CompoundFeatureMember candidate : members) {
       final FeatureListRow candidateRow = candidate.row();
@@ -55,43 +65,59 @@ public final class ImsFragmentationCheck implements QualityCheck {
       if (candidateMz == null) {
         continue;
       }
-      if (anyHigherMzMobilityCorrelated(members, candidateRow, candidateMz, mobilityCorrMap)) {
-        final IonIdentity ion = candidateRow.getBestIonIdentity();
-        final String label =
-            ion != null ? ion.getIonType().toString() : "m/z %.4f".formatted(candidateMz);
-        matched.add(label);
-        involved.add(candidateRow);
+      final List<FeatureListRow> parents = collectHigherMzMobilityCorrelatedParents(members,
+          candidateRow, candidateMz, mobilityCorrMap);
+      if (parents.isEmpty()) {
+        continue;
       }
+      parents.sort(PARENT_ORDER);
+      fragmentEntries.add(new FragmentParents(candidateRow, List.copyOf(parents)));
+      involvedFragments.add(candidateRow);
+      final IonIdentity ion = candidateRow.getBestIonIdentity();
+      matchedLabels.add(ion != null ? ion.getIonType().toString() : "%.4f".formatted(candidateMz));
     }
 
-    if (matched.isEmpty()) {
+    if (fragmentEntries.isEmpty()) {
       return new DefaultQualityCheckResult(QualityCheckType.IMS_FRAGMENTATION,
           QualityCheckStatus.PASS, "No IMS fragments detected", List.of(), List.of());
     }
 
-    final List<String> details = List.of("Mobility-correlated with higher-m/z member: " //
-        + String.join(", ", matched));
+    final String summary = "%d possible IMS fragment%s after ion mobility separation".formatted(
+        involvedFragments.size(), involvedFragments.size() == 1 ? "" : "s");
+
+    // When the host (e.g. CompoundDashboardController) supplied a color assignment, render each
+    // fragment with its parents as colored, clickable chips that mirror the dashboard coloring.
+    // Without an assignment fall back to the plain text default so the pane keeps working
+    // standalone.
+    final ColorAssignment coloring = context.colorAssignment();
+    if (coloring != null) {
+      return new ImsFragmentationQualityResult(QualityCheckStatus.WARN, summary, fragmentEntries,
+          coloring, context.onRowClick());
+    }
+    final List<String> details = List.of(
+        "Mobility-correlated with higher-m/z member: " + String.join(", ", matchedLabels));
     return new DefaultQualityCheckResult(QualityCheckType.IMS_FRAGMENTATION,
-        QualityCheckStatus.WARN, "%d possible IMS fragment%s after ion mobility separation" //
-        .formatted(matched.size(), matched.size() == 1 ? "" : "s"), details, List.copyOf(involved));
+        QualityCheckStatus.WARN, summary, details, List.copyOf(involvedFragments));
   }
 
-  private static boolean anyHigherMzMobilityCorrelated(@NotNull List<CompoundFeatureMember> members,
-      @NotNull FeatureListRow candidate, double candidateMz,
-      @NotNull R2RMap<RowsRelationship> mobilityCorrMap) {
+  private static @NotNull List<@NotNull FeatureListRow> collectHigherMzMobilityCorrelatedParents(
+      @NotNull List<CompoundFeatureMember> members, @NotNull FeatureListRow candidate,
+      double candidateMz, @NotNull R2RMap<RowsRelationship> mobilityCorrMap) {
+    final List<FeatureListRow> parents = new ArrayList<>();
     for (final CompoundFeatureMember other : members) {
       final FeatureListRow otherRow = other.row();
       if (otherRow == candidate) {
         continue;
       }
       final Double otherMz = otherRow.getAverageMZ();
-      if (otherMz == null || otherMz <= candidateMz) {
+      // other mz needs to be higher than +6 so that candidate is an actual fragment
+      if (otherMz == null || otherMz <= candidateMz + 6) {
         continue;
       }
       if (mobilityCorrMap.contains(candidate, otherRow)) {
-        return true;
+        parents.add(otherRow);
       }
     }
-    return false;
+    return parents;
   }
 }

@@ -25,11 +25,14 @@
 
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.List;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,17 +43,23 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   private final RTTolerance rtTol;
   private final MZTolerance mzTol;
   private final MZTolerance ms2Tol;
+  private final @Nullable SimpleColorPalette palette;
+  private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
   private @Nullable List<QualityCheckResult> results;
 
   RecomputeTask(@NotNull CompoundRowQualityModel model,
       @NotNull CompoundRowQualityInteractor interactor, @NotNull CompoundRow row,
-      @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol) {
+      @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
+      @Nullable SimpleColorPalette palette,
+      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
     super("compoundrow_quality_update", model);
     this.interactor = interactor;
     this.row = row;
     this.rtTol = rtTol;
     this.mzTol = mzTol;
     this.ms2Tol = ms2Tol;
+    this.palette = palette;
+    this.onRowClick = onRowClick;
   }
 
   @Override
@@ -65,7 +74,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
 
   @Override
   protected void process() {
-    results = interactor.compute(row, rtTol, mzTol, ms2Tol);
+    results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, onRowClick);
   }
 
   @Override

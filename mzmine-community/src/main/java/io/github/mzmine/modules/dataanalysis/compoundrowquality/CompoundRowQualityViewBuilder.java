@@ -112,15 +112,23 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
         colorFor(r.status()));
 
     final Region mainPane = r.buildMainPane();
+    // Min 0 so HBox can shrink mainPane below its preferred content width; wrapping labels inside
+    // handle the rest. Without this, a long line of text forces the entire title bar wider than
+    // the TitledPane and the panel grows past the ScrollPane viewport.
+    mainPane.setMinWidth(0);
     HBox.setHgrow(mainPane, Priority.ALWAYS);
     final HBox header = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, icon, mainPane);
+    header.setMinWidth(0);
 
     final TitledPane pane = new TitledPane();
     pane.setGraphic(header);
     pane.setText(null);
     pane.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    // bind header width to the TitledPane width so the graphic fills the title bar
-    header.prefWidthProperty().bind(pane.widthProperty().subtract(TITLE_ARROW_RESERVED));
+    // Bind both pref and max width so the header never exceeds the title-bar width; pref alone
+    // lets large child minWidths grow the HBox past the TitledPane.
+    final var widthBinding = pane.widthProperty().subtract(TITLE_ARROW_RESERVED);
+    header.prefWidthProperty().bind(widthBinding);
+    header.maxWidthProperty().bind(widthBinding);
 
     final Region subPane = r.buildSubPane();
     if (subPane == null) {
@@ -128,9 +136,11 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     } else {
       // wrap so the body aligns under the summary (offset by icon width) regardless of what
       // the result built
+      subPane.setMinWidth(0);
       final VBox body = FxLayout.newVBox(Pos.TOP_LEFT,
           new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
               FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true, subPane);
+      body.setMinWidth(0);
       pane.setContent(body);
       pane.setExpanded(false);
     }

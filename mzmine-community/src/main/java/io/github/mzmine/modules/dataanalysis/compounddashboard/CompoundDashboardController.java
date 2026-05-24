@@ -85,6 +85,13 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
 
     // Quality pane: bind selectedCompoundRow + selectedFeatureLists in both directions.
     FxControllerBinding.bindExposedProperties(this, qualityCtrl);
+    // Mirror the dashboard color palette into the quality pane so per-member chips (e.g. in the
+    // IMS fragmentation check) match the EIC / mobilogram / MS1 colors. Bidirectional because the
+    // dashboard owns the source of truth and may snapshot a fresh palette per compound change.
+    qualityCtrl.colorPaletteProperty().bind(model.colorPaletteProperty());
+    // Clicking a member-row chip in the quality pane focuses that row in the dashboard (same
+    // semantics as clicking a legend label below the charts).
+    qualityCtrl.onMemberRowClickProperty().set(model::setSelectedAdductRow);
     // 4D feature plot: share the selected compound row + the selected feature list with the
     // dashboard, and the selected rows with the feature table so a click in the bubble plot drives
     // the table selection (and vice versa). The SelectedFeatureListsBinding is what propagates the

@@ -1,6 +1,9 @@
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.AnnotationAgreementCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.InSourceFragmentationCheck;
@@ -11,9 +14,12 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.RtStabili
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.SpectralLibraryMatchCheck;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Pure compute logic: takes a {@link CompoundRow} plus thresholds and returns the list of
@@ -30,8 +36,15 @@ public class CompoundRowQualityInteractor {
       new ImsFragmentationCheck());
 
   public @NotNull List<QualityCheckResult> compute(@NotNull CompoundRow row,
-      @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol) {
-    final QualityCheckContext context = new QualityCheckContext(rtTol, mzTol, ms2Tol);
+      @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
+      @Nullable SimpleColorPalette palette,
+      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
+    // Clone with reset cycling counter so the assignment matches the dashboard's plot coloring
+    // (which also starts from a fresh clone).
+    final ColorAssignment colorAssignment =
+        palette == null ? null : CompoundDashboardColoring.assign(row, palette.clone(true));
+    final QualityCheckContext context = new QualityCheckContext(rtTol, mzTol, ms2Tol,
+        colorAssignment, onRowClick);
     final List<QualityCheckResult> out = new ArrayList<>(checks.size());
     for (final QualityCheck check : checks) {
       out.add(check.evaluate(row, context));
