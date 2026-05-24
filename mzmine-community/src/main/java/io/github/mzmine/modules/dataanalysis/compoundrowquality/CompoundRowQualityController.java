@@ -33,7 +33,6 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
   public CompoundRowQualityController() {
     super(new CompoundRowQualityModel());
     builder = new CompoundRowQualityViewBuilder(model);
-
     PropertyUtils.onChangeDelayedSubscription(this::scheduleRecompute, RECOMPUTE_DEBOUNCE,
         model.selectedCompoundRowProperty(), model.rtStabilityToleranceProperty(),
         model.mzToleranceProperty(), model.ms2ToleranceProperty());

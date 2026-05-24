@@ -12,7 +12,8 @@ public enum QualityCheckType {
   MAIN_ADDUCT_PRESENT("Main adduct present"), //
   MS2_AVAILABLE("MS2 fragment scan"), //
   SPECTRAL_LIBRARY_MATCH("Spectral library match"), //
-  IN_SOURCE_FRAGMENTATION("In-source fragmentation");
+  IN_SOURCE_FRAGMENTATION("In-source fragmentation"), //
+  IMS_FRAGMENTATION("IMS fragmentation");
 
   private final String label;
 

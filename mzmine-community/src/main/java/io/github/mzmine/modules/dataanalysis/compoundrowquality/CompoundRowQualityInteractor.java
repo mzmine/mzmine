@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.AnnotationAgreementCheck;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.InSourceFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IonTypesCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.MainAdductCheck;
@@ -25,7 +26,8 @@ public class CompoundRowQualityInteractor {
   /// Display order matches {@link QualityCheckType} ordering.
   private final @NotNull List<@NotNull QualityCheck> checks = List.of(new IonTypesCheck(),
       new RtStabilityCheck(), new AnnotationAgreementCheck(), new MainAdductCheck(),
-      new Ms2AvailableCheck(), new SpectralLibraryMatchCheck(), new InSourceFragmentationCheck());
+      new Ms2AvailableCheck(), new SpectralLibraryMatchCheck(), new InSourceFragmentationCheck(),
+      new ImsFragmentationCheck());
 
   public @NotNull List<QualityCheckResult> compute(@NotNull CompoundRow row,
       @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol) {
