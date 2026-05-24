@@ -40,7 +40,11 @@ public class CompoundList {
   private final ColumnarModularFeatureListRowsSchema compoundRowSchema;
   @NotNull
   private final ColumnarModularDataModelSchema compoundFeaturesSchema;
-  private final long sourceStructuralVersion;
+  // Captured at construction and re-synced by {@link #syncSourceStructuralVersion()} whenever the
+  // owning feature list mutates rows in a controlled way (e.g. row deletion that we propagated into
+  // this compound list). Compared against the feature list's current structural version in
+  // {@link #isStale()}.
+  private volatile long sourceStructuralVersion;
 
   private final ObservableList<ModularCompoundRow> rows = FXCollections.observableArrayList();
   private final ObservableList<ModularCompoundRow> rowsReadOnly = FXCollections.unmodifiableObservableList(
@@ -96,10 +100,19 @@ public class CompoundList {
 
   /**
    * @return true if the source feature list changed structurally (rows added / removed) since this
-   * compound list was built.
+   * compound list was built or last {@link #syncSourceStructuralVersion()}.
    */
   public boolean isStale() {
     return sourceStructuralVersion != featureList.getStructuralVersion();
+  }
+
+  /**
+   * Re-snapshot the source feature list's structural version. Call this after applying a controlled
+   * structural change (e.g. propagating row removal into the compound list) so the compound list is
+   * not falsely reported as stale.
+   */
+  public void syncSourceStructuralVersion() {
+    this.sourceStructuralVersion = featureList.getStructuralVersion();
   }
 
   /**

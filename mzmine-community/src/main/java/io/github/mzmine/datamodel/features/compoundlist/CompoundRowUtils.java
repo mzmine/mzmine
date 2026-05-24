@@ -1,16 +1,20 @@
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -127,10 +131,97 @@ public final class CompoundRowUtils {
   }
 
   /**
-   * Remove the given {@code compoundsToRemove} from the top-level rows of {@code list}. Member rows
-   * (the underlying {@link ModularFeatureListRow}s) are not touched — only the compound grouping is
-   * dropped. Compound rows that are not present at the top level (e.g. nested compounds) are
-   * silently ignored.
+   * Strip the given member rows from every compound row in {@code list}, recursing into nested
+   * compound rows. Used when feature list rows are deleted from the underlying
+   * {@link ModularFeatureList} so the compound list stays consistent instead of being invalidated.
+   * <ul>
+   *   <li>Leaf member rows with a matching id are stripped at any depth.</li>
+   *   <li>A nested compound row that ends up empty after stripping is dropped from its parent.</li>
+   *   <li>A top-level compound that ends up empty is dropped from the list.</li>
+   *   <li>Compounds that lose their representative get a new one promoted.</li>
+   * </ul>
+   *
+   * @return true if any compound row was modified or removed
+   */
+  public static boolean detachMemberRows(@NotNull final CompoundList list,
+      @NotNull final Collection<? extends FeatureListRow> rowsToDetach) {
+    if (rowsToDetach.isEmpty()) {
+      return false;
+    }
+    final Set<Integer> detachIds = collectIds(rowsToDetach);
+    final boolean[] changed = {false};
+
+    final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
+    for (final ModularCompoundRow cr : list.getRows()) {
+      final boolean shouldDrop = detachLeavesRecursive(cr, detachIds, changed);
+      if (!shouldDrop) {
+        nextRows.add(cr);
+      }
+    }
+    if (changed[0]) {
+      list.setRows(nextRows);
+    }
+    return changed[0];
+  }
+
+  /**
+   * Per-parent variant of {@link #detachMemberRows(CompoundList, Collection)}: strip the given
+   * member rows from {@code parent} and all of its nested compound members (recursive). Nested
+   * compounds that become empty are dropped from {@code parent}. {@code parent} itself is never
+   * removed by this method — if it becomes empty the caller is responsible for removing it (see the
+   * return value). Bindings/indexes on the owning {@link CompoundList} are not rebuilt; call
+   * {@link #detachMemberRows(CompoundList, Collection)} if you want full-list consistency.
+   *
+   * @return true if {@code parent} is now empty and should be removed by the caller
+   */
+  public static boolean detachMemberRowsFrom(@NotNull final ModularCompoundRow parent,
+      @NotNull final Collection<? extends FeatureListRow> rowsToDetach) {
+    if (rowsToDetach.isEmpty()) {
+      return false;
+    }
+    final Set<Integer> detachIds = collectIds(rowsToDetach);
+    return detachLeavesRecursive(parent, detachIds, new boolean[]{false});
+  }
+
+  /**
+   * Recursive walk. Recurses into nested compound members first so that an empty nested compound
+   * gets dropped from its parent. Then rewrites {@code compound}'s members, removing both leaf rows
+   * whose id is in {@code detachIds} and nested compounds that just became empty.
+   *
+   * @return true if {@code compound} should be dropped from its parent (became empty after the
+   * rewrite)
+   */
+  private static boolean detachLeavesRecursive(@NotNull final ModularCompoundRow compound,
+      @NotNull final Set<Integer> detachIds, @NotNull final boolean[] changedAccumulator) {
+    // First pass: recurse into nested compounds. Any nested compound that becomes empty must also
+    // be dropped from this compound.
+    final Set<ModularCompoundRow> nestedToDrop = new HashSet<>();
+    for (final CompoundFeatureMember m : compound.getCompoundMembersData().members()) {
+      if (m.row() instanceof ModularCompoundRow nested && detachLeavesRecursive(nested, detachIds,
+          changedAccumulator)) {
+        nestedToDrop.add(nested);
+      }
+    }
+
+    // Second pass: drop leaves whose id matches detachIds + drop nested compounds emptied above.
+    return rewriteCompoundMembers(compound, m -> {
+      if (m.row() instanceof ModularCompoundRow nested) {
+        return nestedToDrop.contains(nested);
+      }
+      return detachIds.contains(m.row().getID());
+    }, changedAccumulator);
+  }
+
+  /**
+   * Remove the given {@code compoundsToRemove} from {@code list}. Compounds may live at any depth:
+   * <ul>
+   *   <li>Top-level compounds are dropped from {@link CompoundList#getRows()}.</li>
+   *   <li>Nested compounds are stripped from every parent compound that lists them as a member.</li>
+   *   <li>If a parent loses all of its members because of this removal, the parent is also
+   *       removed (cascading up to the top-level list).</li>
+   * </ul>
+   * The underlying feature list rows of the removed compounds are not touched — only the compound
+   * grouping is dropped.
    *
    * @return true if at least one compound was removed
    */
@@ -139,20 +230,78 @@ public final class CompoundRowUtils {
     if (compoundsToRemove.isEmpty()) {
       return false;
     }
-    final Set<ModularCompoundRow> toRemove = newIdentitySet(compoundsToRemove);
-    final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
+
+    final Set<ModularCompoundRow> toRemoveByRef = newIdentitySet(compoundsToRemove);
+    final Deque<ModularCompoundRow> queue = new ArrayDeque<>(toRemoveByRef);
     boolean changed = false;
-    for (final ModularCompoundRow cr : list.getRows()) {
-      if (toRemove.contains(cr)) {
-        changed = true;
-      } else {
-        nextRows.add(cr);
+
+    while (!queue.isEmpty()) {
+      final ModularCompoundRow target = queue.poll();
+      changed = true;
+
+      // Direct parents from the reverse index. The index is rebuilt only by setRows so it stays
+      // stable across our per-row mutations below.
+      final List<ModularCompoundRow> parents = list.findCompoundsOf(target);
+      for (final ModularCompoundRow parent : parents) {
+        if (toRemoveByRef.contains(parent)) {
+          // parent is also being removed entirely — its member list does not need to be rewritten
+          continue;
+        }
+        final boolean parentNowEmpty = rewriteCompoundMembers(parent, m -> m.row() == target,
+            new boolean[]{false});
+        if (parentNowEmpty && toRemoveByRef.add(parent)) {
+          // cascade: parent lost all members, also drop it (and find its own parents on next pass)
+          queue.add(parent);
+        }
       }
     }
+
     if (changed) {
+      final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
+      for (final ModularCompoundRow cr : list.getRows()) {
+        if (!toRemoveByRef.contains(cr)) {
+          nextRows.add(cr);
+        }
+      }
       list.setRows(nextRows);
     }
     return changed;
+  }
+
+  /**
+   * Rewrite {@code compound}'s {@link CompoundMembersType} in place: keep only members for which
+   * {@code shouldRemove} returns false, then re-normalize the representative (the previous
+   * representative may have been removed). If the compound ends up empty no write happens — the
+   * method returns true so the caller can drop the now-empty compound from its parent.
+   *
+   * @return true if the compound is empty after the rewrite and should be dropped by the caller
+   */
+  private static boolean rewriteCompoundMembers(@NotNull final ModularCompoundRow compound,
+      @NotNull final Predicate<CompoundFeatureMember> shouldRemove,
+      final boolean @NotNull [] changedAccumulator) {
+    final CompoundMembers data = compound.getCompoundMembersData();
+    final List<CompoundFeatureMember> remaining = new ArrayList<>(data.members().size());
+    boolean compoundChanged = false;
+    for (final CompoundFeatureMember m : data.members()) {
+      if (shouldRemove.test(m)) {
+        compoundChanged = true;
+      } else {
+        remaining.add(m);
+      }
+    }
+    if (!compoundChanged) {
+      return false;
+    }
+    changedAccumulator[0] = true;
+    if (remaining.isEmpty()) {
+      // signal to caller that this compound should be dropped from its parent; do not write empty
+      return true;
+    }
+    final List<CompoundFeatureMember> normalized = ensureRepresentative(remaining);
+    final ModularFeatureListRow newPref = pickRepresentativeRow(normalized);
+    compound.set(CompoundMembersType.class,
+        new CompoundMembers(newPref, List.copyOf(normalized), data.confidence()));
+    return false;
   }
 
   /**
@@ -343,7 +492,7 @@ public final class CompoundRowUtils {
 
   private static @NotNull Set<Integer> collectIds(
       @NotNull final Collection<? extends FeatureListRow> rows) {
-    final Set<Integer> ids = new HashSet<>(rows.size() * 2);
+    final Set<Integer> ids = HashSet.newHashSet(rows.size());
     for (final FeatureListRow r : rows) {
       ids.add(r.getID());
     }
