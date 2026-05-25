@@ -1,13 +1,16 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.scans.FragmentScanSelection;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -47,6 +50,8 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       // mirror that into selectedMs2Row.
       model.setSelectedAdductRow(null);
       model.setSelectedMs2Row(null);
+      model.getAvailableMs2Scans().clear();
+      model.setSelectedMs2Scan(null);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMobilogramDatasets().clear();
@@ -122,7 +127,40 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return null;
     }
     return new CompoundDashboardSpectraTask(model, compound, model.getCurrentRawDataFile(),
-        model.getSelectedMs2Row(), palette.clone(true));
+        model.getSelectedMs2Row(), model.getSelectedMs2Scan(), palette.clone(true));
+  }
+
+  /**
+   * Recompute {@link CompoundDashboardModel#getAvailableMs2Scans()} for the currently selected MS2
+   * row. The first entry is a single merged MS2 (produced by a {@link SpectraMergeSelectParameter}
+   * fixed to REPRESENTATIVE_SCANS across samples); the remaining entries are the row's individual
+   * fragment scans in their natural order. Also resets
+   * {@link CompoundDashboardModel#getSelectedMs2Scan()} to the first available entry so the MS2
+   * chart shows the merged scan by default for a freshly selected row.
+   */
+  public void recomputeAvailableMs2Scans() {
+    final FeatureListRow row = model.getSelectedMs2Row();
+    if (row == null) {
+      model.getAvailableMs2Scans().clear();
+      model.setSelectedMs2Scan(null);
+      return;
+    }
+    final List<Scan> sourceScans = row.getAllFragmentScans();
+    final List<Scan> result = new ArrayList<>(sourceScans.size() + 1);
+    // Skip merging for a single source scan: the result would equal that scan anyway.
+    if (sourceScans.size() > 1) {
+      final SpectraMergeSelectParameter mergeParam = SpectraMergeSelectParameter.createSpectraLibrarySearchDefaultNoMSn();
+      final FragmentScanSelection selection = mergeParam.createFragmentScanSelection(null);
+      // The returned list already contains the merged scan(s) first (no input scans because
+      // createSpectraLibrarySearchDefaultNoMSn uses SelectInputScans.NONE). Append the row's
+      // source scans afterwards so navigation cycles merged -> individual.
+      result.addAll(selection.getAllFragmentSpectra(sourceScans));
+    }
+    result.addAll(sourceScans);
+    model.getAvailableMs2Scans().setAll(result);
+    // Always reset to the first (merged) entry when the row changes — the previous selection
+    // refers to a different row and doesn't make sense here anymore.
+    model.setSelectedMs2Scan(result.isEmpty() ? null : result.getFirst());
   }
 
   /**

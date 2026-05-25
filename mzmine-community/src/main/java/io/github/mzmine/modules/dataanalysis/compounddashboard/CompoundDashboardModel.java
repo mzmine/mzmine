@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -51,9 +52,16 @@ public class CompoundDashboardModel {
   // the EIC/MS1 plots and the MS2 selector stay decoupled.
   private final ObjectProperty<@Nullable FeatureListRow> selectedAdductRow = new SimpleObjectProperty<>();
 
+  // The MS2 scan rendered by the MS2 chart. First item is the merged scan; navigated by the
+  // prev/next icon buttons next to the adduct ComboBox.
+  private final ObjectProperty<@Nullable Scan> selectedMs2Scan = new SimpleObjectProperty<>();
+
   // --- derived ---------------------------------------------------------------
   private final ObservableList<RawDataFile> availableRawDataFiles = FXCollections.observableArrayList();
   private final ObservableList<FeatureListRow> adductRows = FXCollections.observableArrayList();
+  // All MS2 scans for the currently selected MS2 row: first the merged scan (REPRESENTATIVE across
+  // samples), then the row's individual fragment scans. Drives the scan ComboBox.
+  private final ObservableList<Scan> availableMs2Scans = FXCollections.observableArrayList();
   // All member rows of the currently selected compound (flattened) paired with the color the EIC /
   // mobilogram / MS1 plots use for that row. Maintained by the Interactor so the legend FlowPane
   // mirrors what the user sees on the plots.
@@ -170,6 +178,22 @@ public class CompoundDashboardModel {
 
   public @NotNull ObservableList<FeatureListRow> getAdductRows() {
     return adductRows;
+  }
+
+  public @NotNull ObservableList<Scan> getAvailableMs2Scans() {
+    return availableMs2Scans;
+  }
+
+  public @Nullable Scan getSelectedMs2Scan() {
+    return selectedMs2Scan.get();
+  }
+
+  public void setSelectedMs2Scan(@Nullable Scan scan) {
+    selectedMs2Scan.set(scan);
+  }
+
+  public ObjectProperty<@Nullable Scan> selectedMs2ScanProperty() {
+    return selectedMs2Scan;
   }
 
   public @NotNull ObservableList<CompoundDashboardLegendEntry> getLegendEntries() {

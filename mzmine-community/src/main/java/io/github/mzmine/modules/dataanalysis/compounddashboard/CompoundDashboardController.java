@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -137,12 +138,18 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     PropertyUtils.onChange(interactor::onSelectionChanged, model.selectedCompoundRowProperty(),
         model.featureListProperty());
 
-    // Heavy debounced recompute of MS1+MS2. The MS2 source is `selectedMs2Row` (derived from
-    // `selectedAdductRow`); triggering on selectedAdductRow as well would be redundant because
-    // every selectedAdductRow change already propagates into selectedMs2Row.
+    // Heavy debounced recompute of MS1+MS2. The MS2 source is `selectedMs2Scan` (the user's pick in
+    // the scan ComboBox). Triggering on selectedMs2Row would be redundant because every row change
+    // is followed by a recomputeAvailableMs2Scans -> setSelectedMs2Scan call below, which fires the
+    // scan change here. Triggering on selectedAdductRow would also be redundant because every
+    // selectedAdductRow change propagates into selectedMs2Row first.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleSpectra, DEBOUNCE,
-        model.selectedCompoundRowProperty(), model.selectedMs2RowProperty(),
+        model.selectedCompoundRowProperty(), model.selectedMs2ScanProperty(),
         model.colorPaletteProperty(), model.currentRawDataFileProperty());
+    // When the selected MS2 row changes, rebuild the list of available MS2 scans (merged +
+    // individual fragment scans) and reset selectedMs2Scan to the merged scan. The scan change in
+    // turn triggers the spectra task above.
+    model.selectedMs2RowProperty().subscribe(_ -> interactor.recomputeAvailableMs2Scans());
     // Heavy debounced recompute of EICs.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleEic, DEBOUNCE,
         model.selectedCompoundRowProperty(), model.currentRawDataFileProperty(),
@@ -268,6 +275,20 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     cycleRawDataFile(-1);
   }
 
+  /**
+   * Cycle to the next MS2 scan in {@link CompoundDashboardModel#getAvailableMs2Scans()}.
+   */
+  public void nextMs2Scan() {
+    cycleMs2Scan(+1);
+  }
+
+  /**
+   * Cycle to the previous MS2 scan in {@link CompoundDashboardModel#getAvailableMs2Scans()}.
+   */
+  public void previousMs2Scan() {
+    cycleMs2Scan(-1);
+  }
+
   // --- bindings --------------------------------------------------------------
 
   @Override
@@ -291,6 +312,18 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     final int idx = current == null ? -1 : files.indexOf(current);
     final int next = ((idx + delta) % files.size() + files.size()) % files.size();
     model.setCurrentRawDataFile(files.get(next));
+  }
+
+  private void cycleMs2Scan(final int delta) {
+    final ObservableList<Scan> scans = model.getAvailableMs2Scans();
+    if (scans.isEmpty()) {
+      return;
+    }
+    final Scan current = model.getSelectedMs2Scan();
+    final int idx = current == null ? -1 : scans.indexOf(current);
+    // for both directions
+    final int next = ((idx + delta) % scans.size() + scans.size()) % scans.size();
+    model.setSelectedMs2Scan(scans.get(next));
   }
 
   private void scheduleSpectra() {

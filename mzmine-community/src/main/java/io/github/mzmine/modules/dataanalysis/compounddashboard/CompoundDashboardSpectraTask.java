@@ -34,6 +34,7 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
   private final @NotNull CompoundRow compound;
   private final @Nullable RawDataFile file;
   private final @Nullable FeatureListRow ms2Row;
+  private final @Nullable Scan ms2Scan;
   private final @NotNull SimpleColorPalette palette;
 
   private List<DatasetAndRenderer> ms1Out = List.of();
@@ -44,11 +45,12 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
 
   public CompoundDashboardSpectraTask(@NotNull CompoundDashboardModel model,
       @NotNull CompoundRow compound, @Nullable RawDataFile file, @Nullable FeatureListRow ms2Row,
-      @NotNull SimpleColorPalette palette) {
+      @Nullable Scan ms2Scan, @NotNull SimpleColorPalette palette) {
     super("Compound dashboard spectra", model);
     this.compound = compound;
     this.file = file;
     this.ms2Row = ms2Row;
+    this.ms2Scan = ms2Scan;
     this.palette = palette;
   }
 
@@ -167,20 +169,15 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
   // --- MS2 -------------------------------------------------------------------
 
   private @NotNull List<DatasetAndRenderer> buildMs2(@NotNull final ColorAssignment colors) {
-    if (ms2Row == null) {
+    if (ms2Row == null || ms2Scan == null) {
       ms2TitleOut = "";
       return List.of();
     }
-    final Scan ms2 = pickMs2Scan(ms2Row);
-    if (ms2 == null) {
-      ms2TitleOut = "";
-      return List.of();
-    }
-    ms2TitleOut = buildMs2Title(ms2);
+    ms2TitleOut = buildMs2Title(ms2Scan);
     final String label = "MS2 " + (CompoundDashboardColoring.ionTypeLabel(ms2Row) != null
         ? CompoundDashboardColoring.ionTypeLabel(ms2Row) : "");
     final Color awt = FxColorUtil.fxColorToAWT(colors.colorFor(ms2Row));
-    return List.of(new DatasetAndRenderer(new MassSpectrumProvider(ms2, label, awt),
+    return List.of(new DatasetAndRenderer(new MassSpectrumProvider(ms2Scan, label, awt),
         new ColoredXYBarRenderer(false)));
   }
 
@@ -200,15 +197,5 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
     }
     return "MS2 (" + ms2.getDataFile().getName() + ":" + ms2.getScanNumber() + "; " + methodStr
         + "; " + energyStr + ")";
-  }
-
-  private @Nullable Scan pickMs2Scan(@NotNull final FeatureListRow row) {
-    if (file != null) {
-      final Feature f = row.getFeature(file);
-      if (f != null && f.getMostIntenseFragmentScan() != null) {
-        return f.getMostIntenseFragmentScan();
-      }
-    }
-    return row.getMostIntenseFragmentScan();
   }
 }

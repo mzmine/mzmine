@@ -1,10 +1,14 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -18,6 +22,7 @@ import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotC
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotIcon;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.binding.Bindings;
@@ -219,7 +224,21 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     adductCombo.setButtonCell(adductCell());
     HBox.setHgrow(adductCombo, Priority.SOMETIMES);
     final Label ms2OfLabel = FxLabels.newBoldLabel("MS2 of");
-    final HBox ms2Toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, ms2OfLabel, adductCombo);
+
+    // Scan selector: first item is the merged MS2 (REPRESENTATIVE across samples), followed by the
+    // row's individual fragment scans. Prev/next buttons cycle through the list in the controller.
+    final ButtonBase prevScan = FxIconUtil.newIconButton(FxIcons.ARROW_LEFT, "Previous MS2 scan",
+        controller::previousMs2Scan);
+    final ButtonBase nextScan = FxIconUtil.newIconButton(FxIcons.ARROW_RIGHT, "Next MS2 scan",
+        controller::nextMs2Scan);
+    final ComboBox<Scan> scanCombo = FxComboBox.createComboBox("MS2 scan",
+        model.getAvailableMs2Scans(), model.selectedMs2ScanProperty());
+    scanCombo.setCellFactory(_ -> ms2ScanCell(model.getAvailableMs2Scans()));
+    scanCombo.setButtonCell(ms2ScanCell(model.getAvailableMs2Scans()));
+    HBox.setHgrow(scanCombo, Priority.SOMETIMES);
+
+    final HBox ms2Toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, ms2OfLabel, adductCombo, prevScan,
+        scanCombo, nextScan);
 
     final Region ms2View = ms2Chart.buildView();
     // Overlay a centered bold message when no MS2 dataset is available so the user knows the
@@ -334,6 +353,46 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
         setGraphic(null);
       }
     };
+  }
+
+  private static @NotNull ListCell<Scan> ms2ScanCell(@NotNull final List<Scan> items) {
+    return new ListCell<>() {
+      @Override
+      protected void updateItem(final Scan item, final boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+          setText(null);
+        } else {
+          setText(formatMs2ScanLabel(item, items));
+        }
+        setGraphic(null);
+      }
+    };
+  }
+
+  private static @NotNull String formatMs2ScanLabel(@NotNull final Scan scan,
+      @NotNull final List<Scan> items) {
+    if (scan instanceof MergedMassSpectrum) {
+      return "Merged MS2";
+    }
+    // 1-based position within the source-scan section of the list (i.e. the position in the
+    // dropdown, where index 0 is the merged scan and the first regular scan reads as "1").
+    final int idx = items.indexOf(scan);
+    final String itemNumber = idx < 0 ? "?" : String.valueOf(idx);
+    final MsMsInfo info = scan.getMsMsInfo();
+    final ActivationMethod method = info != null ? info.getActivationMethod() : null;
+    final Float energy = ScanUtils.extractCollisionEnergy(scan);
+    final String methodStr =
+        method == null ? ActivationMethod.UNKNOWN.getAbbreviation() : method.getAbbreviation();
+    final String energyStr;
+    if (energy == null) {
+      energyStr = "N.A.";
+    } else if (method != null && !method.getUnit().isBlank()) {
+      energyStr = energy + " " + method.getUnit();
+    } else {
+      energyStr = String.valueOf(energy);
+    }
+    return itemNumber + ", " + energyStr + ", " + methodStr;
   }
 
   private static @NotNull ListCell<FeatureListRow> adductCell() {
