@@ -10,12 +10,12 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.binding.DoubleBinding;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TitledPane;
@@ -42,7 +42,8 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
   private static final double MAX_PANE_WIDTH = 500;
   /// Approx width reserved for the TitledPane disclosure arrow + insets, used when binding the
   /// header HBox width so the header fills the title bar.
-  private static final double TITLE_ARROW_RESERVED = 32d;
+  private static final double TITLE_ARROW_RESERVED = 8d;
+  private DoubleBinding contentWidth;
 
   protected CompoundRowQualityViewBuilder(CompoundRowQualityModel model) {
     super(model);
@@ -57,28 +58,22 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     final Label emptyState = FxLabels.newItalicLabel("Select a compound row to see quality checks");
     emptyState.setPadding(new Insets(FxLayout.DEFAULT_SPACE));
 
-    final ScrollPane scroll = new ScrollPane(itemList);
+    final BorderPane content = new BorderPane(itemList);
+    final ScrollPane scroll = new ScrollPane(content);
     scroll.setFitToWidth(true);
     scroll.setHbarPolicy(ScrollBarPolicy.NEVER);
     scroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     VBox.setVgrow(scroll, Priority.ALWAYS);
 
-    final ProgressIndicator progress = new ProgressIndicator();
-    progress.setMaxSize(FxIconUtil.DEFAULT_ICON_SIZE, FxIconUtil.DEFAULT_ICON_SIZE);
-    progress.visibleProperty().bind(model.computingProperty());
-    progress.managedProperty().bind(progress.visibleProperty());
-
     final Label title = FxLabels.newBoldTitle("Compound quality");
 
-    final HBox titleBar = FxLayout.newHBox(Pos.CENTER_LEFT,
-        new Insets(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE,
-            FxLayout.DEFAULT_SPACE), title, progress);
+    final HBox titleBar = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, title);
 
     final BorderPane outer = new BorderPane(scroll);
     outer.setTop(titleBar);
-    outer.setMinWidth(MAIN_WIDTH);
+//    outer.setMinWidth(MAIN_WIDTH);
     outer.setPrefWidth(MAIN_WIDTH);
-    outer.setMaxWidth(MAX_PANE_WIDTH);
+//    outer.setMaxWidth(MAX_PANE_WIDTH);
 
     final Runnable rebuild = () -> {
       final List<Node> nodes;
@@ -94,6 +89,10 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
 
     PropertyUtils.onChangeList(rebuild, model.getResults());
     model.selectedCompoundRowProperty().subscribe(_ -> rebuild.run());
+
+    contentWidth = outer.widthProperty().subtract(TITLE_ARROW_RESERVED);
+    content.prefWidthProperty().bind(contentWidth);
+    content.maxWidthProperty().bind(contentWidth);
 
     rebuild.run();
     return outer;
@@ -124,11 +123,12 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     pane.setGraphic(header);
     pane.setText(null);
     pane.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    pane.prefWidthProperty().bind(contentWidth);
+    pane.maxWidthProperty().bind(contentWidth);
     // Bind both pref and max width so the header never exceeds the title-bar width; pref alone
     // lets large child minWidths grow the HBox past the TitledPane.
-    final var widthBinding = pane.widthProperty().subtract(TITLE_ARROW_RESERVED);
-    header.prefWidthProperty().bind(widthBinding);
-    header.maxWidthProperty().bind(widthBinding);
+//    header.prefWidthProperty().bind(contentWidth);
+//    header.maxWidthProperty().bind(contentWidth);
 
     final Region subPane = r.buildSubPane();
     if (subPane == null) {
@@ -137,9 +137,8 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
       // wrap so the body aligns under the summary (offset by icon width) regardless of what
       // the result built
       subPane.setMinWidth(0);
-      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT,
-          new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
-              FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true, subPane);
+      final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, FxLayout.DEFAULT_PADDING_INSETS, true,
+          subPane);
       body.setMinWidth(0);
       pane.setContent(body);
       pane.setExpanded(false);
