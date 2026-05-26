@@ -99,7 +99,8 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
   }
 
   private QualityCheckItem buildItem(QualityCheckResult r) {
-    final QualityCheckItem item = new QualityCheckItem(r, colorFor(r.status()));
+    final QualityCheckItem item = new QualityCheckItem(r, colorFor(r.status()),
+        model.expandedStateByTypeProperty());
     // Clamp each card's width to the scroll-pane content width so the card cannot grow past the
     // viewport regardless of inner content. Pref + max bound together; minWidth=0 is set inside
     // the item so a long label wraps instead of pushing the card wider.

@@ -16,6 +16,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +61,21 @@ public class CompoundRowQualityModel {
 
   // true while a recompute task is in flight
   private final BooleanProperty computing = new SimpleBooleanProperty(false);
+
+  // Per-check-type expanded state. Persisted across view rebuilds so that when the results list is
+  // recomputed (e.g. on selection change), each newly created QualityCheckItem can restore the last
+  // expanded/collapsed state for its type instead of resetting to collapsed. All entries start as
+  // false (collapsed) — entries are added lazily when an item first reads or writes its state.
+  private final ObservableMap<@NotNull QualityCheckType, @NotNull Boolean> expandedStateByType = FXCollections.observableHashMap();
+
+  {
+    // Pre-populate with collapsed=false for every known check type so callers can rely on the map
+    // containing all types from the start. Map is observable, so listeners (if any) still see the
+    // change events when toggling later.
+    for (final QualityCheckType type : QualityCheckType.values()) {
+      expandedStateByType.put(type, false);
+    }
+  }
 
   public @Nullable CompoundRow getSelectedCompoundRow() {
     return selectedCompoundRow.get();
@@ -131,5 +147,14 @@ public class CompoundRowQualityModel {
 
   public ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEventProperty() {
     return onQualityCheckEvent;
+  }
+
+  /**
+   * Observable map of the per-{@link QualityCheckType} expanded state used by the view to keep the
+   * last expand/collapse state across rebuilds. All types start as {@code false} (collapsed); a
+   * card writes back into this map on toggle so the next rebuild restores its state.
+   */
+  public @NotNull ObservableMap<@NotNull QualityCheckType, @NotNull Boolean> expandedStateByTypeProperty() {
+    return expandedStateByType;
   }
 }

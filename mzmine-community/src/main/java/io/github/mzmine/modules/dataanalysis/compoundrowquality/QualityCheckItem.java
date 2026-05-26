@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -42,7 +43,8 @@ public final class QualityCheckItem extends BorderPane {
   private static final double TRIANGLE_HALF_WIDTH = 4.0;
 
   public QualityCheckItem(@NotNull final QualityCheckResult result,
-      @NotNull final Color statusColor) {
+      @NotNull final Color statusColor,
+      @NotNull final ObservableMap<@NotNull QualityCheckType, @NotNull Boolean> expandedStateByType) {
     setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     // Min 0 so the surrounding VBox can compress the card down to the ScrollPane width and the
     // wrapping labels inside take over from there.
@@ -104,7 +106,11 @@ public final class QualityCheckItem extends BorderPane {
     // chain. Setting them independently has been observed to leave BorderPane.center with a stale
     // prefHeight after the user expanded a card with a tall sub pane.
     subWrap.managedProperty().bind(subWrap.visibleProperty());
-    subWrap.setVisible(false);
+    // Restore the last expanded state for this check type. Defaults to false when the map has no
+    // entry yet (e.g. a new check type added since the map was created).
+    final boolean initiallyExpanded = expandedStateByType.getOrDefault(result.type(), false);
+    subWrap.setVisible(initiallyExpanded);
+    toggle.setRotate(initiallyExpanded ? 90 : 0);
     setCenter(subWrap);
 
     // Clicking anywhere on the header (icon, triangle, title, summary) toggles the sub pane. The
@@ -117,6 +123,8 @@ public final class QualityCheckItem extends BorderPane {
       subWrap.setVisible(expand);
       // 0° -> right (collapsed); 90° -> down (expanded).
       toggle.setRotate(expand ? 90 : 0);
+      // Persist the new state so the next view rebuild restores it for this check type.
+      expandedStateByType.put(result.type(), expand);
       // Defensive: force a layout pass up the chain. The visible/managed change should already
       // invalidate the BorderPane and the surrounding VBox, but when the sub pane is very tall
       // (e.g. many MS2-available rows) the BorderPane.center prefHeight has occasionally
