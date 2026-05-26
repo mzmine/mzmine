@@ -499,6 +499,23 @@ public class CompoundAnnotationUtils {
   }
 
   /**
+   * Best annotation across multiple rows
+   */
+  public static @Nullable AnnotationSummary getBestAnnotationSummary(
+      @NotNull final List<FeatureListRow> models) {
+    if (models.isEmpty()) {
+      return null;
+    }
+    final Comparator<@Nullable AnnotationSummary> sorter = models.getFirst().getFeatureList()
+        .getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
+
+    return models.stream().<AnnotationSummary>mapMulti((model, consumer) -> {
+      getTopAnnotationsPerType(model).stream().map(a -> AnnotationSummary.of(model, a))
+          .forEach(consumer);
+    }).min(sorter).orElse(null);
+  }
+
+  /**
    *
    * @param topN Number of annotations <b>per</b> annotation type.
    * @return Annotation types sorted by descending confidence as defined by

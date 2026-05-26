@@ -6,12 +6,12 @@ import org.jetbrains.annotations.NotNull;
  * The set of quality checks computed for a CompoundRow. Order here is the display order.
  */
 public enum QualityCheckType {
-  ION_TYPES("Ion types"), //
-  RT_STABILITY("RT stability"), //
+  COMPOUND_ANNOTATION("Compound annotation"), //
   ANNOTATION_AGREEMENT("Annotation agreement"), //
+  ION_TYPES("Ion types"), //
   MAIN_ADDUCT_PRESENT("Main adduct present"), //
+  RT_STABILITY("RT stability"), //
   MS2_AVAILABLE("MS2 fragment scan"), //
-  SPECTRAL_LIBRARY_MATCH("Spectral library match"), //
   IN_SOURCE_FRAGMENTATION("In-source fragmentation"), //
   IMS_FRAGMENTATION("IMS fragmentation");
 
@@ -24,4 +24,5 @@ public enum QualityCheckType {
   public @NotNull String getLabel() {
     return label;
   }
+
 }

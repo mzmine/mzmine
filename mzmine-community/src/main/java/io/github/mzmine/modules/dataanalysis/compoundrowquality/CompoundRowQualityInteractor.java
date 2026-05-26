@@ -5,13 +5,13 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.AnnotationAgreementCheck;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.CompoundAnnotationMatchCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.InSourceFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IonTypesCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.MainAdductCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.Ms2AvailableCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.RtStabilityCheck;
-import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.SpectralLibraryMatchCheck;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -30,9 +30,10 @@ import org.jetbrains.annotations.Nullable;
 public class CompoundRowQualityInteractor {
 
   /// Display order matches {@link QualityCheckType} ordering.
-  private final @NotNull List<@NotNull QualityCheck> checks = List.of(new IonTypesCheck(),
-      new RtStabilityCheck(), new AnnotationAgreementCheck(), new MainAdductCheck(),
-      new Ms2AvailableCheck(), new SpectralLibraryMatchCheck(), new InSourceFragmentationCheck(),
+  private final @NotNull List<@NotNull QualityCheck> checks = List.of(
+      new CompoundAnnotationMatchCheck(), new AnnotationAgreementCheck(), new IonTypesCheck(),
+      new MainAdductCheck(), new RtStabilityCheck(), new Ms2AvailableCheck(),
+      new InSourceFragmentationCheck(),
       new ImsFragmentationCheck());
 
   public @NotNull List<QualityCheckResult> compute(@NotNull CompoundRow row,
