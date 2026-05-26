@@ -39,14 +39,21 @@ public final class CompoundAnnotationMatchCheck implements QualityCheck {
       return ann == null ? null : AnnotationSummary.of(row, ann);
     }).filter(Objects::nonNull).min(sorter).orElse(null);
 
+    FeatureListRow bestRow = null;
     for (final CompoundFeatureMember m : row.getCompoundMembers()) {
       final FeatureAnnotation preferredAnnotation = m.row().getPreferredAnnotation();
       if (preferredAnnotation != null) {
         involved.add(m.row());
+        // Identity match: AnnotationSummary.of(row, ann) stores the original `ann` reference, so
+        // bestAnnotation.annotation() is == the member's preferred annotation that won the sort.
+        if (bestAnnotation != null && bestRow == null
+            && preferredAnnotation == bestAnnotation.annotation()) {
+          bestRow = m.row();
+        }
       }
     }
 
-    if (bestAnnotation == null) {
+    if (bestAnnotation == null || bestRow == null) {
       return new DefaultQualityCheckResult(QualityCheckType.COMPOUND_ANNOTATION,
           QualityCheckStatus.UNAVAILABLE, "No compound annotation", List.of(), List.of());
     }
@@ -54,7 +61,7 @@ public final class CompoundAnnotationMatchCheck implements QualityCheck {
     final String summary =
         ann.getCompoundName() != null ? "%s\nscore %s".formatted(ann.getCompoundName(),
             ann.getScoreString()) : "Best score %s".formatted(ann.getScoreString());
-    return new CompoundAnnotationMatchQualityResult(QualityCheckStatus.PASS, summary, ann,
-        involved);
+    return new CompoundAnnotationMatchQualityResult(QualityCheckStatus.PASS, summary, ann, bestRow,
+        involved, context.onEvent());
   }
 }

@@ -7,16 +7,22 @@ import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationDetailRequestedEvent;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResult;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
@@ -26,6 +32,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,13 +57,21 @@ public final class CompoundAnnotationMatchQualityResult extends QualityCheckResu
 
   private final @NotNull FeatureAnnotation annotation;
   private final @NotNull String summary;
+  // The member row that owns {@link #annotation}. Passed alongside the annotation in any
+  // {@link AnnotationDetailRequestedEvent} fired from this card so listeners can target the right
+  // place (e.g. open the IIMN network centered on this row).
+  private final @NotNull FeatureListRow annotationRow;
+  private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
 
   public CompoundAnnotationMatchQualityResult(@NotNull QualityCheckStatus status,
       @NotNull String summary, @NotNull FeatureAnnotation annotation,
-      @NotNull List<@NotNull FeatureListRow> involvedRows) {
+      @NotNull FeatureListRow annotationRow, @NotNull List<@NotNull FeatureListRow> involvedRows,
+      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
     super(QualityCheckType.COMPOUND_ANNOTATION, status, involvedRows);
     this.annotation = annotation;
     this.summary = summary;
+    this.annotationRow = annotationRow;
+    this.onEvent = onEvent;
   }
 
   @Override
@@ -96,6 +111,16 @@ public final class CompoundAnnotationMatchQualityResult extends QualityCheckResu
       wrapper.setMinSize(STRUCTURE_WIDTH, STRUCTURE_HEIGHT);
       wrapper.setPrefSize(STRUCTURE_WIDTH, STRUCTURE_HEIGHT);
       wrapper.setMaxSize(STRUCTURE_WIDTH, STRUCTURE_HEIGHT);
+      // Double click on the structure preview requests the full detail view for this annotation.
+      // The single-click handler is intentionally left untouched so the surrounding card's
+      // expand/collapse toggle keeps working when the user single-clicks anywhere in the card.
+      wrapper.setOnMouseClicked(event -> {
+        if (event.getClickCount() >= 2) {
+          fireDetailRequested();
+          event.consume();
+        }
+      });
+      Tooltip.install(wrapper, new Tooltip("Double-click to open details"));
       return wrapper;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to render 2D structure for compound annotation", e);
@@ -117,7 +142,24 @@ public final class CompoundAnnotationMatchQualityResult extends QualityCheckResu
         label("InChI:"), copyableValue(annotation.getInChI()), //
         label("InChI key:"), copyableValue(annotation.getInChIKey()));
     grid.setMinWidth(0);
-    return grid;
+
+    // Top-right icon button: fires the same AnnotationDetailRequestedEvent the structure
+    // double-click does. HBox + spacer keeps the button hard-right regardless of pane width;
+    final ButtonBase detailButton = FxIconUtil.newIconButton(FxIcons.LINK,
+        "Open network details for this annotation", this::fireDetailRequested);
+
+    final var box = FxLayout.newStackPane(Insets.EMPTY, grid, detailButton);
+    StackPane.setAlignment(detailButton, Pos.TOP_RIGHT);
+    box.setMinWidth(0);
+    return box;
+  }
+
+  /// Dispatches an {@link AnnotationDetailRequestedEvent} to {@link #onEvent} when wired. No-op
+  /// when the result was built without a listener (e.g. standalone use of the quality pane).
+  private void fireDetailRequested() {
+    if (onEvent != null) {
+      onEvent.accept(new AnnotationDetailRequestedEvent(annotation, annotationRow));
+    }
   }
 
   private static @NotNull Label label(@NotNull String text) {

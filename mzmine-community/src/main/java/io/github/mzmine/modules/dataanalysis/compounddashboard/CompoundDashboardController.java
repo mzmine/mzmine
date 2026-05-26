@@ -27,11 +27,14 @@ import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationDetailRequestedEvent;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.FragmentEnergyMethodSelectedEvent;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -337,7 +340,24 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     switch (event) {
       case FragmentEnergyMethodSelectedEvent e ->
           selectMatchingFragmentScan(e.row(), e.energy(), e.method());
+      case AnnotationDetailRequestedEvent e -> openIimnNetworkFor(e.row());
     }
+  }
+
+  /**
+   * Open the IIMN {@link NetworkOverviewWindow} for the current feature list, centered on
+   * {@code row}. No-op when the current feature list is absent — the request would have no graph to
+   * render.
+   */
+  private void openIimnNetworkFor(@NotNull final FeatureListRow row) {
+    final ModularFeatureList flist = model.getFeatureList();
+    if (flist == null) {
+      return;
+    }
+    final FeatureTableFX table = tableCtrl.getFeatureTable();
+    final NetworkOverviewWindow networks = new NetworkOverviewWindow(flist, table, List.of(row),
+        NetworkOverviewFlavor.IIMN);
+    networks.show();
   }
 
   /**
