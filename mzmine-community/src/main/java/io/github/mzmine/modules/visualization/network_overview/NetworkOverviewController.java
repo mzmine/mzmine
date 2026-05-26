@@ -130,13 +130,13 @@ public class NetworkOverviewController {
     // all MS2
     allMs2Pane = new SpectraStackVisualizerPane();
 
-    // create annotations tab. Pass null so the panel does NOT register its own row-selection
+    // Pass null to analog + annotations panel so the panel does NOT register its own row-selection
     // listener on the internal table - the dispatcher in handleSelectedNodesChanged is the single
     // source of data for both panels. Passing internalTable here would let the panel's built-in
     // setFeatureRows (which always reads row.getSpectralLibraryMatches()) overwrite the analog
     // matches we set on the analog tab, producing the "No chart found" symptom on row clicks.
-    spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
     // Analogs tab uses the same panel implementation but is fed analog matches only
+    spectralMatchesController = new SpectraIdentificationResultsWindowFX(null);
     analogMatchesController = new SpectraIdentificationResultsWindowFX(null);
     CompoundDatabaseMatchTab compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
 

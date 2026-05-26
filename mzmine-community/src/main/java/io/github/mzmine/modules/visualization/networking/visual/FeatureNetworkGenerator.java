@@ -483,7 +483,7 @@ public class FeatureNetworkGenerator {
       neutralNode.setAttribute("ui.class", type.getUiClass().orElse(""));
       neutralNode.setAttribute(NodeAtt.TYPE.toString(), type);
       neutralNode.setAttribute(NodeAtt.ID.toString(), "NEUTRAL_LOSS_NODE");
-      nodeTypes.add(type);
+//      nodeTypes.add(type);
     }
     return neutralNode;
   }
@@ -723,6 +723,7 @@ public class FeatureNetworkGenerator {
       }
     }
     node.setAttribute("ui.label", node.getAttribute(NodeAtt.LABEL.toString()));
+    nodeTypes.add(NodeType.ION_FEATURE);
     return node;
   }
 
