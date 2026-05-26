@@ -47,7 +47,13 @@ public class CompoundRowQualityInteractor {
         colorAssignment, onRowClick);
     final List<QualityCheckResult> out = new ArrayList<>(checks.size());
     for (final QualityCheck check : checks) {
-      out.add(check.evaluate(row, context));
+      final QualityCheckResult result = check.evaluate(row, context);
+      // Drop checks that don't apply to this dataset (e.g. IMS on a non-IMS feature list) so the
+      // pane never renders a card for them.
+      if (result.status() == QualityCheckStatus.DOES_NOT_APPLY) {
+        continue;
+      }
+      out.add(result);
     }
     return out;
   }

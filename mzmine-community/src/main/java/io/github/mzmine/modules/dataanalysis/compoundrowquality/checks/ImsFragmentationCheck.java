@@ -7,6 +7,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.DefaultQualityCheckResult;
@@ -37,6 +38,13 @@ public final class ImsFragmentationCheck implements QualityCheck {
   public @NotNull QualityCheckResult evaluate(@NotNull CompoundRow row,
       @NotNull QualityCheckContext context) {
     final FeatureList featureList = row.getCompoundList().getFeatureList();
+    // Skip the check entirely for non-IMS feature lists. The interactor filters DOES_NOT_APPLY
+    // results out so this check produces no card at all on non-mobility datasets.
+    if (!featureList.hasRowType(FeatureShapeMobilogramType.class)) {
+      return new DefaultQualityCheckResult(QualityCheckType.IMS_FRAGMENTATION,
+          QualityCheckStatus.DOES_NOT_APPLY, "IMS check does not apply to non-IMS data", List.of(),
+          List.of());
+    }
     final Optional<R2RMap<RowsRelationship>> mapOpt = featureList.getRowMap(
         Type.MS1_MOBILITY_FEATURE_CORR);
     if (mapOpt.isEmpty() || mapOpt.get().isEmpty()) {

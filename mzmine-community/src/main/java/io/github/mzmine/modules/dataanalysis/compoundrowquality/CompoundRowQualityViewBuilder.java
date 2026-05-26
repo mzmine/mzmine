@@ -152,7 +152,9 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
       case PASS -> colors.getPositiveColor();
       case WARN -> ColorsFX.YELLOW_WARN; // maybe add additional to color palette
       case FAIL -> colors.getNegativeColor();
-      case UNAVAILABLE -> colors.getNeutralColor();
+      // DOES_NOT_APPLY results are filtered out by the interactor; the branch exists so the
+      // switch stays exhaustive and the color is reasonable if a check ever leaks through.
+      case UNAVAILABLE, DOES_NOT_APPLY -> colors.getNeutralColor();
     };
   }
 }
