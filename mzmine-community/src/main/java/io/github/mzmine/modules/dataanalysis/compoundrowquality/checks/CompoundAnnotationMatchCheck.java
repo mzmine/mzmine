@@ -18,7 +18,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/// Reports the best spectral library match across all member rows.
+/// Reports the best preferred annotation across all member rows.
 public final class CompoundAnnotationMatchCheck implements QualityCheck {
 
   @Override
@@ -54,7 +54,7 @@ public final class CompoundAnnotationMatchCheck implements QualityCheck {
     final String summary =
         ann.getCompoundName() != null ? "%s\nscore %s".formatted(ann.getCompoundName(),
             ann.getScoreString()) : "Best score %s".formatted(ann.getScoreString());
-    return new DefaultQualityCheckResult(QualityCheckType.COMPOUND_ANNOTATION,
-        QualityCheckStatus.PASS, summary, List.of(), involved);
+    return new CompoundAnnotationMatchQualityResult(QualityCheckStatus.PASS, summary, ann,
+        involved);
   }
 }
