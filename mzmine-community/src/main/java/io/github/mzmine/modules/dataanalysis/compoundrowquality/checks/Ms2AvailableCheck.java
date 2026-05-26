@@ -84,7 +84,7 @@ public final class Ms2AvailableCheck implements QualityCheck {
     final ColorAssignment coloring = context.colorAssignment();
     if (coloring != null) {
       return new Ms2AvailableQualityResult(QualityCheckStatus.PASS, summary, rowScans, involved,
-          coloring, context.onRowClick(), context.onEvent());
+          coloring, context.selectedMemberRow(), context.onEvent());
     }
     return new DefaultQualityCheckResult(QualityCheckType.MS2_AVAILABLE, QualityCheckStatus.PASS,
         summary, List.of(), involved);

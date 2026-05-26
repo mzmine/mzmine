@@ -96,7 +96,7 @@ public final class InSourceFragmentationCheck implements QualityCheck {
     final ColorAssignment coloring = context.colorAssignment();
     if (coloring != null) {
       return new InSourceFragmentationQualityResult(QualityCheckStatus.WARN, summary,
-          fragmentEntries, coloring, context.onRowClick());
+          fragmentEntries, coloring, context.selectedMemberRow());
     }
     return new DefaultQualityCheckResult(QualityCheckType.IN_SOURCE_FRAGMENTATION,
         QualityCheckStatus.WARN, summary,

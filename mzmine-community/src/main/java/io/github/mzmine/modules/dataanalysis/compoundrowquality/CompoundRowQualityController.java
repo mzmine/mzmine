@@ -66,19 +66,23 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
   }
 
   /**
-   * Callback invoked when a member-row chip is clicked in a check's sub pane. Typically wired by
-   * the host dashboard to focus that row (e.g. set its {@code selectedAdductRow}). Nullable; when
-   * unset, chips render but are not clickable.
+   * The currently selected member row. A click on any member-row chip writes to this property;
+   * chips listen and switch between bold and regular styling so the selection is reflected
+   * everywhere in the pane.
+   * <p>
+   * Hosts that own their own row-selection (e.g. {@code CompoundDashboardController}) should
+   * {@code bindBidirectional} their selection property to this one so the dashboard and the
+   * quality pane stay in sync.
    */
-  public ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClickProperty() {
-    return model.onMemberRowClickProperty();
+  public ObjectProperty<@Nullable FeatureListRow> selectedMemberRowProperty() {
+    return model.selectedMemberRowProperty();
   }
 
   /**
-   * Callback invoked when a check publishes a {@link QualityCheckEvent} (e.g. a fragment-scan group
-   * click in the MS2-available check). The host (e.g. CompoundDashboardController) typically
-   * subscribes via a {@code switch} on the sealed {@link QualityCheckEvent} permits. Nullable; when
-   * unset, events are silently dropped.
+   * Callback invoked when a check publishes a {@link QualityCheckEvent} (e.g. a fragment-scan
+   * group click in the MS2-available check). The host (e.g. CompoundDashboardController)
+   * typically subscribes via a {@code switch} on the sealed {@link QualityCheckEvent} permits.
+   * Nullable; when unset, events are silently dropped.
    */
   public ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEventProperty() {
     return model.onQualityCheckEventProperty();
@@ -107,13 +111,16 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     final MZTolerance mzTol = model.getMzTolerance();
     final MZTolerance ms2Tol = model.getMs2Tolerance();
     final SimpleColorPalette palette = model.getColorPalette();
-    final Consumer<@NotNull FeatureListRow> onRowClick = model.getOnMemberRowClick();
+    // The selection + event callbacks are captured by reference (the property itself, not a
+    // snapshot of its value). Chips installed by the background-built result hook into these so
+    // clicks on the FX thread can both read and write the live selection.
+    final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow = model.selectedMemberRowProperty();
     final Consumer<@NotNull QualityCheckEvent> onEvent = model.getOnQualityCheckEvent();
 
     onGuiThread(() -> model.computingProperty().set(true));
     // PropertyUtils.onChangeDelayedSubscription already debounces; FxUpdateTask cancels prior runs by name.
     onTaskThread(
-        new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, onRowClick,
+        new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow,
             onEvent));
   }
 

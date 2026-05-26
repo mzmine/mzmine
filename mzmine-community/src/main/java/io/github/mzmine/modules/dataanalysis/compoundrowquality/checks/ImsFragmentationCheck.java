@@ -92,7 +92,7 @@ public final class ImsFragmentationCheck implements QualityCheck {
     final ColorAssignment coloring = context.colorAssignment();
     if (coloring != null) {
       return new ImsFragmentationQualityResult(QualityCheckStatus.WARN, summary, fragmentEntries,
-          coloring, context.onRowClick());
+          coloring, context.selectedMemberRow());
     }
     final List<String> details = List.of(
         "Mobility-correlated with higher-m/z member: " + String.join(", ", matchedLabels));

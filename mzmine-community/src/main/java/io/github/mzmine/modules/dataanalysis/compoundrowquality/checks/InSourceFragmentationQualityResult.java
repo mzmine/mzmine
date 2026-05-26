@@ -8,7 +8,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResu
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import java.util.List;
-import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -23,25 +23,26 @@ import org.jetbrains.annotations.Nullable;
 /// whose MS2 spectrum contains the fragment's precursor peak (also as colored chips), one line per
 /// fragment. Rows that were upstream-tagged as {@code IN_SOURCE_FRAGMENT} but have no detectable
 /// MS2 parent render as a standalone fragment chip with no arrow. Chip colors match the host
-/// dashboard's per-row coloring; chips are clickable and forward the row to the {@code onRowClick}
-/// callback. Shared rendering helpers live in {@link FragmentParentsRendering}.
+/// dashboard's per-row coloring; chips are clickable and write to the shared
+/// {@code selectedMemberRow} property. Shared rendering helpers live in
+/// {@link FragmentParentsRendering}.
 public final class InSourceFragmentationQualityResult extends QualityCheckResult {
 
   private final @NotNull String summary;
   private final @NotNull List<@NotNull FragmentParents> fragments;
   private final @NotNull ColorAssignment colorAssignment;
-  private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
+  private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
 
   public InSourceFragmentationQualityResult(@NotNull QualityCheckStatus status,
       @NotNull String summary, @NotNull List<@NotNull FragmentParents> fragments,
       @NotNull ColorAssignment colorAssignment,
-      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     super(QualityCheckType.IN_SOURCE_FRAGMENTATION, status,
         FragmentParentsRendering.flattenInvolved(fragments));
     this.summary = summary;
     this.fragments = List.copyOf(fragments);
     this.colorAssignment = colorAssignment;
-    this.onRowClick = onRowClick;
+    this.selectedMemberRow = selectedMemberRow;
   }
 
   @Override
@@ -62,8 +63,8 @@ public final class InSourceFragmentationQualityResult extends QualityCheckResult
     final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
     body.setMinWidth(0);
     for (final FragmentParents entry : fragments) {
-      body.getChildren()
-          .add(FragmentParentsRendering.buildFragmentLine(entry, colorAssignment, onRowClick));
+      body.getChildren().add(
+          FragmentParentsRendering.buildFragmentLine(entry, colorAssignment, selectedMemberRow));
     }
     return body;
   }

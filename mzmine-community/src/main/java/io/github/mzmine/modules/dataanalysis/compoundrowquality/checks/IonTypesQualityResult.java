@@ -10,7 +10,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResu
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import java.util.List;
-import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -24,23 +24,24 @@ import org.jetbrains.annotations.Nullable;
 /// <p>
 /// Sub pane is a {@link FlowPane} of colored chips, one per distinct ion type observed across the
 /// compound's non-isotope members. Each chip reads {@code "[ion] m/z value"}, uses the host
-/// dashboard's per-row coloring, and is clickable (forwards the row to {@code onRowClick}).
+/// dashboard's per-row coloring, is clickable (writes to {@code selectedMemberRow}), and toggles
+/// its bold style when the selection matches its row.
 public final class IonTypesQualityResult extends QualityCheckResult {
 
   private final @NotNull String summary;
   private final @NotNull List<@NotNull FeatureListRow> distinctIonRows;
   private final @NotNull ColorAssignment colorAssignment;
-  private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
+  private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
 
   public IonTypesQualityResult(@NotNull QualityCheckStatus status, @NotNull String summary,
       @NotNull List<@NotNull FeatureListRow> distinctIonRows,
       @NotNull List<@NotNull FeatureListRow> involvedRows, @NotNull ColorAssignment colorAssignment,
-      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     super(QualityCheckType.ION_TYPES, status, involvedRows);
     this.summary = summary;
     this.distinctIonRows = List.copyOf(distinctIonRows);
     this.colorAssignment = colorAssignment;
-    this.onRowClick = onRowClick;
+    this.selectedMemberRow = selectedMemberRow;
   }
 
   @Override
@@ -62,8 +63,9 @@ public final class IonTypesQualityResult extends QualityCheckResult {
     chips.setPadding(Insets.EMPTY);
     chips.setMinWidth(0);
     for (final FeatureListRow row : distinctIonRows) {
-      chips.getChildren()
-          .add(FragmentParentsRendering.buildChip(row, chipText(row), colorAssignment, onRowClick));
+      chips.getChildren().add(
+          FragmentParentsRendering.buildChip(row, chipText(row), colorAssignment,
+              selectedMemberRow));
     }
     return chips;
   }

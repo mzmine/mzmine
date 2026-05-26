@@ -10,8 +10,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
@@ -23,9 +28,19 @@ import org.jetbrains.annotations.Nullable;
 /// Shared rendering helpers for "fragment ← parents" quality check results
 /// ({@link ImsFragmentationQualityResult}, {@link InSourceFragmentationQualityResult}).
 /// <p>
-/// Centralizes the chip label format, per-row coloring lookup, click wiring, and the parent display
-/// ordering so every fragment-style check renders the same way.
+/// Centralizes the chip label format, per-row coloring lookup, click + selection-style wiring,
+/// and the parent display ordering so every fragment-style check renders the same way.
 public final class FragmentParentsRendering {
+
+  /// CSS class used to style chips whose row is currently selected.
+  private static final String SELECTED_STYLE_CLASS = "bold-label";
+
+  /// Key under which the strong reference to a chip's selection-{@link ChangeListener} is stored on
+  /// the {@link Label}'s {@code getProperties()} map. The listener is then registered on the
+  /// selection property via a {@link WeakChangeListener} — the strong reference lives only as long
+  /// as the chip itself, so the chip and its listener are eligible for GC together once the chip
+  /// leaves the scene.
+  private static final String LISTENER_PROPERTY_KEY = "qc.selectedMemberRowListener";
 
   /// Parent display order: ion-identified rows first, then by ascending m/z. Boolean {@code false}
   /// sorts before {@code true}, so {@code hasIonIdentity == false} for rows without an ion keeps
@@ -43,15 +58,15 @@ public final class FragmentParentsRendering {
   /// this compound) render as a standalone fragment chip.
   public static @NotNull FlowPane buildFragmentLine(@NotNull final FragmentParents entry,
       @NotNull final ColorAssignment colorAssignment,
-      @Nullable final Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     final FlowPane line = FxLayout.newFlowPane();
     line.setPadding(Insets.EMPTY);
     line.setMinWidth(0);
-    line.getChildren().add(buildChip(entry.fragment(), colorAssignment, onRowClick));
+    line.getChildren().add(buildChip(entry.fragment(), colorAssignment, selectedMemberRow));
     if (!entry.parents().isEmpty()) {
       line.getChildren().add(new Label("←"));
       for (final FeatureListRow parent : entry.parents()) {
-        line.getChildren().add(buildChip(parent, colorAssignment, onRowClick));
+        line.getChildren().add(buildChip(parent, colorAssignment, selectedMemberRow));
       }
     }
     return line;
@@ -63,23 +78,52 @@ public final class FragmentParentsRendering {
   /// coloring.
   public static @NotNull Label buildChip(@NotNull final FeatureListRow row,
       @NotNull final ColorAssignment colorAssignment,
-      @Nullable final Consumer<@NotNull FeatureListRow> onRowClick) {
-    return buildChip(row, chipText(row), colorAssignment, onRowClick);
+      @Nullable final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
+    return buildChip(row, chipText(row), colorAssignment, selectedMemberRow);
   }
 
-  /// Build a single colored, optionally-clickable chip Label with caller-supplied text. Same
-  /// coloring + click behaviour as {@link #buildChip(FeatureListRow, ColorAssignment, Consumer)};
-  /// use this overload when the chip text needs a different format than the default ion-or-m/z.
+  /// Build a single colored, optionally-clickable chip Label with caller-supplied text. The chip
+  /// writes {@code row} to {@code selectedMemberRow} on click and listens to that property so it
+  /// can switch the bold style class on and off when the selection matches its row.
   public static @NotNull Label buildChip(@NotNull final FeatureListRow row,
       @NotNull final String text, @NotNull final ColorAssignment colorAssignment,
-      @Nullable final Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     final Color color = colorAssignment.colorFor(row);
     final Label label = FxLabels.colored(new Label(text), color);
-    if (onRowClick != null) {
+    if (selectedMemberRow != null) {
       label.setCursor(Cursor.HAND);
-      label.setOnMouseClicked(_ -> onRowClick.accept(row));
+      label.setOnMouseClicked(_ -> selectedMemberRow.setValue(row));
+      bindSelectionBold(label, row, selectedMemberRow);
     }
     return label;
+  }
+
+  /// Wire {@code label}'s bold-style class to whether {@code selectedMemberRow}'s value equals
+  /// {@code row}. Uses a {@link WeakChangeListener} so the property doesn't keep the label (and
+  /// thus the surrounding check result) alive after it has left the scene. The strong reference to
+  /// the underlying listener lives only on the label's properties map; once the label is
+  /// unreachable both the strong listener and the WeakChangeListener are collected and the listener
+  /// is dropped from the property on its next invocation.
+  public static void bindSelectionBold(@NotNull final Label label,
+      @NotNull final FeatureListRow row,
+      @NotNull final ObservableValue<@Nullable FeatureListRow> selectedMemberRow) {
+    applyBoldStyle(label, Objects.equals(selectedMemberRow.getValue(), row));
+    final ChangeListener<FeatureListRow> listener = (obs, was, is) -> applyBoldStyle(label,
+        Objects.equals(is, row));
+    // Strong ref via the label's properties map — GC'd together with the label.
+    label.getProperties().put(LISTENER_PROPERTY_KEY, listener);
+    selectedMemberRow.addListener(new WeakChangeListener<>(listener));
+  }
+
+  private static void applyBoldStyle(@NotNull final Label label, final boolean selected) {
+    final ObservableList<String> classes = label.getStyleClass();
+    if (selected) {
+      if (!classes.contains(SELECTED_STYLE_CLASS)) {
+        classes.add(SELECTED_STYLE_CLASS);
+      }
+    } else {
+      classes.remove(SELECTED_STYLE_CLASS);
+    }
   }
 
   /// Chip text: the {@link IonIdentity} ion-type string (no m/z) when present, otherwise the

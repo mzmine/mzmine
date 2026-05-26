@@ -5,6 +5,7 @@ import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboard
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,12 +15,17 @@ import org.jetbrains.annotations.Nullable;
  * coloring + callbacks are nullable so the quality pane can run standalone (without a host
  * dashboard); checks that want to render colored / clickable member labels should fall back to
  * plain text when the coloring is absent, and skip dispatching when the callbacks are absent.
+ * <p>
+ * {@code selectedMemberRow} is the live selection property (not a snapshot of its value): chips
+ * built by a check read it for their bold-label style and write to it on click. Hosts typically
+ * bidirectionally bind this property to their own row-selection so the quality pane and the
+ * dashboard share one selection.
  */
 public record QualityCheckContext(@NotNull RTTolerance rtTolerance,
                                   @NotNull MZTolerance mzTolerance,
                                   @NotNull MZTolerance ms2Tolerance,
                                   @Nullable ColorAssignment colorAssignment,
-                                  @Nullable Consumer<@NotNull FeatureListRow> onRowClick,
+                                  @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
                                   @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
 
   public QualityCheckContext(@NotNull RTTolerance rtTolerance, @NotNull MZTolerance mzTolerance,

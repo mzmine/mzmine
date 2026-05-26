@@ -18,6 +18,7 @@ import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,14 +39,15 @@ public class CompoundRowQualityInteractor {
 
   public @NotNull List<QualityCheckResult> compute(@NotNull CompoundRow row,
       @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
-      @Nullable SimpleColorPalette palette, @Nullable Consumer<@NotNull FeatureListRow> onRowClick,
+      @Nullable SimpleColorPalette palette,
+      @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
       @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
     // Clone with reset cycling counter so the assignment matches the dashboard's plot coloring
     // (which also starts from a fresh clone).
     final ColorAssignment colorAssignment =
         palette == null ? null : CompoundDashboardColoring.assign(row, palette.clone(true));
     final QualityCheckContext context = new QualityCheckContext(rtTol, mzTol, ms2Tol,
-        colorAssignment, onRowClick, onEvent);
+        colorAssignment, selectedMemberRow, onEvent);
     final List<QualityCheckResult> out = new ArrayList<>(checks.size());
     for (final QualityCheck check : checks) {
       final QualityCheckResult result = check.evaluate(row, context);

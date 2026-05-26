@@ -12,6 +12,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStat
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -46,19 +47,19 @@ public final class Ms2AvailableQualityResult extends QualityCheckResult {
   private final @NotNull String summary;
   private final @NotNull List<@NotNull RowScans> rowScans;
   private final @NotNull ColorAssignment colorAssignment;
-  private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
+  private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
   private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
 
   public Ms2AvailableQualityResult(@NotNull QualityCheckStatus status, @NotNull String summary,
       @NotNull List<@NotNull RowScans> rowScans,
       @NotNull List<@NotNull FeatureListRow> involvedRows, @NotNull ColorAssignment colorAssignment,
-      @Nullable Consumer<@NotNull FeatureListRow> onRowClick,
+      @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
       @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
     super(QualityCheckType.MS2_AVAILABLE, status, involvedRows);
     this.summary = summary;
     this.rowScans = List.copyOf(rowScans);
     this.colorAssignment = colorAssignment;
-    this.onRowClick = onRowClick;
+    this.selectedMemberRow = selectedMemberRow;
     this.onEvent = onEvent;
   }
 
@@ -89,12 +90,12 @@ public final class Ms2AvailableQualityResult extends QualityCheckResult {
     final FlowPane line = FxLayout.newFlowPane();
     line.setPadding(Insets.EMPTY);
     line.setMinWidth(0);
-    // Member-row chip: colored, clickable, fires onRowClick only.
+    // Member-row chip: colored, clickable, writes to selectedMemberRow and bolds on selection.
     line.getChildren()
-        .add(FragmentParentsRendering.buildChip(entry.row(), colorAssignment, onRowClick));
+        .add(FragmentParentsRendering.buildChip(entry.row(), colorAssignment, selectedMemberRow));
     line.getChildren().add(new Label(":"));
-    // Scan group chips: same color as the row, clickable, fire both onRowClick and the
-    // FragmentEnergyMethodSelectedEvent.
+    // Scan group chips: same color as the row, clickable, write to selectedMemberRow AND fire the
+    // FragmentEnergyMethodSelectedEvent so the host can pick a matching scan.
     for (int i = 0; i < entry.groups().size(); i++) {
       final ScanGroup group = entry.groups().get(i);
       line.getChildren().add(buildScanGroupChip(entry.row(), group));
@@ -107,12 +108,14 @@ public final class Ms2AvailableQualityResult extends QualityCheckResult {
 
   private @NotNull Label buildScanGroupChip(@NotNull final FeatureListRow row,
       @NotNull final ScanGroup group) {
+    // buildChip with selectedMemberRow installs both the row-selection write on click and the
+    // bold-style binding. We then layer the FragmentEnergyMethodSelectedEvent dispatch on top.
     final Label label = FragmentParentsRendering.buildChip(row, formatScanGroup(group),
-        colorAssignment, null);
+        colorAssignment, selectedMemberRow);
     label.setCursor(Cursor.HAND);
     label.setOnMouseClicked(_ -> {
-      if (onRowClick != null) {
-        onRowClick.accept(row);
+      if (selectedMemberRow != null) {
+        selectedMemberRow.setValue(row);
       }
       if (onEvent != null) {
         onEvent.accept(new FragmentEnergyMethodSelectedEvent(row, group.energy(), group.method()));

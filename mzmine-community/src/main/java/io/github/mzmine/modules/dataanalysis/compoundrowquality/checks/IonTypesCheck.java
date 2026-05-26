@@ -64,7 +64,7 @@ public final class IonTypesCheck implements QualityCheck {
     final ColorAssignment coloring = context.colorAssignment();
     if (coloring != null) {
       return new IonTypesQualityResult(QualityCheckStatus.PASS, summary, distinctRows, involved,
-          coloring, context.onRowClick());
+          coloring, context.selectedMemberRow());
     }
     // Plain-text fallback: one detail line per ion, "ion m/z value" (no em-dash separator).
     final List<String> details = distinct.entrySet().stream().map(e -> {

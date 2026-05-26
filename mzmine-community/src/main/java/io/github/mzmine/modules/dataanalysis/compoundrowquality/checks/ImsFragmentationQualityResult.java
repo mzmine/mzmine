@@ -8,7 +8,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckResu
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckStatus;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckType;
 import java.util.List;
-import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -21,25 +21,26 @@ import org.jetbrains.annotations.Nullable;
 /// <p>
 /// Renders each fragment as a colored chip followed by an arrow and its mobility-correlated parent
 /// rows (also as colored chips), one line per fragment. Chip colors match the host dashboard's
-/// per-row coloring; chips are clickable and forward the row to the {@code onRowClick} callback
-/// (typically wired to focus the row in the dashboard plots). Layout helpers live in
-/// {@link FragmentParentsRendering} so the matching in-source result class can share them.
+/// per-row coloring; chips are clickable and write to the shared {@code selectedMemberRow}
+/// property so the selection stays in sync between this pane and the host dashboard. Layout
+/// helpers live in {@link FragmentParentsRendering} so the matching in-source result class can
+/// share them.
 public final class ImsFragmentationQualityResult extends QualityCheckResult {
 
   private final @NotNull String summary;
   private final @NotNull List<@NotNull FragmentParents> fragments;
   private final @NotNull ColorAssignment colorAssignment;
-  private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
+  private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
 
   public ImsFragmentationQualityResult(@NotNull QualityCheckStatus status, @NotNull String summary,
       @NotNull List<@NotNull FragmentParents> fragments, @NotNull ColorAssignment colorAssignment,
-      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow) {
     super(QualityCheckType.IMS_FRAGMENTATION, status,
         FragmentParentsRendering.flattenInvolved(fragments));
     this.summary = summary;
     this.fragments = List.copyOf(fragments);
     this.colorAssignment = colorAssignment;
-    this.onRowClick = onRowClick;
+    this.selectedMemberRow = selectedMemberRow;
   }
 
   @Override
@@ -60,8 +61,8 @@ public final class ImsFragmentationQualityResult extends QualityCheckResult {
     final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
     body.setMinWidth(0);
     for (final FragmentParents entry : fragments) {
-      body.getChildren()
-          .add(FragmentParentsRendering.buildFragmentLine(entry, colorAssignment, onRowClick));
+      body.getChildren().add(
+          FragmentParentsRendering.buildFragmentLine(entry, colorAssignment, selectedMemberRow));
     }
     return body;
   }

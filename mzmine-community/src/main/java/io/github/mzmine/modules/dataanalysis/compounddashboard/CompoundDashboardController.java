@@ -96,9 +96,12 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // IMS fragmentation check) match the EIC / mobilogram / MS1 colors. Bidirectional because the
     // dashboard owns the source of truth and may snapshot a fresh palette per compound change.
     qualityCtrl.colorPaletteProperty().bind(model.colorPaletteProperty());
-    // Clicking a member-row chip in the quality pane focuses that row in the dashboard (same
-    // semantics as clicking a legend label below the charts).
-    qualityCtrl.onMemberRowClickProperty().set(model::setSelectedAdductRow);
+    // Bidirectional binding: the quality pane's selected member row IS the dashboard's selected
+    // adduct row. Clicking a chip in any check writes through to the dashboard; programmatic
+    // selection from the dashboard (e.g. legend click, table click) reflects back into the
+    // chips' bold-label state. Same end-effect as the previous one-way onMemberRowClick callback
+    // but now also drives the chip selection styling.
+    qualityCtrl.selectedMemberRowProperty().bindBidirectional(model.selectedAdductRowProperty());
     // Sealed {@link QualityCheckEvent} bus from the quality pane. A
     // {@link FragmentEnergyMethodSelectedEvent} fires after a fragment-scan chip click; by then the
     // accompanying onMemberRowClick has already updated selectedAdductRow (which in turn populated

@@ -46,14 +46,16 @@ public class CompoundRowQualityModel {
   // host providing a palette.
   private final ObjectProperty<@Nullable SimpleColorPalette> colorPalette = new SimpleObjectProperty<>();
 
-  // Invoked when the user clicks a member-row chip in a check's sub pane. Typically wired by the
-  // host to e.g. select that row in the dashboard. Nullable -> chips render but are not clickable.
-  private final ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClick = new SimpleObjectProperty<>();
+  // The currently "selected" member row across all check sub panes. A click on any member-row
+  // chip writes to this property; chips listen and toggle their bold-label style class so the
+  // selection stays in sync everywhere. The host (e.g. CompoundDashboardController) typically
+  // bind-bidirectionals this to its own selected-adduct-row property so the dashboard plots and
+  // the quality pane share one selection.
+  private final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow = new SimpleObjectProperty<>();
 
   // Invoked when a check publishes a {@link QualityCheckEvent} (e.g. a fragment-scan group click in
-  // the MS2-available check). The host (e.g. CompoundDashboardController) typically subscribes to
-  // this and reacts via switch on the sealed event permits. Nullable -> events are silently
-  // dropped.
+  // the MS2-available check). The host typically subscribes to this and reacts via switch on the
+  // sealed event permits. Nullable -> events are silently dropped.
   private final ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEvent = new SimpleObjectProperty<>();
 
   // true while a recompute task is in flight
@@ -111,12 +113,16 @@ public class CompoundRowQualityModel {
     return colorPalette;
   }
 
-  public @Nullable Consumer<@NotNull FeatureListRow> getOnMemberRowClick() {
-    return onMemberRowClick.get();
+  public @Nullable FeatureListRow getSelectedMemberRow() {
+    return selectedMemberRow.get();
   }
 
-  public ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClickProperty() {
-    return onMemberRowClick;
+  public void setSelectedMemberRow(@Nullable FeatureListRow row) {
+    selectedMemberRow.set(row);
+  }
+
+  public ObjectProperty<@Nullable FeatureListRow> selectedMemberRowProperty() {
+    return selectedMemberRow;
   }
 
   public @Nullable Consumer<@NotNull QualityCheckEvent> getOnQualityCheckEvent() {
