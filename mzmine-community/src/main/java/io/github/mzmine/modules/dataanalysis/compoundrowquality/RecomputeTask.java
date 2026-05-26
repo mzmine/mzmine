@@ -45,13 +45,14 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   private final MZTolerance ms2Tol;
   private final @Nullable SimpleColorPalette palette;
   private final @Nullable Consumer<@NotNull FeatureListRow> onRowClick;
+  private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
   private @Nullable List<QualityCheckResult> results;
 
   RecomputeTask(@NotNull CompoundRowQualityModel model,
       @NotNull CompoundRowQualityInteractor interactor, @NotNull CompoundRow row,
       @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
-      @Nullable SimpleColorPalette palette,
-      @Nullable Consumer<@NotNull FeatureListRow> onRowClick) {
+      @Nullable SimpleColorPalette palette, @Nullable Consumer<@NotNull FeatureListRow> onRowClick,
+      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
     super("compoundrow_quality_update", model);
     this.interactor = interactor;
     this.row = row;
@@ -60,6 +61,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
     this.ms2Tol = ms2Tol;
     this.palette = palette;
     this.onRowClick = onRowClick;
+    this.onEvent = onEvent;
   }
 
   @Override
@@ -74,7 +76,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
 
   @Override
   protected void process() {
-    results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, onRowClick);
+    results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, onRowClick, onEvent);
   }
 
   @Override

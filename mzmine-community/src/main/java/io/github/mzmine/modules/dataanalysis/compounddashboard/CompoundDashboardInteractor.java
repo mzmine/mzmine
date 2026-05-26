@@ -146,21 +146,24 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       return;
     }
     final List<Scan> sourceScans = row.getAllFragmentScans();
-    final List<Scan> result = new ArrayList<>(sourceScans.size() + 1);
+    // LinkedHashSet preserves insertion order (merged first, then source scans) AND deduplicates.
+    // Dedup is not required for now as we just use one single merged scan
+    // it is required if we switch to representative scans per energy
+    final Set<Scan> result = LinkedHashSet.newLinkedHashSet(sourceScans.size() + 1);
     // Skip merging for a single source scan: the result would equal that scan anyway.
     if (sourceScans.size() > 1) {
-      final SpectraMergeSelectParameter mergeParam = SpectraMergeSelectParameter.createSpectraLibrarySearchDefaultNoMSn();
+      final SpectraMergeSelectParameter mergeParam = SpectraMergeSelectParameter.createGnpsSingleScanDefault();
       final FragmentScanSelection selection = mergeParam.createFragmentScanSelection(null);
-      // The returned list already contains the merged scan(s) first (no input scans because
-      // createSpectraLibrarySearchDefaultNoMSn uses SelectInputScans.NONE). Append the row's
-      // source scans afterwards so navigation cycles merged -> individual.
+      // SelectInputScans is NONE for SIMPLE_MERGED, so this returns only merged spectra. Note
+      // that a "merged" entry can still equal a source scan when an energy bucket has only one
+      // scan (see comment above); the LinkedHashSet handles the resulting overlap.
       result.addAll(selection.getAllFragmentSpectra(sourceScans));
     }
     result.addAll(sourceScans);
     model.getAvailableMs2Scans().setAll(result);
     // Always reset to the first (merged) entry when the row changes — the previous selection
     // refers to a different row and doesn't make sense here anymore.
-    model.setSelectedMs2Scan(result.isEmpty() ? null : result.getFirst());
+    model.setSelectedMs2Scan(result.isEmpty() ? null : result.iterator().next());
   }
 
   /**

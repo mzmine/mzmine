@@ -50,6 +50,12 @@ public class CompoundRowQualityModel {
   // host to e.g. select that row in the dashboard. Nullable -> chips render but are not clickable.
   private final ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClick = new SimpleObjectProperty<>();
 
+  // Invoked when a check publishes a {@link QualityCheckEvent} (e.g. a fragment-scan group click in
+  // the MS2-available check). The host (e.g. CompoundDashboardController) typically subscribes to
+  // this and reacts via switch on the sealed event permits. Nullable -> events are silently
+  // dropped.
+  private final ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEvent = new SimpleObjectProperty<>();
+
   // true while a recompute task is in flight
   private final BooleanProperty computing = new SimpleBooleanProperty(false);
 
@@ -111,5 +117,13 @@ public class CompoundRowQualityModel {
 
   public ObjectProperty<@Nullable Consumer<@NotNull FeatureListRow>> onMemberRowClickProperty() {
     return onMemberRowClick;
+  }
+
+  public @Nullable Consumer<@NotNull QualityCheckEvent> getOnQualityCheckEvent() {
+    return onQualityCheckEvent.get();
+  }
+
+  public ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEventProperty() {
+    return onQualityCheckEvent;
   }
 }

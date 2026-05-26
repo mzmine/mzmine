@@ -75,6 +75,16 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
   }
 
   /**
+   * Callback invoked when a check publishes a {@link QualityCheckEvent} (e.g. a fragment-scan group
+   * click in the MS2-available check). The host (e.g. CompoundDashboardController) typically
+   * subscribes via a {@code switch} on the sealed {@link QualityCheckEvent} permits. Nullable; when
+   * unset, events are silently dropped.
+   */
+  public ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEventProperty() {
+    return model.onQualityCheckEventProperty();
+  }
+
+  /**
    * Set the row whose quality should be displayed. Clearing or selecting a non-CompoundRow can be
    * done by passing {@code null}.
    */
@@ -98,11 +108,13 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     final MZTolerance ms2Tol = model.getMs2Tolerance();
     final SimpleColorPalette palette = model.getColorPalette();
     final Consumer<@NotNull FeatureListRow> onRowClick = model.getOnMemberRowClick();
+    final Consumer<@NotNull QualityCheckEvent> onEvent = model.getOnQualityCheckEvent();
 
     onGuiThread(() -> model.computingProperty().set(true));
     // PropertyUtils.onChangeDelayedSubscription already debounces; FxUpdateTask cancels prior runs by name.
     onTaskThread(
-        new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, onRowClick));
+        new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, onRowClick,
+            onEvent));
   }
 
 }

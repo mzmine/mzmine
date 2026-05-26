@@ -47,6 +47,11 @@ public final class QualityCheckItem extends BorderPane {
     // Min 0 so the surrounding VBox can compress the card down to the ScrollPane width and the
     // wrapping labels inside take over from there.
     setMinWidth(0);
+    // No max-height clamp so a tall expanded sub pane can grow freely; the surrounding VBox sums
+    // child prefHeights and the ScrollPane scrolls past the viewport. Without this an inherited
+    // USE_PREF_SIZE max could pin the card to its first-frame height and clip a sub pane that
+    // later grows when the user toggles it open.
+    setMaxHeight(Double.MAX_VALUE);
     // Thin bottom border separates adjacent cards. Uses the theme constant so it adapts to dark /
     // light modes.
     setStyle("-fx-border-color: -fx-box-border; -fx-border-width: 0 0 1 0;");
@@ -92,9 +97,14 @@ public final class QualityCheckItem extends BorderPane {
     final VBox subWrap = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
         FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true, subContent);
     subWrap.setMinWidth(0);
+    // Same no-clamp on the inner wrap so an expanded sub pane with many rows can grow vertically.
+    subWrap.setMaxHeight(Double.MAX_VALUE);
     subWrap.setStyle("-fx-border-color: -fx-box-border; -fx-border-width: 1 0 0 0;");
+    // Keep managed locked to visible so a single toggle always invalidates the parent layout
+    // chain. Setting them independently has been observed to leave BorderPane.center with a stale
+    // prefHeight after the user expanded a card with a tall sub pane.
+    subWrap.managedProperty().bind(subWrap.visibleProperty());
     subWrap.setVisible(false);
-    subWrap.setManaged(false);
     setCenter(subWrap);
 
     // Clicking anywhere on the header (icon, triangle, title, summary) toggles the sub pane. The
@@ -105,9 +115,17 @@ public final class QualityCheckItem extends BorderPane {
     header.setOnMouseClicked(_ -> {
       final boolean expand = !subWrap.isVisible();
       subWrap.setVisible(expand);
-      subWrap.setManaged(expand);
       // 0° -> right (collapsed); 90° -> down (expanded).
       toggle.setRotate(expand ? 90 : 0);
+      // Defensive: force a layout pass up the chain. The visible/managed change should already
+      // invalidate the BorderPane and the surrounding VBox, but when the sub pane is very tall
+      // (e.g. many MS2-available rows) the BorderPane.center prefHeight has occasionally
+      // remained stale, causing the next card to render over the bottom of this one. A direct
+      // requestLayout on the parent forces a clean recompute.
+      requestLayout();
+      if (getParent() != null) {
+        getParent().requestLayout();
+      }
     });
   }
 }

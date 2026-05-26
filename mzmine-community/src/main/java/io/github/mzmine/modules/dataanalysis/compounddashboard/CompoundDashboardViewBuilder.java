@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -372,7 +373,11 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
   private static @NotNull String formatMs2ScanLabel(@NotNull final Scan scan,
       @NotNull final List<Scan> items) {
-    if (scan instanceof MergedMassSpectrum) {
+    // PASEF_SINGLE is the per-precursor merged mobility frame: a single fragmentation event with
+    // a real energy + method, just averaged across mobility scans. Treat it like a regular MS2 in
+    // the dropdown so the user sees its energy/method rather than a generic "Merged MS2".
+    if (scan instanceof MergedMassSpectrum merged
+        && merged.getMergingType() != MergingType.PASEF_SINGLE) {
       return "Merged MS2";
     }
     // 1-based position within the source-scan section of the list (i.e. the position in the
@@ -388,11 +393,22 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     if (energy == null) {
       energyStr = "N.A.";
     } else if (method != null && !method.getUnit().isBlank()) {
-      energyStr = energy + " " + method.getUnit();
+      energyStr = formatEnergy(energy) + " " + method.getUnit();
     } else {
-      energyStr = String.valueOf(energy);
+      energyStr = formatEnergy(energy);
     }
     return itemNumber + ", " + energyStr + ", " + methodStr;
+  }
+
+  /// Energy format: integer when {@code |energy| >= 10}, one decimal otherwise. Mirrors the chip
+  /// formatting used by the MS2-availability quality check so the combo box and chips read the same
+  /// way for the same scan.
+  private static @NotNull String formatEnergy(@NotNull final Float energy) {
+    final float v = energy;
+    if (Math.abs(v) >= 10f) {
+      return Integer.toString(Math.round(v));
+    }
+    return "%.1f".formatted(v);
   }
 
   private static @NotNull ListCell<FeatureListRow> adductCell() {

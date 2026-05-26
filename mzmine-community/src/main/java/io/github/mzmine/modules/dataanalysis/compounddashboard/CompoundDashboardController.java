@@ -10,6 +10,8 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
@@ -24,14 +26,18 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.FragmentEnergyMethodSelectedEvent;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
@@ -93,6 +99,12 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // Clicking a member-row chip in the quality pane focuses that row in the dashboard (same
     // semantics as clicking a legend label below the charts).
     qualityCtrl.onMemberRowClickProperty().set(model::setSelectedAdductRow);
+    // Sealed {@link QualityCheckEvent} bus from the quality pane. A
+    // {@link FragmentEnergyMethodSelectedEvent} fires after a fragment-scan chip click; by then the
+    // accompanying onMemberRowClick has already updated selectedAdductRow (which in turn populated
+    // availableMs2Scans). Pick the row's first scan with matching energy + method and assign it as
+    // selectedMs2Scan so the MS2 chart switches to it.
+    qualityCtrl.onQualityCheckEventProperty().set(this::handleQualityCheckEvent);
     // 4D feature plot: share the selected compound row + the selected feature list with the
     // dashboard, and the selected rows with the feature table so a click in the bubble plot drives
     // the table selection (and vice versa). The SelectedFeatureListsBinding is what propagates the
@@ -312,6 +324,69 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     final int idx = current == null ? -1 : files.indexOf(current);
     final int next = ((idx + delta) % files.size() + files.size()) % files.size();
     model.setCurrentRawDataFile(files.get(next));
+  }
+
+  /**
+   * Dispatch a {@link QualityCheckEvent} from the quality pane. Exhaustive switch over the sealed
+   * permits so adding a new event type forces a compile error here.
+   */
+  private void handleQualityCheckEvent(@NotNull final QualityCheckEvent event) {
+    switch (event) {
+      case FragmentEnergyMethodSelectedEvent e ->
+          selectMatchingFragmentScan(e.row(), e.energy(), e.method());
+    }
+  }
+
+  /**
+   * Pick the scan on {@code row} whose activation method matches and whose energy is closest to
+   * {@code energy} (the chip the user clicked). The chip energy is the average of an entire cluster
+   * of near-identical scan energies, so an exact equality match is rarely available — we pick the
+   * nearest one within the matching method. When the chip's energy is {@code null} (scans without a
+   * reported energy), we match only on method and prefer scans that also have {@code null} energy.
+   * <p>
+   * The {@code selectedAdductRow} update sent by the accompanying {@code onMemberRowClick} has
+   * already populated {@code availableMs2Scans} (synchronously on the FX thread), so by the time we
+   * run here the candidate scans are reachable via the row itself.
+   */
+  private void selectMatchingFragmentScan(@NotNull final FeatureListRow row,
+      @Nullable final Float energy, @NotNull final ActivationMethod method) {
+    Scan best = null;
+    double bestDelta = Double.POSITIVE_INFINITY;
+    for (final Scan scan : row.getAllFragmentScans()) {
+      if (extractActivationMethod(scan) != method) {
+        continue;
+      }
+      final Float scanEnergy = ScanUtils.extractCollisionEnergy(scan);
+      final double delta;
+      if (energy == null) {
+        // Chip carries no energy; prefer scans that also have no energy, otherwise treat them all
+        // as equal candidates (first-method-match wins).
+        delta = scanEnergy == null ? 0d : Double.POSITIVE_INFINITY;
+      } else {
+        // Chip has an energy; null-energy scans on this method are unsuitable matches.
+        delta = scanEnergy == null ? Double.POSITIVE_INFINITY : Math.abs(scanEnergy - energy);
+      }
+      if (delta < bestDelta) {
+        best = scan;
+        bestDelta = delta;
+        if (delta == 0d) {
+          break; // can't get closer than exact match
+        }
+      }
+    }
+    if (best != null) {
+      model.setSelectedMs2Scan(best);
+    }
+  }
+
+  /// Same fallback-to-UNKNOWN semantics as {@code Ms2AvailableCheck.extractActivationMethod}, kept
+  /// in sync so a chip emitted there resolves to the same scan here.
+  private static @NotNull ActivationMethod extractActivationMethod(@NotNull final Scan scan) {
+    final MsMsInfo info = scan.getMsMsInfo();
+    if (info == null) {
+      return ActivationMethod.UNKNOWN;
+    }
+    return Objects.requireNonNullElse(info.getActivationMethod(), ActivationMethod.UNKNOWN);
   }
 
   private void cycleMs2Scan(final int delta) {
