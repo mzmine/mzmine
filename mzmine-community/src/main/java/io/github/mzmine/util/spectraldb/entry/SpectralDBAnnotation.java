@@ -359,17 +359,35 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable String getSmiles() {
-    return entry.getOrElse(DBEntryField.SMILES, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.isomericSmiles();
   }
 
   @Override
   public @Nullable String getInChI() {
-    return entry.getOrElse(DBEntryField.INCHI, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.inchi();
   }
 
   @Override
   public @Nullable String getInChIKey() {
-    return entry.getOrElse(DBEntryField.INCHIKEY, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.inchiKey();
   }
 
   @Override
