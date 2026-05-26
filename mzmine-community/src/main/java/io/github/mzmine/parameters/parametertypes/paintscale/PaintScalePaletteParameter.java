@@ -25,6 +25,9 @@
 
 package io.github.mzmine.parameters.parametertypes.paintscale;
 
+import static io.github.mzmine.util.color.SimpleColorPalette.MZMINE_BLUE_ORANGE;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
@@ -56,18 +59,22 @@ public class PaintScalePaletteParameter implements
   protected List<SimpleColorPalette> palettes;
 
   public PaintScalePaletteParameter(String name, String descr) {
+    this(name, descr, MZMINE_BLUE_ORANGE);
+  }
+
+  public PaintScalePaletteParameter(String name, String descr, @Nullable SimpleColorPalette value) {
     this.name = name;
     this.descr = descr;
-    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
+    palettes.add(MZMINE_BLUE_ORANGE);
+    palettes.add(SimpleColorPalette.MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED);
     palettes.add(SimpleColorPalette.BLUE_YELLOW);
     palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
     palettes.add(SimpleColorPalette.GREEN_YELLOW);
     palettes.add(SimpleColorPalette.BLUE_ORANGE_WHITE);
-    palettes.add(SimpleColorPalette.SEQUENTIAL_BLUE_YELLOW_ORANGE);
-    palettes.add(SimpleColorPalette.DIVERGING_BLUE_GRAY_VERMILLION);
-    value = SimpleColorPalette.BLUE_YELLOW;
+    // default mzmine colors since mzmine 4.10
+    this.value = requireNonNullElse(value, MZMINE_BLUE_ORANGE);
   }
 
   @Override
@@ -184,8 +191,8 @@ public class PaintScalePaletteParameter implements
 
   @Override
   public UserParameter<SimpleColorPalette, PaintScalePaletteComponent> cloneParameter() {
-    PaintScalePaletteParameter clone = new PaintScalePaletteParameter(name, descr);
-    clone.setValue(getValue().clone());
+    PaintScalePaletteParameter clone = new PaintScalePaletteParameter(name, descr,
+        value != null ? value.clone() : null);
 
     List<SimpleColorPalette> pals = new ArrayList<>();
     palettes.forEach(p -> pals.add(p.clone()));
