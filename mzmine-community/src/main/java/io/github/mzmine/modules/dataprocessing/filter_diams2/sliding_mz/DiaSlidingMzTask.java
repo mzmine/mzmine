@@ -427,9 +427,9 @@ public class DiaSlidingMzTask extends AbstractTaskSubProcessor {
       }
     }
 
-    final double[] intensities = ms2FeaturesMaxIndices.object2IntEntrySet().stream()
-        .mapToDouble(e -> e.getKey().getFeatureData().getIntensity(e.getIntValue())).toArray();
-    ArrayUtils.sum(intensities);
+//    final double[] intensities = ms2FeaturesMaxIndices.object2IntEntrySet().stream()
+//        .mapToDouble(e -> e.getKey().getFeatureData().getIntensity(e.getIntValue())).toArray();
+//    ArrayUtils.sum(intensities);
 
     return ms2FeaturesMaxIndices;
   }
