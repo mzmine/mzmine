@@ -117,7 +117,7 @@ public class MZminePreferences extends SimpleParameterSet {
       false, new DecimalFormat("0.0%"), true);
 
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
-      "The default unit format to format e.g. axis labels in MZmine.",
+      "The default unit format to format e.g. axis labels in mzmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
@@ -139,7 +139,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   //  public static final BooleanParameter sendStatistics = new BooleanParameter(
-//      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+//      "Send anonymous statistics", "Allow mzmine to send anonymous statistics on the module usage?",
 //      true);
 //  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
 //      "Send error e-Mail notifications", "Send error e-Mail notifications",
@@ -149,12 +149,12 @@ public class MZminePreferences extends SimpleParameterSet {
       true);
   public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
       "Default color palette",
-      "Defines the default color palette used to create charts throughout MZmine");
+      "Defines the default color palette used to create charts throughout mzmine");
   public static final PaintScalePaletteParameter defaultPaintScale = new PaintScalePaletteParameter(
       "Default paint scale",
-      "Defines the default paint scale used to create charts throughout MZmine");
+      "Defines the default paint scale used to create charts throughout mzmine");
   public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
-      "Chart parameters", "The default chart parameters to be used throughout MZmine",
+      "Chart parameters", "The default chart parameters to be used throughout mzmine",
       new ChartThemeParameters());
 
   /*
@@ -170,14 +170,14 @@ public class MZminePreferences extends SimpleParameterSet {
 //      new StructureRenderParameters());
 
   public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
-      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
+      "Select JavaFX style to theme the mzmine window.", Themes.values(), Themes.JABREF_LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
-      "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
+      "If checked, fonts in the mzmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
       + " will be stored. Directory should be located on a drive with fast read and write "
-      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+      + "(e.g., an SSD). Requires a restart of mzmine to take effect (the program argument --temp "
       + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
@@ -413,7 +413,7 @@ public class MZminePreferences extends SimpleParameterSet {
           || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
           || ColorUtils.isDark(subTitleFont.getColor()))) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
+            mzmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
             """)) {
@@ -423,7 +423,7 @@ public class MZminePreferences extends SimpleParameterSet {
           axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
           titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
         if (DialogLoggerUtil.showDialogYesNo("Change theme?", """
-            MZmine detected that you changed the GUI theme.
+            mzmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
             Would you like to adapt them?
             """)) {
