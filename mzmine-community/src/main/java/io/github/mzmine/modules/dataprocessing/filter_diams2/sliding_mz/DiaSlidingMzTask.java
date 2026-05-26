@@ -63,8 +63,9 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -216,7 +217,7 @@ public class DiaSlidingMzTask extends AbstractTaskSubProcessor {
           isolationIndexRange.maxInclusive(),
           cycleMassograms.isolationRange(isolationIndexRange.maxInclusive()).lower(), maxToleranceWindow));*/
 
-      final Object2IntArrayMap<ModularFeature> massogramMaxIndices = getTraceMaxIndices(
+      final Object2IntMap<ModularFeature> massogramMaxIndices = getTraceMaxIndices(
           closestIsolationIndex, isolationIndexRange, maxToleranceWindow, cycleMassograms,
           relevantMzs);
 
@@ -357,12 +358,12 @@ public class DiaSlidingMzTask extends AbstractTaskSubProcessor {
   }
 
 
-  private @NotNull Object2IntArrayMap<ModularFeature> getTraceMaxIndices(
+  private @NotNull Object2IntMap<ModularFeature> getTraceMaxIndices(
       final int closestIsolationIndex, final IndexRange isolationIndexRange,
       final int maxToleranceWindow, @NotNull final CycleMassograms massograms,
       final double @NotNull [] relevantMzs) {
 
-    final Object2IntArrayMap<ModularFeature> ms2FeaturesMaxIndices = new Object2IntArrayMap<>();
+    final Object2IntOpenHashMap<ModularFeature> ms2FeaturesMaxIndices = new Object2IntOpenHashMap<>();
 
     final Double2ObjectMap<ModularFeature> massogramFeatures = massograms.getTraces(relevantMzs,
         mzTol, temp);

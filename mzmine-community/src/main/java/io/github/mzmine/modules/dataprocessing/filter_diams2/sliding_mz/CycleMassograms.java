@@ -44,8 +44,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
-import it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
+import it.unimi.dsi.fastutil.doubles.Double2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -132,7 +132,7 @@ public record CycleMassograms(@NotNull List<Scan> ms2Scans, @NotNull Range<Float
       }
     }
 
-    final Double2ObjectMap<ModularFeature> result = new Double2ObjectArrayMap<>(relevantMzs.length);
+    final Double2ObjectMap<ModularFeature> result = new Double2ObjectOpenHashMap<>(relevantMzs.length);
     for (double mzs : relevantMzs) {
       final ModularFeature series = massograms.get(mzs);
       result.put(mzs, series);
