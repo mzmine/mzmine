@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,8 +34,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
@@ -144,7 +141,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     if (MZmineCore.isHeadLessMode()) {
-      FxThread.initJavaFxInHeadlessMode();
+      FxThread.initJavaFx();
     }
 
     try {

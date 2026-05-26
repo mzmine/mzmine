@@ -27,6 +27,7 @@ package io.github.mzmine.util;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.math.BigDecimal;
@@ -164,6 +165,10 @@ public class RangeUtils {
    */
   public static <N extends Number & Comparable<?>> N rangeLength(Range<N> range) {
     return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
+  }
+
+  public static <N extends Number & Comparable<?>> N rangeLength(SimpleRange<N> range) {
+    return ArithmeticUtils.subtract(range.upperBound(), range.lowerBound());
   }
 
   /**
@@ -447,5 +452,44 @@ public class RangeUtils {
   public static <T extends Number & Comparable<?>> String toString(Range<T> range,
       NumberFormat format) {
     return formatRange(range, format);
+  }
+
+  @Nullable
+  public static <N extends Comparable> Range<N> span(@Nullable Range<N> a, @Nullable Range<N> b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return a.span(b);
+  }
+
+  public static Range<Float> multiplyGrow(Range<Float> range, float factor) {
+    final float length = rangeLength(range);
+    final float diff = length * (factor - 1) * 0.5f;
+    return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
+  }
+
+  public static Range<Double> multiplyGrow(Range<Double> range, double factor) {
+    final double length = rangeLength(range);
+    final double diff = length * (factor - 1) * 0.5;
+    return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
+  }
+
+  /**
+   * @param range original range
+   * @param min   may be null to keep original
+   * @param max   may be null to keep original
+   * @return a closed range within min max bounds
+   */
+  public static <T extends Number & Comparable<T>> Range<T> withinBounds(@NotNull Range<T> range,
+      @Nullable T min, @Nullable T max) {
+    T lower = ArithmeticUtils.max(range.lowerEndpoint(), min);
+    T upper = ArithmeticUtils.min(range.upperEndpoint(), max);
+    return Range.closed(lower, upper);
   }
 }

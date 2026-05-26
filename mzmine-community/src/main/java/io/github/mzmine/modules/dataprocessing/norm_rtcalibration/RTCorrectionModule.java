@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RTCorrectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Retention time correction on feature lists";
+  public static final String MODULE_NAME = "Retention time correction on feature lists";
   private static final String MODULE_DESCRIPTION = """
       This retention time correction module attempts to reduce the deviation of retention times between feature lists, /
       by searching for common features in these lists and using them as correction standards.

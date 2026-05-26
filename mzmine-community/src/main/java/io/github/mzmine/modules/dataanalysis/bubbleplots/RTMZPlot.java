@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,15 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots;
 
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -40,10 +44,6 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.AbstractXYZDataset;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 public class RTMZPlot extends EChartViewer {
 
@@ -51,8 +51,8 @@ public class RTMZPlot extends EChartViewer {
   private static final Color crossHairColor = Color.gray;
   private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
   // crosshair stroke
-  private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
+  private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+      BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3}, 0);
 
   private JFreeChart chart;
   private XYPlot plot;
@@ -69,7 +69,7 @@ public class RTMZPlot extends EChartViewer {
 
     this.paintScale = paintScale;
 
-    chart = ChartFactory.createXYAreaChart("", "Retention time", "m/z", dataset,
+    chart = FxChartFactory.createXYAreaChart("", "Retention time", "m/z", dataset,
         PlotOrientation.VERTICAL, false, false, false);
     chart.setBackgroundPaint(Color.white);
     setChart(chart);
@@ -134,8 +134,9 @@ public class RTMZPlot extends EChartViewer {
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
   }
 
   public InterpolatingLookupPaintScale getPaintScale() {

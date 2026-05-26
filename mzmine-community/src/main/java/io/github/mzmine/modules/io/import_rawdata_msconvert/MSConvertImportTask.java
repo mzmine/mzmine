@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,8 +32,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
@@ -281,7 +281,7 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
   public static Set<RawDataFileType> getSupportedFileTypes() {
     return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
-        RawDataFileType.SCIEX_WIFF, RawDataFileType.AGILENT_D,
+        /*RawDataFileType.SCIEX_WIFF,*/ RawDataFileType.AGILENT_D,
         RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 

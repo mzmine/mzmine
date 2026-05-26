@@ -378,4 +378,16 @@ public class ArrayUtils {
     }
     return Optional.of(new SimpleDoubleRange(min, max));
   }
+
+  public static int indexOfMin(double[] values, int startSearchIndex, int endSearchIndexExclusive) {
+    double min = Double.POSITIVE_INFINITY;
+    int minIndex = startSearchIndex;
+    for (int i = startSearchIndex; i < endSearchIndexExclusive; i++) {
+      if(values[i] < min) {
+        min = values[i];
+        minIndex = i;
+      }
+    }
+    return minIndex;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,166 +25,248 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
-import static io.github.mzmine.util.StringUtils.inQuotes;
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.util.StringUtils;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Parses strings to {@link IonType}
- */
+/// Parses strings to [IonType].
+///
+/// Requirements:
+/// - M is optional
+/// - names starting with `(` need to be enclosed by `()`
+/// - names with - or + need to be enclosed by `()`
+/// - total charge of ion type needs to be enclosed by `()` or `[]`
+///
+/// Formats:
+/// - total charge version: `[M+H]+2` `[M+H]2+` `(M+H)+2` `(M+H)2+`
+/// - +H (without M)
+/// - M+H or `[M+H]` (total charge missing)
+/// - M+H+
+/// - `M+(H+)`
 public class IonTypeParser {
 
-  private static final Logger logger = Logger.getLogger(IonTypeParser.class.getName());
+  private static final Pattern SPECIAL_M_PATTERN = Pattern.compile("^([0-9])*M([+-][0-9]*)$");
 
-  /**
-   * Pattern that groups +3H2O to  +  3  H2O
-   */
-  private static final Pattern PART_PATTERN = Pattern.compile("([+-])(\\d*)(\\w+)");
+  /// Charge pattern at the end of string as +- with optional number
+  ///
+  /// Options are:
+  /// - Just sign: + -
+  /// - sign number: +2
+  /// - bracket number sign: ]2+ or )2+
+  /// - start of string with sign: +2M or -2M
+  ///
+  // function now goes through chars for more flexibility
+//  public static final Pattern CHARGE_PATTERN = Pattern.compile("(^|[])])(\\d+[+-])$|([+-]\\d*)$");
 
+  /// Charge pattern at the end of string as +- with optional number
+  ///
+  /// Options are:
+  /// - Just sign: + -
+  /// - sign number: +2
+  /// - bracket number sign: ]2+ or )2+
   @Nullable
-  public static IonType parse(final @Nullable String str) {
-    if (str == null || str.isBlank()) {
+  public static Integer parseChargeOrElse(@Nullable String input, @Nullable Integer defaultValue) {
+    if (input == null) {
       return null;
     }
-    // clean up but keep [] for now
-    String clean = str.replaceAll("[^a-zA-Z0-9+-\\[\\]]", "");
-    String[] splitCharge = clean.split("]");
-    // default charge is 1 - because we are usually looking at charged ions
+    input = StringUtils.removeAllWhiteSpace(input);
+
+    int signIndex = -1;
+    boolean allowReversedNotation = true; // allowed if input is only number and sign like 2+ without prefix
+    int index = input.length() - 1;
+    for (; index >= 0; index--) {
+      final char c = input.charAt(index);
+      if (StringUtils.isSign(c)) {
+        if (signIndex != -1) {
+          break; // double sign means this belongs to the name
+        }
+        signIndex = index;
+      } else if (c == ']' || c == ')') {
+        allowReversedNotation = true;
+        break;
+      } else if (!StringUtils.isDigit(c)) {
+        allowReversedNotation = false; // no ] ) so reverse is not allowed
+        break;
+      }
+    }
+
+    if (signIndex == -1) {
+      return null;
+    }
+
+    if (allowReversedNotation) {
+      index++;
+    } else {
+      index = signIndex;
+    }
+
+    final String chargeStr = input.substring(index);
+    return StringUtils.parseSignAndIntegerOrElse(chargeStr, false, defaultValue);
+  }
+
+
+  /**
+   *
+   * @param input
+   * @return the index of ] ) allowing digits, +, -, and whitespace
+   */
+  public static int findLastIndexOfClosingBracketBraceAllowCharge(@NotNull String input) {
+    boolean hasSign = false;
+    for (int i = input.length() - 1; i >= 0; i--) {
+      final char c = input.charAt(i);
+      if (c == ']' || c == ')') {
+        return i;
+      } else if (StringUtils.isSign(c)) {
+        if (hasSign) {
+          return -1; // double sign not allowed in charge
+        }
+        hasSign = true;
+      } else if (!(StringUtils.isDigit(c) || Character.isWhitespace(c))) {
+        return -1; // other char than digit or whitespace ends the charge
+      }
+    }
+    return -1; // nothing found
+  }
+
+  /// Parses ion types in format:
+  ///
+  /// - `[M+Na]+`
+  /// - `[M+(a-OH)+H]+` (use braces if - or + in name)
+  ///
+  /// Do not remove whitespace as this is allowed in part names.
+  ///
+  /// Uses defaultCharge 0 to parse input as is.
+  ///
+  /// @return an ion part or null if not parsed
+  @Nullable
+  public static IonType parse(@Nullable String input) {
+    return parse(input, 0);
+  }
+
+  /// Parses ion types in format:
+  ///
+  /// - `[M+Na]+`
+  /// - `[M+(a-OH)+H]+` (use braces if - or + in name)
+  ///
+  /// Do not remove whitespace as this is allowed in part names.
+  ///
+  /// Uses defaultCharge 0 to parse input as is.
+  ///
+  /// @param defaultCharge the defaultCharge is applied when no charge state was found
+  /// @return an ion part or null if not parsed
+  @Nullable
+  public static IonType parse(@Nullable String input, int defaultCharge) {
+    if (StringUtils.isBlank(input)) {
+      return null;
+    }
+    input = input.trim();
+
+    // default charge is null, if total charge is unknown then use charge of known iparts
     Integer detectedCharge = null;
-    if (splitCharge.length > 1) {
-      // [M+H]+ to [M+H and +
-      detectedCharge = StringUtils.parseSignAndIntegerOrElse(splitCharge[1], true, null);
-      clean = splitCharge[0];
+    // last index of ) ]
+    final int chargeIndex = findLastIndexOfClosingBracketBraceAllowCharge(input);
+    if (chargeIndex != -1) {
+      // might be null still if notation was [M+H] which is fine as well
+      detectedCharge = parseChargeOrElse(input.substring(chargeIndex).trim(), null);
+      // remove leading bracket if end bracket
+      final char first = input.charAt(0);
+      int startIndex = first == '[' || first == '(' ? 1 : 0;
+
+      input = input.substring(startIndex, chargeIndex).trim();
     } else {
-      // read charge that was not separated by ']' so maybe from M+H or M+H+
-      int lastPlusMinusSignIndex = StringUtils.findLastPlusMinusSignIndex(clean, true);
-      if (lastPlusMinusSignIndex > -1) {
-        detectedCharge = StringUtils.parseSignAndIntegerOrElse(
-            clean.substring(lastPlusMinusSignIndex - 1), true, null);
-        clean = clean.substring(0, lastPlusMinusSignIndex);
+      // handle special cases that are not covered by the rest of the parsing
+      // like M+ or 2M+2
+      IonType special = parseSpecialTypes(input);
+      if (special != null) {
+        return special;
       }
     }
 
-    // remove all other characters (already cleaned before)
-    clean = clean.replaceAll("[\\[\\]]", "");
-    int starti = 0;
+    // input is now without total charge notation and without [] or () surrounding
+    // next parse 2M multiplier
+    final int molMIndex = findMolMIndex(input);
 
-    int molMultiplier = 1;
-    boolean molFound = false;
-    List<IonModification> mods = new ArrayList<>();
-
-    for (int i = 0; i < clean.length(); i++) {
-      char c = clean.charAt(i);
-      if (c == '+') {
-        String mod = clean.substring(starti, i);
-        if (!molFound) {
-          // remove the M from the end of 2M or M
-          molMultiplier = getMolMultiplier(mod, 1);
-          molFound = true;
-        } else {
-          parseAndAddIonModifications(mods, mod);
-        }
-        starti = i;
-      }
-      if (c == '-') {
-        String mod = clean.substring(starti, i);
-        if (!molFound) {
-          // remove the M from the end of 2M or M
-          molMultiplier = getMolMultiplier(mod, 1);
-          molFound = true;
-        } else {
-          parseAndAddIonModifications(mods, mod);
-        }
-        starti = i;
-      }
-    }
-//
-
-    // charge was already removed - remainder is the last modification part
-    String remainder = clean.substring(starti);
-    if (!molFound) {
-      // remove the M from the end of 2M or M
-      molMultiplier = getMolMultiplier(remainder, 1);
-      molFound = true;
+    final int molMultiplier;
+    if (molMIndex > 0) {
+      molMultiplier = Integer.parseInt(input.substring(0, molMIndex).trim());
     } else {
-      parseAndAddIonModifications(mods, remainder);
+      molMultiplier = 1;
     }
 
-    IonType ion = createIon(molMultiplier, mods);
+    if (molMIndex >= 0) {
+      // cut off the 2M or M
+      input = input.substring(molMIndex + 1);
+    }
+
+    // rest is all parts
+    final List<IonPart> parts = IonParts.parseMultiple(input);
+
+    IonType ion = IonType.create(parts, molMultiplier);
 
     int chargeDiff = 0;
-    if (detectedCharge == null && ion.getCharge() == 0) {
-      // default to charge 1
-      chargeDiff = 1;
+    if (detectedCharge == null && ion.totalCharge() == 0) {
+      // default charge may be 0 or the preferred charge state
+      chargeDiff = defaultCharge;
     } else if (detectedCharge != null) {
-      chargeDiff = detectedCharge - ion.getCharge();
+      chargeDiff = detectedCharge - ion.totalCharge();
     }
     if (chargeDiff != 0) {
-      var electron = chargeDiff > 0 ? IonModification.M_PLUS : IonModification.M_MINUS;
-      for (int c = 0; c < Math.abs(chargeDiff); c++) {
-        mods.add(electron);
+      // if we have a single modification then we can set its charge to the parsed charge
+      if (parts.size() == 1) {
+        final IonPart first = parts.getFirst();
+        final int actualCharge = requireNonNullElse(detectedCharge, chargeDiff);
+        // needs to be dividable by count
+        if (Math.abs(actualCharge) % Math.abs(first.count()) == 0) {
+          final List<IonPart> newChargeMods = List.of(
+              first.withSingleCharge(actualCharge / first.count()));
+          return IonType.create(newChargeMods, molMultiplier);
+        }
       }
-      return createIon(molMultiplier, mods);
+      // if more parts then add silent charges instead
+      IonPart chargeChanger = IonParts.SILENT_CHARGE.withCount(chargeDiff);
+      parts.add(chargeChanger);
+      return IonType.create(parts, molMultiplier);
     } else {
       return ion;
     }
   }
 
-  @NotNull
-  private static IonType createIon(final int molMultiplier, final List<IonModification> mods) {
-    var adducts = mods.stream().filter(Objects::nonNull).filter(m -> m.getAbsCharge() > 0)
-        .toArray(IonModification[]::new);
-    var modifications = mods.stream().filter(Objects::nonNull).filter(m -> m.getAbsCharge() == 0)
-        .toArray(IonModification[]::new);
-
-    var combinedMod =
-        modifications.length == 0 ? null : CombinedIonModification.create(modifications);
-    return new IonType(molMultiplier, CombinedIonModification.create(adducts), combinedMod);
+  @Nullable
+  private static IonType parseSpecialTypes(@NotNull String input) {
+    // try parse M+ or 2M+2 types
+    final String inputNoSpaces = StringUtils.removeAllWhiteSpace(input);
+    final Matcher matcher = SPECIAL_M_PATTERN.matcher(inputNoSpaces);
+    if (matcher.find()) {
+      // is M+ or 2M-, usually requires [M]+ to define charge but is missing here in special cases
+      // charge is required
+      final int charge = StringUtils.parseSignAndIntegerOrElse(matcher.group(2), 0);
+      // mol is optional
+      final String molStr = matcher.group(1);
+      final int mol = StringUtils.parseIntegerOrElse(molStr, false, 1);
+      // electron is -1 so need to flip charge as removal of electron --> positive charge
+      return new IonType(mol, IonParts.M_PLUS.withCount(-charge));
+    }
+    return null;
   }
 
-  private static void parseAndAddIonModifications(final List<IonModification> mods, String mod) {
-    // mod is +Na or -H so with sign
-    // handle +2H by removing the number
-    var matcher = PART_PATTERN.matcher(mod);
-    if (!matcher.find()) {
-      return;
-    }
-
-    // keep parsing prefix number like this
-    int adductMultiplier = StringUtils.parseIntegerPrefixOrElse(mod, 1);
-
-    // need +H or -H2O to get the correct part
-    String sign = StringUtils.orDefault(matcher.group(1), "+");
-    String part = sign + StringUtils.orDefault(matcher.group(3), "");
-
-    var ionPart = IonModification.parseFromString(part);
-
-    for (int j = 0; j < Math.abs(adductMultiplier); j++) {
-      mods.add(ionPart);
-    }
-  }
-
-  private static int getMolMultiplier(String mod, int defaultValue) {
-    if (mod.isBlank()) {
-      return defaultValue;
-    }
-    mod = mod.substring(0, mod.length() - 1);
-    if (!mod.isBlank()) {
-      try {
-        return Integer.parseInt(mod);
-      } catch (Exception ex) {
-        logger.finest("Cannot parse prefix of M in ion notation for " + inQuotes(mod));
+  private static int findMolMIndex(@NotNull String input) {
+    int molMIndex = -1;
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      if (molMIndex == -1 && c == 'M') {
+        molMIndex = i; // found - but need to check that its not part of a name like Methanol
+      } else if (StringUtils.isSign(c)) {
+        return molMIndex;
+      } else if (!(StringUtils.isDigit(c) || Character.isWhitespace(c))) {
+        return -1; // other character says this M was a name
       }
     }
-    return defaultValue;
+    return molMIndex;
   }
-
 
 }

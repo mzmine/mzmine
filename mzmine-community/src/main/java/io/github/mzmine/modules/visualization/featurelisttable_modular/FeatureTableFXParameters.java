@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,11 +40,12 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final DataTypeCheckListParameter showRowTypeColumns = new DataTypeCheckListParameter(
       "Feature summary columns",
-      "Specify which data type columns shall be displayed in the feature list table");
+      "Specify which data type columns shall be displayed in the feature list table", ColumnType.ROW_TYPE);
 
   public static final DataTypeCheckListParameter showFeatureTypeColumns = new DataTypeCheckListParameter(
       "Sample-specific columns",
-      "Specify which data type columns shall be displayed in the feature list table");
+      "Specify which data type columns shall be displayed in the feature list table",
+      ColumnType.FEATURE_TYPE);
 
   public static final ComboParameter<AbundanceMeasure> defaultAbundanceMeasure = new ComboParameter<>(
       "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
@@ -65,7 +67,7 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
 
   public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
       "Deactivate shapes >N samples", "Deactivate shapes for better performance above N samples.",
-      35);
+      50);
 
   public static final BooleanParameter lockImagesToAspectRatio = new BooleanParameter(
       "Lock images to aspect ratio",

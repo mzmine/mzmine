@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
@@ -55,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationR
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,8 +67,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationUtils {
 
@@ -132,9 +130,8 @@ public class LipidAnnotationUtils {
             }
             for (IonizationType ionization : ionizationTypeList) {
               if (polarityTypes.contains(ionization.getPolarity())) {
-                double lipidIonMass =
-                    MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-                        AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
+                double lipidIonMass = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula())
+                    + ionization.getAddedMass();
                 lipidDatabase.add(new LipidIon(lipid, ionization, lipidIonMass));
               }
             }
@@ -150,8 +147,7 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory, final FragmentScanSelection scanMergeSelect) {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
 
-    if (Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
-        .equals(lipidIon.ionizationType().getPolarity())) {
+    if (Objects.equals(row.getRepresentativePolarity(), lipidIon.ionizationType().getPolarity())) {
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
 
       // MS1 check
@@ -353,17 +349,16 @@ public class LipidAnnotationUtils {
     //consider previous annotations
     List<MatchedLipid> previousLipidMatches = row.getLipidMatches();
     if (!previousLipidMatches.isEmpty()) {
-      row.set(LipidMatchListType.class, null);
       possibleRowAnnotations.addAll(previousLipidMatches);
     }
     LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true);
     List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
         row, possibleRowAnnotations);
-    for (MatchedLipid matchedLipid : finalResults) {
-      if (matchedLipid != null) {
-        row.addLipidAnnotation(matchedLipid);
-      }
-    }
+
+    // set all annotations over the old - already merged the old annotations in
+    finalResults = finalResults.stream().filter(Objects::nonNull).toList();
+    // caching of lipid properties is triggered in row
+    row.setLipidAnnotations(finalResults);
   }
 
 }

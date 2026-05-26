@@ -31,6 +31,7 @@ import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addRadioMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.WindowLocation;
@@ -54,6 +55,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDe
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -208,7 +210,8 @@ public abstract class AbstractWorkspace implements Workspace {
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
-    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addMenuItem(menu, "Open project", () -> ProjectLoadModule.openQuickSelect(), KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN);
     menu.getItems().add(recentProjects);
     addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,
@@ -306,7 +309,8 @@ public abstract class AbstractWorkspace implements Workspace {
         FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
-    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class);
+    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,
+        PreferredAnnotationRankingModule.class);
     return menu;
   }
 
@@ -352,7 +356,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
+    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
+        QualityParametersModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
         MsMsQualityExportModule.class, MergeLibrariesModule.class);
     addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,

@@ -24,13 +24,24 @@
 
 package resolver_tests;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max.LocalMaxMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
+import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import testutils.MZmineTestUtil;
+import testutils.TaskResult;
+import testutils.TaskResult.FINISHED;
 
 /**
  * Wraps a file + import param
@@ -74,4 +85,51 @@ public record FilesToImport(@NotNull List<String> filePaths,
     return new FilesToImport(List.of(fileName), param, defaultVendorParam);
   }
 
+  public static FilesToImport tof(@NotNull String fileName, double noiseLevelMs1,
+      double noiseLevelMs2, @NotNull AbundanceMeasure intensityCalc) {
+    return tof(List.of(fileName), noiseLevelMs1, noiseLevelMs2, intensityCalc);
+  }
+
+  public static FilesToImport tof(@NotNull List<String> fileName, double noiseLevelMs1,
+      double noiseLevelMs2, @NotNull AbundanceMeasure intensityCalc) {
+
+    AdvancedSpectraImportParameters advancedParam = AdvancedSpectraImportParameters.create(
+        MassDetectors.LOCAL_MAX,
+        LocalMaxMassDetectorParameters.create(noiseLevelMs1, intensityCalc),
+        MassDetectors.LOCAL_MAX,
+        LocalMaxMassDetectorParameters.create(noiseLevelMs2, intensityCalc), null,
+        ScanSelection.ALL_SCANS, false);
+
+    return new FilesToImport(fileName, advancedParam, vendorParamNoCentroid);
+  }
+
+  public static FilesToImport exactMass(String mzmineFile, double noiseLevelMs1,
+      double noiseLevelMs2) {
+
+    ExactMassDetectorParameters paramMs1 = (ExactMassDetectorParameters) new ExactMassDetectorParameters().cloneParameterSet();
+    paramMs1.setParameter(ExactMassDetectorParameters.noiseLevel, noiseLevelMs1);
+
+    ExactMassDetectorParameters paramMs2 = (ExactMassDetectorParameters) new ExactMassDetectorParameters().cloneParameterSet();
+    paramMs2.setParameter(ExactMassDetectorParameters.noiseLevel, noiseLevelMs2);
+
+    AdvancedSpectraImportParameters param = AdvancedSpectraImportParameters.create(
+        MassDetectors.EXACT, paramMs1, MassDetectors.EXACT, paramMs2, null, ScanSelection.ALL_SCANS,
+        false);
+    return new FilesToImport(List.of(mzmineFile), param, vendorParamNoCentroid);
+  }
+
+  public List<RawDataFile> runImport() {
+    try {
+      TaskResult taskResult = MZmineTestUtil.importFiles(filePaths, 5_000, vendorParam,
+          advancedParam);
+      if (taskResult instanceof FINISHED) {
+        return filePaths.stream().map(File::new)
+            .map(f -> ProjectService.getProject().getDataFileByName(f.getName()))
+            .filter(Objects::nonNull).toList();
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    return List.of();
+  }
 }

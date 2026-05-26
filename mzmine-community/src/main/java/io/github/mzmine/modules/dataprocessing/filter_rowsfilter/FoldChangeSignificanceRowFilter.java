@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignif
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Filter rows based on fold-change, uses log2FC for equal scaling of up and down regulation as 1
@@ -48,34 +49,51 @@ public final class FoldChangeSignificanceRowFilter {
   private final double minLog2FoldChange;
   private final FoldChangeFilterSides foldChangeFilterSides;
   private final SignificanceTests test;
-  private final UnivariateRowSignificanceTest<Object> rowTest;
+  // t-test is optional and its ok to just use fold change filter
+  private final @Nullable UnivariateRowSignificanceTest<Object> rowTest;
   private final boolean applySignificancePFilter;
   private final boolean applyFoldChangeFilter;
   private final FeaturesDataTable groupAData;
   private final FeaturesDataTable groupBData;
 
   /**
-   * @param dataTable             a data table that is already zero value/missing value imputed
-   *                              etc.
-   * @param grouping              column and two groups
-   * @param maxValueP             maxmimum p value. use <=0 to deactivate
-   * @param minLog2FoldChange     use 0 to deactivate, either signed or absolute value
-   * @param foldChangeFilterSides FC may be applied to Math.abs(value) to filter both up and down
-   *                              regulation or as a signed filter to only retain one side.
+   * @param dataTable                a data table that is already zero value/missing value imputed
+   *                                 etc.
+   * @param grouping                 column and two groups
+   * @param applySignificancePFilter true then requires 2 samples per group otherwise only FC filter
+   *                                 and 1 sample required
+   * @param maxValueP                maxmimum p value. use <=0 to deactivate
+   * @param minLog2FoldChange        use 0 to deactivate, either signed or absolute value
+   * @param foldChangeFilterSides    FC may be applied to Math.abs(value) to filter both up and down
+   *                                 regulation or as a signed filter to only retain one side.
    */
   public FoldChangeSignificanceRowFilter(FeaturesDataTable dataTable,
-      @NotNull Metadata2GroupsSelection grouping, double maxValueP, double minLog2FoldChange,
-      FoldChangeFilterSides foldChangeFilterSides, SignificanceTests test) {
+      @NotNull Metadata2GroupsSelection grouping, boolean applySignificancePFilter,
+      double maxValueP, double minLog2FoldChange, FoldChangeFilterSides foldChangeFilterSides,
+      SignificanceTests test) {
 
     final List<RawDataFile> rawFiles = dataTable.getRawDataFiles();
     this.grouping = grouping;
     List<RawDataFile> groupA = grouping.getMatchingFilesA(rawFiles);
     List<RawDataFile> groupB = grouping.getMatchingFilesB(rawFiles);
 
-    // need at least 2 values per group
-    if (groupA.size() < 2 || groupB.size() < 2) {
+    this.applyFoldChangeFilter = Double.compare(minLog2FoldChange, 0d) != 0;
+    this.applySignificancePFilter = applySignificancePFilter && maxValueP > 0;
+
+    if (!this.applyFoldChangeFilter && !this.applySignificancePFilter) {
       throw new IllegalArgumentException(
-          "Groups require at least 2 samples for univariate filters by fold-change or t-test. Grouping: %s and groupA n=%d, groupB n=%d".formatted(
+          "At least one filter needs to be activated: fold-change and/or p-value filter.");
+    }
+
+    // need at least 2 values per group if p filter is on - fold change works with single sample
+    if (applySignificancePFilter && (groupA.size() < 2 || groupB.size() < 2)) {
+      throw new IllegalArgumentException(
+          "Groups require at least 2 samples for univariate filters by t-test and fold-change. Single samples can only be compared by fold-change. Grouping: %s and groupA n=%d, groupB n=%d".formatted(
+              grouping, groupA.size(), groupB.size()));
+    }
+    if (!applySignificancePFilter && (groupA.isEmpty() || groupB.isEmpty())) {
+      throw new IllegalArgumentException(
+          "Groups require at least 1 sample for univariate filters by fold-change (significance test is off). Grouping: %s and groupA n=%d, groupB n=%d".formatted(
               grouping, groupA.size(), groupB.size()));
     }
 
@@ -89,14 +107,17 @@ public final class FoldChangeSignificanceRowFilter {
         foldChangeFilterSides == FoldChangeFilterSides.ABS_BOTH_SIDES ? Math.abs(minLog2FoldChange)
             : minLog2FoldChange;
     this.test = test;
-    rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
-        grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
-    if (rowTest == null) {
-      throw new IllegalArgumentException(
-          "Invalid group selection for univariate test: " + grouping);
+
+    if (applySignificancePFilter) {
+      rowTest = new UnivariateRowSignificanceTestConfig(test, grouping().columnName(),
+          grouping.groupA(), grouping.groupB()).toValidConfig(groupAData, groupBData);
+      if (rowTest == null) {
+        throw new IllegalArgumentException(
+            "Invalid group selection for univariate test: " + grouping);
+      }
+    } else {
+      rowTest = null;
     }
-    this.applyFoldChangeFilter = Double.compare(minLog2FoldChange, 0d) != 0;
-    this.applySignificancePFilter = Double.compare(maxValueP, 0d) != 0;
   }
 
   public boolean applyFoldChangeFilter() {

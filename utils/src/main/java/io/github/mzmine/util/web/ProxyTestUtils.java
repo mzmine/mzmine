@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util.web;
 
+import io.github.mzmine.util.web.proxy.FullProxyConfig;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -50,16 +51,23 @@ public class ProxyTestUtils {
     logger.info(msg);
 
     List<String> testUrls = List.of("https://auth.mzio.io/health", "https://mzio.io",
-        "https://zenodo.org/");
+        "https://zenodo.org/", "https://github.com/");
 
     StringBuilder sb = new StringBuilder();
-    sb.append(msg);
+    sb.append(msg).append("\n");
+    logProxyConfig(sb);
     logSystemProperties(sb);
+    sb.append("\n");
     logProxyDetails(sb, testUrls);
 
     final String message = sb.toString();
     logger.info(message);
     return message;
+  }
+
+  private static void logProxyConfig(StringBuilder sb) {
+    final FullProxyConfig config = ProxyUtils.getConfig();
+    sb.append("Current proxy config: ").append(config).append("\n");
   }
 
   /**
@@ -99,12 +107,12 @@ public class ProxyTestUtils {
         List<Proxy> proxies = defaultSelector.select(testUri);
 
         if (proxies == null || proxies.isEmpty()) {
-          sb.append("No proxies returned from the selector.\n");
+          sb.append("No proxies returned from the selector for ").append(url).append(".\n");
           return;
         }
 
         sb.append("Detected ").append(proxies.size())
-            .append(" proxy setting(s) via ProxySelector:\n");
+            .append(" proxy setting(s) via ProxySelector for ").append(url).append(":\n");
 
         for (Proxy proxy : proxies) {
           logProxyDetails(sb, url, proxy);
@@ -113,8 +121,8 @@ public class ProxyTestUtils {
       } catch (Exception e) {
         // 2. Log exceptions at a SEVERE level, including the stack trace
         logger.log(Level.SEVERE, "An error occurred while detecting proxies\n", e);
-        sb.append("An error occurred while detecting proxies: ").append(e.getMessage())
-            .append("\n");
+        sb.append("An error occurred while detecting proxies for ").append(url).append(": ")
+            .append(e.getMessage()).append("\n");
       }
     }
   }
@@ -145,7 +153,7 @@ public class ProxyTestUtils {
   public static String testAll() {
     // use health endpoint as it does not use redirect
     List<String> testUrls = List.of("https://auth.mzio.io/health", "https://mzio.io",
-        "https://zenodo.org/", "https://pubchem.ncbi.nlm.nih.gov/");
+        "https://zenodo.org/", "https://pubchem.ncbi.nlm.nih.gov/", "https://github.com/");
 
     return testUrls(testUrls);
   }
@@ -203,13 +211,27 @@ public class ProxyTestUtils {
           HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
               .timeout(Duration.ofSeconds(30)).GET().build();
 
-          HttpResponse<Void> response = client.send(request,
-              HttpResponse.BodyHandlers.discarding());
+          HttpResponse<String> response = client.send(request,
+              HttpResponse.BodyHandlers.ofString());
 
           if (response.statusCode() >= 200 && response.statusCode() < 300) {
             sb.append("success (%s); ".formatted(url));
           } else {
-            sb.append("failed %d (%s); ".formatted(response.statusCode(), url));
+            sb.append("failed %d".formatted(response.statusCode()));
+
+            // Log authentication headers if present
+            var wwwAuth = response.headers().firstValue("WWW-Authenticate");
+            var proxyAuth = response.headers().firstValue("Proxy-Authenticate");
+            wwwAuth.ifPresent(s -> sb.append("; WWW-Authenticate: ").append(s));
+            proxyAuth.ifPresent(s -> sb.append("; Proxy-Authenticate: ").append(s));
+            sb.append(" (%s); ".formatted(url));
+
+            // Log response body if available
+            String body = response.body();
+            if (body != null && !body.trim().isEmpty()) {
+              String truncatedBody = body.length() > 200 ? body.substring(0, 200) + "..." : body;
+              sb.append("Response body: ").append(truncatedBody).append("; ");
+            }
           }
         } catch (Exception e) {
           sb.append("error connecting (%s; message: %s); ".formatted(url, e.getMessage()));

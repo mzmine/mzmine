@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -119,7 +119,7 @@ public class FeatureDataSetCalc extends AbstractTask {
       }
       logger.info("Adding EIC datasets to plot");
       chromPlot.applyWithNotifyChanges(false, true, () -> {
-        chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class, false);
+        chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class);
         chromPlot.addDataSets(datasets);
       });
     });
@@ -153,8 +153,7 @@ public class FeatureDataSetCalc extends AbstractTask {
       Range<Double> mzRange = mzRangesSorted.get(i);
       IonTimeSeries<? extends Scan> series = builder.toIonTimeSeriesWithLeadingAndTrailingZero(null,
           scans);
-      datasets.add(
-          new MzRangeEicDataSet(series, mzRange, dataFile.getColor()));
+      datasets.add(new MzRangeEicDataSet(series, mzRange, dataFile));
     }
     doneFiles.incrementAndGet();
     return datasets;

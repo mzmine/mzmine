@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineDataBuffer;
 import io.github.mzmine.util.ArrayUtils;
-import io.github.mzmine.util.collections.SimpleIndexRange;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -82,7 +82,7 @@ public class SplineBaselineCorrectorTest {
 
   @Test
   public void testRangeAtStart() {
-    SimpleIndexRange r = new SimpleIndexRange(0, 3);
+    IndexRange r = IndexRange.ofInclusive(0, 3);
     buffer.removeRangesFromArray(List.of(r));
 
     check(buffer, 7, new double[]{0, 4, 5, 6, 7, 8, 9, 0, 0, 0}, new int[]{0, 1, 6});
@@ -90,7 +90,7 @@ public class SplineBaselineCorrectorTest {
 
   @Test
   public void testRangeAtEnd() {
-    SimpleIndexRange r = new SimpleIndexRange(7, 9);
+    IndexRange r = IndexRange.ofInclusive(7, 9);
     buffer.removeRangesFromArray(List.of(r));
 
     check(buffer, 8, new double[]{0, 1, 2, 3, 4, 5, 6, 9, 0, 0}, new int[]{0, 6, 7});
@@ -98,7 +98,7 @@ public class SplineBaselineCorrectorTest {
 
   @Test
   public void testRangeInMiddle() {
-    SimpleIndexRange r = new SimpleIndexRange(4, 6);
+    IndexRange r = IndexRange.ofInclusive(4, 6);
     buffer.removeRangesFromArray(List.of(r));
 
     check(buffer, 7, new double[]{0, 1, 2, 3, 7, 8, 9, 0, 0, 0}, new int[]{0, 3, 4, 6});
@@ -106,8 +106,8 @@ public class SplineBaselineCorrectorTest {
 
   @Test
   public void testTwoRangesStart() {
-    SimpleIndexRange r1 = new SimpleIndexRange(0, 1);
-    SimpleIndexRange r2 = new SimpleIndexRange(4, 6);
+    IndexRange r1 = IndexRange.ofInclusive(0, 1);
+    IndexRange r2 = IndexRange.ofInclusive(4, 6);
 
     buffer.removeRangesFromArray(List.of(r1, r2));
 
@@ -116,8 +116,8 @@ public class SplineBaselineCorrectorTest {
 
   @Test
   public void testTwoRangesEnd() {
-    SimpleIndexRange r1 = new SimpleIndexRange(4, 6);
-    SimpleIndexRange r2 = new SimpleIndexRange(8, 9);
+    IndexRange r1 = IndexRange.ofInclusive(4, 6);
+    IndexRange r2 = IndexRange.ofInclusive(8, 9);
 
     buffer.removeRangesFromArray(List.of(r1, r2));
 

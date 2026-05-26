@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
@@ -70,13 +71,19 @@ import org.w3c.dom.Element;
 public class ParsingUtils {
 
   private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
+  private static final double[] EMPTY_DOUBLES = new double[0];
+  private static final float[] EMPTY_FLOATS = new float[0];
 
   /**
    * Value separator for storing lists and arrays.
    */
   public static String SEPARATOR = ";";
 
-  public static double[] stringToDoubleArray(String string) {
+  public static double @NotNull [] stringToDoubleArray(String string) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_DOUBLES;
+    }
+
     final String[] strValues = string.split(ParsingUtils.SEPARATOR);
     final double[] values = new double[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -156,7 +163,11 @@ public class ParsingUtils {
     return stringToFloatArray(string, SEPARATOR);
   }
 
-  public static float[] stringToFloatArray(String string, String separator) {
+  public static float @NotNull [] stringToFloatArray(String string, String separator) {
+    if (StringUtils.isBlank(string)) {
+      return EMPTY_FLOATS;
+    }
+
     final String[] strValues = string.split(separator);
     final float[] values = new float[strValues.length];
     for (int i = 0; i < strValues.length; i++) {
@@ -240,7 +251,7 @@ public class ParsingUtils {
 
   @NotNull
   public static String rangeToString(@Nullable Range<Comparable<?>> range) {
-    if(range == null) {
+    if (range == null) {
       return "";
     }
     return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
@@ -497,8 +508,7 @@ public class ParsingUtils {
   }
 
   public static IonType parseIon(String str) {
-    Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
-    return null;
+    return IonTypeParser.parse(str);
   }
 
   /**
@@ -528,7 +538,27 @@ public class ParsingUtils {
     }
 
     try {
-      return Double.valueOf(str);
+      return Double.valueOf(str.trim());
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to an integer. If the string is equal to {@link CONST#XML_NULL_VALUE}, null
+   * is returned.
+   *
+   * @param str The string.
+   * @return The Integer.
+   */
+  @Nullable
+  public static Integer stringToInteger(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Integer.parseInt(str);
     } catch (NumberFormatException e) {
       return null;
     }
@@ -548,7 +578,7 @@ public class ParsingUtils {
     }
 
     try {
-      return Float.valueOf(str);
+      return Float.valueOf(str.trim());
     } catch (NumberFormatException e) {
       return null;
     }

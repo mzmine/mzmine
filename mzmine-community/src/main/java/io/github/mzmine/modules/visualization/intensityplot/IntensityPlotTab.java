@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.intensityplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -140,7 +141,7 @@ public class IntensityPlotTab extends MZmineTab {
 
     } else {
 
-      chart = ChartFactory.createXYLineChart(title, xAxisLabel, yAxisLabel, dataset,
+      chart = FxChartFactory.createXYLineChart(title, xAxisLabel, yAxisLabel, dataset,
           PlotOrientation.VERTICAL, true, true, false);
 
       XYPlot plot = (XYPlot) chart.getPlot();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.javafx.components.factories;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
 import java.util.stream.Collectors;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Accordion;
@@ -34,11 +36,14 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxTextFlows {
 
@@ -60,8 +65,9 @@ public class FxTextFlows {
     var textFlow = new TextFlow(nodes);
     textFlow.setTextAlignment(textAlignment);
     textFlow.setPrefHeight(Region.USE_COMPUTED_SIZE);
+    textFlow.setMinHeight(Region.USE_PREF_SIZE);
+    textFlow.setMaxHeight(Region.USE_PREF_SIZE);
     textFlow.setMaxWidth(Double.MAX_VALUE);
-    textFlow.setMaxHeight(Double.MAX_VALUE);
     return textFlow;
   }
 
@@ -73,16 +79,32 @@ public class FxTextFlows {
     return newTextFlowInAccordion(title, expanded, TextAlignment.LEFT, nodes);
   }
 
+  public static Region newTextFlowInAccordion(final String title, @Nullable FontIcon fontIcon,
+      boolean expanded, Node... nodes) {
+    return newTextFlowInAccordion(title, fontIcon, expanded, TextAlignment.LEFT, nodes);
+  }
+
   public static Region newTextFlowInAccordion(final String title, boolean expanded,
       final TextAlignment textAlignment, Node... nodes) {
+    return newTextFlowInAccordion(title, null, expanded, textAlignment, nodes);
+  }
+
+  public static Region newTextFlowInAccordion(final String title, @Nullable FontIcon fontIcon,
+      boolean expanded, final TextAlignment textAlignment, Node... nodes) {
     TextFlow textFlow = newTextFlow(nodes);
     textFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     textFlow.setTextAlignment(textAlignment);
-    final TitledPane pane = new TitledPane(title, textFlow);
-    final Accordion accordion = new Accordion(pane);
-    if (expanded) {
-      accordion.setExpandedPane(accordion.getPanes().getFirst());
+
+    Node content = textFlow;
+    if (fontIcon != null) {
+      final HBox box = FxLayout.newHBox(Pos.TOP_LEFT, fontIcon, textFlow);
+      HBox.setHgrow(textFlow, Priority.ALWAYS);
+      textFlow.setPadding(Insets.EMPTY);
+      content = box;
     }
+
+    final Accordion accordion = FxLayout.newAccordion(expanded,
+        FxLayout.newTitledPane(title, content));
     return accordion;
   }
 
@@ -99,4 +121,5 @@ public class FxTextFlows {
       }
     }).collect(Collectors.joining());
   }
+
 }

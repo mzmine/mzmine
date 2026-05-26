@@ -47,6 +47,10 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   boolean contains(@NotNull T value);
 
+  boolean isConnected(@NotNull SimpleRange<T> other);
+
+  boolean isConnected(@NotNull Range<T> other);
+
   @NotNull T lowerBound();
 
   @NotNull T upperBound();
@@ -144,6 +148,28 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
       return lower <= value && value <= upper;
     }
 
+    @Override
+    public boolean isConnected(@NotNull SimpleRange<Integer> other) {
+      if (contains(other.lowerBound()) || contains(other.upperBound())) {
+        // simple overlap
+        return true;
+      }
+      if (lower < other.lowerBound() && upper > other.upperBound()) {
+        // this range encloses the other range
+        return true;
+      }
+      if (other.lowerBound() < lower && other.upperBound() > upper) {
+        // other range encloses this range
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isConnected(@NotNull Range<Integer> other) {
+      return new SimpleIntegerRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
+    }
+
     public boolean contains(int value) {
       return lower <= value && value <= upper;
     }
@@ -174,6 +200,28 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     @Override
     public boolean contains(@NotNull Double value) {
       return lower <= value && value <= upper;
+    }
+
+    @Override
+    public boolean isConnected(@NotNull SimpleRange<Double> other) {
+      if (contains(other.lowerBound()) || contains(other.upperBound())) {
+        // simple overlap
+        return true;
+      }
+      if (lower < other.lowerBound() && upper > other.upperBound()) {
+        // this range encloses the other range
+        return true;
+      }
+      if (other.lowerBound() < lower && other.upperBound() > upper) {
+        // other range encloses this range
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isConnected(@NotNull Range<Double> other) {
+      return new SimpleDoubleRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
     }
 
     public boolean contains(double value) {

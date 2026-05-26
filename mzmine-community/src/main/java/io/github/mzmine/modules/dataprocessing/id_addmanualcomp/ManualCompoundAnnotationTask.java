@@ -78,7 +78,7 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
         switch (annotation) {
           case CompoundDBAnnotation comp -> row.addCompoundAnnotation(comp);
           case SpectralDBAnnotation spec -> row.addSpectralLibraryMatch(spec);
-          case MatchedLipid lipid -> row.addLipidAnnotation(lipid);
+          case MatchedLipid lipid -> row.addLipidAnnotation(List.of(lipid));
           default -> {
             throw new RuntimeException(
                 "Unknown annotation: " + annotation != null ? annotation.getClass().getName()

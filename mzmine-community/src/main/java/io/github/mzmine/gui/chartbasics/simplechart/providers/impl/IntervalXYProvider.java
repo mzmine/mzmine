@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,8 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 
 import io.github.mzmine.gui.chartbasics.simplechart.providers.IntervalWidthProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +89,7 @@ public class IntervalXYProvider implements PlotXYDataProvider, IntervalWidthProv
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-
+    // nothing to do
   }
 
   @Override
@@ -110,5 +110,12 @@ public class IntervalXYProvider implements PlotXYDataProvider, IntervalWidthProv
   @Override
   public double getComputationFinishedPercentage() {
     return 0;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 }

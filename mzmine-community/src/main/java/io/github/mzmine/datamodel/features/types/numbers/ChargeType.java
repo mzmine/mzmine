@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,20 +24,49 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.util.StringUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This type describes the negative or positive charge of an ion (feature)
  */
 public class ChargeType extends IntegerType {
+
+  public static final Function<@Nullable String, Integer> mapper = s -> {
+    if (StringUtils.isBlank(s)) {
+      return null;
+    }
+
+    String stripped = s.strip();
+    final PolarityType pol;
+    if (stripped.contains("+") && stripped.contains("-")) {
+      throw new IllegalArgumentException(
+          "Charge cannot be both positive and negative. was: %s".formatted(s));
+    } else if (stripped.contains("-")) {
+      pol = PolarityType.NEGATIVE;
+    } else {
+      pol = PolarityType.POSITIVE;
+    }
+    stripped = stripped.replaceAll("[\\+-]", "");
+    int charge = 1;
+    try {
+      charge = Integer.parseInt(stripped);
+    } catch (NumberFormatException e) {
+      // cannot parse, assume 1
+    }
+    return charge * pol.getSign();
+  };
 
   @NotNull
   @Override
@@ -94,4 +122,10 @@ public class ChargeType extends IntegerType {
         return super.evaluateBindings(bindingType, models);
     }
   }
+
+  @Override
+  public @Nullable Function<@Nullable String, Integer> getMapper() {
+    return mapper;
+  }
+
 }

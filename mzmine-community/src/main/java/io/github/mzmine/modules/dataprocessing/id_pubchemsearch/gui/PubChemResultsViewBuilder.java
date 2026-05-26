@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CountingRowCellFactory;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
@@ -47,6 +49,7 @@ import io.github.mzmine.modules.visualization.molstructure.StructureTableCell;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.Comparators;
+import io.github.mzmine.util.FormulaStringFlavor;
 import io.github.mzmine.util.components.FormulaTextField;
 import io.github.mzmine.util.javafx.IonTypeTextField;
 import java.util.Comparator;
@@ -127,8 +130,8 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
   }
 
   private @NotNull HBox createFormulaSearchBox() {
-    final FormulaTextField formulaField = new FormulaTextField();
-    formulaField.textProperty().bindBidirectional(model.formulaToSearchProperty());
+    final FormulaTextField formulaField = FormulaTextField.newFormulaTextField(
+        FormulaStringFlavor.DEFAULT_CHARGED, false, model.formulaToSearchProperty());
     final Button btnSearchFormula = FxButtons.createButton("Search formula", null,
         FxIconUtil.getFontIcon(FxIcons.SEARCH), _ -> onFormulaSearchPressed.run());
     btnSearchFormula.disableProperty().bind(
@@ -244,7 +247,7 @@ public class PubChemResultsViewBuilder extends FxViewBuilder<PubChemResultsModel
 
     final TreeTableColumn<CompoundDBAnnotation, Object> structureColumn = TreeTableColumns.createColumn(
         "Structure", annotation -> new ReadOnlyObjectWrapper<>(annotation.getStructure()));
-    structureColumn.setCellFactory(_ -> new StructureTableCell<>());
+    structureColumn.setCellFactory(new CountingRowCellFactory<>(StructureTableCell::new));
     treeTableView.getColumns().add(structureColumn);
 
     final TreeTableColumn<CompoundDBAnnotation, Double> mzDiffColumn = TreeTableColumns.createColumn(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
@@ -53,11 +54,12 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   private static final List<DataType> subTypes = List.of(//
       new LipidMatchListType(), //
+      new AnnotationSummaryType(), //
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
-      new MzPpmDifferenceType(), //
-      new ExplainedIntensityPercentType(),//
+      new MzPpmDifferenceType(),//
+      new ExplainedIntensityPercentType(), //
       new LipidSpectrumType());
 
   @NotNull
@@ -73,12 +75,16 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
+  public double getPrefColumnWidth() {
+    return 120;
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
     return (K) switch (subType) {
-      case LipidMatchListType __ -> match;
       case IonAdductType __ -> match.getIonizationType().getAdductName();
       case FormulaType __ ->
-          MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
+          FormulaUtils.getFormulaString(match.getLipidAnnotation().getMolecularFormula());
       case CommentType __ -> match.getComment() != null ? match.getComment() : "";
       case ExplainedIntensityPercentType __ -> match.getMsMsScore().floatValue();
       case LipidSpectrumType __ -> true;
@@ -87,6 +93,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
         double exactMass = MatchedLipid.getExactMass(match);
         yield (float) ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
       }
+      case AnnotationSummaryType _ -> null; // created on demand in cell factory
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
@@ -154,6 +161,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 }

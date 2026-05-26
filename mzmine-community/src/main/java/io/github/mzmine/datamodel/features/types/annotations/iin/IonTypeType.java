@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.function.Function;
 import javafx.beans.property.Property;
@@ -104,5 +106,19 @@ public class IonTypeType extends DataType<IonType> {
   @Override
   public @Nullable Function<@Nullable String, @Nullable IonType> getMapper() {
     return mapper;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    return getFormulaPrefColumnWidth();
+  }
+
+  /**
+   * @return the width of a
+   */
+  public static double getFormulaPrefColumnWidth() {
+    final double width =
+        TextLabelMeasurementUtil.measureWidth("[M-2H2O+Na]+2") + TableColumns.EXTRA_WIDTH_MARGIN;
+    return width;
   }
 }

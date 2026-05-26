@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -73,7 +74,6 @@ import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.collections.EmptyIndexRange;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -401,8 +401,7 @@ public class DiaMs2RtCorrTask extends AbstractTaskSubProcessor {
       final IndexRange ms2CorrelatedIndexRange = BinarySearch.indexRange(
           correlationRange.lowerEndpoint(), correlationRange.upperEndpoint(),
           ms2Eic.getNumberOfValues(), ms2Eic::getRetentionTime);
-      if (ms2CorrelatedIndexRange.equals(EmptyIndexRange.INSTANCE)
-          || ms2CorrelatedIndexRange.min() == -1) {
+      if (ms2CorrelatedIndexRange.equals(IndexRange.EMPTY) || ms2CorrelatedIndexRange.min() == -1) {
         continue;
       }
 

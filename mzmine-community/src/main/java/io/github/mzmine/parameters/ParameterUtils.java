@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -65,7 +66,6 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -133,6 +133,27 @@ public class ParameterUtils {
     }
     // exactly one parameter for RawDataFiles found
     return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
+  }
+
+  /**
+   * @param parameters    input parameters
+   * @param keepSelection keep the selection of raw data files and features lists
+   * @return a new array with cloned parameters
+   */
+  public static Parameter<?> @NotNull [] cloneParameters(Parameter<?> @NotNull [] parameters,
+      boolean keepSelection) {
+    // Make a deep copy of the parameters
+    Parameter<?>[] newParameters = new Parameter[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+      if (parameters[i] instanceof RawDataFilesParameter rfp) {
+        newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else if (parameters[i] instanceof FeatureListsParameter flp) {
+        newParameters[i] = flp.cloneParameter(keepSelection);
+      } else {
+        newParameters[i] = parameters[i].cloneParameter();
+      }
+    }
+    return newParameters;
   }
 
   /**
@@ -571,8 +592,7 @@ public class ParameterUtils {
    */
   public static String saveValuesToXMLString(ParameterSet parameterSet) {
     try {
-      final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-          .newDocument();
+      final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
       document.appendChild(element);
 
@@ -585,6 +605,50 @@ public class ParameterUtils {
           exception);
       return null;
     }
+  }
+
+  /**
+   * Creates XML string from single parameter. Useful in test scenarios
+   *
+   * @return
+   */
+  public static String saveParameterToXMLString(Parameter<?> parameter) {
+    try {
+      final Document document = XMLUtils.newDocument();
+
+      Element paramElement = document.createElement(SimpleParameterSet.parameterElement);
+      paramElement.setAttribute(SimpleParameterSet.nameAttribute, parameter.getName());
+      document.appendChild(paramElement);
+      parameter.saveValueToXML(paramElement);
+      return XMLUtils.saveToString(document);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for single parameter " + parameter.getClass().getName(),
+          exception);
+      return null;
+    }
+  }
+
+  /**
+   * Loads paramter value from xml into the same instance input parameter. Useful in test scenarios
+   *
+   * @return the input parameter
+   */
+  @Nullable
+  public static <T extends Parameter<?>> T loadParameterFromString(@NotNull T parameter,
+      String xml) {
+    try {
+      final Document document = XMLUtils.load(xml);
+      final Element paramElement = (Element) document.getElementsByTagName(
+          SimpleParameterSet.parameterElement).item(0);
+      parameter.loadValueFromXML(paramElement);
+    } catch (Exception exception) {
+      logger.log(Level.SEVERE,
+          "Error while creating XML string for single parameter " + parameter.getClass().getName(),
+          exception);
+      return null;
+    }
+    return parameter;
   }
 
   public static void loadValuesFromXMLString(ParameterSet parameterSet, String xml)

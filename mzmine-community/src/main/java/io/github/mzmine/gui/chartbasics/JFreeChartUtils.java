@@ -25,21 +25,116 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.ConfigService;
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 
 public class JFreeChartUtils {
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @NotNull JFreeChart chart) {
+    return createChartLogIdentifier(viewer, chart, chart.getPlot());
+  }
+
+  /**
+   * Useful id generator for chart event logging to identify which chart was updated
+   *
+   * @param viewer may be added to identify class and instance
+   */
+  @NotNull
+  public static String createChartLogIdentifier(@Nullable EChartViewer viewer,
+      @Nullable JFreeChart chart, @NotNull Plot mainPlot) {
+    final String instanceID;
+    if (viewer != null) {
+      instanceID = "%s@%s ".formatted(viewer.getClass().getSimpleName(),
+          Integer.toHexString(viewer.hashCode()));
+    } else {
+      instanceID = "%s@%s ".formatted(mainPlot.getClass().getSimpleName(),
+          Integer.toHexString(mainPlot.hashCode()));
+    }
+
+    final TextTitle textTitle = chart != null ? chart.getTitle() : null;
+    final String title = textTitle != null ? textTitle.getText() : null;
+
+    final Axis domain = getDomainAxis(mainPlot);
+    final Axis range = getRangeAxis(mainPlot);
+
+    final String x = domain != null ? domain.getLabel() : null;
+    final String y = range != null ? range.getLabel() : null;
+
+    String result = instanceID;
+    if (title != null) {
+      result += "%s ".formatted(title);
+    }
+
+    if (x != null) {
+      result += "x:'%s' ".formatted(x);
+    }
+    if (y != null) {
+      result += "y:'%s'".formatted(y);
+    }
+    return result;
+  }
+
+  public static Axis getDomainAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedDomainXYPlot plot -> plot.getDomainAxis();
+      case CombinedDomainCategoryPlot plot -> plot.getDomainAxis();
+      case CombinedRangeXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedRangeCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getDomainAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getDomainAxis();
+      case CategoryPlot plot -> plot.getDomainAxis();
+      case null, default -> null;
+    };
+  }
+
+  public static Axis getRangeAxis(Plot mainPlot) {
+    return switch (mainPlot) {
+      case CombinedRangeXYPlot plot -> plot.getRangeAxis();
+      case CombinedRangeCategoryPlot plot -> plot.getRangeAxis();
+      case CombinedDomainXYPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case CombinedDomainCategoryPlot plot ->
+          (Axis) plot.getSubplots().stream().map(sub -> getRangeAxis((Plot) sub))
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case XYPlot plot -> plot.getRangeAxis();
+      case CategoryPlot plot -> plot.getRangeAxis();
+      case null, default -> null;
+    };
+  }
 
   private enum TriangleDirection {
     UP, DOWN, LEFT, RIGHT
@@ -80,13 +175,13 @@ public class JFreeChartUtils {
         // plus shape
         createPlus(size),
         // horizontal rectangle
-        new Rectangle2D.Double(-delta, -delta / 2, size, size / 2),
+        new Double(-delta, -delta / 2, size, size / 2),
         // vertical ellipse
         new Ellipse2D.Double(-delta / 2, -delta, size / 2, size),
         // down-pointing triangle
         createTriangle(size, TriangleDirection.DOWN),
         // vertical rectangle
-        new Rectangle2D.Double(-delta / 2, -delta, size / 2, size),
+        new Double(-delta / 2, -delta, size / 2, size),
         // horizontal ellipse
         new Ellipse2D.Double(-delta, -delta / 2, size, size / 2),
         // right-pointing triangle
@@ -110,10 +205,10 @@ public class JFreeChartUtils {
     return new Ellipse2D.Double(-delta, -delta, size, size);
   }
 
-  private static Rectangle2D.@NotNull Double createSquare(double size) {
+  private static @NotNull Double createSquare(double size) {
     size *= 0.9; // needs a bit smaller size
     final double delta = size / 2;
-    return new Rectangle2D.Double(-delta, -delta, size, size);
+    return new Double(-delta, -delta, size, size);
   }
 
   private static @NotNull Path2D createHexagon(double size) {
@@ -275,7 +370,16 @@ public class JFreeChartUtils {
    * @return num datasets EXCLUDING null
    */
   public static int getDatasetCountNotNull(XYPlot plot) {
-    return plot.getDatasetCount();
+    if (plot instanceof FxXYPlot fxPlot) {
+      return fxPlot.getNonNullDatasetCount();
+    }
+    int counter = 0;
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      if (plot.getDataset(i) != null) {
+        counter++;
+      }
+    }
+    return counter;
   }
 
   /**
@@ -296,27 +400,19 @@ public class JFreeChartUtils {
   /**
    * Removes all feature data sets.
    *
-   * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
-   *               added right after and the plot shall not be updated until then.
    */
-  public static void removeAllDataSetsOf(JFreeChart chart, Class<? extends XYDataset> clazz,
-      boolean notify) {
-    if (!(chart.getPlot() instanceof XYPlot plot)) {
-      return;
-    }
-
-    plot.setNotify(false);
+  public static void removeAllDataSetsOf(XYPlot plot, Class<? extends XYDataset> clazz) {
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i < numDatasets; i++) {
+    for (int i = numDatasets - 1; i >= 0; i--) {
       XYDataset ds = plot.getDataset(i);
       if (clazz.isInstance(ds)) {
-        plot.setDataset(i, null);
-        plot.setRenderer(i, null);
+        if (plot instanceof FxXYPlot fxPlot) {
+          fxPlot.removeDataSet(i);
+        } else {
+          plot.setDataset(i, null);
+          plot.setRenderer(i, null);
+        }
       }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
     }
   }
 }

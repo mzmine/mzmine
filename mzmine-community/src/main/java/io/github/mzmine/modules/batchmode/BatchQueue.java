@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.ArrayObservableList;
@@ -50,7 +51,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -181,18 +181,16 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
         if (batchStepVersion < currentVersion) {
           // this mzmine is newer, join find potential messages for user
-          String versionMessages = IntStream.range(batchStepVersion + 1, currentVersion + 1)
-              .mapToObj(parameterSet::getVersionMessage).filter(Objects::nonNull)
-              .collect(Collectors.joining(" "));
+          String versionMessages = parameterSet.getLoadingVersionMessages();
           if (!versionMessages.isBlank()) {
             versionMessages += "\n"; // add additional break after long version messages
           }
 
           errorMessages.add(
-              "'%s' step uses outdated parameters. %s".formatted(moduleFound.getName(),
+              "\n'%s' step uses outdated parameters:\n%s".formatted(moduleFound.getName(),
                   versionMessages));
         } else if (batchStepVersion > currentVersion) {
-          errorMessages.add("'%s' step uses parameters from a newer mzmine version.".formatted(
+          errorMessages.add("\n'%s' step uses parameters from a newer mzmine version.".formatted(
               moduleFound.getName()));
         }
 
@@ -325,7 +323,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       ParameterSet parameters = AllSpectralDataImportParameters.create(
           // use the last set value, not the preference
           ConfigService.getConfiguration().getModuleParameters(AllSpectralDataImportModule.class)
-              .getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters(), //
+              .getParameter(AllSpectralDataImportParameters.vendorOptions)
+              .getEmbeddedParameters(), //
           allDataFiles, metadataFile, allLibraryFiles);
       addFirst(new MZmineProcessingStepImpl<>(module, parameters));
 
@@ -364,6 +363,40 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
   public Optional<ParameterSet> findFirst(
       @NotNull final Class<? extends MZmineModule> moduleClass) {
     return streamStepParameterSets(moduleClass).findFirst();
+  }
+
+  /**
+   * Replaces the value of a specific user parameter of a specific module. The module may only be
+   * present once in the batch.
+   *
+   * @return true on success, false on failure, e.g. if the module is present multiple times or the
+   * parameter does not exist.
+   */
+  public <T> boolean overrideStepParameter(@NotNull Class<? extends MZmineProcessingModule> module,
+      @NotNull UserParameter<T, ?> parameter, @NotNull T newValue) {
+    var parameterSets = streamStepParameterSets(module).toList();
+
+    if (parameterSets.size() != 1) {
+      logger.severe("""
+          The parameter %s of module %s cannot be set to value %s because the appears %d times \
+          in the batch. Can only override if it appears exactly once.""".formatted(
+          parameter.getName(), module.getName(), String.valueOf(newValue), parameterSets.size()));
+      return false;
+    }
+
+    final var stepParameters = parameterSets.getFirst();
+    try {
+      UserParameter<T, ?> stepParameter = stepParameters.getParameter(parameter);
+      stepParameter.setValue(newValue);
+      logger.info(
+          "Replaced the value parameter %s of module %s with %s".formatted(parameter.getName(),
+              module.getName(), newValue));
+      return true;
+    } catch (IllegalArgumentException e) {
+      logger.severe("Parameter %s does not exist in module %s".formatted(parameter.getName(),
+          module.getName()));
+      return false;
+    }
   }
 }
 

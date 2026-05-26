@@ -53,7 +53,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
     name = aName;
     description = aDescription;
     Path path = Paths.get(defaultPath);
-    if(Files.exists(path)) {
+    if (Files.exists(path)) {
       value = path.toFile();
     }
   }
@@ -103,7 +103,8 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   }
 
   @Override
-  public void setValueToComponent(final DirectoryComponent component, @Nullable final File newValue) {
+  public void setValueToComponent(final DirectoryComponent component,
+      @Nullable final File newValue) {
     component.setValue(newValue);
   }
 
@@ -136,5 +137,16 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
       check = false;
     }
     return check;
+  }
+
+  @Nullable
+  public File showChooseDirectoryDialog() {
+    final DirectoryComponent editingComponent = createEditingComponent();
+    setValueToComponent(editingComponent, getValue());
+    final File file = editingComponent.showChooseDirectoryDialog();
+    if (file != null) {
+      setValue(file);
+    }
+    return file;
   }
 }

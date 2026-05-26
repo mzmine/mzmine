@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -76,7 +75,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);

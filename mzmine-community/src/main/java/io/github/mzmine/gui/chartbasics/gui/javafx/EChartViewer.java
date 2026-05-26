@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,14 @@ package io.github.mzmine.gui.chartbasics.gui.javafx;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToClipboard;
 import io.github.mzmine.gui.chartbasics.gui.javafx.menu.MenuExportToExcel;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxEChartViewerModel;
 import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
@@ -40,13 +42,14 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,9 +68,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -87,12 +93,17 @@ import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
-/**
- * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
- * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
- *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- */
+/// This is an extended version of the ChartViewer (JFreeChartFX). it Adds:
+///
+/// - [DelayedChartDrawAdapter] is attached in the constructor and accumulates change events to
+/// reduce redundant draw call
+/// - [ChartGesture] (with a set of standard chart gestures)
+/// - [ZoomHistory]
+/// - [AxesRangeChangedListener]
+/// - data export
+/// - graphics export
+///
+/// @author Robin Schmid (robinschmid@uni-muenster.de)
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
@@ -105,6 +116,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
+  private final FxEChartViewerModel model = new FxEChartViewerModel(this);
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -164,6 +176,9 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures, boolean addZoomHistory, boolean stickyZeroForRangeAxis) {
     super(null);
+    // attach to accumulate chart change events and reduce draw calls
+    DelayedChartDrawAdapter.attach(this);
+
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
@@ -222,6 +237,10 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   }
 
+  public FxEChartViewerModel getModel() {
+    return model;
+  }
+
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
     MenuItem pngItem = new MenuItem(title);
     pngItem.setOnAction(al);
@@ -237,7 +256,28 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   @Override
   public void setChart(JFreeChart chart) {
+
+    final JFreeChart oldChart = getChart();
+    if (oldChart == chart) {
+      // setting the same chart again makes no sense and will lead to issues with the DelayedChartDrawAdapter
+      // because the model chart property will call no update as its the same instance
+      return;
+    }
+
+    if (oldChart != null) {
+      // may need to remove some listeners here
+    }
+
     super.setChart(chart);
+    // requires model set chart after internal set
+    // first the chart view should add itself to the chart
+    // then {@link DelayedChartDrawAdapter} will exchange the listener
+    model.setChart(chart);
+
+    // TODO remove
+//    addChartDrawDebugListener(() -> {
+//      String id = JFreeChartUtils.createChartLogIdentifier(this, getChart());
+//    });
 
     // If no chart, end here
     if (chart == null) {
@@ -378,6 +418,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   /**
    * Default tries to extract all series from an XYDataset or XYZDataset<br> series 1 | Series 2
    * <br> x y x y x y z x y z
+   * <p>
+   * Supports {@link CombinedDomainXYPlot} by collecting data from each subplot.
    *
    * @return Data array[columns][rows]
    */
@@ -385,108 +427,125 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     if (!(getChart().getPlot() instanceof XYPlot plot)) {
       return null;
     }
-    // getDataset() may be null if the
-    // first dataset was removed, but the plot may still hold other datasets
     try {
-      List<Object[]> modelList = new ArrayList<>();
+      final List<Object[]> modelList = new ArrayList<>();
 
-      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-      for (int d = 0; d < numDatasets; d++) {
-        XYDataset data = plot.getDataset(d);
-        if (data == null) {
-          continue;
-        } else if (data instanceof XYZDataset xyz) {
-          int series = data.getSeriesCount();
-          final XYItemRenderer r = this.getChart().getXYPlot().getRendererForDataset(xyz);
-          Object[][] model = new Object[series * 4][];
-          for (int s = 0; s < series; s++) {
-            final XYToolTipGenerator toolTipGen = r.getSeriesToolTipGenerator(s);
-            int size = 2 + xyz.getItemCount(s);
-            Object[] x = new Object[size];
-            Object[] y = new Object[size];
-            Object[] z = new Object[size];
-            Object[] tooltip = new Object[size];
-            // create new Array model[row][col]
-            // Write header
-            Comparable title = data.getSeriesKey(series);
-            x[0] = title;
-            y[0] = "";
-            z[0] = "";
-            tooltip[0] = "";
-            x[1] = plot.getDomainAxis().getLabel();
-            y[1] = plot.getRangeAxis().getLabel();
-            z[1] = "z-axis";
-            tooltip[1] = "tooltip";
-            // write data
-            for (int i = 0; i < xyz.getItemCount(s); i++) {
-              x[i + 2] = xyz.getX(s, i);
-              y[i + 2] = xyz.getY(s, i);
-              z[i + 2] = xyz.getZ(s, i);
-              if (toolTipGen != null) {
-                tooltip[i + 2] = StringUtils.inQuotes(
-                    Objects.requireNonNullElse(toolTipGen.generateToolTip(xyz, s, i), "")
-                        .replace('\n', ' '));
-              } else if (xyz instanceof ColoredXYZDataset cxyz) {
-                tooltip[i + 2] = StringUtils.inQuotes(
-                    Objects.requireNonNullElse(cxyz.getToolTipText(i), "").replace('\n', ' '));
-              } else {
-                tooltip[i + 2] = "";
-              }
-            }
-            model[s * 3] = x;
-            model[s * 3 + 1] = y;
-            model[s * 3 + 2] = z;
-            model[s * 3 + 3] = tooltip;
-          }
-
-          Collections.addAll(modelList, model);
-        } else if (data != null) {
-          int series = data.getSeriesCount();
-          Object[][] model = new Object[series * 3][];
-          for (int s = 0; s < series; s++) {
-            final XYItemRenderer r = getChart().getXYPlot().getRendererForDataset(data);
-            final XYToolTipGenerator toolTipGenerator = r.getSeriesToolTipGenerator(s);
-            int size = 2 + data.getItemCount(s);
-            Object[] x = new Object[size];
-            Object[] y = new Object[size];
-            Object[] tooltip = new Object[size];
-            // create new Array model[row][col]
-            // Write header
-            Comparable title = data.getSeriesKey(s);
-            x[0] = title;
-            y[0] = "";
-            tooltip[0] = "";
-            x[1] = plot.getDomainAxis().getLabel();
-            y[1] = plot.getRangeAxis().getLabel();
-            tooltip[1] = "tooltip";
-            // write data
-            for (int i = 0; i < data.getItemCount(s); i++) {
-              x[i + 2] = data.getX(s, i);
-              y[i + 2] = data.getY(s, i);
-              if (toolTipGenerator != null) {
-                tooltip[i + 2] = StringUtils.inQuotes(
-                    Objects.requireNonNullElse(toolTipGenerator.generateToolTip(data, s, i), "")
-                        .replace('\n', ' '));
-              } else if (data instanceof ColoredXYDataset cxy) {
-                tooltip[i + 2] = StringUtils.inQuotes(
-                    Objects.requireNonNullElse(cxy.getToolTipText(i), "").replace('\n', ' '));
-              } else {
-                tooltip[i + 2] = "";
-              }
-            }
-            model[s * 2] = x;
-            model[s * 2 + 1] = y;
-            model[s * 2 + 2] = tooltip;
-          }
-
-          Collections.addAll(modelList, model);
+      if (plot instanceof CombinedDomainXYPlot combinedPlot) {
+        @SuppressWarnings("unchecked") final List<XYPlot> subplots = combinedPlot.getSubplots();
+        for (int i = 0; i < subplots.size(); i++) {
+          XYPlot subplot = subplots.get(i);
+          collectPlotData(subplot, modelList, "[%d] ".formatted(i));
         }
+      } else {
+        collectPlotData(plot, modelList, null);
       }
 
       return modelList.toArray(new Object[modelList.size()][]);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
       return null;
+    }
+  }
+
+  /**
+   * Collects export data from all datasets in a single {@link XYPlot} and appends the columns to
+   * modelList. Handles both {@link XYZDataset} and regular {@link XYDataset}.
+   *
+   * @param prefix A prefix added to the {@link XYDataset#getSeriesKey(int)} as title. USed for
+   *               {@link CombinedDomainXYPlot}.
+   */
+  private void collectPlotData(@NotNull final XYPlot plot, @NotNull final List<Object[]> modelList,
+      @Nullable String prefix) {
+    final int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    prefix = Objects.requireNonNullElse(prefix, "");
+    for (int d = 0; d < numDatasets; d++) {
+      final XYDataset data = plot.getDataset(d);
+      if (data == null) {
+        continue;
+      }
+
+      if (data instanceof XYZDataset xyz) {
+        final int series = data.getSeriesCount();
+        final XYItemRenderer r = plot.getRendererForDataset(xyz);
+        final Object[][] model = new Object[series * 4][];
+        for (int s = 0; s < series; s++) {
+          final XYToolTipGenerator toolTipGen = r.getSeriesToolTipGenerator(s);
+          final int size = 2 + xyz.getItemCount(s);
+          final Object[] x = new Object[size];
+          final Object[] y = new Object[size];
+          final Object[] z = new Object[size];
+          final Object[] tooltip = new Object[size];
+          // Write header
+          final Comparable<?> title = data.getSeriesKey(s);
+          x[0] = prefix + title;
+          y[0] = "";
+          z[0] = "";
+          tooltip[0] = "";
+          x[1] = plot.getDomainAxis().getLabel();
+          y[1] = plot.getRangeAxis().getLabel();
+          z[1] = "z-axis";
+          tooltip[1] = "tooltip";
+          // write data
+          for (int i = 0; i < xyz.getItemCount(s); i++) {
+            x[i + 2] = xyz.getX(s, i);
+            y[i + 2] = xyz.getY(s, i);
+            z[i + 2] = xyz.getZ(s, i);
+            if (toolTipGen != null) {
+              tooltip[i + 2] = StringUtils.inQuotes(
+                  Objects.requireNonNullElse(toolTipGen.generateToolTip(xyz, s, i), "")
+                      .replace('\n', ' '));
+            } else if (xyz instanceof ColoredXYZDataset cxyz) {
+              tooltip[i + 2] = StringUtils.inQuotes(
+                  Objects.requireNonNullElse(cxyz.getToolTipText(i), "").replace('\n', ' '));
+            } else {
+              tooltip[i + 2] = "";
+            }
+          }
+          model[s * 4] = x;
+          model[s * 4 + 1] = y;
+          model[s * 4 + 2] = z;
+          model[s * 4 + 3] = tooltip;
+        }
+        Collections.addAll(modelList, model);
+      } else {
+        final int series = data.getSeriesCount();
+        final Object[][] model = new Object[series * 3][];
+        for (int s = 0; s < series; s++) {
+          final XYItemRenderer r = plot.getRendererForDataset(data);
+          final XYToolTipGenerator toolTipGenerator = r.getSeriesToolTipGenerator(s);
+          final int size = 2 + data.getItemCount(s);
+          final Object[] x = new Object[size];
+          final Object[] y = new Object[size];
+          final Object[] tooltip = new Object[size];
+          // Write header
+          final Comparable<?> title = data.getSeriesKey(s);
+          x[0] = prefix + title;
+          y[0] = "";
+          tooltip[0] = "";
+          x[1] = plot.getDomainAxis().getLabel();
+          y[1] = plot.getRangeAxis().getLabel();
+          tooltip[1] = "tooltip";
+          // write data
+          for (int i = 0; i < data.getItemCount(s); i++) {
+            x[i + 2] = data.getX(s, i);
+            y[i + 2] = data.getY(s, i);
+            if (toolTipGenerator != null) {
+              tooltip[i + 2] = StringUtils.inQuotes(
+                  Objects.requireNonNullElse(toolTipGenerator.generateToolTip(data, s, i), "")
+                      .replace('\n', ' '));
+            } else if (data instanceof ColoredXYDataset cxy) {
+              tooltip[i + 2] = StringUtils.inQuotes(
+                  Objects.requireNonNullElse(cxy.getToolTipText(i), "").replace('\n', ' '));
+            } else {
+              tooltip[i + 2] = "";
+            }
+          }
+          model[s * 3] = x;
+          model[s * 3 + 1] = y;
+          model[s * 3 + 2] = tooltip;
+        }
+        Collections.addAll(modelList, model);
+      }
     }
   }
 
@@ -576,12 +635,14 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   }
 
   /**
-   * Disable/enable chart change events that trigger updating the chart.
+   * Disable/enable chart change events that trigger updating the chart. Setting to true will always
+   * trigger a chart update.
    */
   public void setNotifyChange(boolean notifyChange) {
     if (getChart() == null) {
       return;
     }
+    // setting to true will already fire a chart change event automatically
     getChart().setNotify(notifyChange);
 //    final Plot plot = getChart().getPlot();
 //    if(plot!=null) {
@@ -626,10 +687,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       logic.run();
     } finally {
       // reset to old state and run changes if true
+      // setting to true will automatically trigger a draw event
       setNotifyChange(afterRunState);
-      if (afterRunState) {
-        FxThread.runLater(() -> fireChangeEvent());
-      }
     }
   }
 
@@ -666,5 +725,20 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     marker.setAlpha(alpha);
     getChart().getXYPlot().addDomainMarker(marker, Layer.BACKGROUND);
     return marker;
+  }
+
+  /**
+   * Debugging of draw events. Only runs when {@link JFreeChart#draw(Graphics2D, Rectangle2D)} is
+   * started
+   */
+  public void addChartDrawDebugListener(Runnable eventListener) {
+    if (getChart() == null) {
+      return;
+    }
+    getChart().addProgressListener(event -> {
+      if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
+        eventListener.run();
+      }
+    });
   }
 }

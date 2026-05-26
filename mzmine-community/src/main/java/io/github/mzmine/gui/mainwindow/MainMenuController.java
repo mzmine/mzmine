@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -39,6 +40,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
@@ -203,8 +205,7 @@ public class MainMenuController {
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f, Instant.now());
-          MZmineCore.getTaskController().addTask(newTask);
+          ProjectLoadModule.showImportDialog(f);
         }
       });
       return item;
@@ -312,6 +313,10 @@ public class MainMenuController {
 
   public void openUserAccountConsole(final ActionEvent e) {
     DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl());
+  }
+
+  public void showDefineIonLibraries(final ActionEvent e) {
+    GlobalIonLibrariesTab.showTab();
   }
 }
 

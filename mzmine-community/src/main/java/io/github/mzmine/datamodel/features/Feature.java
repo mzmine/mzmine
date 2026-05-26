@@ -368,12 +368,21 @@ public interface Feature {
   void setRow(@Nullable FeatureListRow row);
 
   /**
-   * @return The polarity of the scan obtained by {@link Feature#getRepresentativeScan()}
+   * @return The polarity of the scan obtained by {@link Feature#getRepresentativeScan()} or
+   * {@link Feature#getAllMS2FragmentScans()}
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
     final Scan representativeScan = getRepresentativeScan();
-    return representativeScan == null ? null : representativeScan.getPolarity();
+    if (representativeScan != null) {
+      return representativeScan.getPolarity();
+    }
+    // some features do not have MS1 scan for example after MSn tree builder if MS1 signal mz was off
+    final List<Scan> ms2 = getAllMS2FragmentScans();
+    if (!ms2.isEmpty()) {
+      return ms2.getFirst().getPolarity();
+    }
+    return null;
   }
 
   default boolean hasMs2Fragmentation() {

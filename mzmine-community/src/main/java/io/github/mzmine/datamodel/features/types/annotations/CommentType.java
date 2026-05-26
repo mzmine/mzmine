@@ -67,4 +67,5 @@ public class CommentType extends StringType implements EditableColumnType, Strin
     // but false for all other comments in annotations etc
     return false;
   }
+
 }

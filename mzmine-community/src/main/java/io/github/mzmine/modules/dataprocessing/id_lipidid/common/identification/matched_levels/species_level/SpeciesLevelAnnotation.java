@@ -49,10 +49,10 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
   private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
-
-  private ILipidClass lipidClass;
-  private String annotation;
   private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL = LipidAnnotationLevel.SPECIES_LEVEL;
+
+  private final ILipidClass lipidClass;
+  private final String annotation;
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
@@ -75,18 +75,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
   }
 
   @Override
-  public void setLipidClass(ILipidClass lipidClass) {
-    this.lipidClass = lipidClass;
-  }
-
-  @Override
   public String getAnnotation() {
     return annotation;
-  }
-
-  @Override
-  public void setAnnotation(String annotation) {
-    this.annotation = annotation;
   }
 
   @Override
@@ -121,8 +111,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     }
     SpeciesLevelAnnotation that = (SpeciesLevelAnnotation) o;
     return numberOfCarbons == that.numberOfCarbons && numberOfDBEs == that.numberOfDBEs
-        && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
-        && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
+           && numberOfOxygens == that.numberOfOxygens && Objects.equals(lipidClass, that.lipidClass)
+           && Objects.equals(annotation, that.annotation) && Objects.equals(molecularFormula,
         that.molecularFormula);
   }
 
@@ -145,7 +135,7 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_NUMBER_OF_CARBONS);
     writer.writeCharacters(String.valueOf(numberOfCarbons));
@@ -172,8 +162,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     Integer numberOfCarbons = null;
     Integer numberOfDBEs = null;
     Integer numberOfOxygens = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -193,11 +183,12 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
           annotation = reader.getElementText();
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
-          lipidAnnotationLevel =
-                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          lipidAnnotationLevel = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
+              reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
-          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              reader.getElementText());
           break;
         case XML_NUMBER_OF_CARBONS:
           numberOfCarbons = Integer.parseInt(reader.getElementText());
@@ -213,8 +204,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
       }
     }
 
-    if (lipidAnnotationLevel != null
-        && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
+    if (lipidAnnotationLevel != null && lipidAnnotationLevel.equals(
+        LipidAnnotationLevel.SPECIES_LEVEL)) {
       return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
           numberOfDBEs, numberOfOxygens);
     }

@@ -112,8 +112,9 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         n.forEach(datasetAndRenderer -> chart.addDataset(datasetAndRenderer.dataset(),
             datasetAndRenderer.renderer()));
 
-        chart.getXYPlot().clearDomainMarkers(0);
-        chart.getXYPlot().clearRangeMarkers(0);
+        // need to clear all domain and range markers
+        chart.getXYPlot().clearDomainMarkers();
+        chart.getXYPlot().clearRangeMarkers();
         // p-Value line
         chart.getXYPlot().addRangeMarker(0,
             new ValueMarker(-Math.log10(model.getpValue()), neutralColor, annotationStroke),

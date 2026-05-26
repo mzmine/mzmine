@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -329,9 +330,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final List<ImportFile> unknownFileTypes = Arrays.stream(filesToImport)
         .filter(f -> f.type() == null).toList();
     if (!unknownFileTypes.isEmpty()) {
-      String files = Arrays.stream(filesToImport).map(f -> f.originalFile().getAbsolutePath())
+      String files = unknownFileTypes.stream().map(f -> f.originalFile().getAbsolutePath())
           .collect(Collectors.joining(",\n"));
-      String msg = "Could not identify the data type needed for import of n files=%d. The file/path might not exist.\n%s".formatted(
+      String msg = "Could not identify the data type needed for import of %d files. The file/path might not exist or be corrupt.\n%s".formatted(
           unknownFileTypes.size(), files);
       MZmineCore.getDesktop().displayErrorMessage(msg);
       logger.log(Level.SEVERE, "%s.  %s".formatted(msg, files));
@@ -435,9 +436,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case SCIEX_WIFF2 -> new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
+      case SCIEX_WIFF2, SCIEX_WIFF ->
+          new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
           scanProcessorConfig);
-      case SCIEX_WIFF, AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
+      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       case WATERS_RAW, WATERS_RAW_IMS ->
@@ -486,10 +488,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case WATERS_RAW, WATERS_RAW_IMS ->
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);
-      case SCIEX_WIFF2 -> new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
+      case SCIEX_WIFF2, SCIEX_WIFF ->
+          new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
           scanProcessorConfig);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SHIMADZU_LCD, MBI ->
+      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately

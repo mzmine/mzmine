@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,12 +76,19 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
       } else {
         // create all other columns
         var col = type.createColumn(raw, this, index);
-          // override type in CellValueFactory with this parent type
-          cols.add(col);
+        // override type in CellValueFactory with this parent type
+        cols.add(col);
       }
     }
 
     return cols;
+  }
+
+  @Override
+  public double getPrefColumnWidth() {
+    // this types uses a wrapping text and therefore needs to set the preferred width
+    // otherwise the size is the minimum
+    return 100;
   }
 
   @Override
@@ -197,7 +204,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
    * This method extracts the sub column value K from the parentItem, which is usually an item with
    * the list of this {@link ListWithSubsType}. This could be one annotation of a list of
    * annotations.
-   *
+   * <p>
    * This way one can retrieve the formatted value of a sub columns like below:
    *
    * <pre>
@@ -216,7 +223,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
    * @param <K>        the value of the subType
    * @return the value of the subType or null
    */
-  public abstract <K> @Nullable K map(@NotNull DataType<K> subType, T parentItem);
+  protected abstract <K> @Nullable K map(@NotNull DataType<K> subType, T parentItem);
 
   @Override
   public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
