@@ -14,6 +14,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -149,7 +150,7 @@ public final class CompoundRowUtils {
       return false;
     }
     final Set<Integer> detachIds = collectIds(rowsToDetach);
-    final boolean[] changed = {false};
+    final AtomicBoolean changed = new AtomicBoolean(false);
 
     final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
     for (final ModularCompoundRow cr : list.getRows()) {
@@ -158,10 +159,10 @@ public final class CompoundRowUtils {
         nextRows.add(cr);
       }
     }
-    if (changed[0]) {
+    if (changed.get()) {
       list.setRows(nextRows);
     }
-    return changed[0];
+    return changed.get();
   }
 
   /**
@@ -180,7 +181,7 @@ public final class CompoundRowUtils {
       return false;
     }
     final Set<Integer> detachIds = collectIds(rowsToDetach);
-    return detachLeavesRecursive(parent, detachIds, new boolean[]{false});
+    return detachLeavesRecursive(parent, detachIds, new AtomicBoolean(false));
   }
 
   /**
@@ -192,7 +193,7 @@ public final class CompoundRowUtils {
    * rewrite)
    */
   private static boolean detachLeavesRecursive(@NotNull final ModularCompoundRow compound,
-      @NotNull final Set<Integer> detachIds, @NotNull final boolean[] changedAccumulator) {
+      @NotNull final Set<Integer> detachIds, @NotNull final AtomicBoolean changedAccumulator) {
     // First pass: recurse into nested compounds. Any nested compound that becomes empty must also
     // be dropped from this compound.
     final Set<ModularCompoundRow> nestedToDrop = new HashSet<>();
@@ -248,7 +249,7 @@ public final class CompoundRowUtils {
           continue;
         }
         final boolean parentNowEmpty = rewriteCompoundMembers(parent, m -> m.row() == target,
-            new boolean[]{false});
+            new AtomicBoolean(false));
         if (parentNowEmpty && toRemoveByRef.add(parent)) {
           // cascade: parent lost all members, also drop it (and find its own parents on next pass)
           queue.add(parent);
@@ -278,7 +279,7 @@ public final class CompoundRowUtils {
    */
   private static boolean rewriteCompoundMembers(@NotNull final ModularCompoundRow compound,
       @NotNull final Predicate<CompoundFeatureMember> shouldRemove,
-      final boolean @NotNull [] changedAccumulator) {
+      @NotNull final AtomicBoolean changedAccumulator) {
     final CompoundMembers data = compound.getCompoundMembersData();
     final List<CompoundFeatureMember> remaining = new ArrayList<>(data.members().size());
     boolean compoundChanged = false;
@@ -292,7 +293,7 @@ public final class CompoundRowUtils {
     if (!compoundChanged) {
       return false;
     }
-    changedAccumulator[0] = true;
+    changedAccumulator.set(true);
     if (remaining.isEmpty()) {
       // signal to caller that this compound should be dropped from its parent; do not write empty
       return true;

@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.gui.MZmineWindow;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
@@ -99,6 +100,7 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
       if (table == null || table.getFeatureList() == null || table.getTableOwner() == FeatureTableOwner.STATS_DASHBOARD) {
         return;
       }
+      final FeatureTableOwner masterTableOwner = table.getTableOwner();
       FxThread.runLater(() -> {
         final StatsDashboardTab tab = new StatsDashboardTab();
         tab.onFeatureListSelectionChanged(List.of(table.getFeatureList()));
@@ -113,7 +115,12 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
 
         tab.getController().groupingColumnProperty().set(selectedColumn);
         tab.getController().abundanceMeasureProperty().set(abundanceMeasure);
-        new MZmineWindow().addTab(tab);
+        // master is complex dashboard - open in other window
+        if (masterTableOwner.isOtherComplexDashboard()) {
+          new MZmineWindow().addTab(tab);
+        } else {
+          MZmineCore.getDesktop().addTab(tab);
+        }
 
         // Bidirectional link so selections sync between source feature table and the new Stats
         // dashboard's table. The user can disable either direction from the link popover.

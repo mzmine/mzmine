@@ -56,6 +56,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -120,6 +121,7 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
       mainType = superType;
     }
 
+    final FeatureTableOwner masterTableOwner = table.getTableOwner();
     return () -> FxThread.runLater(() -> {
       switch (mainType) {
         case CompoundDatabaseMatchesType _ -> {
@@ -132,7 +134,13 @@ public class AnnotationSummaryType extends DataType<AnnotationSummary> implement
             .addTab(new SpectralIdentificationResultsTab(table, a.getClass()));
         case LipidMatchListType _ -> {
           final LipidAnnotationQCDashboardTab tab = new LipidAnnotationQCDashboardTab();
-          new MZmineWindow().addTab(tab);
+          // master is complex dashboard - open in other window
+          if (masterTableOwner.isOtherComplexDashboard()) {
+            new MZmineWindow().addTab(tab);
+          } else {
+            MZmineCore.getDesktop().addTab(tab);
+          }
+
           // Wire bidirectional cross-dashboard link. linkTo(..., true) pushes the source's current
           // selectedFeatureLists / selectedRows / selectedCompoundRow into the target on creation,
           // so no separate setFeatureList seed is needed. Both directions are active by default;

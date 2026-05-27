@@ -28,10 +28,7 @@ package io.github.mzmine.modules.dataanalysis.statsdashboard;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
-import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
 import io.github.mzmine.gui.framework.fx.SelectedCompoundRowSelectionBinding;
@@ -73,28 +70,6 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     FxControllerBinding.bindExposedProperties(this, pcaController);
     pcaController.waitAndUpdate();
   }
-
-  /**
-   * Resolve the {@link CompoundRow} that should be displayed for the given selected row. Prefers
-   * the parent compound if the row is a member of one; otherwise returns the row itself when it is
-   * already a compound. Returns {@code null} if neither applies (e.g. a plain feature row that is
-   * not part of any compound).
-   */
-  private static @Nullable CompoundRow resolveCompoundRow(@Nullable FeatureListRow row) {
-    if (row == null) {
-      return null;
-    }
-    final CompoundList compoundList = row.getFeatureList().getCompoundList();
-    if (compoundList != null) {
-      final List<ModularCompoundRow> owners = compoundList.findCompoundsOf(row);
-      if (!owners.isEmpty()) {
-        return owners.getFirst();
-      }
-    }
-    return row instanceof CompoundRow cr ? cr : null;
-  }
-
-
   @Override
   protected @NotNull FxViewBuilder<StatsDashboardModel> getViewBuilder() {
     return builder;
