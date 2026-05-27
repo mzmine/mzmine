@@ -108,7 +108,9 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     makeAndAddLibrarySearchStep(q, true);
 
     // compound grouping (requires meta correlation + IIN)
-    makeAndAddCompoundGrouperStep(q, null);
+    // for now disabled, might need a different algorithm for DIA and flow injection
+    // maybe only rely on ion identities then
+//    makeAndAddCompoundGrouperStep(q, null);
 
     // export all unannotated scans - after alignment to merge duplicates
     if (exportUnknownScansFile) {
