@@ -76,6 +76,7 @@ public final class AnalogSpectralLibraryMatchesType extends
       new FormulaType(),//
       new MolecularStructureType(),//
       new SmilesStructureType(),//
+      new SmilesIsomericStructureType(),//
       // classifiers
       new InChIStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
       new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),
