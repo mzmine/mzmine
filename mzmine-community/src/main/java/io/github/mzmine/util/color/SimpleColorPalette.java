@@ -77,7 +77,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       new Color[]{Color.BLACK, Color.web("#1A3399"), Color.web("#D55E00"), Color.WHITE},
       "Blue-Orange-White");
 
-  public static final SimpleColorPalette SEQUENTIAL_BLUE_YELLOW_ORANGE = new SimpleColorPalette(
+  public static final SimpleColorPalette MZMINE_BLUE_ORANGE = new SimpleColorPalette(
       new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue
           new Color(0.f, 0.447f, 0.698f, 1f), // blue
           new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
@@ -86,9 +86,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
           new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
           new Color(0.702f, 0.302f, 0.102f, 1f)
 //          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
-      }, "mzmine (sequential)");
+      }, "mzmine (linear)");
 
-  public static final SimpleColorPalette DIVERGING_BLUE_GRAY_VERMILLION = new SimpleColorPalette(
+  public static final SimpleColorPalette MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED = new SimpleColorPalette(
       new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue (-1)
           new Color(0.f, 0.447f, 0.698f, 1f), // blue (-1)
           new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
@@ -101,8 +101,8 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
 
   public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
-      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE, SEQUENTIAL_BLUE_YELLOW_ORANGE,
-      DIVERGING_BLUE_GRAY_VERMILLION);
+      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE, MZMINE_BLUE_ORANGE,
+      MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED);
   protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
       ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
       ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
