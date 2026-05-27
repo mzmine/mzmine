@@ -152,7 +152,7 @@ public class CompoundList {
             if (member instanceof ModularCompoundRow compMember) {
               final List<FeatureListRow> isotopeRows = compMember.getMemberRows();
               for (FeatureListRow isotope : isotopeRows) {
-                if (seen.add(member)) {
+                if (seen.add(isotope)) {
                   up.accept(isotope);
                 }
               }
@@ -257,6 +257,7 @@ public class CompoundList {
       // append — a row may be a member of multiple compounds (bridge rows)
       byMemberRowId.computeIfAbsent(member.getTypedID(), id -> new ArrayList<>(1)).add(compound);
       if (member instanceof ModularCompoundRow nested) {
+        byCompoundId.put(nested.getCompoundId(), nested);
         indexMembers(nested);
       }
     }

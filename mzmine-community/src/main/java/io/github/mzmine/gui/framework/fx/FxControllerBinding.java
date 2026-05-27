@@ -31,8 +31,9 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     SelectedFeatureListsBinding {
 
   public static void bindExposedProperties(Object master, Object child) {
-    if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
-      bindExposedProperties(master, child);
+    if (master instanceof FxControllerBinding fxmaster
+        && child instanceof FxControllerBinding fxchild) {
+      bindExposedProperties(fxmaster, fxchild);
     }
   }
 
