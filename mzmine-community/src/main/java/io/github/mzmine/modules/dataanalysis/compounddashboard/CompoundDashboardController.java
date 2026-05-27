@@ -13,6 +13,7 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
@@ -78,8 +79,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
       FeatureTableOwner.COMPOUND_DASHBOARD);
   private final FeatureRow4DPlotController featurePlot4D = new FeatureRow4DPlotController();
 
-  // Guards both directions of the selectedAdductRow <-> eicPlot.selectedDataset bridge so we don't
-  // bounce events back and forth when one side updates the other.
+  // Guards both directions of the selectedAdductRow <-> plot-selection bridge (selectedDataset and
+  // cursor-position dataset) so we don't bounce events back and forth when one side updates the
+  // other.
   private boolean syncingSelection = false;
 
   private final CompoundDashboardInteractor interactor;
@@ -216,13 +218,19 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     model.getMs1Datasets()
         .addListener((ListChangeListener<XYDatasetAndRenderer>) _ -> applySelectionHighlight());
 
-    // Bridge selectedDataset (legend click) -> selectedAdductRow. The forward direction
-    // (selectedAdductRow -> selectedDataset) is handled by applySelectionHighlight. A reentrancy
-    // guard prevents bounce-back when one side updates the other.
+    // Bridge plot selection -> selectedAdductRow. Legend clicks change selectedDataset directly;
+    // data-point clicks update the FxXYPlot cursor position, which carries the selected dataset.
+    // The forward direction (selectedAdductRow -> selectedDataset) is handled by
+    // applySelectionHighlight. A reentrancy guard prevents bounce-back when one side updates the
+    // other.
     eicPlot.selectedDatasetProperty()
         .subscribe(ds -> bridgeDatasetToRow(ds, model.getEicDatasetsByRow()));
     mobilogramPlot.selectedDatasetProperty()
         .subscribe(ds -> bridgeDatasetToRow(ds, model.getMobilogramDatasetsByRow()));
+    eicPlot.getXYPlot().getCursorConfigModel().cursorPositionProperty()
+        .subscribe(pos -> bridgeCursorPositionToRow(pos, model.getEicDatasetsByRow()));
+    mobilogramPlot.getXYPlot().getCursorConfigModel().cursorPositionProperty()
+        .subscribe(pos -> bridgeCursorPositionToRow(pos, model.getMobilogramDatasetsByRow()));
 
     // Chart titles are computed by the spectra task per scan and pushed via model properties.
     ms1Chart.titleProperty().bind(model.ms1TitleProperty());
@@ -536,6 +544,19 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
         return;
       }
     }
+  }
+
+  /**
+   * Resolve the dataset carried by the plot cursor position to its owning row. The cursor position
+   * is updated by the plot's built-in click handling, so this bridges chart clicks on dataset
+   * elements to dashboard adduct-row selection.
+   */
+  private void bridgeCursorPositionToRow(@Nullable final PlotCursorPosition position,
+      @NotNull final Map<FeatureListRow, XYDataset> datasetsByRow) {
+    if (position == null) {
+      return;
+    }
+    bridgeDatasetToRow(position.getDataset(), datasetsByRow);
   }
 
   private static void applyDatasets(@NotNull final SimpleSpectraChartController c,
