@@ -492,7 +492,7 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
 
     // weighted composite
     final float score = 0.3f * sizeScore + 0.5f * iinFraction + 0.2f * rtCoherence;
-    return Math.max(0f, Math.min(1f, score));
+    return Math.clamp(score, 0f, 1f);
   }
 
   private static @Nullable Double resolveNeutralMass(@NotNull final FeatureListRow row) {

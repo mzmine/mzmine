@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -34,22 +35,14 @@ public class CompoundGrouperParameters extends SimpleParameterSet {
   /**
    * Set all parameter values explicitly on {@code param}.
    */
-  public void setAll(@NotNull final FeatureListsSelection flists,
+  public static void setAll(@NotNull final ParameterSet param,
+      @NotNull final FeatureListsSelection flists,
       @NotNull final CompoundComponentizerType componentizer,
+      @NotNull final ParameterSet componentizerParameters,
       @NotNull final CompoundRepresentativeSelectorOption representativeSelector) {
-    setParameter(FEATURE_LISTS, flists);
-    getParameter(COMPONENTIZER).setValue(componentizer);
-    getParameter(REPRESENTATIVE_SELECTOR).setValue(representativeSelector);
-  }
-
-  /**
-   * Set the feature list selection and explicitly apply the default componentizer and
-   * representative selector.
-   */
-  public void setAll(@NotNull final FeatureListsSelection flists) {
-    // explicit defaults so batch wizard output is independent of parameter set defaults
-    setAll(flists, CompoundComponentizerType.SimpleSeeder,
-        CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
+    param.setParameter(FEATURE_LISTS, flists);
+    param.getParameter(COMPONENTIZER).setValue(componentizer, componentizerParameters);
+    param.getParameter(REPRESENTATIVE_SELECTOR).setValue(representativeSelector);
   }
 
   @Override

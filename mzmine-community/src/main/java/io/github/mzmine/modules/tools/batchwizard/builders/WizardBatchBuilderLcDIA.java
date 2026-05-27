@@ -133,7 +133,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, intraSampleRtTol);
 
     // annotation
     makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
@@ -143,7 +143,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddFormulaPredictionStep(q);
 
     // compound grouping (requires meta correlation + IIN)
-    makeAndAddCompoundGrouperStep(q);
+    makeAndAddCompoundGrouperStep(q, intraSampleRtTol);
 
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,

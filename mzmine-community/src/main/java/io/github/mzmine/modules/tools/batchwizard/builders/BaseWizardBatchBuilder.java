@@ -87,8 +87,12 @@ import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpe
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundComponentizerType;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperParameters;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperSubParameters;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundRepresentativeSelectorOption;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.SimpleSeederComponentizerParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
@@ -739,7 +743,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   /**
    * Ion identity networking
    */
-  protected void makeAndAddIinStep(final BatchQueue q) {
+  protected void makeAndAddIinStep(final BatchQueue q, @Nullable RTTolerance rtTol) {
+    if (rtTol == null) {
+      rtTol = SimpleSeederComponentizerParameters.DEFAULT_RT_TOLERANCE;
+    }
+
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class).cloneParameterSet();
     param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
@@ -765,7 +773,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(IonNetworkingParameters.COMPOUND_GROUPING, false);
     var compoundGroupingParam = param.getParameter(IonNetworkingParameters.COMPOUND_GROUPING)
         .getEmbeddedParameters();
-    compoundGroupingParam.setAllDefaults();
+
+    CompoundGrouperSubParameters.setAll(compoundGroupingParam,
+        CompoundComponentizerType.SimpleSeeder, createSimpleCompoundGrouperParams(rtTol),
+        CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
 
     // ion library
     final IonLibrary library = switch (polarity) {
@@ -783,14 +794,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
    * Compound grouping. Requires Ion Identity Networking and/or Correlation Grouping output as
    * input.
    */
-  protected void makeAndAddCompoundGrouperStep(final BatchQueue q) {
+  protected void makeAndAddCompoundGrouperStep(final BatchQueue q, @Nullable RTTolerance rtTol) {
+    if (rtTol == null) {
+      rtTol = SimpleSeederComponentizerParameters.DEFAULT_RT_TOLERANCE;
+    }
+
     final CompoundGrouperParameters param = (CompoundGrouperParameters) MZmineCore.getConfiguration()
         .getModuleParameters(CompoundGrouperModule.class).cloneParameterSet();
 
-    param.setAll(new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    CompoundGrouperParameters.setAll(param,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        CompoundComponentizerType.SimpleSeeder, createSimpleCompoundGrouperParams(rtTol),
+        CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CompoundGrouperModule.class),
         param));
+  }
+
+  protected SimpleSeederComponentizerParameters createSimpleCompoundGrouperParams(
+      @NotNull RTTolerance rtTol) {
+    return SimpleSeederComponentizerParameters.create(mzTolInterSample, rtTol,
+        SimpleSeederComponentizerParameters.DEFAULT_MIN_DENSITY);
   }
 
   /**

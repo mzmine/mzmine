@@ -84,7 +84,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddGapFillStep(q, null, minRtDataPoints);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, null);
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
@@ -97,7 +97,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     }
 
     // compound grouping (requires meta correlation + IIN)
-    makeAndAddCompoundGrouperStep(q);
+    makeAndAddCompoundGrouperStep(q, null);
 
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);

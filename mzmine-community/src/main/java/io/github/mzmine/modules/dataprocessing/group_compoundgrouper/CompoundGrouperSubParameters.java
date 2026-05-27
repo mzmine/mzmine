@@ -1,7 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -39,40 +39,21 @@ public class CompoundGrouperSubParameters extends SimpleParameterSet {
   /**
    * Set all parameter values explicitly on {@code param}.
    */
-  public void setAll(@NotNull final CompoundComponentizerType componentizer,
+  public static void setAll(@NotNull final ParameterSet param,
+      @NotNull final CompoundComponentizerType componentizer,
+      @NotNull final ParameterSet componentizerParameters,
       @NotNull final CompoundRepresentativeSelectorOption representativeSelector) {
-    getParameter(COMPONENTIZER).setValue(componentizer);
-    getParameter(REPRESENTATIVE_SELECTOR).setValue(representativeSelector);
+    param.getParameter(COMPONENTIZER).setValue(componentizer, componentizerParameters);
+    param.getParameter(REPRESENTATIVE_SELECTOR).setValue(representativeSelector);
   }
 
-  /**
-   * explicitly apply the default componentizer and representative selector.
-   */
-  public void setAllDefaults() {
-    // explicit defaults so batch wizard output is independent of parameter set defaults
-    setAll(CompoundComponentizerType.SimpleSeeder,
-        CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
-  }
-
-  public CompoundGrouperParameters toFullParameters(
-      List<? extends ModularFeatureList> featureLists) {
+  public @NotNull CompoundGrouperParameters toFullParameters(
+      @NotNull final List<? extends ModularFeatureList> featureLists) {
     final CompoundGrouperParameters params = (CompoundGrouperParameters) new CompoundGrouperParameters().cloneParameterSet();
-    params.setParameter(CompoundGrouperParameters.FEATURE_LISTS,
-        new FeatureListsSelection(featureLists));
-
-    if (params.getParameters().length != this.getParameters().length + 1) {
-      throw new IllegalArgumentException(
-          "Mismatch in parameter count between sub and full parameters. Expected only 1 more with feature lists parameter");
-    }
-
-    for (Parameter<?> parameter : getParameters()) {
-      final Parameter targetParam = params.getParameter(parameter);
-      if (targetParam == null) {
-        throw new IllegalArgumentException(
-            "Missing required parameter in full params: " + parameter.getName());
-      }
-      params.setParameter(targetParam, parameter.getValue());
-    }
+    final ParameterSet componentizerParameters = getParameter(COMPONENTIZER).getEmbeddedParameters()
+        .cloneParameterSet();
+    CompoundGrouperParameters.setAll(params, new FeatureListsSelection(featureLists),
+        getValue(COMPONENTIZER), componentizerParameters, getValue(REPRESENTATIVE_SELECTOR));
     return params;
   }
 }
