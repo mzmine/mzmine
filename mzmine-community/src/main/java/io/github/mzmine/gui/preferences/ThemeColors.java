@@ -37,7 +37,8 @@ public enum ThemeColors {
       true), DARK_GREY("Dark Grey", "themes/colors_dark_grey.css", true), MIDNIGHT("Midnight",
       "themes/colors_midnight.css", true), NORD("Nord", "themes/colors_nord.css", true), TWILIGHT(
       "Twilight", "themes/colors_twilight.css", true), CRISP_LIGHT("Crisp Light",
-      "themes/colors_crisp_light.css", false);
+      "themes/colors_crisp_light.css", false), DARK_BLUE("Dark blue",
+      "themes/colors_dark_blue.css", true);
 
   private final String displayName;
   private final String stylesheet;
