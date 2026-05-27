@@ -142,10 +142,10 @@ public class Wiff2DataAccess implements AutoCloseable {
     int tryCount = 0;
     while (tempChannel == null) {
       try {
-        TimeUnit.MILLISECONDS.sleep(1000);
         tempChannel = ManagedChannelBuilder.forAddress(server.address(), server.port())
             .usePlaintext().keepAliveTimeout(90, TimeUnit.SECONDS)
             .maxInboundMessageSize(1024 * 1024 * 5).maxRetryAttempts(3).build();
+        TimeUnit.MILLISECONDS.sleep(200);
         break;
       } catch (StatusRuntimeException | InterruptedException e) {
         logger.info("Could not connect to wiff2 server. Try %d/10".formatted(tryCount));
