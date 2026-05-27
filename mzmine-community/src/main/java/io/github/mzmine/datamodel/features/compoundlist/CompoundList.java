@@ -465,8 +465,9 @@ public class CompoundList {
    * is not a member of any compound. For multi-membership cases use {@link #getRolesOf}.
    */
   public @NotNull Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
+    final FeatureListRowID rowId = row.getTypedID();
     return findFirstCompoundOf(row).flatMap(
-        cr -> cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID()))
+        cr -> cr.getCompoundMembers().stream().filter(m -> m.row().getTypedID().equals(rowId))
             .findFirst().map(CompoundFeatureMember::role));
   }
 
@@ -475,13 +476,14 @@ public class CompoundList {
    * in different compounds (e.g. CORRELATED in compound A, ADDUCT in compound B if it's bridged).
    */
   public @NotNull List<CompoundMemberRole> getRolesOf(@NotNull final FeatureListRow row) {
+    final FeatureListRowID rowId = row.getTypedID();
     final List<ModularCompoundRow> owners = byMemberRowId.get(row.getTypedID());
     if (owners == null || owners.isEmpty()) {
       return List.of();
     }
     final List<CompoundMemberRole> roles = new ArrayList<>(owners.size());
     for (final ModularCompoundRow cr : owners) {
-      cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID())).findFirst()
+      cr.getCompoundMembers().stream().filter(m -> m.row().getTypedID().equals(rowId)).findFirst()
           .map(CompoundFeatureMember::role).ifPresent(roles::add);
     }
     return roles;

@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.List;
 import javafx.scene.paint.Color;
@@ -271,5 +272,72 @@ public class CompoundListDataModelTest {
         "nested compound must be stripped from top");
     Assertions.assertEquals(rep.getID(), top.getCompoundMembers().getFirst().row().getID(),
         "only rep remains as a member of the top compound");
+  }
+
+  @Test
+  void testSetRepresentativeUsesTypedIdAndRefreshesNeutralMass() {
+    final ModularFeatureListRow rep = new ModularFeatureListRow(flist, 1);
+    final ModularFeatureListRow sharedIdLeaf = new ModularFeatureListRow(flist, 2);
+    final ModularFeatureListRow nestedExtra = new ModularFeatureListRow(flist, 3);
+    flist.addRow(rep);
+    flist.addRow(sharedIdLeaf);
+    flist.addRow(nestedExtra);
+
+    final CompoundList cl = new CompoundList(flist, null, 10);
+    final ModularCompoundRow nested = new ModularCompoundRow(cl, 200, sharedIdLeaf,
+        List.of(new CompoundFeatureMember(sharedIdLeaf, CompoundMemberRole.REPRESENTATIVE, 1.0f),
+            new CompoundFeatureMember(nestedExtra, CompoundMemberRole.CORRELATED, 0.5f)), 0.9f,
+        null);
+    final ModularCompoundRow top = new ModularCompoundRow(cl, 100, rep,
+        List.of(new CompoundFeatureMember(rep, CompoundMemberRole.REPRESENTATIVE, 1.0f),
+            new CompoundFeatureMember(sharedIdLeaf, CompoundMemberRole.ADDUCT, 0.25f),
+            new CompoundFeatureMember(nested, CompoundMemberRole.CORRELATED, 0.33f)), 0.9f, 123.4);
+    cl.setRows(List.of(top));
+    flist.setCompoundList(cl);
+
+    final boolean changed = CompoundRowUtils.setRepresentative(top, nested);
+
+    Assertions.assertTrue(changed, "changing representative to a nested compound must succeed");
+    Assertions.assertSame(nested, top.getPreferredRow(),
+        "preferred row must be set to the selected nested compound");
+
+    final CompoundFeatureMember nestedMember = top.getCompoundMembers().stream()
+        .filter(m -> m.row() == nested).findFirst().orElseThrow();
+    Assertions.assertEquals(CompoundMemberRole.REPRESENTATIVE, nestedMember.role(),
+        "selected nested row must be the sole representative");
+    Assertions.assertEquals(1.0f, nestedMember.score(), 1e-6f,
+        "new representative score must be normalized to 1.0");
+
+    final CompoundFeatureMember leafMember = top.getCompoundMembers().stream()
+        .filter(m -> m.row() == sharedIdLeaf).findFirst().orElseThrow();
+    Assertions.assertEquals(CompoundMemberRole.ADDUCT, leafMember.role(),
+        "member with colliding plain ID must keep its original role");
+    Assertions.assertNull(top.get(NeutralMassType.class),
+        "neutral mass must be recomputed from the new representative and cleared when unavailable");
+  }
+
+  @Test
+  void testRoleLookupUsesTypedIdForNestedCompoundMembers() {
+    final ModularFeatureListRow rep = new ModularFeatureListRow(flist, 1);
+    final ModularFeatureListRow sharedIdLeaf = new ModularFeatureListRow(flist, 2);
+    final ModularFeatureListRow nestedExtra = new ModularFeatureListRow(flist, 3);
+    flist.addRow(rep);
+    flist.addRow(sharedIdLeaf);
+    flist.addRow(nestedExtra);
+
+    final CompoundList cl = new CompoundList(flist, null, 10);
+    final ModularCompoundRow nested = new ModularCompoundRow(cl, 201, sharedIdLeaf,
+        List.of(new CompoundFeatureMember(sharedIdLeaf, CompoundMemberRole.REPRESENTATIVE, 1.0f),
+            new CompoundFeatureMember(nestedExtra, CompoundMemberRole.CORRELATED, 0.5f)), 0.9f,
+        null);
+    final ModularCompoundRow top = new ModularCompoundRow(cl, 101, rep,
+        List.of(new CompoundFeatureMember(rep, CompoundMemberRole.REPRESENTATIVE, 1.0f),
+            new CompoundFeatureMember(sharedIdLeaf, CompoundMemberRole.ADDUCT, 0.25f),
+            new CompoundFeatureMember(nested, CompoundMemberRole.CORRELATED, 0.33f)), 0.9f, null);
+    cl.setRows(List.of(top));
+    flist.setCompoundList(cl);
+
+    Assertions.assertEquals(CompoundMemberRole.CORRELATED, cl.getRoleOf(nested).orElseThrow(),
+        "role lookup must resolve nested compound member by typed ID, not plain getID()");
   }
 }

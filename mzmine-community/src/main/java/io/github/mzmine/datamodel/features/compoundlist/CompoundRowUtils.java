@@ -1,9 +1,13 @@
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRowID;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,16 +49,16 @@ public final class CompoundRowUtils {
   public static boolean setRepresentative(@NotNull final ModularCompoundRow compound,
       @NotNull final ModularFeatureListRow newRepresentative) {
     final CompoundMembers current = compound.getCompoundMembersData();
-    if (current.preferredRow().getID().equals(newRepresentative.getID())) {
+    final FeatureListRowID newRepresentativeId = newRepresentative.getTypedID();
+    if (current.preferredRow().getTypedID().equals(newRepresentativeId)) {
       return false;
     }
     final List<CompoundFeatureMember> oldMembers = current.members();
     boolean found = false;
     final List<CompoundFeatureMember> updated = new ArrayList<>(oldMembers.size());
     for (final CompoundFeatureMember m : oldMembers) {
-      if (m.row().getID().equals(newRepresentative.getID())) {
-        updated.add(
-            new CompoundFeatureMember(m.row(), CompoundMemberRole.REPRESENTATIVE, m.score()));
+      if (m.row().getTypedID().equals(newRepresentativeId)) {
+        updated.add(new CompoundFeatureMember(m.row(), CompoundMemberRole.REPRESENTATIVE, 1.0f));
         found = true;
       } else if (m.role() == CompoundMemberRole.REPRESENTATIVE) {
         updated.add(new CompoundFeatureMember(m.row(), CompoundMemberRole.CORRELATED, m.score()));
@@ -63,8 +67,7 @@ public final class CompoundRowUtils {
       }
     }
     if (!found) {
-      logger.warning(
-          () -> "Row id=" + newRepresentative.getID() + " is not a member of compound id="
+      logger.warning(() -> "Row typedId=" + newRepresentativeId + " is not a member of compound id="
               + compound.getCompoundId() + "; cannot set as representative");
       return false;
     }
@@ -73,6 +76,7 @@ public final class CompoundRowUtils {
     // membership stays the same; only the preferredRow + role flags change. No need to rebuild
     // the reverse-member index — listeners on CompoundMembersType propagate the change.
     compound.set(CompoundMembersType.class, next);
+    compound.set(NeutralMassType.class, resolveNeutralMass(newRepresentative));
     return true;
   }
 
@@ -90,12 +94,12 @@ public final class CompoundRowUtils {
     if (rowsToMove.isEmpty()) {
       return null;
     }
-    final Set<Integer> moveIds = collectIds(rowsToMove);
+    final Set<FeatureListRowID> moveIds = collectTypedIds(rowsToMove);
     final CompoundMembers sourceData = source.getCompoundMembersData();
     final List<CompoundFeatureMember> moved = new ArrayList<>(rowsToMove.size());
     final List<CompoundFeatureMember> remaining = new ArrayList<>(sourceData.members().size());
     for (final CompoundFeatureMember m : sourceData.members()) {
-      if (moveIds.contains(m.row().getID())) {
+      if (moveIds.contains(m.row().getTypedID())) {
         moved.add(m);
       } else {
         remaining.add(m);
@@ -149,7 +153,7 @@ public final class CompoundRowUtils {
     if (rowsToDetach.isEmpty()) {
       return false;
     }
-    final Set<Integer> detachIds = collectIds(rowsToDetach);
+    final Set<FeatureListRowID> detachIds = collectTypedIds(rowsToDetach);
     final AtomicBoolean changed = new AtomicBoolean(false);
 
     final List<ModularCompoundRow> nextRows = new ArrayList<>(list.getRows().size());
@@ -180,7 +184,7 @@ public final class CompoundRowUtils {
     if (rowsToDetach.isEmpty()) {
       return false;
     }
-    final Set<Integer> detachIds = collectIds(rowsToDetach);
+    final Set<FeatureListRowID> detachIds = collectTypedIds(rowsToDetach);
     return detachLeavesRecursive(parent, detachIds, new AtomicBoolean(false));
   }
 
@@ -193,7 +197,8 @@ public final class CompoundRowUtils {
    * rewrite)
    */
   private static boolean detachLeavesRecursive(@NotNull final ModularCompoundRow compound,
-      @NotNull final Set<Integer> detachIds, @NotNull final AtomicBoolean changedAccumulator) {
+      @NotNull final Set<FeatureListRowID> detachIds,
+      @NotNull final AtomicBoolean changedAccumulator) {
     // First pass: recurse into nested compounds. Any nested compound that becomes empty must also
     // be dropped from this compound.
     final Set<ModularCompoundRow> nestedToDrop = new HashSet<>();
@@ -209,7 +214,7 @@ public final class CompoundRowUtils {
       if (m.row() instanceof ModularCompoundRow nested) {
         return nestedToDrop.contains(nested);
       }
-      return detachIds.contains(m.row().getID());
+      return detachIds.contains(m.row().getTypedID());
     }, changedAccumulator);
   }
 
@@ -328,9 +333,9 @@ public final class CompoundRowUtils {
 
     final CompoundMembers targetData = target.getCompoundMembersData();
     final List<CompoundFeatureMember> merged = new ArrayList<>(targetData.members());
-    final Set<Integer> presentIds = new HashSet<>(merged.size() * 2);
+    final Set<FeatureListRowID> presentIds = HashSet.newHashSet(merged.size() * 2);
     for (final CompoundFeatureMember m : merged) {
-      presentIds.add(m.row().getID());
+      presentIds.add(m.row().getTypedID());
     }
 
     boolean changed = false;
@@ -338,7 +343,7 @@ public final class CompoundRowUtils {
     // 1) Absorb members from compounds being merged
     for (final ModularCompoundRow other : toRemove) {
       for (final CompoundFeatureMember m : other.getCompoundMembersData().members()) {
-        if (presentIds.add(m.row().getID())) {
+        if (presentIds.add(m.row().getTypedID())) {
           merged.add(demoteIfRepresentative(m));
           changed = true;
         }
@@ -346,7 +351,7 @@ public final class CompoundRowUtils {
     }
 
     // 2) Detach extras from any *other* compound (excluding target and ones being removed entirely)
-    final Set<Integer> extraIds = collectIds(extraMemberRows);
+    final Set<FeatureListRowID> extraIds = collectTypedIds(extraMemberRows);
     final Map<ModularCompoundRow, List<CompoundFeatureMember>> trimmed = new HashMap<>();
     if (!extraIds.isEmpty()) {
       for (final ModularCompoundRow cr : list.getRows()) {
@@ -357,7 +362,7 @@ public final class CompoundRowUtils {
             cr.getCompoundMembersData().members().size());
         boolean removedAny = false;
         for (final CompoundFeatureMember m : cr.getCompoundMembersData().members()) {
-          if (extraIds.contains(m.row().getID())) {
+          if (extraIds.contains(m.row().getTypedID())) {
             removedAny = true;
           } else {
             kept.add(m);
@@ -371,7 +376,7 @@ public final class CompoundRowUtils {
     }
     // 2b) Append extras to target
     for (final ModularFeatureListRow extra : extraMemberRows) {
-      if (presentIds.add(extra.getID())) {
+      if (presentIds.add(extra.getTypedID())) {
         merged.add(new CompoundFeatureMember(extra, CompoundMemberRole.CORRELATED, 0.5f));
         changed = true;
       }
@@ -463,9 +468,10 @@ public final class CompoundRowUtils {
       @NotNull final List<CompoundFeatureMember> members,
       @NotNull final ModularFeatureListRow preferred) {
     final List<CompoundFeatureMember> out = new ArrayList<>(members.size());
+    final FeatureListRowID preferredId = preferred.getTypedID();
     boolean placed = false;
     for (final CompoundFeatureMember m : members) {
-      if (m.row().getID().equals(preferred.getID())) {
+      if (m.row().getTypedID().equals(preferredId)) {
         out.add(new CompoundFeatureMember(m.row(), CompoundMemberRole.REPRESENTATIVE, 1.0f));
         placed = true;
       } else if (m.role() == CompoundMemberRole.REPRESENTATIVE) {
@@ -491,13 +497,34 @@ public final class CompoundRowUtils {
         "ensureRepresentative() did not produce a REPRESENTATIVE member");
   }
 
-  private static @NotNull Set<Integer> collectIds(
+  private static @NotNull Set<FeatureListRowID> collectTypedIds(
       @NotNull final Collection<? extends FeatureListRow> rows) {
-    final Set<Integer> ids = HashSet.newHashSet(rows.size());
+    final Set<FeatureListRowID> ids = HashSet.newHashSet(rows.size());
     for (final FeatureListRow r : rows) {
-      ids.add(r.getID());
+      ids.add(r.getTypedID());
     }
     return ids;
+  }
+
+  private static @Nullable Double resolveNeutralMass(@NotNull final FeatureListRow row) {
+    final IonIdentity ion = row.getBestIonIdentity();
+    if (ion == null) {
+      return null;
+    }
+    final IonNetwork network = ion.getNetwork();
+    if (network == null) {
+      return null;
+    }
+    try {
+      final double neutralMass = network.getNeutralMass();
+      if (Double.isNaN(neutralMass) || neutralMass == 0d) {
+        return null;
+      }
+      return neutralMass;
+    } catch (final NullPointerException e) {
+      // assumption: synthetic or sparse rows may not have enough state to compute neutral mass.
+      return null;
+    }
   }
 
   private static @NotNull <T> Set<T> newIdentitySet(@NotNull final Collection<? extends T> seed) {
