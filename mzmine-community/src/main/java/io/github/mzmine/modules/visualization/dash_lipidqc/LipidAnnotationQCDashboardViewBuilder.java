@@ -60,6 +60,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -266,16 +267,18 @@ public class LipidAnnotationQCDashboardViewBuilder extends
     final boolean stale =
         currentRow != null && currentRow.getFeatureList() != model.getFeatureList();
     if (!stale && currentRow != null) {
-      final boolean inFilter = filteredItems.stream().map(javafx.scene.control.TreeItem::getValue)
-          .filter(Objects::nonNull).anyMatch(row -> row.getID() == currentRow.getID());
-      if (inFilter) {
-        if (!Objects.equals(table.getSelectedRow(), currentRow)) {
-          FeatureTableFXUtil.selectAndScrollTo(currentRow, table);
-        }
+      final boolean inFilter = filteredItems.stream().map(TreeItem::getValue)
+          .filter(Objects::nonNull)
+          .anyMatch(row -> Objects.equals(row.getID(), currentRow.getID()));
+      if (!inFilter) {
+        // Selection is for the current feature list but hidden by the filter — leave it alone
+        // (preserves a meaningful upstream pick instead of overwriting with the first visible row).
         return;
       }
-      // Selection is for the current feature list but hidden by the filter — leave it alone
-      // (preserves a meaningful upstream pick instead of overwriting with the first visible row).
+      if (!Objects.equals(table.getSelectedRow(), currentRow)) {
+        // scroll to the new row
+        FeatureTableFXUtil.selectAndScrollTo(currentRow, table);
+      }
       return;
     }
     // No selection, or selection was stale from a different feature list → pick the first visible.

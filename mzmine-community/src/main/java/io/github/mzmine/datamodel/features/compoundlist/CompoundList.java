@@ -13,6 +13,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -185,10 +186,17 @@ public class CompoundList {
       byCompoundId.put(cr.getCompoundId(), cr);
     }
     applyAllBindings();
+    // sorting
+    applyDefaultRowsSorting();
     if (!listenersWired) {
       wireListeners();
       listenersWired = true;
     }
+  }
+
+  public void applyDefaultRowsSorting() {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(featureList);
+    rows.sort(comparator);
   }
 
   /**

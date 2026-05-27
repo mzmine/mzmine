@@ -705,6 +705,7 @@ public class FeatureTableFX extends BorderPane {
         FeatureTableFXUtil.selectAndScrollTo(selectedRow.getValue(), this);
       }
 
+      // this applies the last sorting the the new rows
       table.sort();
     });
   }
@@ -771,6 +772,20 @@ public class FeatureTableFX extends BorderPane {
 
     // finally add row column to table
     table.getColumns().add(rowCol);
+
+    // set the default sorting to the previous column or if none selected to the HeightType column
+    if (table.getSortOrder().isEmpty()) {
+      // Find the HeightType column and set it as the default sort column
+      for (TreeTableColumn<ModularFeatureListRow, ?> column : rowCol.getColumns()) {
+        ColumnID columnId = newColumnMap.get(column);
+        if (columnId != null && columnId.getDataType() instanceof HeightType) {
+          column.setSortType(TreeTableColumn.SortType.DESCENDING);
+          table.getSortOrder().add(column);
+          break;
+        }
+      }
+    }
+    
 
     // add features
     addFeaturesColumns();
@@ -1348,15 +1363,7 @@ public class FeatureTableFX extends BorderPane {
       showCompactChromatographyColumns();
     }
 
-    // add rows sorted by descending height
-    final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
-        .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
-
     updateRows();
-
-//    final List<TreeItem<ModularFeatureListRow>> newRows = sortedRows.stream()
-//        .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
-//    rowItems.setAll(newRows);
 
     // reflect the changes to the feature list in the table
     newFeatureList.getRows().addListener(rowsChangedListener);
