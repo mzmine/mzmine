@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping;
 
 
-import static java.util.Arrays.copyOf;
 import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
@@ -36,7 +35,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -68,8 +66,6 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.maths.Precision;
-import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -362,55 +358,8 @@ public class CorrelateGroupingTask extends AbstractTask {
     }
 
     // correlate mobilogram
-    return correlate(dataA.getSummedMobilogram(), dataB.getSummedMobilogram());
-  }
-
-  private float correlate(SummedIntensityMobilitySeries a, SummedIntensityMobilitySeries b) {
-    if (a.getNumberOfValues() < minCorrelatedDataPoints
-        || b.getNumberOfValues() < minCorrelatedDataPoints) {
-      return -1;
-    }
-
-    // collect overlapping intensity values
-    final int maxSize = Math.min(a.getNumberOfValues(), b.getNumberOfValues());
-    double[] intensitiesA = new double[maxSize];
-    double[] intensitiesB = new double[maxSize];
-    int matches = 0;
-
-    // find overlapping mobility values - assuming sorted data
-    int indexA = 0;
-    int indexB = 0;
-
-    while (indexA < a.getNumberOfValues() && indexB < b.getNumberOfValues()) {
-      double mobilityA = a.getMobility(indexA);
-      double mobilityB = b.getMobility(indexB);
-
-      // check if mobility values match within a small tolerance
-      if (Precision.equalFloatSignificance(mobilityA, mobilityB)) { // mobility values match
-        intensitiesA[matches] = a.getIntensity(indexA);
-        intensitiesB[matches] = b.getIntensity(indexB);
-        matches++;
-        indexA++;
-        indexB++;
-      } else if (mobilityA < mobilityB) {
-        indexA++;
-      } else {
-        indexB++;
-      }
-    }
-
-    // need minimum data points for correlation
-    if (matches < minCorrelatedDataPoints) {
-      return -1;
-    }
-
-    // trim arrays to actual size
-    if (matches < maxSize) {
-      intensitiesA = copyOf(intensitiesA, matches);
-      intensitiesB = copyOf(intensitiesB, matches);
-    }
-
-    return (float) Similarity.PEARSONS_CORR.calc(intensitiesA, intensitiesB);
+    return FeatureCorrelationUtil.correlatePearsonR(dataA.getSummedMobilogram(),
+        dataB.getSummedMobilogram(), minCorrelatedDataPoints);
   }
 
   private boolean checkMobilityOverlap(ModularFeature mfa, ModularFeature mfb) {
