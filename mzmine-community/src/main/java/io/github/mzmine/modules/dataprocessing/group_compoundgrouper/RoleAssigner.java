@@ -95,7 +95,7 @@ public final class RoleAssigner {
     return CompoundMemberRole.CORRELATED;
   }
 
-  private static boolean looksLikeIsotopologue(@NotNull final FeatureListRow member,
+  static boolean looksLikeIsotopologue(@NotNull final FeatureListRow member,
       @NotNull final FeatureListRow representative, @NotNull final MZTolerance mzTolerance,
       @NotNull final RTTolerance rtTolerance) {
     final Double memberMz = member.getAverageMZ();

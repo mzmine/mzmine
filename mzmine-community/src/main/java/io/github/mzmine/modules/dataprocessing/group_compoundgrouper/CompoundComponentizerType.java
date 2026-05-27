@@ -12,7 +12,10 @@ import org.jetbrains.annotations.NotNull;
 public enum CompoundComponentizerType implements ModuleOptionsEnum<CompoundComponentizerModule> {
 
   SimpleSeeder("Simple IIN + correlation", "simple_iin_correlation",
-      SimpleSeederComponentizerModule.class);
+      SimpleSeederComponentizerModule.class),
+
+  WeightedGraph("Weighted multi-evidence graph", "weighted_graph",
+      WeightedGraphComponentizerModule.class);
 
   private final String name;
   private final String stableId;
