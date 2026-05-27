@@ -21,6 +21,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundContradictionListType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -88,13 +89,14 @@ public class WeightedGraphComponentizerTest {
     return flist;
   }
 
-  private ModularFeatureListRow row(final ModularFeatureList flist, final int id, final double mz,
+  public static ModularFeatureListRow row(final ModularFeatureList flist, final int id,
+      final double mz,
       final float rt, final float height) {
     final ModularFeatureListRow base = new ModularFeatureListRow(flist, id);
+    base.set(MZType.class, mz);
+    base.set(RTType.class, rt);
+    base.set(HeightType.class, height);
     final ModularFeatureListRow s = spy(base);
-    doReturn(mz).when(s).getAverageMZ();
-    doReturn(rt).when(s).getAverageRT();
-    doReturn(height).when(s).getMaxHeight();
     doReturn(height).when(s).getMaxDataPointIntensity();
     flist.addRow(s);
     return s;

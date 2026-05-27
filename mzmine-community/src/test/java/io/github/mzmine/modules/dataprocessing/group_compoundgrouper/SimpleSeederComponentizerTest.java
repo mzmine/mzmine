@@ -1,10 +1,9 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
+import static io.github.mzmine.modules.dataprocessing.group_compoundgrouper.WeightedGraphComponentizerTest.row;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -30,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -61,7 +61,7 @@ public class SimpleSeederComponentizerTest {
 
   // ---- helpers ----
 
-  private @org.jetbrains.annotations.NotNull ModularFeatureList newFeatureList(
+  private @NotNull ModularFeatureList newFeatureList(
       final String name) {
     final ModularFeatureList flist = new ModularFeatureList(name, null, raw);
     flist.addRowType(new IDType());
@@ -70,18 +70,6 @@ public class SimpleSeederComponentizerTest {
     flist.addRowType(new IonIdentityListType());
     flist.addRowType(new FeatureGroupType());
     return flist;
-  }
-
-  private ModularFeatureListRow row(final ModularFeatureList flist, final int id, final double mz,
-      final float rt, final float height) {
-    final ModularFeatureListRow base = new ModularFeatureListRow(flist, id);
-    final ModularFeatureListRow s = spy(base);
-    doReturn(mz).when(s).getAverageMZ();
-    doReturn(rt).when(s).getAverageRT();
-    doReturn(height).when(s).getMaxHeight();
-    doReturn(height).when(s).getMaxDataPointIntensity();
-    flist.addRow(s);
-    return s;
   }
 
   /**

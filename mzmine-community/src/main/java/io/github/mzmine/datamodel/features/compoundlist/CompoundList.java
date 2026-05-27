@@ -186,12 +186,12 @@ public class CompoundList {
       byCompoundId.put(cr.getCompoundId(), cr);
     }
     applyAllBindings();
-    // sorting
-    applyDefaultRowsSorting();
     if (!listenersWired) {
       wireListeners();
       listenersWired = true;
     }
+    // sorting
+    applyDefaultRowsSorting();
   }
 
   public void applyDefaultRowsSorting() {

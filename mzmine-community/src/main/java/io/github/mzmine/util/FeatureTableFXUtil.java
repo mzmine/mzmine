@@ -83,9 +83,9 @@ public class FeatureTableFXUtil {
 
   /**
    * Collapse every top-level row in {@code table}'s filtered view except (optionally)
-   * {@code keepExpanded}. Use after navigating to a target row to close compound rows that aren't
-   * relevant to the current selection — leaves the user with a clean view focused on the row being
-   * shown (and its enclosing compound row, when applicable).
+   * {@code keepExpanded}. Used before scroll and select of a target row to close compound rows that
+   * aren't relevant to the current selection — leaves the user with a clean view focused on the row
+   * being shown (and its enclosing compound row, when applicable).
    * <p>
    * If {@code keepExpanded} is a child rather than a top-level item itself, its enclosing top-level
    * ancestor is kept expanded so the child stays visible. Pass {@code null} to collapse every
