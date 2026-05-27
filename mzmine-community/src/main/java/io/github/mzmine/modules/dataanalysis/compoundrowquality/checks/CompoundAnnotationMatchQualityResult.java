@@ -145,7 +145,7 @@ public final class CompoundAnnotationMatchQualityResult extends QualityCheckResu
 
     // Top-right icon button: fires the same AnnotationDetailRequestedEvent the structure
     // double-click does. HBox + spacer keeps the button hard-right regardless of pane width;
-    final ButtonBase detailButton = FxIconUtil.newIconButton(FxIcons.LINK,
+    final ButtonBase detailButton = FxIconUtil.newIconButton(FxIcons.NETWORK,
         "Open network details for this annotation", this::fireDetailRequested);
 
     final var box = FxLayout.newStackPane(Insets.EMPTY, grid, detailButton);
