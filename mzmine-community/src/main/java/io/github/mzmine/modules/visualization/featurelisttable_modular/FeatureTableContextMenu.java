@@ -68,7 +68,6 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
-import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.DeleteCompoundRowsModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.MergeCompoundRowsModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SetRepresentativeRowModule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SplitCompoundRowModule;
@@ -316,9 +315,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   /**
-   * Split selected rows into compound rows (handled by {@link DeleteCompoundRowsModule}) and plain
-   * feature rows (handled by {@link DeleteRowsModule}). A confirmation dialog is shown when more
-   * than one row will be removed in total.
+   * Split selected rows into compound rows and plain feature rows, both handled by
+   * {@link DeleteRowsModule}. A confirmation dialog is shown when more than one row will be removed
+   * in total.
    */
   private void onDeleteSelectedRows() {
     final List<ModularCompoundRow> compounds = new ArrayList<>();
@@ -343,13 +342,8 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     }
     table.getSelectionModel().clearSelection();
-    if (!compounds.isEmpty()) {
-      DeleteCompoundRowsModule.apply(table.getFeatureList(), compounds);
-    }
-    if (!flatRows.isEmpty()) {
-      // skip the module's own confirmation dialog — already confirmed above
-      DeleteRowsModule.deleteRows(table.getFeatureList(), flatRows);
-    }
+    // single module call handles both kinds — confirmation was already shown above
+    DeleteRowsModule.deleteRows(table.getFeatureList(), flatRows, compounds);
     table.updateRows();
   }
 
