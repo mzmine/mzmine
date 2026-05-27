@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,10 @@ import java.awt.Paint;
 import java.util.List;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +67,13 @@ public class PlotCursorConfigModel {
   private final FxValueMarker domainCursorMarker = new FxValueMarker();
   private final FxValueMarker rangeCursorMarker = new FxValueMarker();
   private Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier;
+  /**
+   * Use a supplier for the plot since the plot of a {@link FxXYPlotModel} may change in the
+   * future.
+   */
+  private Supplier<@Nullable XYPlot> plotSupplier;
+  // decision: XYPlot markers attach to a dataset/renderer index and resolve the mapped axis later.
+  private final IntegerProperty rangeCursorMarkerDatasetIndex = new SimpleIntegerProperty(0);
 
   public PlotCursorConfigModel() {
     // bind props
@@ -73,9 +82,11 @@ public class PlotCursorConfigModel {
   }
 
   public PlotCursorConfigModel(
-      @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier) {
+      @NotNull Supplier<@NotNull List<? extends XYDataset>> allDatasetsSupplier,
+      @NotNull Supplier<@Nullable XYPlot> plotSupplier) {
     this();
     this.allDatasetsSupplier = allDatasetsSupplier;
+    this.plotSupplier = plotSupplier;
   }
 
   @NotNull
@@ -95,9 +106,11 @@ public class PlotCursorConfigModel {
     if (pos == null) {
       domainCursorMarker.setValue(null);
       rangeCursorMarker.setValue(null);
+      rangeCursorMarkerDatasetIndex.set(0);
     } else {
       domainCursorMarker.setValue(pos.getDomainValue());
       rangeCursorMarker.setValue(pos.getRangeValue());
+      rangeCursorMarkerDatasetIndex.set(resolveRangeCursorMarkerDatasetIndex(pos));
     }
   }
 
@@ -168,5 +181,29 @@ public class PlotCursorConfigModel {
   public void setCursorCrosshairPaint(Paint color) {
     getDomainCursorMarker().setPaint(color);
     getRangeCursorMarker().setPaint(color);
+  }
+
+  public int getRangeCursorMarkerDatasetIndex() {
+    return rangeCursorMarkerDatasetIndex.get();
+  }
+
+  public IntegerProperty rangeCursorMarkerDatasetIndexProperty() {
+    return rangeCursorMarkerDatasetIndex;
+  }
+
+  private int resolveRangeCursorMarkerDatasetIndex(final @NotNull PlotCursorPosition pos) {
+    if (plotSupplier == null || pos.getDataset() == null) {
+      return 0;
+    }
+    final @Nullable XYPlot plot = plotSupplier.get();
+    if (plot == null) {
+      return 0;
+    }
+
+    final int datasetIndex = plot.indexOf(pos.getDataset());
+    if (datasetIndex < 0) {
+      return 0;
+    }
+    return datasetIndex;
   }
 }

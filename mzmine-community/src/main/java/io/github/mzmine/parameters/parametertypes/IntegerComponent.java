@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.IntegerStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
     ValuePropertyComponent<Integer> {
@@ -47,7 +48,8 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
 
     textField = new TextField();
     textField.setPrefWidth(inputsize);
-    textFormatter = new TextFormatter<>(new IntegerStringConverter());
+    textFormatter = new TextFormatter<>(new IntegerStringConverter(), null,
+        this::filterIntegerChange);
     textField.setTextFormatter(textFormatter);
 
     getChildren().add(textField);
@@ -78,6 +80,29 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
 
   public TextField getTextField() {
     return textField;
+  }
+
+  private @Nullable TextFormatter.Change filterIntegerChange(
+      final @Nullable TextFormatter.Change change) {
+    if (change == null) {
+      return null;
+    }
+    final String newText = change.getControlNewText();
+    if (newText == null || newText.isEmpty()) {
+      return change;
+    }
+    if ("-".equals(newText)) {
+      return minimum != null && minimum >= 0 ? null : change;
+    }
+    if (!newText.matches("-?\\d+")) {
+      return null;
+    }
+    try {
+      final int parsed = Integer.parseInt(newText);
+      return checkBounds(parsed) ? change : null;
+    } catch (NumberFormatException ex) {
+      return null;
+    }
   }
 
   @Override

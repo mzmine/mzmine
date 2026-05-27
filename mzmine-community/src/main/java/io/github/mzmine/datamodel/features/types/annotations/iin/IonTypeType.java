@@ -51,7 +51,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonTypeType extends DataType<IonType> {
 
-  private static final Function<@Nullable String, @Nullable IonType> mapper = IonTypeParser::parse;
+  private static final Function<@Nullable String, @Nullable IonType> mapper = input -> IonTypeParser.parseOptional(
+      input).orElse(null);
 
   @Override
   public @NotNull String getUniqueID() {

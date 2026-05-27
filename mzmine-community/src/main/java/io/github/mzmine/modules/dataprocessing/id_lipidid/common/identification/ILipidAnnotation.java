@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23,21 +22,56 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
+package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification;
 
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public interface ILipidAnnotation {
+public sealed interface ILipidAnnotation permits SpeciesLevelAnnotation,
+    MolecularSpeciesLevelAnnotation {
 
   ILipidClass getLipidClass();
 
   String getAnnotation();
 
+  default String getSpeciesLevelAnnotation() {
+    return LipidFactory.buildAnnotation(getLipidClass(), getChainsCarbonCount(),
+        getChainsDoubleBondCount(), getSpeciesLevelOxygens());
+  }
+
+  /**
+   *
+   * @param level The annotation level.
+   * @return A string defining this lipid annotation. If molecular species is requested and this
+   * annotation is only a species level, the species level annotation is returned.
+   */
+  default String getAnnotation(LipidAnnotationLevel level) {
+    return switch (level) {
+      case SPECIES_LEVEL -> getSpeciesLevelAnnotation();
+      case MOLECULAR_SPECIES_LEVEL -> getAnnotation();
+    };
+  }
+
   LipidAnnotationLevel getLipidAnnotationLevel();
 
   IMolecularFormula getMolecularFormula();
+
+  /**
+   *
+   * @return Number of carbon atoms in all chains.
+   */
+  int getChainsCarbonCount();
+
+  /**
+   * @return Number of double bonds in all chains.
+   */
+  int getChainsDoubleBondCount();
+
+  int getSpeciesLevelOxygens();
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 

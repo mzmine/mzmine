@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,7 +91,6 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     SimpleToolTipGenerator toolTipGenerator = new SimpleToolTipGenerator();
     setDefaultToolTipGenerator(toolTipGenerator);
     setDefaultItemLabelsVisible(false);
-    setSeriesItemLabelsVisible(0, false);
     setSeriesShape(0, dataPointsShape);
   }
 
@@ -254,13 +253,15 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
         }
         //}
         if (this.getDrawOutlines()) {
-          if (getUseOutlinePaint()) {
-            g2.setPaint(getPaint(dataset, series, item));
-          } else {
-            g2.setPaint(getPaint(dataset, series, item));
-          }
+          final Paint outlinePaint =
+              getUseOutlinePaint() ? getItemOutlinePaint(series, item) : null;
+          g2.setPaint(outlinePaint != null ? outlinePaint : getPaint(dataset, series, item));
           g2.setStroke(getItemOutlineStroke(series, item));
           g2.draw(shape);
+        }
+
+        if (isItemLabelVisible(series, item)) {
+          drawItemLabel(g2, orientation, dataset, series, item, transX, transY, y < 0.0);
         }
       }
 

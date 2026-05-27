@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,6 +55,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDe
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
@@ -76,6 +78,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
@@ -110,6 +113,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
@@ -305,11 +309,12 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(menu, "Search precursor mass", LocalCSVDatabaseSearchModule.class,
         BioTransformerModule.class);
     addModuleMenuItems(menu, "Search spectra", SpectralLibrarySearchModule.class,
-        LipidAnnotationModule.class, NistMsSearchModule.class,
-        FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
+        AnalogSpectralLibrarySearchModule.class, LipidAnnotationModule.class,
+        NistMsSearchModule.class, FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,
+        LipidAnnotationCleanupModule.class, SetLipidAnnotationLevelModule.class,
         PreferredAnnotationRankingModule.class);
     return menu;
   }
@@ -344,7 +349,7 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(featureVis, "Lipids", EquivalentCarbonNumberModule.class,
         LipidAnnotationSummaryModule.class);
     addModuleMenuItems(featureVis, "Dashboards", IntegrationDashboardModule.class,
-        StatsDasboardModule.class);
+        LipidAnnotationQCDashboardModule.class, StatsDasboardModule.class);
     // end of feature visualization
     // back to main visualization menu
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);

@@ -32,7 +32,6 @@ import io.github.mzmine.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class IonPartParser {
 
@@ -92,7 +91,7 @@ public class IonPartParser {
    *
    * @param input
    */
-  private IonPartParser(@NotNull String input) {
+  private IonPartParser(@NotNull String input) throws IonPartParsingException {
     // never remove whitespace because it is allowed
     // needs to handle it in the correct spots
     this.input = input;
@@ -100,12 +99,12 @@ public class IonPartParser {
     processCharAtIndex();
   }
 
-  private void processNextChar() {
+  private void processNextChar() throws IonPartParsingException {
     index++;
     processCharAtIndex();
   }
 
-  private void processCharAtIndex() {
+  private void processCharAtIndex() throws IonPartParsingException {
     if (index >= input.length()) {
       // found end of string either ends with exception if open parathesis or finish the last ion part
       if (state == State.COLLECTING_FORMULA) {
@@ -175,7 +174,7 @@ public class IonPartParser {
     return chars[index];
   }
 
-  private void createPart(int index) {
+  private void createPart(int index) throws IonPartParsingException {
     if (prefixMultiplier == 0) {
       return; // finished
     }
@@ -217,7 +216,7 @@ public class IonPartParser {
    * Charge is always optional - sets the end of formula and advances the index to the end of the
    * current part last char.
    */
-  private void findCharge() {
+  private void findCharge() throws IonPartParsingException {
     switch (format) {
       case SIMPLE -> {
         findChargeSimpleFormat();
@@ -229,7 +228,7 @@ public class IonPartParser {
     }
   }
 
-  private void findChargeSimpleFormat() {
+  private void findChargeSimpleFormat() throws IonPartParsingException {
     endFormula = index;
 
     // might have no charge
@@ -299,7 +298,7 @@ public class IonPartParser {
   /**
    * Format is +(Fe+2) or +([Fe]2+) or +([Fe]+2). Index is currently at the closing )
    */
-  private void findChargeFullFormat() {
+  private void findChargeFullFormat() throws IonPartParsingException {
     final int end = this.index;
     endFormula = end;
     int index = this.index - 1;
@@ -399,7 +398,7 @@ public class IonPartParser {
     charge = null;
   }
 
-  private void parsePrefixMultiplier() {
+  private void parsePrefixMultiplier() throws IonPartParsingException {
     // requires + or -
     if (!StringUtils.isSign(charAt(index))) {
       throw new IonPartParsingException(input, index,
@@ -429,10 +428,9 @@ public class IonPartParser {
   /// - simple: +3Fe+2    (doubly charged Fe; restriction: no +- in name)
   /// - full:   +3(Fe+2) or +(Ca(OH-)2) (required format when name contains additional +- symbols)
   ///
-  /// @param input
-  /// @return
-  public static @Nullable IonPart parse(@NotNull String input) {
-    final List<IonPart> parts = parseMultiple(input);
+  /// @return the single ion part
+  public static @NotNull IonPart parseOrThrow(@NotNull String input) throws IonPartParsingException {
+    final List<IonPart> parts = parseMultipleOrThrow(input);
     if (parts.size() != 1) {
       throw new IonPartParsingException(input, 0,
           "Parsing resulted in %d parts but 1 was expected.".formatted(parts.size()));
@@ -441,9 +439,20 @@ public class IonPartParser {
   }
 
   @NotNull
-  public static List<IonPart> parseMultiple(@NotNull final String input) {
+  public static List<IonPart> parseMultipleOrThrow(@NotNull final String input)
+      throws IonPartParsingException {
     return new IonPartParser(input).getResult();
   }
+
+  @NotNull
+  public static List<IonPart> parseMultiple(@NotNull final String input)
+      {
+        try {
+          return parseMultipleOrThrow(input);
+        } catch (IonPartParsingException e) {
+          return List.of();
+        }
+      }
 
   // Here as a reference. The pattern has issues to parse whitespaces and () in names and some charge states
 //  public static @Nullable IonPart parsePattern(final @NotNull String part) {

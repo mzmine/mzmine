@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,10 +28,10 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.filters
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.MatchingMode;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.QueryFormatException;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterOption;
@@ -126,21 +125,20 @@ class LipidRowTypeFilter extends AbstractRowTypeFilter {
       return false;
     }
 
-    if (annotation instanceof SpeciesLevelAnnotation species) {
-      return matchesSpeciesLevel(species.getNumberOfCarbons(), species.getNumberOfDBEs(),
-          species.getNumberOfOxygens());
+    return switch (annotation) {
+      case SpeciesLevelAnnotation speciesLevel ->
+          matchesSpeciesLevel(speciesLevel.getChainsCarbonCount(),
+              speciesLevel.getChainsDoubleBondCount(), speciesLevel.getSpeciesLevelOxygens());
+      case MolecularSpeciesLevelAnnotation molecularSpecies -> {
+        // TODO not sure if all chains are defined here for all classes - therefore also try name parsing
+        // like spingolipids?
+        final LipidFlexibleNotation flexible = LipidFlexibleNotationParser.toFlexible(
+            molecularSpecies);
 
-    } else if (annotation instanceof MolecularSpeciesLevelAnnotation molecularSpecies) {
-      // TODO not sure if all chains are defined here for all classes - therefore also try name parsing
-      // like spingolipids?
-      final LipidFlexibleNotation flexible = LipidFlexibleNotationParser.toFlexible(
-          molecularSpecies);
-
-      // class already matched
-      return matchesFlexible(flexible, false) || matchesLipidName(annotation.getAnnotation());
-    } else {
-      throw new IllegalArgumentException("Unsupported lipid annotation type: " + annotation);
-    }
+        // class already matched
+        yield matchesFlexible(flexible, false) || matchesLipidName(annotation.getAnnotation());
+      }
+    };
   }
 
   private boolean matchesFlexible(LipidFlexibleNotation flexible, boolean matchClass) {

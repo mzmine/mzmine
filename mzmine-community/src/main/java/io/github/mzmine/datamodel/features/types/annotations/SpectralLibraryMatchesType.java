@@ -25,16 +25,8 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.JsonStringType;
-import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -59,23 +51,15 @@ import io.github.mzmine.datamodel.features.types.numbers.RIDiffType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.util.ArrayList;
 import java.util.List;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Spectral library matches in a list
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnotation> implements
+public final class SpectralLibraryMatchesType extends AbstractSpectralLibraryMatchesType implements
     AnnotationType {
 
   // Unmodifiable list of all subtypes
@@ -112,32 +96,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
   @NotNull
   @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "spectral_db_matches";
-  }
-
-  @NotNull
-  @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
-  }
-
-  @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
-      final SpectralDBAnnotation match) {
-    // for types that are only visible in table map them here
-    // all other types are mapped in the match directly
-    Object value = switch (subType) {
-      case AnnotationSummaryType _ -> null; // created on demand in cell factory
-      default -> null;
-    };
-    if (value != null) {
-      return (K) value;
-    }
-
-    // just delegate to match.get now that is a ModularDataModel similar to CompoundDatabaseMatchesType
-    return match.get(subType);
   }
 
   @NotNull
@@ -146,74 +106,10 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
     return "Spectral match";
   }
 
+  @NotNull
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    if (!(value instanceof List<?> list)) {
-      throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
-    }
-
-    for (Object o : list) {
-      if (!(o instanceof SpectralDBAnnotation id)) {
-        continue;
-      }
-
-      id.saveToXML(writer, flist, row);
-    }
-  }
-
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-
-    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
-      throw new IllegalStateException("Wrong element");
-    }
-
-    List<FeatureAnnotation> ids = new ArrayList<>();
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-
-      // todo remove first branch in a few versions so we can delete SpectralDBFeatureIdentity
-      if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
-          && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
-          .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
-        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, project,
-            project.getCurrentRawDataFiles());
-        ids.add(new SpectralDBAnnotation((SpectralDBFeatureIdentity) id));
-      } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
-          && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
-          .equals(SpectralDBAnnotation.XML_ATTR)) {
-        ids.add(SpectralDBAnnotation.loadFromXML(reader, project, flist, row,
-            project.getCurrentRawDataFiles()));
-      }
-    }
-
-    // never return null, if this type was saved we even need empty lists.
-    return ids;
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return false;
-  }
-
-
-  @Override
-  public double getPrefColumnWidth() {
-    return 150;
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "spectral_db_matches";
   }
 }
