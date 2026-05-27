@@ -66,8 +66,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
   // Per-pass set of interactors that have already initiated outbound propagation in the current
   // FX-thread call chain. Lets transitive A -> B -> C propagation work while preventing cycles
   // (B -> A) and re-entry (B -> B via a second listener firing on the same property).
-  private static final ThreadLocal<Set<FxFeatureTableInteractor>> PROPAGATION_VISITED =
-      ThreadLocal.withInitial(HashSet::new);
+  private static final ThreadLocal<Set<FxFeatureTableInteractor>> PROPAGATION_VISITED = ThreadLocal.withInitial(
+      HashSet::new);
 
   // Forward toggle: when set, internal table-selection listeners do not push the new selection back
   // into the property (used while we are driving the table from a property write).
@@ -101,8 +101,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
         .bindBidirectional(model.getFilterModel().compoundRowSelectionProperty());
 
     // derive whether the current feature list has a valid compound list
-    model.getFilterModel().compoundListAvailableProperty().bind(
-        Bindings.createBooleanBinding(() -> {
+    model.getFilterModel().compoundListAvailableProperty()
+        .bind(Bindings.createBooleanBinding(() -> {
           final ModularFeatureList flist = model.getFeatureList();
           return flist != null && flist.hasCompoundList();
         }, model.featureListProperty()));
@@ -114,8 +114,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
 
   /**
    * Wire the four cross-dashboard binding properties on the model to the underlying
-   * {@link FeatureTableFX}: external writes drive the table, table changes update the property,
-   * and changes are propagated to every active outgoing link.
+   * {@link FeatureTableFX}: external writes drive the table, table changes update the property, and
+   * changes are propagated to every active outgoing link.
    */
   private void wireBindingProperties() {
     final FeatureTableFX table = model.getFeatureTable();
@@ -146,11 +146,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
           if (drivingTableFromProperty) {
             return;
           }
-          final List<FeatureListRow> rows = selectedItems.stream()
-              .filter(Objects::nonNull)
-              .map(TreeItem::getValue)
-              .filter(Objects::nonNull)
-              .map(r -> (FeatureListRow) r)
+          final List<FeatureListRow> rows = selectedItems.stream().filter(Objects::nonNull)
+              .map(TreeItem::getValue).filter(Objects::nonNull).map(r -> (FeatureListRow) r)
               .toList();
           if (!Objects.equals(selectedRows.get(), rows)) {
             selectedRows.set(rows);
@@ -262,7 +259,7 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
    * compound when the row is a member; returns the row itself when it is already a compound;
    * otherwise null.
    */
-  public static @Nullable CompoundRow resolveCompoundRow(@Nullable final FeatureListRow row) {
+  public @Nullable CompoundRow resolveCompoundRow(@Nullable final FeatureListRow row) {
     if (row == null) {
       return null;
     }
@@ -270,6 +267,12 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
         row.getFeatureList() == null ? null : row.getFeatureList().getCompoundList();
     if (compoundList != null) {
       final List<ModularCompoundRow> owners = compoundList.findCompoundsOf(row);
+
+      final CompoundRow oldCompound = model.selectedCompoundRowProperty().get();
+      if (oldCompound != null && owners.contains(oldCompound)) {
+        return oldCompound;
+      }
+
       if (!owners.isEmpty()) {
         return owners.getFirst();
       }

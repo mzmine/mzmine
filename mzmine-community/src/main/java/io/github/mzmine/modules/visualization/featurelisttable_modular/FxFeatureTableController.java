@@ -215,7 +215,7 @@ public class FxFeatureTableController extends FxCachedViewController<FxFeatureTa
   /**
    * @see FxFeatureTableInteractor#resolveCompoundRow(FeatureListRow)
    */
-  public static @Nullable CompoundRow resolveCompoundRow(@Nullable final FeatureListRow row) {
-    return FxFeatureTableInteractor.resolveCompoundRow(row);
+  public @Nullable CompoundRow resolveCompoundRow(@Nullable final FeatureListRow row) {
+    return interactor.resolveCompoundRow(row);
   }
 }
