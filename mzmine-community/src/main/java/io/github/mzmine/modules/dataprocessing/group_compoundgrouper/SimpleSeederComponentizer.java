@@ -38,9 +38,10 @@ import org.jetbrains.annotations.Nullable;
  * member row's best {@code IonIdentity} points to this network) via Union-Find on those rows.
  * Rows whose best ion identity belongs to a non-best network are left for Step 3 so the remaining
  * MS1 correlation networks can still form compounds as before.
- * Step 3 — for each non-IIN-seeded row, attach to every IIN-seeded component reachable through
- * correlation edges. A row connected to two IIN seeds becomes a member of <em>both</em> compounds
- * (dual membership; the compounds stay distinct).
+ * Step 3 — attach each non-IIN-seeded row to its single best-connected IIN seed, ranked by the
+ * number of correlation edges into the seed and then the summed correlation score. A row joins more
+ * than one seed only when two seeds are genuinely indistinguishable (equal edge count and score),
+ * so shared multi-compound membership is rare rather than the default.
  * Step 4 — find dense communities in the residual (no-IIN) correlation subgraph: pick the highest
  * degree seed, take its closed neighborhood, peel low-degree nodes until the induced density
  * reaches {@code MIN_DENSITY}, commit as a compound, repeat. Leftover singletons become 1-member
@@ -108,26 +109,48 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
     }
     final Set<Integer> iinRoots = new HashSet<>(seedMembers.keySet());
 
-    // Step 3 — attach non-IIN rows to every IIN seed reachable via correlation edges
-    // (dual-membership for bridges)
+    // Step 3 — attach each non-IIN row to its single best-connected IIN seed. Connection strength
+    // is the number of correlation edges into the seed, tie-broken by summed correlation score; a
+    // row joins more than one seed only on a genuine tie (equal count and score), keeping shared
+    // multi-compound membership rare.
+    final R2RMap<RowsRelationship> corrMap = featureList.getMs1CorrelationMap().orElse(null);
     final boolean[] attached = new boolean[rows.size()];
     for (int i = 0; i < rows.size(); i++) {
       if (iinParent[i] >= 0) {
         attached[i] = true; // IIN rows already in their seed
         continue;
       }
-      final Set<Integer> reachableSeeds = new HashSet<>();
+      // per reachable seed: [edge count, summed correlation score]
+      final Map<Integer, double[]> seedStrength = new HashMap<>();
       for (final int j : neighbors[i]) {
-        if (iinParent[j] >= 0) {
-          reachableSeeds.add(find(iinParent, j));
+        if (iinParent[j] < 0) {
+          continue;
         }
+        final int root = find(iinParent, j);
+        if (!iinRoots.contains(root)) {
+          continue;
+        }
+        final double[] agg = seedStrength.computeIfAbsent(root, k -> new double[2]);
+        agg[0] += 1.0;
+        agg[1] += edgeScore(corrMap, rows.get(i), rows.get(j));
       }
-      if (reachableSeeds.isEmpty()) {
+      if (seedStrength.isEmpty()) {
         continue; // leave for Step 4
       }
-      for (final int root : reachableSeeds) {
-        if (iinRoots.contains(root)) {
-          seedMembers.get(root).add(rows.get(i));
+      // best seed: most edges, then highest summed correlation score
+      double bestCount = -1.0;
+      double bestScore = -1.0;
+      for (final double[] agg : seedStrength.values()) {
+        if (agg[0] > bestCount || (agg[0] == bestCount && agg[1] > bestScore)) {
+          bestCount = agg[0];
+          bestScore = agg[1];
+        }
+      }
+      // assign to the best seed; include another seed only when it ties exactly on count and score
+      for (final Map.Entry<Integer, double[]> e : seedStrength.entrySet()) {
+        final double[] agg = e.getValue();
+        if (agg[0] == bestCount && agg[1] == bestScore) {
+          seedMembers.get(e.getKey()).add(rows.get(i));
         }
       }
       attached[i] = true;
@@ -250,6 +273,23 @@ public final class SimpleSeederComponentizer implements CompoundComponentizerStr
     if (ra != rb) {
       parent[ra] = rb;
     }
+  }
+
+  /**
+   * Correlation score of the edge between {@code a} and {@code b}, or 0 when no relationship or
+   * score is available. Used to rank competing IIN seeds for a shared row in Step 3.
+   */
+  private static double edgeScore(@Nullable final R2RMap<RowsRelationship> corrMap,
+      @NotNull final FeatureListRow a, @NotNull final FeatureListRow b) {
+    if (corrMap == null) {
+      return 0d;
+    }
+    final RowsRelationship r = corrMap.get(a, b);
+    if (r == null) {
+      return 0d;
+    }
+    final double s = r.getScore();
+    return Double.isNaN(s) ? 0d : s;
   }
 
   // ----- Step 4: dense-region community detection on residual subgraph -----
