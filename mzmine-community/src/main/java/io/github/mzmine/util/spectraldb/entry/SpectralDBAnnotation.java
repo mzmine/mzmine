@@ -365,6 +365,17 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
     }
     // return parsed structure value instead of the value inserted into entry
     // this is cleaner
+    return structure.canonicalSmiles();
+  }
+
+  @Override
+  public @Nullable String getIsomericSmiles() {
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
     return structure.isomericSmiles();
   }
 

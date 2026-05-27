@@ -169,6 +169,11 @@ public interface FeatureAnnotation {
 
   @Nullable String getSmiles();
 
+  /**
+   * @return isomeric smiles or the canonical smiles if there is no isomeric smiles
+   */
+  @Nullable String getIsomericSmiles();
+
   @Nullable String getInChI();
 
   @Nullable String getInChIKey();

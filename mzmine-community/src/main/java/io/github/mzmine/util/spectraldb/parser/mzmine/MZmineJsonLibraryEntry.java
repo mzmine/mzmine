@@ -93,7 +93,7 @@ public class MZmineJsonLibraryEntry {
   public Double rt, ccs;
   public String ri;
   public String cas, splash;
-  public String formula, smiles, inchi, inchikey, peptideSequence;
+  public String formula, smiles, isomericSmiles, inchi, inchikey, peptideSequence;
   public FloatArrayList fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
@@ -159,6 +159,7 @@ public class MZmineJsonLibraryEntry {
       case INCHI -> inchi;
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
+      case ISOMERIC_SMILES -> isomericSmiles;
       case PEPTIDE_SEQ -> peptideSequence;
       case CLASSYFIRE_SUPERCLASS -> classyFireSuperclass;
       case CLASSYFIRE_CLASS -> classyFireClass;

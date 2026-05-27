@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
@@ -281,6 +282,15 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   @Nullable
   default String getSmiles() {
     return get(SmilesStructureType.class);
+  }
+
+  @Override
+  default @Nullable String getIsomericSmiles() {
+    final String isomeric = get(SmilesIsomericStructureType.class);
+    if (isomeric == null) {
+      return getSmiles();
+    }
+    return isomeric;
   }
 
   @Nullable
@@ -584,7 +594,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    * call this method after retrieving the annotation from an external source.
    */
   default void enrichMetadata() {
-    MolecularStructure struc = StructureParser.silent().parseStructure(getSmiles(), getInChI());
+    MolecularStructure struc = StructureParser.silent()
+        .parseStructure(getIsomericSmiles(), getInChI());
     if (struc != null) {
       setStructure(struc);
     }

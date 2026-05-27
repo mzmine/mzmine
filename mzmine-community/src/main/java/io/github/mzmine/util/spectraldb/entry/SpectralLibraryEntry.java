@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -276,4 +277,23 @@ public interface SpectralLibraryEntry extends MassList {
    * @return the isotope pattern of the ion formula
    */
   @Nullable IsotopePattern getIsotopePattern();
+
+
+  /// replaces all structure related fields
+  void setStructure(MolecularStructure structure);
+
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
+  default void enrichMetadata() {
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+    MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+    if (struc != null) {
+      setStructure(struc);
+    }
+  }
+
 }

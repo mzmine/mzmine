@@ -69,7 +69,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
@@ -168,10 +167,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     if (structure != null) {
       return structure;
     }
-    String smiles = getSmiles();
+    String smiles = getIsomericSmiles();
     String inchi = getInChI();
-    structure = StructureParser.silent().parseStructure(smiles, inchi);
-    return structure;
+    var struc = StructureParser.silent().parseStructure(smiles, inchi);
+    setStructure(struc);
+    return struc;
   }
 
   @Override
