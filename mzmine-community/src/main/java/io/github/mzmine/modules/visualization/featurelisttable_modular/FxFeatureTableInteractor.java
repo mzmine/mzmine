@@ -168,6 +168,32 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
     weak.addChangeListener(this, selectedCompoundRow,
         (_, _, compound) -> propagate(FxFeatureTableModel::selectedCompoundRowProperty, compound));
 
+    // Direct table interaction: when the table's own selection changes, derive the selected
+    // compound from the actual tree hierarchy - the first selected TreeItem's parent holds its
+    // owning CompoundRow (or the item itself is a compound when a top-level compound row is
+    // selected). This is more accurate than the compound-list lookup in
+    // updateSelectedCompoundFromRows because it reflects the compound the row is displayed under.
+    // Registered after the selectedRows listeners so it runs last and wins on table clicks. Skipped
+    // while we drive the table from a property write - that path already derives the compound
+    // through the selectedRows listener above.
+    weak.addListChangeListener(this, selectedItems,
+        (ListChangeListener<TreeItem<ModularFeatureListRow>>) _ -> {
+          if (drivingTableFromProperty) {
+            return;
+          }
+          final TreeItem<ModularFeatureListRow> first =
+              selectedItems.isEmpty() ? null : selectedItems.getFirst();
+          final CompoundRow compound = resolveCompoundRowFromTreeItem(first);
+          // null means the selection is not part of a compound hierarchy (e.g. a flat feature or
+          // major-ion view); keep the compound derived by updateSelectedCompoundFromRows then.
+          if (compound == null) {
+            return;
+          }
+          final ObjectProperty<@Nullable CompoundRow> prop = model.selectedCompoundRowProperty();
+          if (prop.get() != compound) {
+            prop.set(compound);
+          }
+        });
   }
 
   private void updateSelectedCompoundFromRows(@Nullable List<FeatureListRow> rows) {
@@ -278,6 +304,24 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
       }
     }
     return row instanceof CompoundRow cr ? cr : null;
+  }
+
+  /**
+   * Resolve the owning {@link CompoundRow} from a selected tree item using the tree hierarchy: a
+   * top-level compound row resolves to itself, a member row resolves to its parent tree item's
+   * compound. Returns null when the item is not part of a compound hierarchy (e.g. a flat feature
+   * or major-ion view).
+   */
+  private @Nullable CompoundRow resolveCompoundRowFromTreeItem(
+      @Nullable final TreeItem<ModularFeatureListRow> item) {
+    if (item == null) {
+      return null;
+    }
+    if (item.getValue() instanceof CompoundRow cr) {
+      return cr;
+    }
+    final TreeItem<ModularFeatureListRow> parent = item.getParent();
+    return parent != null && parent.getValue() instanceof CompoundRow cr ? cr : null;
   }
 
   /**
