@@ -240,8 +240,6 @@ public interface FeatureList {
       throw new MissingCompoundListException(this);
     }
 
-    // TODO have to decide how to handle missing compound list when all major ions or isotopes selected
-    // for now just return all rows
     // this is used in export modules where we export either all rows or all compounds or just one level
     return getRowsCopy();
   }

@@ -246,7 +246,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
     CSVExportModularTask quanExportModular = new CSVExportModularTask(new ModularFeatureList[]{
         (ModularFeatureList) featureList}, full, ",", ";", FeatureListRowsFilter.ALL, true,
-        getModuleCallDate(), CompoundRowSelection.ALL_MAJOR_IONS);
+        getModuleCallDate(), CompoundRowSelection.ALL_FEATURE_ROWS);
 
     if (tasks != null) {
       tasks.add(quanExportModular);
@@ -276,7 +276,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(new FeatureList[]{featureList}, full,
         ",", common, rawdata, false, ";", FeatureListRowsFilter.ALL, getModuleCallDate(),
-        CompoundRowSelection.ALL_MAJOR_IONS);
+        CompoundRowSelection.ALL_FEATURE_ROWS);
     if (tasks != null) {
       tasks.add(quanExport);
     }

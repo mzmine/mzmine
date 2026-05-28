@@ -30,14 +30,14 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 public enum CompoundRowSelection implements UniqueIdSupplier {
-  COMPOUNDS, ALL_MAJOR_IONS, ALL_ISOTOPES;
+  COMPOUNDS, ALL_MAJOR_IONS, ALL_FEATURE_ROWS;
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
       case COMPOUNDS -> "compounds";
       case ALL_MAJOR_IONS -> "all_major_ions";
-      case ALL_ISOTOPES -> "all_isotopes";
+      case ALL_FEATURE_ROWS -> "all_feature_rows";
     };
   }
 
@@ -46,7 +46,7 @@ public enum CompoundRowSelection implements UniqueIdSupplier {
     return switch (this) {
       case COMPOUNDS -> "Compounds";
       case ALL_MAJOR_IONS -> "All major ions";
-      case ALL_ISOTOPES -> "All isotopes";
+      case ALL_FEATURE_ROWS -> "All feature rows";
     };
   }
 }

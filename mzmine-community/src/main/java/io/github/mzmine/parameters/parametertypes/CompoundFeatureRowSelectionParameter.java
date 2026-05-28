@@ -13,9 +13,11 @@ public class CompoundFeatureRowSelectionParameter extends ComboParameter<Compoun
 
   public static final String DEFAULT_NAME = "Row selection";
   public static final String DEFAULT_DESCRIPTION = """
-      Selects which rows are processed when the feature list carries a compound list: \
-      compounds (one row per compound), all major ions (first level members), or all isotopes \
-      (second level members). Without a compound list, all rows are used.""";
+      Selects which rows are processed when the feature list carries a compound list:
+      compounds: one row per compound, requires a compound list
+      all major ions: (first level members)
+      all feature rows: all rows in the feature list (this is like before compound lists)
+      Without a compound list, all rows are used.""";
 
   public CompoundFeatureRowSelectionParameter() {
     this(DEFAULT_NAME, DEFAULT_DESCRIPTION, CompoundRowSelection.ALL_MAJOR_IONS);
@@ -31,14 +33,9 @@ public class CompoundFeatureRowSelectionParameter extends ComboParameter<Compoun
     super(name, description, choices, defaultValue);
   }
 
-  /**
-   * Factory for a parameter that hides the {@link CompoundRowSelection#ALL_ISOTOPES} option, e.g.
-   * for modules that do not meaningfully operate on isotope-level rows.
-   */
-  public static @NotNull CompoundFeatureRowSelectionParameter withoutIsotopes() {
+  public static @NotNull CompoundFeatureRowSelectionParameter createDefault() {
     return new CompoundFeatureRowSelectionParameter(DEFAULT_NAME, DEFAULT_DESCRIPTION,
-        new CompoundRowSelection[]{CompoundRowSelection.COMPOUNDS,
-            CompoundRowSelection.ALL_MAJOR_IONS}, CompoundRowSelection.ALL_MAJOR_IONS);
+        CompoundRowSelection.ALL_MAJOR_IONS);
   }
 
   @Override

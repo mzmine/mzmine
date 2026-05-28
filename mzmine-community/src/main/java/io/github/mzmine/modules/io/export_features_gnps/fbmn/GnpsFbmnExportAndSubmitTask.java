@@ -262,7 +262,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         .getValue();
 
     return new CSVExportModularTask(featureLists, full, ",", ";", filter, true, getModuleCallDate(),
-        CompoundRowSelection.ALL_MAJOR_IONS);
+        CompoundRowSelection.ALL_FEATURE_ROWS);
   }
 
 
@@ -295,7 +295,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
     return new LegacyCSVExportTask(featureLists, full, ",", common, rawdata, false, ";", filter,
-        getModuleCallDate(), CompoundRowSelection.ALL_MAJOR_IONS);
+        getModuleCallDate(), CompoundRowSelection.ALL_FEATURE_ROWS);
   }
 
 

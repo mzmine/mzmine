@@ -51,7 +51,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
 
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
-  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.withoutIsotopes();
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.createDefault();
   public static final MetadataGroupingParameter grouping = new MetadataGroupingParameter();
   public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter(
       "Feature intensity", "Either use height or area", AbundanceMeasure.values(),

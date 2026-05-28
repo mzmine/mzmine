@@ -330,7 +330,7 @@ public class IntegrationTestUtils {
       final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
           FeatureListRowsFilter.ALL, true, ";", ",",
           new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
-          CompoundRowSelection.ALL_MAJOR_IONS);
+          CompoundRowSelection.ALL_FEATURE_ROWS);
       queue.add(
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
               parameters));
@@ -368,7 +368,7 @@ public class IntegrationTestUtils {
 
     final CSVExportModularTask exportTask = new CSVExportModularTask(
         new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
-        FeatureListRowsFilter.ALL, true, Instant.now(), CompoundRowSelection.ALL_MAJOR_IONS);
+        FeatureListRowsFilter.ALL, true, Instant.now(), CompoundRowSelection.ALL_FEATURE_ROWS);
     exportTask.run();
     return csvExportFile;
   }
