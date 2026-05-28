@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,11 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundMembers;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
-import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
@@ -263,7 +262,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         line.append("partners").append(fieldSeparator);
       } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_COMPOUND_ID)) {
         line.append(DataTypes.get(CompoundIdType.class).getUniqueID()).append(fieldSeparator);
-        line.append(DataTypes.get(CompoundMembersType.class).getUniqueID()).append(fieldSeparator);
+        line.append(DataTypes.get(CompoundMembersJsonType.class).getUniqueID())
+            .append(fieldSeparator);
       } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
         line.append("best ion").append(fieldSeparator);
       } else {
@@ -441,11 +441,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         case ROW_COMPOUND_ID:
           // compound ID is only stored on CompoundRow, regular rows export an empty value
           final Integer compoundId = featureListRow.get(CompoundIdType.class);
-          final CompoundMembersType membType = DataTypes.get(CompoundMembersType.class);
-          final CompoundMembers members = featureListRow.get(membType);
+          final CompoundMembersJsonType membType = DataTypes.get(CompoundMembersJsonType.class);
+          final String membersJson = featureListRow.get(membType);
           line.append(compoundId == null ? "" : compoundId).append(fieldSeparator);
-          final String membersJson = membType.getFormattedString(members, true);
-          line.append(compoundId == null ? "" : escapeStringForCSV(membersJson))
+          line.append(membersJson == null ? "" : escapeStringForCSV(membersJson))
               .append(fieldSeparator);
           break;
         case ROW_MZ:

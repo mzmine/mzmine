@@ -1,8 +1,32 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.features.types.compoundlist;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureListRowID;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -12,7 +36,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundMembers;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
-import io.github.mzmine.util.io.JsonUtils;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  * list sub-column persists ids + roles + scores per element; on load the row references are
  * resolved against the {@link ModularFeatureList} passed to {@link #loadFromXML}.
  */
-public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> {
+public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> implements
+    NullColumnType {
 
   private static final Logger logger = Logger.getLogger(CompoundMembersType.class.getName());
 
@@ -74,10 +99,7 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> 
       return "";
     }
     // serialize as JSON: preferred row (flat id), members (flat id + role + score), confidence
-    final List<CompoundMemberDTO> memberJsons = value.members().stream()
-        .map(m -> new CompoundMemberDTO(FeatureListRowID.of(m.row()))).toList();
-    return JsonUtils.writeStringOrEmpty(
-        new CompoundMembersDTO(FeatureListRowID.of(value.preferredRow()), memberJsons));
+    return value.toSimpleJson();
   }
 
   @Override
