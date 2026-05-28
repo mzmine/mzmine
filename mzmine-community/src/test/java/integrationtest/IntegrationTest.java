@@ -29,7 +29,11 @@ import static integrationtest.IntegrationTestUtils.urlToFile;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import io.github.mzmine.util.ArrayUtils;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -52,22 +56,27 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     final File batchExportedFile = runBatchGetCsvFile();
 
     // This is used to overwrite each expected results csv with the actual processing results
-//    try {
-//      // add local resources path to overwrite files
-//      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
-//      Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
-//          StandardCopyOption.REPLACE_EXISTING);
-//
-//      // copy to res folder and also to out/resources folder so that test succeeds first time
-//      Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()
-//          .getResource(expectedResultsFullPath)).toPath(), StandardCopyOption.REPLACE_EXISTING);
-//    } catch (IOException e) {
-//      throw new RuntimeException(e);
-//    }
+//    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
 
     // compare
     return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
         batchFile().getName());
+  }
+
+  private static void overwriteResultFileSHOULD_BE_COMMENTED_OUT(String expectedResultsFullPath,
+      File batchExportedFile) {
+    try {
+      // add local resources path to overwrite files
+      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
+      Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
+          StandardCopyOption.REPLACE_EXISTING);
+
+      // copy to res folder and also to out/resources folder so that test succeeds first time
+      Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()
+          .getResource(expectedResultsFullPath)).toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   // -----------------------------------------------------------
