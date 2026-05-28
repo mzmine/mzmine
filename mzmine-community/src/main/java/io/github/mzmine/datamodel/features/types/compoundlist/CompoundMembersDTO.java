@@ -9,6 +9,9 @@ import org.jetbrains.annotations.NotNull;
  * row, the full member list, and the compound confidence score.
  */
 record CompoundMembersDTO(@NotNull FeatureListRowID preferredRow,
-                          @NotNull List<CompoundMemberDTO> members, float confidence) {
+                          @NotNull List<CompoundMemberDTO> members
+// for now do not export confidence. Only once we can explain them better as this might confuse users
+//                          ,float confidence
+) {
 
 }

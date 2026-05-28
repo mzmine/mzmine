@@ -39,21 +39,21 @@ public enum FeatureListMode implements UniqueIdSupplier {
   /**
    * classical mzmine feature list rows and features for each detected ion
    */
-  INDIVIDUAL_FEATURES,
+  FEATURE_ROW,
   /**
    * Compound rows and features
    */
-  COMPOUNDS;
+  COMPOUND_ROW;
 
   public static @NotNull FeatureListMode of(@NotNull FeatureListRow row) {
-    return row instanceof CompoundRow? COMPOUNDS :  INDIVIDUAL_FEATURES;
+    return row instanceof CompoundRow ? COMPOUND_ROW : FEATURE_ROW;
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case INDIVIDUAL_FEATURES -> "individual_features";
-      case COMPOUNDS -> "compounds";
+      case FEATURE_ROW -> "feature_row";
+      case COMPOUND_ROW -> "compound_row";
     };
   }
 }

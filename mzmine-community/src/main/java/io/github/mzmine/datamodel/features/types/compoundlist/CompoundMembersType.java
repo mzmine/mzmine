@@ -2,6 +2,7 @@ package io.github.mzmine.datamodel.features.types.compoundlist;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRowID;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -11,7 +12,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundMembers;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.ModularSubColumnsType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import io.github.mzmine.util.io.JsonUtils;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,8 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * list sub-column persists ids + roles + scores per element; on load the row references are
  * resolved against the {@link ModularFeatureList} passed to {@link #loadFromXML}.
  */
-public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> implements
-    NoTextColumn {
+public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> {
 
   private static final Logger logger = Logger.getLogger(CompoundMembersType.class.getName());
 
@@ -47,8 +47,7 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> 
   @SuppressWarnings({"rawtypes"})
   public @NotNull List<DataType> getSubDataTypes() {
     return List.of(DataTypes.get(CompoundPreferredRowType.class),
-        DataTypes.get(CompoundConfidenceType.class),
-        DataTypes.get(CompoundMemberListType.class));
+        DataTypes.get(CompoundConfidenceType.class), DataTypes.get(CompoundMemberListType.class));
   }
 
   @Override
@@ -74,7 +73,11 @@ public class CompoundMembersType extends ModularSubColumnsType<CompoundMembers> 
     if (value == null) {
       return "";
     }
-    return String.valueOf(value.size());
+    // serialize as JSON: preferred row (flat id), members (flat id + role + score), confidence
+    final List<CompoundMemberDTO> memberJsons = value.members().stream()
+        .map(m -> new CompoundMemberDTO(FeatureListRowID.of(m.row()))).toList();
+    return JsonUtils.writeStringOrEmpty(
+        new CompoundMembersDTO(FeatureListRowID.of(value.preferredRow()), memberJsons));
   }
 
   @Override

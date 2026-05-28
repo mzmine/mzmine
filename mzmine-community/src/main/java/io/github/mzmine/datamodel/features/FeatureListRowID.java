@@ -31,18 +31,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Could in the future replace the ID in the CompoundId type etc for map keys
  *
- * @param mode compound or classical feature
+ * @param type compound or classical feature
  * @param id   the actual id
  */
-public record FeatureListRowID(@NotNull FeatureListMode mode, int id) {
+public record FeatureListRowID(@NotNull FeatureListMode type, int id) {
 
   public static FeatureListRowID of(@NotNull FeatureListRow row) {
     if (row instanceof CompoundRow comp) {
       // use compound ID here (compound has no real getID() feature row id but delegates to preferred
-      return new FeatureListRowID(FeatureListMode.COMPOUNDS, comp.getCompoundId());
+      return new FeatureListRowID(FeatureListMode.COMPOUND_ROW, comp.getCompoundId());
     } else {
       // use row ID
-      return new FeatureListRowID(FeatureListMode.INDIVIDUAL_FEATURES, row.getID());
+      return new FeatureListRowID(FeatureListMode.FEATURE_ROW, row.getID());
     }
   }
 

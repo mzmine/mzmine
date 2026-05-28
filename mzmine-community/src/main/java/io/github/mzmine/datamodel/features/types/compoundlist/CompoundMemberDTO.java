@@ -2,7 +2,6 @@ package io.github.mzmine.datamodel.features.types.compoundlist;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.github.mzmine.datamodel.features.FeatureListRowID;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundMemberRole;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -12,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
  * {@code row} is unwrapped, so the {@link FeatureListRowID} components ({@code mode}, {@code id})
  * are emitted directly next to {@code role} and {@code score}.
  */
-record CompoundMemberDTO(@JsonUnwrapped @NotNull FeatureListRowID row,
-                         @NotNull CompoundMemberRole role, float score) {
+record CompoundMemberDTO(@JsonUnwrapped @NotNull FeatureListRowID row
+// for now do not export role and score. Only once we can explain them better as this might confuse users
+//    , @NotNull CompoundMemberRole role, float score
+) {
 
 }
