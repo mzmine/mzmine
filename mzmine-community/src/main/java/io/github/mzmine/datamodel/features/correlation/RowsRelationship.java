@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public interface RowsRelationship {
+public sealed interface RowsRelationship permits AbstractRowsRelationship {
 
   /**
    * Score of this row 2 row relationship
@@ -124,7 +125,7 @@ public interface RowsRelationship {
   /**
    * All types of relationships
    */
-  enum Type {
+  enum Type implements UniqueIdSupplier {
     /**
      * MS1 similarity can be same retention time, feature shape correlation, intensity across
      * samples. see {@link CorrelateGroupingTask} and {@link CorrelationGroupingUtils}
@@ -187,6 +188,21 @@ public interface RowsRelationship {
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
         case OTHER -> "Other";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case MS1_FEATURE_CORR -> "ms1_feature_corr";
+        case ION_IDENTITY_NET -> "iin";
+        case MS2_COSINE_SIM -> "ms2_cosine";
+        case MS2_NEUTRAL_LOSS_SIM -> "ms2_neutral_loss";
+        case MS2_GNPS_COSINE_SIM -> "ms2_cosine_gnps";
+        case ONLINE_REACTION -> "online_reaction";
+        case MS2Deepscore -> "ms2_deepscore";
+        case DREAMS -> "dreams";
+        case OTHER -> "other";
       };
     }
   }
