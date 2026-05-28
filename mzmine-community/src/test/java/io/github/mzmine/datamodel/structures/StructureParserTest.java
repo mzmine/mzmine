@@ -195,19 +195,29 @@ class StructureParserTest {
     MolecularStructure structure = StructureParser.silent()
         .parseStructure(isotopicSmiles, StructureInputType.SMILES);
     Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
-    logger.info(structure.canonicalSmiles());
-    logger.info(structure.isomericSmiles());
-    logger.info(structure.inchiKey());
-    logger.info(structure.inchi());
+    Assertions.assertEquals(
+        "CCCCCC(C(=CC(=C(CC(=C(CC(=C(CCCC(O)=O)[2H])[2H])[2H])[2H])[2H])[2H])[2H])(O)[2H]",
+        structure.canonicalSmiles());
+    Assertions.assertEquals(
+        "CCCCCC([2H])(/C(/[2H])=C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\CCCC(=O)O)O",
+        structure.isomericSmiles());
+    Assertions.assertEquals("JSFATNQSLKRBCI-HAVWKUCESA-N", structure.inchiKey());
+    Assertions.assertEquals(
+        "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D",
+        structure.inchi());
 
     final String isotopicInchi = "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D";
-
-    structure = StructureParser.silent()
-        .parseStructure(isotopicInchi, StructureInputType.INCHI);
+    structure = StructureParser.silent().parseStructure(isotopicInchi, StructureInputType.INCHI);
     Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
-    logger.info(structure.canonicalSmiles());
-    logger.info(structure.isomericSmiles());
-    logger.info(structure.inchiKey());
-    logger.info(structure.inchi());
+    Assertions.assertEquals(
+        "CCCCCC(C(=CC(=C(CC(=C(CC(=C(CCCC(O)=O)[2H])[2H])[2H])[2H])[2H])[2H])[2H])(O)[2H]",
+        structure.canonicalSmiles());
+    Assertions.assertEquals(
+        "CCCCCC([2H])(/C(/[2H])=C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\CCCC(=O)O)O",
+        structure.isomericSmiles());
+    Assertions.assertEquals("JSFATNQSLKRBCI-HAVWKUCESA-N", structure.inchiKey());
+    Assertions.assertEquals(
+        "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D",
+        structure.inchi());
   }
 }
