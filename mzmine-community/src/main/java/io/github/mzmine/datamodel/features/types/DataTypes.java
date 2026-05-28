@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.MasstUrlType;
 import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
@@ -83,6 +84,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +116,18 @@ public class DataTypes {
       classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
           .forEach(classInfo -> {
             try {
-              Object o = classInfo.load().getDeclaredConstructor().newInstance();
+              final Class<?> clazz = classInfo.load();
+
+              if (clazz==null || !DataType.class.isAssignableFrom(clazz)) {
+                // avoid initializing so many javafx classes that fail with:
+//                Caused by: java.lang.IllegalStateException: Toolkit not initialized
+                return;
+              }
+              if(!clazz.getSimpleName().endsWith("Type")) {
+                logger.warning("DataType does not end with Type: "+clazz.getSimpleName());
+              }
+
+              Object o = clazz.getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
                 var value = map.put(dt.getUniqueID(), dt);
                 if (value != null) {
@@ -127,7 +140,9 @@ public class DataTypes {
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
               //               can go silent
-              //              logger.log(Level.INFO, e.getMessage(), e);
+//                            logger.log(Level.INFO, classInfo+" class, message: "+e.getMessage(), e);
+            } catch (Throwable e) {
+              logger.log(Level.INFO, classInfo + " class, message: " + e.getMessage(), e);
             }
           });
     } catch (IOException e) {
@@ -205,8 +220,8 @@ public class DataTypes {
    */
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
-    List<Class> priority = List.of(IDType.class, DetectionType.class, MZType.class,
-        MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
+    List<Class> priority = List.of(CompoundIdType.class, IDType.class, DetectionType.class,
+        MZType.class, MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,

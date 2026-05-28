@@ -25,12 +25,15 @@
 
 package io.github.mzmine.modules.visualization.dash_lipidqc;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.dash_lipidqc.kendrick.KendrickOutlierPopupController;
 import io.github.mzmine.modules.visualization.dash_lipidqc.quality.AnnotationQualityController;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +68,30 @@ public class LipidAnnotationQCDashboardController extends
       }
     });
     qualityController.setOnFeatureTableRefresh(() -> model.getFeatureTableFx().refresh());
+
+    // The embedded feature table controller now exposes Selected*Binding properties used by the
+    // cross-dashboard link mechanism. Mirror them into this dashboard's model.
+    final FxFeatureTableController tableCtrl = model.getFeatureTableController();
+    tableCtrl.selectedRowsProperty().subscribe(rows -> {
+      final FeatureListRow first = (rows == null || rows.isEmpty()) ? null : rows.getFirst();
+      if (model.getRow() != first) {
+        model.setRow(first);
+      }
+    });
+    model.rowProperty().subscribe(row -> {
+      final List<FeatureListRow> rows = row == null ? List.of() : List.of(row);
+      if (!rows.equals(tableCtrl.selectedRowsProperty().get())) {
+        tableCtrl.selectedRowsProperty().set(rows);
+      }
+    });
+    tableCtrl.selectedFeatureListsProperty().subscribe(flists -> {
+      if (flists == null || flists.isEmpty()) {
+        return;
+      }
+      if (flists.getFirst() instanceof ModularFeatureList mfl && model.getFeatureList() != mfl) {
+        model.setFeatureList(mfl);
+      }
+    });
   }
 
   @Override
@@ -85,5 +112,10 @@ public class LipidAnnotationQCDashboardController extends
   public void dispose() {
     model.getPaneGroup().disposeListeners();
     outlierPopupController.closeStage();
+    model.getFeatureTableController().close();
+  }
+
+  public @NotNull FxFeatureTableController getFeatureTableController() {
+    return model.getFeatureTableController();
   }
 }

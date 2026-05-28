@@ -1,10 +1,9 @@
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
+import static io.github.mzmine.modules.dataprocessing.group_compoundgrouper.WeightedGraphComponentizerTest.row;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -30,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -61,7 +61,7 @@ public class SimpleSeederComponentizerTest {
 
   // ---- helpers ----
 
-  private @org.jetbrains.annotations.NotNull ModularFeatureList newFeatureList(
+  private @NotNull ModularFeatureList newFeatureList(
       final String name) {
     final ModularFeatureList flist = new ModularFeatureList(name, null, raw);
     flist.addRowType(new IDType());
@@ -70,18 +70,6 @@ public class SimpleSeederComponentizerTest {
     flist.addRowType(new IonIdentityListType());
     flist.addRowType(new FeatureGroupType());
     return flist;
-  }
-
-  private ModularFeatureListRow row(final ModularFeatureList flist, final int id, final double mz,
-      final float rt, final float height) {
-    final ModularFeatureListRow base = new ModularFeatureListRow(flist, id);
-    final ModularFeatureListRow s = spy(base);
-    doReturn(mz).when(s).getAverageMZ();
-    doReturn(rt).when(s).getAverageRT();
-    doReturn(height).when(s).getMaxHeight();
-    doReturn(height).when(s).getMaxDataPointIntensity();
-    flist.addRow(s);
-    return s;
   }
 
   /**
@@ -115,7 +103,8 @@ public class SimpleSeederComponentizerTest {
   }
 
   private SimpleSeederComponentizer newComponentizer() {
-    return new SimpleSeederComponentizer(mzTol, rtTol, minDensity);
+    return new SimpleSeederComponentizer(mzTol, rtTol, minDensity,
+        new PreferredIonTypeRepresentativeSelector());
   }
 
   // ---------- Test 1: 1 IonNetwork with M+H, M+Na + 13C isotopologue via correlation edge ----------
@@ -196,10 +185,10 @@ public class SimpleSeederComponentizerTest {
     assertEquals(2, correlated);
   }
 
-  // ---------- Test 4: bridge row correlated to two IINs → dual membership ----------
+  // ---------- Test 4: bridge row joins only its best-connected seed ----------
 
   @Test
-  void test4_bridgeRowDualMembership() {
+  void test4_bridgeRowPrefersStrongerSeed() {
     final ModularFeatureList flist = newFeatureList("test4");
     final ModularFeatureListRow a1 = row(flist, 1, 200.0 + protonated.totalMass(), 3.0f, 1000f);
     final ModularFeatureListRow a2 = row(flist, 2, 200.0 + sodiated.totalMass(), 3.0f, 500f);
@@ -209,7 +198,7 @@ public class SimpleSeederComponentizerTest {
     final ModularFeatureListRow b2 = row(flist, 4, 400.0 + sodiated.totalMass(), 3.05f, 700f);
     buildNetwork(2, new Object[][]{{b1, protonated}, {b2, sodiated}});
 
-    // bridge row, no IIN — correlated to both IIN A (a1) and IIN B (b1)
+    // bridge row, no IIN — correlated more strongly to IIN A (a1) than IIN B (b1)
     final ModularFeatureListRow bridge = row(flist, 5, 300.0, 3.02f, 100f);
     addCorrelation(flist, bridge, a1, 0.85f);
     addCorrelation(flist, bridge, b1, 0.80f);
@@ -218,14 +207,39 @@ public class SimpleSeederComponentizerTest {
     final List<ModularCompoundRow> compounds = newComponentizer().componentize(flist, target);
     target.setRows(compounds);
 
-    // 2 compounds (one per IIN); bridge appears in both
+    // 2 compounds (one per IIN); bridge joins only the more strongly correlated seed A
     assertEquals(2, compounds.size(), "IIN seeds remain separate compounds");
-    assertEquals(2, target.findCompoundsOf(bridge).size(), "Bridge row belongs to both compounds");
+    final List<ModularCompoundRow> withBridge = target.findCompoundsOf(bridge);
+    assertEquals(1, withBridge.size(), "Bridge row joins only its single best-connected seed");
+    assertTrue(withBridge.get(0).getMemberRows().stream().anyMatch(r -> r.getID() == a1.getID()),
+        "Bridge row must join the more strongly correlated seed A");
+  }
 
-    for (final ModularCompoundRow cr : compounds) {
-      assertTrue(cr.getMemberRows().stream().anyMatch(r -> r.getID() == bridge.getID()),
-          "Bridge row must be a member of compound " + cr.getCompoundId());
-    }
+  // ---------- Test 4b: genuinely ambiguous bridge keeps dual membership ----------
+
+  @Test
+  void test4b_bridgeRowTieDualMembership() {
+    final ModularFeatureList flist = newFeatureList("test4b");
+    final ModularFeatureListRow a1 = row(flist, 1, 200.0 + protonated.totalMass(), 3.0f, 1000f);
+    final ModularFeatureListRow a2 = row(flist, 2, 200.0 + sodiated.totalMass(), 3.0f, 500f);
+    buildNetwork(1, new Object[][]{{a1, protonated}, {a2, sodiated}});
+
+    final ModularFeatureListRow b1 = row(flist, 3, 400.0 + protonated.totalMass(), 3.05f, 2000f);
+    final ModularFeatureListRow b2 = row(flist, 4, 400.0 + sodiated.totalMass(), 3.05f, 700f);
+    buildNetwork(2, new Object[][]{{b1, protonated}, {b2, sodiated}});
+
+    // bridge correlated equally to both IINs → genuinely ambiguous → dual membership
+    final ModularFeatureListRow bridge = row(flist, 5, 300.0, 3.02f, 100f);
+    addCorrelation(flist, bridge, a1, 0.80f);
+    addCorrelation(flist, bridge, b1, 0.80f);
+
+    final CompoundList target = newTargetList(flist);
+    final List<ModularCompoundRow> compounds = newComponentizer().componentize(flist, target);
+    target.setRows(compounds);
+
+    assertEquals(2, compounds.size(), "IIN seeds remain separate compounds");
+    assertEquals(2, target.findCompoundsOf(bridge).size(),
+        "Equal correlation to both seeds is genuinely ambiguous → dual membership");
   }
 
   // ---------- Test 5: row in 2 IonNetworks → transitive merge into 1 compound ----------
@@ -233,7 +247,6 @@ public class SimpleSeederComponentizerTest {
   @Test
   void test5_rowInTwoNetworks() {
     final ModularFeatureList flist = newFeatureList("test5");
-    // shared row appears in two networks (e.g. ambiguous IIN annotation) → must merge transitively
     final ModularFeatureListRow shared = row(flist, 1, 200.0 + protonated.totalMass(), 4.0f,
         1000f);
     final ModularFeatureListRow naRow = row(flist, 2, 200.0 + sodiated.totalMass(), 4.0f, 500f);
@@ -245,8 +258,9 @@ public class SimpleSeederComponentizerTest {
     final List<ModularCompoundRow> compounds = newComponentizer().componentize(flist,
         newTargetList(flist));
 
-    assertEquals(1, compounds.size());
-    assertEquals(3, compounds.get(0).compoundSize());
+    assertEquals(2, compounds.size());
+    assertEquals(2, compounds.get(0).compoundSize());
+    assertEquals(1, compounds.get(1).compoundSize());
   }
 
   // ---------- Test 6: empty feature list → validateInputs returns error ----------

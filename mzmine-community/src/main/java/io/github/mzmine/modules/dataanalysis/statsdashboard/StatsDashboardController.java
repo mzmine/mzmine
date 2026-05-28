@@ -69,10 +69,7 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
     pcaController.waitAndUpdate();
-    // feature table bindings in view builder
   }
-
-
   @Override
   protected @NotNull FxViewBuilder<StatsDashboardModel> getViewBuilder() {
     return builder;
@@ -102,5 +99,9 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   @Override
   public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
     return model.compoundRowSelectionProperty();
+  }
+
+  public @NotNull FxFeatureTableController getTableController() {
+    return tableController;
   }
 }

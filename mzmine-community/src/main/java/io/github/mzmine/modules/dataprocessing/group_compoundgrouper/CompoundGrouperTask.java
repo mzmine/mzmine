@@ -5,18 +5,18 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerModule;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundComponentizerStrategy;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelector;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelectorModule;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Builds a {@link CompoundList} for a single {@link ModularFeatureList} using the user-selected
@@ -36,27 +36,40 @@ public class CompoundGrouperTask extends AbstractTask {
   @NotNull
   private final CompoundComponentizerStrategy strategy;
   private final long sourceStructuralVersion;
+  private final boolean isSubTask;
 
   private volatile double progress = 0d;
 
   public CompoundGrouperTask(@NotNull final ModularFeatureList featureList,
-      @NotNull final ParameterSet parameters, @Nullable final MemoryMapStorage storage,
-      @NotNull final Instant moduleCallDate) {
-    super(storage, moduleCallDate);
+      @NotNull final ParameterSet parameters, @NotNull final Instant moduleCallDate,
+      boolean isSubTask) {
+    super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
     this.strategy = createStrategy(parameters);
     this.sourceStructuralVersion = featureList.getStructuralVersion();
+    this.isSubTask = isSubTask;
   }
 
   private static @NotNull CompoundComponentizerStrategy createStrategy(
       @NotNull final ParameterSet parameters) {
-    final ModuleOptionsEnumComboParameter<CompoundComponentizerType> combo = parameters
-        .getParameter(CompoundGrouperParameters.COMPONENTIZER);
+    final CompoundRepresentativeSelector selector = createRepresentativeSelector(parameters);
+    final ModuleOptionsEnumComboParameter<CompoundComponentizerType> combo = parameters.getParameter(
+        CompoundGrouperParameters.COMPONENTIZER);
     final CompoundComponentizerType type = combo.getValue();
     final ParameterSet sub = combo.getEmbeddedParameters();
     final CompoundComponentizerModule module = type.getModuleInstance();
-    return module.createStrategy(sub);
+    return module.createStrategy(sub, selector);
+  }
+
+  private static @NotNull CompoundRepresentativeSelector createRepresentativeSelector(
+      @NotNull final ParameterSet parameters) {
+    final ModuleOptionsEnumComboParameter<CompoundRepresentativeSelectorOption> combo = parameters.getParameter(
+        CompoundGrouperParameters.REPRESENTATIVE_SELECTOR);
+    final CompoundRepresentativeSelectorOption type = combo.getValue();
+    final ParameterSet sub = combo.getEmbeddedParameters();
+    final CompoundRepresentativeSelectorModule module = type.getModuleInstance();
+    return module.createSelector(sub);
   }
 
   @Override
@@ -106,9 +119,13 @@ public class CompoundGrouperTask extends AbstractTask {
       compoundList.setRows(rows);
       featureList.setCompoundList(compoundList);
 
-      featureList.addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod(CompoundGrouperModule.class, parameters,
-              getModuleCallDate()));
+      // if this is a subtask then dont add applied task as this will be done by the parent task
+      // otherwise the step may be applied twice when generating a batch from applied steps
+      if (!isSubTask) {
+        featureList.addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(CompoundGrouperModule.class, parameters,
+                getModuleCallDate()));
+      }
 
       progress = 1d;
       setStatus(TaskStatus.FINISHED);

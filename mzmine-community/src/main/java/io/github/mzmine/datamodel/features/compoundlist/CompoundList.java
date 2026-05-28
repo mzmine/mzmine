@@ -13,6 +13,7 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,11 @@ public class CompoundList {
   private final ColumnarModularFeatureListRowsSchema compoundRowSchema;
   @NotNull
   private final ColumnarModularDataModelSchema compoundFeaturesSchema;
-  private final long sourceStructuralVersion;
+  // Captured at construction and re-synced by {@link #syncSourceStructuralVersion()} whenever the
+  // owning feature list mutates rows in a controlled way (e.g. row deletion that we propagated into
+  // this compound list). Compared against the feature list's current structural version in
+  // {@link #isStale()}.
+  private volatile long sourceStructuralVersion;
 
   private final ObservableList<ModularCompoundRow> rows = FXCollections.observableArrayList();
   private final ObservableList<ModularCompoundRow> rowsReadOnly = FXCollections.unmodifiableObservableList(
@@ -96,10 +101,19 @@ public class CompoundList {
 
   /**
    * @return true if the source feature list changed structurally (rows added / removed) since this
-   * compound list was built.
+   * compound list was built or last {@link #syncSourceStructuralVersion()}.
    */
   public boolean isStale() {
     return sourceStructuralVersion != featureList.getStructuralVersion();
+  }
+
+  /**
+   * Re-snapshot the source feature list's structural version. Call this after applying a controlled
+   * structural change (e.g. propagating row removal into the compound list) so the compound list is
+   * not falsely reported as stale.
+   */
+  public void syncSourceStructuralVersion() {
+    this.sourceStructuralVersion = featureList.getStructuralVersion();
   }
 
   /**
@@ -138,7 +152,7 @@ public class CompoundList {
             if (member instanceof ModularCompoundRow compMember) {
               final List<FeatureListRow> isotopeRows = compMember.getMemberRows();
               for (FeatureListRow isotope : isotopeRows) {
-                if (seen.add(member)) {
+                if (seen.add(isotope)) {
                   up.accept(isotope);
                 }
               }
@@ -176,6 +190,13 @@ public class CompoundList {
       wireListeners();
       listenersWired = true;
     }
+    // sorting
+    applyDefaultRowsSorting();
+  }
+
+  public void applyDefaultRowsSorting() {
+    final Comparator<FeatureListRow> comparator = FeatureListUtils.getDefaultRowSorter(featureList);
+    rows.sort(comparator);
   }
 
   /**
@@ -236,6 +257,7 @@ public class CompoundList {
       // append — a row may be a member of multiple compounds (bridge rows)
       byMemberRowId.computeIfAbsent(member.getTypedID(), id -> new ArrayList<>(1)).add(compound);
       if (member instanceof ModularCompoundRow nested) {
+        byCompoundId.put(nested.getCompoundId(), nested);
         indexMembers(nested);
       }
     }
@@ -443,8 +465,9 @@ public class CompoundList {
    * is not a member of any compound. For multi-membership cases use {@link #getRolesOf}.
    */
   public @NotNull Optional<CompoundMemberRole> getRoleOf(@NotNull final FeatureListRow row) {
+    final FeatureListRowID rowId = row.getTypedID();
     return findFirstCompoundOf(row).flatMap(
-        cr -> cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID()))
+        cr -> cr.getCompoundMembers().stream().filter(m -> m.row().getTypedID().equals(rowId))
             .findFirst().map(CompoundFeatureMember::role));
   }
 
@@ -453,13 +476,14 @@ public class CompoundList {
    * in different compounds (e.g. CORRELATED in compound A, ADDUCT in compound B if it's bridged).
    */
   public @NotNull List<CompoundMemberRole> getRolesOf(@NotNull final FeatureListRow row) {
+    final FeatureListRowID rowId = row.getTypedID();
     final List<ModularCompoundRow> owners = byMemberRowId.get(row.getTypedID());
     if (owners == null || owners.isEmpty()) {
       return List.of();
     }
     final List<CompoundMemberRole> roles = new ArrayList<>(owners.size());
     for (final ModularCompoundRow cr : owners) {
-      cr.getCompoundMembers().stream().filter(m -> m.row().getID().equals(row.getID())).findFirst()
+      cr.getCompoundMembers().stream().filter(m -> m.row().getTypedID().equals(rowId)).findFirst()
           .map(CompoundFeatureMember::role).ifPresent(roles::add);
     }
     return roles;
@@ -468,5 +492,24 @@ public class CompoundList {
   @NotNull
   public List<ModularCompoundRow> getRowsCopy() {
     return List.copyOf(getRows());
+  }
+
+  /**
+   * @return true if any top-level compound row holds a member that is itself a
+   * {@link ModularCompoundRow} (i.e. a major ion row with isotope sub-rows). Used to decide whether
+   * {@link CompoundRowSelection#ALL_ISOTOPES} is a meaningful option to expose in the UI.
+   */
+  public boolean hasNestedCompoundRows() {
+    for (final ModularCompoundRow cr : rows) {
+      for (final CompoundFeatureMember m : cr.getCompoundMembers()) {
+        if (m.row() instanceof ModularCompoundRow mod) {
+          // should have more than 1 isotope row
+          if (mod.getMemberRows().size() > 1) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

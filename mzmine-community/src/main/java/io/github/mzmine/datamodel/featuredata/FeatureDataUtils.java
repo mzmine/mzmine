@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityFwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
@@ -404,6 +405,12 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
       feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
+
+      // since version 4.10
+      float fwhm = QualityParameters.calculateFWHM(summedMobilogram);
+      if (!Float.isNaN(fwhm)) {
+        feature.set(MobilityFwhmType.class, fwhm);
+      }
     }
 
     if (calcQuality) {

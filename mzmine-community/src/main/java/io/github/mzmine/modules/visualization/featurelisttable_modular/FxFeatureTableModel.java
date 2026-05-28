@@ -26,23 +26,32 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableFilterMenu.FxFeatureTableFilterMenuModel;
 import io.github.mzmine.parameters.ParameterSet;
+import java.lang.ref.WeakReference;
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FxFeatureTableModel {
 
@@ -63,6 +72,15 @@ public class FxFeatureTableModel {
   private final ReadOnlyObjectWrapper<Range<Float>> rowsRetentionTimeRange = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyListWrapper<DataType> rowTypes = new ReadOnlyListWrapper<>(
       FXCollections.observableArrayList());
+
+  // Cross-dashboard linking: outgoing links + the four FxControllerBinding properties used as the
+  // sync points. Targets are referenced weakly so closed dashboards can be garbage collected.
+  private final ObservableList<FeatureTableLink> outgoingLinks = FXCollections.observableArrayList();
+  private final ObjectProperty<List<FeatureList>> selectedFeatureLists = new SimpleObjectProperty<>(
+      List.of());
+  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>(
+      List.of());
+  private final ObjectProperty<@Nullable CompoundRow> selectedCompoundRow = new SimpleObjectProperty<>();
 
 
   public FxFeatureTableModel(@NotNull ParameterSet parameters, FeatureTableOwner tableOwner) {
@@ -165,6 +183,50 @@ public class FxFeatureTableModel {
 
   public ReadOnlyObjectWrapper<Range<Float>> rowsRetentionTimeRangeProperty() {
     return rowsRetentionTimeRange;
+  }
+
+  // --- cross-dashboard linking ---------------------------------------------
+
+  public @NotNull ObservableList<FeatureTableLink> getOutgoingLinks() {
+    return outgoingLinks;
+  }
+
+  public ObjectProperty<List<FeatureList>> selectedFeatureListsProperty() {
+    return selectedFeatureLists;
+  }
+
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
+  }
+
+  public ObjectProperty<@Nullable CompoundRow> selectedCompoundRowProperty() {
+    return selectedCompoundRow;
+  }
+
+  /**
+   * Add (or update) an outgoing link to {@code target}. Replaces the {@code active} flag of an
+   * existing link when one already exists for the same target.
+   */
+  public void linkTo(@NotNull FxFeatureTableController target, boolean active) {
+    for (FeatureTableLink existing : outgoingLinks) {
+      if (existing.getTarget() == target) {
+        existing.active().set(active);
+        return;
+      }
+    }
+    outgoingLinks.add(new FeatureTableLink(new WeakReference<>(target),
+        new SimpleBooleanProperty(active)));
+  }
+
+  public void unlink(@NotNull FxFeatureTableController target) {
+    outgoingLinks.removeIf(link -> link.getTarget() == target);
+  }
+
+  /**
+   * Drop links whose weak target has been garbage collected.
+   */
+  public void pruneExpiredLinks() {
+    outgoingLinks.removeIf(link -> link.getTarget() == null);
   }
 
 }

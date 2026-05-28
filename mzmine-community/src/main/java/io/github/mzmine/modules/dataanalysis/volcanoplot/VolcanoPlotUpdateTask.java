@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -59,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
-  private final FeatureList flist;
+  private final FeaturesDataTable dataTable;
   private final RowSignificanceTest test;
   private final double pValue;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
@@ -69,14 +68,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
   VolcanoPlotUpdateTask(VolcanoPlotModel model) {
     super("volcanoplot_update", model);
 
-    final List<FeatureList> flists = model.getFlists();
-    if (flists != null && !flists.isEmpty()) {
-      flist = flists.getFirst();
-    } else {
-      flist = null;
-    }
-
-    final FeaturesDataTable dataTable = model.getFeatureDataTable();
+    dataTable = model.getFeatureDataTable();
     final UnivariateRowSignificanceTestConfig testConfig = model.getTest();
     if (testConfig != null && dataTable != null) {
       test = testConfig.toValidConfig(dataTable);
@@ -85,12 +77,14 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
 
     pValue = model.getpValue();
-    progress.setTotal(flist != null ? flist.getNumberOfRows() : 0);
+    // decision: iterate the prepared data table rather than the source feature list so the
+    // CompoundRowSelection filtering applied in VolcanoPlotController.prepareDataTable is respected
+    progress.setTotal(dataTable != null ? dataTable.getNumberOfFeatures() : 0);
   }
 
   @Override
   public boolean checkPreConditions() {
-    return flist != null && test != null;
+    return dataTable != null && test != null;
   }
 
   @Override
@@ -99,7 +93,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       return;
     }
     List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
-    for (final FeatureListRow row : flist.getRows()) {
+    for (final FeatureListRow row : dataTable.getFeatureListRows()) {
       if (isCanceled()) {
         return;
       }

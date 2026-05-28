@@ -71,6 +71,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     main.getItems().addAll(stats, tableController.buildView());
 
     initFeatureListListeners();
+
     return main;
   }
 

@@ -26,9 +26,20 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 /**
- * Defines the owner of a {@link FeatureTableFX}
- * this can be useful when defining double click actions or the right click menu options.
+ * Defines the owner of a {@link FeatureTableFX} this can be useful when defining double click
+ * actions or the right click menu options.
  */
 public enum FeatureTableOwner {
-  UNDEFINED, FEATURE_TABLE_TAB, STATS_DASHBOARD, COMPOUND_DASHBOARD, LIPID_DASHBOARD, NETWORK_DASHBOARD, FEATURE_INTEGRATION_DASHBOARD, OTHER_DETECTOR_CORRELATION
+  UNDEFINED, FEATURE_TABLE_TAB, STATS_DASHBOARD, COMPOUND_DASHBOARD, LIPID_DASHBOARD, NETWORK_DASHBOARD, FEATURE_INTEGRATION_DASHBOARD, OTHER_DETECTOR_CORRELATION;
+
+  /**
+   * @return FeatureTable or UNDEFINED are flagged as simple, true for other dashboards
+   */
+  public boolean isOtherComplexDashboard() {
+    return switch (this) {
+      case UNDEFINED, FEATURE_TABLE_TAB -> false;
+      case OTHER_DETECTOR_CORRELATION, STATS_DASHBOARD, COMPOUND_DASHBOARD, LIPID_DASHBOARD,
+           NETWORK_DASHBOARD, FEATURE_INTEGRATION_DASHBOARD -> true;
+    };
+  }
 }

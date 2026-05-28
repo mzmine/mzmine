@@ -33,10 +33,10 @@ public enum FxIcons implements IconCodeSupplier {
   X_CIRCLE_FILL, EXCLAMATION_CIRCLE_FILL, INFO_CIRCLE_FILL,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, MERGE, QUESTIONMARK, ARROW_IN_RIGHT,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, MERGE, QUESTIONMARK, ARROW_IN_RIGHT, LINK,
 
   // icons
-  FILE, FOLDER, LIST, COLLECTION, GROUPED_PARAMETERS,
+  FILE, FOLDER, LIST, COLLECTION, GROUPED_PARAMETERS, NETWORK,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -103,6 +103,8 @@ public enum FxIcons implements IconCodeSupplier {
       case LIGHTBULB -> "bi-lightbulb";
       case QUESTIONMARK -> "bi-question-circle";
       case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
+      case LINK -> "bi-link-45deg";
+      case NETWORK -> "bi-share";
       case FILE -> "bi-file-earmark-text";
       case FOLDER -> "bi-folder";
       case SEARCH -> "bi-search";

@@ -33,6 +33,8 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.compoundlist.MissingCompoundListException;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
@@ -220,6 +222,28 @@ public interface FeatureList {
    */
   default List<FeatureListRow> getRowsCopy() {
     return new ArrayList<>(getRows());
+  }
+
+  /**
+   * Get list of rows depending on which level: Compounds, all major ions (first level), all
+   * isotopes (second level)
+   *
+   * @return unmodifiable view of compound rows.
+   */
+  default @NotNull List<? extends FeatureListRow> getRowsCopy(
+      @NotNull CompoundRowSelection selection) throws MissingCompoundListException {
+    final CompoundList cl = getCompoundList();
+    if (cl != null) {
+      return cl.getRowsCopy(selection);
+    }
+    if (selection == CompoundRowSelection.COMPOUNDS) {
+      throw new MissingCompoundListException(this);
+    }
+
+    // TODO have to decide how to handle missing compound list when all major ions or isotopes selected
+    // for now just return all rows
+    // this is used in export modules where we export either all rows or all compounds or just one level
+    return getRowsCopy();
   }
 
   /**
@@ -432,8 +456,7 @@ public interface FeatureList {
    *
    * @return
    */
-  @NotNull
-  List<RowGroup> getGroups();
+  @NotNull List<RowGroup> getGroups();
 
   /**
    * List of RowGroups group features based on different methods
@@ -599,7 +622,9 @@ public interface FeatureList {
 
   // --- Structural versioning for compound list invalidation ---
 
-  /** Incremented on every structural change (add / remove / replace rows). */
+  /**
+   * Incremented on every structural change (add / remove / replace rows).
+   */
   long getStructuralVersion();
 
   @Nullable CompoundList getCompoundList();
