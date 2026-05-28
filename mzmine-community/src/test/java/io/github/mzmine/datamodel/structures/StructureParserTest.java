@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,10 +50,10 @@ class StructureParserTest {
   }
 
   final static List<Case> cases = List.of( //
-      new Case("CC(=O)O", "C2H4O2", "CC(=O)O", "O=C(O)C", 0) //
-//      , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
-//      , new Case("[12CH](=O)[O-]", "[CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
-//      , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
+      new Case("CC(=O)O", "C2H4O2", "CC(=O)O", "CC(O)=O", 0) //
+      , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "C(=O)[O-]", -1) //
+      , new Case("[12CH](=O)[O-]", "[CHO2]-", "[12CH](=O)[O-]", "[12CH](=O)[O-]", -1) //
+      , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "[13CH](=O)[O-]", "[13CH](=O)[O-]", -1) //
   );
 
   @ParameterizedTest
