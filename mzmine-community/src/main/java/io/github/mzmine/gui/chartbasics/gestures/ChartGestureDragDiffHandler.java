@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,7 +92,8 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
    * use default orientation or orientation of axis
    *
    * @param event
-   * @return
+   * @return the orientation of the event along the axis if the entity is a {@link AxisEntity},
+   * otherwise the plot orientation.
    */
   public @NotNull Orientation getOrientation(final @NotNull ChartGestureEvent event) {
     final Orientation axisOrientation = getAxisOrientation(event);
@@ -122,6 +123,9 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
     return orient;
   }
 
+  /**
+   * @return the orientation of the axis, or {@code null} if the axis is not a {@link AxisEntity}
+   */
   private @Nullable Orientation getAxisOrientation(final @NotNull ChartGestureEvent event) {
     final ValueAxis axis = event.getAxis();
     if (axis == null || !(axis.getPlot() instanceof XYPlot plot)) {
@@ -206,6 +210,12 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
     };
   }
 
+  /**
+   *
+   * @param axisOrientation the axis orientation like horizontal or vertical when
+   *                        {@link PlotOrientation} changes.
+   * @return the coordinate of the point along the axis orientation
+   */
   private double getAxisCoordinate(final @NotNull ChartGestureEvent event,
       final @NotNull Point2D point, final @NotNull Orientation axisOrientation) {
     final Entity entity = event.getGesture().getEntity();
