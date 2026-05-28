@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsLoader;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -198,6 +200,8 @@ public class FeatureListLoadTask extends AbstractTask {
         }
         parseFeatureList(storage, project, flist, flistFile);
 
+        loadR2RNetworkingMaps(flist, flistFile);
+
         // TODO maybe remove so that ModularFeatureList.getFeatureList can be unmodifiable
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
@@ -227,6 +231,22 @@ public class FeatureListLoadTask extends AbstractTask {
         flist -> flist.setExcludedFromBatchLast(!mostRecentStepFeatureLists.contains(flist)));
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void loadR2RNetworkingMaps(ModularFeatureList flist, File flistFile) {
+    final File r2rFile = new File(flistFile.toString()
+        .replace(FeatureListSaveTask.DATA_FILE_SUFFIX, FeatureListSaveTask.R2R_FILE_SUFFIX));
+    if (!r2rFile.exists()) {
+      // older projects predate R2R persistence — silently skip
+      return;
+    }
+    try (InputStream in = new FileInputStream(r2rFile)) {
+      final R2RNetworkingMaps maps = R2RNetworkingMapsLoader.load(in, flist);
+      flist.addRowMaps(maps);
+    } catch (IOException e) {
+      logger.log(Level.WARNING,
+          "Failed to load R2R networking maps for feature list " + flist.getName(), e);
+    }
   }
 
   private void parseFeatureList(MemoryMapStorage storage, MZmineProject project,

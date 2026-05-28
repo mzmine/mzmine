@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsSaver;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -71,6 +73,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
   public static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   public static final String DATA_FILE_SUFFIX = "_data.xml";
+  public static final String R2R_FILE_SUFFIX = "_r2r.json";
   public static final String FLIST_FOLDER = "featurelists/";
   private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
@@ -97,6 +100,10 @@ public class FeatureListSaveTask extends AbstractTask {
     return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + METADATA_FILE_SUFFIX;
   }
 
+  public static String getR2RFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + R2R_FILE_SUFFIX;
+  }
+
   @Override
   public String getTaskDescription() {
     return "Saving feature list " + flist.getName();
@@ -117,7 +124,26 @@ public class FeatureListSaveTask extends AbstractTask {
 
     saveAppliedMethods();
 
+    saveR2RNetworkingMaps();
+
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean saveR2RNetworkingMaps() {
+    final R2RNetworkingMaps maps = flist.getRowMaps();
+    if (maps.isEmpty()) {
+      return true;
+    }
+    try {
+      zos.putNextEntry(new ZipEntry(getR2RFileName(flist.getName())));
+      R2RNetworkingMapsSaver.save(maps, zos);
+    } catch (IOException e) {
+      logger.log(Level.SEVERE,
+          "Failed to save R2R networking maps for feature list " + flist.getName(), e);
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
+    return true;
   }
 
   private boolean saveAppliedMethods() {
