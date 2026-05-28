@@ -89,13 +89,19 @@ public class CompoundDashboardSpectraTask extends FxUpdateTask<CompoundDashboard
   private @NotNull List<DatasetAndRenderer> buildMs1(@NotNull final ColorAssignment colors) {
     final List<DatasetAndRenderer> out = new ArrayList<>();
 
-    // 1. gray background = preferredRow's representative apex MS1 scan in current raw file (or any)
+    // 1. neutral-color background = preferredRow's representative apex MS1 scan in current raw
+    // file (or any)
     final FeatureListRow preferred = compound.getPreferredRow();
     final Scan repScan = pickRepresentativeScan(preferred);
     if (repScan != null) {
-      out.add(new DatasetAndRenderer(new MassSpectrumProvider(repScan, "MS1 representative",
-          FxColorUtil.fxColorToAWT(colors.representativeBackgroundColor())),
-          new ColoredXYBarRenderer(false)));
+      final Color representativeAwt = FxColorUtil.fxColorToAWT(
+          colors.representativeBackgroundColor());
+      final ColoredXYBarRenderer representativeRenderer = new ColoredXYBarRenderer(false);
+      // match representative-stick labels to the neutral representative scan color
+      representativeRenderer.setDefaultItemLabelPaint(representativeAwt);
+      out.add(new DatasetAndRenderer(
+          new MassSpectrumProvider(repScan, "MS1 representative", representativeAwt),
+          representativeRenderer));
       ms1TitleOut = "MS1 (feature rows & representative MS1: " + repScan.getDataFile().getName()
           + ":" + repScan.getScanNumber() + ")";
     } else {
