@@ -36,7 +36,7 @@ public enum FxIcons implements IconCodeSupplier {
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, MERGE, QUESTIONMARK, ARROW_IN_RIGHT, LINK,
 
   // icons
-  FILE, FOLDER, LIST, COLLECTION, GROUPED_PARAMETERS, NETWORK,
+  FILE, FOLDER, FOLDER_FILL, LIST, COLLECTION, GROUPED_PARAMETERS, NETWORK, FEATURE_LIST, ALIGNED_FEATURE_LIST,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -107,7 +107,10 @@ public enum FxIcons implements IconCodeSupplier {
       case NETWORK -> "bi-share";
       case FILE -> "bi-file-earmark-text";
       case FOLDER -> "bi-folder";
+      case FOLDER_FILL -> "bi-folder-fill";
       case SEARCH -> "bi-search";
+      case FEATURE_LIST -> "bi-file-spreadsheet";
+      case ALIGNED_FEATURE_LIST -> "bi-file-spreadsheet-fill";
     };
   }
 }
