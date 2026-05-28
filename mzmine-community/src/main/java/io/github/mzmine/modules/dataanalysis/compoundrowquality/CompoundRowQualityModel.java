@@ -1,8 +1,34 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -58,6 +84,11 @@ public class CompoundRowQualityModel {
   // the MS2-available check). The host typically subscribes to this and reacts via switch on the
   // sealed event permits. Nullable -> events are silently dropped.
   private final ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEvent = new SimpleObjectProperty<>();
+
+  // Persisted check configuration (e.g. AnnotationAgreementCheckType). Lives in MZmineConfiguration
+  // via CompoundRowQualityCheckModule; the controller seeds it on startup and writes a new
+  // reference on every dialog OK to fire the recompute subscription.
+  private final ObjectProperty<@Nullable ParameterSet> checkParameters = new SimpleObjectProperty<>();
 
   // true while a recompute task is in flight
   private final BooleanProperty computing = new SimpleBooleanProperty(false);
@@ -119,6 +150,14 @@ public class CompoundRowQualityModel {
 
   public BooleanProperty computingProperty() {
     return computing;
+  }
+
+  public @Nullable ParameterSet getCheckParameters() {
+    return checkParameters.get();
+  }
+
+  public ObjectProperty<@Nullable ParameterSet> checkParametersProperty() {
+    return checkParameters;
   }
 
   public @Nullable SimpleColorPalette getColorPalette() {

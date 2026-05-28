@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -8,6 +33,8 @@ import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -35,10 +62,16 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
 
   public CompoundRowQualityController() {
     super(new CompoundRowQualityModel());
+    // Seed the model with the persisted check-configuration so the first recompute already uses
+    // the user's saved AnnotationAgreementCheckType etc. The view's gear button writes a fresh
+    // clone back to this property on every dialog OK, which fires the recompute subscription.
+    model.checkParametersProperty().set(
+        ConfigService.getConfiguration().getModuleParameters(CompoundRowQualityCheckModule.class));
     builder = new CompoundRowQualityViewBuilder(model);
     PropertyUtils.onChangeDelayedSubscription(this::scheduleRecompute, RECOMPUTE_DEBOUNCE,
         model.selectedCompoundRowProperty(), model.rtStabilityToleranceProperty(),
-        model.mzToleranceProperty(), model.ms2ToleranceProperty(), model.colorPaletteProperty());
+        model.mzToleranceProperty(), model.ms2ToleranceProperty(), model.colorPaletteProperty(),
+        model.checkParametersProperty());
   }
 
   @Override
@@ -116,12 +149,13 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     // clicks on the FX thread can both read and write the live selection.
     final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow = model.selectedMemberRowProperty();
     final Consumer<@NotNull QualityCheckEvent> onEvent = model.getOnQualityCheckEvent();
+    final ParameterSet checkParameters = model.getCheckParameters();
 
     onGuiThread(() -> model.computingProperty().set(true));
     // PropertyUtils.onChangeDelayedSubscription already debounces; FxUpdateTask cancels prior runs by name.
     onTaskThread(
         new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow,
-            onEvent));
+            onEvent, checkParameters));
   }
 
 }

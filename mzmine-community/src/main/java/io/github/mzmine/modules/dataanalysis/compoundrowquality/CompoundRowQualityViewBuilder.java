@@ -1,11 +1,40 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +42,7 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -61,7 +91,13 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     VBox.setVgrow(scroll, Priority.ALWAYS);
 
     final Label title = FxLabels.newBoldTitle("Compound quality");
-    final HBox titleBar = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, title);
+    // Spacer eats the remaining width so the gear button sits hard-right next to the title.
+    final Region spacer = new Region();
+    HBox.setHgrow(spacer, Priority.ALWAYS);
+    final ButtonBase configButton = FxIconUtil.newIconButton(FxIcons.GEAR_PREFERENCES,
+        "Configure compound quality checks", this::openConfigDialog);
+    final HBox titleBar = FxLayout.newHBox(Pos.CENTER_LEFT, FxLayout.DEFAULT_PADDING_INSETS, title,
+        spacer, configButton);
 
     final BorderPane outer = new BorderPane(scroll);
     outer.setTop(titleBar);
@@ -107,6 +143,22 @@ public class CompoundRowQualityViewBuilder extends FxViewBuilder<CompoundRowQual
     item.prefWidthProperty().bind(contentWidth);
     item.maxWidthProperty().bind(contentWidth);
     return item;
+  }
+
+  /// Open the {@link CompoundRowQualityCheckParameters} setup dialog. Works on a clone so a Cancel
+  /// leaves both {@code MZmineConfiguration} and the model untouched; on OK the clone is written
+  /// back to both. Replacing the model's property reference (rather than mutating in place) is what
+  /// fires the recompute subscription in the controller.
+  private void openConfigDialog() {
+    final ParameterSet edited = ConfigService.getConfiguration()
+        .getModuleParameters(CompoundRowQualityCheckModule.class).cloneParameterSet();
+    final ExitCode exit = edited.showSetupDialog(true);
+    if (exit != ExitCode.OK) {
+      return;
+    }
+    ConfigService.getConfiguration()
+        .setModuleParameters(CompoundRowQualityCheckModule.class, edited);
+    model.checkParametersProperty().set(edited);
   }
 
   private Color colorFor(QualityCheckStatus status) {

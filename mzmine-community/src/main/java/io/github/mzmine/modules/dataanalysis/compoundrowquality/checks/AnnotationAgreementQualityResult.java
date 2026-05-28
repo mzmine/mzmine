@@ -1,6 +1,32 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -29,16 +55,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-/**
- * Custom {@link QualityCheckResult} for the annotation-agreement check. The main pane lists the
- * aggregate verdicts comparing the {@code getPreferredAnnotation} of every member row: structure
- * (InChIKey first block), formula, and — when structures differ — the mean pairwise Tanimoto
- * structural similarity formatted using the configured score number format.
- * <p>
- * Tooltips: the structure label explains the InChIKey first-block comparison, the similarity label
- * explains the Tanimoto computation. The similarity row is hidden when structures already match
- * (the score is redundant in that case).
- */
+/// Custom {@link QualityCheckResult} for the annotation-agreement check.
+///
+/// **Main pane** lists the aggregate verdicts: structure (InChIKey first block), formula, optional
+/// lipid conflict, and — when structures differ — the mean pairwise Tanimoto structural similarity
+/// formatted with the configured score number format. Hidden rows: the lipid conflict row when no
+/// conflict was found; the similarity row when structures already match.
+///
+/// **Sub pane** shows the selected {@link AnnotationAgreementCheckType} above a dense 2-column grid
+/// of unique structures (sorted by descending score, deduplicated by InChIKey first block). Each
+/// cell renders the 2D structure plus the annotation's score formatted with the GUI score format
+/// below it.
 public final class AnnotationAgreementQualityResult extends QualityCheckResult {
 
   private static final Logger logger = Logger.getLogger(
@@ -53,44 +80,55 @@ public final class AnnotationAgreementQualityResult extends QualityCheckResult {
   private static final double STRUCTURE_CELL_WIDTH = 150d;
   private static final double STRUCTURE_CELL_HEIGHT = 110d;
 
+  private final @NotNull AnnotationAgreementCheckType checkType;
   // When true the card collapses to a single "Single annotation" label and exposes no sub pane —
   // there is only one distinct annotation across all members so the comparison rows / structure
   // grid would add no information.
   private final boolean singleAnnotation;
   private final boolean structuresEqual;
   private final boolean formulasEqual;
+  // True only when 2+ MatchedLipid annotations carry disagreeing lipid labels. Otherwise the row
+  // is hidden — both for "no lipids" and "lipids all agree".
+  private final boolean lipidConflict;
   // null when there is fewer than 2 comparable structures (single annotation or no IAtomContainers).
   private final @Nullable Double similarity;
-  // Unique structures across all member annotations (already deduplicated by InChIKey / canonical
-  // SMILES). Rendered as a 2-column dense grid of 2D structure previews in the sub pane.
-  private final @NotNull List<@NotNull MolecularStructure> uniqueStructures;
+  // Unique annotations across all member rows (sorted by descending score, deduplicated by InChIKey
+  // first block, with non-null structure). Rendered as the 2-column structure grid in the sub pane.
+  private final @NotNull List<@NotNull FeatureAnnotation> uniqueAnnotations;
 
   public AnnotationAgreementQualityResult(@NotNull QualityCheckStatus status,
-      boolean structuresEqual, boolean formulasEqual, @Nullable Double similarity,
-      @NotNull List<@NotNull MolecularStructure> uniqueStructures,
+      @NotNull AnnotationAgreementCheckType checkType, boolean structuresEqual,
+      boolean formulasEqual, boolean lipidConflict, @Nullable Double similarity,
+      @NotNull List<@NotNull FeatureAnnotation> uniqueAnnotations,
       @NotNull List<@NotNull FeatureListRow> involvedRows) {
     super(QualityCheckType.ANNOTATION_AGREEMENT, status, involvedRows);
+    this.checkType = checkType;
     this.singleAnnotation = false;
     this.structuresEqual = structuresEqual;
     this.formulasEqual = formulasEqual;
+    this.lipidConflict = lipidConflict;
     this.similarity = similarity;
-    this.uniqueStructures = List.copyOf(uniqueStructures);
+    this.uniqueAnnotations = List.copyOf(uniqueAnnotations);
   }
 
-  private AnnotationAgreementQualityResult(@NotNull List<@NotNull FeatureListRow> involvedRows) {
+  private AnnotationAgreementQualityResult(@NotNull AnnotationAgreementCheckType checkType,
+      @NotNull List<@NotNull FeatureListRow> involvedRows) {
     super(QualityCheckType.ANNOTATION_AGREEMENT, QualityCheckStatus.PASS, involvedRows);
+    this.checkType = checkType;
     this.singleAnnotation = true;
     this.structuresEqual = true;
     this.formulasEqual = true;
+    this.lipidConflict = false;
     this.similarity = null;
-    this.uniqueStructures = List.of();
+    this.uniqueAnnotations = List.of();
   }
 
   /// Factory for the trivial "only one distinct annotation across members" case. The card collapses
   /// to a single label and has no sub pane.
   public static @NotNull AnnotationAgreementQualityResult singleAnnotation(
+      @NotNull AnnotationAgreementCheckType checkType,
       @NotNull List<@NotNull FeatureListRow> involvedRows) {
-    return new AnnotationAgreementQualityResult(involvedRows);
+    return new AnnotationAgreementQualityResult(checkType, involvedRows);
   }
 
   @Override
@@ -122,6 +160,14 @@ public final class AnnotationAgreementQualityResult extends QualityCheckResult {
         formulaRow);
     box.setMinWidth(0);
 
+    // Lipid conflict row — only added when there are conflicting MatchedLipid annotations.
+    if (lipidConflict) {
+      final HBox lipidRow = makeRow(FxIcons.X_CIRCLE, palette.getNegativeColor(), "Lipid conflicts",
+          "Multiple MatchedLipid annotations disagree on the lipid label "
+              + "(ILipidAnnotation.getAnnotation()).");
+      box.getChildren().add(lipidRow);
+    }
+
     // Similarity row hidden when structures already match — it adds no information in that case.
     if (!structuresEqual && similarity != null) {
       final String scoreString = ConfigService.getGuiFormats().score(similarity);
@@ -139,18 +185,22 @@ public final class AnnotationAgreementQualityResult extends QualityCheckResult {
     if (singleAnnotation) {
       return null;
     }
-    if (uniqueStructures.isEmpty() && involvedRows.isEmpty()) {
+    if (uniqueAnnotations.isEmpty() && involvedRows.isEmpty()) {
       return null;
     }
     final VBox body = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true);
     body.setMinWidth(0);
 
-    if (!uniqueStructures.isEmpty()) {
-      // Dense 2-column grid of 2D structure previews, left-to-right top-to-bottom.
+    // Header: which annotations were selected for the comparison.
+    body.getChildren()
+        .add(configureWrap(FxLabels.newItalicLabel("Source: " + checkType.toString())));
+
+    if (!uniqueAnnotations.isEmpty()) {
+      // Dense 2-column grid of {structure preview + score} cells, left-to-right top-to-bottom.
       final GridPane grid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
       grid.setMinWidth(0);
-      for (int i = 0; i < uniqueStructures.size(); i++) {
-        final Region cell = buildStructureCell(uniqueStructures.get(i));
+      for (int i = 0; i < uniqueAnnotations.size(); i++) {
+        final Region cell = buildStructureCell(uniqueAnnotations.get(i));
         if (cell != null) {
           grid.add(cell, i % 2, i / 2);
         }
@@ -166,20 +216,34 @@ public final class AnnotationAgreementQualityResult extends QualityCheckResult {
     return body;
   }
 
-  /// Render a single structure preview into a fixed-size wrapper so the surrounding
-  /// {@link GridPane} can lay out a stable footprint. Returns null when the
+  /// Render a single structure preview plus its formatted score into a fixed-width VBox so the
+  /// surrounding {@link GridPane} can lay out a stable footprint. Returns null when the
   /// {@link Structure2DComponent} cannot render the molecule (e.g. CDK throws on an unsupported
   /// atom container).
-  private static @Nullable Region buildStructureCell(@NotNull MolecularStructure mol) {
+  private static @Nullable Region buildStructureCell(@NotNull FeatureAnnotation annotation) {
+    final MolecularStructure mol = annotation.getStructure();
+    if (mol == null) {
+      return null;
+    }
     try {
       final Structure2DComponent component = new Structure2DComponent(mol.structure());
       component.setWidth(STRUCTURE_CELL_WIDTH);
       component.setHeight(STRUCTURE_CELL_HEIGHT);
-      final BorderPane wrapper = new BorderPane(component);
-      wrapper.setMinSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
-      wrapper.setPrefSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
-      wrapper.setMaxSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
-      return wrapper;
+      final BorderPane structureWrapper = new BorderPane(component);
+      structureWrapper.setMinSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
+      structureWrapper.setPrefSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
+      structureWrapper.setMaxSize(STRUCTURE_CELL_WIDTH, STRUCTURE_CELL_HEIGHT);
+
+      final Float score = annotation.getScore();
+      final String scoreText =
+          score == null ? "Score: —" : "Score: " + ConfigService.getGuiFormats().score(score);
+      final Label scoreLabel = configureWrap(FxLabels.newLabel(scoreText));
+      scoreLabel.setMaxWidth(STRUCTURE_CELL_WIDTH);
+
+      final VBox cell = FxLayout.newVBox(Pos.TOP_CENTER, Insets.EMPTY, false, structureWrapper,
+          scoreLabel);
+      cell.setMinWidth(0);
+      return cell;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to render 2D structure for annotation agreement", e);
       return null;
