@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,6 +41,8 @@ import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 class StructureParserTest {
+
+  private static final Logger logger = Logger.getLogger(StructureParserTest.class.getName());
 
   record Case(String input, String formula, String isomericSmiles, String canonicalSmiles,
               int charge) {
@@ -183,5 +186,28 @@ class StructureParserTest {
 
     Assertions.assertEquals(0, CHOO);
     Assertions.assertEquals(iterations, CHO2);
+  }
+
+  @Test
+  void testIsotopicStructure() {
+    final String isotopicSmiles = "[2H]/C(CCCC(O)=O)=C([2H])/C/C([2H])=C([2H])\\C/C([2H])=C([2H])\\C=C([2H])\\C(CCCCC)([2H])O";
+
+    MolecularStructure structure = StructureParser.silent()
+        .parseStructure(isotopicSmiles, StructureInputType.SMILES);
+    Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
+    logger.info(structure.canonicalSmiles());
+    logger.info(structure.isomericSmiles());
+    logger.info(structure.inchiKey());
+    logger.info(structure.inchi());
+
+    final String isotopicInchi = "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D";
+
+    structure = StructureParser.silent()
+        .parseStructure(isotopicInchi, StructureInputType.INCHI);
+    Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
+    logger.info(structure.canonicalSmiles());
+    logger.info(structure.isomericSmiles());
+    logger.info(structure.inchiKey());
+    logger.info(structure.inchi());
   }
 }

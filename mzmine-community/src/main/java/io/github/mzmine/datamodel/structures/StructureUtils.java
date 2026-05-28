@@ -85,11 +85,12 @@ public class StructureUtils {
    * Canonical + isomeric + stereo chemistry
    */
   public static final SmilesGenerator isomericSmiGen = new SmilesGenerator(
-      SmiFlavor.Stereo | SmiFlavor.Canonical);
+      SmiFlavor.Stereo | SmiFlavor.Canonical | SmiFlavor.AtomicMass);
   /**
    * canonical smiles
    */
-  public static final SmilesGenerator canonSmiGen = SmilesGenerator.unique();
+  public static final SmilesGenerator canonSmiGen = new SmilesGenerator(
+      SmiFlavor.Canonical | SmiFlavor.AtomicMass);
 
   /*
    * absolute smiles generator adds atom mass numbers to all elements even 12C
