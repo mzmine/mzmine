@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
  *   <li>If a member row is itself a nested {@link CompoundRow} (i.e. an adduct group whose
  *       sub-members are isotopologues), the same color is propagated to every sub-member.</li>
  * </ul>
- * The gray "representative" color is exposed separately and used by the MS1 background scan only.
+ * The palette neutral "representative" color is exposed separately and used by the MS1 background
+ * scan only.
  * <p>
  * Pure utility, safe to call off the FX thread. The caller is responsible for cloning the palette
  * with index reset (see {@link SimpleColorPalette#clone(boolean)}).
@@ -79,7 +80,8 @@ public final class CompoundDashboardColoring {
         }
       }
     }
-    return new ColorAssignment(rowColors, Color.GRAY, noIon, ionColors);
+    return new ColorAssignment(rowColors, ConfigService.getDefaultColorPalette().getNeutralColor(),
+        noIon, ionColors);
   }
 
   /**

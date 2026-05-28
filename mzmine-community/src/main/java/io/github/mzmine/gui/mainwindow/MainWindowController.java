@@ -136,7 +136,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -158,10 +157,6 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class MainWindowController {
 
-  private static final Image featureListSingleIcon = FxIconUtil.loadImageFromResources(
-      "icons/peaklisticon_single.png");
-  private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
-      "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
 
@@ -257,11 +252,11 @@ public class MainWindowController {
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
     try {
-      ImageView rawIcon = new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor()));
+      Node rawIcon = FxIconUtil.getFileIconNode(rawDataFile.getColor());
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
           rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, 15,
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, FxIconUtil.LIST_ICON_SIZE,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
@@ -284,6 +279,14 @@ public class MainWindowController {
       return box;
     } catch (Exception ex) {
       return new StackPane();
+    }
+  }
+
+  private static Node getFeatureListIcon(@NotNull FeatureList flist) {
+    if (!flist.isAligned()) {
+      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE, flist.getRawDataFile(0).getColor());
+    } else {
+      return FxIconUtil.getFontIcon(FxIcons.ALIGNED_FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE);
     }
   }
 
@@ -315,9 +318,9 @@ public class MainWindowController {
 
     featureListsList.getTreeView().setEditable(false);
     featureListsList.getTreeView().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    featureListsList.getTreeView().setCellFactory(_ -> new GroupableTreeCell<>(FeatureList::getName,
-        flist -> flist.isAligned() ? new ImageView(featureListAlignedIcon)
-            : new ImageView(featureListSingleIcon), featureListsList));
+    featureListsList.getTreeView().setCellFactory(
+        _ -> new GroupableTreeCell<>(FeatureList::getName, MainWindowController::getFeatureListIcon,
+            featureListsList));
 
     spectralLibraryList.setEditable(false);
     spectralLibraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
