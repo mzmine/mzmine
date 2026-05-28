@@ -30,6 +30,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -63,6 +65,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private final MetadataColumn<?> metadataColumn;
   private final String grouping;
   private final AbundanceMeasure FEATURE_INTENSITY;
+  private final CompoundRowSelection rowSelection;
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
@@ -76,6 +79,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
     FEATURE_INTENSITY=parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
+    rowSelection = parameters.getValue(MetaboAnalystExportParameters.compoundRowSelection);
 //    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
     grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
     metadata = MZmineCore.getProjectMetadata();
@@ -110,9 +114,9 @@ class MetaboAnalystExportTask extends AbstractTask {
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    // Total number of rows
+    // Total number of rows to export (based on the selected rows, not all rows)
     for (FeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
+      totalRows += featureList.getRowsCopy(rowSelection).size();
     }
 
     // Process feature lists
@@ -138,9 +142,6 @@ class MetaboAnalystExportTask extends AbstractTask {
 
       // Open file
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(curFile, false))) {
-        // Get number of rows
-        totalRows = featureList.getNumberOfRows();
-
         exportFeatureList(featureList, writer);
 
       } catch (Exception e) {
@@ -205,7 +206,7 @@ class MetaboAnalystExportTask extends AbstractTask {
     writer.append("\n");
 
     // Write data rows
-    for (FeatureListRow featureListRow : featureList.getRows()) {
+    for (FeatureListRow featureListRow : featureList.getRowsCopy(rowSelection)) {
       // Cancel?
       if (isCanceled()) {
         return;
@@ -244,10 +245,14 @@ class MetaboAnalystExportTask extends AbstractTask {
     final double mz = row.getAverageMZ();
     final Float rt = row.getAverageRT();
     final Float mobility = row.getAverageMobility();
-    final int rowId = row.getID();
 
     final StringBuilder generatedName = new StringBuilder();
-    generatedName.append(rowId);
+    // CompoundRow is identified by its compound ID prefixed with CID, regular rows use the row ID
+    if (row instanceof CompoundRow compoundRow) {
+      generatedName.append("CID").append(compoundRow.getCompoundId());
+    } else {
+      generatedName.append(row.getID());
+    }
 
     String name = row.getPreferredAnnotationName();
     if (name != null) {

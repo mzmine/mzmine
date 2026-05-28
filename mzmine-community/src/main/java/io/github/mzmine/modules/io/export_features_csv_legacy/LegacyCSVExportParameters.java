@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -45,6 +46,7 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       LegacyExportRowCommonElement.values());
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.withoutIsotopes();
   public static final MultiChoiceParameter<LegacyExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<>(
       "Export data file elements", "Selection of feature's elements to export",
       LegacyExportRowDataFileElement.values());
@@ -61,10 +63,9 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
   );
   public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
       "Filename", "Name of the output CSV file. "
-                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-                  + "If the file already exists, it will be overwritten.", extensions,
-      "quant_mzmine");
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "quant_mzmine");
 
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
@@ -74,8 +75,8 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       FeatureListRowsFilter.values(), FeatureListRowsFilter.ALL);
 
   public LegacyCSVExportParameters() {
-    super(featureLists, filename, fieldSeparator, exportCommonItems, exportDataFileItems,
-        exportAllFeatureInfo, idSeparator, filter);
+    super(featureLists, compoundRowSelection, filename, fieldSeparator, exportCommonItems,
+        exportDataFileItems, exportAllFeatureInfo, idSeparator, filter);
   }
 
   @Override
