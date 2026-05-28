@@ -138,7 +138,6 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeTableView.TreeTableViewSelectionModel;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -678,7 +677,7 @@ public class FeatureTableFX extends BorderPane {
     if (flist.getRawDataFiles().size() == 1) {
       RawDataFile raw = flist.getRawDataFiles().get(0);
       headerLabel.setTextFill(raw.getColor());
-      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(raw.getColor())));
+      headerLabel.setGraphic(FxIconUtil.getFileIconNode(raw.getColor()));
     }
     rowCol.setGraphic(headerLabel);
 
@@ -983,7 +982,7 @@ public class FeatureTableFX extends BorderPane {
       // Add raw data file label
       Label headerLabel = new Label(dataFile.getName());
       headerLabel.setTextFill(dataFile.getColor());
-      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(dataFile.getColor())));
+      headerLabel.setGraphic(FxIconUtil.getFileIconNode(dataFile.getColor()));
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
