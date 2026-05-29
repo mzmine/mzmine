@@ -538,7 +538,7 @@ public class Wiff2DataAccess implements AutoCloseable {
         .setExperimentId(experiment.getId()) //
         .setRange(timeRange).setConvertToCentroid(centroid) //
         .setSmoothingOption(SmoothingOptions.Moderate) //
-        .setCentroidOption(CentroidOptions.IntensitySumAbove50Percent) //
+        .setCentroidOption(CentroidOptions.TotalIntensitySum) //
         .setIncludeIsolatedPointsAsPeaks(false) //
         .build();
     return dataProvider.getSpectra(r);
