@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -50,4 +75,12 @@ public abstract class QualityCheckResult {
   /// Builds the expandable detail content shown below the title bar when the user expands the
   /// card. Return {@code null} to mark the card as non-collapsible. Called on the FX thread.
   public abstract @Nullable Region buildSubPane();
+
+  /// When true the wrapper drops the icon-column indent on the sub pane so it can use the full card
+  /// width (handy for grid-heavy sub panes like the annotation-agreement structure grid). Other
+  /// checks should leave this {@code false} — their indented sub panes line up with the status-icon
+  /// column for a consistent look.
+  public boolean wantsFullWidthSubPane() {
+    return false;
+  }
 }

@@ -49,6 +49,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
   private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
   private final @Nullable ParameterSet checkParameters;
+  private final @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate;
   private @Nullable List<QualityCheckResult> results;
 
   RecomputeTask(@NotNull CompoundRowQualityModel model,
@@ -57,7 +58,8 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
       @Nullable SimpleColorPalette palette,
       @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
       @Nullable Consumer<@NotNull QualityCheckEvent> onEvent,
-      @Nullable ParameterSet checkParameters) {
+      @Nullable ParameterSet checkParameters,
+      @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
     super("compoundrow_quality_update", model);
     this.interactor = interactor;
     this.row = row;
@@ -68,6 +70,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
     this.selectedMemberRow = selectedMemberRow;
     this.onEvent = onEvent;
     this.checkParameters = checkParameters;
+    this.onCheckParametersUpdate = onCheckParametersUpdate;
   }
 
   @Override
@@ -83,7 +86,7 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   @Override
   protected void process() {
     results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow, onEvent,
-        checkParameters);
+        checkParameters, onCheckParametersUpdate);
   }
 
   @Override

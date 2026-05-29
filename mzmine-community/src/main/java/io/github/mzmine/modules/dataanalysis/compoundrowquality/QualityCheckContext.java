@@ -53,10 +53,7 @@ public record QualityCheckContext(@NotNull RTTolerance rtTolerance,
                                   @Nullable ColorAssignment colorAssignment,
                                   @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
                                   @Nullable Consumer<@NotNull QualityCheckEvent> onEvent,
-                                  @Nullable ParameterSet checkParameters) {
+                                  @Nullable ParameterSet checkParameters,
+                                  @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
 
-  public QualityCheckContext(@NotNull RTTolerance rtTolerance, @NotNull MZTolerance mzTolerance,
-      @NotNull MZTolerance ms2Tolerance) {
-    this(rtTolerance, mzTolerance, ms2Tolerance, null, null, null, null);
-  }
 }

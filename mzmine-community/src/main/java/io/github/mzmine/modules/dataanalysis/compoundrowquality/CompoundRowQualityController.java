@@ -150,12 +150,29 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow = model.selectedMemberRowProperty();
     final Consumer<@NotNull QualityCheckEvent> onEvent = model.getOnQualityCheckEvent();
     final ParameterSet checkParameters = model.getCheckParameters();
+    // Callback that lets in-card controls (e.g. the annotation-agreement source ComboBox) write
+    // back a new ParameterSet — same code path as the view's gear button: persist into
+    // MZmineConfiguration, then replace the model's property reference so the recompute
+    // subscription fires and re-runs every check.
+    final Consumer<@NotNull ParameterSet> onCheckParametersUpdate = this::applyCheckParameters;
 
     onGuiThread(() -> model.computingProperty().set(true));
     // PropertyUtils.onChangeDelayedSubscription already debounces; FxUpdateTask cancels prior runs by name.
     onTaskThread(
         new RecomputeTask(model, interactor, row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow,
-            onEvent, checkParameters));
+            onEvent, checkParameters, onCheckParametersUpdate));
+  }
+
+  /// Persist {@code params} into {@code MZmineConfiguration} under
+  /// {@link CompoundRowQualityCheckModule} and push the same reference onto the model so the
+  /// recompute subscription fires. Marshals onto the FX thread because callers (combo-box change
+  /// listeners inside a check sub pane) may run from arbitrary threads.
+  private void applyCheckParameters(@NotNull ParameterSet params) {
+    onGuiThread(() -> {
+      ConfigService.getConfiguration()
+          .setModuleParameters(CompoundRowQualityCheckModule.class, params);
+      model.checkParametersProperty().set(params);
+    });
   }
 
 }

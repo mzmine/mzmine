@@ -23,25 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.compoundrowquality;
+package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
-import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.AnnotationAgreementCheckType;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Persisted configuration of the {@code CompoundRow} quality pane. Stored in
- * {@code MZmineConfiguration} via {@link CompoundRowQualityCheckModule}; the view's gear button
- * loads, edits, and writes back this set.
- */
-public class CompoundRowQualityCheckParameters extends SimpleParameterSet {
+/// One "agreeing" bucket of annotations after deduplication by InChIKey first block.
+///
+/// {@code annotation} is the highest-scoring representative in the group that carries a
+/// {@code MolecularStructure} (so the result pane can always render a 2D structure for it).
+/// {@code row} is the member {@link FeatureListRow} that contributed the representative.
+/// {@code agreeingRows} is the set of distinct member rows whose annotation falls into this bucket,
+/// sorted ascending by average m/z so the result pane can list them in a stable, scannable order.
+record AnnotationAgreementGroup(@NotNull FeatureAnnotation annotation, @NotNull FeatureListRow row,
+                                @NotNull List<@NotNull FeatureListRow> agreeingRows) {
 
-  public static final ComboParameter<AnnotationAgreementCheckType> annotationAgreementCheckType = new ComboParameter<>(
-      "Annotation agreement source",
-      "Selects which feature annotations are compared by the Annotation agreement check.",
-      AnnotationAgreementCheckType.values(), AnnotationAgreementCheckType.ALL_ANNOTATIONS);
-
-  public CompoundRowQualityCheckParameters() {
-    super(annotationAgreementCheckType);
-  }
 }

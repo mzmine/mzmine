@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -69,9 +70,9 @@ public class CompoundRowQualityModel {
       MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
 
   // Color palette used to derive per-member-row colors so the quality pane matches the host
-  // dashboard (e.g. CompoundDashboardController). Nullable so the pane runs standalone without a
-  // host providing a palette.
-  private final ObjectProperty<@Nullable SimpleColorPalette> colorPalette = new SimpleObjectProperty<>();
+  // dashboard (e.g. CompoundDashboardController).
+  private final ObjectProperty<@NotNull SimpleColorPalette> colorPalette = new SimpleObjectProperty<>(
+      ConfigService.getDefaultColorPalette().clone(true));
 
   // The currently "selected" member row across all check sub panes. A click on any member-row
   // chip writes to this property; chips listen and toggle their bold-label style class so the

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -99,10 +99,20 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 //          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
       }, "mzmine (two-sided)");
 
+  /// a more narrow color scale so that this also works on dark mode UI components
+  public static final SimpleColorPalette MZMINE_ORANGE_GRAY_BLUE_TWO_SIDED_NARROW = new SimpleColorPalette(
+      new Color[]{new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (+1)
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+          new Color(0.7f, 0.7f, 0.7f, 1f), // light neutral around 0
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue (-1)
+//          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
+      }, "mzmine (two-sided, narrow)");
+
 
   public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
       GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE, MZMINE_BLUE_ORANGE,
-      MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED);
+      MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED, MZMINE_ORANGE_GRAY_BLUE_TWO_SIDED_NARROW);
   protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
       ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
       ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),

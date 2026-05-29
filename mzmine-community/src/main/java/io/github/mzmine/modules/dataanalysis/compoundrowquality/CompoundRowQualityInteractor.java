@@ -68,13 +68,14 @@ public class CompoundRowQualityInteractor {
       @Nullable SimpleColorPalette palette,
       @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
       @Nullable Consumer<@NotNull QualityCheckEvent> onEvent,
-      @Nullable ParameterSet checkParameters) {
+      @Nullable ParameterSet checkParameters,
+      @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
     // Clone with reset cycling counter so the assignment matches the dashboard's plot coloring
     // (which also starts from a fresh clone).
     final ColorAssignment colorAssignment =
         palette == null ? null : CompoundDashboardColoring.assign(row, palette.clone(true));
     final QualityCheckContext context = new QualityCheckContext(rtTol, mzTol, ms2Tol,
-        colorAssignment, selectedMemberRow, onEvent, checkParameters);
+        colorAssignment, selectedMemberRow, onEvent, checkParameters, onCheckParametersUpdate);
     final List<QualityCheckResult> out = new ArrayList<>(checks.size());
     for (final QualityCheck check : checks) {
       final QualityCheckResult result = check.evaluate(row, context);
