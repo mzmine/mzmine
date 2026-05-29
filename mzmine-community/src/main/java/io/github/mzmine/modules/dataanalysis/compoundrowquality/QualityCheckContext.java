@@ -50,10 +50,10 @@ import org.jetbrains.annotations.Nullable;
 public record QualityCheckContext(@NotNull RTTolerance rtTolerance,
                                   @NotNull MZTolerance mzTolerance,
                                   @NotNull MZTolerance ms2Tolerance,
-                                  @Nullable ColorAssignment colorAssignment,
+                                  @NotNull ColorAssignment colorAssignment,
                                   @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
                                   @Nullable Consumer<@NotNull QualityCheckEvent> onEvent,
-                                  @Nullable ParameterSet checkParameters,
+                                  @NotNull ParameterSet checkParameters,
                                   @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
 
 }

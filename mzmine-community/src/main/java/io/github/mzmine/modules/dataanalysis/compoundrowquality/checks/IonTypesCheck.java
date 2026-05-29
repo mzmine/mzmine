@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -58,20 +83,8 @@ public final class IonTypesCheck implements QualityCheck {
             distinct.keySet());
     final List<FeatureListRow> distinctRows = List.copyOf(distinct.values());
 
-    // When the host (e.g. CompoundDashboardController) supplied a color assignment, render the
-    // ion list as colored, clickable chips that mirror the dashboard coloring. Without an
-    // assignment fall back to the plain-text default so the pane keeps working standalone.
     final ColorAssignment coloring = context.colorAssignment();
-    if (coloring != null) {
       return new IonTypesQualityResult(QualityCheckStatus.PASS, summary, distinctRows, involved,
           coloring, context.selectedMemberRow());
-    }
-    // Plain-text fallback: one detail line per ion, "ion m/z value" (no em-dash separator).
-    final List<String> details = distinct.entrySet().stream().map(e -> {
-      final Double mz = e.getValue().getAverageMZ();
-      return "%s m/z %.4f".formatted(e.getKey(), mz == null ? Double.NaN : mz);
-    }).toList();
-    return new DefaultQualityCheckResult(QualityCheckType.ION_TYPES, QualityCheckStatus.PASS,
-        summary, details, involved);
   }
 }

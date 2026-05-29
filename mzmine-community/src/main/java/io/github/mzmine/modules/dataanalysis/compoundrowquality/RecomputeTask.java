@@ -45,20 +45,19 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   private final RTTolerance rtTol;
   private final MZTolerance mzTol;
   private final MZTolerance ms2Tol;
-  private final @Nullable SimpleColorPalette palette;
+  private final @NotNull SimpleColorPalette palette;
   private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
   private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
-  private final @Nullable ParameterSet checkParameters;
+  private final @NotNull ParameterSet checkParameters;
   private final @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate;
   private @Nullable List<QualityCheckResult> results;
 
   RecomputeTask(@NotNull CompoundRowQualityModel model,
       @NotNull CompoundRowQualityInteractor interactor, @NotNull CompoundRow row,
       @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
-      @Nullable SimpleColorPalette palette,
+      @NotNull SimpleColorPalette palette,
       @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
-      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent,
-      @Nullable ParameterSet checkParameters,
+      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent, @NotNull ParameterSet checkParameters,
       @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
     super("compoundrow_quality_update", model);
     this.interactor = interactor;

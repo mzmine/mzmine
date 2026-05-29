@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality.checks;
 
 import io.github.mzmine.datamodel.Scan;
@@ -79,15 +104,9 @@ public final class Ms2AvailableCheck implements QualityCheck {
     final String summary = "%d MS2 scan%s across %d/%d member%s (%.0f%%)".formatted(totalScans,
         totalScans == 1 ? "" : "s", withMs2, totalMembers, totalMembers == 1 ? "" : "s", pct);
 
-    // When the host supplied a color assignment, render the row-by-row scan breakdown with
-    // colored, clickable chips. Without it, fall back to the plain-text default.
     final ColorAssignment coloring = context.colorAssignment();
-    if (coloring != null) {
       return new Ms2AvailableQualityResult(QualityCheckStatus.PASS, summary, rowScans, involved,
           coloring, context.selectedMemberRow(), context.onEvent());
-    }
-    return new DefaultQualityCheckResult(QualityCheckType.MS2_AVAILABLE, QualityCheckStatus.PASS,
-        summary, List.of(), involved);
   }
 
   /// Group a row's scans first by activation method, then within each method cluster nearby

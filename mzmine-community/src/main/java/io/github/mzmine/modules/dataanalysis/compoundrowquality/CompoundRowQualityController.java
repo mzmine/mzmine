@@ -62,11 +62,10 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
 
   public CompoundRowQualityController() {
     super(new CompoundRowQualityModel());
-    // Seed the model with the persisted check-configuration so the first recompute already uses
-    // the user's saved AnnotationAgreementCheckType etc. The view's gear button writes a fresh
-    // clone back to this property on every dialog OK, which fires the recompute subscription.
-    model.checkParametersProperty().set(
-        ConfigService.getConfiguration().getModuleParameters(CompoundRowQualityCheckModule.class));
+    // The model self-seeds the persisted check-configuration + color palette in its field
+    // initializers, so by the time we wire the recompute subscription both properties already hold
+    // non-null values. The view's gear button and in-pane source ComboBox write a fresh reference
+    // back on every change, which is what actually fires the recompute.
     builder = new CompoundRowQualityViewBuilder(model);
     PropertyUtils.onChangeDelayedSubscription(this::scheduleRecompute, RECOMPUTE_DEBOUNCE,
         model.selectedCompoundRowProperty(), model.rtStabilityToleranceProperty(),
@@ -143,13 +142,13 @@ public class CompoundRowQualityController extends FxController<CompoundRowQualit
     final RTTolerance rtTol = model.getRtStabilityTolerance();
     final MZTolerance mzTol = model.getMzTolerance();
     final MZTolerance ms2Tol = model.getMs2Tolerance();
-    final SimpleColorPalette palette = model.getColorPalette();
+    final @NotNull SimpleColorPalette palette = model.getColorPalette();
     // The selection + event callbacks are captured by reference (the property itself, not a
     // snapshot of its value). Chips installed by the background-built result hook into these so
     // clicks on the FX thread can both read and write the live selection.
     final ObjectProperty<@Nullable FeatureListRow> selectedMemberRow = model.selectedMemberRowProperty();
     final Consumer<@NotNull QualityCheckEvent> onEvent = model.getOnQualityCheckEvent();
-    final ParameterSet checkParameters = model.getCheckParameters();
+    final @NotNull ParameterSet checkParameters = model.getCheckParameters();
     // Callback that lets in-card controls (e.g. the annotation-agreement source ComboBox) write
     // back a new ParameterSet — same code path as the view's gear button: persist into
     // MZmineConfiguration, then replace the model's property reference so the recompute

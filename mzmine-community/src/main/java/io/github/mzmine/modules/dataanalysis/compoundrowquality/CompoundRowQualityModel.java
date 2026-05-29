@@ -87,9 +87,11 @@ public class CompoundRowQualityModel {
   private final ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEvent = new SimpleObjectProperty<>();
 
   // Persisted check configuration (e.g. AnnotationAgreementCheckType). Lives in MZmineConfiguration
-  // via CompoundRowQualityCheckModule; the controller seeds it on startup and writes a new
-  // reference on every dialog OK to fire the recompute subscription.
-  private final ObjectProperty<@Nullable ParameterSet> checkParameters = new SimpleObjectProperty<>();
+  // via CompoundRowQualityCheckModule — seeded here at construction so the first recompute already
+  // sees the user's saved choices. The view's gear button and the in-pane source ComboBox write a
+  // fresh reference back on every change to fire the recompute subscription.
+  private final ObjectProperty<@NotNull ParameterSet> checkParameters = new SimpleObjectProperty<>(
+      ConfigService.getConfiguration().getModuleParameters(CompoundRowQualityCheckModule.class));
 
   // true while a recompute task is in flight
   private final BooleanProperty computing = new SimpleBooleanProperty(false);
@@ -153,19 +155,19 @@ public class CompoundRowQualityModel {
     return computing;
   }
 
-  public @Nullable ParameterSet getCheckParameters() {
+  public @NotNull ParameterSet getCheckParameters() {
     return checkParameters.get();
   }
 
-  public ObjectProperty<@Nullable ParameterSet> checkParametersProperty() {
+  public ObjectProperty<@NotNull ParameterSet> checkParametersProperty() {
     return checkParameters;
   }
 
-  public @Nullable SimpleColorPalette getColorPalette() {
+  public @NotNull SimpleColorPalette getColorPalette() {
     return colorPalette.get();
   }
 
-  public ObjectProperty<@Nullable SimpleColorPalette> colorPaletteProperty() {
+  public ObjectProperty<@NotNull SimpleColorPalette> colorPaletteProperty() {
     return colorPalette;
   }
 

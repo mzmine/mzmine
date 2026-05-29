@@ -136,7 +136,7 @@ public final class AnnotationAgreementCheck implements QualityCheck {
 
   /// Wrap {@link QualityCheckContext#onCheckParametersUpdate()} into a typed consumer that just
   /// takes the new {@link AnnotationAgreementCheckType}. Returns null when no update callback is
-  /// available (standalone use), which the result class interprets as "make the combo read-only".
+  /// wired (standalone use), which the result class interprets as "make the combo read-only".
   private static @Nullable Consumer<@NotNull AnnotationAgreementCheckType> buildOnCheckTypeChange(
       @NotNull QualityCheckContext context) {
     final Consumer<@NotNull ParameterSet> sink = context.onCheckParametersUpdate();
@@ -145,27 +145,23 @@ public final class AnnotationAgreementCheck implements QualityCheck {
     }
     final ParameterSet base = context.checkParameters();
     return newType -> {
-      // Clone the persisted set (or a fresh default if the pane runs without a wired set) so we
-      // never mutate the live model parameters in place — the recompute subscription only fires
-      // when the property reference changes.
-      final ParameterSet clone = (base != null ? base
-          : new CompoundRowQualityCheckParameters()).cloneParameterSet();
+      // Clone so we never mutate the live model parameters in place — the recompute subscription
+      // only fires when the property reference changes.
+      final ParameterSet clone = base.cloneParameterSet();
       clone.setParameter(CompoundRowQualityCheckParameters.annotationAgreementCheckType, newType);
       sink.accept(clone);
     };
   }
 
-  /// Resolve the {@link AnnotationAgreementCheckType} from the persisted parameter set; falls back
-  /// to {@link AnnotationAgreementCheckType#PREFERRED_ANNOTATION} when the parameters are absent
-  /// (e.g. the pane is used in a standalone context without a controller-wired ConfigService).
+  /// Resolve the {@link AnnotationAgreementCheckType} from the persisted parameter set. The model
+  /// always seeds {@link QualityCheckContext#checkParameters()} from the module defaults, so the
+  /// combo value is always present; the {@code ALL_ANNOTATIONS} fallback only guards against a
+  /// hypothetical legacy parameter set without that combo entry.
   private static @NotNull AnnotationAgreementCheckType resolveMode(
-      final ParameterSet checkParameters) {
-    if (checkParameters == null) {
-      return AnnotationAgreementCheckType.PREFERRED_ANNOTATION;
-    }
+      @NotNull ParameterSet checkParameters) {
     final AnnotationAgreementCheckType value = checkParameters.getValue(
         CompoundRowQualityCheckParameters.annotationAgreementCheckType);
-    return value != null ? value : AnnotationAgreementCheckType.PREFERRED_ANNOTATION;
+    return value != null ? value : AnnotationAgreementCheckType.ALL_ANNOTATIONS;
   }
 
   /// Collect (annotation, sourceRow) pairs across all member rows according to the chosen mode.
