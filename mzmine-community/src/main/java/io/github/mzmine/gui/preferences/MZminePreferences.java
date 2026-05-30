@@ -171,7 +171,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final ComboParameter<ThemeStyle> themeStyle = new ComboParameter<>("Theme style",
       "Select the structural UI style for controls, tabs, and layout.", ThemeStyle.values(),
-      ThemeStyle.MODERN);
+      ThemeStyle.JABREF);
   public static final ComboParameter<ThemeColors> themeColors = new ComboParameter<>("Theme colors",
       "Select the color palette for the UI.", ThemeColors.values(), ThemeColors.LIGHT);
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",

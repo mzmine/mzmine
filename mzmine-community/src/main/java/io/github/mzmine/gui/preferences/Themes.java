@@ -44,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public record Themes(@NotNull ThemeStyle style, @NotNull ThemeColors colors) {
 
-  private static final String DARK_OVERRIDES = "themes/mzmine_dark_overrides.css";
   private static final String ADDITIONS_COMMON = "themes/jabref_additions_common.css";
   private static final String ADDITIONS_LIGHT = "themes/jabref_additions_light.css";
   private static final String ADDITIONS_DARK = "themes/jabref_additions_dark.css";
@@ -57,9 +56,6 @@ public record Themes(@NotNull ThemeStyle style, @NotNull ThemeColors colors) {
     List<String> styles = new ArrayList<>();
     styles.add(style.getStylesheet());
     styles.add(colors.getStylesheet());
-    if (colors.isDark()) {
-      styles.add(DARK_OVERRIDES);
-    }
     styles.add(ADDITIONS_COMMON);
     styles.add(colors.isDark() ? ADDITIONS_DARK : ADDITIONS_LIGHT);
     sheets.setAll(styles);
