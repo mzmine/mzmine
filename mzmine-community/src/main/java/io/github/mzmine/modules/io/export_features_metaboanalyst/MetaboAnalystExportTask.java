@@ -116,7 +116,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     // Total number of rows to export (based on the selected rows, not all rows)
     for (FeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows(rowSelection);
+      totalRows += featureList.getNumberOfCompoundSelectionRows(rowSelection);
     }
 
     // Process feature lists

@@ -250,11 +250,11 @@ public interface FeatureList {
    *
    * @return number of rows (either compound rows
    */
-  default int getNumberOfRows(@NotNull CompoundRowSelection selection)
+  default int getNumberOfCompoundSelectionRows(@NotNull CompoundRowSelection selection)
       throws MissingCompoundListException {
     final CompoundList cl = getCompoundList();
     if (cl != null) {
-      return cl.getNumberOfRows(selection);
+      return cl.getNumberOfCompoundRows(selection);
     }
     if (selection == CompoundRowSelection.COMPOUNDS) {
       throw new MissingCompoundListException(this);

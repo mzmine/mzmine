@@ -179,12 +179,19 @@ public class CompoundList {
    *
    * @return number of rows (either compound rows or feature list rows)
    */
-  public int getNumberOfRows(@NotNull CompoundRowSelection selection) {
+  public int getNumberOfCompoundRows(@NotNull CompoundRowSelection selection) {
     return switch (selection) {
       case COMPOUNDS -> rows.size();
       case ALL_FEATURE_ROWS -> featureList.getNumberOfRows();
       case ALL_MAJOR_IONS -> getRowsCopy(selection).size();
     };
+  }
+
+  /**
+   * @return number of compound rows
+   */
+  public int getNumberOfCompoundRows() {
+    return getNumberOfCompoundRows(CompoundRowSelection.COMPOUNDS);
   }
 
   /**
