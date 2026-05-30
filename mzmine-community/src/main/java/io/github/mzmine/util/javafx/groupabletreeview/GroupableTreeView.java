@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,7 +25,6 @@
 
 package io.github.mzmine.util.javafx.groupabletreeview;
 
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
@@ -48,6 +48,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -103,7 +104,7 @@ public class GroupableTreeView<T> extends BorderPane {
     // refresh strategies from provider before the dropdown opens
     strategyComboBox.addEventFilter(MouseEvent.MOUSE_PRESSED, _ -> refreshStrategies());
 
-    setTop(FxLayout.newHBox(Pos.CENTER_LEFT, FxLabels.newLabel("Group by"), strategyComboBox));
+    setTop(FxLayout.newHBox(Pos.CENTER_LEFT, new Label("Group by"), strategyComboBox));
     setCenter(treeView);
 
     treeView.getSelectionModel().getSelectedItems().addListener(
