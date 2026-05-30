@@ -34,7 +34,8 @@ claude.md
 
 # External tools fetched locally (do not commit downloaded parser binaries)
 /external_tools/thermo_raw_file_parser/
-external_tools/sciex_wiff2/*
+external_tools/sciex_wiff2/Server-linux-x64/*
+external_tools/sciex_wiff2/Server-win10-x64/*
 mlreader.txt
 
 # VS Code settings

@@ -394,6 +394,32 @@
             ]
         },
         {
+            "moduleName": "com.google.android:annotations",
+            "moduleVersion": "4.1.1.4",
+            "moduleUrls": [
+                "http://source.android.com/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "com.google.api.grpc:proto-google-common-protos",
+            "moduleVersion": "2.59.2",
+            "moduleUrls": [
+                "https://github.com/googleapis/sdk-platform-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "com.google.code.findbugs:jsr305",
             "moduleVersion": "3.0.2",
             "moduleUrls": [
@@ -408,9 +434,9 @@
         },
         {
             "moduleName": "com.google.code.gson:gson",
-            "moduleVersion": "2.10.1",
+            "moduleVersion": "2.11.0",
             "moduleUrls": [
-                "https://github.com/google/gson/gson"
+                "https://github.com/google/gson"
             ],
             "moduleLicenses": [
                 {
@@ -421,7 +447,7 @@
         },
         {
             "moduleName": "com.google.errorprone:error_prone_annotations",
-            "moduleVersion": "2.23.0",
+            "moduleVersion": "2.36.0",
             "moduleUrls": [
                 "https://errorprone.info/error_prone_annotations"
             ],
@@ -434,7 +460,7 @@
         },
         {
             "moduleName": "com.google.guava:failureaccess",
-            "moduleVersion": "1.0.2",
+            "moduleVersion": "1.0.3",
             "moduleUrls": [
                 "https://github.com/google/guava/"
             ],
@@ -447,7 +473,7 @@
         },
         {
             "moduleName": "com.google.guava:guava",
-            "moduleVersion": "33.0.0-jre",
+            "moduleVersion": "33.4.8-android",
             "moduleUrls": [
                 "https://github.com/google/guava",
                 "https://github.com/google/guava/"
@@ -470,19 +496,28 @@
             ]
         },
         {
-            "moduleName": "com.google.protobuf:protobuf-java",
-            "moduleVersion": "2.5.0",
+            "moduleName": "com.google.j2objc:j2objc-annotations",
+            "moduleVersion": "3.0.0",
             "moduleUrls": [
-                "http://code.google.com/p/protobuf"
+                "https://github.com/google/j2objc/"
             ],
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                },
+                }
+            ]
+        },
+        {
+            "moduleName": "com.google.protobuf:protobuf-java",
+            "moduleVersion": "4.33.0",
+            "moduleUrls": [
+                "https://developers.google.com/protocol-buffers/"
+            ],
+            "moduleLicenses": [
                 {
-                    "moduleLicense": "The 2-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-2-Clause"
+                    "moduleLicense": "The 3-Clause BSD License",
+                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
                 }
             ]
         },
@@ -1112,6 +1147,110 @@
             ]
         },
         {
+            "moduleName": "io.grpc:grpc-api",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-context",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-core",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-netty-shaded",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-protobuf",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-protobuf-lite",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-stub",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.grpc:grpc-util",
+            "moduleVersion": "1.76.0",
+            "moduleUrls": [
+                "https://github.com/grpc/grpc-java"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "io.gsonfire:gson-fire",
             "moduleVersion": "1.8.5",
             "moduleUrls": [
@@ -1363,6 +1502,19 @@
             "moduleVersion": "4.1.123.Final",
             "moduleUrls": [
                 "https://netty.io/"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "io.perfmark:perfmark-api",
+            "moduleVersion": "0.27.0",
+            "moduleUrls": [
+                "https://github.com/perfmark/perfmark"
             ],
             "moduleLicenses": [
                 {
@@ -2347,12 +2499,13 @@
             ]
         },
         {
-            "moduleName": "org.checkerframework:checker-qual",
-            "moduleVersion": "3.41.0",
-            "moduleUrls": [
-                "https://checkerframework.org/"
-            ],
+            "moduleName": "org.codehaus.mojo:animal-sniffer-annotations",
+            "moduleVersion": "1.24",
             "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                },
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
@@ -2912,6 +3065,20 @@
                 {
                     "moduleLicense": "The JSON License",
                     "moduleLicenseUrl": "http://json.org/license.html"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.jspecify:jspecify",
+            "moduleVersion": "1.0.0",
+            "moduleUrls": [
+                "http://jspecify.org/",
+                "https://jspecify.dev/docs/start-here"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         },
