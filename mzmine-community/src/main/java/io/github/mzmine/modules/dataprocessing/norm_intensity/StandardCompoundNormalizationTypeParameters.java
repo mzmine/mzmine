@@ -24,14 +24,32 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,8 +68,37 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final DoubleParameter mzVsRtBalance = new DoubleParameter("m/z vs RT balance",
       "Used in distance measuring as multiplier of m/z difference");
 
-  public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
-      "Standard compounds", "List of features for choosing the normalization standards", null);
+  public static final FileNameParameter standardCompoundsFile = new FileNameParameter(
+      "Standard compounds file",
+      "CSV or TSV file containing the internal standard compounds to match in the feature list.",
+      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN, false);
+
+  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
+      "Character(s) used to separate fields in the standard compounds file. Use '\\t' for tab separated files.",
+      ",");
+
+  private static final List<ImportType<?>> importTypes = List.of(
+      new ImportType<>(true, "mz", new PrecursorMZType()), //
+      new ImportType<>(true, "rt", new RTType()), //
+      new ImportType<>(false, "mobility", new MobilityType()), //
+      new ImportType<>(true, "name", new CompoundNameType()));
+
+  public static final ImportTypeParameter standardCompounds = new ImportTypeParameter(
+      "Standard compounds",
+      "Select the columns that contain the internal standard compound properties.", importTypes);
+
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
+      "Maximum allowed m/z difference when matching imported standards to feature list rows.",
+      0.005, 5);
+
+  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter("RT tolerance",
+      "Maximum allowed retention time difference when matching imported standards to feature list rows.",
+      new RTTolerance(0.03f, Unit.MINUTES));
+
+  public static final MobilityToleranceParameter mobilityTolerance = new MobilityToleranceParameter(
+      "Mobility tolerance",
+      "Maximum allowed mobility difference when matching imported standards to feature list rows.",
+      new MobilityTolerance(0.01f));
 
   public static final BooleanParameter requireAllStandards = new BooleanParameter(
       "Require all standards",
@@ -59,14 +106,33 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       true);
 
   public StandardCompoundNormalizationTypeParameters() {
-    super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompounds, requireAllStandards);
+    super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompoundsFile, fieldSeparator,
+        standardCompounds, mzTolerance, rtTolerance, mobilityTolerance, requireAllStandards);
   }
 
   public static @NotNull StandardCompoundNormalizationTypeParameters create(
       final @NotNull List<SampleType> selectedSampleTypes,
       final @NotNull StandardUsageType selectedStandardUsageType,
-      final double selectedMzVsRtBalance,
-      final @NotNull List<FeatureSelection> selectedStandardCompounds,
+      final double selectedMzVsRtBalance, final @NotNull File selectedStandardCompoundsFile,
+      final @NotNull String selectedFieldSeparator, final @NotNull MZTolerance selectedMzTolerance,
+      final @NotNull RTTolerance selectedRtTolerance,
+      final @NotNull MobilityTolerance selectedMobilityTolerance,
+      final boolean selectedRequireAllStandards) {
+    return create(selectedSampleTypes, selectedStandardUsageType, selectedMzVsRtBalance,
+        selectedStandardCompoundsFile, selectedFieldSeparator, copyImportTypes(importTypes),
+        selectedMzTolerance, selectedRtTolerance, selectedMobilityTolerance,
+        selectedRequireAllStandards);
+  }
+
+  public static @NotNull StandardCompoundNormalizationTypeParameters create(
+      final @NotNull List<SampleType> selectedSampleTypes,
+      final @NotNull StandardUsageType selectedStandardUsageType,
+      final double selectedMzVsRtBalance, final @NotNull File selectedStandardCompoundsFile,
+      final @NotNull String selectedFieldSeparator,
+      final @NotNull List<ImportType<?>> selectedStandardCompounds,
+      final @NotNull MZTolerance selectedMzTolerance,
+      final @NotNull RTTolerance selectedRtTolerance,
+      final @NotNull MobilityTolerance selectedMobilityTolerance,
       final boolean selectedRequireAllStandards) {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.sampleTypes,
@@ -75,11 +141,58 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
         selectedStandardUsageType);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.mzVsRtBalance,
         selectedMzVsRtBalance);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardCompoundsFile,
+        selectedStandardCompoundsFile);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.fieldSeparator,
+        selectedFieldSeparator);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardCompounds,
-        selectedStandardCompounds);
+        copyImportTypes(selectedStandardCompounds));
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mzTolerance,
+        selectedMzTolerance);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.rtTolerance,
+        selectedRtTolerance);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mobilityTolerance,
+        selectedMobilityTolerance);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.requireAllStandards,
         selectedRequireAllStandards);
     return parameters;
+  }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
+    final boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+
+    final List<ImportType<?>> selectedTypes = getValue(standardCompounds).stream()
+        .filter(ImportType::isSelected).toList();
+    final boolean mzSelected = importTypeListContainsType(selectedTypes, PrecursorMZType.class);
+    final boolean rtSelected = importTypeListContainsType(selectedTypes, RTType.class);
+
+    if (!mzSelected) {
+      errorMessages.add("Standard compounds must import the \"%s\" column.".formatted(
+          new PrecursorMZType().getHeaderString()));
+    }
+    if (!rtSelected) {
+      errorMessages.add("Standard compounds must import the \"%s\" column.".formatted(
+          new RTType().getHeaderString()));
+    }
+
+    return superCheck && mzSelected && rtSelected;
+  }
+
+  private boolean importTypeListContainsType(final @NotNull List<ImportType<?>> importTypes,
+      final @NotNull Class<? extends DataType<?>> typeClass) {
+    return importTypes.stream()
+        .anyMatch(importType -> typeClass.isInstance(importType.getDataType()));
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private static @NotNull List<ImportType<?>> copyImportTypes(
+      final @NotNull List<ImportType<?>> source) {
+    return source.stream().<ImportType<?>>map(
+        importType -> new ImportType(importType.isSelected(), importType.getCsvColumnName(),
+            importType.getDataType(), importType.getMapper())).toList();
   }
 }
 
