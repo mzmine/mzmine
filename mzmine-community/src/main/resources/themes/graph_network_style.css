@@ -124,8 +124,9 @@ node.ANALOG {
   /* inherit the base node text-visibility threshold (3) so analog labels show at the same zoom as feature labels */
   text-visibility-mode: under-zoom;
   text-visibility: 0.5;
-  fill-color: salmon;
+  fill-color: #565656;
   size: 15px;
+  shape: diamond;
 }
 
 /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */
