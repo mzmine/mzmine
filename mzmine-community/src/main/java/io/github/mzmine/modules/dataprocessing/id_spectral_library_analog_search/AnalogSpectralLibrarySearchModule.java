@@ -72,7 +72,7 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
       case MODIFIED_COSINE, COSINE_NO_PRECURSOR -> tasks.add(
           new AnalogSpectralLibrarySearchCosineTask(project, parameters, featureLists,
               moduleCallDate, this.getClass()));
-      case MS2_DEEPSCORE, DREAMS -> tasks.add(
+      case MS2_DEEPSCORE/*, DREAMS*/ -> tasks.add(
           new AnalogSpectralLibrarySearchMlTask(project, parameters, featureLists, moduleCallDate,
               this.getClass()));
     }
