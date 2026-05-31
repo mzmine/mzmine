@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCALoadingsExtractionModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
@@ -494,6 +495,7 @@ public class BatchModeModulesList {
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //
           LipidAnnotationSummaryModule.class, //
+          CompoundDashboardModule.class, //
           IntegrationDashboardModule.class, //
           LipidAnnotationQCDashboardModule.class, //
           MultidetectorVisualizerModule.class, //
