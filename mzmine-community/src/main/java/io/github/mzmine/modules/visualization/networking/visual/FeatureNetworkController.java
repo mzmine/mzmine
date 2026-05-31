@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,6 +86,7 @@ public class FeatureNetworkController {
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
   public Button btnFocusSelectedNodes;
+  public NetworkLegend legend;
 
   private FeatureNetworkPane networkPane;
 
@@ -104,6 +105,7 @@ public class FeatureNetworkController {
     FeatureNetworkController controller = loader.getController();
 
     controller.setFeatureListCreateNetworkPane(flist, focussedRows, flavor);
+
     return controller;
   }
 
@@ -121,6 +123,11 @@ public class FeatureNetworkController {
     var fullGraph = generator.createNewGraph(flist, true, true, false);
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
+
+    // Filter the legend to the node/edge types actually emitted by the generator. The generator
+    // tracks them in observable sets while building the graph, so the legend reflects what's in
+    // this particular network instead of every possible enum value.
+    legend.bindToTypes(generator.getNodeTypes(), generator.getEdgeTypes());
 
     addMenuOptions(flavor);
     addAnnotationFilterOptions(flist);

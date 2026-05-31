@@ -284,7 +284,6 @@ public interface FeatureAnnotation {
       case COMPOUND_NAME -> getCompoundName();
       case IUPAC_NAME -> getIupacName();
       case INTERNAL_ID -> getInternalId();
-      case FORMULA -> getFormula();
       case SMILES -> getSmiles();
       case INCHI_KEY -> getInChIKey();
       case INCHI -> getInChI();

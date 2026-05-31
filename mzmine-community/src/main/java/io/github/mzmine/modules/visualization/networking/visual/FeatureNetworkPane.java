@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,7 @@ import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphLab
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphSizeStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphStyler;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -229,6 +230,27 @@ public class FeatureNetworkPane extends NetworkPane {
         .filter(Objects::nonNull).toList();
   }
 
+  /**
+   * @return the {@link AnalogCompoundGroup} backing this node if it is an analog-compound node, or
+   * null otherwise. The group is attached during graph construction in
+   * {@link FeatureNetworkGenerator#createAnalogCompoundNode}.
+   */
+  @Nullable
+  public AnalogCompoundGroup getAnalogGroupFromNode(final Node a) {
+    return (AnalogCompoundGroup) a.getAttribute(FeatureNetworkGenerator.ANALOG_GROUP_ATTR);
+  }
+
+  /**
+   * @return the analog-compound groups for every analog node in {@code nodes}. Non-analog nodes are
+   * filtered out, so this list and {@link #getRowsFromNodes(List)} on the same selection are
+   * disjoint partitions of the original.
+   */
+  public @NotNull List<@NotNull AnalogCompoundGroup> getAnalogGroupsFromNodes(
+      final List<? extends Node> nodes) {
+    return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getAnalogGroupFromNode)
+        .filter(Objects::nonNull).toList();
+  }
+
   public void setAttributeForAllElements(GraphStyleAttribute gsa, GraphElementAttr attribute) {
     if (attribute == null) {
       return;
@@ -371,7 +393,8 @@ public class FeatureNetworkPane extends NetworkPane {
       if (type != null) {
         switch (type) {
           case ION_IDENTITY -> setVisible(edge, !collapse);
-          case MS2_MODIFIED_COSINE, NETWORK_RELATIONS, MS2Deepscore, DREAMS -> setVisible(edge, true);
+          case MS2_MODIFIED_COSINE, NETWORK_RELATIONS, MS2Deepscore, DREAMS ->
+              setVisible(edge, true);
           default -> {
           }
         }
