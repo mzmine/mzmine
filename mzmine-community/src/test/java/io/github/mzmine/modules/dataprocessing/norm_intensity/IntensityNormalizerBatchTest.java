@@ -26,7 +26,6 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createFeatureIntensityParameters;
 import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.createRawFile;
-import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensityTestUtils.toFeatureSelections;
 import static io.github.mzmine.util.FeatureListTestUtils.addRow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,10 +45,17 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -58,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests for {@link IntensityNormalizerTask} focusing on batch-aware multi-step normalization.
@@ -69,6 +76,9 @@ import org.junit.jupiter.api.Test;
  * clean up columns there via {@link BeforeEach}/{@link AfterEach}.
  */
 class IntensityNormalizerBatchTest {
+
+  @TempDir
+  Path tempDir;
 
   /**
    * Unique column name for batch grouping — avoids clashing with other tests.
@@ -293,6 +303,14 @@ class IntensityNormalizerBatchTest {
     flist.removeRow(0);
   }
 
+  private @NotNull File writeStandardsFile(final @NotNull ModularFeatureListRow row)
+      throws IOException {
+    final Path file = tempDir.resolve("internal-standards.csv");
+    Files.writeString(file,
+        "mz,rt,name\n%s,%s,internal_standard\n".formatted(row.getAverageMZ(), row.getAverageRT()));
+    return file.toFile();
+  }
+
   // ── Test 2: all three normalization steps + batch correction ────────────────────────────────────
 
   /**
@@ -312,12 +330,15 @@ class IntensityNormalizerBatchTest {
    * × 0.5). All regular rows must therefore normalize to 15.0.
    */
   @Test
-  void run_withAllStepsAndBatchCorrection_normalizesRegularRowsToExpectedValue() {
+  void run_withAllStepsAndBatchCorrection_normalizesRegularRowsToExpectedValue()
+      throws IOException {
 
     // Step 2: IS normalization via StandardCompounds (isRow)
     final ParameterSet isParams = StandardCompoundNormalizationTypeParameters.create(
         List.of(SampleType.values()), StandardUsageType.Nearest, 1.0d,
-        toFeatureSelections(isRow), /*requireAllStandards=*/ false);
+        writeStandardsFile(isRow), ",", new MZTolerance(0.25, 0d),
+        new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f),
+        /*requireAllStandards=*/ false);
 
     // Step 3: QC drift correction (MEDIAN) + batch correction
     final ParameterSet qcParams = createFeatureIntensityParameters(
