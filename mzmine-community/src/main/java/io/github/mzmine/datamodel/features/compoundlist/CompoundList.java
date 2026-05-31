@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
@@ -144,29 +169,30 @@ public class CompoundList {
           }
         }).toList();
       }
-      case ALL_ISOTOPES -> {
-        final Set<FeatureListRow> seen = new HashSet<>();
-        yield getRowsCopy().stream().<FeatureListRow>mapMulti((comp, up) -> {
-          // compound row is not returned, just the first level of main ions and then their isotopes
-          for (FeatureListRow member : comp.getMemberRows()) {
-            if (member instanceof ModularCompoundRow compMember) {
-              final List<FeatureListRow> isotopeRows = compMember.getMemberRows();
-              for (FeatureListRow isotope : isotopeRows) {
-                if (seen.add(isotope)) {
-                  up.accept(isotope);
-                }
-              }
-            } else {
-              if (seen.add(member)) {
-                up.accept(member);
-              }
-            }
-          }
-        }).toList();
-      }
+      case ALL_FEATURE_ROWS -> featureList.getRowsCopy();
     };
   }
 
+  /**
+   * Number of rows Get list of rows depending on which level: Compounds, all major ions (first
+   * level), all feature list rows
+   *
+   * @return number of rows (either compound rows or feature list rows)
+   */
+  public int getNumberOfCompoundRows(@NotNull CompoundRowSelection selection) {
+    return switch (selection) {
+      case COMPOUNDS -> rows.size();
+      case ALL_FEATURE_ROWS -> featureList.getNumberOfRows();
+      case ALL_MAJOR_IONS -> getRowsCopy(selection).size();
+    };
+  }
+
+  /**
+   * @return number of compound rows
+   */
+  public int getNumberOfCompoundRows() {
+    return getNumberOfCompoundRows(CompoundRowSelection.COMPOUNDS);
+  }
 
   /**
    * Replace all rows and rebuild the reverse member index. Must be called on the FX thread when the
@@ -496,8 +522,7 @@ public class CompoundList {
 
   /**
    * @return true if any top-level compound row holds a member that is itself a
-   * {@link ModularCompoundRow} (i.e. a major ion row with isotope sub-rows). Used to decide whether
-   * {@link CompoundRowSelection#ALL_ISOTOPES} is a meaningful option to expose in the UI.
+   * {@link ModularCompoundRow} (i.e. a major ion row with isotope sub-rows).
    */
   public boolean hasNestedCompoundRows() {
     for (final ModularCompoundRow cr : rows) {
@@ -512,4 +537,5 @@ public class CompoundList {
     }
     return false;
   }
+
 }

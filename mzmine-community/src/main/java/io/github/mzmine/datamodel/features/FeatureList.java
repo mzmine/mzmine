@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -240,10 +240,28 @@ public interface FeatureList {
       throw new MissingCompoundListException(this);
     }
 
-    // TODO have to decide how to handle missing compound list when all major ions or isotopes selected
-    // for now just return all rows
     // this is used in export modules where we export either all rows or all compounds or just one level
     return getRowsCopy();
+  }
+
+  /**
+   * Number of rows Get list of rows depending on which level: Compounds, all major ions (first
+   * level), all feature list rows
+   *
+   * @return number of rows (either compound rows
+   */
+  default int getNumberOfCompoundSelectionRows(@NotNull CompoundRowSelection selection)
+      throws MissingCompoundListException {
+    final CompoundList cl = getCompoundList();
+    if (cl != null) {
+      return cl.getNumberOfCompoundRows(selection);
+    }
+    if (selection == CompoundRowSelection.COMPOUNDS) {
+      throw new MissingCompoundListException(this);
+    }
+
+    // this is used in export modules where we export either all rows or all compounds or just one level
+    return getNumberOfRows();
   }
 
   /**

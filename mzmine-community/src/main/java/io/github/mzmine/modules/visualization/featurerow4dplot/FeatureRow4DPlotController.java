@@ -147,7 +147,7 @@ public class FeatureRow4DPlotController extends FxController<FeatureRow4DPlotMod
     }
     return switch (model.getCompoundRowSelection()) {
       case COMPOUNDS -> contractToCompoundRows(rows, cl);
-      case ALL_MAJOR_IONS, ALL_ISOTOPES -> expandCompoundRows(rows);
+      case ALL_MAJOR_IONS, ALL_FEATURE_ROWS -> expandCompoundRows(rows);
     };
   }
 

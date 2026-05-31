@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -47,6 +48,8 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType
 import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.identifiers.MasstUrlType;
 import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
@@ -118,13 +121,13 @@ public class DataTypes {
             try {
               final Class<?> clazz = classInfo.load();
 
-              if (clazz==null || !DataType.class.isAssignableFrom(clazz)) {
+              if (clazz == null || !DataType.class.isAssignableFrom(clazz)) {
                 // avoid initializing so many javafx classes that fail with:
 //                Caused by: java.lang.IllegalStateException: Toolkit not initialized
                 return;
               }
-              if(!clazz.getSimpleName().endsWith("Type")) {
-                logger.warning("DataType does not end with Type: "+clazz.getSimpleName());
+              if (!clazz.getSimpleName().endsWith("Type")) {
+                logger.warning("DataType does not end with Type: " + clazz.getSimpleName());
               }
 
               Object o = clazz.getDeclaredConstructor().newInstance();
@@ -220,8 +223,9 @@ public class DataTypes {
    */
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
-    List<Class> priority = List.of(CompoundIdType.class, IDType.class, DetectionType.class,
-        MZType.class, MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
+    List<Class> priority = List.of(CompoundIdType.class, CompoundMembersJsonType.class,
+        CompoundMembersType.class, IDType.class, DetectionType.class, MZType.class,
+        MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,

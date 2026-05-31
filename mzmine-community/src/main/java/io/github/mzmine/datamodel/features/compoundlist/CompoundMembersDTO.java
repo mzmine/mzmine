@@ -23,37 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.compoundlist;
 
-import io.github.mzmine.datamodel.features.compoundlist.CompoundFeature;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.FeatureListRowID;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
- * Used to define if we are using Compound or Feature. like in {@link CompoundRow}
- * {@link FeatureListRow} or {@link Feature} {@link CompoundFeature}
+ * JSON DTO for {@link CompoundMembersType#getFormattedString}: a flat reference to the preferred
+ * row, the full member list, and the compound confidence score.
  */
-public enum FeatureListMode implements UniqueIdSupplier {
-  /**
-   * classical mzmine feature list rows and features for each detected ion
-   */
-  FEATURE_ROW,
-  /**
-   * Compound rows and features
-   */
-  COMPOUND_ROW;
+record CompoundMembersDTO(@NotNull FeatureListRowID preferredRow,
+                          @NotNull List<CompoundMemberDTO> members
+// for now do not export confidence. Only once we can explain them better as this might confuse users
+//                          ,float confidence
+) {
 
-  public static @NotNull FeatureListMode of(@NotNull FeatureListRow row) {
-    return row instanceof CompoundRow ? COMPOUND_ROW : FEATURE_ROW;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case FEATURE_ROW -> "feature_row";
-      case COMPOUND_ROW -> "compound_row";
-    };
-  }
 }

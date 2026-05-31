@@ -336,14 +336,8 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
     final ModularFeatureList flist = model.getFeatureList();
     final CompoundList cl = flist == null ? null : flist.getCompoundList();
     final ObservableList<CompoundRowSelection> avail = filterModel.getAvailableCompoundRowSelections();
-    if (cl != null && cl.hasNestedCompoundRows()) {
+    if (cl != null) {
       avail.setAll(CompoundRowSelection.values());
-    } else {
-      avail.setAll(CompoundRowSelection.COMPOUNDS, CompoundRowSelection.ALL_MAJOR_IONS);
-      // reset the current selection if it just became invalid
-      if (filterModel.getCompoundRowSelection() == CompoundRowSelection.ALL_ISOTOPES) {
-        filterModel.setCompoundRowSelection(CompoundRowSelection.ALL_MAJOR_IONS);
-      }
     }
   }
 

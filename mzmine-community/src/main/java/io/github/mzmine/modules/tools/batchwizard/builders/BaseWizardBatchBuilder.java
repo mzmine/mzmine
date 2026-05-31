@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
@@ -455,6 +456,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CSVExportModularParameters.idSeparator, ";");
     param.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
     param.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
+    param.setParameter(CSVExportModularParameters.compoundRowSelection,
+        CompoundRowSelection.ALL_MAJOR_IONS);
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
     fileName = new File(fileName.getParentFile(), fileName.getName() + "_full_feature_table.csv");

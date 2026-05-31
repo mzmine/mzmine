@@ -23,37 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.types.compoundlist;
 
-import io.github.mzmine.datamodel.features.compoundlist.CompoundFeature;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundMembers;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-
-/**
- * Used to define if we are using Compound or Feature. like in {@link CompoundRow}
- * {@link FeatureListRow} or {@link Feature} {@link CompoundFeature}
- */
-public enum FeatureListMode implements UniqueIdSupplier {
-  /**
-   * classical mzmine feature list rows and features for each detected ion
-   */
-  FEATURE_ROW,
-  /**
-   * Compound rows and features
-   */
-  COMPOUND_ROW;
-
-  public static @NotNull FeatureListMode of(@NotNull FeatureListRow row) {
-    return row instanceof CompoundRow ? COMPOUND_ROW : FEATURE_ROW;
-  }
+/// Mapped linked type so that exports this simple json string for compound members as the
+/// {@link CompoundMembersType} does not export a column as it is a substype type.
+public class CompoundMembersJsonType extends StringType implements MappingType<String> {
 
   @Override
   public @NotNull String getUniqueID() {
-    return switch (this) {
-      case FEATURE_ROW -> "feature_row";
-      case COMPOUND_ROW -> "compound_row";
-    };
+    return "compound_members_json";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Members json";
+  }
+
+  @Override
+  public @Nullable String getValue(@NotNull ModularDataModel model) {
+    final CompoundMembers members = model.get(CompoundMembersType.class);
+    if (members == null) {
+      return null;
+    }
+
+    return members.toSimpleJson();
   }
 }

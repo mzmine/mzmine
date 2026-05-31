@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,11 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
@@ -58,6 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -83,6 +88,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final Boolean exportAllFeatureInfo;
   private final String idSeparator;
   private final FeatureListRowsFilter filter;
+  private final CompoundRowSelection rowSelection;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
 
@@ -104,10 +110,12 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         .getValue();
     idSeparator = parameters.getParameter(LegacyCSVExportParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(LegacyCSVExportParameters.filter).getValue();
+    this.rowSelection = parameters.getValue(LegacyCSVExportParameters.compoundRowSelection);
     refineCommonElements();
   }
 
   /**
+   * @param compoundRowSelection
    * @param featureLists         feature lists to export
    * @param fileName             export to file name
    * @param fieldSeparator       separator for each column
@@ -120,7 +128,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements, Boolean exportAllFeatureInfo,
-      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate,
+      CompoundRowSelection compoundRowSelection) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
@@ -130,6 +139,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     this.exportAllFeatureInfo = exportAllFeatureInfo;
     this.idSeparator = idSeparator;
     this.filter = filter;
+    this.rowSelection = compoundRowSelection;
   }
 
   @Override
@@ -250,6 +260,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         line.append("auto MS2 verify").append(fieldSeparator);
         line.append("identified by n=").append(fieldSeparator);
         line.append("partners").append(fieldSeparator);
+      } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_COMPOUND_ID)) {
+        line.append(DataTypes.get(CompoundIdType.class).getUniqueID()).append(fieldSeparator);
+        line.append(DataTypes.get(CompoundMembersJsonType.class).getUniqueID())
+            .append(fieldSeparator);
       } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
         line.append("best ion").append(fieldSeparator);
       } else {
@@ -263,7 +277,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     // feature Information
     Set<String> featureInformationFields = new HashSet<>();
 
-    final List<FeatureListRow> rows = featureList.getRowsCopy();
+    final List<FeatureListRow> rows = new ArrayList<>(featureList.getRowsCopy(rowSelection));
 
     final int numRows = rows.size();
     final long numFeatures = rows.stream().count();
@@ -423,6 +437,15 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
       switch (commonElements[i]) {
         case ROW_ID:
           line.append(featureListRow.getID()).append(fieldSeparator);
+          break;
+        case ROW_COMPOUND_ID:
+          // compound ID is only stored on CompoundRow, regular rows export an empty value
+          final Integer compoundId = featureListRow.get(CompoundIdType.class);
+          final CompoundMembersJsonType membType = DataTypes.get(CompoundMembersJsonType.class);
+          final String membersJson = featureListRow.get(membType);
+          line.append(compoundId == null ? "" : compoundId).append(fieldSeparator);
+          line.append(membersJson == null ? "" : escapeStringForCSV(membersJson))
+              .append(fieldSeparator);
           break;
         case ROW_MZ:
           line.append(featureListRow.getAverageMZ()).append(fieldSeparator);

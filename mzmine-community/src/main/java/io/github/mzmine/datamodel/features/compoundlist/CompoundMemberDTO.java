@@ -23,37 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.compoundlist;
 
-import io.github.mzmine.datamodel.features.compoundlist.CompoundFeature;
-import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.github.mzmine.datamodel.features.FeatureListRowID;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
 import org.jetbrains.annotations.NotNull;
 
-
 /**
- * Used to define if we are using Compound or Feature. like in {@link CompoundRow}
- * {@link FeatureListRow} or {@link Feature} {@link CompoundFeature}
+ * JSON DTO for a single compound member: a flat row reference, its role inside the compound, and
+ * the member score. Used by {@link CompoundMembersType#getFormattedString} for export.
+ * <p>
+ * {@code row} is unwrapped, so the {@link FeatureListRowID} components ({@code mode}, {@code id})
+ * are emitted directly next to {@code role} and {@code score}.
  */
-public enum FeatureListMode implements UniqueIdSupplier {
-  /**
-   * classical mzmine feature list rows and features for each detected ion
-   */
-  FEATURE_ROW,
-  /**
-   * Compound rows and features
-   */
-  COMPOUND_ROW;
+record CompoundMemberDTO(@JsonUnwrapped @NotNull FeatureListRowID row
+// for now do not export role and score. Only once we can explain them better as this might confuse users
+//    , @NotNull CompoundMemberRole role, float score
+) {
 
-  public static @NotNull FeatureListMode of(@NotNull FeatureListRow row) {
-    return row instanceof CompoundRow ? COMPOUND_ROW : FEATURE_ROW;
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case FEATURE_ROW -> "feature_row";
-      case COMPOUND_ROW -> "compound_row";
-    };
-  }
 }
