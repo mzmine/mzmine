@@ -1,8 +1,35 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -43,9 +70,9 @@ public class CompoundRowQualityModel {
       MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA);
 
   // Color palette used to derive per-member-row colors so the quality pane matches the host
-  // dashboard (e.g. CompoundDashboardController). Nullable so the pane runs standalone without a
-  // host providing a palette.
-  private final ObjectProperty<@Nullable SimpleColorPalette> colorPalette = new SimpleObjectProperty<>();
+  // dashboard (e.g. CompoundDashboardController).
+  private final ObjectProperty<@NotNull SimpleColorPalette> colorPalette = new SimpleObjectProperty<>(
+      ConfigService.getDefaultColorPalette().clone(true));
 
   // The currently "selected" member row across all check sub panes. A click on any member-row
   // chip writes to this property; chips listen and toggle their bold-label style class so the
@@ -58,6 +85,13 @@ public class CompoundRowQualityModel {
   // the MS2-available check). The host typically subscribes to this and reacts via switch on the
   // sealed event permits. Nullable -> events are silently dropped.
   private final ObjectProperty<@Nullable Consumer<@NotNull QualityCheckEvent>> onQualityCheckEvent = new SimpleObjectProperty<>();
+
+  // Persisted check configuration (e.g. AnnotationAgreementCheckType). Lives in MZmineConfiguration
+  // via CompoundRowQualityCheckModule — seeded here at construction so the first recompute already
+  // sees the user's saved choices. The view's gear button and the in-pane source ComboBox write a
+  // fresh reference back on every change to fire the recompute subscription.
+  private final ObjectProperty<@NotNull ParameterSet> checkParameters = new SimpleObjectProperty<>(
+      ConfigService.getConfiguration().getModuleParameters(CompoundRowQualityCheckModule.class));
 
   // true while a recompute task is in flight
   private final BooleanProperty computing = new SimpleBooleanProperty(false);
@@ -121,11 +155,19 @@ public class CompoundRowQualityModel {
     return computing;
   }
 
-  public @Nullable SimpleColorPalette getColorPalette() {
+  public @NotNull ParameterSet getCheckParameters() {
+    return checkParameters.get();
+  }
+
+  public ObjectProperty<@NotNull ParameterSet> checkParametersProperty() {
+    return checkParameters;
+  }
+
+  public @NotNull SimpleColorPalette getColorPalette() {
     return colorPalette.get();
   }
 
-  public ObjectProperty<@Nullable SimpleColorPalette> colorPaletteProperty() {
+  public ObjectProperty<@NotNull SimpleColorPalette> colorPaletteProperty() {
     return colorPalette;
   }
 

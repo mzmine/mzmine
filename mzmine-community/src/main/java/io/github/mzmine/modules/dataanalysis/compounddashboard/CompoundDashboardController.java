@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -6,10 +31,15 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnnotationSummaryType;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
@@ -29,6 +59,8 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationDetailRequestedEvent;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationStructureSelectedEvent;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.AnnotationSummaryActivated;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.QualityCheckEvent.FragmentEnergyMethodSelectedEvent;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
@@ -349,6 +381,36 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
       case FragmentEnergyMethodSelectedEvent e ->
           selectMatchingFragmentScan(e.row(), e.energy(), e.method());
       case AnnotationDetailRequestedEvent e -> openIimnNetworkFor(e.row());
+      // Promote the structure's source member row to the dashboard's selected adduct row so the
+      // EIC / MS1 / structure preview all retarget; the bidirectional binding to the quality
+      // pane's selectedMemberRow keeps every chip / row highlight in sync.
+      case AnnotationStructureSelectedEvent e -> model.setSelectedAdductRow(e.row());
+      // Route AnnotationSummaryChart double-clicks to the same detail-tab logic the feature table
+      // uses for its summary column. The annotation's DataType drives which tab opens (spectral
+      // library / compound DB / lipid QC).
+      case AnnotationSummaryActivated e ->
+          activateAnnotationSummary(e.row(), e.annotationSummary());
+    }
+  }
+
+  /// Open the detail tab for the supplied {@link AnnotationSummary} by delegating to
+  /// {@link AnnotationSummaryType#getDoubleClickAction}. No-op when the row is not modular, the
+  /// summary has no inner annotation, or the type returns no action for this annotation type.
+  private void activateAnnotationSummary(@NotNull final FeatureListRow row,
+      @NotNull final AnnotationSummary summary) {
+    if (!(row instanceof ModularFeatureListRow modRow)) {
+      return;
+    }
+    final FeatureAnnotation ann = summary.annotation();
+    if (ann == null) {
+      return;
+    }
+    final AnnotationSummaryType type = DataTypes.get(AnnotationSummaryType.class);
+    final DataType<?> superType = DataTypes.get(ann.getDataType());
+    final Runnable action = type.getDoubleClickAction(tableCtrl.getFeatureTable(), modRow,
+        List.of(), superType, summary);
+    if (action != null) {
+      action.run();
     }
   }
 

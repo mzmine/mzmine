@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -94,10 +119,14 @@ public final class QualityCheckItem extends BorderPane {
 
     // Indent sub pane so it lines up under the main content (offset past the icon column). Top
     // border draws a separator between the header and the sub pane content (the bottom border of
-    // the card itself sits underneath it).
+    // the card itself sits underneath it). Result subclasses can opt out of the indent via
+    // {@link QualityCheckResult#wantsFullWidthSubPane()} to claim the full card width — useful
+    // for grid-heavy sub panes that need every available pixel.
     subContent.setMinWidth(0);
-    final VBox subWrap = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE, 0, 0,
-        FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE), true, subContent);
+    final double leftIndent = result.wantsFullWidthSubPane() ? 0
+        : (FxIconUtil.DEFAULT_ICON_SIZE + FxLayout.DEFAULT_SPACE);
+    final VBox subWrap = FxLayout.newVBox(Pos.TOP_LEFT,
+        new Insets(FxLayout.DEFAULT_SPACE, 0, 0, leftIndent), true, subContent);
     subWrap.setMinWidth(0);
     // Same no-clamp on the inner wrap so an expanded sub pane with many rows can grow vertically.
     subWrap.setMaxHeight(Double.MAX_VALUE);

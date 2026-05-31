@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.compoundrowquality;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -44,17 +45,20 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
   private final RTTolerance rtTol;
   private final MZTolerance mzTol;
   private final MZTolerance ms2Tol;
-  private final @Nullable SimpleColorPalette palette;
+  private final @NotNull SimpleColorPalette palette;
   private final @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow;
   private final @Nullable Consumer<@NotNull QualityCheckEvent> onEvent;
+  private final @NotNull ParameterSet checkParameters;
+  private final @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate;
   private @Nullable List<QualityCheckResult> results;
 
   RecomputeTask(@NotNull CompoundRowQualityModel model,
       @NotNull CompoundRowQualityInteractor interactor, @NotNull CompoundRow row,
       @NotNull RTTolerance rtTol, @NotNull MZTolerance mzTol, @NotNull MZTolerance ms2Tol,
-      @Nullable SimpleColorPalette palette,
+      @NotNull SimpleColorPalette palette,
       @Nullable ObjectProperty<@Nullable FeatureListRow> selectedMemberRow,
-      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent) {
+      @Nullable Consumer<@NotNull QualityCheckEvent> onEvent, @NotNull ParameterSet checkParameters,
+      @Nullable Consumer<@NotNull ParameterSet> onCheckParametersUpdate) {
     super("compoundrow_quality_update", model);
     this.interactor = interactor;
     this.row = row;
@@ -64,6 +68,8 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
     this.palette = palette;
     this.selectedMemberRow = selectedMemberRow;
     this.onEvent = onEvent;
+    this.checkParameters = checkParameters;
+    this.onCheckParametersUpdate = onCheckParametersUpdate;
   }
 
   @Override
@@ -78,7 +84,8 @@ final class RecomputeTask extends FxUpdateTask<CompoundRowQualityModel> {
 
   @Override
   protected void process() {
-    results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow, onEvent);
+    results = interactor.compute(row, rtTol, mzTol, ms2Tol, palette, selectedMemberRow, onEvent,
+        checkParameters, onCheckParametersUpdate);
   }
 
   @Override
