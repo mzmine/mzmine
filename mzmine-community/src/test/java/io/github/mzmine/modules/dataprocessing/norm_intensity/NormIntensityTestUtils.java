@@ -92,7 +92,7 @@ final class NormIntensityTestUtils {
         throw new IllegalStateException("Row has no average RT: " + row.getID());
       }
 
-      selections.add(new FeatureSelection(Range.singleton(row.getID()), Range.singleton(averageMz),
+      selections.add(new FeatureSelection(null, Range.singleton(averageMz),
           Range.singleton(averageRt), null));
     }
     return selections;
@@ -105,12 +105,19 @@ final class NormIntensityTestUtils {
 
   static @NotNull ModularFeature createFeature(final @NotNull ModularFeatureList featureList,
       final @NotNull RawDataFile rawDataFile, final float height, final float area) {
+    return createFeature(featureList, rawDataFile, height, area, 100d, 5f, null);
+  }
+
+  static @NotNull ModularFeature createFeature(final @NotNull ModularFeatureList featureList,
+      final @NotNull RawDataFile rawDataFile, final float height, final float area,
+      final double mz, final float rt, final @Nullable Float mobility) {
     final ModularFeature feature = new ModularFeature(featureList, rawDataFile,
         FeatureStatus.DETECTED);
     feature.setHeight(height);
     feature.setArea(area);
-    feature.setMZ(100d);
-    feature.setRT(5f);
+    feature.setMZ(mz);
+    feature.setRT(rt);
+    feature.setMobility(mobility);
     return feature;
   }
 
@@ -118,13 +125,25 @@ final class NormIntensityTestUtils {
       final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAHeight,
       final @Nullable Float fileAArea, final @Nullable RawDataFile fileB,
       final @Nullable Float fileBHeight, final @Nullable Float fileBArea) {
+    return addRow(featureList, rowId, fileA, fileAHeight, fileAArea, fileB, fileBHeight, fileBArea,
+        100d, 5f, null);
+  }
+
+  static @NotNull ModularFeatureListRow addRow(final @NotNull ModularFeatureList featureList,
+      final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAHeight,
+      final @Nullable Float fileAArea, final @Nullable RawDataFile fileB,
+      final @Nullable Float fileBHeight, final @Nullable Float fileBArea, final double mz,
+      final float rt, final @Nullable Float mobility) {
     final ModularFeatureListRow row = new ModularFeatureListRow(featureList, rowId);
     if (fileAHeight != null && fileAArea != null) {
-      row.addFeature(fileA, createFeature(featureList, fileA, fileAHeight, fileAArea), false);
+      row.addFeature(fileA, createFeature(featureList, fileA, fileAHeight, fileAArea, mz, rt,
+          mobility), false);
     }
     if (fileB != null && fileBHeight != null && fileBArea != null) {
-      row.addFeature(fileB, createFeature(featureList, fileB, fileBHeight, fileBArea), false);
+      row.addFeature(fileB, createFeature(featureList, fileB, fileBHeight, fileBArea, mz, rt,
+          mobility), false);
     }
+    row.applyRowBindings();
     featureList.addRow(row);
     return row;
   }
@@ -134,6 +153,14 @@ final class NormIntensityTestUtils {
       final @Nullable RawDataFile fileB, final @Nullable Float fileBAbundance) {
     return addRow(featureList, rowId, fileA, fileAAbundance, fileAAbundance, fileB, fileBAbundance,
         fileBAbundance);
+  }
+
+  static @NotNull ModularFeatureListRow addRow(final @NotNull ModularFeatureList featureList,
+      final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAAbundance,
+      final @Nullable RawDataFile fileB, final @Nullable Float fileBAbundance, final double mz,
+      final float rt, final @Nullable Float mobility) {
+    return addRow(featureList, rowId, fileA, fileAAbundance, fileAAbundance, fileB, fileBAbundance,
+        fileBAbundance, mz, rt, mobility);
   }
 
   static void addScan(final @NotNull RawDataFileImpl file, final int scanNumber, final int msLevel,
