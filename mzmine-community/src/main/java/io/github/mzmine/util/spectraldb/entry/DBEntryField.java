@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
@@ -104,7 +105,7 @@ public enum DBEntryField {
       Double.class), IUPAC_NAME, INTERNAL_ID,
 
   // structure
-  FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ,
+  FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, PEPTIDE_SEQ,
 
   //Structure classifiers
   CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY,
@@ -463,6 +464,7 @@ public enum DBEntryField {
       case NAME -> CompoundNameType.class;
       case RT -> RTType.class;
       case SMILES -> SmilesStructureType.class;
+      case ISOMERIC_SMILES -> SmilesIsomericStructureType.class;
       case PEPTIDE_SEQ -> PeptideSequenceType.class;
       case CCS -> CCSType.class;
       case ACQUISITION_METHOD -> AcquisitionMethodType.class;
@@ -524,6 +526,7 @@ public enum DBEntryField {
       case RT -> "rt";
       case RETENTION_INDEX -> "ri";
       case SMILES -> "smiles";
+      case ISOMERIC_SMILES -> "isomeric_smiles";
       case MS_LEVEL -> "ms_level";
       case PUBCHEM -> "pubchem";
       case CHEMSPIDER -> "chemspider";
@@ -605,6 +608,7 @@ public enum DBEntryField {
       case NUM_PEAKS -> "Num Peaks";
       case CCS -> "CCS";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case INCHI -> "INCHI";
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
@@ -673,6 +677,7 @@ public enum DBEntryField {
       case PRINCIPAL_INVESTIGATOR -> "PI";
       case PUBMED -> "PUBMED";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
@@ -725,6 +730,7 @@ public enum DBEntryField {
       case IMS_TYPE -> "IMS_TYPE";
       case SCAN_NUMBER -> "EXTRACTSCAN";
       case SMILES -> "SMILES";
+      case ISOMERIC_SMILES -> "ISOMERIC_SMILES";
       case INCHI -> "INCHI";
       case INCHIKEY -> "INCHIAUX";
       case CHARGE -> "CHARGE";
@@ -819,6 +825,7 @@ public enum DBEntryField {
       case RT -> "RT";
       case RETENTION_INDEX -> "";
       case SMILES -> "";
+      case ISOMERIC_SMILES -> "";
       case MS_LEVEL -> "";
       case PUBCHEM -> "";
       case CHEMSPIDER -> "";
@@ -971,7 +978,8 @@ public enum DBEntryField {
            PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, FEATURE_FULL_ID, PUBMED, SYNONYMS, NAME,
            ENTRY_ID, NUM_PEAKS, //
            MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS,
+           COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, CAS,
+           CCS,
            ACQUISITION_METHOD, //
            ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,

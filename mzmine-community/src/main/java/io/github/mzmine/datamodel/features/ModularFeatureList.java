@@ -25,6 +25,8 @@
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -795,8 +797,9 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  @NotNull
   public List<RowGroup> getGroups() {
-    return groups;
+    return requireNonNullElse(groups, List.of());
   }
 
   @Override

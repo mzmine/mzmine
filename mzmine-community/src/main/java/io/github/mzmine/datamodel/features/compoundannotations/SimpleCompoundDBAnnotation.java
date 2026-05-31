@@ -69,7 +69,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
@@ -156,8 +155,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
     final IMolecularFormula neutralFormula = FormulaUtils.neutralizeFormulaWithHydrogen(formula);
     if (neutralFormula != null) {
-      put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic));
+      put(NeutralMassType.class, FormulaUtils.getMonoisotopicMass(neutralFormula));
     }
   }
 
@@ -169,10 +167,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     if (structure != null) {
       return structure;
     }
-    String smiles = getSmiles();
+    String smiles = getIsomericSmiles();
     String inchi = getInChI();
-    structure = StructureParser.silent().parseStructure(smiles, inchi);
-    return structure;
+    var struc = StructureParser.silent().parseStructure(smiles, inchi);
+    setStructure(struc);
+    return struc;
   }
 
   @Override
@@ -180,11 +179,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return CompoundDatabaseMatchesType.class;
   }
 
+  /**
+   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
+   * be canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   *
+   * @param structure the structure to set
+   */
   @Override
   public void setStructure(final MolecularStructure structure) {
     if (structure == null) {
       return;
     }
+    this.structure = structure;
     putIfNotNull(MolecularStructureType.class, structure);
     putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
     putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
@@ -192,6 +200,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     putIfNotNull(InChIStructureType.class, structure.inchi());
     putIfNotNull(FormulaType.class, structure.formulaString());
     putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    this.structure = null;
+    put(MolecularStructureType.class, null);
+    put(SmilesStructureType.class, null);
+    put(SmilesIsomericStructureType.class, null);
+    put(InChIKeyStructureType.class, null);
+    put(InChIStructureType.class, null);
   }
 
   @Override

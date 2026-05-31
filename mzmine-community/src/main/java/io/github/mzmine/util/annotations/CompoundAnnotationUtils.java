@@ -338,7 +338,7 @@ public class CompoundAnnotationUtils {
 
     IonType adduct = annotation.getAdductType();
     if (adduct != null) {
-      return OptionalInt.of(adduct.getCharge());
+      return OptionalInt.of(adduct.totalCharge());
     }
 
     Integer annCharge = getTypeValue(annotation, ChargeType.class);
@@ -373,7 +373,7 @@ public class CompoundAnnotationUtils {
         if (instance.getValueClass().isInstance(value)) {
           db.putIfNotNull((Class) dataType, value);
         } else if (instance instanceof IonTypeType && value instanceof String s) {
-          var ionType = IonTypeParser.parse(s);
+          var ionType = IonTypeParser.parseOptional(s).orElse(null);
           db.putIfNotNull((Class) dataType, ionType);
         } else {
           logger.finest("Skipping value conversion of field\t" + field + "  for type\t"

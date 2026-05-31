@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
@@ -77,6 +78,8 @@ import io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_maldigroupms2.MaldiGroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
@@ -169,6 +172,7 @@ import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionMod
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
@@ -345,6 +349,7 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
            */
           ClearFeatureAnnotationsModule.class, //
+          LipidAnnotationCleanupModule.class, //
           IntensityNormalizerModule.class, //
           RTCorrectionModule.class, //
           ScanRtCorrectionModule.class, //
@@ -388,6 +393,7 @@ public class BatchModeModulesList {
           FormulaPredictionFeatureListModule.class, //
           IsotopePeakScannerModule.class, //
           LipidAnnotationModule.class, //
+          SetLipidAnnotationLevelModule.class, //
           LocalCSVDatabaseSearchModule.class, //
           Ms2SearchModule.class, //
           NistMsSearchModule.class, //
@@ -452,6 +458,7 @@ public class BatchModeModulesList {
   public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = new ArrayList<>(
       List.of(
           // tools
+          GlobalIonLibrariesModule.class, //
           IsotopePatternPreviewModule.class, //
           QualityParametersModule.class, //
           LibraryAnalysisCSVExportModule.class, //
@@ -484,6 +491,7 @@ public class BatchModeModulesList {
           EquivalentCarbonNumberModule.class, //
           LipidAnnotationSummaryModule.class, //
           IntegrationDashboardModule.class, //
+          LipidAnnotationQCDashboardModule.class, //
           MultidetectorVisualizerModule.class, //
 
           // stats

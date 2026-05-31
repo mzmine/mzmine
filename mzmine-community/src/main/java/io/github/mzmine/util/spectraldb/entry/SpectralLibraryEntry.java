@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -113,7 +115,7 @@ public interface SpectralLibraryEntry extends MassList {
           yield (T) ion;
         }
         try {
-          final IonType ion = IonTypeParser.parse(v.toString());
+          final IonType ion = IonTypeParser.parseOptional(v.toString()).orElse(null);
           yield (T) ion;
         } catch (Exception e) {
           yield null;
@@ -276,4 +278,36 @@ public interface SpectralLibraryEntry extends MassList {
    * @return the isotope pattern of the ion formula
    */
   @Nullable IsotopePattern getIsotopePattern();
+
+
+  /**
+   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
+   * be canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   *
+   * @param structure the structure to set
+   */
+  void setStructure(@Nullable MolecularStructure structure);
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  void clearStructure();
+
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
+  default void enrichMetadata() {
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+    MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+    if (struc != null) {
+      setStructure(struc);
+    }
+  }
+
 }

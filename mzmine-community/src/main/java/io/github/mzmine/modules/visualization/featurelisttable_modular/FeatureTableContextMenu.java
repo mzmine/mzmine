@@ -58,8 +58,9 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -69,6 +70,7 @@ import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotati
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui.PubChemResultsController;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -289,9 +291,39 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
+    final Menu lipidAnnotationsMenu = new Menu("Lipid Annotations");
+    final MenuItem preferSpeciesLevel = new ConditionalMenuItem("Prefer species level",
+        () -> !selectedRows.isEmpty() && selectedRows.stream()
+            .anyMatch(this::rowHasMatchedLipidSignals));
+    preferSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.SPECIES_LEVEL));
+
+    final MenuItem preferMolecularSpeciesLevel = new ConditionalMenuItem(
+        "Prefer molecular species level", () -> !selectedRows.isEmpty() && selectedRows.stream()
+        .anyMatch(this::rowHasMatchedLipidSignals));
+    preferMolecularSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL));
+    lipidAnnotationsMenu.getItems().addAll(preferSpeciesLevel, preferMolecularSpeciesLevel);
+
     idsMenu.getItems()
         .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,
-            bioTransformerItem, clearAnnotationsMenu);
+            bioTransformerItem, lipidAnnotationsMenu, clearAnnotationsMenu);
+  }
+
+  private void setPreferredLipidAnnotationLevel(final @NotNull LipidAnnotationLevel level) {
+    for (final ModularFeatureListRow row : selectedRows) {
+      final List<MatchedLipid> matches = row.getLipidMatches();
+      if (matches.isEmpty()) {
+        continue;
+      }
+      for (final MatchedLipid match : matches) {
+        if (match.getPreferredAnnotationLevel() == level) {
+          continue;
+        }
+        match.setPreferredAnnotationLevel(level);
+      }
+    }
+    table.refresh();
   }
 
   /**
@@ -385,7 +417,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     searchFormulaPubChem.setOnAction(_ -> {
       final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
       new PubChemResultsController(selectedRow,
-          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst(),
+          ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst(),
           CompoundAnnotationUtils.getBestFormula(selectedRow)).showInWindow();
     });
 
@@ -393,8 +425,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRow != null);
     searchMassPubChem.setOnAction(_ -> {
       final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
-      final IonType ionType =
-          ionTypes.isEmpty() ? new IonType(IonModification.H) : ionTypes.getFirst();
+      final IonType ionType = ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst();
       new PubChemResultsController(selectedRow, ionType,
           ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
     });

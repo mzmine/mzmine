@@ -167,10 +167,37 @@ public interface FeatureAnnotation {
    */
   @Nullable MolecularStructure getStructure();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the canonical flat smiles (isomeric information stripped) or null if not preset
+   */
   @Nullable String getSmiles();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return isomeric smiles or the canonical smiles if there is no isomeric smiles, or null if no
+   * smiles available
+   */
+  @Nullable String getIsomericSmiles();
+
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the inchi or null if no inchi available.
+   */
   @Nullable String getInChI();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the inchi key or null if no value available.
+   */
   @Nullable String getInChIKey();
 
   @Nullable String getCompoundName();
@@ -214,7 +241,7 @@ public interface FeatureAnnotation {
         formula = structure.formula();
       }
     } else {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formulaStr);
     }
     return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }
@@ -327,4 +354,13 @@ public interface FeatureAnnotation {
    * A comment
    */
   @Nullable String getComment();
+
+  @Nullable
+  default IMolecularFormula getCdkFormula() {
+    final String formula = getFormula();
+    if (formula == null) {
+      return null;
+    }
+    return FormulaUtils.parse(formula);
+  }
 }

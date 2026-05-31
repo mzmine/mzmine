@@ -1,6 +1,6 @@
 ---
 name: documentation-writer
-description: Create or update user-facing technical documentation from implementation details and existing docs. Use when asked to write markdown wiki/module docs, follow a documentation template, preserve legacy pages, fact-check claims against code, and report inconsistencies or migration gaps.
+description: Create or update user-facing technical documentation (mzmine module docs / wiki pages) from implementation code and existing docs. Follows the project documentation template, fact-checks claims against code, preserves legacy pages, and updates navigation. TRIGGER when the user says "update/edit/write/fix/improve the docs/documentation/wiki/module page" for any module, parameter, or feature; when adding screenshots or sections to an existing `.md` page under `mzmine_documentation/docs/`; when asked to document a new module, parameter, or algorithm; or when migrating/reconciling docs with current code. SKIP for inline code comments, Javadoc, README files in source repos, commit messages, PR descriptions, or generated API docs.
 ---
 
 # Documentation Writer
