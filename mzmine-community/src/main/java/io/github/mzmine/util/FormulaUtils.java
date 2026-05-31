@@ -50,11 +50,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -476,6 +474,8 @@ public class FormulaUtils {
     copy.setCharge(f.getCharge());
 
     for (IIsotope iso : f.isotopes()) {
+      // this could be the case if we have PseudoAtom class with label * or maybe R for residual.
+      // then the formula is not fully defined and we return null
       if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
         logger.warning("Cannot parse formula %s as there are unknown atoms".formatted(
             FormulaUtils.getFormulaString(f)));
