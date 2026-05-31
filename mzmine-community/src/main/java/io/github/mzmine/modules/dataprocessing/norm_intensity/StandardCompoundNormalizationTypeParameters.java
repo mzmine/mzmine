@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -38,8 +39,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -48,7 +48,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -68,10 +72,24 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final DoubleParameter mzVsRtBalance = new DoubleParameter("m/z vs RT balance",
       "Used in distance measuring as multiplier of m/z difference");
 
-  public static final FileNameParameter standardCompoundsFile = new FileNameParameter(
+  public static final FileNameWithExampleExportParameter standardCompoundsFile = new FileNameWithExampleExportParameter(
       "Standard compounds file",
       "CSV or TSV file containing the internal standard compounds to match in the feature list.",
-      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN, false);
+      ExtensionFilters.CSV_TSV_IMPORT,
+      StandardCompoundNormalizationTypeParameters::exportExampleFile);
+
+  private static void exportExampleFile(File file) {
+    FileAndPathUtil.createDirectory(file);
+    try (var w = Files.newBufferedWriter(file.toPath(), WriterOptions.REPLACE.toOpenOption())) {
+      String example = """
+          mz,rt,mobility,name
+          200.1234,6.5,1.75,optional name""";
+
+      w.write(example);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the standard compounds file. Use '\\t' for tab separated files.",
