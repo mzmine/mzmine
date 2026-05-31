@@ -212,6 +212,24 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return false;
   }
 
+  public boolean put(DBEntryField field, Object value) {
+    if (field == null) {
+      return false;
+    }
+
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      structure = null; // clear and recalculate later
+    }
+
+    if (value == null) {
+      fields.remove(field);
+      return true;
+    }
+    fields.put(field, value);
+    return true;
+  }
+
   @Override
   public Double getPrecursorMZ() {
     return (Double) fields.get(DBEntryField.PRECURSOR_MZ);
@@ -362,6 +380,19 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     putIfNotNull(DBEntryField.INCHI, structure.inchi());
     putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
     putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    this.structure = null;
+    put(DBEntryField.SMILES, null);
+    put(DBEntryField.ISOMERIC_SMILES, null);
+    put(DBEntryField.INCHI, null);
+    put(DBEntryField.INCHIKEY, null);
   }
 
   @Override

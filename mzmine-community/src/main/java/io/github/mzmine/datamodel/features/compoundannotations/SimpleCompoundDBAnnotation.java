@@ -179,11 +179,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return CompoundDatabaseMatchesType.class;
   }
 
+  /**
+   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
+   * be canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   *
+   * @param structure the structure to set
+   */
   @Override
   public void setStructure(final MolecularStructure structure) {
     if (structure == null) {
       return;
     }
+    this.structure = structure;
     putIfNotNull(MolecularStructureType.class, structure);
     putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
     putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
@@ -191,6 +200,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     putIfNotNull(InChIStructureType.class, structure.inchi());
     putIfNotNull(FormulaType.class, structure.formulaString());
     putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    this.structure = null;
+    put(MolecularStructureType.class, null);
+    put(SmilesStructureType.class, null);
+    put(SmilesIsomericStructureType.class, null);
+    put(InChIKeyStructureType.class, null);
+    put(InChIStructureType.class, null);
   }
 
   @Override

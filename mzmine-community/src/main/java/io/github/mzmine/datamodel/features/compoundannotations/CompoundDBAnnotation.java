@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -587,7 +588,21 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return -Float.compare(sc, sc2);
   }
 
-  void setStructure(MolecularStructure structure);
+  /**
+   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
+   * be canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   *
+   * @param structure the structure to set
+   */
+  void setStructure(@Nullable MolecularStructure structure);
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  void clearStructure();
 
   /**
    * convenience method to derive additional fields from fields that are present. Recommended to
@@ -636,7 +651,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         continue;
       }
       final IMolecularFormula majorIsotopeIon;
-        majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
+      majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
 
       // skip pattern calculation if not needed
       // check ion as ionization might be Cl- or Br- with strong influence on isotope pattern
