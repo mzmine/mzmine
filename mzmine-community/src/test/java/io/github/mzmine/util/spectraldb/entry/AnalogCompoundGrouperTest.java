@@ -54,9 +54,10 @@ class AnalogCompoundGrouperTest {
 
   @Test
   void transitiveAcrossIdentifiers() {
-    // A↔B via InChIKey, B↔C via SMILES → {A, B, C}
-    final RowAnnotation a = annotation("rowA", null, "KEYABCDEFGHIJKL-XXXXXXXXXX-N", null);
-    final RowAnnotation b = annotation("rowB", "Compound B", "KEYABCDEFGHIJKL-XXXXXXXXXX-N", "CCO");
+    // A↔B via InChIKey, B↔C via SMILES → {A, B, C}.
+    final String ethanolInChIKey = "LFQSCWFLJHTTHZ-UHFFFAOYSA-N";
+    final RowAnnotation a = annotation("rowA", null, ethanolInChIKey, null);
+    final RowAnnotation b = annotation("rowB", "Compound B", ethanolInChIKey, "CCO");
     final RowAnnotation c = annotation("rowC", "Compound C variant", null, "CCO");
     final List<AnalogCompoundGroup> groups = AnalogCompoundGrouper.group(List.of(a, b, c));
     assertEquals(1, groups.size(), "transitive link via InChIKey and SMILES should fuse all three");

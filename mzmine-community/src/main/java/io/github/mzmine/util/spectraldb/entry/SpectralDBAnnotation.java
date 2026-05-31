@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
@@ -394,7 +395,9 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
   public @Nullable String getInChIKey() {
     final MolecularStructure structure = getStructure();
     if (structure == null) {
-      return null;
+      // no parseable structure -> fall back to the raw entry field so callers (e.g. the analog
+      // grouper) can still link by InChIKey when SMILES/InChI are missing
+      return get(InChIKeyStructureType.class);
     }
     // return parsed structure value instead of the value inserted into entry
     // this is cleaner
@@ -413,11 +416,11 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable IonType getAdductType() {
-    final Object adduct = entry.getField(DBEntryField.ION_TYPE).orElse(null) ;
+    final Object adduct = entry.getField(DBEntryField.ION_TYPE).orElse(null);
     if (adduct == null) {
       return null;
     }
-    if(adduct instanceof IonType ion) {
+    if (adduct instanceof IonType ion) {
       return ion;
     }
 
