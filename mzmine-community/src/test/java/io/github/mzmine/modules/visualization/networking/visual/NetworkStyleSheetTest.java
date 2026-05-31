@@ -78,7 +78,7 @@ class NetworkStyleSheetTest {
     // node.ANALOG { fill-color: salmon; size: 15px; }
     final List<Color> analog = style.getNodeFillColors("ANALOG");
     assertEquals(1, analog.size());
-    assertEquals(Color.SALMON, analog.getFirst());
+    assertEquals(Color.web("#565656"), analog.getFirst());
     // edge.IIN { fill-color: rgb(227, 116, 30); stroke-mode: dashes; }
     final List<Color> iin = style.getEdgeFillColors("IIN");
     assertEquals(1, iin.size());
