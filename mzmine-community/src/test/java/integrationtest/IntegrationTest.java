@@ -78,6 +78,8 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    throw new IllegalStateException(
+        "This method should be commented out for production use. The integration test result files were overwritten and now comment out this method.");
   }
 
   // -----------------------------------------------------------
