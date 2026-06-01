@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -304,9 +305,15 @@ public interface SpectralLibraryEntry extends MassList {
     final String inchi = getOrElse(DBEntryField.INCHI, null);
     final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
         () -> getAsString(DBEntryField.SMILES).orElse(null));
-    MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
-    if (struc != null) {
-      setStructure(struc);
+
+    try {
+      MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+      if (struc != null) {
+        setStructure(struc);
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
+          smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
     }
   }
 

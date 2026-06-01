@@ -609,10 +609,16 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    * call this method after retrieving the annotation from an external source.
    */
   default void enrichMetadata() {
-    MolecularStructure struc = StructureParser.silent()
-        .parseStructure(getIsomericSmiles(), getInChI());
-    if (struc != null) {
-      setStructure(struc);
+    final String smiles = getIsomericSmiles();
+    final String inchi = getInChI();
+    try {
+      MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+      if (struc != null) {
+        setStructure(struc);
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
+          smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
     }
   }
 
