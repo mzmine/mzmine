@@ -1527,7 +1527,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
     cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters,
         SignalFiltersParameters.createDefault());
-    param.setParameter(AnalogSpectralLibrarySearchParameters.algorithm, cosine);
+    param.getParameter(AnalogSpectralLibrarySearchParameters.algorithm).setValue(cosine, cosineParam);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AnalogSpectralLibrarySearchModule.class), param));
