@@ -100,6 +100,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingParameters;
@@ -124,6 +125,8 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ChargeFilterTyp
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -203,6 +206,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -1554,5 +1558,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoSaveBatchModule.class),
         param));
+  }
+
+  public void makeAndAddAnalogSearchStep(BatchQueue q) {
+    ParameterSet param = new AnalogSpectralLibrarySearchParameters().cloneParameterSet();
+    param.setParameter(AnalogSpectralLibrarySearchParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+
+    param.setParameter(AnalogSpectralLibrarySearchParameters.libraries,
+        new SpectralLibrarySelection(SpectralLibrarySelectionType.ALL_IMPORTED, null));
+
+    SpectralNetworkingOptions cosine = SpectralNetworkingOptions.MODIFIED_COSINE;
+    ParameterSet cosineParam = cosine.getModuleParameters();
+    cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, true, 600d);
+    cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.8);
+    cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, 4);
+    cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
+    cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters,
+        SignalFiltersParameters.createDefault());
+    param.getParameter(AnalogSpectralLibrarySearchParameters.algorithm).setValue(cosine, cosineParam);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(AnalogSpectralLibrarySearchModule.class), param));
   }
 }

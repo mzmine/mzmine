@@ -50,6 +50,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   protected final Boolean applySpectralNetworking;
   protected final File exportPath;
   protected final boolean isExportActive;
+  private final boolean applyAnalogSearch;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -72,6 +73,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
     applySpectralNetworking = getValue(params, WorkflowDdaWizardParameters.applySpectralNetworking);
+    applyAnalogSearch = getValue(params, WorkflowDdaWizardParameters.analogSearch);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
@@ -118,6 +120,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     // networking
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
+    }
+    if(applyAnalogSearch){
+      makeAndAddAnalogSearchStep(q);
     }
 
     // compound grouping (requires meta correlation + IIN)

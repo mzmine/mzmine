@@ -26,10 +26,12 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
+import java.util.Map;
 
 public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters {
 
@@ -38,6 +40,11 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
       Applies feature-based molecular networking/ion identity molecular networking
       by comparing all MS2 spectra. Adds graphml export and enables use of visualizer. 
       """, true);
+
+  public static final BooleanParameter analogSearch = new BooleanParameter("Apply analog search",
+      """
+          Applies analog search to find structurally related compounds.
+          """, false);
 
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
@@ -57,20 +64,29 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
   public WorkflowDdaWizardParameters() {
     super(new WorkflowDDA(),
         // actual parameters
-        applySpectralNetworking, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
+        applySpectralNetworking, analogSearch, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
   }
 
-
-  public WorkflowDdaWizardParameters(final boolean applyMolNetworking, final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive, boolean exportSiriusActive,
+  public WorkflowDdaWizardParameters(final boolean applyMolNetworking,
+      final boolean applyAnalogSearch, final boolean exportActive, final File exportBasePath,
+      final boolean exportGnpsActive, boolean exportSiriusActive,
       boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(applySpectralNetworking, applyMolNetworking);
     setParameter(exportPath, exportActive);
+    setParameter(analogSearch, applyAnalogSearch);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);
     setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if (!loadedParams.containsKey(WorkflowDdaWizardParameters.analogSearch.getName())) {
+      setParameter(WorkflowDdaWizardParameters.analogSearch, false);
+    }
+  }
 }
