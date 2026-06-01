@@ -373,13 +373,14 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     if (structure == null) {
       return;
     }
-    this.structure = structure;
     putIfNotNull(DBEntryField.SMILES, structure.canonicalSmiles());
     putIfNotNull(DBEntryField.ISOMERIC_SMILES, structure.isomericSmiles());
     putIfNotNull(DBEntryField.INCHIKEY, structure.inchiKey());
     putIfNotNull(DBEntryField.INCHI, structure.inchi());
     putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
     putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
+    // has to be last as set smiles will set structure to null
+    this.structure = structure;
   }
 
   /**

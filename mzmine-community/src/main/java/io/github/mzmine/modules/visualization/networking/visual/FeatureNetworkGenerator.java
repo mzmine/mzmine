@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -50,10 +52,10 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup.RowAnnotation;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGrouper;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -531,18 +533,22 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), mzForm.format(net.getNeutralMass()));
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
 
-      final SpectralDBAnnotation bestMatch = net.getRows().stream()
-          .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream)
-          .max(Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
-      if (bestMatch != null) {
-        double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.LIB_MATCH.toString(), bestMatch.getCompoundName());
-        node.setAttribute(NodeAtt.COMPOUND_NAME.toString(),
-            bestMatch.getEntry().getOrElse(DBEntryField.NAME, ""));
+      final AnnotationSummary bestMatch = CompoundAnnotationUtils.getBestAnnotationSummary(
+          net.getRows());
+
+      if (bestMatch != null && bestMatch.annotation() != null) {
+        final FeatureAnnotation anno = bestMatch.annotation();
+
+        double score = bestMatch.combinedScore();
+        node.setAttribute(NodeAtt.LIB_MATCH.toString(), anno.toString());
+        node.setAttribute(NodeAtt.ANNOTATION.toString(), anno.toString());
+        node.setAttribute(NodeAtt.COMPOUND_NAME.toString(), anno.getCompoundName());
         node.setAttribute(NodeAtt.ANNOTATION_SCORE.toString(), scoreForm.format(score));
-        node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
-            scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
-//        node.setAttribute(NodeAtt.ANNOTATION.toString(), bestMatch.toString());
+
+        if (anno instanceof SpectralDBAnnotation db) {
+          node.setAttribute(NodeAtt.EXPLAINED_INTENSITY.toString(),
+              scoreForm.format(db.getSimilarity().getExplainedLibraryIntensity()));
+        }
       }
 
       // add best GNPS match to node

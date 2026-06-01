@@ -72,8 +72,11 @@ public enum NodeAtt implements GraphElementAttr {
 
   private static @Nullable <T> T extractFirstFeatureAnnotation(FeatureListRow row,
       Function<FeatureAnnotation, T> function) {
-    return row.streamAllFeatureAnnotations().map(function).filter(Objects::nonNull).findFirst()
-        .orElse(null);
+    final FeatureAnnotation preferredAnnotation = row.getPreferredAnnotation();
+    if (preferredAnnotation == null) {
+      return null;
+    }
+    return function.apply(preferredAnnotation);
   }
 
   @Override
