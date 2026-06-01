@@ -46,12 +46,12 @@ public class AnalogSpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final ModuleOptionsEnumComboParameter<SpectralNetworkingOptions> algorithm = new ModuleOptionsEnumComboParameter<>(
       "Algorithm",
-      "Similarity algorithm. PyTorch models (MS2Deepscore, DREAMS) score embedding similarity; the cosine fallback is also computed for visualization when an ML score passes the threshold.",
+      "Similarity algorithm. PyTorch models (MS2Deepscore) score embedding similarity; the cosine fallback is also computed for visualization when an ML score passes the threshold.",
       SpectralNetworkingOptions.MODIFIED_COSINE);
 
   public AnalogSpectralLibrarySearchParameters() {
     super(
-        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_search/spectral_library_search.html",
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectral_library_analog_search/analog-spectral-library-search.html",
         featureLists, libraries, algorithm);
   }
 

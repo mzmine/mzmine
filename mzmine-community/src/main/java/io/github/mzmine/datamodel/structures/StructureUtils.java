@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,14 +82,15 @@ public class StructureUtils {
 
 
   /**
-   * Canonical + isomeric + stereo chemistry
+   * Canonical + isomeric + stereo chemistry + isotopes
    */
   public static final SmilesGenerator isomericSmiGen = new SmilesGenerator(
-      SmiFlavor.Stereo | SmiFlavor.Canonical);
+      SmiFlavor.Stereo | SmiFlavor.Canonical | SmiFlavor.AtomicMass);
   /**
-   * canonical smiles
+   * canonical smiles + isotopes
    */
-  public static final SmilesGenerator canonSmiGen = SmilesGenerator.unique();
+  public static final SmilesGenerator canonSmiGen = new SmilesGenerator(
+      SmiFlavor.Canonical | SmiFlavor.AtomicMass);
 
   /*
    * absolute smiles generator adds atom mass numbers to all elements even 12C

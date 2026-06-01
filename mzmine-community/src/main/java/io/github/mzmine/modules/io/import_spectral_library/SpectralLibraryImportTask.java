@@ -84,6 +84,11 @@ public class SpectralLibraryImportTask extends AbstractTask {
       library.trim(); // trim to save memory
       final List<SpectralLibraryEntry> entries = library.getEntries();
       if (!entries.isEmpty()) {
+        // enrich structure metadata
+        for (SpectralLibraryEntry entry : entries) {
+          entry.enrichMetadata();
+        }
+
         project.addSpectralLibrary(library);
 
         logger.log(Level.INFO,

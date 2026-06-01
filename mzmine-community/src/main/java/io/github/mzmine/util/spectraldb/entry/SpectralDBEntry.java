@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.FormulaUtils;
@@ -191,12 +190,18 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public void putAll(Map<DBEntryField, Object> fields) {
+    if (fields.containsKey(DBEntryField.SMILES) || fields.containsKey(DBEntryField.INCHI)
+        || fields.containsKey(DBEntryField.ISOMERIC_SMILES) || fields.containsKey(
+        DBEntryField.INCHIKEY)) {
+      structure = null; // clear and recalculate later
+    }
     this.fields.putAll(fields);
   }
 
   @Override
   public boolean putIfNotNull(DBEntryField field, Object value) {
-    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI) {
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
       structure = null; // clear and recalculate later
     }
 
@@ -205,6 +210,24 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       return true;
     }
     return false;
+  }
+
+  public boolean put(DBEntryField field, Object value) {
+    if (field == null) {
+      return false;
+    }
+
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      structure = null; // clear and recalculate later
+    }
+
+    if (value == null) {
+      fields.remove(field);
+      return true;
+    }
+    fields.put(field, value);
+    return true;
   }
 
   @Override
@@ -341,10 +364,35 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     if (structure != null) {
       return structure;
     }
-    String smiles = getOrElse(DBEntryField.SMILES, "");
-    String inchi = getOrElse(DBEntryField.INCHI, "");
-    structure = StructureParser.silent().parseStructure(smiles, inchi);
+    enrichMetadata(); // creates new structure if inchi or smiles present
     return structure;
+  }
+
+  @Override
+  public void setStructure(final MolecularStructure structure) {
+    if (structure == null) {
+      return;
+    }
+    this.structure = structure;
+    putIfNotNull(DBEntryField.SMILES, structure.canonicalSmiles());
+    putIfNotNull(DBEntryField.ISOMERIC_SMILES, structure.isomericSmiles());
+    putIfNotNull(DBEntryField.INCHIKEY, structure.inchiKey());
+    putIfNotNull(DBEntryField.INCHI, structure.inchi());
+    putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
+    putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    this.structure = null;
+    put(DBEntryField.SMILES, null);
+    put(DBEntryField.ISOMERIC_SMILES, null);
+    put(DBEntryField.INCHI, null);
+    put(DBEntryField.INCHIKEY, null);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,7 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_SHAPE_CORRELATION, MOBILITY_FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-  ONLINE_REACTION, MS2Deepscore, DREAMS, OTHER;
+  FEATURE_SHAPE_CORRELATION, MOBILITY_FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -56,6 +55,9 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> ONLINE_REACTION;
       case MS2Deepscore -> MS2Deepscore;
       case DREAMS -> DREAMS;
+      case ANALOG_COSINE -> ANALOG_MS2_COSINE;
+      case ANALOG_DREAMS -> ANALOG_DreaMS;
+      case ANALOG_MS2DEEPSCORE -> ANALOG_MS2Deepscore;
       case OTHER -> OTHER;
       case null -> OTHER;
     };
@@ -72,6 +74,12 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> Type.ONLINE_REACTION;
       case MS2Deepscore -> Type.MS2Deepscore;
       case DREAMS -> Type.DREAMS;
+
+      // analog edges are not row-row relationships and have no real R2R type counterpart, but we need an enum value
+      case ANALOG_DreaMS -> Type.ANALOG_DREAMS;
+      case ANALOG_MS2_COSINE -> Type.ANALOG_COSINE;
+      case ANALOG_MS2Deepscore -> Type.ANALOG_MS2DEEPSCORE;
+
       case OTHER -> Type.OTHER;
       case null -> Type.OTHER;
     };
@@ -79,7 +87,7 @@ public enum EdgeType implements ElementType {
 
   public static List<EdgeType> getDefaultVisibleColumns() {
     return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
-        MS2Deepscore, DREAMS, OTHER);
+        MS2Deepscore, DREAMS, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER);
   }
 
   @Override
@@ -104,6 +112,9 @@ public enum EdgeType implements ElementType {
       case ONLINE_REACTION -> "IINREL";
       case MS2Deepscore -> "MS2Deepscore";
       case DREAMS -> "DreaMS";
+      case ANALOG_MS2_COSINE -> "ANALOG_COSINE";
+      case ANALOG_MS2Deepscore -> "ANALOG_MS2Deepscore";
+      case ANALOG_DreaMS -> "ANALOG_DreaMS";
       case OTHER -> "OTHER";
     });
   }

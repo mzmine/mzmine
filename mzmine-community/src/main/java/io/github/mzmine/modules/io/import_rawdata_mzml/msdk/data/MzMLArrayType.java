@@ -33,16 +33,16 @@ import java.util.stream.Collectors;
  * Enumeration of different types of arrays which are parsed by the MzML Parser
  */
 public enum MzMLArrayType {
-  MZ("MS:1000514"), // m/z values array
-  INTENSITY("MS:1000515"), // Intensity values array
-  TIME("MS:1000595"), // Retention time values array
-  WAVELENGTH("MS:1000617"), // wavelength array, eg. PDA detector
-  ION_MOBILITY("MS:1003007"); // ion mobility array for merged mzml file
+  MZ(MzMLCV.cvMzArray), // m/z values array
+  INTENSITY(MzMLCV.cvIntensityArray), // Intensity values array
+  TIME(MzMLCV.cvRetentionTimeArray), // Retention time values array
+  WAVELENGTH(MzMLCV.cvWavelengthArray), // wavelength array, eg. PDA detector
+  ION_MOBILITY(MzMLCV.cvIonMobilityArray); // ion mobility array for merged mzml file
 
   private static final Map<String, MzMLArrayType> map = Arrays.stream(MzMLArrayType.values()).collect(
       Collectors.toMap(MzMLArrayType::getAccession, v -> v));
 
-  private final String accession;
+  public final String accession;
 
   MzMLArrayType(String accession) {
     this.accession = accession;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -159,6 +159,13 @@ public interface RowsRelationship {
     MS2Deepscore,
     DREAMS,
     /**
+     * {@link
+     * io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule}
+     * Not R2R relationships constructed currently, but we need the enum values for the network
+     * visualizer
+     */
+    ANALOG_COSINE, ANALOG_DREAMS, ANALOG_MS2DEEPSCORE,
+    /**
      * External or other undefined
      */
     OTHER;
@@ -190,6 +197,9 @@ public interface RowsRelationship {
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
+        case ANALOG_COSINE -> "Analog (Cosine)";
+        case ANALOG_DREAMS -> "Analog (DreaMS)";
+        case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
         case OTHER -> "Other";
       };
     }
