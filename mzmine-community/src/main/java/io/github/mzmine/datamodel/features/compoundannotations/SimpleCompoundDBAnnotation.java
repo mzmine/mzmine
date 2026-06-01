@@ -192,14 +192,15 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     if (structure == null) {
       return;
     }
-    this.structure = structure;
-    putIfNotNull(MolecularStructureType.class, structure);
     putIfNotNull(SmilesStructureType.class, structure.canonicalSmiles());
     putIfNotNull(SmilesIsomericStructureType.class, structure.isomericSmiles());
     putIfNotNull(InChIKeyStructureType.class, structure.inchiKey());
     putIfNotNull(InChIStructureType.class, structure.inchi());
     putIfNotNull(FormulaType.class, structure.formulaString());
     putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
+    // structure better last because setting smiles might clear the structure var
+    putIfNotNull(MolecularStructureType.class, structure);
+    this.structure = structure;
   }
 
   /**
