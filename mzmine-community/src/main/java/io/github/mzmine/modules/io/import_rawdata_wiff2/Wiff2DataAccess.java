@@ -533,14 +533,18 @@ public class Wiff2DataAccess implements AutoCloseable {
 
     final TimeRange timeRange = getTimeRangeFromProcessor();
 
-    GetSpectraRequest r = GetSpectraRequest.newBuilder() //
+    final GetSpectraRequest.Builder b = GetSpectraRequest.newBuilder() //
         .setSampleId(sample.getId()) //
         .setExperimentId(experiment.getId()) //
         .setRange(timeRange).setConvertToCentroid(centroid) //
         .setSmoothingOption(SmoothingOptions.Moderate) //
         .setCentroidOption(CentroidOptions.TotalIntensitySum) //
-        .setIncludeIsolatedPointsAsPeaks(false) //
-        .build();
+        .setIncludeIsolatedPointsAsPeaks(false); //
+
+    if(centroid) {
+      b.setAddFramingZeros(0).setOverrideAddFramingZerosDefaultValue(true);
+    }
+    final GetSpectraRequest r = b.build();
     return dataProvider.getSpectra(r);
   }
 
