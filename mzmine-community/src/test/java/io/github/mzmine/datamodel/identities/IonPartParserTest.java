@@ -206,21 +206,22 @@ class IonPartParserTest {
   void testAddPartDefinition() throws IonPartParsingException {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
 
-    final IonPart unknown = IonPartParser.parseOrThrow("+TE");
+    final IonPart unknown = IonPartParser.parseOrThrow("+NOTHINGKNOWNPART");
     assertEquals(1, unknown.count());
-    assertEquals("TE", unknown.name());
+    assertEquals("NOTHINGKNOWNPART", unknown.name());
     assertNull(unknown.singleFormula());
     assertEquals(0d, unknown.absSingleMass(), 0.0001);
     assertEquals(0, unknown.singleCharge());
 
-    final IonPartDefinition def = IonPartDefinition.ofFormula("TE", "C3H6", 1);
+    final IonPartDefinition def = IonPartDefinition.ofFormula("NOTHINGKNOWNPART", "C3H6", 1);
     global.addPartDefinition(def);
 
-    final IonPart known = IonPartParser.parseOrThrow("+TE");
+    final IonPart known = IonPartParser.parseOrThrow("+NOTHINGKNOWNPART");
     assertNotNull(known);
     assertEquals(def.singleFormula(), known.singleFormula());
     assertEquals(def.absSingleMass(), known.absSingleMass());
     assertEquals(def.singleCharge(), known.singleCharge());
+    global.removePartDefinition(def);
   }
 
 }

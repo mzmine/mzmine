@@ -33,6 +33,7 @@ import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.external_row_html.ExternalRowHtmlVisualizerController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkPane;
@@ -216,7 +217,7 @@ public class NetworkOverviewController {
   }
 
   private void createInternalTable(final @NotNull ModularFeatureList featureList) {
-    final var controller = new FxFeatureTableController();
+    final var controller = new FxFeatureTableController(FeatureTableOwner.NETWORK_DASHBOARD);
     controller.setFeatureList(featureList);
     internalTable = controller.getFeatureTable();
     tabNodes.setContent(controller.buildView());

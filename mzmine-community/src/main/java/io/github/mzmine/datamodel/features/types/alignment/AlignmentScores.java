@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.RateType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.WeightedDistanceScoreType;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
@@ -70,7 +70,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
     return DataTypes.getAll(RateType.class, AlignedFeaturesNType.class,
-        AlignExtraFeaturesType.class, WeightedDistanceScore.class, MzPpmDifferenceType.class,
+        AlignExtraFeaturesType.class, WeightedDistanceScoreType.class, MzPpmDifferenceType.class,
         MzAbsoluteDifferenceType.class, RtAbsoluteDifferenceType.class,
         MobilityAbsoluteDifferenceType.class);
   }
@@ -86,7 +86,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
     var rate = requireNonNullElse(values.get(RateType.class), -1f);
     int alignedFeatures = requireNonNullElse(values.get(AlignedFeaturesNType.class), -1);
     var extraFeatures = requireNonNullElse(values.get(AlignExtraFeaturesType.class), -1);
-    var weightedDistanceScore = values.get(WeightedDistanceScore.class);
+    var weightedDistanceScore = values.get(WeightedDistanceScoreType.class);
     var mzPpmDelta = values.get(MzPpmDifferenceType.class);
     var mzDelta = values.get(MzAbsoluteDifferenceType.class);
     var rtDelta = values.get(RtAbsoluteDifferenceType.class);
@@ -109,7 +109,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
       case RateType ignored -> rate;
       case AlignedFeaturesNType ignored -> alignedFeatures;
       case AlignExtraFeaturesType ignored -> extraFeatures;
-      case WeightedDistanceScore ignored -> weightedDistanceScore;
+      case WeightedDistanceScoreType ignored -> weightedDistanceScore;
       case MzPpmDifferenceType ignored -> mzPpmDelta;
       case MzAbsoluteDifferenceType ignored -> maxMzDelta;
       case RtAbsoluteDifferenceType ignored -> maxRtDelta;
@@ -136,7 +136,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
       case AlignExtraFeaturesType ignored ->
           new AlignmentScores(rate, alignedFeatures, (Integer) value, weightedDistanceScore,
               mzPpmDelta, maxMzDelta, maxRtDelta, maxMobilityDelta);
-      case WeightedDistanceScore ignored ->
+      case WeightedDistanceScoreType ignored ->
           new AlignmentScores(rate, alignedFeatures, extraFeatures, (Float) value, mzPpmDelta,
               maxMzDelta, maxRtDelta, maxMobilityDelta);
       case MzPpmDifferenceType ignored ->

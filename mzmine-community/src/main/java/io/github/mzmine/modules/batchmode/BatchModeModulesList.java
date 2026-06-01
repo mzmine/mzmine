@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.autosave.AutoSaveBatchModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCALoadingsExtractionModule;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
@@ -95,6 +96,8 @@ import io.github.mzmine.modules.dataprocessing.filter_splitaligned.SplitAlignedF
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -359,6 +362,8 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
            */
           CorrelateGroupingModule.class, //
+          CompoundGrouperModule.class, //
+          ConfigCompoundRepresentationModule.class, //
           ImageCorrelateGroupingModule.class, //
           MainSpectralNetworkingModule.class, //
           AnnotateIsomersModule.class, //
@@ -490,6 +495,7 @@ public class BatchModeModulesList {
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //
           LipidAnnotationSummaryModule.class, //
+          CompoundDashboardModule.class, //
           IntegrationDashboardModule.class, //
           LipidAnnotationQCDashboardModule.class, //
           MultidetectorVisualizerModule.class, //

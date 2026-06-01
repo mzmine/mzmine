@@ -130,6 +130,9 @@ public interface RowsRelationship {
      * samples. see {@link CorrelateGroupingTask} and {@link CorrelationGroupingUtils}
      */
     MS1_FEATURE_CORR,
+    /// those rows that show MS1 FEATURE_CORR will also be checked for mobility shape correlation
+    /// features correlated in IMS might be fragments after the IM separation
+    MS1_MOBILITY_FEATURE_CORR,
     /**
      * Member of the same ion identity network
      */
@@ -186,6 +189,7 @@ public interface RowsRelationship {
     public String toString() {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 shape correlation";
+        case MS1_MOBILITY_FEATURE_CORR -> "MS1 mobility shape correlation";
         case ION_IDENTITY_NET -> "Ion Identity";
         case MS2_COSINE_SIM -> "MS2 (modified) cosine";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";

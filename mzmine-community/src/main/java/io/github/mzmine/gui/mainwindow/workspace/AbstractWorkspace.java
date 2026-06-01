@@ -43,6 +43,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardModule;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
@@ -58,6 +59,8 @@ import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.A
 import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
 import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -214,8 +217,10 @@ public abstract class AbstractWorkspace implements Workspace {
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
-    addMenuItem(menu, "Open project", () -> ProjectLoadModule.openQuickSelect(), KeyCode.O, KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN);
+    addMenuItem(menu, "Open project", () -> ProjectLoadModule.openQuickSelect(), KeyCode.O,
+        KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN,
+        KeyCombination.SHIFT_DOWN);
     menu.getItems().add(recentProjects);
     addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,
@@ -297,6 +302,9 @@ public abstract class AbstractWorkspace implements Workspace {
         FormulaPredictionIonNetworkModule.class, CreateAvgNetworkFormulasModule.class,
         IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
+    addModuleMenuItems(groupingMenu, CompoundGrouperModule.class,
+        ConfigCompoundRepresentationModule.class);
+    groupingMenu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, AnnotateIsomersModule.class);
     groupingMenu.getItems().addAll(new SeparatorMenuItem(),
         new ModuleMenuItem(ImageCorrelateGroupingModule.class, null));
@@ -346,10 +354,12 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);
     addSeparator(featureVis);
-    addModuleMenuItems(featureVis, "Lipids", EquivalentCarbonNumberModule.class,
+    addModuleMenuItems(featureVis, "Lipids", LipidAnnotationQCDashboardModule.class,
+        EquivalentCarbonNumberModule.class,
         LipidAnnotationSummaryModule.class);
-    addModuleMenuItems(featureVis, "Dashboards", IntegrationDashboardModule.class,
-        LipidAnnotationQCDashboardModule.class, StatsDasboardModule.class);
+    addModuleMenuItems(featureVis, "Dashboards", CompoundDashboardModule.class,
+        IntegrationDashboardModule.class, LipidAnnotationQCDashboardModule.class,
+        StatsDasboardModule.class);
     // end of feature visualization
     // back to main visualization menu
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);

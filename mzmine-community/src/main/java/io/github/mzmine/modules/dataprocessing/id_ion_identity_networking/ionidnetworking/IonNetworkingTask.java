@@ -40,6 +40,8 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.datamodel.identities.iontype.IonTypePair;
 import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperParameters;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperTask;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesTask;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -83,6 +85,7 @@ public class IonNetworkingTask extends AbstractTask {
 
   private final MZTolerance mzTolerance;
   private final SearchableIonLibrary library;
+  private CompoundGrouperTask compoundTask;
 
 
   /**
@@ -191,6 +194,23 @@ public class IonNetworkingTask extends AbstractTask {
       featureList.addRowType(DataTypes.get(IonIdentityListType.class));
 
       annotateGroups();
+
+      if (parameters.getValue(IonNetworkingParameters.COMPOUND_GROUPING)) {
+        final CompoundGrouperParameters compoundParams = parameters.getParameter(
+                IonNetworkingParameters.COMPOUND_GROUPING).getEmbeddedParameters()
+            .toFullParameters(List.of(featureList));
+
+        compoundTask = new CompoundGrouperTask(featureList,
+            compoundParams, getModuleCallDate(), true);
+
+        try {
+        compoundTask.run();
+        } catch (Exception e) {
+          error("Error running compound grouper task from within ion identity task.", e);
+          return;
+        }
+      }
+
       featureList.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters,
               getModuleCallDate()));

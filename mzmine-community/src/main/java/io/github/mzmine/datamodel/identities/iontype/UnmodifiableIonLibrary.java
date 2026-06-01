@@ -73,16 +73,11 @@ public class UnmodifiableIonLibrary implements IonLibrary {
       final @NotNull LocalDateTime lastUpdatedDate, @NotNull String name,
       @NotNull List<IonType> ions) {
     if (!skipNameCheck && IonLibraries.isInternalLibrary(name)) {
-      // use try catch to get stack trace
       // users might load a library with mzmine default in name
       // maybe even old default libraries from former versions that are selected in the parameterset
-      try {
-        throw new IllegalArgumentException(
-            "The chosen name '%s' contains the part '%s', which is reserved for internal default libraries. Will use 'Unnamed' instead.".formatted(
-                name, IonLibraries.RESERVED_NAME));
-      } catch (Exception e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
-      }
+      final String msg = "The chosen name '%s' contains the part '%s', which is reserved for internal default libraries. Will use 'Unnamed' instead.".formatted(
+          name, IonLibraries.RESERVED_NAME);
+      logger.log(Level.INFO, msg);
       name = "unnamed library";
     }
     this.id = id;

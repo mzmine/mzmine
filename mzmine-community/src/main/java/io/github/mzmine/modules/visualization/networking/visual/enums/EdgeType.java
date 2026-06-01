@@ -34,8 +34,7 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS,
-  ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER;
+  FEATURE_SHAPE_CORRELATION, MOBILITY_FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, ONLINE_REACTION, MS2Deepscore, DREAMS, ANALOG_MS2_COSINE, ANALOG_MS2Deepscore, ANALOG_DreaMS, OTHER;
 
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
@@ -48,6 +47,7 @@ public enum EdgeType implements ElementType {
   public static EdgeType of(Type type) {
     return switch (type) {
       case MS1_FEATURE_CORR -> FEATURE_SHAPE_CORRELATION;
+      case MS1_MOBILITY_FEATURE_CORR -> MOBILITY_FEATURE_SHAPE_CORRELATION;
       case ION_IDENTITY_NET -> ION_IDENTITY;
       case MS2_COSINE_SIM -> MS2_MODIFIED_COSINE;
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
@@ -66,6 +66,7 @@ public enum EdgeType implements ElementType {
   public static Type toR2RType(EdgeType type) {
     return switch (type) {
       case FEATURE_SHAPE_CORRELATION -> Type.MS1_FEATURE_CORR;
+      case MOBILITY_FEATURE_SHAPE_CORRELATION -> Type.MS1_MOBILITY_FEATURE_CORR;
       case ION_IDENTITY -> Type.ION_IDENTITY_NET;
       case MS2_MODIFIED_COSINE -> Type.MS2_COSINE_SIM;
       case NETWORK_RELATIONS -> Type.MS2_NEUTRAL_LOSS_SIM;
@@ -103,6 +104,7 @@ public enum EdgeType implements ElementType {
   public Optional<String> getUiClass() {
     return Optional.of(switch (this) {
       case FEATURE_SHAPE_CORRELATION -> "FEATURECORR";
+      case MOBILITY_FEATURE_SHAPE_CORRELATION -> "MOBILITY_CORR";
       case NETWORK_RELATIONS -> "IINREL";
       case MS2_MODIFIED_COSINE -> "COSINE";
       case GNPS_MODIFIED_COSINE -> "GNPS";

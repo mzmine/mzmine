@@ -28,12 +28,16 @@ package io.github.mzmine.modules.dataprocessing.filter_deleterows;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.FeatureListUtils;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class DeleteRowsParameters extends SimpleParameterSet {
 
@@ -42,18 +46,43 @@ public class DeleteRowsParameters extends SimpleParameterSet {
   public static final StringParameter rowIds = new StringParameter("Row IDs",
       "Row ID from the specific feature list, separated by ',' (comma).");
 
+  public static final StringParameter compoundIds = new StringParameter("Compound IDs",
+      "Compound row IDs to remove from the compound list, separated by ',' (comma). "
+          + "Only the compound grouping is dropped; the underlying feature list rows are kept.", "",
+      false);
+
   public DeleteRowsParameters() {
-    super(flist, rowIds);
+    super(flist, rowIds, compoundIds);
   }
 
-  public static DeleteRowsParameters of(final FeatureList featureList,
-      final List<? extends FeatureListRow> rows) {
+  public static @NotNull DeleteRowsParameters of(@NotNull final FeatureList featureList,
+      @NotNull final List<? extends FeatureListRow> rows) {
     final DeleteRowsParameters parameterSet = (DeleteRowsParameters) new DeleteRowsParameters().cloneParameterSet();
-
     parameterSet.setParameter(DeleteRowsParameters.flist,
         new FeatureListsSelection((ModularFeatureList) featureList));
     parameterSet.setParameter(rowIds, FeatureListUtils.rowsToIdString(rows));
-
+    parameterSet.setParameter(compoundIds, "");
     return parameterSet;
+  }
+
+  public static @NotNull DeleteRowsParameters of(@NotNull final ModularFeatureList featureList,
+      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
+    return of(featureList, List.of(), compounds);
+  }
+
+  public static @NotNull DeleteRowsParameters of(@NotNull final ModularFeatureList featureList,
+      @NotNull final List<? extends FeatureListRow> rows,
+      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
+    final DeleteRowsParameters parameterSet = (DeleteRowsParameters) new DeleteRowsParameters().cloneParameterSet();
+    parameterSet.setParameter(DeleteRowsParameters.flist, new FeatureListsSelection(featureList));
+    parameterSet.setParameter(rowIds, FeatureListUtils.rowsToIdString(rows));
+    parameterSet.setParameter(compoundIds, joinCompoundIds(compounds));
+    return parameterSet;
+  }
+
+  private static @NotNull String joinCompoundIds(
+      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
+    return compounds.stream().map(ModularCompoundRow::getCompoundId).map(Object::toString)
+        .collect(Collectors.joining(","));
   }
 }

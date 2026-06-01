@@ -109,7 +109,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
         rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, intraSampleRtTol);
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
@@ -124,6 +124,10 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     if(applyAnalogSearch){
       makeAndAddAnalogSearchStep(q);
     }
+
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q, intraSampleRtTol);
+
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);
     makeAndAddBatchExportStep(q, isExportActive, exportPath);

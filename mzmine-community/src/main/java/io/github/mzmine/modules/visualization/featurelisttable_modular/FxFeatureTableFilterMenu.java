@@ -29,7 +29,10 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoGrowTextField;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -43,17 +46,23 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.validation.ValidationSupport;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,12 +73,16 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   private final FxFeatureTableFilterMenuModel model;
   @NotNull
   private final FxFeatureTableModel parentModel;
+  @NotNull
+  private final FxFeatureTableController parentController;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;
 
-  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel) {
+  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel,
+      @NotNull FxFeatureTableController parentController) {
     this.model = parentModel.getFilterModel();
     this.parentModel = parentModel;
+    this.parentController = parentController;
     filterFlow = createFilters();
     rightButtonMenu = createRightButtonMenu();
 
@@ -125,12 +138,22 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     initValidation(idField, mzField, rtField);
 
+    // toggle between compound list rows and flat feature list rows; the items list is maintained
+    // by the interactor so ALL_ISOTOPES is hidden when no compound row has isotope sub-rows.
+    final var rowSelection = FxComboBox.createComboBox(
+        "Toggle between compound-grouped rows and flat feature list rows",
+        model.getAvailableCompoundRowSelections(), model.compoundRowSelectionProperty());
+    rowSelection.disableProperty().bind(model.compoundListAvailableProperty().not());
+    rowSelection.visibleProperty().bind(model.compoundListAvailableProperty());
+    rowSelection.managedProperty().bind(model.compoundListAvailableProperty());
+
     // layout
     return FxLayout.newFlowPane( //
-        FxIconUtil.getFontIcon(FxIcons.SEARCH), //
-        newBoldLabel("ID="), idField, //
-        newBoldLabel("m/z="), mzField, //
-        newBoldLabel("RT="), rtField, //
+        rowSelection, //
+        FxIconUtil.getFontIcon(FxIcons.SEARCH), newBoldLabel("ID="), //
+        idField, newBoldLabel("m/z="), //
+        mzField, newBoldLabel("RT="), //
+        rtField, //
         rowTypeFilter);
   }
 
@@ -159,14 +182,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         "Configure the look & feel of the feature table", onOpenParametersDialog);
     final ButtonBase quick = FxIconUtil.newIconButton(FxIcons.COLUMNS_DOTS,
         "Quick configuration of table columns", parentModel.getOnQuickColumnSelectionAction());
+    final ButtonBase links = createLinksButton();
     final ButtonBase docu = FxIconUtil.newIconButton(FxIcons.QUESTION_CIRCLE,
         "Open the documentation of the feature table", () -> DesktopService.getDesktop()
             .openWebPage(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html"));
 
     return FxLayout.newHBox( //
-        docu, quick, config //
+        docu, links, quick, config //
     );
+  }
+
+  /**
+   * Button with links to other feature tables
+   */
+  private ButtonBase createLinksButton() {
+    final ButtonBase btn = FxIconUtil.newIconButton(FxIcons.LINK,
+        "Linked feature tables — sync selection across dashboards", null);
+    final FeatureTableLinksPopoverContent content = new FeatureTableLinksPopoverContent(
+        parentController);
+    final PopOver popover = FxPopOvers.newPopOver(content, ArrowLocation.BOTTOM_RIGHT);
+    // Prune stale weak refs each time the popover opens so closed dashboards drop from the list.
+    popover.setOnShowing(_ -> content.refresh());
+    FxPopOvers.install(btn, popover);
+    return btn;
   }
 
   public FlowPane getFilterFlow() {
@@ -194,6 +233,17 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     private final StringProperty rtFilterPrompt = new SimpleStringProperty("");
     // specific
     private final ObjectProperty<RowTypeFilter> specialRowTypeFilter = new SimpleObjectProperty<>();
+
+    // null = feature list rows; non-null = compound list with that selection level
+    private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+        null);
+    // true when the current feature list has a valid compound list
+    private final BooleanProperty compoundListAvailable = new SimpleBooleanProperty(false);
+    // Items shown in the compound row selection ComboBox. Defaults to all values; the interactor
+    // narrows this to {COMPOUNDS, ALL_MAJOR_IONS} when the current compound list has no nested
+    // isotope rows, so ALL_ISOTOPES is hidden in that case.
+    private final ObservableList<CompoundRowSelection> availableCompoundRowSelections = FXCollections.observableArrayList(
+        CompoundRowSelection.values());
 
     // the actual filter
     private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilter = new ReadOnlyObjectWrapper<>();
@@ -264,6 +314,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     public ObjectProperty<RowTypeFilter> specialRowTypeFilterProperty() {
       return specialRowTypeFilter;
+    }
+
+    public @Nullable CompoundRowSelection getCompoundRowSelection() {
+      return compoundRowSelection.get();
+    }
+
+    public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+      return compoundRowSelection;
+    }
+
+    public void setCompoundRowSelection(@Nullable CompoundRowSelection selection) {
+      compoundRowSelection.set(selection);
+    }
+
+    public boolean isCompoundListAvailable() {
+      return compoundListAvailable.get();
+    }
+
+    public BooleanProperty compoundListAvailableProperty() {
+      return compoundListAvailable;
+    }
+
+    public @NotNull ObservableList<CompoundRowSelection> getAvailableCompoundRowSelections() {
+      return availableCompoundRowSelections;
     }
   }
 }

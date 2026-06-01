@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -94,6 +95,11 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
   public ModularFeature(@NotNull ModularFeatureList flist) {
     super(flist.getFeaturesSchema());
     this.flist = flist;
+  }
+
+  public ModularFeature(@NotNull CompoundList compList) {
+    super(compList.getCompoundFeaturesSchema());
+    this.flist = compList.getFeatureList();
   }
 
   // NOT TESTED

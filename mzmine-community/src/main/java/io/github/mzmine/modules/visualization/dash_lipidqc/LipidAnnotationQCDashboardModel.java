@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -40,16 +41,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Data model for the lipid annotation quality control dashboard. Holds the active feature list,
- * the currently selected row, references to the embedded feature table controller, the preferred
- * lipid annotation level, and the retention time analysis enabled flag.
+ * Data model for the lipid annotation quality control dashboard. Holds the active feature list, the
+ * currently selected row, references to the embedded feature table controller, the preferred lipid
+ * annotation level, and the retention time analysis enabled flag.
  */
 public class LipidAnnotationQCDashboardModel {
 
   private final ObjectProperty<@NotNull ModularFeatureList> featureList = new SimpleObjectProperty<>(
       new ModularFeatureList("flist", null, List.of()));
   private final ObjectProperty<@NotNull FxFeatureTableController> featureTableController = new ReadOnlyObjectWrapper<>(
-      new FxFeatureTableController());
+      new FxFeatureTableController(FeatureTableOwner.LIPID_DASHBOARD));
   private final ObjectProperty<@NotNull FeatureTableFX> featureTableFx = new ReadOnlyObjectWrapper<>(
       featureTableController.get().getFeatureTable());
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();

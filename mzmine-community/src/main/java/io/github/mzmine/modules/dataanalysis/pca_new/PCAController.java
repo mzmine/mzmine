@@ -29,7 +29,9 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedCompoundRowSelectionBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
@@ -46,10 +48,14 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
-    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
+    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding,
+    SelectedCompoundRowSelectionBinding {
 
   private final FxViewBuilder<PCAModel> builder;
 
@@ -59,7 +65,8 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     //update on changes of these properties
     PropertyUtils.onChange(this::prepareDataTable, model.flistsProperty(),
         model.abundanceProperty(), model.imputationFunctionProperty(),
-        model.scalingFunctionProperty(), model.sampleTypeFilterProperty());
+        model.scalingFunctionProperty(), model.sampleTypeFilterProperty(),
+        model.compoundRowSelectionProperty());
 
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate,
@@ -105,9 +112,19 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),
         model.getImputationFunction(), model.getScalingFunction(), ScalingFunctions.MeanCentering);
 
+    // decision: use compound rows when selection is set and compound list is available
+    final CompoundRowSelection selection = model.getCompoundRowSelection();
+    final ObservableList<FeatureListRow> rows;
+    if (selection != null && featureList.hasCompoundList()) {
+      rows = FXCollections.observableArrayList(
+          featureList.getCompoundList().getRowsCopy(selection));
+    } else {
+      rows = featureList.getRows();
+    }
+
     onTaskThreadDelayed(
-        new FeatureDataPreparationTask(model.featureDataTableProperty(), featureList.getRows(),
-            selectedFiles, config));
+        new FeatureDataPreparationTask(model.featureDataTableProperty(), rows, selectedFiles,
+            config));
   }
 
   /**
@@ -130,5 +147,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
     return model.abundanceProperty();
+  }
+
+  @Override
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return model.compoundRowSelectionProperty();
   }
 }

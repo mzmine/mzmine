@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,30 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.datamodel.features.compoundlist;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Weighted distance describes the distance of one multi-dimensional point to another reference.
- * Usually ranges defined by mzTolerance etc. summed for multiple dimensions and multiplied by a
- * factor
- */
-public class WeightedDistanceScore extends ScoreType {
+public class MissingCompoundListException extends RuntimeException {
 
-  @Override
-  public @NotNull String getUniqueID() {
-    return "weighted_distance_score";
+  public MissingCompoundListException(@NotNull FeatureList flist) {
+    this("Missing compound list in feature list, run %s module first. List name: %s".formatted(
+        CompoundGrouperModule.NAME, flist.getName()));
   }
 
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Weighted distance score";
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return false;
+  public MissingCompoundListException(String message) {
+    super(message);
   }
 }

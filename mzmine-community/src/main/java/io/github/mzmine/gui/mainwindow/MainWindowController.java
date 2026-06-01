@@ -45,6 +45,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardTab;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
@@ -188,6 +189,8 @@ public class MainWindowController {
   @FXML
   public MenuItem mergeLibrariesMenuItem;
 
+  @FXML
+  public MenuItem showCompoundDashboardItem;
   @FXML
   public NotificationPane notificationPane;
 
@@ -381,7 +384,7 @@ public class MainWindowController {
     // Add mouse clicked event handler
     featureListsList.getTreeView().setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleOpenFeatureList(event);
+        handlePreferredDashboardFeatureList();
       }
     });
 
@@ -397,36 +400,44 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getTreeView().getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
-          while (change.next()) {
-            if (change.getList() == null) {
-              return;
-            }
+    final ObservableList<TreeItem<FeatureList>> selectedItems = featureListsList.getTreeView()
+        .getSelectionModel().getSelectedItems();
+    selectedItems.addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
+      while (change.next()) {
+        if (change.getList() == null) {
+          return;
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              openFeatureListMenuItem.setText("Open feature list");
-              showFeatureListSummaryMenuItem.setText("Show feature list summary");
-              featureListsRemoveMenuItem.setText("Remove feature list");
-            } else {
-              openFeatureListMenuItem.setText("Open feature lists");
-              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-              featureListsRemoveMenuItem.setText("Remove feature lists");
-            }
+        if (selectedItems.isEmpty() || selectedItems.getFirst().getValue() == null
+            || selectedItems.getFirst().getValue().getCompoundList() == null) {
+          showCompoundDashboardItem.setVisible(false);
+        } else {
+          showCompoundDashboardItem.setVisible(true);
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              featureListsRenameMenuItem.setDisable(false);
-              if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
-                  == null) {
-                featureListsRenameMenuItem.setText("Rename group");
-              } else {
-                featureListsRenameMenuItem.setText("Rename feature list");
-              }
-            } else {
-              featureListsRenameMenuItem.setDisable(true);
-            }
+        if (selectedItems.size() == 1) {
+          openFeatureListMenuItem.setText("Open feature list");
+          showFeatureListSummaryMenuItem.setText("Show feature list summary");
+          featureListsRemoveMenuItem.setText("Remove feature list");
+        } else {
+          openFeatureListMenuItem.setText("Open feature lists");
+          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+          featureListsRemoveMenuItem.setText("Remove feature lists");
+        }
+
+        if (selectedItems.size() == 1) {
+          featureListsRenameMenuItem.setDisable(false);
+          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+              == null) {
+            featureListsRenameMenuItem.setText("Rename group");
+          } else {
+            featureListsRenameMenuItem.setText("Rename feature list");
           }
-        });
+        } else {
+          featureListsRenameMenuItem.setDisable(true);
+        }
+      }
+    });
 
     featureListsList.setRenameConsumer(FeatureList::setName);
   }
@@ -785,10 +796,24 @@ public class MainWindowController {
     }
   }
 
+  public void handlePreferredDashboardFeatureList() {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
+      FxThread.runLater(() -> {
+        // decision: feature lists carrying a CompoundList open the compound dashboard, which
+        // already embeds a FeatureTableFX. Plain feature lists fall back to the legacy table tab.
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        } else {
+          FeatureTableFXUtil.addFeatureTableTab(fl);
+        }
+      });
+    }
+  }
+
   public void handleOpenFeatureList(Event event) {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
-      // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       FxThread.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
@@ -1081,5 +1106,16 @@ public class MainWindowController {
 
   public void handleMergeLibraries(ActionEvent e) {
     MZmineCore.setupAndRunModule(MergeLibrariesModule.class);
+  }
+
+  public void handleShowCompoundDashboard(ActionEvent actionEvent) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    FxThread.runLater(() -> {
+      for (FeatureList fl : selectedFeatureLists) {
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        }
+      }
+    });
   }
 }

@@ -36,10 +36,10 @@ import javafx.scene.paint.Color;
  */
 public class ColorsFX {
 
-  private static final Color NEUTRAL_MARKER = new Color(0.5f, 0.5f, 0.5f, 1f); // grey
+  public static final Color NEUTRAL_MARKER = new Color(0.5f, 0.5f, 0.5f, 1f); // grey
 
   // colors to mark positive or negative results (color blindness aware)
-  private static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f,
+  public static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f,
       1f); // blue
   private static final Color NEGATIVE_MARKER_COLORBLIND = new Color(0.835f, 0.369f, 0.f,
       1f); // orange
@@ -51,11 +51,10 @@ public class ColorsFX {
   // Color used to mark "modified" aligned signals (e.g. modified-cosine pairs that align via the
   // precursor-mass shift rather than direct m/z match). Distinct from positive (direct match),
   // negative (no match), and neutral (filtered).
-  private static final Color MAGENTA = new Color(0.749f, 0.1725f, 0.5176f,
-      1f); // reddish purple
+  public static final Color MAGENTA = new Color(0.749f, 0.1725f, 0.5176f, 1f); // reddish purple
   private static final Color MODIFIED_MARKER = MAGENTA;
 
-
+  public static final Color YELLOW_WARN = new Color(0.941f, 0.894f, 0.259f, 1f);
   /**
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
    * green, yellow, blue, vermillion (darker orange), reddish purple
@@ -68,7 +67,7 @@ public class ColorsFX {
       new Color(0.902f, 0.624f, 0f, 1f), // orange
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
       new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
-      new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+      YELLOW_WARN, // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
       MAGENTA}; // reddish purple

@@ -70,6 +70,13 @@ public interface FeatureListRow extends ModularDataModel {
   Integer getID();
 
   /**
+   * unique ID for map keys
+   */
+  default FeatureListRowID getTypedID() {
+    return FeatureListRowID.of(this);
+  }
+
+  /**
    * Returns number of features assigned to this row
    */
   int getNumberOfFeatures();
