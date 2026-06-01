@@ -34,10 +34,15 @@ import io.github.mzmine.util.io.JsonUtils;
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout.OfByte;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -51,6 +56,24 @@ public class ClearcoreServer {
 
   private static final Logger logger = Logger.getLogger(ClearcoreServer.class.getName());
   private static final CloseableReentrantReadWriteLock startLock = new CloseableReentrantReadWriteLock();
+
+  /**
+   * Version of the bundled SCIEX Clearcore server. The server is copied from the (potentially
+   * read-only) installation directory into the writable user directory so that the launcher can
+   * write the license and appsettings next to the executable. Bump this whenever the bundled server
+   * changes to copy it into a fresh, version-named directory on the next launch.
+   */
+  private static final String SERVER_VERSION = "v1.6.1.766";
+  /**
+   * Directory of the bundled server in the (read-only) installation / external tools dir.
+   */
+  private static final String SCIEX_SOURCE_DIR = "sciex_wiff2";
+  /**
+   * Directory of the server copy in the writable user resources dir
+   * ({@code .mzmine/external_resources/sciex_wiff2_<version>/}). The version is encoded in the folder
+   * name, so the presence of the directory itself signals that this version was already copied.
+   */
+  private static final String SCIEX_USER_DIR = SCIEX_SOURCE_DIR + "_" + SERVER_VERSION;
   // 461808 is the minimum release key for .NET Framework 4.7.2. Later versions use larger keys.
   private static final int DOT_NET_FRAMEWORK_472_RELEASE_KEY = 461808;
   private static final Pattern WINDOWS_DOT_NET_RELEASE_PATTERN = Pattern.compile(
@@ -69,10 +92,16 @@ public class ClearcoreServer {
   private final String address;
 
   private ClearcoreServer() throws IOException {
-    final File dataAccessExe = FileAndPathUtil.resolveInExternalToolsDir(getDataAccessPath());
+    // The installation directory may be read-only (e.g. C:\Program Files), but the launcher needs
+    // to write the license and appsettings next to the server executable. Copy the bundled server
+    // into the writable user directory once per version, and run it from there.
+    ensureServerCopied();
+
+    final File dataAccessExe = FileAndPathUtil.resolveInDownloadResourcesDir(getDataAccessPath());
     if (!dataAccessExe.exists()) {
       throw new RuntimeException(
-          "SCIEX data API executable does not exist. Run gradlew build first to download.");
+          "SCIEX data API executable does not exist after copying to the user directory: "
+              + dataAccessExe.getAbsolutePath());
     }
     if (!Platform.isWindows() && !dataAccessExe.setExecutable(true, false)) {
       // make sure file is set as executable on linux
@@ -80,11 +109,8 @@ public class ClearcoreServer {
           "Failed to make SCIEX data API executable: " + dataAccessExe.getAbsolutePath());
     }
 
-    // Write appsettings.json (non-secret) before the native call so the server
-    // finds the license path on startup.
-
-    // Read port/address from the file we just wrote.
-    final File appsettings = FileAndPathUtil.resolveInExternalToolsDir(getAppSettingsPath());
+    // Read port/address from the appsettings.json that was copied into the user directory.
+    final File appsettings = FileAndPathUtil.resolveInDownloadResourcesDir(getAppSettingsPath());
     Map<String, String> o = JsonUtils.readValueOrThrow(appsettings);
     port = Integer.parseInt(Objects.requireNonNullElse(o.get("port"), o.get("Port")));
     address = Objects.requireNonNullElse(o.get("Host"), o.get("host"));
@@ -143,14 +169,124 @@ public class ClearcoreServer {
   }
 
   private static @NotNull String getPathForOs(@NotNull final String filename) {
+    return getUserServerDir() + "/" + filename;
+  }
+
+  /**
+   * OS-specific server sub-directory name (e.g. {@code Server-win10-x64}).
+   */
+  private static @NotNull String getServerSubDirForOs() {
     if (Platform.isWindows()) {
-      return "sciex_wiff2/Server-win10-x64/%s".formatted(filename);
+      return "Server-win10-x64";
     }
     if (Platform.isLinux()) {
-      return "sciex_wiff2/Server-linux-x64/%s".formatted(filename);
+      return "Server-linux-x64";
     }
     throw new RuntimeException(
         "Native SCIEX support is not available for your operating system. Please convert to mzML or switch to Windows/Linux.");
+  }
+
+  /**
+   * Relative path of the bundled server in the installation / external tools dir (unversioned).
+   */
+  private static @NotNull String getSourceServerDir() {
+    return SCIEX_SOURCE_DIR + "/" + getServerSubDirForOs();
+  }
+
+  /**
+   * Relative path of the server copy in the user resources dir (version encoded in the folder name).
+   */
+  private static @NotNull String getUserServerDir() {
+    return SCIEX_USER_DIR + "/" + getServerSubDirForOs();
+  }
+
+  /**
+   * Copies the bundled server from the installation directory into the writable user directory
+   * ({@code .mzmine/external_resources/sciex_wiff2_<version>/Server-<os>/}) unless it has already
+   * been copied for the current {@link #SERVER_VERSION} (signalled by the version-named directory
+   * existing). This is required because the launcher writes the license and appsettings next to the
+   * executable, which is not possible inside a read-only installation directory (e.g. C:\Program
+   * Files).
+   */
+  private static void ensureServerCopied() throws IOException {
+    final File destServerDir = FileAndPathUtil.resolveInDownloadResourcesDir(getUserServerDir());
+    if (destServerDir.isDirectory()) {
+      logger.fine(() -> "SCIEX server version %s already present in %s".formatted(SERVER_VERSION,
+          destServerDir.getAbsolutePath()));
+      return;
+    }
+
+    // Synchronize the copy so concurrent threads accessing the server do not copy at the same time.
+    // The lock is reentrant, so it is safe to acquire here even while held by startServer().
+    try (var _ = startLock.lockWrite()) {
+      // double-checked: another thread may have finished the copy while we waited for the lock.
+      if (destServerDir.isDirectory()) {
+        return;
+      }
+
+      final File sourceServerDir = FileAndPathUtil.resolveInExternalToolsDir(getSourceServerDir());
+      if (!sourceServerDir.isDirectory()) {
+        throw new IOException(
+            "SCIEX server source directory does not exist. Run gradlew build first to download: "
+                + sourceServerDir.getAbsolutePath());
+      }
+
+      logger.info(() -> "Copying SCIEX server version %s from %s to %s".formatted(SERVER_VERSION,
+          sourceServerDir.getAbsolutePath(), destServerDir.getAbsolutePath()));
+
+      // Copy into a temporary sibling directory first, then move it into place. This way an
+      // interrupted copy never leaves a partial directory under the version-named folder (which
+      // would otherwise be mistaken for a complete copy on the next launch).
+      final File parentDir = destServerDir.getParentFile();
+      if (parentDir != null && !FileAndPathUtil.createDirectory(parentDir)) {
+        throw new IOException(
+            "Could not create user directory for SCIEX server: " + parentDir.getAbsolutePath());
+      }
+      final Path destPath = destServerDir.toPath();
+      final Path tmpPath = destPath.resolveSibling(
+          destPath.getFileName() + ".tmp-" + ProcessHandle.current().pid());
+      deleteRecursively(tmpPath.toFile());
+      copyDirectoryRecursively(sourceServerDir.toPath(), tmpPath);
+      try {
+        Files.move(tmpPath, destPath, StandardCopyOption.ATOMIC_MOVE);
+      } catch (IOException atomicMoveUnsupported) {
+        Files.move(tmpPath, destPath);
+      }
+    }
+  }
+
+  private static void copyDirectoryRecursively(@NotNull final Path source, @NotNull final Path target)
+      throws IOException {
+    try (var stream = Files.walk(source)) {
+      for (Path src : (Iterable<Path>) stream::iterator) {
+        final Path dest = target.resolve(source.relativize(src).toString());
+        if (Files.isDirectory(src)) {
+          Files.createDirectories(dest);
+        } else {
+          Files.createDirectories(dest.getParent());
+          Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING,
+              StandardCopyOption.COPY_ATTRIBUTES);
+        }
+      }
+    }
+  }
+
+  private static void deleteRecursively(@NotNull final File dir) throws IOException {
+    final Path root = dir.toPath();
+    if (!Files.exists(root)) {
+      return;
+    }
+    try (var stream = Files.walk(root)) {
+      stream.sorted(Comparator.reverseOrder()).forEach(p -> {
+        try {
+          Files.deleteIfExists(p);
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      });
+    } catch (UncheckedIOException e) {
+      throw e.getCause();
+    }
   }
 
   private static void startServer() {
