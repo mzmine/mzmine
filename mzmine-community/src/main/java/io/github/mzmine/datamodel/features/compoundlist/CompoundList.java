@@ -386,27 +386,43 @@ public class CompoundList {
         }
       };
 
-      // primary row-level type — source list and compound row schema
-      final DataType<?> memberType = binding.getMemberRowType();
-      final DataType<?> compoundType = binding.getCompoundRowType();
-      featureList.addRowTypeValueListener(memberType, rowListener);
-      listenerRemovers.add(() -> featureList.removeRowTypeValueListener(memberType, rowListener));
+      // resolve which data types this binding watches per schema, depending on its kind
+      final List<DataType<?>> memberRowTypes;
+      final List<DataType<?>> compoundRowTypes;
+      final List<DataType<?>> memberFeatureTypes;
+      final List<DataType<?>> compoundFeatureTypes;
+      switch (binding) {
+        case CompoundRowMemberRowsBinding mrb -> {
+          memberRowTypes = mrb.getMemberRowTypes();
+          compoundRowTypes = mrb.getCompoundRowTypes();
+          memberFeatureTypes = List.of();
+          compoundFeatureTypes = List.of();
+        }
+        case ComplexCompoundRowBinding cb -> {
+          memberRowTypes = cb.getMemberRowTypes();
+          compoundRowTypes = cb.getCompoundRowTypes();
+          memberFeatureTypes = cb.getMemberFeatureTypes();
+          compoundFeatureTypes = cb.getCompoundFeatureTypes();
+        }
+      }
 
-      compoundRowSchema.addDataTypeValueChangeListener(compoundType, rowListener);
-      listenerRemovers.add(
-          () -> compoundRowSchema.removeDataTypeValueChangeListener(compoundType, rowListener));
-
-      // additional row-level types
-      for (final DataType<?> additional : binding.getAdditionalMemberRowTypes()) {
-        featureList.addRowTypeValueListener(additional, rowListener);
-        listenerRemovers.add(() -> featureList.removeRowTypeValueListener(additional, rowListener));
-        compoundRowSchema.addDataTypeValueChangeListener(additional, rowListener);
+      // row-level types watched on the source feature list's rows
+      for (final DataType<?> memberRowType : memberRowTypes) {
+        featureList.addRowTypeValueListener(memberRowType, rowListener);
         listenerRemovers.add(
-            () -> compoundRowSchema.removeDataTypeValueChangeListener(additional, rowListener));
+            () -> featureList.removeRowTypeValueListener(memberRowType, rowListener));
+      }
+
+      // row-level types watched on the compound rows schema (nested compound propagation)
+      for (final DataType<?> compoundRowType : compoundRowTypes) {
+        compoundRowSchema.addDataTypeValueChangeListener(compoundRowType, rowListener);
+        listenerRemovers.add(
+            () -> compoundRowSchema.removeDataTypeValueChangeListener(compoundRowType,
+                rowListener));
       }
 
       // member feature-level types — register on source feature list's features schema
-      for (final DataType<?> memberFeatureType : binding.getMemberFeatureTypes()) {
+      for (final DataType<?> memberFeatureType : memberFeatureTypes) {
         featureList.addFeatureTypeValueListener(memberFeatureType, featureListener);
         listenerRemovers.add(
             () -> featureList.removeFeatureTypeListener(memberFeatureType, featureListener));
@@ -414,7 +430,7 @@ public class CompoundList {
 
       // compound feature-level types — register on this compound list's features schema, so a
       // nested compound's feature change propagates to its outer owner.
-      for (final DataType<?> compoundFeatureType : binding.getCompoundFeatureTypes()) {
+      for (final DataType<?> compoundFeatureType : compoundFeatureTypes) {
         compoundFeaturesSchema.addDataTypeValueChangeListener(compoundFeatureType, featureListener);
         listenerRemovers.add(
             () -> compoundFeaturesSchema.removeDataTypeValueChangeListener(compoundFeatureType,

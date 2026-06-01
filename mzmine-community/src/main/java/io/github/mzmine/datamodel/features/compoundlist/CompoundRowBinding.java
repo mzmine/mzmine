@@ -1,60 +1,56 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Aggregates a {@link DataType} value across a {@link ModularCompoundRow}'s member rows and writes
- * the result to the compound row. Analogous to
- * {@link io.github.mzmine.datamodel.features.RowBinding} but operating member rows -> compound row
- * instead of features -> row.
+ * Recomputes derived value(s) on a {@link ModularCompoundRow} from its members. Analogous to
+ * {@link io.github.mzmine.datamodel.features.RowBinding} but operating on a compound row instead of
+ * a feature list row.
+ * <p>
+ * Every binding is exactly one of two kinds; {@link CompoundList} inspects the kind and wires the
+ * appropriate change listeners so the owning compound is recomputed when an input changes:
+ * <ul>
+ *   <li>{@link CompoundRowMemberRowsBinding} — all member rows define the compound row value: a
+ *   single row-level {@link DataType} is aggregated across
+ *   the member rows and written back to the compound row (e.g. average RT).</li>
+ *   <li>{@link ComplexCompoundRowBinding} — the compound row (or its compound features) is bound to
+ *   feature-level data types: watches one or more feature/row types and may write several outputs
+ *   (e.g. max intensity across samples, summed compound features).</li>
+ * </ul>
  */
-public interface CompoundRowBinding {
+public sealed interface CompoundRowBinding permits CompoundRowMemberRowsBinding,
+    ComplexCompoundRowBinding {
 
   /**
-   * The {@link DataType} watched on member
-   * {@link io.github.mzmine.datamodel.features.FeatureListRow}s. When a member row's value of this
-   * type changes, the compound row is recomputed.
-   */
-  @NotNull DataType<?> getMemberRowType();
-
-  /**
-   * The {@link DataType} written to the compound row. Often equal to {@link #getMemberRowType()}.
-   */
-  @NotNull DataType<?> getCompoundRowType();
-
-  /**
-   * Additional row-level {@link DataType}s whose changes on member rows should also trigger
-   * {@link #apply(ModularCompoundRow)}. Use this for bindings whose result depends on multiple
-   * row-level inputs (e.g. an intensity sum that filters by ion identity).
-   */
-  default @NotNull List<DataType<?>> getAdditionalMemberRowTypes() {
-    return List.of();
-  }
-
-  /**
-   * Member-feature {@link DataType}s whose changes should trigger
-   * {@link #apply(ModularCompoundRow)}. Use this for bindings that aggregate feature-level values
-   * (e.g. {@code AreaType}, {@code HeightType}). Listeners are wired on the source feature list's
-   * features schema; the listener resolves the changed feature's row to the owning compound.
-   */
-  default @NotNull List<DataType<?>> getMemberFeatureTypes() {
-    return List.of();
-  }
-
-  /**
-   * Compound-feature {@link DataType}s that this binding writes to the compound feature schema.
-   * Listeners are wired on the compound features schema so that when an inner compound row's
-   * feature changes (after re-aggregation), the outer compound that owns it is recomputed.
-   */
-  default @NotNull List<DataType<?>> getCompoundFeatureTypes() {
-    return List.of();
-  }
-
-  /**
-   * Recompute the aggregate from {@link ModularCompoundRow#getMemberRows()} and store the result
-   * on the compound row via {@link ModularCompoundRow#set(DataType, Object)}.
+   * Recompute the derived value(s) for {@code compoundRow} from its members and store the result on
+   * the compound row (and/or its compound features) via
+   * {@link ModularCompoundRow#set(DataType, Object)}.
    */
   void apply(@NotNull ModularCompoundRow compoundRow);
 }
