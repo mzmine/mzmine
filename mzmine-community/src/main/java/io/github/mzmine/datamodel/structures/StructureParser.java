@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.structures;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -238,7 +239,7 @@ public class StructureParser {
 
     // Populate CLEAN_CACHE with all derivable clean keys → same MolecularStructure instance.
     // Each generator can fail independently; cache whatever succeeds.
-    final java.util.HashSet<String> cleanKeys = new java.util.HashSet<>(4);
+    final HashSet<String> cleanKeys = new HashSet<>(4);
     putClean(cleanKeys, mol,
         StructureUtils.getSmiles(StructureUtils.SmilesFlavor.CANONICAL, mol.structure()));
     putClean(cleanKeys, mol,
