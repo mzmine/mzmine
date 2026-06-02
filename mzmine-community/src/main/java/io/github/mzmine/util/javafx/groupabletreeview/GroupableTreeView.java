@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyListWrapper;
@@ -57,6 +58,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A flexible TreeView component that supports pluggable grouping strategies, manual
@@ -310,9 +312,8 @@ public class GroupableTreeView<T> extends BorderPane {
   private void sortRootNodes(@NotNull final List<TreeItem<T>> children,
       @Nullable final Comparator<T> itemComparator,
       @Nullable final Comparator<GroupTreeItem<T>> groupComparator) {
-    final Comparator<GroupTreeItem<T>> effectiveGroupCmp =
-        groupComparator != null ? groupComparator
-            : Comparator.comparing(GroupTreeItem::getGroupName, String.CASE_INSENSITIVE_ORDER);
+    final Comparator<GroupTreeItem<T>> effectiveGroupCmp = groupComparator != null ? groupComparator
+        : Comparator.comparing(GroupTreeItem::getGroupName, String.CASE_INSENSITIVE_ORDER);
 
     children.sort((a, b) -> {
       if (a instanceof GroupTreeItem<T> ga && b instanceof GroupTreeItem<T> gb) {
@@ -489,7 +490,86 @@ public class GroupableTreeView<T> extends BorderPane {
     final GroupingStrategy<T> strategy = activeStrategy.get();
     final List<TreeItem<T>> newChildren = buildSortedChildren(itemComparator,
         strategy != null ? strategy.groupComparator() : null);
-    FxThread.runLater(() -> rootItem.getChildren().setAll(newChildren));
+
+    // The selection model only restores reliably by row index after a setAll, not by
+    // TreeItem object. Collect the new nodes matching the previous selection (groups by name,
+    // leaves by value), translate them to flattened row indices, then select by index. All
+    // GroupTreeItems are always expanded, so every node has a valid row.
+    SelectedValuesAndGroups selected = getSelectedValuesAndGroups();
+    FxThread.runLater(() -> {
+      rootItem.getChildren().setAll(newChildren);
+      selectItemsAndGroups(selected.selectedValues(), selected.groupNames());
+    });
+  }
+
+  /**
+   *
+   * @return The currently selected item values and group names. Used during sorting to keep
+   * selected items.
+   */
+  private @NonNull SelectedValuesAndGroups getSelectedValuesAndGroups() {
+    final List<TreeItem<T>> selectedTreeItems = getSelectedTreeItems();
+    final Set<@NotNull T> selectedItemValues = selectedTreeItems.stream()
+        .filter(item -> !(item instanceof GroupTreeItem<T>) && item.getValue() != null)
+        .map(TreeItem::getValue).collect(Collectors.toSet());
+    final Set<@NotNull String> selectedGroupNames = selectedTreeItems.stream()
+        .filter(item -> item instanceof GroupTreeItem<T>)
+        .map(item -> ((GroupTreeItem<T>) item).getGroupName()).collect(Collectors.toSet());
+    SelectedValuesAndGroups selectedValuesAndGroups = new SelectedValuesAndGroups(
+        selectedItemValues, selectedGroupNames);
+    return selectedValuesAndGroups;
+  }
+
+  private record SelectedValuesAndGroups(Set selectedValues, Set<String> groupNames) {
+
+  }
+
+  /**
+   * selects tree items by value and group name.
+   */
+  private void selectItemsAndGroups(Set<@NotNull T> selectedItemValues,
+      Set<@NotNull String> selectedGroupNames) {
+    final List<Integer> rowsToSelect = collectSelectedRowIndicesByValue(selectedItemValues,
+        selectedGroupNames);
+    treeView.getSelectionModel().clearSelection();
+    for (final int row : rowsToSelect) {
+      treeView.getSelectionModel().select(row);
+    }
+  }
+
+  /**
+   * Maps the previously selected values/group names onto flattened tree row indices in the freshly
+   * rebuilt tree. Walks root children (level 1: groups or top-level leaves) and group children
+   * (level 2: leaves), resolving each matching node to its {@link TreeView#getRow(TreeItem)}
+   * index.
+   */
+  private @NotNull List<@NotNull Integer> collectSelectedRowIndicesByValue(
+      @NotNull final Set<@NotNull T> selectedItemValues,
+      @NotNull final Set<@NotNull String> selectedGroupNames) {
+    final List<TreeItem<T>> matchedNodes = new ArrayList<>();
+    for (final TreeItem<T> child : rootItem.getChildren()) {
+      if (child instanceof GroupTreeItem<T> group) {
+        if (selectedGroupNames.contains(group.getGroupName())) {
+          matchedNodes.add(group);
+        }
+        for (final TreeItem<T> grandChild : group.getChildren()) {
+          if (grandChild.getValue() != null && selectedItemValues.contains(grandChild.getValue())) {
+            matchedNodes.add(grandChild);
+          }
+        }
+      } else if (child.getValue() != null && selectedItemValues.contains(child.getValue())) {
+        matchedNodes.add(child);
+      }
+    }
+
+    final List<Integer> rows = new ArrayList<>(matchedNodes.size());
+    for (final TreeItem<T> node : matchedNodes) {
+      final int row = treeView.getRow(node);
+      if (row >= 0) {
+        rows.add(row);
+      }
+    }
+    return rows;
   }
 
   /**
