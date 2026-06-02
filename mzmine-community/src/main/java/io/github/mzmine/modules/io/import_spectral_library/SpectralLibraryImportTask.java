@@ -65,10 +65,9 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalEnrichedEntries > 0) {
-      return totalEnrichedEntries / (double) totalEntries;
-    }
-    return parser == null ? 0 : parser.getProgress();
+    return parser == null ? 0 : (parser.getProgress());
+//           + (totalEntries > 0 ? totalEnrichedEntries / (double) totalEntries
+//            : 0)) * 0.5;
   }
 
   @Override
@@ -97,11 +96,12 @@ public class SpectralLibraryImportTask extends AbstractTask {
       final List<SpectralLibraryEntry> entries = library.getEntries();
       if (!entries.isEmpty()) {
         // enrich structure metadata
-        totalEntries = entries.size();
-        for (SpectralLibraryEntry entry : entries) {
-          entry.enrichMetadata();
-          totalEnrichedEntries++;
-        }
+        // enriching structures is done on demand once visualized or used as getSmiles or so
+//        totalEntries = entries.size();
+//        for (SpectralLibraryEntry entry : entries) {
+//          entry.enrichMetadata();
+//          totalEnrichedEntries++;
+//        }
         // decision: log cumulative cache stats rather than a per-task delta — libraries are
         // typically imported concurrently, so a snapshot/diff would attribute other tasks'
         // activity to this one. Eviction count signals whether either cap is undersized.

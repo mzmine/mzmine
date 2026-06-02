@@ -337,22 +337,25 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return library != null ? library.getName() : null;
   }
 
+  /**
+   * Formula may be set independently in the entry (e.g. when the library file supplies it but no
+   * SMILES/InChI is present). Try harmonization first — if it succeeds, the FORMULA field has been
+   * replaced with the canonical formula; if it fails, the originally mapped value is returned.
+   */
   @Override
   @Nullable
   public String getFormula() {
+    if (!isHarmonizedStructure) {
+      // best-effort harmonization populates FORMULA via setStructure on success
+      enrichMetadata();
+    }
     final String formula = getOrElse(DBEntryField.FORMULA, null);
-    if (StringUtils.hasValue(formula)) {
-      return formula;
-    }
-    final MolecularStructure structure = getStructure();
-    if (structure != null) {
-      final String formulaString = structure.formulaString();
-      if (formulaString != null) {
-        putIfNotNull(DBEntryField.FORMULA, formulaString);
-      }
-      return formulaString;
-    }
-    return null;
+    return StringUtils.hasValue(formula) ? formula : null;
+  }
+
+  @Override
+  public boolean isStructureHarmonized() {
+    return isHarmonizedStructure;
   }
 
   @Override

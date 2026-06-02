@@ -168,12 +168,20 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     if (!isHarmonizedStructure) {
       return enrichMetadata();
     }
+    // Already harmonized — read fields via get(Class) which is a plain map lookup (not the
+    // default-method getters, which would re-check the harmonized flag). The StructureParser
+    // cache makes the re-parse cheap.
+    String smiles = get(SmilesIsomericStructureType.class);
+    if (smiles == null) {
+      smiles = get(SmilesStructureType.class);
+    }
+    final String inchi = get(InChIStructureType.class);
+    return StructureParser.silent().parseStructure(smiles, inchi);
+  }
 
-    String smiles = getIsomericSmiles();
-    String inchi = getInChI();
-    var struc = StructureParser.silent().parseStructure(smiles, inchi);
-    setStructure(struc);
-    return struc;
+  @Override
+  public boolean isStructureHarmonized() {
+    return isHarmonizedStructure;
   }
 
   @Override
@@ -247,6 +255,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public <T> T put(@NotNull DataType<T> key, T value) {
+    invalidateHarmonizedIfStructureField(key);
     if (value == null) {
       return (T) data.remove(key);
     }
@@ -263,6 +272,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   @Override
   public <T> T put(@NotNull Class<? extends DataType<T>> key, T value) {
     var actualKey = DataTypes.get(key);
+    invalidateHarmonizedIfStructureField(actualKey);
     if (value == null) {
       return (T) data.remove(actualKey);
     }
@@ -273,6 +283,16 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
               value.getClass(), actualKey.getClass()));
     }
     return (T) data.put(actualKey, value);
+  }
+
+  // Any change to a SMILES/InChI/InChIKey field means the previously harmonized clean strings
+  // may now be stale, so the next structure-derived getter call must re-run harmonization.
+  // setStructure restores the flag to true after writing all clean fields.
+  private void invalidateHarmonizedIfStructureField(@NotNull DataType<?> key) {
+    if (key instanceof SmilesStructureType || key instanceof SmilesIsomericStructureType
+        || key instanceof InChIStructureType || key instanceof InChIKeyStructureType) {
+      isHarmonizedStructure = false;
+    }
   }
 
   @Override

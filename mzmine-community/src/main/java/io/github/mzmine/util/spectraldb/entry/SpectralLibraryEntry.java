@@ -273,6 +273,14 @@ public interface SpectralLibraryEntry extends MassList {
   MolecularStructure getStructure();
 
   /**
+   * @return true if {@link #setStructure(MolecularStructure)} has been called with a parsed
+   * structure since the last edit to SMILES / InChI / InChIKey / IsomericSmiles. When false,
+   * {@link #getFormula()} triggers a best-effort harmonization via {@link #getStructure()} before
+   * returning the mapped value.
+   */
+  boolean isStructureHarmonized();
+
+  /**
    * Isotope pattern is cached and only calculated once on demand. Modules may already calculate the
    * isotope pattern to speed up later use in tables.
    *
