@@ -138,7 +138,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
         mlMinSignals = algoParams.getValue(MS2DeepscoreNetworkingParameters.minSignals);
         batchSize = MS2DEEPSCORE_BATCH_SIZE;
       }
-      /*case DREAMS -> {
+      case DREAMS -> {
         modelId = MLModelId.DREAMS_1_0;
         final SpectraMergeSelectParameter mergeParam = algoParams.getParameter(
             DreaMSNetworkingParameters.spectraMergeSelect);
@@ -148,7 +148,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
         mlMinScore = algoParams.getValue(DreaMSNetworkingParameters.minScore);
         mlMinSignals = 0;
         batchSize = algoParams.getValue(DreaMSNetworkingParameters.batchSize);
-      }*/
+      }
       default -> throw new AssertionError(
           "AnalogSpectralLibrarySearchMlTask called with non-ML algorithm: " + algorithm);
     }
@@ -484,7 +484,7 @@ public class AnalogSpectralLibrarySearchMlTask extends AbstractFeatureListTask {
       throws ModelNotFoundException, MalformedModelException, IOException {
     return switch (algorithm) {
       case MS2_DEEPSCORE -> new MS2DeepscoreModel(modelFile, modelSettingsFile);
-//      case DREAMS -> new DreaMSModel(modelFile, modelSettingsFile);
+      case DREAMS -> new DreaMSModel(modelFile, modelSettingsFile);
       case MODIFIED_COSINE, COSINE_NO_PRECURSOR ->
           throw new AssertionError("openMlModel called for non-ML algorithm: " + algorithm);
     };
