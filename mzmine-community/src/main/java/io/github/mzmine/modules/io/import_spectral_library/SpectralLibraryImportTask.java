@@ -25,9 +25,7 @@
 
 package io.github.mzmine.modules.io.import_spectral_library;
 
-import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -105,16 +103,16 @@ public class SpectralLibraryImportTask extends AbstractTask {
         // decision: log cumulative cache stats rather than a per-task delta — libraries are
         // typically imported concurrently, so a snapshot/diff would attribute other tasks'
         // activity to this one. Eviction count signals whether either cap is undersized.
-        final CacheStats rawStats = StructureParser.getRawCacheStats();
-        final CacheStats cleanStats = StructureParser.getCleanCacheStats();
-        final long rawSize = StructureParser.getRawCacheSize();
-        final long cleanSize = StructureParser.getCleanCacheSize();
-        logger.log(Level.INFO,
-            () -> "Structure caches after harmonizing %s: raw %d hits / %d misses (%.1f%%, %d evictions, size %d); clean %d hits / %d misses (%.1f%%, %d evictions, size %d)".formatted(
-                dataBaseFile.getName(), rawStats.hitCount(), rawStats.missCount(),
-                rawStats.hitRate() * 100, rawStats.evictionCount(), rawSize, cleanStats.hitCount(),
-                cleanStats.missCount(), cleanStats.hitRate() * 100, cleanStats.evictionCount(),
-                cleanSize));
+//        final CacheStats rawStats = StructureParser.getRawCacheStats();
+//        final CacheStats cleanStats = StructureParser.getCleanCacheStats();
+//        final long rawSize = StructureParser.getRawCacheSize();
+//        final long cleanSize = StructureParser.getCleanCacheSize();
+//        logger.log(Level.INFO,
+//            () -> "Structure caches after harmonizing %s: raw %d hits / %d misses (%.1f%%, %d evictions, size %d); clean %d hits / %d misses (%.1f%%, %d evictions, size %d)".formatted(
+//                dataBaseFile.getName(), rawStats.hitCount(), rawStats.missCount(),
+//                rawStats.hitRate() * 100, rawStats.evictionCount(), rawSize, cleanStats.hitCount(),
+//                cleanStats.missCount(), cleanStats.hitRate() * 100, cleanStats.evictionCount(),
+//                cleanSize));
 
         project.addSpectralLibrary(library);
 

@@ -60,9 +60,13 @@ public class StructureParser {
   // assumption: callers treat MolecularStructure as immutable. Mutating a returned structure
   // will corrupt cached entries for other callers.
   private static final Cache<String, MolecularStructure> RAW_CACHE = Caffeine.newBuilder()
-      .maximumSize(20_000).recordStats().build();
+      .maximumSize(35_000)
+//      .recordStats()
+      .build();
   private static final Cache<String, MolecularStructure> CLEAN_CACHE = Caffeine.newBuilder()
-      .maximumSize(200_000).recordStats().build();
+      .maximumSize(200_000)
+//      .recordStats()
+      .build();
 
   private final InChIGeneratorFactory inchiFactory;
   private final boolean verbose;
@@ -103,6 +107,7 @@ public class StructureParser {
    */
   @NotNull
   public static CacheStats getRawCacheStats() {
+    // add stats to cache above to see
     return RAW_CACHE.stats();
   }
 
@@ -113,6 +118,7 @@ public class StructureParser {
    */
   @NotNull
   public static CacheStats getCleanCacheStats() {
+    // add stats to cache above to see
     return CLEAN_CACHE.stats();
   }
 
