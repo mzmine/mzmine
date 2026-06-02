@@ -85,9 +85,9 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
       case MS2_DEEPSCORE -> List.of(
           new MS2DeepscoreNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
               this.getClass()));
-//      case DREAMS -> List.of(
-//          new DreaMSNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
-//              this.getClass()));
+      case DREAMS -> List.of(
+          new DreaMSNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
+              this.getClass()));
     };
   }
 }
