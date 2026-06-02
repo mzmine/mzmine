@@ -73,7 +73,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupp
   @Override
   public @NotNull String toString() {
     return switch (this) {
-      case DREAMS -> "Dreams";
+      case DREAMS -> "DreaMS";
       case MODIFIED_COSINE -> "Modified cosine";
       case COSINE_NO_PRECURSOR -> "Cosine (no precursor)";
       default -> "MS2 Deepscore";
