@@ -593,6 +593,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    * be canonicalized and set.
    * <p>
    * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   * <p>
+   * Do not save structure to object as it is cached in {@link StructureParser} and heavy on
+   * memory.
    *
    * @param structure the structure to set
    */
@@ -608,7 +611,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    * convenience method to derive additional fields from fields that are present. Recommended to
    * call this method after retrieving the annotation from an external source.
    */
-  default void enrichMetadata() {
+  default @Nullable MolecularStructure enrichMetadata() {
     final String smiles = getIsomericSmiles();
     final String inchi = getInChI();
     try {
@@ -616,10 +619,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       if (struc != null) {
         setStructure(struc);
       }
+      return struc;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
           smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
     }
+    return null;
   }
 
   /**

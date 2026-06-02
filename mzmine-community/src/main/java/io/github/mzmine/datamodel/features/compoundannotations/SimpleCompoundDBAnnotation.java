@@ -87,7 +87,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   protected final Map<DataType, Object> data = new TreeMap<>(
       Comparator.comparing(DBEntryField::fromDataType).thenComparing(DataType::compareTo));
-  private @Nullable MolecularStructure structure;
+
+  private boolean isHarmonizedStructure = false;
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -164,9 +165,10 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   @Override
   public MolecularStructure getStructure() {
-    if (structure != null) {
-      return structure;
+    if (!isHarmonizedStructure) {
+      return enrichMetadata();
     }
+
     String smiles = getIsomericSmiles();
     String inchi = getInChI();
     var struc = StructureParser.silent().parseStructure(smiles, inchi);
@@ -198,9 +200,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     putIfNotNull(InChIStructureType.class, structure.inchi());
     putIfNotNull(FormulaType.class, structure.formulaString());
     putIfNotNull(NeutralMassType.class, structure.monoIsotopicMass());
-    // structure better last because setting smiles might clear the structure var
-    putIfNotNull(MolecularStructureType.class, structure);
-    this.structure = structure;
+    // do not save structure object here it is memory heavy and cached in the structure parser
+    isHarmonizedStructure = true;
   }
 
   /**
@@ -209,8 +210,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   @Override
   public void clearStructure() {
-    this.structure = null;
-    put(MolecularStructureType.class, null);
+    isHarmonizedStructure = false;
     put(SmilesStructureType.class, null);
     put(SmilesIsomericStructureType.class, null);
     put(InChIKeyStructureType.class, null);
