@@ -273,6 +273,14 @@ public interface SpectralLibraryEntry extends MassList {
   MolecularStructure getStructure();
 
   /**
+   * @return true if {@link #setStructure(MolecularStructure)} has been called with a parsed
+   * structure since the last edit to SMILES / InChI / InChIKey / IsomericSmiles. When false,
+   * {@link #getFormula()} triggers a best-effort harmonization via {@link #getStructure()} before
+   * returning the mapped value.
+   */
+  boolean isStructureHarmonized();
+
+  /**
    * Isotope pattern is cached and only calculated once on demand. Modules may already calculate the
    * isotope pattern to speed up later use in tables.
    *
@@ -282,10 +290,12 @@ public interface SpectralLibraryEntry extends MassList {
 
 
   /**
-   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
-   * be canonicalized and set.
+   * Sets the structure's internal representations like smiles, inchi, inchikey, formula will be
+   * canonicalized and set.
    * <p>
    * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   * <p>
+   * The CDK structure is not kept as it is too memory heavy
    *
    * @param structure the structure to set
    */
@@ -301,7 +311,8 @@ public interface SpectralLibraryEntry extends MassList {
    * convenience method to derive additional fields from fields that are present. Recommended to
    * call this method after retrieving the annotation from an external source.
    */
-  default void enrichMetadata() {
+  @Nullable
+  default MolecularStructure enrichMetadata() {
     final String inchi = getOrElse(DBEntryField.INCHI, null);
     final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
         () -> getAsString(DBEntryField.SMILES).orElse(null));
@@ -311,10 +322,12 @@ public interface SpectralLibraryEntry extends MassList {
       if (struc != null) {
         setStructure(struc);
       }
+      return struc;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
           smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
     }
+    return null;
   }
 
 }

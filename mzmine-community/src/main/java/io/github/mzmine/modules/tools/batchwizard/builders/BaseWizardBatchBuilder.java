@@ -206,7 +206,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -1566,7 +1565,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
     param.setParameter(AnalogSpectralLibrarySearchParameters.libraries,
-        new SpectralLibrarySelection(SpectralLibrarySelectionType.ALL_IMPORTED, null));
+        new SpectralLibrarySelection());
 
     SpectralNetworkingOptions cosine = SpectralNetworkingOptions.MODIFIED_COSINE;
     ParameterSet cosineParam = cosine.getModuleParameters();
@@ -1576,7 +1575,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
     cosineParam.setParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters,
         SignalFiltersParameters.createDefault());
-    param.getParameter(AnalogSpectralLibrarySearchParameters.algorithm).setValue(cosine, cosineParam);
+    param.getParameter(AnalogSpectralLibrarySearchParameters.algorithm)
+        .setValue(cosine, cosineParam);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AnalogSpectralLibrarySearchModule.class), param));

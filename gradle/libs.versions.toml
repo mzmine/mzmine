@@ -103,6 +103,7 @@ sirius-api = { module = "io.sirius-ms:sirius-sdk", version = "3.1+sirius6.3.3" }
 # we could use individual packages, but some dependencies use batik-all anyway. this way we make sure we at least get the latest version
 batik-all = { group = "org.apache.xmlgraphics", name = "batik-all", version.ref = "batik" }
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
+caffeine = { group = "com.github.ben-manes.caffeine", name = "caffeine", version = "3.2.2" }
 
 commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
 commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }

@@ -282,25 +282,44 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   @Nullable
   default String getSmiles() {
+    if (!isStructureHarmonized()) {
+      // best-effort harmonization populates the SMILES field via setStructure on success
+      enrichMetadata();
+    }
     return get(SmilesStructureType.class);
   }
 
   @Override
   default @Nullable String getIsomericSmiles() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     final String isomeric = get(SmilesIsomericStructureType.class);
     if (isomeric == null) {
-      return getSmiles();
+      // direct map access — getSmiles would re-check harmonization unnecessarily
+      return get(SmilesStructureType.class);
     }
     return isomeric;
   }
 
   @Nullable
   default String getInChI() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(InChIStructureType.class);
   }
 
+  /**
+   * InChIKey may be set independently of the structure (e.g. when only the key is provided by an
+   * external source). When harmonization succeeds it is overwritten with the canonical key; when it
+   * fails the originally mapped value is returned.
+   */
   @Nullable
   default String getInChIKey() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(InChIKeyStructureType.class);
   }
 
@@ -310,9 +329,17 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CompoundNameType.class);
   }
 
+  /**
+   * Formula may be set independently of the structure (e.g. when only the formula is provided by an
+   * external source). When harmonization succeeds it is overwritten with the canonical formula;
+   * when it fails the originally mapped value is returned.
+   */
   @Override
   @Nullable
   default String getFormula() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(FormulaType.class);
   }
 
@@ -593,6 +620,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
    * be canonicalized and set.
    * <p>
    * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   * <p>
+   * Do not save structure to object as it is cached in {@link StructureParser} and heavy on
+   * memory.
    *
    * @param structure the structure to set
    */
@@ -605,21 +635,39 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   void clearStructure();
 
   /**
+   * @return true if {@link #setStructure(MolecularStructure)} has been called with a parsed
+   * structure since the last edit to SMILES / InChI / InChIKey / IsomericSmiles. When false, the
+   * structure-derived getters ({@link #getSmiles()}, {@link #getInChI()}, {@link #getInChIKey()},
+   * {@link #getIsomericSmiles()}, {@link #getFormula()}) trigger a best-effort harmonization via
+   * {@link #getStructure()} before returning the mapped value.
+   */
+  boolean isStructureHarmonized();
+
+  /**
    * convenience method to derive additional fields from fields that are present. Recommended to
    * call this method after retrieving the annotation from an external source.
+   * <p>
+   * Reads raw smiles/inchi via direct map access ({@link #get(Class)}) — must not go through
+   * {@link #getSmiles()} / {@link #getInChI()} etc., as those route back through
+   * {@link #getStructure()} which would re-enter this method.
    */
-  default void enrichMetadata() {
-    final String smiles = getIsomericSmiles();
-    final String inchi = getInChI();
+  default @Nullable MolecularStructure enrichMetadata() {
+    String smiles = get(SmilesIsomericStructureType.class);
+    if (smiles == null) {
+      smiles = get(SmilesStructureType.class);
+    }
+    final String inchi = get(InChIStructureType.class);
     try {
       MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
       if (struc != null) {
         setStructure(struc);
       }
+      return struc;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
           smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
     }
+    return null;
   }
 
   /**

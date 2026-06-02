@@ -189,6 +189,7 @@ dependencies {
     // mzmine version parsing
     implementation(libs.semver4j)
     implementation(libs.guava)
+    implementation(libs.caffeine)
     implementation(libs.commons.math3)
     implementation(libs.commons.cli)
     implementation(libs.commons.io)

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.util.FormulaUtils;
@@ -61,7 +62,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   private SpectralLibrary library;
-  private @Nullable MolecularStructure structure;
+  private boolean isHarmonizedStructure = false;
+
   /**
    * Pattern is calculated for ion
    * <p>
@@ -193,7 +195,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     if (fields.containsKey(DBEntryField.SMILES) || fields.containsKey(DBEntryField.INCHI)
         || fields.containsKey(DBEntryField.ISOMERIC_SMILES) || fields.containsKey(
         DBEntryField.INCHIKEY)) {
-      structure = null; // clear and recalculate later
+      isHarmonizedStructure = false;
     }
     this.fields.putAll(fields);
   }
@@ -202,7 +204,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   public boolean putIfNotNull(DBEntryField field, Object value) {
     if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
         || field == DBEntryField.ISOMERIC_SMILES) {
-      structure = null; // clear and recalculate later
+      isHarmonizedStructure = false;
     }
 
     if (field != null && value != null) {
@@ -219,7 +221,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
     if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
         || field == DBEntryField.ISOMERIC_SMILES) {
-      structure = null; // clear and recalculate later
+      isHarmonizedStructure = false;
     }
 
     if (value == null) {
@@ -335,22 +337,25 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return library != null ? library.getName() : null;
   }
 
+  /**
+   * Formula may be set independently in the entry (e.g. when the library file supplies it but no
+   * SMILES/InChI is present). Try harmonization first — if it succeeds, the FORMULA field has been
+   * replaced with the canonical formula; if it fails, the originally mapped value is returned.
+   */
   @Override
   @Nullable
   public String getFormula() {
+    if (!isHarmonizedStructure) {
+      // best-effort harmonization populates FORMULA via setStructure on success
+      enrichMetadata();
+    }
     final String formula = getOrElse(DBEntryField.FORMULA, null);
-    if (StringUtils.hasValue(formula)) {
-      return formula;
-    }
-    final MolecularStructure structure = getStructure();
-    if (structure != null) {
-      final String formulaString = structure.formulaString();
-      if (formulaString != null) {
-        putIfNotNull(DBEntryField.FORMULA, formulaString);
-      }
-      return formulaString;
-    }
-    return null;
+    return StringUtils.hasValue(formula) ? formula : null;
+  }
+
+  @Override
+  public boolean isStructureHarmonized() {
+    return isHarmonizedStructure;
   }
 
   @Override
@@ -360,12 +365,15 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   @Override
+  @Nullable
   public MolecularStructure getStructure() {
-    if (structure != null) {
-      return structure;
+    if (!isHarmonizedStructure) {
+      return enrichMetadata(); // creates new structure if inchi or smiles present
     }
-    enrichMetadata(); // creates new structure if inchi or smiles present
-    return structure;
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+    return StructureParser.silent().parseStructure(smiles, inchi);
   }
 
   @Override
@@ -379,8 +387,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     putIfNotNull(DBEntryField.INCHI, structure.inchi());
     putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
     putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
-    // has to be last as set smiles will set structure to null
-    this.structure = structure;
+    isHarmonizedStructure = true;
+    // DO NOT KEEP structure as it is too memory heavy
   }
 
   /**
@@ -389,7 +397,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
    */
   @Override
   public void clearStructure() {
-    this.structure = null;
+    isHarmonizedStructure = false;
     put(DBEntryField.SMILES, null);
     put(DBEntryField.ISOMERIC_SMILES, null);
     put(DBEntryField.INCHI, null);

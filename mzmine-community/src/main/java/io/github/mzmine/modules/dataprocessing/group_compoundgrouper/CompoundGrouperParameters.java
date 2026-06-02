@@ -55,7 +55,9 @@ public class CompoundGrouperParameters extends SimpleParameterSet {
       CompoundRepresentativeSelectorOption.PREFER_ANNOTATED);
 
   public CompoundGrouperParameters() {
-    super(FEATURE_LISTS, COMPONENTIZER, REPRESENTATIVE_SELECTOR);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_compound_grouping/compound_grouping.html",
+        FEATURE_LISTS, COMPONENTIZER, REPRESENTATIVE_SELECTOR);
   }
 
   /**
