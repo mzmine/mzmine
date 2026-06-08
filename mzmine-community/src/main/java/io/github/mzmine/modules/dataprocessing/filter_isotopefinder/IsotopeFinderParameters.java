@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,10 +32,11 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
@@ -48,47 +49,48 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
-      "Chemical elements which isotopes will be considered");
+      "Chemical elements whose major stable isotopes are considered. Heavy isotopes (e.g. S, Cl, Br) "
+          + "also widen the expected intensity bounds in the signal-based mode.");
+
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
       ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
+
   public static final IntegerParameter maxCharge = new IntegerParameter(
       "Maximum charge of isotope m/z",
-      "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
-          + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
-          + "but insert an integer greater than 1 if you want to consider ions of higher charge states.",
-      1, true, 1, 1000);
+      "Maximum possible charge of the isotope distribution. Charges 1..maxCharge are evaluated and "
+          + "the most probable charge is selected; other highly probable charges are flagged.", 1,
+      true, 1, 1000);
 
-  public static final ComboParameter<ScanRange> scanRange = new ComboParameter<>("Search in scans",
-      " Options to search isotopes in the single most intense scan"
-          + " or within all scans in full-width at half maximum range.", ScanRange.values(),
-      ScanRange.SINGLE_MOST_INTENSE);
+  public static final OptionalModuleParameter<FwhmRefineParameters> fwhmRefine = new OptionalModuleParameter<>(
+      "Refine across FWHM scans",
+      "Detect on the most intense scan, then refine relative intensities and recover fine structure "
+          + "across the scans within the feature FWHM (instead of pre-merging the scans).",
+      new FwhmRefineParameters(), false);
+
+  public static final ModuleOptionsEnumComboParameter<IsotopeFinderModeOptions> mode = new ModuleOptionsEnumComboParameter<>(
+      "Detection mode",
+      "Signal-based uses a carbon-averagine envelope (no formula prediction). Formula prediction "
+          + "enumerates candidate formulas and unions their predicted isotope patterns.",
+      IsotopeFinderModeOptions.SIGNAL_BASED);
 
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange},
+    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, fwhmRefine,
+            mode},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, FxTexts.text("""
-        The isotope finder will search for all possible isotope signals in the mass lists for each
-        feature. The resulting pattern may contain signals from different charge states as this module tries
-        to capture all available information, whereas the isotope grouper acts as a feature filter.
+        The isotope finder searches for all plausible isotope signals around each feature m/z. It
+        selects the most probable charge state, flags other highly probable charges (e.g. overlapping
+        [M+H]+ and [2M+2H]2+), and bounds the pattern with rough relative-intensity estimates. The
+        resulting pattern is intentionally inclusive so that downstream formula prediction can refine
+        it further.
         """));
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-
-  public enum ScanRange {
-    // IN_FWHM,
-    SINGLE_MOST_INTENSE;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
   }
 
   @Override
