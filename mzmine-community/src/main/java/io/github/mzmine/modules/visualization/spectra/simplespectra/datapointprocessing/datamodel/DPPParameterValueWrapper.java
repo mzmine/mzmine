@@ -30,7 +30,6 @@ import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -138,7 +137,7 @@ public class DPPParameterValueWrapper {
 
   public void saveToFile(final @NotNull File file) {
     try {
-      Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+      final Document document = XMLUtils.newDocument();
       final Element element = document.createElement(MAINFILE_ELEMENT);
       document.appendChild(element);
 

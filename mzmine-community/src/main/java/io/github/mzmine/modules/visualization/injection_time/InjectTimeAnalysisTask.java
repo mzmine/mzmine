@@ -167,6 +167,8 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     split.setDividerPositions(0.7);
 
     final SimpleTab tab = new SimpleTab("Inject time");
+    tab.setSubTitle(
+        Arrays.stream(dataFiles).map(RawDataFile::getName).collect(Collectors.joining(", ")));
     tab.setContent(split);
 
     // handle click events and show spec

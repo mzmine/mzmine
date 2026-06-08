@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,10 +44,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class UniversalCalibrantsListCsvExtractor implements StandardsListExtractor {
 
+  private static final Logger logger = Logger.getLogger(
+      UniversalCalibrantsListCsvExtractor.class.getName());
+
   protected static final int mzRatioColumn = 0;
   protected static final int nameColumn = 1;
-
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected String filename;
   private final InputStream inputStream;
@@ -104,11 +105,11 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
         }
       }
 
-      logger.info(
-          STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+      logger.info("Extracted " + extractedData.size() + " standard molecules from " + lines.size()
+          + " rows");
       if (extractedData.size() < lines.size()) {
-        logger.warning(STR."Skipped \{lines.size()
-            - extractedData.size()} rows when reading standards list in csv file \{filename}");
+        logger.warning("Skipped " + (lines.size() - extractedData.size())
+            + " rows when reading standards list in csv file " + filename);
       }
       return new StandardsList(extractedData);
     }

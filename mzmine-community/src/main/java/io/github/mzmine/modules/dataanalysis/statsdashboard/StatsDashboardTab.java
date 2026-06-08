@@ -54,9 +54,12 @@ public class StatsDashboardTab extends SimpleTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    // only aligned feature lists allowed
+    super.onFeatureListSelectionChanged(featureLists);
     controller.selectedFeatureListsProperty().setValue(
         featureLists.stream().filter(FeatureList::isAligned).map(FeatureList.class::cast).toList());
   }
 
+  public StatsDashboardController getController() {
+    return controller;
+  }
 }

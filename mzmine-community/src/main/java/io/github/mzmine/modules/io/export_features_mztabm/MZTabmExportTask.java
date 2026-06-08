@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -209,7 +209,7 @@ public class MZTabmExportTask extends AbstractTask {
           assay.addMsRunRefItem(msRun);
           mtd.addAssayItem(assay);
 
-          for (UserParameter<?, ?> p : project.getParameters()) {
+          /*for (UserParameter<?, ?> p : project.getParameters()) {
             if (p.getName().contains("study variable")) {
               if (svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))) {
                 svhash.get(String.valueOf(project.getParameterValue(p, file))).add(file);
@@ -220,7 +220,7 @@ public class MZTabmExportTask extends AbstractTask {
               }
               break;
             }
-          }
+          }*/
 
           //Optional Columns
           // TODO: rename "peak_mz" to "feature_mz" in both import and export and test if they work
@@ -244,7 +244,7 @@ public class MZTabmExportTask extends AbstractTask {
         //Write data rows
         Map<Parameter, Database> databases = new LinkedHashMap<>();
 
-        for (int i = 0; i < featureList.getRows().size(); ++i) {
+        for (int i = 0; i < featureList.getNumberOfRows(); ++i) {
           FeatureListRow featureListRow = featureList.getRows().get(i);
           SmallMoleculeSummary sm = new SmallMoleculeSummary();
           sm.setSmlId(i + 1);
@@ -272,9 +272,9 @@ public class MZTabmExportTask extends AbstractTask {
               Parameter dbParam = new Parameter().name(
                   featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_METHOD));
               String dbURI = (featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL) == null
-                              || featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL)
-                                  .equals("")) ? "mzmine://" + featureIdentity.getClass()
-                  .getSimpleName() : featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
+                  || featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL).equals("")) ?
+                  "mzmine://" + featureIdentity.getClass().getSimpleName()
+                  : featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               databases.putIfAbsent(dbParam,
                   new Database().param(dbParam).prefix(featureIdentity.getClass().getSimpleName())
                       .version(String.valueOf(SemverVersionReader.getMZmineVersion())).uri(dbURI));

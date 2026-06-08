@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,12 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.DATA_IMPORT;
-import static io.github.mzmine.modules.tools.batchwizard.WizardPart.FILTER;
 import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
-import static io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder.getOrElse;
-import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -43,8 +41,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -54,9 +51,9 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
-import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
+import io.mzio.links.MzioMZmineLinks;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -68,12 +65,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -88,7 +89,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,9 +113,11 @@ public class BatchWizardTab extends SimpleTab {
   private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
   private final LastFilesButton localPresetsButton;
+  private final SimpleBooleanProperty advancedMode = new SimpleBooleanProperty(false);
   private boolean listenersActive = true;
   private TabPane tabPane;
   private HBox schemaPane;
+  private final int helpButtonSize = 50;
 
   public BatchWizardTab() {
     super("mzwizard");
@@ -158,8 +163,10 @@ public class BatchWizardTab extends SimpleTab {
 
     // create parameters for all parts
     // LC/GC - IMS? - MS instrument, Apply defaults
-    Tab[] panes = sequenceSteps.stream().map(this::createParameterTab).filter(Objects::nonNull)
-        .toArray(Tab[]::new);
+    // hide customization tab unless advanced mode is enabled
+    Tab[] panes = sequenceSteps.stream()
+        .filter(step -> !(step instanceof CustomizationWizardParameters) || advancedMode.get())
+        .map(this::createParameterTab).filter(Objects::nonNull).toArray(Tab[]::new);
 
     // add to center pane
     tabPane.getTabs().clear();
@@ -274,10 +281,34 @@ public class BatchWizardTab extends SimpleTab {
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
     if (step.hasUserParameters() && step.getFactory() != IonMobilityWizardParameterFactory.NO_IMS) {
-      return new Tab(step.getPresetName(), paramPane);
+      Tab tab = new Tab(step.getPresetName(), paramPane);
+
+      // Special handling for customization tab - add checkbox to header
+      if (step instanceof CustomizationWizardParameters customizationParams) {
+        addCheckboxToCustomizationTabHeader(customizationParams, paramPane, tab);
+      }
+
+      return tab;
     } else {
       return null;
     }
+  }
+
+  private static void addCheckboxToCustomizationTabHeader(
+      CustomizationWizardParameters customizationParams, ParameterSetupPane paramPane, Tab tab) {
+    final CheckBox enableCheckBox = new CheckBox();
+    final boolean customEnabled = customizationParams.getValue(
+        CustomizationWizardParameters.enabled);
+    enableCheckBox.setSelected(customEnabled);
+
+    // Bind checkbox to parameter and pane disabled state
+    enableCheckBox.selectedProperty().addListener((_, _, newVal) -> {
+      customizationParams.setParameter(CustomizationWizardParameters.enabled, newVal);
+      paramPane.setDisable(!newVal);
+    });
+    // Set initial disabled state after the pane is added to scene graph
+    Platform.runLater(() -> paramPane.setDisable(!customEnabled));
+    tab.setGraphic(enableCheckBox);
   }
 
   /**
@@ -318,14 +349,14 @@ public class BatchWizardTab extends SimpleTab {
     return spacer;
   }
 
-  private VBox createTopMenu() {
-    VBox vbox = new VBox(4);
-    vbox.setAlignment(Pos.CENTER);
-    VBox.setMargin(vbox, new Insets(5));
+  private Region createTopMenu() {
+    VBox controlSchemaPane = new VBox(4);
+    controlSchemaPane.setAlignment(Pos.CENTER);
+    VBox.setMargin(controlSchemaPane, new Insets(5));
 
-    var topPane = new FlowPane(4, 4);
-    topPane.setAlignment(Pos.CENTER);
-    HBox.setMargin(topPane, new Insets(5));
+    var instrumentComboBoxPane = new FlowPane(4, 4);
+    instrumentComboBoxPane.setAlignment(Pos.CENTER);
+    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
 
     sequenceSteps.clear();
     combos.clear();
@@ -333,7 +364,10 @@ public class BatchWizardTab extends SimpleTab {
     // LC/GC - IMS? - MS instrument, Apply defaults
     for (final WizardPart part : WizardPart.values()) {
       var presets = FXCollections.observableArrayList(ALL_PRESETS.get(part));
-      sequenceSteps.add(presets.get(0));
+      if (presets.isEmpty()) {
+        continue;
+      }
+      sequenceSteps.add(presets.getFirst());
       if (presets.size() == 1) {
         continue;
       }
@@ -343,11 +377,11 @@ public class BatchWizardTab extends SimpleTab {
       combo.setVisibleRowCount(IonInterfaceWizardParameterFactory.values().length);
       combos.put(part, combo);
       // add a spacer if not the first
-      if (!topPane.getChildren().isEmpty()) {
-        topPane.getChildren().add(new Label("-"));
+      if (!instrumentComboBoxPane.getChildren().isEmpty()) {
+        instrumentComboBoxPane.getChildren().add(new Label("-"));
       }
       combo.getSelectionModel().select(0);
-      topPane.getChildren().add(combo);
+      instrumentComboBoxPane.getChildren().add(combo);
 
       // add listener
       combo.getSelectionModel().selectedItemProperty()
@@ -366,14 +400,40 @@ public class BatchWizardTab extends SimpleTab {
     Button save = FxButtons.createSaveButton("Save presets", this::saveLocalWizardSequence);
     Button load = FxButtons.createLoadButton("Load presets", this::chooseAndLoadLocalSequence);
 
-    topPane.getChildren()
+    instrumentComboBoxPane.getChildren()
         .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,
             localPresetsButton);
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
-    vbox.getChildren().addAll(topPane, schemaPane);
-    return vbox;
+
+    // advanced mode toggle switch
+    /*ToggleSwitch advancedToggle = new ToggleSwitch("Advanced mode");
+    advancedToggle.setTooltip(new Tooltip("Show or hide the advanced parameter customization tab"));
+    advancedToggle.selectedProperty().bindBidirectional(advancedMode);
+    advancedMode.addListener((_, _, _) -> {
+      if (listenersActive) {
+        // When a preset is loaded the listeners are not enabled
+        createParameterPanes();
+      }
+    });*/
+
+    // add a wrapper around the top pane with combo boxes and buttons so the overlay buttons do not overlap
+    final HBox topPaneWrapper = FxLayout.newHBox(
+        new Insets(0, helpButtonSize + 120, 0, helpButtonSize), instrumentComboBoxPane);
+    HBox.setHgrow(instrumentComboBoxPane, Priority.ALWAYS);
+    controlSchemaPane.getChildren().addAll(topPaneWrapper, schemaPane);
+
+    final ButtonBase help = FxIconUtil.newIconButton(FxIcons.QUESTIONMARK, 50,
+        "Open the mzwizard documentation", () -> DesktopService.getDesktop()
+            .openWebPage(MzioMZmineLinks.WIZARD_DOCUMENTATION.getUrl()));
+    VBox topRightControls = FxLayout.newVBox(Pos.CENTER_RIGHT, FxLayout.DEFAULT_PADDING_INSETS,
+        help/*, advancedToggle*/);
+    topRightControls.setPickOnBounds(false);
+    final StackPane stackPane = new StackPane(controlSchemaPane, topRightControls);
+    StackPane.setAlignment(topRightControls, Pos.TOP_RIGHT);
+
+    return stackPane;
   }
 
   /**
@@ -426,6 +486,14 @@ public class BatchWizardTab extends SimpleTab {
     // keep current as default parameters
     sequenceSteps.apply(correctPartialSequence);
 
+    // auto-enable/disable advanced mode based on loaded customization state
+    // listenersActive is false here, so the advancedMode listener does not trigger createParameterPanes again
+    boolean customizationEnabled = partialSequence.get(WizardPart.CUSTOMIZATION)
+        .filter(p -> p instanceof CustomizationWizardParameters).map(
+            p -> ((CustomizationWizardParameters) p).getValue(
+                CustomizationWizardParameters.enabled)).orElse(false);
+    advancedMode.set(customizationEnabled);
+
     // apply preset filters so that combos show the correct options
     createParameterPanes();
 
@@ -470,6 +538,8 @@ public class BatchWizardTab extends SimpleTab {
       return;
     }
 
+    // Apply parameter overrides from customization tab
+
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     try {
@@ -501,31 +571,14 @@ public class BatchWizardTab extends SimpleTab {
       return null;
     }
 
-    // check if samples > min samples filter
-    if (!checkSampleFilterValid()) {
+    // checks like min sample number, qcs, metadata file
+    if (!new BatchWizardCreateBatchChecker(sequenceSteps).checks()) {
       return null;
     }
+
     return sequenceSteps;
   }
 
-  /**
-   * @return true if imported samples > min num samples
-   */
-  private boolean checkSampleFilterValid() {
-    int numFiles = getOrElse(sequenceSteps.get(DATA_IMPORT), DataImportWizardParameters.fileNames,
-        new File[0]).length;
-
-    var minSamples = getOrElse(sequenceSteps.get(FILTER), FilterWizardParameters.minNumberOfSamples,
-        new AbsoluteAndRelativeInt(0, 0));
-    if (minSamples.getMaximumValue(numFiles) > numFiles) {
-      // continue? y/n
-      return DialogLoggerUtil.showDialogYesNo("Warning", """
-          The number of %s (Filters tab) does not match the number of imported data files. This will avoid correlation grouping.
-          Continue anyway?""".formatted(
-          inQuotes(FilterWizardParameters.minNumberOfSamples.getName())));
-    }
-    return true;
-  }
 
   /**
    * Updates the parameters in all steps from the UI components. Does not check for completeness.

@@ -129,7 +129,7 @@ public class IMSScanTypesTest {
     for (int i = 0; i < 5; i++) {
       List<BuildingMobilityScan> scans = new ArrayList<>();
       for (int j = 0; j < 5; j++) {
-        scans.add(new BuildingMobilityScan(j, new double[0], new double[0]));
+        scans.add(new BuildingMobilityScan(j, new double[0], new double[0], MassSpectrumType.CENTROIDED));
       }
       SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
@@ -145,7 +145,7 @@ public class IMSScanTypesTest {
       List<BuildingMobilityScan> scans = new ArrayList<>();
       for (int j = 0; j < 5; j++) {
         scans.add(new BuildingMobilityScan(j, new double[]{500, 600, 700, 800},
-            new double[]{500, 600, 700, 800}));
+            new double[]{500, 600, 700, 800}, MassSpectrumType.CENTROIDED));
       }
       SimpleFrame frame = new SimpleFrame(file, i, 2, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
@@ -262,8 +262,8 @@ public class IMSScanTypesTest {
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(
-        new SpectralDBAnnotation(entry, similarity, query, null, 215.1234, 2.5f),
-        new SpectralDBAnnotation(entry, similarity, query, 0.034f, null, null));
+        new SpectralDBAnnotation(entry, similarity, query, null, 215.1234, 2.5f, null),
+        new SpectralDBAnnotation(entry, similarity, query, 0.034f, null, null, null));
 
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);

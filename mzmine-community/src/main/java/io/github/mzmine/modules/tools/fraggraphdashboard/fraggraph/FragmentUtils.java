@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -50,7 +51,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class FragmentUtils {
 
   @NotNull
-  public static MolecularFormulaRange setupFormulaRange(@NotNull List<IonType> ionTypes) {
+  public static MolecularFormulaRange setupFormulaRange(
+      @NotNull List<IonType> ionTypes) {
     final MolecularFormulaRange elementCounts = new MolecularFormulaRange();
 
     try {
@@ -66,28 +68,21 @@ public class FragmentUtils {
       throw new RuntimeException(e);
     }
 
-    for (IonType ionType : ionTypes) {
-      if (ionType.isUndefinedAdduct()) {
-        continue;
-      }
-
+    for (var ionType : ionTypes) {
       // check if we have "unusual" adducts (other than m+h and m+nh4) which are not covered by the above
       reflectIonTypeInFormulaRange(ionType, elementCounts);
     }
     return elementCounts;
   }
 
-  public static void reflectIonTypeInFormulaRange(IonType ionType,
-      MolecularFormulaRange elementCounts) {
-    final IMolecularFormula adductFormula = ionType.getAdduct().getCDKFormula();
+  public static void reflectIonTypeInFormulaRange(
+      IonType ionType, MolecularFormulaRange elementCounts) {
 
-    if (adductFormula != null) {
-      reflectFormulaInMolecularFormulaRange(elementCounts, adductFormula);
-    }
-
-    if (ionType.getModification() != null && ionType.getModification().getCDKFormula() != null) {
-      final IMolecularFormula modificationFormula = ionType.getModification().getCDKFormula();
-      reflectFormulaInMolecularFormulaRange(elementCounts, modificationFormula);
+    for (IonPart part : ionType.parts()) {
+      final IMolecularFormula formula = part.unchargedSingleCDKFormula();
+      if (formula != null) {
+        reflectFormulaInMolecularFormulaRange(elementCounts, formula);
+      }
     }
   }
 
@@ -143,7 +138,7 @@ public class FragmentUtils {
       final IndexRange indexRange = BinarySearch.indexRange(
           fragmentFormulaTol.getToleranceRange(signal.getMZ()), subFormulae,
           FormulaWithExactMz::mz);
-      peaksWithFormulae.add(new SignalWithFormulae(signal, indexRange.sublist(subFormulae)));
+      peaksWithFormulae.add(new SignalWithFormulae(signal, indexRange.sublist(subFormulae, true)));
     }
     return peaksWithFormulae;
   }

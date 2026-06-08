@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,20 +27,67 @@ package io.github.mzmine.javafx.properties;
 
 import java.time.Instant;
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 
 /**
  * Binds multiple observables and updates the latest change as an Instant
  */
 public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
 
-  /**
-   * @param triggers all triggers are bound, on any change the internal Instant is updated
-   */
+  private LastUpdateProperty() {
+
+  }
+
   public LastUpdateProperty(final Observable... triggers) {
-    // all properties that cause a full update need to be bound here
-    var binding = Bindings.createObjectBinding(Instant::now, triggers);
-    this.bind(binding);
+    // use listeners and not binding to be able to clear the property
+    for (Observable trigger : triggers) {
+      if (trigger instanceof Property<?> prop) {
+        prop.addListener((_, _, _) -> setNow());
+      } else if (trigger instanceof ObservableList prop) {
+        prop.addListener((ListChangeListener) _ -> setNow());
+      } else {
+        // invalidation
+        trigger.addListener(_ -> setNow());
+      }
+    }
+  }
+
+  public void clearValue() {
+    setValue(null);
+  }
+
+  public Instant setNow() {
+    Instant now = Instant.now();
+    set(now);
+    return now;
+  }
+
+  /**
+   *
+   * @param enabled  only updates if enabled is true
+   * @param triggers any of the triggers or enabled changes value then triggers an update to the
+   *                 instant
+   */
+  public static LastUpdateProperty withEnabledProperty(BooleanProperty enabled,
+      final ObservableValue<?>... triggers) {
+    final LastUpdateProperty lastUpdate = new LastUpdateProperty();
+
+    // for enabled we always trigger a change event
+    enabled.subscribe((_, _) -> lastUpdate.setValue(Instant.now()));
+
+    // binding failed with infinite loop
+    PropertyUtils.onChange(() -> {
+      if (!enabled.get()) {
+        return; // keep old value for now update happened
+      }
+      lastUpdate.setValue(Instant.now()); // update
+    }, triggers);
+
+    return lastUpdate;
   }
 }

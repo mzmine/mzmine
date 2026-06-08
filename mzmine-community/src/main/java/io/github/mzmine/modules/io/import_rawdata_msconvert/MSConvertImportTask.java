@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,14 @@ import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MassLynxImportOptions;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -55,13 +59,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MSConvertImportTask extends AbstractTask {
+public class MSConvertImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(MSConvertImportTask.class.getName());
 
@@ -70,9 +75,9 @@ public class MSConvertImportTask extends AbstractTask {
   private final MZmineProject project;
   private final Class<? extends MZmineModule> module;
   private final ParameterSet parameters;
-  private MSDKmzMLImportTask msdkTask;
-  private Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
+  private final Boolean convertToFile = ConfigService.getConfiguration().getPreferences()
       .getValue(MZminePreferences.keepConvertedFile);
+  private MSDKmzMLImportTask msdkTask;
 
   public MSConvertImportTask(final @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File path, ScanImportProcessorConfig config,
@@ -83,18 +88,25 @@ public class MSConvertImportTask extends AbstractTask {
     this.project = project;
     this.module = module;
     this.parameters = parameters;
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   public static @NotNull List<String> buildCommandLine(File filePath, File msConvertPath,
-      boolean convertToFile) {
-
+      boolean convertToFile, final VendorImportParameters vendorParameters) {
+    final File mzMLFile = getMzMLFileName(filePath);
     final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(filePath);
 
     List<String> cmdLine = new ArrayList<>();
     cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
-        inQuotes(filePath.getAbsolutePath()), // raw file path
-        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
+        inQuotes(filePath.getAbsolutePath()) // raw file path
     )); // vendor peak-picking
+
+    if (convertToFile) {
+      cmdLine.addAll(List.of("--outdir", inQuotes(mzMLFile.getParent()), // need to set dir here
+          "--outfile", inQuotes(mzMLFile.getName()))); // only file name here
+    } else {
+      cmdLine.addAll(List.of("-o", "-")); /* to stdout */
+    }
 
     if (convertToFile) {
       cmdLine.add("--zlib");
@@ -102,17 +114,18 @@ public class MSConvertImportTask extends AbstractTask {
       cmdLine.add("--numpressLinear");
     }
 
-    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS) {
+    if (fileType == RawDataFileType.AGILENT_D_IMS || fileType == RawDataFileType.WATERS_RAW_IMS
+        || fileType == RawDataFileType.MBI) {
       cmdLine.addAll(List.of("--combineIonMobilitySpectra"));
     }
 
-    if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)
+    if (vendorParameters.getValue(VendorImportParameters.applyVendorCentroiding)
         && isPeakPickingSupported(fileType)) {
       cmdLine.addAll(List.of("--filter", "\"peakPicking vendor msLevel=1-\""));
     }
 
     if (fileType == RawDataFileType.WATERS_RAW || fileType == RawDataFileType.WATERS_RAW_IMS) {
-      addWatersOptions(filePath, cmdLine);
+      addWatersOptions(filePath, cmdLine, vendorParameters);
     }
 
 //    cmdLine.addAll(List.of("--filter",
@@ -142,19 +155,22 @@ public class MSConvertImportTask extends AbstractTask {
       case SCIEX_WIFF -> true;
       case SCIEX_WIFF2 -> true;
       case AGILENT_D -> true;
+      case MBI -> false;
+      case SHIMADZU_LCD -> true;
       case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
     };
   }
 
-  private static void addWatersOptions(File rawFolder, List<String> cmdLine) {
+  private static void addWatersOptions(File rawFolder, List<String> cmdLine,
+      final VendorImportParameters vendorParameters) {
     final WatersAcquisitionInfo acquisitionInfo = RawDataFileTypeDetector.detectWatersAcquisitionType(
         rawFolder);
     PolarityType polarity = acquisitionInfo.polarity();
 
-    final MZminePreferences preferences = ConfigService.getPreferences();
-    final Boolean lockmassEnabled = preferences.getValue(MZminePreferences.watersLockmass);
-    final WatersLockmassParameters lockmassParameters = preferences.getEmbeddedParameterValue(
-        MZminePreferences.watersLockmass);
+    final boolean lockmassEnabled = vendorParameters.getValue(
+        VendorImportParameters.watersLockmass);
+    final ParameterSet lockmassParameters = vendorParameters.getParameter(
+            VendorImportParameters.watersLockmass).getEmbeddedParameter().getEmbeddedParameters();
     final double positiveLockmass = lockmassParameters.getValue(WatersLockmassParameters.positive);
     final double negativeLockmass = lockmassParameters.getValue(WatersLockmassParameters.negative);
 
@@ -196,6 +212,9 @@ public class MSConvertImportTask extends AbstractTask {
   /**
    * Some versions of msconvert output information into stdout before the mzml is parsed. Therefore,
    * we need to find the mzml header and skip to it's start.
+   *
+   * @return true if the start of the mzml has been found, no matter if something was skipped. false
+   * if the file cannot be parsed by msconvert.
    */
   private static void skipToMzmlStart(InputStream mzMLStream) throws IOException {
     if (mzMLStream.markSupported()) {
@@ -213,21 +232,57 @@ public class MSConvertImportTask extends AbstractTask {
             final byte[] bytes = Arrays.copyOfRange(buffer, i,
                 Math.min(i + xmlHeader.length, read));
             if (Arrays.equals(bytes, xmlHeader)) {
+              logger.finest("Found XML header at position %d".formatted(i));
               headerStartIndex = i;
               break;
             }
           }
         }
         if (headerStartIndex == -1) {
-          logger.finest(() -> "Skipping text before mzml header: %s".formatted(
-              new String(buffer, 0, read, StandardCharsets.UTF_8)));
-          headerStartOffset += read;
+          if (read != -1) {
+            logger.finest(() -> "Skipping text (%d bytes) before mzml header: %s".formatted(read,
+                inQuotes(new String(buffer, 0, read, StandardCharsets.UTF_8))));
+            headerStartOffset += read;
+          } else {
+            logger.finest("No data received from MSConvert. Current header offset: %d".formatted(
+                headerStartOffset));
+          }
         }
       }
       // return to start of file and skip ahead to the index where the mzml starts
       mzMLStream.reset();
-      mzMLStream.skipNBytes(headerStartOffset + headerStartIndex);
+      mzMLStream.mark(0);
+      final int byteOffset = headerStartOffset + headerStartIndex;
+      logger.finest(() -> "Found XML header at byte offset %d".formatted(byteOffset));
+      mzMLStream.skipNBytes(byteOffset);
     }
+  }
+
+  /**
+   * @param file          the actual file
+   * @param keepConverted keep files after conversion
+   * @param type          file type detected by
+   *                      {@link RawDataFileTypeDetector#detectDataFileType(File)}
+   */
+  public static File applyMsConvertImportNameChanges(File file, boolean keepConverted,
+      RawDataFileType type) {
+    if (type != null && keepConverted && getSupportedFileTypes().contains(type)) {
+      if ((type == RawDataFileType.WATERS_RAW || type == RawDataFileType.WATERS_RAW_IMS) && (
+          ConfigService.getPreference(MZminePreferences.massLynxImportChoice)
+              != MassLynxImportOptions.MSCONVERT)) {
+        // if waters mass lynx files are imported via the sdk, apply no remapping
+        return file;
+      }
+      return getMzMLFileName(file);
+    } else {
+      return file;
+    }
+  }
+
+  public static Set<RawDataFileType> getSupportedFileTypes() {
+    return Set.of(RawDataFileType.WATERS_RAW, RawDataFileType.WATERS_RAW_IMS,
+        /*RawDataFileType.SCIEX_WIFF,*/ RawDataFileType.AGILENT_D,
+        RawDataFileType.AGILENT_D_IMS, RawDataFileType.THERMO_RAW, RawDataFileType.SHIMADZU_LCD);
   }
 
   @Override
@@ -260,10 +315,12 @@ public class MSConvertImportTask extends AbstractTask {
       return;
     }
 
-    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile);
+    final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath, convertToFile,
+        (VendorImportParameters) parameters.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions));
 
     if (convertToFile) {
-      ProcessBuilder builder = new ProcessBuilder(cmdLine);
+      ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
       try {
         final Process process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
@@ -291,6 +348,14 @@ public class MSConvertImportTask extends AbstractTask {
   private void importFromMzML(File mzMLFile) {
     RawDataFile dataFile = null;
     ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
+
+    if (project.getCurrentRawDataFiles().stream()
+        .anyMatch(file -> file.getAbsolutePath().equals(mzMLFile.getAbsolutePath()))) {
+      // we should only get to this point if someone imported raw files with the "keep mzml" option,
+      // creates the mzml, then disables that option and imports the vendor file again.
+      return;
+    }
+
     msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
         storage);
 
@@ -331,7 +396,8 @@ public class MSConvertImportTask extends AbstractTask {
   }
 
   private void importFromStream(File rawFilePath, List<String> cmdLine) {
-    ProcessBuilder builder = new ProcessBuilder(cmdLine);
+    final ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(
+        FileAndPathUtil.getTempDir());
     Process process = null;
     try {
       process = builder.start();
@@ -344,8 +410,10 @@ public class MSConvertImportTask extends AbstractTask {
         msdkTask = new MSDKmzMLImportTask(project, rawFilePath, mzMLStream, config, module,
             parameters, moduleCallDate, storage);
 
+        final Process finalProcess = process;
         this.addTaskStatusListener((_, _, _) -> {
           if (isCanceled()) {
+            finalProcess.destroy();
             msdkTask.cancel();
           }
         });
@@ -353,6 +421,7 @@ public class MSConvertImportTask extends AbstractTask {
       }
 
       if (dataFile == null || isCanceled()) {
+        process.destroy();
         return;
       }
 
@@ -386,5 +455,10 @@ public class MSConvertImportTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
       }
     }
+  }
+
+  @Override
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? msdkTask.getImportedRawDataFiles() : List.of();
   }
 }

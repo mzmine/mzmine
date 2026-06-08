@@ -27,12 +27,16 @@ package io.github.mzmine.gui.colorpicker;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MenuItem wrapping custom ColorPicker.
@@ -40,6 +44,8 @@ import javafx.scene.paint.Color;
 public class ColorPickerMenuItem extends CustomMenuItem {
 
   private final ObjectProperty<Color> selectedColor = new SimpleObjectProperty<>();
+
+  private final List<@NotNull Consumer<Color>> colorChangeListeners = new ArrayList<>();
 
   public ColorPickerMenuItem() throws IOException {
     super();
@@ -54,7 +60,7 @@ public class ColorPickerMenuItem extends CustomMenuItem {
     setHideOnClick(false);
     getStyleClass().add("set-color-menu-item");
     controller.setOnColorSelected((color) -> {
-      selectedColor.set(color);
+      selectedColor.setValue(color);
       // hide menu
       var m = getParentMenu();
       // find root menu
@@ -62,6 +68,10 @@ public class ColorPickerMenuItem extends CustomMenuItem {
         m = m.getParentMenu();
       }
       m.hide();
+
+      for (Consumer<Color> l : colorChangeListeners) {
+        l.accept(color);
+      }
     });
   }
 
@@ -77,4 +87,11 @@ public class ColorPickerMenuItem extends CustomMenuItem {
     return selectedColor;
   }
 
+  public void addColorSelectedListener(@NotNull Consumer<Color> listener) {
+    colorChangeListeners.add(listener);
+  }
+
+  public void removeColorSelectedListener(@NotNull Consumer<Color> listener) {
+    colorChangeListeners.remove(listener);
+  }
 }

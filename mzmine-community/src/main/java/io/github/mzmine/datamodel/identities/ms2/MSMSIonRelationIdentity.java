@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,8 +52,8 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
    * @param type        the type of relationship
    * @param parentMZ    the parent m/z value
    */
-  public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp, IonType type,
-      double parentMZ) {
+  public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp,
+      IonType type, double parentMZ) {
     this(mzTolerance, dp, type, new SimpleDataPoint(parentMZ, 0));
   }
 
@@ -76,7 +76,7 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
   public String getName() {
     switch (relation) {
       case NEUTRAL_LOSS:
-        return type.getName();
+        return type.name();
     }
     return super.getName();
   }

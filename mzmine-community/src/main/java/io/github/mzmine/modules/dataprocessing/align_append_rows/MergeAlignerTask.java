@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
@@ -68,8 +69,7 @@ public class MergeAlignerTask extends AbstractTask {
     featureLists = parameters.getParameter(MergeAlignerParameters.featureLists).getValue()
         .getMatchingFeatureLists();
 
-    featureListName = parameters.getParameter(
-        MergeAlignerParameters.peakListName).getValue();
+    featureListName = parameters.getParameter(MergeAlignerParameters.peakListName).getValue();
   }
 
   @Override
@@ -89,7 +89,7 @@ public class MergeAlignerTask extends AbstractTask {
   public void run() {
     if (featureLists.length < 2) {
       setErrorMessage("Cannot perform feature list merging on " + featureLists.length
-                      + " feature lists (need at least 2)");
+          + " feature lists (need at least 2)");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -99,8 +99,16 @@ public class MergeAlignerTask extends AbstractTask {
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
+    long totalFeatures = 0;
     for (FeatureList list : featureLists) {
       totalRows += list.getNumberOfRows();
+      totalFeatures += list.stream().mapToLong(FeatureListRow::getNumberOfFeatures).sum();
+    }
+
+    if (totalFeatures > Integer.MAX_VALUE) {
+      error("Trying to merge more than the maximum number of features. (%d; max:%d)".formatted(
+          totalFeatures, Integer.MAX_VALUE));
+      return;
     }
 
     // Collect all data files
@@ -108,8 +116,9 @@ public class MergeAlignerTask extends AbstractTask {
         .flatMap(flist -> flist.getRawDataFiles().stream()).distinct().collect(Collectors.toList());
 
     // create copy of first feature list as base and renumber IDs
-    ModularFeatureList alignedFeatureList = featureLists[0].createCopy(featureListName,
-        getMemoryMapStorage(), allDataFiles, true);
+    // already reserves the exact number of features and rows in datamodel
+    ModularFeatureList alignedFeatureList = FeatureListUtils.createCopy(featureLists[0],
+        featureListName, null, storage, true, allDataFiles, true, totalRows, (int) (totalFeatures));
 
     // next row will have this id
     int newRowID = alignedFeatureList.getNumberOfRows() + 1;
@@ -128,7 +137,7 @@ public class MergeAlignerTask extends AbstractTask {
         List<? extends Scan> seletedScans = alignedFeatureList.getSeletedScans(file);
         List<? extends Scan> seletedScansNew = featureList.getSeletedScans(file);
         if (seletedScans != null && (seletedScansNew == null
-                                     || seletedScans.size() != seletedScansNew.size())) {
+            || seletedScans.size() != seletedScansNew.size())) {
           setErrorMessage(
               "Cannot merge feature lists from the same RawDataFile that were created with different selected scans (e.g., during chromatogram building). Try to harmonize the scan filters in the previous steps or split the raw data file in two data files, e.g., for positive and negative mode data.");
           setStatus(TaskStatus.ERROR);
@@ -161,10 +170,9 @@ public class MergeAlignerTask extends AbstractTask {
     project.addFeatureList(alignedFeatureList);
 
     // Add task description to peakList
-    alignedFeatureList
-        .addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod("Feature list merger", MergeAlignerModule.class,
-                parameters, getModuleCallDate()));
+    alignedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Feature list merger", MergeAlignerModule.class,
+            parameters, getModuleCallDate()));
 
     logger.info("Finished feature list merger");
 

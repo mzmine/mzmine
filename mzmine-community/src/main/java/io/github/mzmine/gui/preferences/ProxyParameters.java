@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.util.web.Proxy;
+import io.github.mzmine.util.web.ProxyDefinition;
 import io.github.mzmine.util.web.ProxyType;
 import java.util.Map;
 
@@ -63,7 +63,7 @@ public class ProxyParameters extends SimpleParameterSet {
     return 2;
   }
 
-  public void setProxy(final Proxy proxy) {
+  public void setProxy(final ProxyDefinition proxy) {
     if (proxy.address() != null) {
       setParameter(proxyAddress, proxy.address());
     }

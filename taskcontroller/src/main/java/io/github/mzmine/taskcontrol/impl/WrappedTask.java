@@ -193,7 +193,7 @@ public class WrappedTask implements Task {
          */
 
         logger.log(Level.SEVERE, "Unhandled exception " + e + " while processing task "
-                                 + actualTask.getTaskDescription());
+                                 + actualTask.getTaskDescription(), e);
 
         if (e instanceof Exception exception) {
           actualTask.error(e.getMessage(), exception);
@@ -231,4 +231,8 @@ public class WrappedTask implements Task {
            (!running && getActualTask().getStatus() != TaskStatus.WAITING);
   }
 
+  @Override
+  public void setStatus(TaskStatus newStatus) {
+    task.setStatus(newStatus);
+  }
 }

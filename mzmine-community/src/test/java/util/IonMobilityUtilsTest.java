@@ -69,7 +69,7 @@ public class IonMobilityUtilsTest {
     final double[] timsMobilities = new double[10];
     final double[] mobilities = new double[10];
     for (int i = 0; i < 10; i++) {
-      scans.add(new BuildingMobilityScan(i, new double[]{}, new double[]{}));
+      scans.add(new BuildingMobilityScan(i, new double[]{}, new double[]{}, MassSpectrumType.CENTROIDED));
       timsMobilities[9 - i] = i / 10d;
       mobilities[i] = i / 10d;
     }

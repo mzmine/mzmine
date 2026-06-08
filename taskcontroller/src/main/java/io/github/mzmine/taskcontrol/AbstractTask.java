@@ -25,12 +25,11 @@
 
 package io.github.mzmine.taskcontrol;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
@@ -145,6 +144,7 @@ public abstract class AbstractTask implements Task {
   /**
    * error and finished cannot be overwritten
    */
+  @Override
   public final void setStatus(TaskStatus newStatus) {
     TaskStatus old = status;
     if (old.isUnmodifiable()) {
@@ -198,6 +198,6 @@ public abstract class AbstractTask implements Task {
 
   @Override
   public String toString() {
-    return STR."Task (\{getName()}) description: \{getTaskDescription()}";
+    return "Task (%s) description: %s".formatted(getName(), getTaskDescription());
   }
 }

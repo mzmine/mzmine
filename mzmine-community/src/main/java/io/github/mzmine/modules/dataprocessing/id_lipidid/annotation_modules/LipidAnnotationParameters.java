@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_class.CustomLipidClassParameters;
@@ -32,12 +37,16 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parameters for lipid annotation module
@@ -48,6 +57,12 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
+  public static final ComboParameter<LipidAnalysisType> lipidAnalysisType = new ComboParameter<>(
+      "Lipid analysis type", """
+      Select the acquisition/analysis type to adapt annotation ranking.
+      LC types use retention-time trend scoring, while direct infusion and imaging do not.
+      """, LipidAnalysisType.values(), LipidAnalysisType.LC_REVERSED_PHASE);
+
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones",
       LipidClassesProvider.getListOfAllLipidClasses().toArray());
@@ -56,10 +71,21 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
       "Side chain parameters", "Optionally modify lipid chain parameters",
       new LipidAnnotationChainParameters());
 
-
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
       "Enter m/z tolerance for exact mass database matching on MS1 level", 0.005, 5);
+
+  public static final PercentParameter minimumOverallQualityScore = new PercentParameter(
+      "Minimum overall quality score [%]", """
+      Minimum QC-based lipid annotation score required to keep an annotation.
+      The score combines MS1, optional MS2, adduct, isotope, interference, and optional RT elution order.
+      """, 0.6);
+
+  public static final OptionalModuleParameter<LipidQcWeightParameters> customQcWeights = new OptionalModuleParameter<>(
+      "Override quality score weights", """
+      Optionally override component weights used in the lipid QC score.
+      Defaults match the current scoring algorithm. Weights can be set from 0 to 100.
+      """, new LipidQcWeightParameters(), false);
 
   public static final OptionalModuleParameter<LipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
@@ -75,15 +101,21 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
       new AdvancedLipidAnnotationParameters());
 
   public LipidAnnotationParameters() {
-    super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments, customLipidClasses, advanced},
+    super(new Parameter[]{featureLists, lipidAnalysisType, lipidClasses, lipidChainParameters,
+            mzTolerance, minimumOverallQualityScore, customQcWeights, searchForMSMSFragments,
+            customLipidClasses, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the Lipid annotation module please cite:"), linebreak(),
+        ArticleReferences.LIPIDANNOTATION.hyperlinkText(), linebreak(),
+        text("When using custom lipid classes please cite:"), linebreak(),
+        ArticleReferences.CUSTOMLIPIDCLASSES.hyperlinkText());
     LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
-        valueCheckRequired, this);
+        valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -95,6 +127,15 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 3 ->
+          "Added overall quality scores, added Elution order profiling based on analysis type (RP, HLIC).";
+      default -> null;
+    };
   }
 }

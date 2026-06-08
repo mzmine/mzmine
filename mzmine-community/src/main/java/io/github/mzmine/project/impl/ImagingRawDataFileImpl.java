@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
@@ -51,7 +50,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
 
 
   public ImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
-      MemoryMapStorage storage) throws IOException {
+      MemoryMapStorage storage) {
     super(dataFileName, absPath, storage);
   }
 

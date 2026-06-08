@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,6 +25,7 @@
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
@@ -44,7 +44,6 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
@@ -88,7 +87,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -118,7 +117,9 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
     makeAndAddBatchExportStep(q, true, null);
+
     return q;
   }
 
@@ -148,8 +149,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     // todo make auto mass detector work, so we can use it here.
 
     if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
-      final ParameterSet param = MZmineCore.getConfiguration()
-          .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
       final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
 
       // set value first and then parameters 
@@ -161,14 +160,9 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
       detectorParams.setParameter(CentroidMassDetectorParameters.noiseLevel,
           massDetectorOption.getMs1NoiseLevel());
 
-      param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(true);
-      param.getParameter(AllSpectralDataImportParameters.advancedImport)
-          .setEmbeddedParameters(advancedParam);
-      param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
-      param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
-          metadataFile.value());
-      param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
-      param.setParameter(AllSpectralDataImportParameters.sortAndRecolor, true);
+      final var param = AllSpectralDataImportParameters.create(
+          ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
+          metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(
           MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
@@ -188,9 +182,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     param.setParameter(ImsExpanderParameters.useRawData, false);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter()
         .setValue(massDetectorOption.getMs1NoiseLevel());
-    param.setParameter(ImsExpanderParameters.mzTolerance, true);
-    param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-        .setValue(mzTolScans);
+    param.setParameter(ImsExpanderParameters.mzTolerance, mzTolScans);
     param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
     param.setParameter(ImsExpanderParameters.maxNumTraces, true, 5);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,8 +35,8 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPTyp
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.EnzymeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ReactionType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters.TransformationTypes;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -55,15 +55,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerUtil {
 
-  private static final List<ImportType> types = List.of(
-      new ImportType(true, "Molecular formula", DataTypes.get(FormulaType.class)),
-      new ImportType(true, "SMILES", DataTypes.get(SmilesStructureType.class)),
-      new ImportType(true, "InChI", DataTypes.get(InChIStructureType.class)),
-      new ImportType(true, "InChIKey", DataTypes.get(InChIKeyStructureType.class)),
-      new ImportType(true, "Reaction", DataTypes.get(ReactionType.class)),
-      new ImportType(true, "Enzyme(s)", DataTypes.get(EnzymeType.class)),
-      new ImportType(true, "ALogP", DataTypes.get(ALogPType.class)),
-      new ImportType(true, "Metabolite ID", DataTypes.get(CompoundNameType.class)));
+  private static final List<ImportType<?>> types = List.of(
+      new ImportType<>(true, "Molecular formula", DataTypes.get(FormulaType.class)),
+      new ImportType<>(true, "SMILES", DataTypes.get(SmilesStructureType.class)),
+      new ImportType<>(true, "InChI", DataTypes.get(InChIStructureType.class)),
+      new ImportType<>(true, "InChIKey", DataTypes.get(InChIKeyStructureType.class)),
+      new ImportType<>(true, "Reaction", DataTypes.get(ReactionType.class)),
+      new ImportType<>(true, "Enzyme(s)", DataTypes.get(EnzymeType.class)),
+      new ImportType<>(true, "ALogP", DataTypes.get(ALogPType.class)),
+      new ImportType<>(true, "Metabolite ID", DataTypes.get(CompoundNameType.class)));
   private static final Logger logger = Logger.getLogger(BioTransformerUtil.class.getName());
 
   private BioTransformerUtil() {
@@ -101,8 +101,7 @@ public class BioTransformerUtil {
   }
 
 
-  public static List<CompoundDBAnnotation> parseLibrary(final File file,
-      IonNetworkLibrary library) {
+  public static List<CompoundDBAnnotation> parseLibrary(final File file, IonLibrary library) {
     if (!file.exists() && file.canRead()) {
       logger.info(
           () -> "BioTransformer result file does not exist, this means that no metabolites were predicted.");

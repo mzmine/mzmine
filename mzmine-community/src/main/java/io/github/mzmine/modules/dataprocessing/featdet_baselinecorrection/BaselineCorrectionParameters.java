@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -39,6 +40,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
@@ -91,5 +93,24 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
         BaselineCorrectionPreview::new);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 ->
+          "Baseline correction parameters were updated to use a relative percentage of sampled data points instead of an absolute number.";
+      default -> null;
+    };
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

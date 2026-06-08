@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,25 +25,33 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -51,8 +59,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class MatchedLipid implements FeatureAnnotation {
 
@@ -65,14 +72,27 @@ public class MatchedLipid implements FeatureAnnotation {
   private static final String XML_MSMS_SCORE = "msmsscore";
   private static final String XML_COMMENT = "comment";
   private static final String XML_STATUS = "status";
+  private static final String XML_OVERALL_QUALITY_SCORE = "overallqualityscore";
+  private static final String XML_PREFERRED_ANNOTATION_LEVEL = "preferredannotationlevel";
 
-  private ILipidAnnotation lipidAnnotation;
-  private Double accurateMz;
-  private IonizationType ionizationType;
-  private Set<LipidFragment> matchedFragments;
-  private Double msMsScore;
+  private final ILipidAnnotation lipidAnnotation;
+  private final Double accurateMz;
+  private final IonizationType ionizationType;
+  private final Set<LipidFragment> matchedFragments;
+  private final Double msMsScore;
+  private final MatchedLipidStatus status;
   private String comment;
-  private MatchedLipidStatus status;
+  private @NotNull LipidAnnotationLevel preferredAnnotationLevel;
+  private @Nullable Float overallQualityScore;
+
+  /**
+   * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
+   * <p>
+   * StableValue renamed to ComputedConstant in JDK26
+   */
+  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+          getLipidAnnotation().getMolecularFormula(), getAdductType()));
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
@@ -90,6 +110,7 @@ public class MatchedLipid implements FeatureAnnotation {
     this.msMsScore = msMsScore;
     this.status = status;
     this.comment = status.getComment();
+    this.preferredAnnotationLevel = lipidAnnotation.getLipidAnnotationLevel();
   }
 
   public static MatchedLipid loadFromXML(XMLStreamReader reader,
@@ -115,6 +136,8 @@ public class MatchedLipid implements FeatureAnnotation {
     Double msMsScore = null;
     String comment = "";
     MatchedLipidStatus status = null;
+    Float overallQualityScore = null;
+    LipidAnnotationLevel preferredAnnotationLevel = null;
     while (reader.hasNext() && !(reader.isEndElement() && (reader.getLocalName().equals(XML_ELEMENT)
         || reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)))) {
       reader.next();
@@ -148,6 +171,15 @@ public class MatchedLipid implements FeatureAnnotation {
         }
         case XML_STATUS -> status = MatchedLipidStatus.parseOrElse(reader.getElementText(),
             MatchedLipidStatus.UNCONFIRMED);
+        case XML_OVERALL_QUALITY_SCORE -> {
+          final String text = reader.getElementText();
+          if (!Objects.equals(text, CONST.XML_NULL_VALUE)) {
+            overallQualityScore = Float.parseFloat(text);
+          }
+        }
+        case XML_PREFERRED_ANNOTATION_LEVEL ->
+            preferredAnnotationLevel = UniqueIdSupplier.parseOrElse(reader.getElementText(),
+                LipidAnnotationLevel.values(), null);
         default -> {
         }
       }
@@ -156,10 +188,19 @@ public class MatchedLipid implements FeatureAnnotation {
       status = MatchedLipidStatus.UNCONFIRMED; // should always load
     }
 
-    MatchedLipid matchedLipid = new MatchedLipid(lipidAnnotation, accurateMz, ionizationType,
-        lipidFragments, msMsScore, status);
+    final ILipidAnnotation resolvedLipidAnnotation = Objects.requireNonNull(lipidAnnotation,
+        "Cannot load matched lipid without lipid annotation.");
+    MatchedLipid matchedLipid = new MatchedLipid(resolvedLipidAnnotation, accurateMz,
+        ionizationType, lipidFragments, msMsScore, status);
+
+    if (preferredAnnotationLevel != null) {
+      matchedLipid.setPreferredAnnotationLevel(preferredAnnotationLevel);
+    }
     if (comment != null) {
       matchedLipid.setComment(comment);
+    }
+    if (overallQualityScore != null) {
+      matchedLipid.setOverallQualityScore(overallQualityScore);
     }
     return matchedLipid;
   }
@@ -184,52 +225,53 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   public static double getExactMass(MatchedLipid match) {
-    return MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
-        AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
+    return FormulaUtils.getMonoisotopicMass(match.getLipidAnnotation().getMolecularFormula())
+        + match.getIonizationType().getAddedMass();
   }
 
   public ILipidAnnotation getLipidAnnotation() {
     return lipidAnnotation;
   }
 
-  public void setLipidAnnotation(ILipidAnnotation lipidAnnotation) {
-    this.lipidAnnotation = lipidAnnotation;
-  }
-
   public Double getAccurateMz() {
     return accurateMz;
-  }
-
-  public void setAccurateMz(Double accurateMz) {
-    this.accurateMz = accurateMz;
   }
 
   public IonizationType getIonizationType() {
     return ionizationType;
   }
 
-  public void setIonizationType(IonizationType ionizationType) {
-    this.ionizationType = ionizationType;
-  }
-
   public Set<LipidFragment> getMatchedFragments() {
-    return matchedFragments;
-  }
-
-  public void setMatchedFragments(Set<LipidFragment> matchedFragments) {
-    this.matchedFragments = matchedFragments;
+    return requireNonNullElse(matchedFragments, Set.of());
   }
 
   public Double getMsMsScore() {
     return msMsScore;
   }
 
-  public void setMsMsScore(Double msMsScore) {
-    this.msMsScore = msMsScore;
+  public @NotNull LipidAnnotationLevel getPreferredAnnotationLevel() {
+    return preferredAnnotationLevel;
   }
 
+  public void setPreferredAnnotationLevel(
+      final @NotNull LipidAnnotationLevel preferredAnnotationLevel) {
+    switch (lipidAnnotation) {
+      case SpeciesLevelAnnotation _ ->
+        // cannot set preferred level to molecular species for species level annotation
+          this.preferredAnnotationLevel = LipidAnnotationLevel.SPECIES_LEVEL;
+      case MolecularSpeciesLevelAnnotation _ ->
+          this.preferredAnnotationLevel = preferredAnnotationLevel;
+    }
+  }
+
+  @Override
   public String getComment() {
     return comment;
+  }
+
+  @Override
+  public @Nullable IMolecularFormula getCdkFormula() {
+    return lipidAnnotation.getMolecularFormula();
   }
 
   public void setComment(String comment) {
@@ -240,13 +282,17 @@ public class MatchedLipid implements FeatureAnnotation {
     return status;
   }
 
-  public void setStatus(MatchedLipidStatus status) {
-    this.status = status;
+  public @Nullable Float getOverallQualityScore() {
+    return overallQualityScore;
+  }
+
+  public void setOverallQualityScore(@Nullable Float overallQualityScore) {
+    this.overallQualityScore = overallQualityScore;
   }
 
   @Override
   public String toString() {
-    return lipidAnnotation.getAnnotation();
+    return lipidAnnotation.getAnnotation(preferredAnnotationLevel);
   }
 
 
@@ -275,14 +321,20 @@ public class MatchedLipid implements FeatureAnnotation {
     writer.writeCharacters(msMsScore.toString());
     writer.writeEndElement();
     writer.writeStartElement(XML_COMMENT);
-    if (comment != null) {
-      writer.writeCharacters(comment);
-    } else {
-      writer.writeCharacters(CONST.XML_NULL_VALUE);
-    }
+    writer.writeCharacters(requireNonNullElse(comment, CONST.XML_NULL_VALUE));
     writer.writeEndElement();
     writer.writeStartElement(XML_STATUS);
     writer.writeCharacters(status.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_PREFERRED_ANNOTATION_LEVEL);
+    writer.writeCharacters(preferredAnnotationLevel.getUniqueID());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_OVERALL_QUALITY_SCORE);
+    if (overallQualityScore != null) {
+      writer.writeCharacters(overallQualityScore.toString());
+    } else {
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+    }
     writer.writeEndElement();
 
     writeClosingTag(writer);
@@ -304,6 +356,11 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable String getIsomericSmiles() {
+    return null;
+  }
+
+  @Override
   public @Nullable String getInChI() {
     return null;
   }
@@ -319,16 +376,31 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable String getIupacName() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getCAS() {
+    return null;
+  }
+
+  @Override
+  public @Nullable String getInternalId() {
+    return null;
+  }
+
+  @Override
   public @Nullable String getFormula() {
-    return MolecularFormulaManipulator.getString(getLipidAnnotation().getMolecularFormula());
+    return FormulaUtils.getFormulaString(getLipidAnnotation().getMolecularFormula());
   }
 
   @Override
   public @Nullable IonType getAdductType() {
     try {
-      return IonTypeParser.parse(getIonizationType().toString());
+      return getIonizationType().toIonType();
     } catch (Exception e) {
-      logger.fine(() -> STR."Error parsing ion type \{getIonizationType().toString()}");
+      logger.fine(() -> "Error parsing ion type " + getIonizationType().toString());
       return null;
     }
   }
@@ -350,12 +422,22 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable Float getScore() {
-    return getMsMsScore() != null ? getMsMsScore().floatValue() : null;
+    return getOverallQualityScore();
+  }
+
+  @Override
+  public @Nullable IsotopePattern getIsotopePattern() {
+    return pattern.get();
   }
 
   @Override
   public @Nullable String getDatabase() {
     return "Rule-based lipid fragmentation";
+  }
+
+  @Override
+  public @NotNull Class<? extends DataType> getDataType() {
+    return LipidMatchListType.class;
   }
 
   @Override

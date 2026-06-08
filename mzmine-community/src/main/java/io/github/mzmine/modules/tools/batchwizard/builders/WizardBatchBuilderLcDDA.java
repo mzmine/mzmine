@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -51,6 +50,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   protected final Boolean applySpectralNetworking;
   protected final File exportPath;
   protected final boolean isExportActive;
+  private final boolean applyAnalogSearch;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -73,13 +73,14 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
     applySpectralNetworking = getValue(params, WorkflowDdaWizardParameters.applySpectralNetworking);
+    applyAnalogSearch = getValue(params, WorkflowDdaWizardParameters.analogSearch);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -99,6 +100,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
+    makeAndAddFeatureFilterStep(q);
     makeAndAddIsotopeFinderStep(q);
     makeAndAddJoinAlignmentStep(q, interSampleRtTol);
     makeAndAddRowFilterStep(q);
@@ -107,21 +109,29 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
         rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, intraSampleRtTol);
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
+    makeAndAddFormulaPredictionStep(q);
 
     // networking
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
+    if(applyAnalogSearch){
+      makeAndAddAnalogSearchStep(q);
+    }
+
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q, intraSampleRtTol);
 
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);
     makeAndAddBatchExportStep(q, isExportActive, exportPath);
+
     return q;
   }
 

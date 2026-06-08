@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -59,8 +61,10 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   private final int msLevel;
   @NotNull
   private final ActivationMethod method;
+
   @Nullable
-  private final Range<Double> isolationWindow;
+  private final SimpleDoubleRange mzIsolationWindow;
+
   @Nullable
   private final Scan parentScan;
   @Nullable
@@ -76,7 +80,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
-    this.isolationWindow = isolationWindow;
+    mzIsolationWindow = SimpleRange.ofDouble(isolationWindow);
   }
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
@@ -92,6 +96,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     Double precursorMz = null;
     Integer charge = null;
     Float energy = null;
+    // this energy should be preferred over the also defined CID energy in EAD which is used to transfer the ions
+    Float energyEAD = null;
     ActivationMethod method = ActivationMethod.UNKNOWN;
 
     MzMLPrecursorActivation activation = precursorElement.getActivation();
@@ -100,6 +106,9 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronBeamEnergyEAD)) {
+        energyEAD = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
         method = ActivationMethod.CID;
@@ -113,6 +122,12 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvLowEnergyCID)) {
         method = ActivationMethod.CID;
       }
+    }
+
+    if (energyEAD != null) {
+      // the regular energy is only used for ion transfer?
+      energy = energyEAD;
+      method = ActivationMethod.EAD;
     }
 
     List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
@@ -205,8 +220,8 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
         scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(
+            parentScanIndex) : null, msLevel, method, isolationWindow);
   }
 
   @Override
@@ -237,7 +252,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   @Override
   public @Nullable Range<Double> getIsolationWindow() {
-    return isolationWindow;
+    return mzIsolationWindow != null ? mzIsolationWindow.guava() : null;
   }
 
   public boolean setMsMsScan(Scan scan) {
@@ -333,7 +348,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public String toString() {
     return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
         + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
-        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + ", isolationWindow=" + getIsolationWindow() + ", parentScan=" + parentScan + ", msMsScan="
         + msMsScan + '}';
   }
 

@@ -37,9 +37,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to CSV file (modular)";
-  private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list contents into a CSV (comma-separated values) file.";
+  public static final String MODULE_NAME = "Export to CSV file (modular)";
+  private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a CSV (comma-separated values) file.";
 
   @Override
   public @NotNull String getName() {

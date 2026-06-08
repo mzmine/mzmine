@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import javafx.scene.control.TextField;
 import org.jetbrains.annotations.Nullable;
 
-public class StringParameter extends StringValueParameter<TextField> {
+public class StringParameter extends StringValueParameter<StringParameterComponent> {
 
   public StringParameter(String name, String description) {
     this(name, description, "");
@@ -64,19 +64,19 @@ public class StringParameter extends StringValueParameter<TextField> {
   }
 
   @Override
-  public TextField createEditingComponent() {
-    TextField stringComponent = new TextField();
+  public StringParameterComponent createEditingComponent() {
+    StringParameterComponent stringComponent = new StringParameterComponent();
     stringComponent.setPrefColumnCount(inputsize);
     return stringComponent;
   }
 
   @Override
-  public void setValueFromComponent(TextField component) {
+  public void setValueFromComponent(StringParameterComponent component) {
     value = component.getText();
   }
 
   @Override
-  public void setValueToComponent(TextField component, @Nullable String newValue) {
+  public void setValueToComponent(StringParameterComponent component, @Nullable String newValue) {
     component.setText(requireNonNullElse(newValue, ""));
   }
 

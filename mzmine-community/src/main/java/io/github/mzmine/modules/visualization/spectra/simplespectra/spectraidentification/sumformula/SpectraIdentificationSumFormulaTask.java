@@ -60,7 +60,6 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task for sum formula prediction in spectra.
@@ -69,8 +68,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
-  private static final Logger logger = Logger
-      .getLogger(SpectraIdentificationSumFormulaTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      SpectraIdentificationSumFormulaTask.class.getName());
   private Boolean checkHC;
   private Boolean checkNOPS;
   private Boolean checkMultiple;
@@ -111,9 +110,8 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     checkRDBE = parameters.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
         .getValue();
     if (checkRDBE) {
-      RDBERestrictionParameters rdbeParameters = parameters
-          .getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
-          .getEmbeddedParameters();
+      RDBERestrictionParameters rdbeParameters = parameters.getParameter(
+          SpectraIdentificationSumFormulaParameters.rdbeRestrictions).getEmbeddedParameters();
       rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
       rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
     }
@@ -121,9 +119,8 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     checkRatios = parameters.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
         .getValue();
     if (checkRatios) {
-      ElementalHeuristicParameters ratiosParameters = parameters
-          .getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
-          .getEmbeddedParameters();
+      ElementalHeuristicParameters ratiosParameters = parameters.getParameter(
+          SpectraIdentificationSumFormulaParameters.elementalRatios).getEmbeddedParameters();
       checkHC = ratiosParameters.getValue(ElementalHeuristicParameters.checkHC);
       checkNOPS = ratiosParameters.getValue(ElementalHeuristicParameters.checkNOPS);
       checkMultiple = ratiosParameters.getValue(ElementalHeuristicParameters.checkMultiple);
@@ -202,16 +199,14 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
         // Mass is ok, so test other constraints
         if (checkConstraints(cdkFormula) == true) {
-          String formula = MolecularFormulaManipulator.getString(cdkFormula);
+          String formula = FormulaUtils.getFormulaString(cdkFormula);
 
           // calc rel mass deviation
           Double relMassDev = ((((massList[0][i] - //
-                                  ionType.getAddedMass()) / charge)//
-                                - (FormulaUtils.calculateExactMass(//
-              MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((massList[0][i] //
-                                                                                - ionType
-                                                                                    .getAddedMass())
-                                                                               / charge)) * 1000000;
+              ionType.getAddedMass()) / charge)//
+              - (FormulaUtils.calculateExactMass(//
+              FormulaUtils.getFormulaString(cdkFormula))) / charge) / ((massList[0][i] //
+              - ionType.getAddedMass()) / charge)) * 1000000;
 
           // write to map
           possibleFormulas.put(relMassDev, formula);
@@ -242,7 +237,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
         massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
       }
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
-                    + " formulas");
+          + " formulas");
     }
 
     // new mass list
@@ -268,8 +263,8 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker
-          .checkFormula(cdkFormula, checkHC, checkNOPS, checkMultiple);
+      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, checkHC, checkNOPS,
+          checkMultiple);
       if (!check) {
         return false;
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,26 @@
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
+import static io.github.mzmine.util.StringUtils.nullToEmpty;
+
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -43,6 +54,7 @@ import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.StringUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +88,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final Boolean exportAllFeatureInfo;
   private final String idSeparator;
   private final FeatureListRowsFilter filter;
+  private final CompoundRowSelection rowSelection;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
 
@@ -97,10 +110,12 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         .getValue();
     idSeparator = parameters.getParameter(LegacyCSVExportParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(LegacyCSVExportParameters.filter).getValue();
+    this.rowSelection = parameters.getValue(LegacyCSVExportParameters.compoundRowSelection);
     refineCommonElements();
   }
 
   /**
+   * @param compoundRowSelection
    * @param featureLists         feature lists to export
    * @param fileName             export to file name
    * @param fieldSeparator       separator for each column
@@ -113,7 +128,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements, Boolean exportAllFeatureInfo,
-      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate,
+      CompoundRowSelection compoundRowSelection) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
@@ -123,6 +139,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     this.exportAllFeatureInfo = exportAllFeatureInfo;
     this.idSeparator = idSeparator;
     this.filter = filter;
+    this.rowSelection = compoundRowSelection;
   }
 
   @Override
@@ -243,6 +260,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         line.append("auto MS2 verify").append(fieldSeparator);
         line.append("identified by n=").append(fieldSeparator);
         line.append("partners").append(fieldSeparator);
+      } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_COMPOUND_ID)) {
+        line.append(DataTypes.get(CompoundIdType.class).getUniqueID()).append(fieldSeparator);
+        line.append(DataTypes.get(CompoundMembersJsonType.class).getUniqueID())
+            .append(fieldSeparator);
       } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
         line.append("best ion").append(fieldSeparator);
       } else {
@@ -256,7 +277,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     // feature Information
     Set<String> featureInformationFields = new HashSet<>();
 
-    final List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+    final List<FeatureListRow> rows = new ArrayList<>(featureList.getRowsCopy(rowSelection));
 
     final int numRows = rows.size();
     final long numFeatures = rows.stream().count();
@@ -355,39 +376,41 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
       FeatureListRow featureListRow) {
     for (RawDataFile dataFile : rawDataFiles) {
       for (int i = 0; i < length; i++) {
-        Feature feature = featureListRow.getFeature(dataFile);
+        ModularFeature feature = (ModularFeature) featureListRow.getFeature(dataFile);
         if (feature != null) {
-          switch (dataFileElements[i]) {
-            case FEATURE_STATUS -> line.append(feature.getFeatureStatus()).append(fieldSeparator);
-            case FEATURE_NAME ->
-                line.append(FeatureUtils.featureToString(feature)).append(fieldSeparator);
-            case FEATURE_MZ -> line.append(feature.getMZ()).append(fieldSeparator);
-            case FEATURE_RT -> append(line, feature.getRT());
-            case FEATURE_ION_MOBILITY -> append(line, feature.getMobility());
-            case FEATURE_ION_MOBILITY_UNIT -> append(line, feature.getMobilityUnit());
-            case FEATURE_CCS -> append(line, feature.getCCS());
-            case FEATURE_RT_START -> line.append(feature.getRawDataPointsRTRange().lowerEndpoint())
-                .append(fieldSeparator);
-            case FEATURE_RT_END -> line.append(feature.getRawDataPointsRTRange().upperEndpoint())
-                .append(fieldSeparator);
+          final String toAppend = switch (dataFileElements[i]) {
+            case FEATURE_STATUS -> feature.getFeatureStatus().toString();
+            case FEATURE_NAME -> FeatureUtils.featureToString(feature);
+            case FEATURE_MZ -> nullToEmpty(feature.getMZ());
+            case FEATURE_RT -> nullToEmpty(feature.getRT());
+            case FEATURE_ION_MOBILITY -> nullToEmpty(feature.getMobility());
+            case FEATURE_ION_MOBILITY_UNIT -> nullToEmpty(feature.getMobilityUnit());
+            case FEATURE_CCS -> nullToEmpty(feature.getCCS());
+            case FEATURE_RT_START -> nullToEmpty(feature.getRawDataPointsRTRange().lowerEndpoint());
+            case FEATURE_RT_END -> nullToEmpty(feature.getRawDataPointsRTRange().upperEndpoint());
             case FEATURE_DURATION ->
-                line.append(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()))
-                    .append(fieldSeparator);
-            case FEATURE_HEIGHT -> line.append(feature.getHeight()).append(fieldSeparator);
-            case FEATURE_AREA -> line.append(feature.getArea()).append(fieldSeparator);
-            case FEATURE_CHARGE -> line.append(feature.getCharge()).append(fieldSeparator);
-            case FEATURE_DATAPOINTS ->
-                line.append(feature.getScanNumbers().size()).append(fieldSeparator);
-            case FEATURE_FWHM -> line.append(feature.getFWHM()).append(fieldSeparator);
-            case FEATURE_TAILINGFACTOR ->
-                line.append(feature.getTailingFactor()).append(fieldSeparator);
-            case FEATURE_ASYMMETRYFACTOR ->
-                line.append(feature.getAsymmetryFactor()).append(fieldSeparator);
-            case FEATURE_MZMIN -> line.append(feature.getRawDataPointsMZRange().lowerEndpoint())
-                .append(fieldSeparator);
-            case FEATURE_MZMAX -> line.append(feature.getRawDataPointsMZRange().upperEndpoint())
-                .append(fieldSeparator);
-          }
+                nullToEmpty(RangeUtils.rangeLength(feature.getRawDataPointsRTRange()));
+            case FEATURE_HEIGHT -> nullToEmpty(feature.getHeight());
+            case FEATURE_AREA -> nullToEmpty(feature.getArea());
+            case FEATURE_CHARGE -> nullToEmpty(feature.getCharge());
+            case FEATURE_DATAPOINTS -> nullToEmpty(feature.getScanNumbers().size());
+            case FEATURE_FWHM -> nullToEmpty(feature.getFWHM());
+            case FEATURE_TAILINGFACTOR -> nullToEmpty(feature.getTailingFactor());
+            case FEATURE_ASYMMETRYFACTOR -> nullToEmpty(feature.getAsymmetryFactor());
+            case FEATURE_MZMIN -> nullToEmpty(feature.getRawDataPointsMZRange().lowerEndpoint());
+            case FEATURE_MZMAX -> nullToEmpty(feature.getRawDataPointsMZRange().upperEndpoint());
+            case FEATURE_UV_AREA -> {
+              List<MsOtherCorrelationResult> corr = feature.get(MsOtherCorrelationResultType.class);
+              if (corr == null || corr.isEmpty()) {
+                yield "";
+              } else {
+                MsOtherCorrelationResult first = corr.getFirst();
+                yield nullToEmpty(first.otherFeature().get(AreaType.class));
+              }
+            }
+          };
+
+          line.append(toAppend).append(fieldSeparator);
         } else {
           if (Objects.requireNonNull(dataFileElements[i])
               == LegacyExportRowDataFileElement.FEATURE_STATUS) {
@@ -414,6 +437,15 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
       switch (commonElements[i]) {
         case ROW_ID:
           line.append(featureListRow.getID()).append(fieldSeparator);
+          break;
+        case ROW_COMPOUND_ID:
+          // compound ID is only stored on CompoundRow, regular rows export an empty value
+          final Integer compoundId = featureListRow.get(CompoundIdType.class);
+          final CompoundMembersJsonType membType = DataTypes.get(CompoundMembersJsonType.class);
+          final String membersJson = featureListRow.get(membType);
+          line.append(compoundId == null ? "" : compoundId).append(fieldSeparator);
+          line.append(membersJson == null ? "" : escapeStringForCSV(membersJson))
+              .append(fieldSeparator);
           break;
         case ROW_MZ:
           line.append(featureListRow.getAverageMZ()).append(fieldSeparator);
@@ -498,17 +530,16 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             line.append(fieldSeparator).append(fieldSeparator).append(fieldSeparator)
                 .append(fieldSeparator);
           } else {
+            final IonNetwork net = ad.getNetwork();
             String msms = "";
-            if (ad.getMSMSModVerify() > 0) {
-              msms = "MS/MS verified: nloss";
-            }
-            if (ad.getMSMSMultimerCount() > 0) {
-              msms += msms.isEmpty() ? "MS/MS verified: xmer" : (idSeparator + " xmer");
-            }
-            String partners = ad.getPartnerRowsString(idSeparator);
-            line.append(ad.getIonType().toString(false)).append(fieldSeparator) //
+            String partners = net == null ? ""
+                : StringUtils.join(net.getRows(), idSeparator, r -> String.valueOf(r.getID()));
+            final int netSize = net == null ? 0 : net.size();
+
+            line.append(ad.toString()) //
+                .append(fieldSeparator) //
                 .append(msms).append(fieldSeparator) //
-                .append(ad.getPartnerRows().toArray().length).append(fieldSeparator) //
+                .append(netSize).append(fieldSeparator) //
                 .append(partners).append(fieldSeparator);
           }
           break;

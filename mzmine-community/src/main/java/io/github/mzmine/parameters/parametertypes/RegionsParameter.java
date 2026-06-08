@@ -53,6 +53,10 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   @NotNull
   private List<List<Point2D>> value = new ArrayList<>();
 
+  public RegionsParameter() {
+    this("Regions", "Define the regions for the region extraction.");
+  }
+
   public RegionsParameter(String name, String description) {
     this.name = name;
     this.description = description;

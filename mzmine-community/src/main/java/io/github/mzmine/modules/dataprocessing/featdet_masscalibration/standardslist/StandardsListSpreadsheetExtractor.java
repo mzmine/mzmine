@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,12 +44,13 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
  */
 public class StandardsListSpreadsheetExtractor implements StandardsListExtractor {
 
+  private static final Logger logger = Logger.getLogger(
+      StandardsListSpreadsheetExtractor.class.getName());
+
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
   protected static final int nameColumn = 2;
   protected static final int mzColumn = 3;
-
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected String filename;
   protected int sheetIndex;

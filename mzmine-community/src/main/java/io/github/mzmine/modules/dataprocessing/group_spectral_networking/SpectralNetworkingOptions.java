@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,19 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import org.jetbrains.annotations.NotNull;
 
-public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
+public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupplier {
 
   MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS;
-
-  @Override
-  public String toString() {
-    return getStableId();
-  }
 
   @Override
   public String getStableId() {
@@ -62,4 +60,23 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum {
     };
   }
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case DREAMS -> MLModelId.DREAMS_1_0.getUniqueID();
+      case MS2_DEEPSCORE -> MLModelId.MS2_DEEPSCORE_2_0.getUniqueID();
+      case COSINE_NO_PRECURSOR -> "cosine_no_precursor";
+      case MODIFIED_COSINE -> "modified_cosine";
+    };
+  }
+
+  @Override
+  public @NotNull String toString() {
+    return switch (this) {
+      case DREAMS -> "DreaMS";
+      case MODIFIED_COSINE -> "Modified cosine";
+      case COSINE_NO_PRECURSOR -> "Cosine (no precursor)";
+      default -> "MS2 Deepscore";
+    };
+  }
 }

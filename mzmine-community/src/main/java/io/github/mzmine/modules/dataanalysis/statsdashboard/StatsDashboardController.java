@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,10 @@ package io.github.mzmine.modules.dataanalysis.statsdashboard;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedCompoundRowSelectionBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
@@ -38,41 +40,36 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StatsDashboardController extends FxController<StatsDashboardModel> implements
     SelectedFeatureListsBinding, SelectedRowsBinding, SelectedAbundanceMeasureBinding,
-    SelectedMetadataColumnBinding {
+    SelectedMetadataColumnBinding, SelectedCompoundRowSelectionBinding {
 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
   private final RowsBoxplotController boxplotController = new RowsBoxplotController();
-  private final FeatureTableFX table;
   private final StatsDashboardViewBuilder builder;
+  private final FxFeatureTableController tableController;
 
-  public StatsDashboardController(FeatureTableFX table) {
+  public StatsDashboardController() {
     super(new StatsDashboardModel());
-    this.table = table == null ? new FeatureTableFX() : table;
-    builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
-        boxplotController);
+    tableController = new FxFeatureTableController(FeatureTableOwner.STATS_DASHBOARD);
+    builder = new StatsDashboardViewBuilder(model, tableController, pcaController,
+        volcanoController, boxplotController);
 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
     pcaController.waitAndUpdate();
-    // feature table bindings in view builder
   }
-
-  public StatsDashboardController() {
-    this(new FeatureTableFX());
-  }
-
-
   @Override
   protected @NotNull FxViewBuilder<StatsDashboardModel> getViewBuilder() {
     return builder;
@@ -97,5 +94,14 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   @Override
   public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
     return model.metadataColumnProperty();
+  }
+
+  @Override
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return model.compoundRowSelectionProperty();
+  }
+
+  public @NotNull FxFeatureTableController getTableController() {
+    return tableController;
   }
 }

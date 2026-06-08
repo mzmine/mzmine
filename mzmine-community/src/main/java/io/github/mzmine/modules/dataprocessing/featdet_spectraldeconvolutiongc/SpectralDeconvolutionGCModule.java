@@ -38,8 +38,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class SpectralDeconvolutionGCModule extends TaskPerFeatureListModule {
 
+  public static final String NAME = "GC-EI spectral deconvolution";
+
   public SpectralDeconvolutionGCModule() {
-    super("GC-EI spectral deconvolution", SpectralDeconvolutionGCParameters.class,
+    super(NAME, SpectralDeconvolutionGCParameters.class,
         MZmineModuleCategory.SPECTRALDECONVOLUTION, true,
         "This module groups resolved features to pseudo spectra, representing deconvoluted GC-EI spectra");
 

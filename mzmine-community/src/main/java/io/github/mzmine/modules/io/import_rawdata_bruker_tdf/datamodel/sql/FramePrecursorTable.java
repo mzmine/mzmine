@@ -149,8 +149,8 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
               : isolationMzColumn.get(i);
 
       entry.add(new BuildingPASEFMsMsInfo(precursorMz,
+          // Spectrum range as listed in the bruker table. (scan numbers start at 1 and are end-exclusive)
           Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
-              // bruker scan numbers start at 1, ours start at 0
               scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
           chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId,
           isolationWidthColumn.get(i)));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,9 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   private final String seriesKey;
   private final ObjectProperty<javafx.scene.paint.Color> color;
   private final double normalizationFactor;
+  // assumption: a single string per provider is enough — the whole feature shape represents one
+  // feature, so hovering anywhere on it should surface the same label.
+  private final @Nullable String tooltipText;
 
   public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
       @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color) {
@@ -61,10 +64,17 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
       @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color,
       double normalizationFactor) {
+    this(series, seriesKey, color, normalizationFactor, null);
+  }
+
+  public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
+      @NotNull String seriesKey, @NotNull ObjectProperty<javafx.scene.paint.Color> color,
+      double normalizationFactor, @Nullable String tooltipText) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;
     this.normalizationFactor = normalizationFactor;
+    this.tooltipText = tooltipText;
   }
 
   public IonTimeSeriesToXYProvider(Feature f) {
@@ -80,6 +90,17 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   public IonTimeSeriesToXYProvider(final IonTimeSeries<? extends Scan> series,
       final String seriesKey, final javafx.scene.paint.Color color) {
     this(series, seriesKey, new SimpleObjectProperty<>(color));
+  }
+
+  public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
+      @NotNull String seriesKey, @NotNull javafx.scene.paint.Color color,
+      @Nullable String tooltipText) {
+    this(series, seriesKey, new SimpleObjectProperty<>(color), 1.0, tooltipText);
+  }
+
+  public IonTimeSeriesToXYProvider(IonTimeSeries<Scan> series, String seriesKEy, Color colorAWT,
+      double normalizationFactor) {
+    this(series, seriesKEy, new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(colorAWT)), normalizationFactor);
   }
 
   @NotNull
@@ -109,7 +130,8 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return null;
+    // default ion time series only have one tooltip
+    return tooltipText;
   }
 
   @Override
@@ -148,5 +170,12 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
       return null;
     }
     return series.getSpectra().get(index);
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 }

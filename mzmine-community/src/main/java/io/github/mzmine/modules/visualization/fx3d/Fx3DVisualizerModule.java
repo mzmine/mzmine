@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.main.MZmineCore;
@@ -71,18 +74,31 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
   public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
       final Range<Float> rtRange, final Feature featureToShow) {
+    setupNew3DVisualizer(new RawDataFile[]{dataFile}, mzRange, rtRange,
+        Collections.singletonList(featureToShow));
+  }
+
+  public static void setupNew3DVisualizer(final RawDataFile[] dataFiles,
+      final Range<Double> mzRange, final Range<Float> rtRange, final List<Feature> featuresToShow) {
+
+    if (featuresToShow.isEmpty()) {
+      return;
+    }
+
+    final Feature firstFeature = featuresToShow.getFirst();
+    final PolarityType polarity = requireNonNullElse(firstFeature.getRepresentativePolarity(),
+        PolarityType.ANY);
 
     final ParameterSet myParameters = MZmineCore.getConfiguration()
         .getModuleParameters(Fx3DVisualizerModule.class);
     final Fx3DVisualizerModule myInstance = MZmineCore.getModuleInstance(
         Fx3DVisualizerModule.class);
     myParameters.getParameter(Fx3DVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, dataFiles);
     myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
-        .setValue(new ScanSelection(1, rtRange));
+        .setValue(new ScanSelection(1, rtRange, polarity));
     myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
-    myParameters.getParameter(Fx3DVisualizerParameters.features)
-        .setValue(Collections.singletonList(featureToShow));
+    myParameters.getParameter(Fx3DVisualizerParameters.features).setValue(featuresToShow);
 
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
       myInstance.runModule(ProjectService.getProjectManager().getCurrentProject(),

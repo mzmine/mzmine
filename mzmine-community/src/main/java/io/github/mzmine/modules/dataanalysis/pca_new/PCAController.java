@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,34 +26,59 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedCompoundRowSelectionBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.dataanalysis.volcanoplot.FeatureDataPreparationTask;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
+import java.awt.geom.Point2D;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
-    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
+    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding,
+    SelectedCompoundRowSelectionBinding {
 
   private final FxViewBuilder<PCAModel> builder;
 
   public PCAController() {
     super(new PCAModel());
-    builder = new PCAViewBuilder(model);
+    builder = new PCAViewBuilder(model, this::onExtractRegionsPressed);
     //update on changes of these properties
-    PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
-        model.scalingFunctionProperty(), model.imputationFunctionProperty(),
-        model.sampleTypeFilterProperty());
+    PropertyUtils.onChange(this::prepareDataTable, model.flistsProperty(),
+        model.abundanceProperty(), model.imputationFunctionProperty(),
+        model.scalingFunctionProperty(), model.sampleTypeFilterProperty(),
+        model.compoundRowSelectionProperty());
+
+    //update on changes of these properties
+    PropertyUtils.onChange(this::waitAndUpdate,
+        // data table property is changed by other listener methods
+        model.featureDataTableProperty(),
+        // other triggers
+        model.domainPcProperty(), model.rangePcProperty(), model.metadataColumnProperty());
+  }
+
+  private void onExtractRegionsPressed(List<List<Point2D>> regions) {
+    final var param = PCALoadingsExtractionParameters.fromPcaModel(this.model, regions);
+    MZmineCore.runMZmineModule(PCALoadingsExtractionModule.class, param);
   }
 
   @Override
@@ -64,6 +89,42 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
+  }
+
+  /**
+   * Prepares the data, sets it to a property and will then trigger the computeDataset via other
+   * listener
+   */
+  private void prepareDataTable() {
+    // wait and prepare dataset
+    final List<FeatureList> flists = model.getFlists();
+    if (flists == null || flists.isEmpty()) {
+      model.featureDataTableProperty().set(null);
+      return;
+    }
+
+    // only extract and prepare data from selected samples for greater separation
+    final FeatureList featureList = flists.getFirst();
+    final SampleTypeFilter sampleFilter = model.getSampleTypeFilter();
+    final List<RawDataFile> selectedFiles = sampleFilter.filterFiles(featureList.getRawDataFiles());
+
+    // create the new dataset
+    final var config = new AbundanceDataTablePreparationConfig(model.getAbundance(),
+        model.getImputationFunction(), model.getScalingFunction(), ScalingFunctions.MeanCentering);
+
+    // decision: use compound rows when selection is set and compound list is available
+    final CompoundRowSelection selection = model.getCompoundRowSelection();
+    final ObservableList<FeatureListRow> rows;
+    if (selection != null && featureList.hasCompoundList()) {
+      rows = FXCollections.observableArrayList(
+          featureList.getCompoundList().getRowsCopy(selection));
+    } else {
+      rows = featureList.getRows();
+    }
+
+    onTaskThreadDelayed(
+        new FeatureDataPreparationTask(model.featureDataTableProperty(), rows, selectedFiles,
+            config));
   }
 
   /**
@@ -86,5 +147,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
     return model.abundanceProperty();
+  }
+
+  @Override
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return model.compoundRowSelectionProperty();
   }
 }

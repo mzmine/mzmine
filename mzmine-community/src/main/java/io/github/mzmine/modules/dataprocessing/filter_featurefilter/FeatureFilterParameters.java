@@ -26,13 +26,15 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -40,8 +42,9 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import java.text.DecimalFormat;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
@@ -83,6 +86,26 @@ public class FeatureFilterParameters extends SimpleParameterSet {
           "Permissible range of the asymmetry factor for a peak",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.5, 2.0)));
 
+  public static final OptionalParameter<DoubleParameter> minRtShapeScore = new OptionalParameter<>(
+      new DoubleParameter("Minimum RT shape score",
+          "Define how well the chromatographic shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
+
+  public static final OptionalParameter<DoubleParameter> minMobilityShapeScore = new OptionalParameter<>(
+      new DoubleParameter("Minimum mobilogram shape score",
+          "Define how well the mobilogram shape of a feature must fit to a gaussian or bi-gaussian peak.\nPeaks with less than 5 points will be removed without attempting a fit.",
+          ConfigService.getGuiFormats().scoreFormat(), 0.94, 0d, 1d), false);
+
+  public static final OptionalParameter<DoubleParameter> topToEdge = new OptionalParameter<>(
+      new DoubleParameter("Top-to-edge ratio",
+          "Minimum top to edge ratio for a chromatographic peak. Divides the intensity of the highest by the intensity of the lowest point. (I(highest)/I(lowest))",
+          new DecimalFormat("0.###"), 2.0, 0d, Double.MAX_VALUE), false);
+
+  public static final ComboParameter<FeatureFilterChoices> keepMatching = new ComboParameter<>(
+      "Keep/Remove matching",
+      "Keep or remove features that match all criteria.",
+      FeatureFilterChoices.values(), FeatureFilterChoices.KEEP_MATCHING);
+
   public static final OriginalFeatureListHandlingParameter AUTO_REMOVE = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.KEEP);
 
@@ -93,27 +116,13 @@ public class FeatureFilterParameters extends SimpleParameterSet {
   public FeatureFilterParameters() {
     super(
         new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, KEEP_MS2_ONLY, AUTO_REMOVE},
+            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, minRtShapeScore,
+            minMobilityShapeScore, topToEdge, KEEP_MS2_ONLY, keepMatching, AUTO_REMOVE},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_filter/feature_filter.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    // Update the parameter choices
-    UserParameter<?, ?> newChoices[] = ProjectService.getProjectManager().getCurrentProject()
-        .getParameters();
-    String[] choices;
-    if (newChoices == null || newChoices.length == 0) {
-      choices = new String[1];
-      choices[0] = "No parameters defined";
-    } else {
-      choices = new String[newChoices.length + 1];
-      choices[0] = "Ignore groups";
-      for (int i = 0; i < newChoices.length; i++) {
-        choices[i + 1] = "Filtering by " + newChoices[i].getName();
-      }
-    }
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
@@ -127,6 +136,20 @@ public class FeatureFilterParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if(!loadedParams.containsKey(keepMatching.getName())) {
+      setParameter(keepMatching, FeatureFilterChoices.KEEP_MATCHING);
+    }
+    if(!loadedParams.containsKey(minRtShapeScore.getName())) {
+      setParameter(minRtShapeScore, false);
+    }
+    if(!loadedParams.containsKey(minMobilityShapeScore.getName())) {
+      setParameter(minMobilityShapeScore, false);
+    }
   }
 }

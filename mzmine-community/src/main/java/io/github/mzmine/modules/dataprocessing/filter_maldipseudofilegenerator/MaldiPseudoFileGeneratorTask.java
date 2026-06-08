@@ -43,7 +43,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +62,8 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
   RawDataFile[] files;
   private int processed = 0;
 
-  protected MaldiPseudoFileGeneratorTask(ParameterSet parameters, MZmineProject project, @NotNull Instant moduleCallDate) {
+  protected MaldiPseudoFileGeneratorTask(ParameterSet parameters, MZmineProject project,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
@@ -112,17 +112,22 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
         final List<ImagingScan> scans = spotScanEntry.getValue();
 
         if (file instanceof IMSRawDataFile) {
-          var newFile = new IMSImagingRawDataFileImpl(file.getName() + " " + spot, null, file.getMemoryMapStorage());
+          var newFile = new IMSImagingRawDataFileImpl(file.getName() + " " + spot, null,
+              file.getMemoryMapStorage());
           for (ImagingScan scan : scans) {
-            final SimpleImagingFrame newFrame = new SimpleImagingFrame(newFile, scan.getScanNumber(), scan.getMSLevel(), scan.getRetentionTime(),
-                scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]), scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
-                scan.getScanningMZRange(), ((Frame) scan).getMobilityType(), ((Frame) scan).getImsMsMsInfos(), scan.getInjectionTime());
+            final SimpleImagingFrame newFrame = new SimpleImagingFrame(newFile,
+                scan.getScanNumber(), scan.getMSLevel(), scan.getRetentionTime(),
+                scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+                scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
+                scan.getScanningMZRange(), ((Frame) scan).getMobilityType(),
+                ((Frame) scan).getImsMsMsInfos(), scan.getInjectionTime());
             newFrame.setCoordinates(scan.getCoordinates());
             newFrame.setMaldiSpotInfo(scan.getMaldiSpotInfo());
 
             final List<BuildingMobilityScan> buildingMobilityScans = ((Frame) scan).getMobilityScans()
-                .stream().map(mob -> new BuildingMobilityScan(mob.getMobilityScanNumber(), mob.getMzValues(new double[0]), mob.getIntensityValues(new double[0])))
-                .toList();
+                .stream().map(mob -> new BuildingMobilityScan(mob.getMobilityScanNumber(),
+                    mob.getMzValues(new double[0]), mob.getIntensityValues(new double[0]),
+                    mob.getSpectrumType())).toList();
             newFrame.setMobilityScans(buildingMobilityScans, false);
             newFile.addScan(newFrame);
             newFrame.setMobilities(((Frame) scan).getMobilities().toDoubleArray());
@@ -132,25 +137,24 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
                   getModuleCallDate()));
           newFiles.add(newFile);
         } else {
-          try {
-            var newFile = new ImagingRawDataFileImpl(file.getName() + " " + spot, null, file.getMemoryMapStorage());
-            for (ImagingScan scan : scans) {
-              final SimpleImagingScan newScan = new SimpleImagingScan(newFile, scan.getScanNumber(),
-                  scan.getMSLevel(), scan.getRetentionTime(),
-                  scan.getPrecursorMz() != null ? scan.getPrecursorMz() : 0d,
-                  scan.getPrecursorCharge() != null ? scan.getPrecursorCharge() : 0, scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
-                  scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(), scan.getScanningMZRange(), scan.getCoordinates());
-              newScan.setMaldiSpotInfo(scan.getMaldiSpotInfo());
-              newFile.addScan(newScan);
-            }
-            newFile.getAppliedMethods().add(
-                new SimpleFeatureListAppliedMethod(MaldiPseudoFileGeneratorModule.class, parameters,
-                    getModuleCallDate()));
-            newFile.setImagingParam(((ImagingRawDataFile) file).getImagingParam());
-            newFiles.add(newFile);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
+          var newFile = new ImagingRawDataFileImpl(file.getName() + " " + spot, null,
+              file.getMemoryMapStorage());
+          for (ImagingScan scan : scans) {
+            final SimpleImagingScan newScan = new SimpleImagingScan(newFile, scan.getScanNumber(),
+                scan.getMSLevel(), scan.getRetentionTime(),
+                scan.getPrecursorMz() != null ? scan.getPrecursorMz() : 0d,
+                scan.getPrecursorCharge() != null ? scan.getPrecursorCharge() : 0,
+                scan.getMzValues(new double[0]), scan.getIntensityValues(new double[0]),
+                scan.getSpectrumType(), scan.getPolarity(), scan.getScanDefinition(),
+                scan.getScanningMZRange(), scan.getCoordinates());
+            newScan.setMaldiSpotInfo(scan.getMaldiSpotInfo());
+            newFile.addScan(newScan);
           }
+          newFile.getAppliedMethods().add(
+              new SimpleFeatureListAppliedMethod(MaldiPseudoFileGeneratorModule.class, parameters,
+                  getModuleCallDate()));
+          newFile.setImagingParam(((ImagingRawDataFile) file).getImagingParam());
+          newFiles.add(newFile);
         }
       }
       processed++;

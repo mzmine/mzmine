@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -42,11 +41,16 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
@@ -55,9 +59,9 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -77,10 +81,12 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -233,6 +239,50 @@ public class RegularScanTypesTest {
   void spectralLibMatchSummaryTypeTest() {
     SpectralLibraryMatchesType type = new SpectralLibraryMatchesType();
 
+    List<SpectralDBAnnotation> value = generateLibraryMatches();
+
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
+  }
+
+  @Test
+  void analogSpectralLibMatchSummaryTypeTest() {
+    final io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType type = new io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType();
+
+    final List<SpectralDBAnnotation> value = generateAnalogLibraryMatches();
+    // every analog match must report itself as analog and carry the analog DataType class
+    Assertions.assertTrue(value.stream().allMatch(SpectralDBAnnotation::isAnalogMatch));
+    Assertions.assertTrue(value.stream().allMatch(a -> a.getDataType().equals(
+        io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class)));
+
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
+  }
+
+  private @NotNull List<SpectralDBAnnotation> generateAnalogLibraryMatches() {
+    // build two annotations with the analog data-type class so the XML attribute is round-tripped
+    final List<SpectralDBAnnotation> base = generateLibraryMatches();
+    final List<SpectralDBAnnotation> analog = new java.util.ArrayList<>(base.size());
+    for (final SpectralDBAnnotation a : base) {
+      final SpectralDBAnnotation an = new SpectralDBAnnotation(a.getEntry(), a.getSimilarity(),
+          a.getQueryScan(), a.getCCSError(), a.getMzAbsoluteError() == null ? null
+          : a.getMzAbsoluteError() + (a.getEntry().getPrecursorMZ() == null ? 0d
+              : a.getEntry().getPrecursorMZ()), a.getRtAbsoluteError(), a.getRiDiff(),
+          io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class);
+      // simulate ML score storage on at least one annotation
+      an.set(MLScoreType.class, new MLScore(0.82f, MLModelId.MS2_DEEPSCORE_2_0));
+      analog.add(an);
+    }
+    return analog;
+  }
+
+  private @NotNull List<SpectralDBAnnotation> generateLibraryMatches() {
     var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
     param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);
     param.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
@@ -249,18 +299,56 @@ public class RegularScanTypesTest {
     SpectralLibraryEntry entry = SpectralLibraryEntryFactory.create(null, map,
         ScanUtils.extractDataPoints(library));
 
-    SpectralSimilarity similarity = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,
+    SpectralSimilarity similarity1 = simFunc.getSimilarity(new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
+    SpectralSimilarity similarity2 = new SpectralSimilarity(similarity1.getFunctionName(), 0.8, 5,
+        0.8);
 
     List<SpectralDBAnnotation> value = List.of(
-        new SpectralDBAnnotation(entry, similarity, query, null, 215.2135, 2.5f),
-        new SpectralDBAnnotation(entry, similarity, query, 0.043f, null, null));
+        new SpectralDBAnnotation(entry, similarity1, query, null, 215.2135, 2.5f, 158f),
+        new SpectralDBAnnotation(entry, similarity2, query, 0.043f, null, null, null));
+    return value;
+  }
 
-    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
-        file);
+  @Test
+  void preferredAnnotationTypeTest() {
+    PreferredAnnotationType type = new PreferredAnnotationType();
+
+    // sort by ascending score so the lower score is first and not the default preferred annotation
+    List<SpectralDBAnnotation> speclibAnnotations = generateLibraryMatches().stream()
+        .sorted(Comparator.comparingDouble(SpectralDBAnnotation::getScore)).toList();
+    Assertions.assertEquals(0.8f, speclibAnnotations.getFirst().getScore());
+
+    ModularFeatureListRow copy = new ModularFeatureListRow(flist, row, true);
+    copy.setSpectralLibraryMatch(speclibAnnotations);
+
+    // test preferred annotation not set
+    // was not set explicitly, so the saved and thus loaded value should be null
+    Assertions.assertNull(
+        DataTypeTestUtils.saveAndLoad(type, copy.getPreferredAnnotation(), project, flist, copy,
+            null, null));
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, copy, null, null);
+    // was not set explicitly, so the saved and thus loaded value should be null
+    Assertions.assertNull(
+        DataTypeTestUtils.saveAndLoad(type, copy.getPreferredAnnotation(), project, flist, copy,
+            feature, file));
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, copy, feature, file);
+
+    // now set the higher score specifically as preferred annotation and check if it is loaded now
+    final SpectralDBAnnotation higherScore = speclibAnnotations.getLast();
+    Assertions.assertEquals(0.9f, higherScore.getScore());
+    final FeatureAnnotation preferred = higherScore;
+    copy.set(PreferredAnnotationType.class, preferred);
+    Assertions.assertEquals(preferred, copy.getPreferredAnnotation());
+
+    Assertions.assertEquals(preferred,
+        DataTypeTestUtils.saveAndLoad(type, copy.getPreferredAnnotation(), project, flist, copy,
+            null, null));
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, copy, null, null);
+    Assertions.assertEquals(preferred,
+        DataTypeTestUtils.saveAndLoad(type, copy.getPreferredAnnotation(), project, flist, copy,
+            feature, file));
+    DataTypeTestUtils.testSaveLoad(type, null, project, flist, copy, feature, file);
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,9 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ChartUtils;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -42,7 +44,9 @@ import java.util.logging.Logger;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
+import org.jfree.chart.plot.Plot;
 import org.w3c.dom.Element;
 
 /**
@@ -73,8 +77,42 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       new Color[]{Color.BLACK, Color.web("#1A3399"), Color.web("#D55E00"), Color.WHITE},
       "Blue-Orange-White");
 
+  public static final SimpleColorPalette MZMINE_BLUE_ORANGE = new SimpleColorPalette(
+      new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+          new Color(0.902f, 0.624f, 0f, 1f), // orange
+          new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
+          new Color(0.702f, 0.302f, 0.102f, 1f)
+//          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
+      }, "mzmine (linear)");
+
+  public static final SimpleColorPalette MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED = new SimpleColorPalette(
+      new Color[]{new Color(0.129f, 0.176f, 0.337f, 1f), // dark blue (-1)
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue (-1)
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.7f, 0.7f, 0.7f, 1f), // light neutral around 0
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+          new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (+1)
+          new Color(0.702f, 0.302f, 0.102f, 1f)
+//          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
+      }, "mzmine (two-sided)");
+
+  /// a more narrow color scale so that this also works on dark mode UI components
+  public static final SimpleColorPalette MZMINE_ORANGE_GRAY_BLUE_TWO_SIDED_NARROW = new SimpleColorPalette(
+      new Color[]{new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (+1)
+          new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
+          new Color(0.7f, 0.7f, 0.7f, 1f), // light neutral around 0
+          new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
+          new Color(0.f, 0.447f, 0.698f, 1f), // blue (-1)
+//          new Color(0.749f, 0.1725f, 0.5176f, 1f) // do not add magenta as this is bad for color blind vision
+      }, "mzmine (two-sided, narrow)");
+
+
   public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
-      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE);
+      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE, MZMINE_BLUE_ORANGE,
+      MZMINE_BLUE_GRAY_ORANGE_TWO_SIDED, MZMINE_ORANGE_GRAY_BLUE_TWO_SIDED_NARROW);
   protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
       ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
       ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
@@ -155,15 +193,28 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    theme.setDrawingSupplier(drawingSupplier);
+  }
 
+  private @NotNull DefaultDrawingSupplier createDrawingSupplier() {
     List<java.awt.Color> awtColors = new ArrayList<>();
     this.forEach(c -> awtColors.add(FxColorUtil.fxColorToAWT(c)));
     java.awt.Color colors[] = awtColors.toArray(new java.awt.Color[0]);
 
-    theme.setDrawingSupplier(new DefaultDrawingSupplier(colors, colors, colors,
-        DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+    final DefaultDrawingSupplier drawingSupplier = new DefaultDrawingSupplier(colors, colors,
+        colors, DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
         DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
-        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
+        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE);
+    return drawingSupplier;
+  }
+
+  public void applyToChart(@NotNull JFreeChart chart) {
+    final DefaultDrawingSupplier drawingSupplier = createDrawingSupplier();
+    final List<Plot> plots = ChartUtils.streamPlots(chart).toList();
+    for (Plot plot : plots) {
+      plot.setDrawingSupplier(drawingSupplier);
+    }
   }
 
   /**
@@ -186,6 +237,29 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return clr;
   }
 
+  public synchronized int getNumberOfColors() {
+    return this.size();
+  }
+
+  /**
+   * @return unmodifiable view of colors
+   */
+  public synchronized List<Color> getColors() {
+    return Collections.unmodifiableList(delegate);
+  }
+
+  /**
+   * @return new list of colors
+   */
+  public synchronized List<java.awt.Color> getColorsAWT() {
+    List<java.awt.Color> awtColors = new ArrayList<>(size());
+    for (Color color : delegate) {
+      awtColors.add(FxColorUtil.fxColorToAWT(color));
+    }
+
+    return awtColors;
+  }
+
   /**
    * @param exclusion A color to be visually different from.
    * @return A visually different color.
@@ -200,6 +274,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     } while (startNext != next);
     return getNextColor(); // use the color we should use originally
+  }
+
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
+  public synchronized java.awt.Color getNextColorAWT(@NotNull final java.awt.Color exclusion) {
+    return FxColorUtil.fxColorToAWT(getNextColor(FxColorUtil.awtColorToFX(exclusion)));
   }
 
   public java.awt.Color getNextColorAWT() {
@@ -293,13 +375,23 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   }
 
   /**
-   * Checks for equality between two color palettes. Does not take the name into account.
+   * Checks for equality between two color palettes. Takes the name into account.
    *
    * @param obj The palette.
    * @return true or false.
    */
   @Override
   public boolean equals(Object obj) {
+    return equals(obj, true);
+  }
+
+  /**
+   * Checks for equality between two color palettes. Takes the name into account.
+   *
+   * @param obj The palette.
+   * @return true or false.
+   */
+  public boolean equals(Object obj, boolean checkName) {
     if (obj == null) {
       return false;
     }
@@ -324,7 +416,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       }
     }
 
-    if (!Objects.equals(getName(), palette.getName())) {
+    if (checkName && !Objects.equals(getName(), palette.getName())) {
       return false;
     }
 
@@ -344,7 +436,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public int hashCode() {
     return super.hashCode() + name.hashCode() + getPositiveColor().hashCode()
-           + getNeutralColor().hashCode() + getNegativeColor().hashCode();
+        + getNeutralColor().hashCode() + getNegativeColor().hashCode();
   }
 
   @Override
@@ -354,9 +446,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public SimpleColorPalette clone(boolean resetIndex) {
     SimpleColorPalette clone = new SimpleColorPalette();
-    for (Color clr : this) {
-      clone.add(clr);
-    }
+    clone.addAll(this);
     clone.setName(getName());
     clone.setNegativeColor(getNegativeColor());
     clone.setPositiveColor(getPositiveColor());
@@ -367,7 +457,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   @Override
   public String toString() {
     return getName() + " " + super.toString() + " pos " + getPositiveColor().toString() + " neg "
-           + getNegativeColor();
+        + getNegativeColor();
   }
 
   public void loadFromXML(Element xmlElement) {
@@ -511,4 +601,14 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public void resetColorCounter() {
     setColorCounter(0);
   }
+
+  /**
+   * Converts the given color to an fx color using {@link FxColorUtil#awtColorToFX(java.awt.Color)}
+   * and then searches using {@link List#indexOf(Object)}
+   */
+  public int indexOfAwt(java.awt.Color clr) {
+    final Color fxColor = FxColorUtil.awtColorToFX(clr);
+    return super.indexOf(fxColor);
+  }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,10 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectrumChartFactory;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraItemLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectraRenderer;
@@ -78,6 +81,13 @@ public class MirrorChartFactory {
   public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
       DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
   public static final String LIBRARY_MATCH_USER_DATA = "Library match";
+
+  /**
+   * Tolerance used in the spectral library match panel to decide whether an aligned pair is a
+   * direct match (within tolerance) or modified (outside tolerance, aligned via the precursor
+   * shift). Independent of the matcher's tolerance — visualization-only.
+   */
+  private static final MZTolerance ML_VIZ_TOLERANCE = new MZTolerance(0.01, 15);
   private static final Logger logger = Logger.getLogger(MirrorChartFactory.class.getName());
 
   /**
@@ -113,17 +123,9 @@ public class MirrorChartFactory {
       logger.warning(
           "This data set has no original data points in the query spectrum (development error)");
     }
-    if (mostIntenseDB == 0d || mostIntenseQuery == 0d) {
-      return null;
-    }
 
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // grey = filtered
-        palette.getNegativeColorAWT(), // unaligned
-        palette.getPositiveColorAWT() // aligned
-    };
 
     // scan a
     double precursorMZA =
@@ -141,13 +143,72 @@ public class MirrorChartFactory {
     // mirrorSpecrumPlot.setMaximumDrawWidth(4200); // TODO?
     // mirrorSpecrumPlot.setMaximumDrawHeight(2500);
 
-    // add data
-    DataPoint[][] query = new DataPoint[tags.length][];
-    DataPoint[][] library = new DataPoint[tags.length][];
-    for (int i = 0; i < tags.length; i++) {
-      DataPointsTag tag = tags[i];
-      query[i] = db.getQueryDataPoints(tag);
-      library[i] = db.getLibraryDataPoints(tag);
+    // Decide whether we can split the ALIGNED set into direct vs modified. Requires a paired
+    // [library, query] view from SpectralSimilarity.aligned. Older annotations may lack it; in
+    // that case we fall back to the legacy 3-tier layout.
+    final DataPoint[][] alignedPairs =
+        db.getSimilarity() != null ? db.getSimilarity().getAlignedDataPoints() : null;
+    final boolean splitAligned =
+        alignedPairs != null && alignedPairs.length == 2 && alignedPairs[0] != null
+            && alignedPairs[1] != null && alignedPairs[0].length == alignedPairs[1].length
+            && alignedPairs[0].length > 0;
+
+    // build per-tier query/library data and matching colors
+    final DataPointsTag[] localTags;
+    final Color[] colors;
+    final DataPoint[][] query;
+    final DataPoint[][] library;
+
+    if (splitAligned) {
+      // 4 tiers: ORIGINAL (filtered out), FILTERED (unaligned), ALIGNED (direct), ALIGNED_MODIFIED
+      final SignalAlignmentAnnotation[] anns = SignalAlignmentAnnotation.classify(alignedPairs,
+          ML_VIZ_TOLERANCE);
+      final List<DataPoint> qDirect = new java.util.ArrayList<>();
+      final List<DataPoint> qModified = new java.util.ArrayList<>();
+      final List<DataPoint> lDirect = new java.util.ArrayList<>();
+      final List<DataPoint> lModified = new java.util.ArrayList<>();
+      for (int p = 0; p < anns.length; p++) {
+        switch (anns[p]) {
+          case MATCH -> {
+            lDirect.add(alignedPairs[0][p]);
+            qDirect.add(alignedPairs[1][p]);
+          }
+          case MODIFIED -> {
+            lModified.add(alignedPairs[0][p]);
+            qModified.add(alignedPairs[1][p]);
+          }
+          case NONE, FILTERED -> {
+            // skip — pairs with a null entry never reach here post-removeUnaligned, and
+            // FILTERED is not produced by classify()
+          }
+        }
+      }
+      localTags = new DataPointsTag[]{DataPointsTag.ORIGINAL, DataPointsTag.FILTERED,
+          DataPointsTag.ALIGNED, DataPointsTag.ALIGNED_MODIFIED};
+      colors = new Color[]{palette.getNeutralColorAWT(),         // ORIGINAL = filtered out
+          palette.getNegativeColorAWT(),                          // FILTERED = unaligned
+          palette.getPositiveColorAWT(),                          // ALIGNED  = direct match
+          FxColorUtil.fxColorToAWT(ColorsFX.getModifiedSignalColor()) // ALIGNED_MODIFIED
+      };
+      query = new DataPoint[][]{db.getQueryDataPoints(DataPointsTag.ORIGINAL),
+          db.getQueryDataPoints(DataPointsTag.FILTERED), qDirect.toArray(DataPoint[]::new),
+          qModified.toArray(DataPoint[]::new)};
+      library = new DataPoint[][]{db.getLibraryDataPoints(DataPointsTag.ORIGINAL),
+          db.getLibraryDataPoints(DataPointsTag.FILTERED), lDirect.toArray(DataPoint[]::new),
+          lModified.toArray(DataPoint[]::new)};
+    } else {
+      // legacy 3-tier layout — no direct/modified split available
+      localTags = tags;
+      colors = new Color[]{palette.getNeutralColorAWT(), // grey = filtered out
+          palette.getNegativeColorAWT(),                  // unaligned
+          palette.getPositiveColorAWT()                   // aligned
+      };
+      query = new DataPoint[localTags.length][];
+      library = new DataPoint[localTags.length][];
+      for (int i = 0; i < localTags.length; i++) {
+        query[i] = db.getQueryDataPoints(localTags[i]);
+        library[i] = db.getLibraryDataPoints(localTags[i]);
+      }
     }
 
     // add datasets and renderer
@@ -161,8 +222,8 @@ public class MirrorChartFactory {
 
     // add all datapoints to a dataset that are not present in subsequent
     // masslist
-    for (int i = 0; i < tags.length; i++) {
-      DataPointsTag tag = tags[i];
+    for (int i = 0; i < localTags.length; i++) {
+      DataPointsTag tag = localTags[i];
       PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
@@ -191,7 +252,7 @@ public class MirrorChartFactory {
     }
 
     // add legend
-    LegendTitle legend = createLibraryMatchingLegend(tags, colors, domainPlot);
+    LegendTitle legend = createLibraryMatchingLegend(localTags, colors, domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
     mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
 
@@ -255,9 +316,11 @@ public class MirrorChartFactory {
 
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    // colors for the different DataPointsTags:
+    // colors for the different DataPointsTags. Modified-cosine pairs use the dedicated
+    // modified-signal color so they're distinguishable from unaligned (neutral) and
+    // direct-aligned (positive) signals.
     final Color[] colors = new Color[]{palette.getNeutralColorAWT(), // unaligned
-        palette.getNegativeColorAWT(), // modified
+        FxColorUtil.fxColorToAWT(ColorsFX.getModifiedSignalColor()), // modified
         palette.getPositiveColorAWT() // aligned
     };
 
@@ -276,6 +339,12 @@ public class MirrorChartFactory {
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
 
     var labelGenerator = new PseudoSpectraItemLabelGenerator(mirrorSpecrumPlot);
+
+    // classify each pair once and reuse for tag partitioning
+    final List<DataPoint[]> alignedList = Arrays.asList(aligned);
+    final SignalAlignmentAnnotation[] annotations = SignalAlignmentAnnotation.classify(alignedList,
+        mzTol);
+
     // add all datapoints to a dataset that are not present in subsequent
     // masslist
     for (int i = 0; i < tags.length; i++) {
@@ -284,7 +353,7 @@ public class MirrorChartFactory {
       PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
 
       if (i == 0) {
-        // unmatched
+        // unmatched (one side null)
         for (DataPoint[] dps : aligned) {
           if (dps[0] == null || dps[1] == null) {
             if (dps[0] != null) {
@@ -296,19 +365,19 @@ public class MirrorChartFactory {
           }
         }
       } else if (i == 1) {
-        // modified
-        for (DataPoint[] dps : aligned) {
-          if (dps[0] != null && dps[1] != null && !mzTol.checkWithinTolerance(dps[0].getMZ(),
-              dps[1].getMZ())) {
+        // modified (both non-null but outside mz tolerance — aligned via precursor shift)
+        for (int p = 0; p < aligned.length; p++) {
+          if (annotations[p] == SignalAlignmentAnnotation.MODIFIED) {
+            final DataPoint[] dps = aligned[p];
             qdata.addDP(dps[0].getMZ(), dps[0].getIntensity() / mostIntenseQuery * 100d, null);
             ldata.addDP(dps[1].getMZ(), dps[1].getIntensity() / mostIntenseDB * 100d, null);
           }
         }
       } else if (i == 2) {
-        // matched
-        for (DataPoint[] dps : aligned) {
-          if (dps[0] != null && dps[1] != null && mzTol.checkWithinTolerance(dps[0].getMZ(),
-              dps[1].getMZ())) {
+        // matched (both non-null and within mz tolerance)
+        for (int p = 0; p < aligned.length; p++) {
+          if (annotations[p] == SignalAlignmentAnnotation.MATCH) {
+            final DataPoint[] dps = aligned[p];
             qdata.addDP(dps[0].getMZ(), dps[0].getIntensity() / mostIntenseQuery * 100d, null);
             ldata.addDP(dps[1].getMZ(), dps[1].getIntensity() / mostIntenseDB * 100d, null);
           }

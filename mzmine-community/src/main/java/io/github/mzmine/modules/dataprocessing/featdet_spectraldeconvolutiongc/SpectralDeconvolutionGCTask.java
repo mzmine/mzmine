@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -92,6 +93,11 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       if (!isCanceled()) {
         handleOriginal.reflectNewFeatureListToProject(suffix, project, deconvolutedFeatureList,
             featureList);
+        // set the mz weight to 0 as there is no mz score in GC-EI with missing precursor
+        // later need to consider how to process combined GC-CI and EI data but that is a different algorithm
+        AnnotationSummarySortConfig config = deconvolutedFeatureList.getAnnotationSortConfig();
+        config = config.withCombinedScoreWeights(config.combinedScoreWeights().withMz(0d));
+        deconvolutedFeatureList.setAnnotationSortConfig(config);
         setStatus(TaskStatus.FINISHED);
         LOGGER.info("Spectral deconvolution completed on " + featureList.getName());
       }
@@ -103,8 +109,9 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
-    deconvolutedFeatureList = FeatureListUtils.createCopy(featureList, suffix,
-        getMemoryMapStorage());
+    deconvolutedFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
+        getMemoryMapStorage(), deconvolutedFeatureListRows.size(),
+        deconvolutedFeatureListRows.size());
     deconvolutedFeatureListRows.sort(FeatureListRowSorter.DEFAULT_RT);
     int newID = 1;
     for (FeatureListRow featureListRow : deconvolutedFeatureListRows) {

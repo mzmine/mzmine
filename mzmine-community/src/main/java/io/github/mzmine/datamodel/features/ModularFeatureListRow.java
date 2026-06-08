@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+import static java.util.Objects.requireNonNullElseGet;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -32,24 +35,31 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelRow;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -60,8 +70,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -70,47 +80,39 @@ import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Map of all feature related data.
+ * Map of all feature related data. Uses the {@link ModularDataModel} and the
+ * {@link ColumnarModularFeatureListRowsSchema} in a {@link FeatureList}.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- * <p>
- * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
- * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
- * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements FeatureListRow {
+public class ModularFeatureListRow extends ColumnarModularDataModelRow implements FeatureListRow {
 
   private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
-  /**
-   * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
-   * this map see {@link #addFeature}
-   */
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
-  private final Map<RawDataFile, ModularFeature> features;
   @NotNull
   private final ModularFeatureList flist;
+
+  /**
+   * Simple write lock for more complex objects to be changed like list types. Only write is
+   * locked.
+   */
+  private final Object writeLock = new Object();
 
   /**
    * Creates an empty row
@@ -119,28 +121,21 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
-    this.flist = flist;
-
-    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
-      if (change.wasAdded()) {
-        this.flist.addRowType(change.getKey());
-      }
-    });
-
-    // features
-    List<RawDataFile> raws = flist.getRawDataFiles();
-    if (!raws.isEmpty()) {
-      // init FeaturesType map (is final)
-      HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
-      features = (FXCollections.observableMap(fmap));
-      // set
-      set(FeaturesType.class, features);
-    } else {
-      features = Collections.emptyMap();
-    }
-
+    this(flist, flist.getRowsSchema());
     // set ID
     this.set(IDType.class, id);
+  }
+
+  /**
+   * Protected constructor for subclasses (e.g. ModularCompoundRow) that store their row data in a
+   * separate schema rather than flist.getRowsSchema() and must keep IDType unset to avoid colliding
+   * with source-row ids. The flist reference satisfies getFeatureList() — it is the compound's
+   * source feature list, not its storage owner.
+   */
+  protected ModularFeatureListRow(@NotNull ModularFeatureList flist,
+      @NotNull ColumnarModularFeatureListRowsSchema schema) {
+    super(schema);
+    this.flist = flist;
   }
 
   /**
@@ -181,15 +176,13 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     // copy all but features and id
     if (row != null) {
-      row.stream()
-          .filter(e -> !(e.getKey() instanceof FeaturesType) && !(e.getKey() instanceof IDType))
+      row.stream().filter(e -> !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
-    }
 
-    if (copyFeatures) {
-      // Copy the features.
-      for (final Entry<RawDataFile, ModularFeature> feature : row.getFilesFeatures().entrySet()) {
-        this.addFeature(feature.getKey(), new ModularFeature(flist, feature.getValue()));
+      if (copyFeatures) {
+        // Copy the features.
+        row.streamFeatures().forEach(feature -> this.addFeature(feature.getRawDataFile(),
+            new ModularFeature(flist, feature)));
       }
     }
   }
@@ -199,12 +192,6 @@ public class ModularFeatureListRow implements FeatureListRow {
     return flist.getRowTypes();
   }
 
-  // todo make private?
-  @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
-  }
-
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return getFeatureList().getRowTypeChangeListeners();
@@ -212,9 +199,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Stream<ModularFeature> streamFeatures() {
-    return this.getFeatures().stream().map(ModularFeature.class::cast).filter(Objects::nonNull);
+    return flist.getRowsSchema().streamFeatures(modelRowIndex)
+        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN);
   }
-
 
   // Helper methods
   @Override
@@ -224,40 +211,40 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   public Map<RawDataFile, ModularFeature> getFilesFeatures() {
-    return get(FeaturesType.class);
+    return streamFeatures().collect(Collectors.toMap(ModularFeature::getRawDataFile, f -> f));
   }
 
   @Override
   public List<ModularFeature> getFeatures() {
-    // TODO remove features object - not always do we have features
-    // FeaturesType creates an empty ListProperty for that
-    // return FXCollections.observableArrayList(get(FeaturesType.class).values());
-    return features.values().stream().filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN)
-        .toList();
+    return streamFeatures().toList();
   }
 
   @Override
   public synchronized void addFeature(RawDataFile raw, Feature feature,
       boolean updateByRowBindings) {
-    if (!(feature instanceof ModularFeature modularFeature)) {
-      throw new IllegalArgumentException(
-          "Cannot add non-modular feature to modular feature list row.");
-    }
-    if (!flist.equals(feature.getFeatureList())) {
-      throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
-    }
-    if (raw == null) {
-      throw new IllegalArgumentException("Raw file cannot be null");
+    final ModularFeature oldFeature;
+    if (feature == null) {
+      oldFeature = flist.getRowsSchema().setFeature(modelRowIndex, raw, null);
+    } else {
+      if (!(feature instanceof ModularFeature modularFeature)) {
+        throw new IllegalArgumentException(
+            "Cannot add non-modular feature to modular feature list row.");
+      }
+      if (!flist.equals(feature.getFeatureList())) {
+        throw new IllegalArgumentException("Cannot add feature with different feature list to this "
+            + "row. Create feature with the correct feature list as an argument.");
+      }
+      if (raw == null) {
+        throw new IllegalArgumentException("Raw file cannot be null");
+      }
+
+      oldFeature = flist.getRowsSchema().setFeature(modelRowIndex, raw, modularFeature);
+      modularFeature.setRow(this);
     }
 
-//    logger.log(Level.FINEST, "ADDING FEATURE");
-    ModularFeature oldFeature = features.put(raw, modularFeature);
-    modularFeature.setRow(this);
-
-    if (!Objects.equals(oldFeature, modularFeature)) {
+    if (!Objects.equals(oldFeature, feature)) {
       // reflect changes by updating all row bindings
-      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw, updateByRowBindings);
+      getFeatureList().fireFeatureChangedEvent(this, feature, raw, updateByRowBindings);
     }
   }
 
@@ -274,13 +261,21 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public int getNumberOfFeatures() {
-    return (int) features.values().stream()
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).count();
+    return (int) streamFeatures().count();
   }
 
   @Override
-  public void removeFeature(RawDataFile file) {
-    this.features.remove(file);
+  public void removeFeature(RawDataFile file, boolean updateByRowBindings) {
+    addFeature(file, null, updateByRowBindings);
+  }
+
+  @Override
+  public void clearFeatures(final boolean updateByRowBindings) {
+    final boolean changed = flist.getRowsSchema().clearFeatures(modelRowIndex);
+    if (changed) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, null, null, updateByRowBindings);
+    }
   }
 
   @Override
@@ -296,6 +291,10 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Float getAverageRT() {
     return get(RTType.class);
+  }
+
+  public Float getAverageRI() {
+    return get(RIType.class);
   }
 
   @Override
@@ -331,15 +330,17 @@ public class ModularFeatureListRow implements FeatureListRow {
     return get(AreaType.class);
   }
 
+  /**
+   * @return unmodifiable list of all raw data files - even if there is no feature
+   */
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
+  public List<RawDataFile> getRawDataFiles() {
     return flist.getRawDataFiles();
   }
 
   @Override
   public boolean hasFeature(RawDataFile rawData) {
-    ModularFeature feature = features.get(rawData);
-    return feature != null && !feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN);
+    return getFeature(rawData) != null;
   }
 
   @Override
@@ -349,7 +350,7 @@ public class ModularFeatureListRow implements FeatureListRow {
       // feature.");
       return false;
     }
-    return features.containsValue(feature);
+    return streamFeatures().anyMatch(f -> Objects.equals(f, feature));
   }
 
   /**
@@ -362,7 +363,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public ModularFeature getFeature(RawDataFile raw) {
-    ModularFeature f = features.get(raw);
+    ModularFeature f = flist.getRowsSchema().getFeature(modelRowIndex, raw);
     return f != null && f.getFeatureStatus().equals(FeatureStatus.UNKNOWN) ? null : f;
   }
 
@@ -387,7 +388,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @return null or the current list. First element is the "preferred" element
    */
   @Override
-  @Nullable
+  @NotNull
   public List<IonIdentity> getIonIdentities() {
     List<IonIdentity> ions = get(IonIdentityListType.class);
     return ions == null ? List.of() : ions;
@@ -426,19 +427,18 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
+  @Nullable
   public String getComment() {
-    ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? null : manual.getComment();
+    // added in mzmine 4.8 the CommentType is now a row type and should replace the manual annotation
+    // compatibility with old projects is ensured by copying over comments
+    // from manual --> comment type
+    return get(CommentType.class);
   }
 
   @Override
   public void setComment(String comment) {
-    ManualAnnotation manual = getManualAnnotation();
-    if (manual == null) {
-      manual = new ManualAnnotation();
-    }
-    manual.setComment(comment);
-    set(ManualAnnotationType.class, manual);
+    // was changed in mzmine 4.8 from ManualAnnotationType to CommentType as a row column
+    set(CommentType.class, comment);
   }
 
   @Override
@@ -450,53 +450,59 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
     ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? List.of()
-        : Objects.requireNonNullElse(manual.getIdentities(), List.of());
+    return manual == null ? List.of() : requireNonNullElse(manual.getIdentities(), List.of());
   }
 
   public void setPeakIdentities(List<FeatureIdentity> identities) {
-    ManualAnnotation manual = getManualAnnotation();
-    if (manual == null) {
-      manual = new ManualAnnotation();
+    synchronized (writeLock) {
+      ManualAnnotation manual = getManualAnnotation();
+      if (manual == null) {
+        manual = new ManualAnnotation();
+      }
+      manual.setIdentities(identities);
+      set(ManualAnnotationType.class, manual);
     }
-    manual.setIdentities(identities);
-    set(ManualAnnotationType.class, manual);
   }
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ManualAnnotation manual = Objects.requireNonNullElse(getManualAnnotation(),
-        new ManualAnnotation());
+    synchronized (writeLock) {
+      ManualAnnotation manual = requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
-    List<FeatureIdentity> peakIdentities;
-    // getPeakIdentities initializes the returned list as an immutable list if manual is null
-    // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
-    if (getManualAnnotation() == null) {
-      peakIdentities = new ArrayList<>();
-    } else {
-      peakIdentities = getPeakIdentities();
+      List<FeatureIdentity> peakIdentities;
+      // getPeakIdentities initializes the returned list as an immutable list if manual is null
+      // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
+      if (getManualAnnotation() == null) {
+        peakIdentities = new ArrayList<>();
+      } else {
+        peakIdentities = getPeakIdentities();
+      }
+      peakIdentities.remove(identity);
+      if (preferred) {
+        peakIdentities.add(0, identity);
+      } else {
+        peakIdentities.add(identity);
+      }
+      manual.setIdentities(peakIdentities);
+      set(ManualAnnotationType.class, manual);
     }
-    peakIdentities.remove(identity);
-    if (preferred) {
-      peakIdentities.add(0, identity);
-    } else {
-      peakIdentities.add(identity);
-    }
-    manual.setIdentities(peakIdentities);
-    set(ManualAnnotationType.class, manual);
   }
 
   @Override
-  public void addCompoundAnnotation(CompoundDBAnnotation id) {
-    synchronized (getMap()) {
+  public void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> id) {
+    // should usually not be called from multiple threads
+    synchronized (writeLock) {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
       List<CompoundDBAnnotation> newList = new ArrayList<>();
       if (matches != null) {
         newList.addAll(matches);
       }
-      newList.add(id);
+      newList.addAll(id);
       set(CompoundDatabaseMatchesType.class, newList);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @NotNull
@@ -507,10 +513,34 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
+  public void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations) {
+    set(CompoundDatabaseMatchesType.class, annotations);
+    if (annotations != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(annotations, this);
     }
+  }
+
+  @Override
+  public @Nullable FeatureAnnotation getPreferredAnnotation() {
+    // call the schema directly to not generate a stack overflow
+    // because ModularFeatureListRow#get(PreferredAnnotationType) calls this method
+    FeatureAnnotation featureAnnotation = schema.get(modelRowIndex,
+        DataTypes.get(PreferredAnnotationType.class));
+    if (featureAnnotation != null) {
+      return featureAnnotation;
+    }
+    final AnnotationSummary summary = CompoundAnnotationUtils.getBestAnnotationSummary(this);
+    if (summary != null && summary.annotation() != null) {
+      // this type is only set through user action, so don't cache here
+      return summary.annotation();
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isUserPreferredAnnotation() {
+    return schema.get(modelRowIndex, DataTypes.get(PreferredAnnotationType.class)) != null;
   }
 
   /**
@@ -522,8 +552,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public boolean isIdentified() {
-    for (Entry<DataType, Object> entry : getMap().entrySet()) {
-      final DataType dt = entry.getKey();
+    for (DataType dt : getTypes()) {
       if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
           && !(dt instanceof IonIdentityListType)) {
         final List<?> list = get(listType);
@@ -536,27 +565,29 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
-    synchronized (getMap()) {
-      List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
-      if (matches == null) {
-        matches = new ArrayList<>();
-      }
-      matches.add(id);
-      set(SpectralLibraryMatchesType.class, matches);
+  public void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id) {
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
+          ArrayList::new);
+      old.add(id);
+      set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(id, this);
   }
 
   @Override
-  public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
-      List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
-      if (old == null) {
-        old = new ArrayList<>();
-      }
+  public void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(get(SpectralLibraryMatchesType.class),
+          ArrayList::new);
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
   }
 
   @Override
@@ -567,8 +598,10 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
-    synchronized (getMap()) {
-      set(SpectralLibraryMatchesType.class, matches);
+    set(SpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
     }
   }
 
@@ -576,6 +609,31 @@ public class ModularFeatureListRow implements FeatureListRow {
   public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
     List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(
+          get(AnalogSpectralLibraryMatchesType.class), ArrayList::new);
+      old.addAll(matches);
+      set(AnalogSpectralLibraryMatchesType.class, old);
+    }
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+  }
+
+  @Override
+  public @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches() {
+    List<SpectralDBAnnotation> matches = get(AnalogSpectralLibraryMatchesType.class);
+    return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches) {
+    set(AnalogSpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    }
   }
 
   @Override
@@ -638,9 +696,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(Objects::nonNull)
-        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN)
-        .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
+    return streamFeatures().sorted(
+            new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }
 
@@ -670,7 +727,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public IsotopePattern getBestIsotopePattern() {
     return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight))
         .map(ModularFeature::getIsotopePattern).orElse(null);
   }
@@ -691,25 +748,18 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public Object getPreferredAnnotation() {
-    return streamAllFeatureAnnotations().findFirst().orElse(null);
-  }
-
-  @Override
+  @Nullable
   public String getPreferredAnnotationName() {
-    Object annotation = getPreferredAnnotation();
-    return switch (annotation) {
-      case FeatureAnnotation ann -> ann.getCompoundName();
-      case ManualAnnotation ann -> ann.getCompoundName();
-      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case null -> null;
-      default -> throw new IllegalStateException("Unexpected value: " + annotation);
-    };
+    FeatureAnnotation annotation = getPreferredAnnotation();
+    if (annotation != null) {
+      return annotation.getCompoundName();
+    }
+    return null;
   }
 
   @Override
   public List<ResultFormula> getFormulas() {
-    return Objects.requireNonNullElse(get(FormulaListType.class), List.of());
+    return requireNonNullElse(get(FormulaListType.class), List.of());
   }
 
   @Override
@@ -719,30 +769,54 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addFormula(ResultFormula formula, boolean preferred) {
-    final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
-    if (preferred) {
-      resultFormulas.addFirst(formula);
-    } else {
-      resultFormulas.add(formula);
+    synchronized (writeLock) {
+      final List<ResultFormula> resultFormulas = new ArrayList<>(getFormulas());
+      if (preferred) {
+        resultFormulas.addFirst(formula);
+      } else {
+        resultFormulas.add(formula);
+      }
+      setFormulas(resultFormulas);
     }
-    setFormulas(resultFormulas);
   }
 
   @Override
-  public void addLipidAnnotation(MatchedLipid matchedLipid) {
-    // add column first if needed
-    List<MatchedLipid> matches = get(LipidMatchListType.class);
-    if (matches == null) {
-      matches = List.of(matchedLipid);
-    } else {
-      matches = new ArrayList<>(matches);
-      matches.add(matchedLipid);
+  public void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid) {
+    synchronized (writeLock) {
+      // add column first if needed
+      List<MatchedLipid> matches = get(LipidMatchListType.class);
+      if (matches == null) {
+        matches = new ArrayList<>(matchedLipid);
+      } else {
+        matches = new ArrayList<>(matches);
+        matches.addAll(matchedLipid);
+      }
+      set(LipidMatchListType.class, matches);
     }
-    set(LipidMatchListType.class, matches);
+    // outside of lock
+    // cache values like isotope pattern to speed up feature table
+    CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
+  }
+
+  @Override
+  public void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid) {
+    set(LipidMatchListType.class, matchedLipid);
+    if (matchedLipid != null) {
+      // cache values like isotope pattern to speed up feature table
+      CompoundAnnotationUtils.precalculateAnnotationValues(matchedLipid, this);
+    }
   }
 
   @Override
   public String toString() {
     return FeatureUtils.rowToString(this);
+  }
+
+  @Override
+  public <T> @Nullable T get(DataType<T> key) {
+    if (key instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
+    return super.get(key);
   }
 }

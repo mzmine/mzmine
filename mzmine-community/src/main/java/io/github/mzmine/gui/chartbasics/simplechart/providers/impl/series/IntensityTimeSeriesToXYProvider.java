@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -40,20 +41,50 @@ import org.jetbrains.annotations.Nullable;
 public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   private final javafx.scene.paint.Color colorFx;
-  private final Color colorAwt;
   @NotNull
+  private final Color colorAwt;
   private final IntensityTimeSeries series;
   private final NumberFormats formats;
+  private final @NotNull String seriesKey;
+  private final double normalizationFactor;
 
   public IntensityTimeSeriesToXYProvider(OtherTimeSeries series) {
     this(series, series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT());
   }
 
-  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, Color colorAwt) {
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt) {
+    this(series, colorAwt, null);
+  }
+
+  public IntensityTimeSeriesToXYProvider(@NotNull MrmTransition transition,
+      @NotNull Color colorAwt) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    this(transition.chromatogram(), colorAwt,
+        "%s → %s".formatted(formats.mz(transition.q1mass()), formats.mz(transition.q3mass())));
+  }
+
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
+      @Nullable String seriesKey) {
+    this(series, colorAwt, seriesKey, 1);
+  }
+
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, @NotNull Color colorAwt,
+      @Nullable String seriesKey, double normalizationFactor) {
     colorFx = FxColorUtil.awtColorToFX(colorAwt);
     this.colorAwt = colorAwt;
     this.series = series;
+    this.normalizationFactor = normalizationFactor;
     formats = ConfigService.getGuiFormats();
+
+    if (seriesKey == null) {
+      if (series instanceof OtherTimeSeries other) {
+        seriesKey = "%s %s".formatted(other.getChromatoogramType(), other.getName());
+      } else {
+        seriesKey = "%s-%s".formatted(formats.rt(series.getRetentionTime(0)),
+            formats.rt(series.getRetentionTime(series.getNumberOfValues() - 1)));
+      }
+    }
+    this.seriesKey = seriesKey;
   }
 
   @NotNull
@@ -75,12 +106,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public @NotNull Comparable<?> getSeriesKey() {
-    if (series instanceof OtherTimeSeries other) {
-      return STR."\{other.getChromatoogramType()} \{other.getName()}";
-    } else {
-      return "%s-%s".formatted(formats.rt(series.getRetentionTime(0)),
-          formats.rt(series.getRetentionTime(series.getNumberOfValues()) - 1));
-    }
+    return seriesKey;
   }
 
   @Override
@@ -91,7 +117,14 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    return;
+    // nothing to do
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 
   @Override
@@ -101,7 +134,7 @@ public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return series.getIntensity(index) * normalizationFactor;
   }
 
   @Override

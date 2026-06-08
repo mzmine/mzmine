@@ -36,15 +36,27 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.RIRecordType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakQualitySummary;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
+import io.github.mzmine.util.RIRecord;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -150,5 +162,63 @@ public class GeneralTypeTests {
     MobilityUnitType type = new MobilityUnitType();
     var value = MobilityType.TIMS;
     simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testPeakClassificationType() {
+    PeakShapeClassificationType type = new PeakShapeClassificationType();
+    var value = PeakShapeClassification.DOUBLE_GAUSSIAN;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testShapeScoreType() {
+    ShapeClassificationScoreType type = new ShapeClassificationScoreType();
+    var value = 0.98927f;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testCvType() {
+    CvType type = new CvType();
+    var value = 0.18f;
+    simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testShapeQuality() {
+    final RtQualitySummaryType type = new RtQualitySummaryType();
+    final PeakQualitySummary value = new PeakQualitySummary(PeakDimension.RT,
+        PeakShapeClassification.FRONTING_GAUSSIAN, 0.97f);
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void testMzType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MZType(), 545.32123);
+  }
+
+  @Test
+  void testRtType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new RTType(), 23.45f);
+  }
+
+  @Test
+  void testCommentType() {
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(new CommentType(), "testcomment[]{}asda#d20913151/#´d 13d");
+  }
+
+  @Test
+  void testRiRecordType() {
+    final RIRecordType type = new RIRecordType();
+    RIRecord record = new RIRecord("1389.3");
+    RIRecord record2 = new RIRecord("s=1352 StdNP=1000 p=400");
+    RIRecord record3 = new RIRecord("s=1352/0.2/5 StdNP=1000/0.3/10 p=400/0.6/2");
+
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, record);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, record2);
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, record3);
   }
 }

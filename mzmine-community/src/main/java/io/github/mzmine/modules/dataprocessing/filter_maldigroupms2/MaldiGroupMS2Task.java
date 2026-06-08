@@ -148,13 +148,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
       final ModularFeatureList newFlist = list;
 
       // collect all MS2 infos from all files for fast access
-      final List<PasefMsMsInfo> msmsInfos = files.stream()
-          .flatMap(file -> file.getScanNumbers(2).stream()).filter(
-              scan -> (scan instanceof ImagingFrame imgFrame)
-                      && imgFrame.getMaldiSpotInfo() != null).flatMap(
-              f -> ((ImagingFrame) f).getImsMsMsInfos().stream()
-                  .filter(i -> i instanceof PasefMsMsInfo).map(i -> (PasefMsMsInfo) i))
-          .sorted(Comparator.comparingDouble(info -> info.getIsolationMz())).toList();
+      final List<PasefMsMsInfo> msmsInfos = extractAllMs2Infos();
 
       // for all features
       for (FeatureListRow row : newFlist.getRows()) {
@@ -184,6 +178,19 @@ public class MaldiGroupMS2Task extends AbstractTask {
     }
   }
 
+  private @NotNull List<PasefMsMsInfo> extractAllMs2Infos() {
+    final List<PasefMsMsInfo> msmsInfos = files.stream()
+        .flatMap(file -> file.getScanNumbers(2).stream()).filter(MaldiGroupMS2Task::isImagingFrame)
+        .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream()
+            .filter(PasefMsMsInfo.class::isInstance).map(PasefMsMsInfo.class::cast))
+        .sorted(Comparator.comparingDouble(PasefMsMsInfo::getIsolationMz)).toList();
+    return msmsInfos;
+  }
+
+  private static boolean isImagingFrame(Scan scan) {
+    return (scan instanceof ImagingFrame imgFrame) && imgFrame.getMaldiSpotInfo() != null;
+  }
+
   /**
    * Group all MS2 scans with the corresponding features (per raw data file)
    *
@@ -194,7 +201,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
       if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
           f.getMobilityUnit() == MobilityType.TIMS || (
               f.getRawDataFile() instanceof IMSRawDataFile imsfile
-              && imsfile.getMobilityType() == MobilityType.TIMS))) {
+                  && imsfile.getMobilityType() == MobilityType.TIMS))) {
         processTimsFeature(f, allInfos);
       }
     }
@@ -252,7 +259,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
         var merger = new SpectraMerger(scanTypes, SpectraMerging.pasefMS2MergeTol,
             IntensityMergingType.SUMMED);
         final FragmentScanSelection fragmentScanSelection = new FragmentScanSelection(
-            getMemoryMapStorage(), SelectInputScans.NONE, merger, scanTypes);
+            getMemoryMapStorage(), SelectInputScans.ALL_SCANS, merger, scanTypes);
         var spectra = fragmentScanSelection.getAllFragmentSpectra(msmsSpectra);
         feature.setAllMS2FragmentScans(spectra, false);
       } else {

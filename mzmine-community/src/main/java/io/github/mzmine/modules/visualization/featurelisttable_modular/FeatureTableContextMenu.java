@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -40,10 +42,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
@@ -55,22 +60,36 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.MergeCompoundRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SetRepresentativeRowModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SplitCompoundRowModule;
 import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui.PubChemResultsController;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
-import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import io.github.mzmine.modules.io.spectraldbsubmit.row.SendRowsToSpectralLibraryModule;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
+import io.github.mzmine.modules.tools.siriusapi.MzmineToSirius;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.export.SiriusApiExportRowsParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdModule;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusApiFingerIdParameters;
+import io.github.mzmine.modules.tools.siriusapi.modules.rank_annotations.SiriusApiRankAnnotationsModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -86,7 +105,7 @@ import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPl
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
-import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
+import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerTab;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -98,29 +117,33 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeItem;
+import javafx.scene.image.ImageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,17 +159,22 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu searchMenu;
   final Menu idsMenu;
   final Menu exportMenu;
+  final Menu compoundMenu;
 
   private final FeatureTableFX table;
-  @Nullable
-  ModularFeatureListRow selectedRow;
+  private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
+  private final BooleanProperty hasImagingData = new SimpleBooleanProperty();
+  private final BooleanProperty hasPseudoSpectra = new SimpleBooleanProperty();
+  @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
   private Set<RawDataFile> selectedFiles;
-  private List<ModularFeature> selectedFeatures;
-  private List<ModularFeatureListRow> selectedRows;
+  private List<ModularFeature> selectedFeatures = List.of();
+  private List<ModularFeatureListRow> selectedRows = List.of();
+  private List<TreeItem<ModularFeatureListRow>> selectedTreeItems = List.of();
   @Nullable
-  private ModularFeature selectedFeature;
+  private ModularFeature selectedFeature = null;
+  private @Nullable ModularFeature selectedOrBestFeature = null;
   private List<FeatureIdentity> copiedIDs;
 
   FeatureTableContextMenu(final FeatureTableFX table) {
@@ -156,7 +184,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     searchMenu = new Menu("Search");
     exportMenu = new Menu("Export");
     idsMenu = new Menu("Identification");
-    this.getItems().addAll(showMenu, searchMenu, idsMenu, exportMenu);
+    compoundMenu = new Menu("Compound");
+    this.getItems().addAll(showMenu, searchMenu, idsMenu, exportMenu, compoundMenu);
 
     this.setOnShowing(event -> onShown());
 
@@ -164,27 +193,211 @@ public class FeatureTableContextMenu extends ContextMenu {
     initSearchMenu();
     initExportMenu();
     initIdentitiesMenu();
+    initCompoundMenu();
 
     final MenuItem deleteRowsItem = new ConditionalMenuItem("Delete row(s)",
         () -> !selectedRows.isEmpty());
-    deleteRowsItem.setOnAction(_ -> {
-      if (selectedRows.size() == 1) {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteRows(table.getFeatureList(), selectedRows);
-      } else {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteWithConfirmation(table.getFeatureList(), selectedRows);
-      }
-    });
+    deleteRowsItem.setOnAction(_ -> onDeleteSelectedRows());
 
     // final MenuItem addNewRowItem;
     final MenuItem manuallyDefineItem = new ConditionalMenuItem("Define manually",
         () -> selectedRows.size() == 1 && selectedFeature != null);
     manuallyDefineItem.setOnAction(
         e -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
-            selectedRows.get(0), table.getFeatureList()));
+            selectedRows.getFirst(), table.getFeatureList()));
 
     getItems().addAll(new SeparatorMenuItem(), manuallyDefineItem, deleteRowsItem);
+  }
+
+  public void onFeatureListChanged(FeatureList featureList) {
+    if (featureList == null) {
+      return;
+    }
+    hasIonMobilityData.set(
+        featureList.getRawDataFiles().stream().anyMatch(IMSRawDataFile.class::isInstance));
+    hasImagingData.set(
+        featureList.getRawDataFiles().stream().anyMatch(ImagingRawDataFile.class::isInstance));
+    hasPseudoSpectra.set(
+        featureList.streamFeatures().map(ModularFeature::getMostIntenseFragmentScan)
+            .anyMatch(PseudoSpectrum.class::isInstance));
+  }
+
+  /**
+   * Adds three items to {@link #compoundMenu}:
+   * <ul>
+   *   <li>Set as representative row — single selected non-compound row whose tree parent is a
+   *       {@link ModularCompoundRow}.</li>
+   *   <li>Split into new compound row — 2+ selected non-compound rows that share the same
+   *       compound parent.</li>
+   *   <li>Merge compound rows — multiple selected compounds (merged into the first), or a single
+   *       selected compound with additional non-compound rows whose tree parents are compounds
+   *       (the extras are moved into the selected compound).</li>
+   * </ul>
+   * The menu itself is hidden when the feature list has no {@link CompoundList}.
+   */
+  private void initCompoundMenu() {
+    final MenuItem setRepresentativeItem = new ConditionalMenuItem("Set as representative row",
+        this::canSetRepresentative);
+    setRepresentativeItem.setOnAction(_ -> onSetRepresentative());
+
+    final MenuItem splitItem = new ConditionalMenuItem("Split into new compound row",
+        this::canSplitIntoNewCompound);
+    splitItem.setOnAction(_ -> onSplitIntoNewCompound());
+
+    final MenuItem mergeItem = new ConditionalMenuItem("Merge compound rows",
+        this::canMergeCompoundRows);
+    mergeItem.setOnAction(_ -> onMergeCompoundRows());
+
+    compoundMenu.getItems().addAll(setRepresentativeItem, splitItem, mergeItem);
+  }
+
+  /**
+   * @return the TreeItem parent's compound row if the selected tree item is a non-compound member
+   * row hanging under a compound row; null otherwise.
+   */
+  private @Nullable ModularCompoundRow parentCompoundOf(
+      @Nullable final TreeItem<ModularFeatureListRow> item) {
+    if (item == null || item.getValue() instanceof ModularCompoundRow) {
+      return null;
+    }
+    final TreeItem<ModularFeatureListRow> parent = item.getParent();
+    if (parent == null || !(parent.getValue() instanceof ModularCompoundRow compound)) {
+      return null;
+    }
+    return compound;
+  }
+
+  private boolean canSetRepresentative() {
+    if (selectedTreeItems.size() != 1) {
+      return false;
+    }
+    return parentCompoundOf(selectedTreeItems.getFirst()) != null;
+  }
+
+  private boolean canSplitIntoNewCompound() {
+    if (selectedTreeItems.size() < 1) {
+      return false;
+    }
+    ModularCompoundRow sharedParent = null;
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      final ModularCompoundRow parent = parentCompoundOf(item);
+      if (parent == null) {
+        return false;
+      }
+      if (sharedParent == null) {
+        sharedParent = parent;
+      } else if (sharedParent != parent) {
+        return false;
+      }
+    }
+    // require at least one remaining member after the split so we don't no-op into an identical
+    // compound — splitting all members away is not a meaningful split
+    return sharedParent != null && sharedParent.compoundSize() > selectedTreeItems.size();
+  }
+
+  private boolean canMergeCompoundRows() {
+    if (selectedTreeItems.size() < 2) {
+      return false;
+    }
+    int compounds = 0;
+    int membersUnderCompound = 0;
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() instanceof ModularCompoundRow) {
+        compounds++;
+      } else if (parentCompoundOf(item) != null) {
+        membersUnderCompound++;
+      } else {
+        return false;
+      }
+    }
+    // either 2+ compounds (with or without extras), or 1 compound + 1+ child rows from compounds
+    return compounds >= 2 || (compounds == 1 && membersUnderCompound >= 1);
+  }
+
+  /**
+   * Split selected rows into compound rows and plain feature rows, both handled by
+   * {@link DeleteRowsModule}. A confirmation dialog is shown when more than one row will be removed
+   * in total.
+   */
+  private void onDeleteSelectedRows() {
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    final List<ModularFeatureListRow> flatRows = new ArrayList<>();
+    for (final ModularFeatureListRow row : selectedRows) {
+      if (row instanceof ModularCompoundRow cr) {
+        compounds.add(cr);
+      } else {
+        flatRows.add(row);
+      }
+    }
+    final int total = compounds.size() + flatRows.size();
+    if (total == 0) {
+      return;
+    }
+    if (total > 1) {
+      final boolean ok = DialogLoggerUtil.showDialogYesNo("Deleting rows?",
+          "Are you sure you want to delete %d row(s) (%d compound row(s), %d feature row(s))?".formatted(
+              total, compounds.size(), flatRows.size()));
+      if (!ok) {
+        return;
+      }
+    }
+    table.getSelectionModel().clearSelection();
+    // single module call handles both kinds — confirmation was already shown above
+    DeleteRowsModule.deleteRows(table.getFeatureList(), flatRows, compounds);
+    table.updateRows();
+  }
+
+  private void onSetRepresentative() {
+    final TreeItem<ModularFeatureListRow> item = selectedTreeItems.getFirst();
+    final ModularCompoundRow parent = parentCompoundOf(item);
+    if (parent == null) {
+      return;
+    }
+    if (!(item.getValue() instanceof ModularFeatureListRow row)) {
+      return;
+    }
+    SetRepresentativeRowModule.apply(parent.getFeatureList(), parent, row);
+    table.refresh();
+  }
+
+  private void onSplitIntoNewCompound() {
+    if (selectedTreeItems.isEmpty()) {
+      return;
+    }
+    final ModularCompoundRow parent = parentCompoundOf(selectedTreeItems.getFirst());
+    if (parent == null) {
+      return;
+    }
+    final List<ModularFeatureListRow> rowsToMove = new ArrayList<>(selectedTreeItems.size());
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() != null && !(item.getValue() instanceof ModularCompoundRow)) {
+        rowsToMove.add(item.getValue());
+      }
+    }
+    table.getSelectionModel().clearSelection();
+    SplitCompoundRowModule.apply(parent.getFeatureList(), parent, rowsToMove);
+    table.updateRows();
+  }
+
+  private void onMergeCompoundRows() {
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    final List<ModularFeatureListRow> extras = new ArrayList<>();
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() instanceof ModularCompoundRow cr) {
+        compounds.add(cr);
+      } else if (item.getValue() != null) {
+        extras.add(item.getValue());
+      }
+    }
+    if (compounds.isEmpty()) {
+      return;
+    }
+    final ModularCompoundRow target = compounds.getFirst();
+    final List<ModularCompoundRow> others =
+        compounds.size() > 1 ? compounds.subList(1, compounds.size()) : List.of();
+    table.getSelectionModel().clearSelection();
+    MergeCompoundRowsModule.apply(target.getFeatureList(), target, others, extras);
+    table.updateRows();
   }
 
   private void initIdentitiesMenu() {
@@ -198,25 +411,25 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> false);
 
     final MenuItem copyIdsItem = new ConditionalMenuItem("Copy identities",
-        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getPeakIdentities().isEmpty());
-    copyIdsItem.setOnAction(e -> copiedIDs = selectedRows.get(0).getPeakIdentities());
+        () -> !selectedRows.isEmpty() && !selectedRows.getFirst().getPeakIdentities().isEmpty());
+    copyIdsItem.setOnAction(e -> copiedIDs = selectedRows.getFirst().getPeakIdentities());
 
     final MenuItem pasteIdsItem = new ConditionalMenuItem("Paste identities",
         () -> !selectedRows.isEmpty() && copiedIDs != null);
-    pasteIdsItem.setOnAction(e -> {
+    pasteIdsItem.setOnAction(_ -> {
       ObservableList<FeatureIdentity> copy = FXCollections.observableArrayList();
       FXCollections.copy(copy, copiedIDs);
-      selectedRows.get(0).setPeakIdentities(copy);
+      selectedRows.getFirst().setPeakIdentities(copy);
     });
 
     final MenuItem clearIdsItem = new ConditionalMenuItem("Clear identities",
-        () -> selectedRows.size() > 0 && selectedRows.get(0).getPeakIdentities().size() > 0);
-    clearIdsItem.setOnAction(e -> selectedRows.forEach(
+        () -> !selectedRows.isEmpty() && !selectedRows.getFirst().getPeakIdentities().isEmpty());
+    clearIdsItem.setOnAction(_ -> selectedRows.forEach(
         row -> row.setPeakIdentities(FXCollections.observableArrayList())));
 
     // add the same menu for all datatypes
     final Menu clearAnnotationsMenu = new Menu("Clear annotations");
-    DataTypes.getInstances().stream().forEach(dt -> {
+    DataTypes.getInstances().forEach(dt -> {
       if (!(dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType)) {
         return;
       }
@@ -230,7 +443,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       deleteTopAnnotation.setOnAction(e -> {
         var value = selectedRow.get(listType);
         List<?> newList = new ArrayList<>(value);
-        newList.remove(0);
+        newList.removeFirst();
         selectedRow.set(dt, newList);
         table.refresh();
       });
@@ -238,7 +451,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       final MenuItem clearAllAnnotations = new ConditionalMenuItem(
           "Clear all " + listType.getHeaderString(),
           () -> selectedRows.stream().anyMatch(row -> row.get(listType) != null));
-      clearAllAnnotations.setOnAction(e -> {
+      clearAllAnnotations.setOnAction(_ -> {
         selectedRows.forEach(r -> r.set(listType, null));
         table.refresh();
       });
@@ -249,17 +462,48 @@ public class FeatureTableContextMenu extends ContextMenu {
     final ConditionalMenuItem bioTransformerItem = new ConditionalMenuItem(
         "Compute transformation products (BioTransformer 3)",
         () -> getAnnotationForBioTransformerPrediction() != null);
-    bioTransformerItem.setOnAction(e -> {
+    bioTransformerItem.setOnAction(_ -> {
       final FeatureAnnotation annotation = getAnnotationForBioTransformerPrediction();
-      if (annotation != null) {
-        BioTransformerModule.runSingleRowPredection(selectedRow, annotation.getSmiles(),
-            Objects.requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
+      if (annotation != null && annotation.getStructure() != null) {
+        BioTransformerModule.runSingleRowPredection(selectedRow,
+            annotation.getStructure().canonicalSmiles(),
+            requireNonNullElse(annotation.getCompoundName(), "UNKNOWN"));
       }
     });
 
+    final Menu lipidAnnotationsMenu = new Menu("Lipid Annotations");
+    final MenuItem preferSpeciesLevel = new ConditionalMenuItem("Prefer species level",
+        () -> !selectedRows.isEmpty() && selectedRows.stream()
+            .anyMatch(this::rowHasMatchedLipidSignals));
+    preferSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.SPECIES_LEVEL));
+
+    final MenuItem preferMolecularSpeciesLevel = new ConditionalMenuItem(
+        "Prefer molecular species level", () -> !selectedRows.isEmpty() && selectedRows.stream()
+        .anyMatch(this::rowHasMatchedLipidSignals));
+    preferMolecularSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL));
+    lipidAnnotationsMenu.getItems().addAll(preferSpeciesLevel, preferMolecularSpeciesLevel);
+
     idsMenu.getItems()
         .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,
-            bioTransformerItem, clearAnnotationsMenu);
+            bioTransformerItem, lipidAnnotationsMenu, clearAnnotationsMenu);
+  }
+
+  private void setPreferredLipidAnnotationLevel(final @NotNull LipidAnnotationLevel level) {
+    for (final ModularFeatureListRow row : selectedRows) {
+      final List<MatchedLipid> matches = row.getLipidMatches();
+      if (matches.isEmpty()) {
+        continue;
+      }
+      for (final MatchedLipid match : matches) {
+        if (match.getPreferredAnnotationLevel() == level) {
+          continue;
+        }
+        match.setPreferredAnnotationLevel(level);
+      }
+    }
+    table.refresh();
   }
 
   /**
@@ -267,94 +511,129 @@ public class FeatureTableContextMenu extends ContextMenu {
    */
   @Nullable
   private FeatureAnnotation getAnnotationForBioTransformerPrediction() {
+    if (selectedRow == null) {
+      return null;
+    }
     List<? extends FeatureAnnotation> annotations = selectedRow.getSpectralLibraryMatches();
     if (annotations.isEmpty()) {
       annotations = selectedRow.getCompoundAnnotations();
     }
-    if (annotations.isEmpty() || annotations.get(0).getSmiles() == null) {
+    if (annotations.isEmpty() || annotations.getFirst().getStructure() == null) {
       return null;
     }
-    return annotations.get(0);
+    return annotations.getFirst();
   }
 
 
   private void initExportMenu() {
     final MenuItem exportIsotopesItem = new ConditionalMenuItem("Export isotope pattern",
-        () -> selectedRows.size() == 1 && selectedRows.get(0).getBestIsotopePattern() != null);
+        () -> selectedRows.size() == 1 && selectedRows.getFirst().getBestIsotopePattern() != null);
     exportIsotopesItem.setOnAction(
-        e -> IsotopePatternExportModule.exportIsotopePattern(selectedRows.get(0)));
+        _ -> IsotopePatternExportModule.exportIsotopePattern(selectedRows.getFirst()));
 
     final MenuItem exportMSMSItem = new ConditionalMenuItem("Export MS/MS pattern",
-        () -> selectedRows.size() == 1 && selectedRows.get(0).getMostIntenseFragmentScan() != null);
-    exportMSMSItem.setOnAction(e -> MSMSExportModule.exportMSMS(selectedRows.get(0)));
+        () -> selectedRows.size() == 1
+            && selectedRows.getFirst().getMostIntenseFragmentScan() != null);
+    exportMSMSItem.setOnAction(_ -> MSMSExportModule.exportMSMS(selectedRows.getFirst()));
 
-    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius",
+    final MenuItem exportToSirius = new ConditionalMenuItem("Export to Sirius (file)",
         () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(
-        e -> SiriusExportModule.exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]),
+        _ -> SiriusExportModule.exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]),
             Instant.now()));
 
-    final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library",
-        () -> !selectedRows.isEmpty());
-    exportMS1Library.setOnAction(e -> FxThread.runLater(() -> {
-      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
-      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
-          SortingDirection.Ascending, false);
-      window.show();
-    }));
-
-    final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library",
-        () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(e -> FxThread.runLater(() -> {
-      MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
-      window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
-          SortingDirection.Ascending, true);
-      window.show();
-    }));
-
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
-        () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
+        () -> !selectedRows.isEmpty() && selectedRows.getFirst().hasFeatureType(ImageType.class));
+    exportImageToCsv.visibleProperty().bind(hasImagingData);
     exportImageToCsv.setOnAction(
-        e -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
+        _ -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
+
+    final MenuItem sendToLibraryItem = new ConditionalMenuItem("Send to spectral library",
+        () -> !selectedRows.isEmpty() && selectedRows.stream().anyMatch(
+            row -> row.getMostIntenseFragmentScan() != null && row.streamAllFeatureAnnotations()
+                .findAny().isPresent()));
+    sendToLibraryItem.setOnAction(
+        _ -> SendRowsToSpectralLibraryModule.showDialogAndSubmitTask(new ArrayList<>(selectedRows),
+            Instant.now()));
 
     // export menu
     exportMenu.getItems()
         .addAll(exportIsotopesItem, exportMSMSItem, exportToSirius, new SeparatorMenuItem(),
-            exportMS1Library, exportMSMSLibrary, new SeparatorMenuItem(), exportImageToCsv);
+            exportImageToCsv, new SeparatorMenuItem(), sendToLibraryItem);
   }
 
   private void initSearchMenu() {
     final MenuItem spectralDbSearchItem = new ConditionalMenuItem("Spectral library search",
-        () -> selectedRows.size() >= 1);
+        () -> !selectedRows.isEmpty());
     spectralDbSearchItem.setOnAction(
-        e -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
+        _ -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
             new ArrayList<>(selectedRows), table, Instant.now()));
 
     final MenuItem nistSearchItem = new ConditionalMenuItem("NIST MS search",
         () -> selectedRows.size() == 1);
     nistSearchItem.setOnAction(
-        e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
+        _ -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.getFirst()));
 
     // submit GNPS MASST search job
     final MenuItem masstSearch = new ConditionalMenuItem(
         "Submit MASST public data search (on GNPS)",
         () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1);
-    masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
+    masstSearch.setOnAction(_ -> submitMasstGNPSSearch(selectedRows));
 
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
         () -> selectedRows.size() == 1);
     formulaPredictionItem.setOnAction(
-        e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
+        _ -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.getFirst()));
 
     final MenuItem fragmentDashboardItem = new ConditionalMenuItem(
         "Open in fragmentation dashboard",
         () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
-    fragmentDashboardItem.setOnAction(e -> {
+    fragmentDashboardItem.setOnAction(_ -> {
       FragDashboardTab.addNewTab(null, selectedRow, null);
     });
 
+    final MenuItem searchFormulaPubChem = new ConditionalMenuItem("Search formula in PubChem",
+        () -> selectedRow != null && CompoundAnnotationUtils.getBestFormula(selectedRow) != null);
+    searchFormulaPubChem.setOnAction(_ -> {
+      final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
+      new PubChemResultsController(selectedRow,
+          ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst(),
+          CompoundAnnotationUtils.getBestFormula(selectedRow)).showInWindow();
+    });
+
+    final MenuItem searchMassPubChem = new ConditionalMenuItem("Search mass in PubChem",
+        () -> selectedRow != null);
+    searchMassPubChem.setOnAction(_ -> {
+      final List<IonType> ionTypes = FeatureUtils.extractAllIonTypes(selectedRow);
+      final IonType ionType = ionTypes.isEmpty() ? IonTypes.H.asIonType() : ionTypes.getFirst();
+      new PubChemResultsController(selectedRow, ionType,
+          ionType.getMass(selectedRow.getAverageMZ())).showInWindow();
+    });
+
+    final ImageView siriusImage = FxIconUtil.resizeImage("icons/sirius/sirius_icon.png", 20, 20);
+    final Menu siriusSubMenu = new Menu("SIRIUS", siriusImage);
+
+    final MenuItem sendToSirius = new ConditionalMenuItem("Send to SIRIUS", this::siriusApiCheck);
+    sendToSirius.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiExportRowsModule.class,
+        SiriusApiExportRowsParameters.of(selectedRows)));
+
+    final MenuItem runFingerId = new ConditionalMenuItem("Send to SIRIUS & Compute",
+        this::siriusApiCheck);
+    runFingerId.setOnAction(_ -> MZmineCore.runMZmineModule(SiriusApiFingerIdModule.class,
+        SiriusApiFingerIdParameters.of(selectedRows)));
+
+    final MenuItem rankUsingFingerId = new ConditionalMenuItem(
+        "Rank compound annotations using SIRIUS",
+        () -> siriusApiCheck() && selectedRow != null && !selectedRow.getCompoundAnnotations()
+            .isEmpty());
+    rankUsingFingerId.setOnAction(_ -> SiriusApiRankAnnotationsModule.runForRows(selectedRows));
+
+    siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch);
+        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
+        new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
+        siriusSubMenu);
   }
 
   private void initShowMenu() {
@@ -371,109 +650,114 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
-        e -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows));
+        _ -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows));
 
     final MenuItem showXICSetupItem = new ConditionalMenuItem("XIC (dialog)",
         () -> !selectedRows.isEmpty());
     showXICSetupItem.setOnAction(
-        e -> ChromatogramVisualizerModule.setUpVisualiserFromFeatures(selectedRows,
+        _ -> ChromatogramVisualizerModule.setUpVisualiserFromFeatures(selectedRows,
             selectedFeature != null ? selectedFeature.getRawDataFile() : null));
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
-        () -> !selectedRows.isEmpty() && selectedFeature != null
-              && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
+        () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
+            && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile);
+    showIMSFeatureItem.visibleProperty().bind(hasIonMobilityData);
     showIMSFeatureItem.setOnAction(
-        e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
+        _ -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedOrBestFeature)));
 
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
-        () -> !selectedRows.isEmpty() && selectedFeature != null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
-    showImageFeatureItem.setOnAction(e -> {
-      ImageVisualizerParameters params = (ImageVisualizerParameters) MZmineCore.getConfiguration()
+        () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
+            && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile);
+    showImageFeatureItem.visibleProperty().bind(hasImagingData);
+    showImageFeatureItem.setOnAction(_ -> {
+      ImageVisualizerParameters params = (ImageVisualizerParameters) ConfigService.getConfiguration()
           .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
       params.setParameter(ImageVisualizerParameters.imageNormalization,
-          MZmineCore.getConfiguration().getImageNormalization());
+          ConfigService.getConfiguration().getImageNormalization());
       params.setParameter(ImageVisualizerParameters.imageTransformation,
-          MZmineCore.getConfiguration().getImageTransformation());// same as in feature table.
-      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
+          ConfigService.getConfiguration().getImageTransformation());// same as in feature table.
+      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedOrBestFeature, params));
     });
 
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
-        () -> {
-          return (!selectedRows.isEmpty() && selectedFeature != null
-                  && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
-                  && selectedRowHasCorrelationData());
-        });
-    showCorrelatedImageFeaturesItem.setOnAction(e -> {
-      showCorrelatedImageFeatures();
-    });
+        () -> (!selectedRows.isEmpty() && selectedOrBestFeature != null
+            && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile
+            && selectedRowHasCorrelationData()));
+    showCorrelatedImageFeaturesItem.visibleProperty().bind(hasImagingData);
+    showCorrelatedImageFeaturesItem.setOnAction(_ -> showCorrelatedImageFeatures());
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
-        () -> selectedFeature != null);
-    show2DItem.setOnAction(
-        e -> TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFeature.getRawDataFile(),
-            selectedFeature.getRawDataPointsMZRange(), selectedFeature.getRawDataPointsRTRange()));
+        () -> !selectedRows.isEmpty() && selectedOrBestFeature != null);
+    show2DItem.setOnAction(_ -> TwoDVisualizerModule.show2DVisualizerSetupDialog(
+        selectedOrBestFeature.getRawDataFile(), selectedOrBestFeature.getRawDataPointsMZRange(),
+        selectedOrBestFeature.getRawDataPointsRTRange(),
+        selectedOrBestFeature.getRepresentativePolarity()));
 
-    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D",
-        () -> selectedFeature != null);
-    show3DItem.setOnAction(
-        e -> Fx3DVisualizerModule.setupNew3DVisualizer(selectedFeature.getRawDataFile(),
-            selectedFeature.getRawDataPointsMZRange(), selectedFeature.getRawDataPointsRTRange(),
-            selectedFeature));
+    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
+    show3DItem.setOnAction(open3DFeaturePlot());
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
-        "Plot using Intensity plot module",
-        () -> !selectedRows.isEmpty() && selectedFeature != null);
-    showIntensityPlotItem.setOnAction(e -> IntensityPlotModule.showIntensityPlot(
-        ProjectService.getProjectManager().getCurrentProject(), selectedFeature.getFeatureList(),
+        "Plot using Intensity plot module", () -> !selectedRows.isEmpty() && selectedRow != null);
+    showIntensityPlotItem.setOnAction(_ -> IntensityPlotModule.showIntensityPlot(
+        ProjectService.getProjectManager().getCurrentProject(), selectedRow.getFeatureList(),
         selectedRows.toArray(new ModularFeatureListRow[0])));
 
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
-        "Show m/z ranges in IMS raw data overview",
-        () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-              && !selectedFeatures.isEmpty());
+        "Show m/z ranges in IMS raw data overview", () -> selectedOrBestFeature != null
+        && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile);
+    showInIMSRawDataOverviewItem.visibleProperty().bind(hasIonMobilityData);
     showInIMSRawDataOverviewItem.setOnAction(
-        e -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
-            getFeaturesFromSelectedRaw(selectedFeatures)));
+        _ -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
+            getSelectedOrBestFeaturesFromSameRaw()));
 
     final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
-        "Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty());
-    showInMobilityMzVisualizerItem.setOnAction(e -> {
+        "Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty() && hasIonMobilityData.get());
+    showInMobilityMzVisualizerItem.visibleProperty().bind(hasIonMobilityData);
+    showInMobilityMzVisualizerItem.setOnAction(_ -> {
       IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, false);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
-        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() != null);
+        () -> selectedOrBestFeature != null
+            && selectedOrBestFeature.getRepresentativeScan() != null);
     showSpectrumItem.setOnAction(
-        e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
-            selectedFeature.getRepresentativeScan(), selectedFeature));
+        _ -> SpectraVisualizerModule.addNewSpectrumTab(selectedOrBestFeature.getRawDataFile(),
+            selectedOrBestFeature.getRepresentativeScan(), selectedOrBestFeature));
 
     final MenuItem showFeatureFWHMMs1Item = new ConditionalMenuItem(
         "Accumulated mass spectrum (FWHM)",
-        () -> selectedFeature != null && selectedFeature.getFeatureData() != null);
-    showFeatureFWHMMs1Item.setOnAction(e -> {
-      final Float fwhm = selectedFeature.getFWHM();
+        () -> selectedOrBestFeature != null && selectedOrBestFeature.getFeatureData() != null);
+    showFeatureFWHMMs1Item.setOnAction(_ -> {
+      final List<Scan> scans;
+      final ModularFeature feature = selectedOrBestFeature;
+      final Float fwhm = feature.getFWHM();
       if (fwhm != null) {
-        final Range<Float> range = Range.closed(selectedFeature.getRT() - fwhm / 2,
-            selectedFeature.getRT() + fwhm / 2);
-        List<Scan> scans = (List<Scan>) selectedFeature.getFeatureData().getSpectra().stream()
+        final Range<Float> range = Range.closed(feature.getRT() - fwhm / 2,
+            feature.getRT() + fwhm / 2);
+        scans = (List<Scan>) feature.getFeatureData().getSpectra().stream()
             .filter(s -> range.contains(s.getRetentionTime())).toList();
-        MergedMassSpectrum spectrum = SpectraMerging.mergeSpectra(scans,
-            SpectraMerging.defaultMs1MergeTol, MergingType.ALL_ENERGIES, null);
-        SpectraVisualizerModule.addNewSpectrumTab(spectrum);
+      } else {
+        // in case no FWHM is present just merge all scans
+        scans = List.copyOf(feature.getFeatureData().getSpectra());
       }
+      MergedMassSpectrum spectrum = SpectraMerging.mergeSpectra(scans,
+          SpectraMerging.defaultMs1MergeTol, MergingType.ALL_ENERGIES, null);
+      SpectraVisualizerModule.addNewSpectrumTab(spectrum);
     });
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
-        () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
-    showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
-        IonMobilityUtils.getBestMobilityScan(selectedFeature)));
+        () -> selectedOrBestFeature != null
+            && selectedOrBestFeature.getRepresentativeScan() instanceof Frame
+            && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    showBestMobilityScanItem.visibleProperty().bind(hasIonMobilityData);
+    showBestMobilityScanItem.setOnAction(_ -> SpectraVisualizerModule.addNewSpectrumTab(
+        IonMobilityUtils.getBestMobilityScan(selectedOrBestFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
-        "Extract spectrum from mobility FWHM", () -> selectedFeature != null
-                                                     && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+        "Extract spectrum from mobility FWHM", () -> selectedOrBestFeature != null
+        && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+    extractSumSpectrumFromMobScans.visibleProperty().bind(hasIonMobilityData);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -490,33 +774,36 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1) || (
             selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) || (
-                  selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
-    showMSMSItem.setOnAction(e -> {
+            selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1));
+    showMSMSItem.setOnAction(_ -> {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
-      } else if (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
+      } else if (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1) {
         SpectraStackVisualizerModule.addMsMsStackVisualizer(selectedRows,
-            table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
+            table.getFeatureList().getRawDataFiles(),
+            selectedRows.getFirst().getRawDataFiles().getFirst());
       } else if (selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedRow.getMostIntenseFragmentScan());
       }
     });
 
     final MenuItem showPseudoSpectrumItem = new ConditionalMenuItem("Show Pseudo Spectrum",
-        () -> selectedFeature != null
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
-    showPseudoSpectrumItem.setOnAction(e -> showPseudoSpectrum());
+        () -> selectedOrBestFeature != null
+            && selectedOrBestFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showPseudoSpectrumItem.visibleProperty().bind(hasPseudoSpectra);
+    showPseudoSpectrumItem.setOnAction(_ -> showPseudoSpectrum());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
-        "DIA spectral mirror: Correlated-to-all signals",
-        () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
-    showDiaMirror.setOnAction(e -> showDiaMirror());
+        "DIA spectral mirror: Correlated-to-all signals", () -> selectedOrBestFeature != null
+        && selectedOrBestFeature.getRawDataFile() instanceof IMSRawDataFile
+        && selectedOrBestFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+        && selectedOrBestFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showDiaMirror.visibleProperty().bind(hasIonMobilityData);
+    showDiaMirror.setOnAction(_ -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Spectral mirror (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
-    showMSMSMirrorItem.setOnAction(e -> {
+    showMSMSMirrorItem.setOnAction(_ -> {
       MirrorScanWindowFXML mirrorScanTab = new MirrorScanWindowFXML();
       mirrorScanTab.getController().setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
           selectedRows.get(1).getMostIntenseFragmentScan());
@@ -524,38 +811,37 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
-        () -> hasMs2(selectedRows));
-    showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
+        () -> hasMs2(selectedRow));
+    showAllMSMSItem.setOnAction(_ -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
         () -> getSelectedFeatureWithIsotopePattern().isPresent());
-    showIsotopePatternItem.setOnAction(e -> {
-      getSelectedFeatureWithIsotopePattern().ifPresent(bestFeature -> {
-        SpectraVisualizerModule.addNewSpectrumTab(bestFeature.getRawDataFile(),
-            bestFeature.getRepresentativeScan(), bestFeature.getIsotopePattern());
-      });
-    });
+    showIsotopePatternItem.setOnAction(
+        _ -> getSelectedFeatureWithIsotopePattern().ifPresent(bestFeature -> {
+          SpectraVisualizerModule.addNewSpectrumTab(bestFeature.getRawDataFile(),
+              bestFeature.getRepresentativeScan(), bestFeature.getIsotopePattern());
+        }));
 
     final MenuItem showCompoundDBResults = new ConditionalMenuItem("Compound DB search results",
         () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
-    showCompoundDBResults.setOnAction(e -> CompoundDatabaseMatchTab.addNewTab(table));
+    showCompoundDBResults.setOnAction(_ -> CompoundDatabaseMatchTab.addNewTab(table));
 
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults.setOnAction(
-        e -> MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table)));
+        _ -> MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table)));
 
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
-        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
-    showMatchedLipidSignals.setOnAction(e -> {
-      List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidMatchListType.class);
+        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.getFirst()));
+    showMatchedLipidSignals.setOnAction(_ -> {
+      List<MatchedLipid> matchedLipids = selectedRows.getFirst().get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         MZmineCore.getDesktop().addTab((new LipidAnnotationMatchTab(table)));
       }
     });
 
-    final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
-        /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
+//    final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
+//        /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
@@ -566,10 +852,42 @@ public class FeatureTableContextMenu extends ContextMenu {
             showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
+            showCorrelatedImageFeaturesItem);
+  }
+
+  private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
+    return _ -> {
+      final List<Feature> features = getSelectedOrBestFeatures();
+      if (features.isEmpty()) {
+        return;
+      }
+
+      final RawDataFile[] dataFiles = features.stream().map(Feature::getRawDataFile)
+          .toArray(RawDataFile[]::new);
+
+      final Range<Double> mzRange = features.stream().map(Feature::getRawDataPointsMZRange)
+          .reduce(Range::span).orElse(null);
+      final Range<Float> rtRange = features.stream().map(Feature::getRawDataPointsRTRange)
+          .reduce(Range::span).orElse(null);
+
+      Fx3DVisualizerModule.setupNew3DVisualizer(dataFiles, mzRange, rtRange, features);
+    };
+  }
+
+  private @NotNull List<Feature> getSelectedOrBestFeatures() {
+    List<Feature> features = new ArrayList<>();
+    if (selectedFeatures.isEmpty()) {
+      features.addAll(selectedRows.stream().map(ModularFeatureListRow::getBestFeature).toList());
+    } else {
+      features.addAll(selectedFeatures);
+    }
+    return features;
   }
 
   private boolean selectedRowHasCorrelationData() {
+    if (selectedRow == null) {
+      return false;
+    }
     final Optional<R2RMap<RowsRelationship>> rowMapOptional = selectedRow.getFeatureList()
         .getRowMap(Type.MS1_FEATURE_CORR);
     if (rowMapOptional.isEmpty()) {
@@ -589,8 +907,18 @@ public class FeatureTableContextMenu extends ContextMenu {
     return false;
   }
 
-  private boolean hasMs2(final List<ModularFeatureListRow> selectedRows) {
+  private boolean hasMs2(@Nullable final List<ModularFeatureListRow> selectedRows) {
+    if (selectedRows == null || selectedRows.isEmpty()) {
+      return false;
+    }
     return selectedRows.stream().anyMatch(FeatureListRow::hasMs2Fragmentation);
+  }
+
+  private boolean hasMs2(@Nullable final ModularFeatureListRow selectedRow) {
+    if (selectedRow == null) {
+      return false;
+    }
+    return selectedRow.hasMs2Fragmentation();
   }
 
   /**
@@ -607,13 +935,16 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void onShowAllMsMsClicked() {
+    if (selectedRow == null) {
+      return;
+    }
     if (selectedFeature != null && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
         || (selectedRow.getFeatures().size() == 1 && selectedRow.getBestFeature()
         .getRawDataFile() instanceof ImagingRawDataFile)) {
       ImageAllMsMsTab.addNewImageAllMsMsTab(table,
           selectedFeature != null ? selectedFeature : selectedRow.getBestFeature(), true, false);
     } else {
-      MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0));
+      MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRow);
     }
   }
 
@@ -634,8 +965,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     // get best isotope pattern feature
     return selectedRow.streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                                    && f.getFeatureStatus()
-                                                       != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight));
   }
 
@@ -645,15 +975,24 @@ public class FeatureTableContextMenu extends ContextMenu {
     selectedFiles = table.getSelectedRawDataFiles();
     selectedFeatures = table.getSelectedFeatures();
     selectedRows = table.getSelectedRows();
+    selectedTreeItems = List.copyOf(table.getSelectedTableRows());
     selectedFeature = table.getSelectedFeature();
     selectedRow = table.getSelectedRow();
+    selectedOrBestFeature = selectedFeature;
+    if (selectedOrBestFeature == null && selectedRow != null) {
+      selectedOrBestFeature = selectedRow.getBestFeature();
+    }
 
     // for single-raw-file-feature-lists it's intuitive to be able to click on the row columns, too
     if (selectedFeature == null && selectedRows.size() == 1
-        && selectedRows.get(0).getRawDataFiles().size() == 1) {
-      selectedFeature = selectedRows.get(0)
-          .getFeature(selectedRows.get(0).getRawDataFiles().get(0));
+        && selectedRows.getFirst().getRawDataFiles().size() == 1) {
+      selectedFeature = selectedRows.getFirst()
+          .getFeature(selectedRows.getFirst().getRawDataFiles().getFirst());
     }
+
+    // Compound menu is only meaningful when the feature list has a compound list
+    final FeatureList currentList = table.getFeatureList();
+    compoundMenu.setVisible(currentList != null && currentList.hasCompoundList());
 
     for (MenuItem item : getItems()) {
       updateItem(item);
@@ -663,10 +1002,13 @@ public class FeatureTableContextMenu extends ContextMenu {
   /**
    * Mass spectrometry search tool job on GNPS
    */
-  private void submitMasstGNPSSearch(List<ModularFeatureListRow> rows) {
+  private void submitMasstGNPSSearch(@NotNull List<ModularFeatureListRow> rows) {
+    if (rows.isEmpty()) {
+      return;
+    }
     // single
     if (rows.size() == 1) {
-      final ModularFeatureListRow row = rows.get(0);
+      final ModularFeatureListRow row = rows.getFirst();
       final Scan ms2 = row.getMostIntenseFragmentScan();
       if (ms2 != null) {
         if (ms2.getMassList() == null) {
@@ -688,7 +1030,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private int getNumberOfRowsWithFragmentScans(Collection<ModularFeatureListRow> rows) {
-    if (rows.isEmpty()) {
+    if (rows == null || rows.isEmpty()) {
       return 0;
     }
     int numFragmentScans = 0;
@@ -716,6 +1058,9 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean rowHasSpectralLibraryMatches(List<ModularFeatureListRow> rows) {
+    if (rows == null) {
+      return false;
+    }
     for (ModularFeatureListRow row : rows) {
       if (!row.getSpectralLibraryMatches().isEmpty()) {
         return true;
@@ -724,27 +1069,36 @@ public class FeatureTableContextMenu extends ContextMenu {
     return false;
   }
 
-  private boolean rowHasMatchedLipidSignals(ModularFeatureListRow row) {
+  private boolean rowHasMatchedLipidSignals(@Nullable ModularFeatureListRow row) {
+    if (row == null) {
+      return false;
+    }
     List<MatchedLipid> matches = row.get(LipidMatchListType.class);
     return matches != null && !matches.isEmpty();
   }
 
   @NotNull
-  private List<ModularFeature> getFeaturesFromSelectedRaw(Collection<ModularFeature> features) {
-    if (selectedFeature == null || selectedFeature.getRawDataFile() == null) {
-      return Collections.emptyList();
+  private List<Feature> getSelectedOrBestFeaturesFromSameRaw() {
+    final RawDataFile file;
+    if (selectedFeature != null && selectedFeature.getRawDataFile() != null) {
+      file = selectedFeature.getRawDataFile();
+    } else if (selectedRow != null) {
+      file = selectedRow.getBestFeature().getRawDataFile();
+    } else {
+      return List.of();
     }
-    final RawDataFile file = selectedFeature.getRawDataFile();
-    return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
+    if (!(file instanceof IMSRawDataFile)) {
+      return List.of();
+    }
+    return selectedRows.stream().map(row -> (Feature) row.getFeature(file)).filter(Objects::nonNull)
+        .toList();
   }
 
   private void showPseudoSpectrum() {
-    if (selectedFeature != null) {
-      PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
-          selectedFeature, null);
-      SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedFeature.toString(),
-          pseudoSpectrumVisualizerPane);
-      MZmineCore.getDesktop().addTab(simpleTab);
+    if (selectedOrBestFeature != null) {
+      final PseudoSpectrumVisualizerTab tab = new PseudoSpectrumVisualizerTab(table);
+      tab.getController().setFeature(selectedOrBestFeature);
+      MZmineCore.getDesktop().addTab(tab);
     }
   }
 
@@ -759,6 +1113,10 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showDiaMirror() {
+    final ModularFeature selectedFeature = selectedOrBestFeature;
+    if (selectedFeature == null) {
+      return;
+    }
     final Scan msms = selectedFeature.getMostIntenseFragmentScan();
     final RawDataFile file = selectedFeature.getRawDataFile();
 
@@ -792,5 +1150,10 @@ public class FeatureTableContextMenu extends ContextMenu {
         " (no correlation)");
 
     window.show();
+  }
+
+  private boolean siriusApiCheck() {
+    return selectedRow != null && selectedRows.stream()
+        .anyMatch(MzmineToSirius::isSiriusCompatible);
   }
 }

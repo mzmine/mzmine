@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,15 @@
 package io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot;
 
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -40,6 +43,8 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedCollection;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 
 public class ChromatogramPlotController extends FxController<ChromatogramPlotModel> {
@@ -54,7 +60,12 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   private final ChromatogramPlotBuilder chromatogramPlotBuilder;
 
   public ChromatogramPlotController() {
+    this(false);
+  }
+
+  public ChromatogramPlotController(boolean rangeStickyZero) {
     super(new ChromatogramPlotModel());
+    model.setRangeStickyZero(rangeStickyZero);
     chromatogramPlotBuilder = new ChromatogramPlotBuilder(model);
   }
 
@@ -151,6 +162,13 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
     });
   }
 
+  public void removeDatasets(List<? extends XYDataset> datasets) {
+    final SimpleXYChart<PlotXYDataProvider> chart = model.getChart();
+    chart.applyWithNotifyChanges(false, () -> {
+      datasets.forEach(this::removeDataset);
+    });
+  }
+
   public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty() {
     return model.cursorPositionProperty();
   }
@@ -188,7 +206,6 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
   }
 
   public void setTitle(String title) {
-    // todo apply chart theme
     model.setTitle(title);
   }
 
@@ -202,5 +219,80 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setRangeAxisStickyZero(boolean stickyZero) {
     model.getChart().setStickyZeroRangeAxis(stickyZero);
+  }
+
+  /**
+   * If enabled, each added dataset's series key is drawn as a single item label on the point with
+   * the highest range value, and a
+   * {@link io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator} is
+   * installed on the renderer (custom renderers added via the model do not otherwise get one).
+   */
+  public void setShowSeriesLabel(boolean showSeriesLabel) {
+    model.setShowSeriesLabel(showSeriesLabel);
+  }
+
+  public void applyWithNotifyChanges(boolean tempState, @NotNull final Runnable r) {
+    model.getChart().applyWithNotifyChanges(tempState, r);
+  }
+
+  public Range getDomainAxisRange() {
+    return model.getChart().getXYPlot().getDomainAxis().getRange();
+  }
+
+  public Range getRangeAxisRange() {
+    return model.getChart().getXYPlot().getRangeAxis().getRange();
+  }
+
+  public void setDomainAxisRange(Range range) {
+    model.getChart().getXYPlot().getDomainAxis().setRange(range);
+  }
+
+  public void setRangeAxisRange(Range range) {
+    model.getChart().getXYPlot().getRangeAxis().setRange(range);
+  }
+
+  public void applyAutoRangeToRangeAxis() {
+    model.getChart().getXYPlot().getRangeAxis().setAutoRange(true);
+  }
+
+  public void applyAutoRangeToDomainAxis() {
+    model.getChart().getXYPlot().getDomainAxis().setAutoRange(true);
+  }
+
+  public MapProperty<XYDataset, XYItemRenderer> datasetsAndRenderersProperty() {
+    return model.datasetRenderersProperty();
+  }
+
+  public ObjectProperty<@Nullable XYDataset> selectedDatasetProperty() {
+    return model.selectedDatasetProperty();
+  }
+
+  public @Nullable XYDataset getSelectedDataset() {
+    return model.getSelectedDataset();
+  }
+
+  public void setSelectedDataset(@Nullable XYDataset dataset) {
+    model.setSelectedDataset(dataset);
+  }
+
+
+  @NotNull
+  public SimpleXYChart<PlotXYDataProvider> getChart() {
+    return model.getChart();
+  }
+
+  public @NotNull FxXYPlot getXYPlot() {
+    return model.getXYPlot();
+  }
+
+  public void setLegendItemsVisible(boolean visible) {
+    model.getChart().setLegendItemsVisible(visible);
+  }
+
+  public void setDatasets(@NotNull SequencedCollection<XYDatasetAndRenderer> list) {
+    model.getDatasetRenderers().clear();
+    for (XYDatasetAndRenderer dr : list) {
+      addDataset(dr.dataset(), dr.renderer());
+    }
   }
 }

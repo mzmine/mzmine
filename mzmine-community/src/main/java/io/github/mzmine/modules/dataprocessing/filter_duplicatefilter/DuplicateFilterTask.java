@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
+import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -224,7 +226,7 @@ public class DuplicateFilterTask extends AbstractTask {
       ModularFeatureListRow[] duplicatesNullArray) {
     final var filteredRows = Arrays.stream(duplicatesNullArray).filter(Objects::nonNull)
         .toArray(ModularFeatureListRow[]::new);
-    flist.setRows(filteredRows);
+    flist.setRowsApplySort(filteredRows);
   }
 
   private int applyOldAverageFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
@@ -459,6 +461,15 @@ public class DuplicateFilterTask extends AbstractTask {
           }
           break;
       }
+    }
+
+    // recalculate alignmentscores
+    final AlignmentScores score1 = firstRow.get(AlignmentMainType.class);
+    final AlignmentScores score2 = secondRow.get(AlignmentMainType.class);
+    if (score1 != null) {
+      // only condition is that score1 is not null
+      final AlignmentScores merged = AlignmentScores.recalculateForRow(firstRow, score1, score2);
+      firstRow.set(AlignmentMainType.class, merged);
     }
   }
 

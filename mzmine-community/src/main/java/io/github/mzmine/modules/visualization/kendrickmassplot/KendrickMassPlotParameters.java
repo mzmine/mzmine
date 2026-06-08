@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,19 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -79,12 +84,11 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
       "Enter a repeating molecular formula used as Kendrick mass base to calculate Kendrick mass defect",
       "CH2");
 
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
     super(new Parameter[]{featureList, xAxisValues, xAxisCustomKendrickMassBase, yAxisValues,
             yAxisCustomKendrickMassBase, colorScaleValues, colorScaleCustomKendrickMassBase,
-            bubbleSizeValues, bubbleSizeCustomKendrickMassBase, windowSettings},
+            bubbleSizeValues, bubbleSizeCustomKendrickMassBase},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/kendrickmass/kendrick_mass_plot.html");
   }
 
@@ -93,8 +97,14 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the Kendrick mass defect plot please cite:"), linebreak(),
+        ArticleReferences.KENDRICK.hyperlinkText(), linebreak(),
+        text("When using the Kendrick mass defect plot for polymer analysis please cite:"),
+        linebreak(), ArticleReferences.KENDRICKPOLYMERS.hyperlinkText());
+
     KendrickMassPlotSetupDialog dialog = new KendrickMassPlotSetupDialog(valueCheckRequired, this,
-        null);
+        message);
 
     var xAxisValueComponent = dialog.getComponentForParameter(xAxisValues);
     var xAxisCustomKendrickMassBaseComponent = dialog.getComponentForParameter(

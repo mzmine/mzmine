@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -206,7 +207,9 @@ public class RawDataSavingUtils {
       MZmineProcessingModule module) {
 
     if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, true, true)) {
-      throw new IllegalArgumentException("Parameter sets differ in more than raw/file parameters.");
+      throw new IllegalArgumentException(
+          "Parameter sets differ in more than raw/file parameters.\n1:\n%s\n2:\n%s".formatted(
+              parameterSet1.toString(), parameterSet2.toString()));
     }
 
     final var mergedParameterSet = parameterSet1.cloneParameterSet(true);
@@ -219,7 +222,8 @@ public class RawDataSavingUtils {
       // merge file names and selected raw data files
       if (mergedParam instanceof FileNamesParameter fnp) {
         Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
-        if (module.getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT) {
+        if (module.getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT && !fnp.getName()
+            .equals(SpectralLibraryImportParameters.dataBaseFiles.getName())) {
           // check if the files still exist in the project
           files.addAll(Arrays.stream(((FileNamesParameter) param1).getValue()).filter(
               f -> new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile()

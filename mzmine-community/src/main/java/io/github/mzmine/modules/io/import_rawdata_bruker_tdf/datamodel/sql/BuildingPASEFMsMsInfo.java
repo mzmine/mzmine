@@ -37,6 +37,10 @@ public class BuildingPASEFMsMsInfo {
   private final Integer fragmentFrameNumber;
   private final double isolationWidth;
 
+  /**
+   *
+   * @param spectrumNumberRange Spectrum range as listed in the bruker table. (scan numbers start at 1 and are end-exclusive)
+   */
   public BuildingPASEFMsMsInfo(double precursorMz, Range<Integer> spectrumNumberRange,
       float collisionEnergy, Integer precursorCharge, Integer parentFrameNumber, Integer fragmentFrameNumber,
       double isolationWidth) {

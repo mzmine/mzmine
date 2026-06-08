@@ -7,10 +7,11 @@ import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.mzio.users.user.MZmineUser;
+import io.mzio.users.service.UserActiveService;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Nothing special just avoids all MS2 specific steps
@@ -43,7 +44,7 @@ public class WorkflowMs1Only extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
-    return true;
+  public @NotNull Set<@NotNull UserActiveService> getUnlockingServices() {
+    return EnumSet.allOf(UserActiveService.class);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,10 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Implementation runs out of memory and does not perform well
+ */
+@Deprecated
 public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolutionAlgorithm {
 
   private final RTTolerance rtTolerance;

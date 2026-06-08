@@ -30,11 +30,13 @@ import static java.util.Objects.requireNonNullElse;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StatsDashboardModel {
 
@@ -43,6 +45,9 @@ public class StatsDashboardModel {
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
   private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
+  // null = feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
 
   @NotNull
   public List<FeatureList> getFlists() {
@@ -91,5 +96,13 @@ public class StatsDashboardModel {
 
   public ObjectProperty<MetadataColumn<?>> metadataColumnProperty() {
     return metadataColumn;
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
   }
 }

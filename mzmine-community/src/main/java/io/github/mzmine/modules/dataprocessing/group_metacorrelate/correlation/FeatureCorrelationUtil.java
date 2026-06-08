@@ -26,10 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation;
 
 
+import static java.util.Arrays.copyOf;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -40,6 +43,7 @@ import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
@@ -468,6 +472,61 @@ public class FeatureCorrelationUtil {
     return true;
   }
 
+
+  /**
+   * Simple Pearson R correlation between two summed intensity mobility series
+   *
+   * @return -1 if not correlated or not enough data points
+   */
+  public static float correlatePearsonR(SummedIntensityMobilitySeries a,
+      SummedIntensityMobilitySeries b, int minCorrelatedDataPoints) {
+    if (a.getNumberOfValues() < minCorrelatedDataPoints
+        || b.getNumberOfValues() < minCorrelatedDataPoints) {
+      return -1;
+    }
+
+    // collect overlapping intensity values
+    final int maxSize = Math.min(a.getNumberOfValues(), b.getNumberOfValues());
+    double[] intensitiesA = new double[maxSize];
+    double[] intensitiesB = new double[maxSize];
+    int matches = 0;
+
+    // find overlapping mobility values - assuming sorted data
+    int indexA = 0;
+    int indexB = 0;
+
+    while (indexA < a.getNumberOfValues() && indexB < b.getNumberOfValues()) {
+      double mobilityA = a.getMobility(indexA);
+      double mobilityB = b.getMobility(indexB);
+
+      // check if mobility values match within a small tolerance
+      if (Precision.equalFloatSignificance(mobilityA, mobilityB)) { // mobility values match
+        intensitiesA[matches] = a.getIntensity(indexA);
+        intensitiesB[matches] = b.getIntensity(indexB);
+        matches++;
+        indexA++;
+        indexB++;
+      } else if (mobilityA < mobilityB) {
+        indexA++;
+      } else {
+        indexB++;
+      }
+    }
+
+    // need minimum data points for correlation
+    if (matches < minCorrelatedDataPoints) {
+      return -1;
+    }
+
+    // trim arrays to actual size
+    if (matches < maxSize) {
+      intensitiesA = copyOf(intensitiesA, matches);
+      intensitiesB = copyOf(intensitiesB, matches);
+    }
+
+    return (float) Similarity.PEARSONS_CORR.calc(intensitiesA, intensitiesB);
+  }
+
   /**
    * Extension of the correlation util to process shapes with non-matching rts (or any other x
    * indices)
@@ -527,7 +586,6 @@ public class FeatureCorrelationUtil {
 
       // index offset between f1 and f2 data arrays (not all features are based on the same scans) ~2021 Steffen
       // 2024 ~Steffen: this method is mostly called after DIA.getInterpolatedShape for bot series, so all indices are the same
-//      final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
       final int maxIndexInB = BinarySearch.binarySearch(f2[0], f1[0][maxIndexOfA],
           DefaultTo.MINUS_INSERTION_POINT);
       if (maxIndexInB <= -1) {
@@ -579,7 +637,7 @@ public class FeatureCorrelationUtil {
         i2++;
       }
       // check right and total dp
-      int right = corrData.size() - 1 - left;
+      final int right = corrData.size() - 1 - left;
       // return pearson r
       if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
         return new FullCorrelationData(corrData);
@@ -613,6 +671,12 @@ public class FeatureCorrelationUtil {
         return null;
       }
 
+      // looks like we have exactly the same values, then we do not need to interpolate
+      if (mainX.length == otherX.length && mainRange.equals(otherRange) && Arrays.equals(mainX,
+          otherX)) {
+        return new double[][]{otherX, otherY};
+      }
+
       // find indices for the overlapping range
       final int[] otherIndicesEndExclusive = getAllowedRange(otherX, overlap);
       final int[] mainIndicesEndExclusive = getAllowedRange(mainX, overlap);
@@ -623,6 +687,14 @@ public class FeatureCorrelationUtil {
       final int mainEnd = mainIndicesEndExclusive[1];
       final int otherStart = otherIndicesEndExclusive[0];
       final int otherEnd = otherIndicesEndExclusive[1];
+
+      final int minLength = Math.min(mainEnd - mainStart, otherEnd - otherStart);
+      if (mainX.length != otherX.length && Arrays.equals(mainX, mainStart, mainStart + minLength,
+          otherX, otherStart, otherStart + minLength)) {
+        // may be exactly the same x values, but range lengths may be different. copy of the specific range
+        return new double[][]{Arrays.copyOfRange(otherX, otherStart, otherEnd),
+            Arrays.copyOfRange(otherY, otherStart, otherEnd)};
+      }
 
       // create array for the interpolated data
       // copy the x values of both arrays to the new array
@@ -649,10 +721,9 @@ public class FeatureCorrelationUtil {
      * {@link Arrays#copyOfRange(int[], int, int)} Null if there are no values within the given
      * range.
      */
-    @Nullable
-    private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
+    private static int @Nullable [] getAllowedRange(double[] x, Range<Double> allowedXRange) {
       int startIndex = -1;
-      int endIndex = x.length - 1;
+      int endIndex = x.length;
 
       for (int i = 0; i < x.length; i++) {
         if (allowedXRange.contains(x[i])) {

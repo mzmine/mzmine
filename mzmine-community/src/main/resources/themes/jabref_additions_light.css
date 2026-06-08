@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -22,10 +21,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
-.text-field {
-  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
-}
+ .root {
+   -error-text-color: #cc0033;
+   -warning-text-color: #CC9900;
+ }
 
 .region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
   -fx-background-color: -jr-menu-background;
@@ -49,6 +48,11 @@ BorderPane, GridPane, .tab-pane {
 
 .bold-title-label {
   -fx-font-size: 14.0pt;
+  -fx-font-weight: bold;
+}
+
+.bold-semititle-label {
+  -fx-font-size: 10.0pt;
   -fx-font-weight: bold;
 }
 
@@ -97,4 +101,24 @@ BorderPane, GridPane, .tab-pane {
 }
 .icon-button:hover .ikonli-font-icon {
     -fx-icon-color: -jr-selected;
+}
+
+/* === Lipid QC quality pane === */
+.quality-warning {
+  -fx-background-color: #fff3cd;
+  -fx-border-color: -error-text-color;
+  -fx-padding: 6;
+}
+
+.quality-card {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #d0d0d0;
+  -fx-padding: 8;
+}
+
+.metric-bar-track {
+  -fx-background-color: #f0f0f0;
+  -fx-border-color: #d0d0d0;
+  -fx-background-radius: 3;
+  -fx-border-radius: 3;
 }

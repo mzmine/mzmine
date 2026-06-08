@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -94,7 +95,10 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
       error("More than one raw file in feature list + " + originalFlist.getName());
     }
 
-    newFlist = FeatureListUtils.createCopy(originalFlist, suffix, getMemoryMapStorage());
+    // TODO maybe just copy the rows directly in this call instead of in the loop
+    newFlist = FeatureListUtils.createCopyWithoutRows(originalFlist, suffix, getMemoryMapStorage(),
+        originalFlist.getNumberOfRows(),
+        originalFlist.stream().mapToInt(FeatureListRow::getNumberOfFeatures).sum());
 
     final RawDataFile rawDataFile = originalFlist.getRawDataFile(0);
     final FeatureDataAccess access = EfficientDataAccess.of(originalFlist,

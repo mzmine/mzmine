@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,35 +53,62 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
   private final String name;
   private final String description;
   protected final EnumMap<EnumType, ParameterSet> parametersMap;
+  protected final boolean alwaysOpen;
   private EnumType selectedValue;
 
   public ModuleOptionsEnumComboParameter(final String name, final String description,
       @NotNull final EnumType defaultValue) {
-    this(name, description, defaultValue.getDeclaringClass().getEnumConstants(), defaultValue);
+    this(name, description, defaultValue, true);
+  }
+
+  public ModuleOptionsEnumComboParameter(final String name, final String description,
+      @NotNull final EnumType defaultValue, boolean alwaysOpen) {
+    this(name, description, defaultValue.getDeclaringClass().getEnumConstants(), defaultValue,
+        alwaysOpen);
+  }
+
+  /**
+   * Uses first option as default
+   */
+  public ModuleOptionsEnumComboParameter(final String name, final String description,
+      @NotNull final EnumType[] options) {
+    this(name, description, options, true);
+  }
+
+  /**
+   * Uses first option as default
+   */
+  public ModuleOptionsEnumComboParameter(final String name, final String description,
+      @NotNull final EnumType[] options, boolean alwaysOpen) {
+    this(name, description, options, options[0], alwaysOpen);
   }
 
   public ModuleOptionsEnumComboParameter(final String name, final String description,
       @NotNull final EnumType[] options, @NotNull final EnumType defaultValue) {
+    this(name, description, options, defaultValue, true);
+  }
 
-    this.name = name;
-    this.description = description;
-    this.selectedValue = defaultValue;
-
-    parametersMap = new EnumMap<>(defaultValue.getDeclaringClass());
+  public ModuleOptionsEnumComboParameter(final String name, final String description,
+      @NotNull final EnumType[] options, @NotNull final EnumType defaultValue, boolean alwaysOpen) {
+    final EnumMap<EnumType, ParameterSet> parametersMap = new EnumMap<>(
+        defaultValue.getDeclaringClass());
     for (final EnumType option : options) {
       parametersMap.put(option, option.getModuleParameters());
     }
+    this(name, description, defaultValue, parametersMap, alwaysOpen);
   }
 
   /**
    * Used in clone parameter
    */
   protected ModuleOptionsEnumComboParameter(final String name, final String description,
-      final EnumType selectedValue, final EnumMap<EnumType, ParameterSet> parameters) {
+      final EnumType selectedValue, final EnumMap<EnumType, ParameterSet> parameters,
+      boolean alwaysOpen) {
     this.name = name;
     this.description = description;
     this.selectedValue = selectedValue;
     this.parametersMap = parameters;
+    this.alwaysOpen = alwaysOpen;
   }
 
   public void setValue(final EnumType value, ParameterSet parameters) {
@@ -144,24 +171,26 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
       var cloneParam = copy.get(key).cloneParameterSet();
       copy.put(key, cloneParam);
     }
-    return new ModuleOptionsEnumComboParameter<>(name, description, selectedValue, copy);
+    return new ModuleOptionsEnumComboParameter<>(name, description, selectedValue, copy, alwaysOpen);
   }
 
   @Override
   public ModuleOptionsEnumComponent<EnumType> createEditingComponent() {
-    return new ModuleOptionsEnumComponent<>(name, parametersMap, selectedValue, true);
+    return new ModuleOptionsEnumComponent<>(name, parametersMap, selectedValue, alwaysOpen);
   }
 
   @Override
   public void setValueFromComponent(ModuleOptionsEnumComponent<EnumType> component) {
     this.selectedValue = component.getValue();
-    component.updateParameterSetFromComponents();
+    final ParameterSet embedded = getEmbeddedParameters(selectedValue);
+    component.updateParameterSetFromComponents(embedded);
   }
 
   @Override
   public void setValueToComponent(ModuleOptionsEnumComponent<EnumType> component,
       @Nullable EnumType newValue) {
-    component.setSelectedValue(newValue);
+    final ParameterSet embedded = getEmbeddedParameters(newValue);
+    component.setSelectedValue(newValue, embedded);
   }
 
   @Override

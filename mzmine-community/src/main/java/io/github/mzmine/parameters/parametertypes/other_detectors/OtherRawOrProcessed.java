@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -27,9 +26,11 @@ package io.github.mzmine.parameters.parametertypes.other_detectors;
 
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesData;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
-public enum OtherRawOrProcessed {
+public enum OtherRawOrProcessed implements UniqueIdSupplier {
   RAW, PREPROCESSED, FEATURES;
 
   public Stream<OtherFeature> streamMatching(OtherTimeSeriesData data) {
@@ -46,6 +47,15 @@ public enum OtherRawOrProcessed {
       case RAW -> "raw";
       case PREPROCESSED -> "pre-processed";
       case FEATURES -> "features";
+    };
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case RAW -> "RAW";
+      case PREPROCESSED -> "PREPROCESSED";
+      case FEATURES -> "FEATURES";
     };
   }
 }

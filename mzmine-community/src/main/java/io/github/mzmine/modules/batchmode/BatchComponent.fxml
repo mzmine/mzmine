@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The MZmine Development Team
+  ~ Copyright (c) 2004-2025 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
+<?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
 <?import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -37,8 +38,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
-<?import org.kordamp.ikonli.javafx.FontIcon?><AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
   <GridPane hgap="5.0" prefHeight="700.0" prefWidth="850.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -47,8 +48,10 @@
     </FlowPane>
     <FlowPane alignment="TOP_CENTER" hgap="5" prefHeight="200.0" prefWidth="200.0"
       GridPane.columnIndex="2" GridPane.rowIndex="2">
+      <Button fx:id="btnCloneStep" mnemonicParsing="false" onAction="#cloneParametersPressed"
+        text="Clone step"/>
       <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#setParametersPressed"
-        text="Set parameters"/>
+        text="Setup"/>
       <Button fx:id="btnClear" mnemonicParsing="false" onAction="#clearPressed" text="Clear"/>
       <Button mnemonicParsing="false" onAction="#changeOutputFiles" text="Redefine outputs"/>
       <GridPane.margin>
@@ -76,17 +79,18 @@
     <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2"
       GridPane.rowIndex="1"/>
 
-    <BatchModuleTreePane includeTools="false" fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
+    <BatchModuleTreePane includeTools="false" fx:id="tvModules" prefWidth="200.0"
+      GridPane.rowIndex="1" GridPane.rowSpan="2"/>
     <VBox alignment="CENTER" spacing="5.0"
       GridPane.columnIndex="1" GridPane.rowIndex="1">
       <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed">
         <graphic>
-          <FontIcon iconLiteral="bi-chevron-double-right" />
+          <FontIcon iconLiteral="bi-chevron-double-right"/>
         </graphic>
       </Button>
       <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed">
         <graphic>
-          <FontIcon iconLiteral="bi-chevron-double-left" />
+          <FontIcon iconLiteral="bi-chevron-double-left"/>
         </graphic>
       </Button>
       <GridPane.margin>
@@ -96,10 +100,12 @@
         <Insets top="5.0"/>
       </padding>
     </VBox>
-    <FlowPane alignment="BOTTOM_CENTER" columnHalignment="CENTER" hgap="5.0" GridPane.columnSpan="3" GridPane.columnIndex="0" GridPane.rowIndex="4">
+    <FlowPane alignment="BOTTOM_CENTER" columnHalignment="CENTER" hgap="5.0" GridPane.columnSpan="3"
+      GridPane.columnIndex="0" GridPane.rowIndex="4">
       <Label alignment="CENTER" text="Intermediate feature lists"/>
       <ComboBox fx:id="cmbHandleFlists"/>
-      <Button mnemonicParsing="false" onAction="#onHandleIntermediateFlistsPressed" text="Apply to batch"/>
+      <Button mnemonicParsing="false" onAction="#onHandleIntermediateFlistsPressed"
+        text="Apply to batch"/>
     </FlowPane>
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -111,7 +117,7 @@
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
-<!--  make this row higher so that there is a gap to the option apply to intermediate feature lists   -->
+      <!--  make this row higher so that there is a gap to the option apply to intermediate feature lists   -->
       <RowConstraints minHeight="10.0" prefHeight="45.0" vgrow="NEVER"/>
     </rowConstraints>
   </GridPane>

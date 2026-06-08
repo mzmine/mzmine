@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,9 +62,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   private static final Logger logger = Logger.getLogger(IonIdentityListType.class.getName());
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
+      new IonIdentityListType(),
       // start with netID
-      new IonIdentityListType(), // add self type to have a column
-      new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
+      new SizeType(), new NeutralMassType(),
       // all realtionship types
       new IINRelationshipsType(), new IINRelationshipsSummaryType(),
       // all formula types
@@ -86,25 +86,24 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   }
 
   @Override
-  public <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
+  public double getPrefColumnWidth() {
+    return IonTypeType.getFormulaPrefColumnWidth();
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
     final IonNetwork net = ion.getNetwork();
     return (K) switch (subType) {
-      case IonIdentityListType __ -> ion;
       case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
       case SizeType __ -> net != null ? net.size() : null;
       case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;
-      case PartnerIdsType __ -> ion.getPartnerRowsString(";");
-      case MsMsMultimerVerifiedType __ -> {
-        int msmsMultimerCount = ion.getMSMSMultimerCount();
-        yield msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
-      }
       // list of relationships has no order
       case IINRelationshipsType __ ->
           net != null ? new ArrayList<>(net.getRelations().entrySet()) : null;
       case IINRelationshipsSummaryType __ ->
-          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream()
-              .map(entry -> entry.getValue().getName(entry.getKey()))
-              .collect(Collectors.joining(";")) : null;
+          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream().map(
+              entry -> entry.getValue().getName(entry.getKey())).collect(Collectors.joining(";"))
+              : null;
       //
       case ConsensusFormulaListType __ -> net != null ? net.getMolFormulas() : null;
       case SimpleFormulaListType __ -> ion.getMolFormulas();

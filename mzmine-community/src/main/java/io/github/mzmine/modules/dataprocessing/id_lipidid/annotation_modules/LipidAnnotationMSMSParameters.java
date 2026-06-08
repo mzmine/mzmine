@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
 
@@ -39,20 +39,25 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
       "m/z tolerance MS2 level:",
       "Enter m/z tolerance for exact mass database matching on MS2 level", 0.005, 10);
 
-  public static final PercentParameter minimumMsMsScore = new PercentParameter(
-      "Explained intensity [%]:", "Explained intensity [%] of all signals in MS/MS spectrum", 0.6);
-
   public static final BooleanParameter keepUnconfirmedAnnotations = new BooleanParameter(
       "Keep unconfirmed annotations",
       "WARNING!: If checked, annotations based on accurate mass without headgroup fragment annotations are kept.",
       false);
 
   public LipidAnnotationMSMSParameters() {
-    super(spectraMergeSelect, mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
+    super(spectraMergeSelect, mzToleranceMS2, keepUnconfirmedAnnotations);
   }
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 3 -> "Removed minimum explained intensity of MS2 fragments.";
+      default -> null;
+    };
   }
 }

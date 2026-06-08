@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -34,10 +33,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.MsMsInfoType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -46,6 +43,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
@@ -170,16 +168,14 @@ public class ConversionUtils {
     final Map<String, DetectorCVs> accessions = Arrays.stream(DetectorCVs.values())
         .collect(Collectors.toMap(DetectorCVs::getAccession, v -> v));
 
-    scans.stream().filter(Objects::nonNull);
     final Map<DetectorCVs, List<BuildingMzMLMsScan>> accessionToScansMap = accessions.keySet()
-        .stream().collect(Collectors.toMap(accession -> accessions.get(accession), accession -> {
-          return scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
-            if (scan.getCVParams().getCVParamsList().stream()
-                .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
-              c.accept(scan);
-            }
-          }).toList();
-        }));
+        .stream().collect(Collectors.toMap(accession -> accessions.get(accession),
+            accession -> scans.stream().<BuildingMzMLMsScan>mapMulti((scan, c) -> {
+              if (scan.getCVParams().getCVParamsList().stream()
+                  .anyMatch(cvParam -> cvParam.getAccession().equals(accession))) {
+                c.accept(scan);
+              }
+            }).toList()));
 
     if (accessionToScansMap.isEmpty()) {
       logger.finest(() -> "No other detectors found in file %s".formatted(file.getName()));
@@ -188,6 +184,9 @@ public class ConversionUtils {
 
     List<OtherDataFile> otherDataFiles = new ArrayList<>();
     for (Entry<DetectorCVs, List<BuildingMzMLMsScan>> accessionScansEntry : accessionToScansMap.entrySet()) {
+      if (accessionScansEntry.getValue() == null || accessionScansEntry.getValue().isEmpty()) {
+        continue;
+      }
       switch (accessionScansEntry.getKey()) { // add more detectors here
         case UV_SPECTRUM -> {
           final OtherDataFile uvFile = createUvFile(file, accessionScansEntry.getValue());
@@ -308,7 +307,7 @@ public class ConversionUtils {
     Double isolationMz = null;
     Double precursorMz = null;
     Integer charge = null;
-    Float colissionEnergy = null;
+    Float collissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
@@ -345,24 +344,23 @@ public class ConversionUtils {
       if (activation != null) {
         for (MzMLCVParam param : activation.getCVParamsList()) {
           if (param.getAccession().equals(MzMLCV.cvActivationEnergy)) {
-            colissionEnergy = Float.parseFloat(param.getValue().get());
+            collissionEnergy = Float.parseFloat(param.getValue().get());
           }
         }
       }
-      if (lowerWindow != null && upperWindow != null && isolationMz != null
-          && colissionEnergy != null) {
+      if (lowerWindow != null && upperWindow != null && isolationMz != null) {
         boolean infoFound = false;
         for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(Objects.requireNonNullElse(precursorMz, isolationMz),
-              buildingInfo.getPrecursorMz()) == 0
-              && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+              buildingInfo.getPrecursorMz()) == 0 && collisionEnergyCheck(buildingInfo,
+              collissionEnergy)) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
             infoFound = true;
           }
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(
-              Objects.requireNonNullElse(precursorMz, isolationMz), colissionEnergy,
+              Objects.requireNonNullElse(precursorMz, isolationMz), collissionEnergy,
               Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           info.setLowerIsolationMz(isolationMz - lowerWindow);
@@ -371,6 +369,20 @@ public class ConversionUtils {
         }
       }
     }
+  }
+
+  private static boolean collisionEnergyCheck(BuildingImsMsMsInfo buildingInfo,
+      Float collissionEnergy) {
+    if (collissionEnergy == null && buildingInfo.getCollisionEnergy() == null) {
+      return true;
+    }
+    if (collissionEnergy == null || buildingInfo.getCollisionEnergy() == null) {
+      return false;
+    }
+    if (Float.compare(collissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -386,13 +398,20 @@ public class ConversionUtils {
 
     final List<OtherDataFile> otherFiles = new ArrayList<>();
 
-    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : groupedChromatograms.entrySet()
-        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList()) {
+    List<Entry<ChromatogramType, List<MzMLChromatogram>>> list = groupedChromatograms.entrySet()
+        .stream().sorted(Comparator.comparing(e -> e.getKey().getDescription())).toList();
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> groupedByChromType : list) {
 
       // group by range unit so we definitely have only one chromatogram type per file.
       final Map<MzMLUnits, List<MzMLChromatogram>> groupedByUnit = groupByUnit(
-          groupedByChromType.getValue(),
-          c -> MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession()));
+          groupedByChromType.getValue(), c -> {
+            if (c.getId().contains("CAD")) {
+              // reported as absorbance but is actually pico ampere (at least on Thermo)
+              return MzMLUnits.PICO_AMPERE;
+            } else {
+              return MzMLUnits.ofAccession(c.getIntensityBinaryDataInfo().getUnitAccession());
+            }
+          });
 
       for (Entry<MzMLUnits, List<MzMLChromatogram>> unitChromEntry : groupedByUnit.entrySet()) {
         final MzMLUnits unit = unitChromEntry.getKey();
@@ -421,13 +440,14 @@ public class ConversionUtils {
               dps.stream().mapToDouble(DataPoint::getIntensity).toArray(), chrom.getId(),
               timeSeriesData);
 
-          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
-          timeSeriesData.addRawTrace(otherFeature);
-
           timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
           timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
 
-          extractAndSetMsMsInfoToChromatogram(chrom, chromType, otherFeature);
+          final OtherFeatureImpl otherFeature = new OtherFeatureImpl(timeSeries);
+          timeSeriesData.addRawTrace(otherFeature);
+
+          extractAndSetMsMsInfoToOtherFeature(chrom, chromType, otherFeature);
+
           if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
             if (polarity.isDefined()) {
@@ -469,18 +489,18 @@ public class ConversionUtils {
   /**
    * Sets the MS2 info for the otherFeature if it is set in the chromatogram
    */
-  private static void extractAndSetMsMsInfoToChromatogram(MzMLChromatogram chrom,
-      ChromatogramType chromType, OtherFeatureImpl otherFeature) {
+  private static void extractAndSetMsMsInfoToOtherFeature(@NotNull MzMLChromatogram chrom,
+      ChromatogramType chromType, @NotNull OtherFeature feature) {
     if (chromType == ChromatogramType.MRM_SRM) {
       final List<IsolationInfo> isolations = chrom.getIsolations();
       if (isolations.size() != 2) {
         return;
       }
-      final Double q3Mass = isolations.getLast().getPrecursorMz();
-      otherFeature.set(MZType.class, q3Mass);
 
       final IsolationInfo q1Isolation = isolations.getFirst();
       final Double q1Mass = q1Isolation.getPrecursorMz();
+      final Double q3Mass = isolations.getLast().getPrecursorMz();
+
       final ActivationInfo activationInfo = q1Isolation.getActivationInfo();
       final Float energy =
           activationInfo != null ? Objects.requireNonNullElse(activationInfo.getActivationEnergy(),
@@ -488,9 +508,8 @@ public class ConversionUtils {
       final ActivationMethod method = ActivationMethod.fromActivationType(
           activationInfo != null ? activationInfo.getActivationType() : null);
 
-      if (q1Mass != null) {
-        otherFeature.set(MsMsInfoType.class,
-            List.of(new DDAMsMsInfoImpl(q1Mass, null, energy, null, null, 2, method, null)));
+      if (q1Mass != null && q3Mass != null) {
+        OtherFeatureUtils.applyMrmInfo(q1Mass, q3Mass, method, energy, feature);
       }
     }
   }
@@ -503,9 +522,19 @@ public class ConversionUtils {
     return c.getCVParams().getCVParamsList().stream()
         .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
         .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
-        .orElse(ChromatogramType.UNKNOWN);
+        .map(chromatogramType -> switch (chromatogramType) {
+          case TIC, ABSORPTION -> {
+            if (c.getId().contains("CAD")) {
+              // thermo raw file parser reports CAD as absorption
+              yield ChromatogramType.ION_CURRENT;
+            }
+            yield chromatogramType;
+          }
+          case MRM_SRM, SIM, SIC, BPC, EMISSION, ION_CURRENT, PRESSURE, FLOW_RATE, UNKNOWN ->
+              chromatogramType;
+          case ELECTROMAGNETIC_RADIATION -> ChromatogramType.ELECTROMAGNETIC_RADIATION;
+        }).orElse(ChromatogramType.UNKNOWN);
   }
-
 
   /*
    * @Nullable public MzMLMobility getMobility(MsScan scan) { if

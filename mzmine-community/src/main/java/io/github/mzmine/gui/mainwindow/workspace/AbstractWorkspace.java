@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import static io.github.mzmine.util.javafx.FxMenuUtil.addModuleMenuItems;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addRadioMenuItem;
 import static io.github.mzmine.util.javafx.FxMenuUtil.addSeparator;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesModule;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.WindowLocation;
@@ -42,6 +43,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
@@ -53,6 +56,11 @@ import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDe
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule;
+import io.github.mzmine.modules.dataprocessing.filter_lipidpreferredlevel.SetLipidAnnotationLevelModule;
+import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.intensityrepresentation.ConfigCompoundRepresentationModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
@@ -74,6 +82,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabas
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
@@ -87,12 +96,13 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
-import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sql.SQLExportModule;
 import io.github.mzmine.modules.io.export_features_venn.VennExportModule;
+import io.github.mzmine.modules.io.export_features_xml.ExportFeaturesDataModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
+import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_scans_modular.ExportScansFeatureModule;
@@ -107,6 +117,8 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
@@ -158,6 +170,7 @@ import javafx.scene.input.KeyCombination;
 public abstract class AbstractWorkspace implements Workspace {
 
   private final WorkspaceMenuHelper helper = new WorkspaceMenuHelperImpl();
+  protected static final String recentProjectsMenu = "Recent projects";
 
   @Override
   public WorkspaceMenuHelper getWorkspaceMenuHelper() {
@@ -203,11 +216,14 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultProjectMenu() {
     final Menu menu = new Menu("Project");
-    final Menu recentProjects = new Menu("Recent projects");
+    final Menu recentProjects = new Menu(recentProjectsMenu);
 
     menu.setOnShowing(_ -> getWorkspaceMenuHelper().fillRecentProjects(recentProjects));
 
-    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN);
+    addMenuItem(menu, "Open project", () -> ProjectLoadModule.openQuickSelect(), KeyCode.O,
+        KeyCombination.SHORTCUT_DOWN);
+    addModuleMenuItem(menu, ProjectLoadModule.class, KeyCode.O, KeyCombination.SHORTCUT_DOWN,
+        KeyCombination.SHIFT_DOWN);
     menu.getItems().add(recentProjects);
     addModuleMenuItem(menu, ProjectSaveModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN);
     addModuleMenuItem(menu, ProjectSaveAsModule.class, KeyCode.S, KeyCombination.SHORTCUT_DOWN,
@@ -266,7 +282,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
     addModuleMenuItems(menu, "Graphics", ExportAllIdsGraphicalModule.class);
     addModuleMenuItems(menu, CSVExportModularModule.class, CompoundAnnotationsCSVExportModule.class,
-        LegacyCSVExportModule.class, MZTabmExportModule.class, SQLExportModule.class,
+        LegacyCSVExportModule.class, SQLExportModule.class,
         // scans
         ExportScansFeatureModule.class, AdapMspExportModule.class, AdapMgfExportModule.class,
         GnpsFbmnExportAndSubmitModule.class, GnpsGcExportAndSubmitModule.class,
@@ -274,7 +290,7 @@ public abstract class AbstractWorkspace implements Workspace {
         //
         ImportFeatureNetworksSimpleModule.class, ExportCorrAnnotationModule.class,
         NetworkGraphMlExportModule.class, FeatureMLExportModularModule.class,
-        CcsBaseExportModule.class);
+        CcsBaseExportModule.class, ExportFeaturesDataModule.class);
     addModuleMenuItems(menu, "Statistics", VennExportModule.class, MetaboAnalystExportModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryBatchGenerationModule.class,
         GNPSLibraryBatchExportModule.class, ExportScansFeatureModule.class);
@@ -290,6 +306,9 @@ public abstract class AbstractWorkspace implements Workspace {
         FormulaPredictionIonNetworkModule.class, CreateAvgNetworkFormulasModule.class,
         IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
+    addModuleMenuItems(groupingMenu, CompoundGrouperModule.class,
+        ConfigCompoundRepresentationModule.class);
+    groupingMenu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(groupingMenu, OnlineLcReactivityModule.class, AnnotateIsomersModule.class);
     groupingMenu.getItems().addAll(new SeparatorMenuItem(),
         new ModuleMenuItem(ImageCorrelateGroupingModule.class, null));
@@ -302,11 +321,13 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(menu, "Search precursor mass", LocalCSVDatabaseSearchModule.class,
         BioTransformerModule.class);
     addModuleMenuItems(menu, "Search spectra", SpectralLibrarySearchModule.class,
-        LipidAnnotationModule.class, NistMsSearchModule.class,
-        FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
+        AnalogSpectralLibrarySearchModule.class, LipidAnnotationModule.class,
+        NistMsSearchModule.class, FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
-    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class);
+    addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,
+        LipidAnnotationCleanupModule.class, SetLipidAnnotationLevelModule.class,
+        PreferredAnnotationRankingModule.class);
     return menu;
   }
 
@@ -337,9 +358,13 @@ public abstract class AbstractWorkspace implements Workspace {
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);
     addSeparator(featureVis);
-    addModuleMenuItems(featureVis, "Lipids", EquivalentCarbonNumberModule.class,
+    addModuleMenuItems(featureVis, "Lipids", LipidAnnotationQCDashboardModule.class,
+        EquivalentCarbonNumberModule.class,
         LipidAnnotationSummaryModule.class);
     addModuleMenuItem(featureVis, IsotopeLabelingModule.class, null);
+    addModuleMenuItems(featureVis, "Dashboards", CompoundDashboardModule.class,
+        IntegrationDashboardModule.class, LipidAnnotationQCDashboardModule.class,
+        StatsDasboardModule.class);
     // end of feature visualization
     // back to main visualization menu
     addModuleMenuItems(menu, MSnTreeVisualizerModule.class);
@@ -351,9 +376,10 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Tools");
     addMenuItem(menu, "Quick search", ModuleQuickSelectDialog::openQuickSearch, KeyCode.F,
         KeyCombination.SHORTCUT_DOWN);
-    addModuleMenuItems(menu, IsotopePatternPreviewModule.class, QualityParametersModule.class);
+    addModuleMenuItems(menu, GlobalIonLibrariesModule.class, IsotopePatternPreviewModule.class,
+        QualityParametersModule.class);
     addModuleMenuItems(menu, "Libraries", LibraryAnalysisCSVExportModule.class,
-        MsMsQualityExportModule.class);
+        MsMsQualityExportModule.class, MergeLibrariesModule.class);
     addModuleMenuItems(menu, "timsTOF fleX", TimsTOFMaldiAcquisitionModule.class,
         SimsefImagingSchedulerModule.class);
     return menu;
@@ -387,6 +413,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Help");
     addMenuItem(menu, "Open documentation", () -> MZmineCore.getDesktop()
         .openWebPage("https://mzmine.github.io/mzmine_documentation/"));
+    addMenuItem(menu, "Open quick start video", () -> DesktopService.getDesktop()
+        .openWebPage(MzioMZmineLinks.WIZARD_QUICKSTART_VIDEO.getUrl()));
     addMenuItem(menu, "Open landing page",
         () -> MZmineCore.getDesktop().addTab(new MZmineIntroductionTab()));
 

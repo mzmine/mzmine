@@ -112,7 +112,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         return;
       }
       model.getSelectedEdges().setAll(selectedEdges);
-      logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
+      logger.finest(() -> "Selected edges: " + selectedEdges.toString());
     });
   }
 
@@ -128,7 +128,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         return;
       }
       model.setSelectedNodes(selectedNodes);
-      logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
+      logger.finest(() -> "Selected nodes: " + selectedNodes.toString());
     });
   }
 

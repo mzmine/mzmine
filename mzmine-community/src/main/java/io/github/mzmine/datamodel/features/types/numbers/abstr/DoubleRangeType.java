@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
@@ -111,6 +112,10 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
             }
           }
           return sum;
+        }
+        case DIFFERENCE: {
+          Range conensus = (Range) evaluateBindings(BindingsType.RANGE, models);
+          return conensus == null ? null : RangeUtils.rangeLength(conensus);
         }
         case MIN, MAX: {
           throw new UnsupportedOperationException("min max bindings are undefined for Ranges");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,9 @@ import java.util.Objects;
  */
 public class MZTolerance {
 
+  public static final MZTolerance NARROW_5_PPM_OR_1_MDA = new MZTolerance(0.001, 5);
   public static final MZTolerance FIFTEEN_PPM_OR_FIVE_MDA = new MZTolerance(0.005, 15);
+  public static final MZTolerance WIDE_25_PPM_OR_10_MDA = new MZTolerance(0.01, 25);
 
   // PPM conversion factor.
   private static final double MILLION = 1000000.0;
@@ -111,7 +113,9 @@ public class MZTolerance {
   }
 
   public boolean checkWithinTolerance(final double mz1, final double mz2) {
-    return getToleranceRange(mz1).contains(mz2);
+    final double dist = Math.abs(mz1 - mz2);
+    // absolute then relative tolerance check
+    return dist <= mzTolerance || dist <= mz1 / MILLION * ppmTolerance;
   }
 
   @Override
@@ -132,12 +136,12 @@ public class MZTolerance {
         && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
   }
 
-  public static MZTolerance [] getDefaultResolutions (){
-    MZTolerance [] mzTol= new MZTolerance [4];
-    mzTol[0] = new MZTolerance(0.00025,0);
-    mzTol[1] = new MZTolerance(0.001,0);
-    mzTol[2] = new MZTolerance(0.01,0);
-    mzTol[3] = new MZTolerance(0.1,0);
+  public static MZTolerance[] getDefaultResolutions() {
+    MZTolerance[] mzTol = new MZTolerance[4];
+    mzTol[0] = new MZTolerance(0.00025, 0);
+    mzTol[1] = new MZTolerance(0.001, 0);
+    mzTol[2] = new MZTolerance(0.01, 0);
+    mzTol[3] = new MZTolerance(0.1, 0);
     return mzTol;
   }
 

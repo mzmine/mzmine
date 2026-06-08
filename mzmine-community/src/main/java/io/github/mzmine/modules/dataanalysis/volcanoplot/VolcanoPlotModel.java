@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,11 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.DoubleProperty;
@@ -43,13 +46,23 @@ public class VolcanoPlotModel {
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
+  private final ObjectProperty<ImputationFunctions> missingValueImputation = new SimpleObjectProperty<>(
+      ImputationFunctions.GLOBAL_LIMIT_OF_DETECTION);
+
+  // after missing value imputation etc
+  private final ObjectProperty<FeaturesDataTable> featureDataTable = new SimpleObjectProperty<>();
+
   private final ObjectProperty<Collection<DatasetAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
-  private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable UnivariateRowSignificanceTestConfig> test = new SimpleObjectProperty<>();
 
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
+
+  // null = feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
 
   public List<FeatureList> getFlists() {
     return flists.get();
@@ -61,6 +74,30 @@ public class VolcanoPlotModel {
 
   public void setFlists(List<FeatureList> flists) {
     this.flists.set(flists);
+  }
+
+  public FeaturesDataTable getFeatureDataTable() {
+    return featureDataTable.get();
+  }
+
+  public ObjectProperty<FeaturesDataTable> featureDataTableProperty() {
+    return featureDataTable;
+  }
+
+  public void setFeatureDataTable(FeaturesDataTable featureDataTable) {
+    this.featureDataTable.set(featureDataTable);
+  }
+
+  public void setMissingValueImputation(ImputationFunctions missingValueImputation) {
+    this.missingValueImputation.set(missingValueImputation);
+  }
+
+  public ImputationFunctions getMissingValueImputation() {
+    return missingValueImputation.get();
+  }
+
+  public ObjectProperty<ImputationFunctions> missingValueImputationProperty() {
+    return missingValueImputation;
   }
 
   public AbundanceMeasure getAbundanceMeasure() {
@@ -87,15 +124,15 @@ public class VolcanoPlotModel {
     return datasets;
   }
 
-  public @Nullable RowSignificanceTest getTest() {
+  public @Nullable UnivariateRowSignificanceTestConfig getTest() {
     return test.get();
   }
 
-  public void setTest(@Nullable RowSignificanceTest test) {
+  public void setTest(@Nullable UnivariateRowSignificanceTestConfig test) {
     this.test.set(test);
   }
 
-  public ObjectProperty<@Nullable RowSignificanceTest> testProperty() {
+  public ObjectProperty<@Nullable UnivariateRowSignificanceTestConfig> testProperty() {
     return test;
   }
 
@@ -121,6 +158,14 @@ public class VolcanoPlotModel {
 
   public void setSelectedRows(List<FeatureListRow> selectedRows) {
     this.selectedRows.set(selectedRows);
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -75,8 +74,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItemsCounter {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(GnpsFbmnMgfExportTask.class.getName());
 
   //
   private final FeatureList[] featureLists;
@@ -129,7 +127,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
-      List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+      List<FeatureListRow> rows = featureList.getRowsCopy();
       final int numRows = rows.size();
       final long numFeatures = rows.stream().count();
       final long numMS2 = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).count();

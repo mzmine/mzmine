@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -70,7 +70,7 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
     for (File file : files) {
       if (!(file.exists() && file.canRead())) {
         setStatus(TaskStatus.ERROR);
-        final String msg = STR."Cannot read metadata file \{file}. The file/path may not exist.";
+        final String msg = "Cannot read metadata file " + file + ". The file/path may not exist.";
         error(msg);
         DesktopService.getDesktop().displayErrorMessage(msg);
         return;
@@ -105,7 +105,7 @@ public class ProjectMetadataImportTask extends AbstractSimpleToolTask {
       return;
     }
     
-    MetadataTable projectMetadata = MZmineCore.getProjectMetadata();
+    MetadataTable projectMetadata = ProjectService.getMetadata();
     projectMetadata.merge(mergedMetadata);
   }
 }

@@ -52,4 +52,5 @@ public class RegionExtractionModule extends AbstractProcessingModule {
 
     return ExitCode.OK;
   }
+
 }

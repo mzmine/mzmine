@@ -74,8 +74,8 @@ public class PcaTest {
 //    final RealMatrix projected = matrix.multiply(first2Components);
     final RealMatrix projected = pcaResult.projectDataToScores(2);
 
-    logger.info(() -> STR."Scores: \{principalComponentMatrix.toString()}");
-    logger.info(() -> STR."Loadings: \{pcaResult.getLoadingsMatrix().toString()}");
+    logger.info(() -> "Scores: " + principalComponentMatrix.toString());
+    logger.info(() -> "Loadings: " + pcaResult.getLoadingsMatrix().toString());
   }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,20 +27,14 @@ package io.github.mzmine.modules.visualization.infovisualizer;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class InfoVisualizerParameters extends SimpleParameterSet {
-
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   /**
    * Create the parameter set.
    */
   public InfoVisualizerParameters() {
-    super(new Parameter[] {windowSettings});
+    super(new Parameter[]{});
   }
 
 }

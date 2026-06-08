@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.XMLUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -47,7 +47,8 @@ import org.xml.sax.helpers.DefaultHandler;
 public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
     UserParameterOpenHandler {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      UserParameterOpenHandler_3_0.class.getName());
 
   private StringBuffer charBuffer;
 
@@ -82,8 +83,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
     charBuffer = new StringBuffer();
 
     // Parse the XML file
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    SAXParser saxParser = factory.newSAXParser();
+    final SAXParser saxParser = XMLUtils.newSAXParser();
     saxParser.parse(inputStream, this);
 
   }
@@ -179,23 +179,6 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
         value = valueString;
       }
       currentValues.put(currentDataFile, value);
-    }
-
-    // <PARAMETER>
-    if (qName.equals(UserParameterElementName_3_0.PARAMETER.getElementName())) {
-      if (currentParameter instanceof ComboParameter) {
-        String newChoices[] = currentOptions.toArray(new String[0]);
-        ((ComboParameter<String>) currentParameter).setChoices(newChoices);
-      }
-      newProject.addParameter(currentParameter);
-
-      for (RawDataFile dataFile : currentValues.keySet()) {
-        Object value = currentValues.get(dataFile);
-        newProject.setParameterValue(currentParameter, dataFile, value);
-      }
-
-      parsedParams++;
-
     }
 
   }

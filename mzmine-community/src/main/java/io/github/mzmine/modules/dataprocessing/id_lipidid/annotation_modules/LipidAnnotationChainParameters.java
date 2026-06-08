@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -50,4 +51,19 @@ public class LipidAnnotationChainParameters extends SimpleParameterSet {
     super(minChainLength, maxChainLength, minDBEs, maxDBEs, onlySearchForEvenChainLength);
   }
 
+  public static LipidAnnotationChainParameters create(int minChain, int maxChain, int minDbe,
+      int maxDbe, boolean onlyEven) {
+    ParameterSet param = new LipidAnnotationChainParameters().cloneParameterSet();
+
+    param.setParameter(minChainLength, minChain);
+    param.setParameter(maxChainLength, maxChain);
+    param.setParameter(minDBEs, minDbe);
+    param.setParameter(maxDBEs, maxDbe);
+    param.setParameter(onlySearchForEvenChainLength, onlyEven);
+    return (LipidAnnotationChainParameters) param;
+  }
+
+  public static LipidAnnotationChainParameters createDefault() {
+    return create(12, 26, 0, 6, false);
+  }
 }

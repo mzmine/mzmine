@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DoubleType extends NumberType<Double> {
+
+  private static final Function<@Nullable String, @Nullable Double> stringToDouble = ParsingUtils::stringToDouble;
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -75,7 +79,7 @@ public abstract class DoubleType extends NumberType<Double> {
     } else {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
   }
 
@@ -130,7 +134,7 @@ public abstract class DoubleType extends NumberType<Double> {
               if (range == null) {
                 range = Range.singleton(value);
               } else {
-                range.span(Range.singleton(value));
+                range = range.span(Range.singleton(value));
               }
             }
           }
@@ -147,6 +151,22 @@ public abstract class DoubleType extends NumberType<Double> {
           }
           return min;
         }
+        case DIFFERENCE: {
+          Double min = null;
+          Double max = null;
+          for (var model : models) {
+            Double value = model.get(this);
+            if (value != null) {
+              if (max == null || value > max) {
+                max = value;
+              }
+              if (min == null || value < min) {
+                min = value;
+              }
+            }
+          }
+          return min == null ? null : max - min;
+        }
         case MAX: {
           // calc average center of ranges
           Double max = null;
@@ -161,5 +181,10 @@ public abstract class DoubleType extends NumberType<Double> {
       }
     }
     return result;
+  }
+
+  @Override
+  public @Nullable Function<@Nullable String, @Nullable Double> getMapper() {
+    return stringToDouble;
   }
 }

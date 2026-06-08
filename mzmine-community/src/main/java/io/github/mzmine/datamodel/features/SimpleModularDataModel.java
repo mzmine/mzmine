@@ -27,25 +27,24 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.HashMap;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import java.util.Map;
 
 /**
  * Simple implementation of {@link ModularDataModel} to store values together with data types. This
  * class should not be used to store small elements but rather to load and save objects
  */
-public class SimpleModularDataModel implements ModularDataModel {
+public class SimpleModularDataModel extends ModularDataModelMap {
 
-  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
+  private final Map<DataType, Object> map = new HashMap<>();
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
+  public Map<DataType, Object> getMap() {
     return map;
   }
 
   @Override
   public <T> boolean set(final Class<? extends DataType<T>> tclass, final T value) {
-    return ModularDataModel.super.set(tclass, value);
+    return super.set(tclass, value);
   }
 
 }

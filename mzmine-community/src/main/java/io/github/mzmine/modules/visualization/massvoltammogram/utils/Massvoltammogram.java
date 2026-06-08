@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -209,7 +209,8 @@ public class Massvoltammogram {
     while (Math.abs(potential) <= Math.abs(endPotential)) {
 
       //Getting the scan for the given potential
-      final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential);
+      final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential,
+          startPotential);
       final Scan scan = scanSelection.getScanAtRt(file, rt);
 
       //Breaking the loop if the calculated rt exceeds the max rt of the data file.
@@ -254,7 +255,7 @@ public class Massvoltammogram {
     double potential = startPotential;
 
     //Getting the rows from the feature list and sorting them to ascending mz-values.
-    final List<FeatureListRow> rows = featureList.getRows();
+    final List<FeatureListRow> rows = featureList.getRowsCopy();
     rows.sort(FeatureListRowSorter.MZ_ASCENDING);
 
     //Calculating the rt tolerance for a feature around the potential.
@@ -265,7 +266,8 @@ public class Massvoltammogram {
     while (Math.abs(potential) <= Math.abs(endPotential)) {
 
       //Calculating the rt fot the given applied potential.
-      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential));
+      final float rt = (EcmsUtils.getRtAtPotential(delayTime, potentialRampSpeed, potential,
+          startPotential));
 
       //Initializing lists to add the mz-values and the intensity-values to.
       final List<Double> mzs = new ArrayList<>();
@@ -280,8 +282,7 @@ public class Massvoltammogram {
 
         //Searching for the index of the features closest rt to the potential rt.
         final int index = BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE,
-            featureData.getNumberOfValues(),
-            featureData::getRetentionTime);
+            featureData.getNumberOfValues(), featureData::getRetentionTime);
 
         //Calculating the rt value for the found index.
         final float foundRt = featureData.getRetentionTime(index);

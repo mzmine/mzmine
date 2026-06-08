@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,12 +64,13 @@ public class DataTypeCheckListComponent extends StackPane {
   }
 
   public void setValue(@Nullable Map<String, Boolean> map) {
+    checkList.getCheckModel().clearChecks();
     dataTypes.clear();
     if (map == null) {
       return;
     }
 
-    map.keySet().stream().sorted().forEach(dataTypes::add);
+    dataTypes.setAll(map.keySet().stream().sorted().toList());
     map.forEach((dt, b) -> {
       if (b) {
         checkList.getCheckModel().check(dt);

@@ -30,21 +30,11 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPartFilter;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.builders.WizardBatchBuilder;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WizardWorkflows;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDDA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDeconvolution;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowImaging;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowLibraryGeneration;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowMs1Only;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowTargetPlate;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.MZmineUser;
-import java.util.LinkedHashSet;
-import java.util.List;
+import io.mzio.users.autorisation.ServiceRestricted;
+import io.mzio.users.service.UserActiveService;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * the defaults should not change the name of enum values. if strings are needed, override the
@@ -52,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * All implementations must not override their equals and hash code methods.
  */
-public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory {
+public abstract class WorkflowWizardParameterFactory implements WizardParameterFactory,
+    ServiceRestricted {
 
   public static WorkflowWizardParameterFactory[] values() {
     return WizardWorkflows.values();
@@ -83,11 +74,6 @@ public abstract class WorkflowWizardParameterFactory implements WizardParameterF
   public abstract @NotNull WizardBatchBuilder getBatchBuilder(@NotNull final WizardSequence steps)
       throws UnsupportedOperationException;
 
-  /**
-   * Check if this workflow is available with the license and should be displayed in the current
-   * wizard.
-   * Todo for the future: might be confusing to enable a workspace and have all possible
-   *  workflows here. Maybe rename and limit to possible with licence and workspace in the future
-   */
-  public abstract boolean isAvailableWithLicense(@Nullable MZmineUser user);
+  @Override
+  public abstract @NotNull Set<@NotNull UserActiveService> getUnlockingServices();
 }

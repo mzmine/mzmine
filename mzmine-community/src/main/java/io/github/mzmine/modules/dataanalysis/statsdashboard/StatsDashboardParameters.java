@@ -35,7 +35,9 @@ public class StatsDashboardParameters extends CurrentProjectNoDialogParameterSet
   public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
 
   public StatsDashboardParameters() {
-    super(flists);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/statistics_dashboard/statistics_dashboard.html",
+        flists);
   }
 
   @Override

@@ -28,6 +28,8 @@ package datamodel;
 import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -66,7 +68,8 @@ public class DataTypesTest {
                           + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
               }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
               if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
                   .isInterface()) {
                 Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()
@@ -102,7 +105,8 @@ public class DataTypesTest {
                           + "\n" + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
               }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
               if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
                   .isInterface()) {
                 Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()

@@ -40,9 +40,9 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
     super(null, 5, "", null);
   }
 
-  public UnivariateBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
+  public UnivariateBaselineCorrector(@Nullable MemoryMapStorage storage, double samplePercentage,
       @NotNull String suffix, @Nullable MinimumSearchFeatureResolver resolver) {
-    super(storage, numSamples, suffix, resolver);
+    super(storage, samplePercentage, suffix, resolver);
   }
 
   /**
@@ -59,6 +59,7 @@ public abstract class UnivariateBaselineCorrector extends AbstractResolverBaseli
       int numValues, double[] xDataFiltered, double[] yDataFiltered, int numValuesFiltered,
       final boolean addPreview) {
     // translate into setp size in number of data points
+    final int numSamples = (int) (numValuesFiltered * samplePercentage);
     int stepSize = numValuesFiltered / numSamples;
     if (stepSize < 4) {
       stepSize = 4; // minimum required distance between samples

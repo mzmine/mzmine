@@ -86,11 +86,13 @@ public class SignalFormulaeModel {
         value.setToNode(unfilteredNode, this);
       }
 
-      unfilteredNode.setAttribute("ui.label", STR."""
-          \{unfilteredNode.getAttribute(FragNodeAttr.MZ.name())}
-          \{unfilteredNode.getAttribute(FragNodeAttr.FORMULA.name())}
-          \{formats.mz(deltaMzAbs.get())}, \{formats.ppm(deltaMzPpm.get())} ppm
-          """);
+      unfilteredNode.setAttribute("ui.label", """
+          %s
+          %s
+          %s, %s ppm
+          """.formatted(unfilteredNode.getAttribute(FragNodeAttr.MZ.name()),
+          unfilteredNode.getAttribute(FragNodeAttr.FORMULA.name()), formats.mz(deltaMzAbs.get()),
+          formats.ppm(deltaMzPpm.get())));
     });
 
     final FormulaWithExactMz formulaWithSmallestMzError = formulae.formulae().stream().min(
@@ -174,7 +176,8 @@ public class SignalFormulaeModel {
 
   @Override
   public String toString() {
-    return STR."PeakFormulaeModel{node=\{unfilteredNode}, selectedFormulaWithMz=\{selectedFormulaWithMz}, deltaMz=\{deltaMzAbs}\{'}'}";
+    return "PeakFormulaeModel{node=%s, selectedFormulaWithMz=%s, deltaMz=%s}".formatted(
+        unfilteredNode, selectedFormulaWithMz, deltaMzAbs);
   }
 
   public String getId() {

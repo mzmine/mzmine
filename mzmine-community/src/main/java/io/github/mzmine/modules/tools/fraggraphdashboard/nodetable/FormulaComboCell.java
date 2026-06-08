@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableCell;
 import javafx.util.StringConverter;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormulaeModel> {
 
@@ -59,7 +59,7 @@ public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormu
       if (getItem().getSelectedFormulaWithMz().equals(n)) {
         return;
       }
-      logger.finest(() -> STR."Updating selected formula from \{o} to \{n}.");
+      logger.finest(() -> "Updating selected formula from " + o + " to " + n + ".");
       getItem().setSelectedFormulaWithMz(n);
     });
     combo.setConverter(new StringConverter<>() {
@@ -68,7 +68,7 @@ public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormu
         if (formulaWithExactMz == null || formulaWithExactMz.formula() == null) {
           return "";
         }
-        return MolecularFormulaManipulator.getString(formulaWithExactMz.formula());
+        return FormulaUtils.getFormulaString(formulaWithExactMz.formula());
       }
 
       @Override

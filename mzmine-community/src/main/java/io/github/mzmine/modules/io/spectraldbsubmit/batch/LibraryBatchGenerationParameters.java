@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,11 +37,17 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.ArticleReferences;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.InputSpectraSelectParameters.SelectInputScans;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -56,7 +62,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.Map;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final MsLevelFilterParameter postMergingMsLevelFilter = new MsLevelFilterParameter(
-      new Options[]{Options.MS2, Options.MSn}, new MsLevelFilter(Options.MSn));
+      new Options[]{Options.MS1, Options.MS2, Options.MSn}, new MsLevelFilter(Options.MSn));
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
@@ -104,13 +112,22 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   private final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
       new MZToleranceParameter("m/z tolerance (merging)",
           "If selected, spectra from different collision energies will be merged.\n"
-          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+              + "The tolerance used to group signals during merging of spectra", 0.008, 25));
 
   public LibraryBatchGenerationParameters() {
     super(flists, file, exportFormat, postMergingMsLevelFilter, metadata, normalizer, merging,
         handleChimerics, quality, advanced);
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using the spectral library generation module please cite:"), linebreak(),
+        ArticleReferences.SPECLIBGENERATION.hyperlinkText());
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
@@ -141,7 +158,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   }
 
   @Override
-  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams) {
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
     if (loadedParams.containsKey(mergeMzTolerance.getName())) {
       boolean merge = mergeMzTolerance.getValue();
       if (!merge) {

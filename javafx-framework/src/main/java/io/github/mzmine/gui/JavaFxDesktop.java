@@ -49,4 +49,5 @@ public interface JavaFxDesktop extends Desktop {
   default boolean isGUI() {
     return true;
   }
+
 }

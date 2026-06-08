@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,6 +24,9 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import io.github.mzmine.javafx.components.GridRow;
+import java.util.List;
+import java.util.stream.IntStream;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -34,6 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -45,6 +48,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -55,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
+  public static final int DEFAULT_SPACE_GRID = 8;
   public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
 
@@ -135,11 +140,50 @@ public class FxLayout {
     return newHBox(Pos.CENTER_LEFT, padding, children);
   }
 
+  public static HBox newHBox(int spacing, Node... children) {
+    return newHBox(Pos.CENTER_LEFT, DEFAULT_PADDING_INSETS, spacing, children);
+  }
+
   public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
-    var pane = new HBox(DEFAULT_SPACE, children);
+    return newHBox(alignment, padding, DEFAULT_SPACE, children);
+  }
+
+  public static HBox newHBox(Pos alignment, Insets padding, int spacing, Node... children) {
+    var pane = new HBox(spacing, children);
     pane.setAlignment(alignment);
     pane.setPadding(padding);
     return pane;
+  }
+
+  public static void applyDefaults(VBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(HBox pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void applyDefaults(FlowPane pane, Insets padding) {
+    apply(pane, DEFAULT_SPACE, DEFAULT_SPACE, padding, Pos.CENTER_LEFT);
+  }
+
+  public static void apply(VBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(HBox pane, int space, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setSpacing(space);
+    pane.setAlignment(pos);
+  }
+
+  public static void apply(FlowPane pane, int vGap, int hGap, Insets padding, Pos pos) {
+    pane.setPadding(padding);
+    pane.setVgap(vGap);
+    pane.setHgap(hGap);
+    pane.setAlignment(pos);
   }
 
   public static StackPane newStackPane(Node... children) {
@@ -160,6 +204,10 @@ public class FxLayout {
     var pane = new BorderPane(center);
     pane.setPadding(padding);
     return pane;
+  }
+
+  public static BorderPaneBuilder newBorderPane() {
+    return new BorderPaneBuilder();
   }
 
   public static void centerAllNodesHorizontally(GridPane pane) {
@@ -194,8 +242,18 @@ public class FxLayout {
     return scroll;
   }
 
+  /**
+   * A non animated pane
+   */
   public static TitledPane newTitledPane(String title, Node node) {
-    return new TitledPane(title, node);
+    return newTitledPane(title, node, false);
+  }
+
+  public static TitledPane newTitledPane(String title, Node node, boolean animated) {
+    final TitledPane pane = new TitledPane(title, node);
+    // default disable animation - slows down when plots are shown with many data points
+    pane.setAnimated(animated);
+    return pane;
   }
 
   public static Accordion newAccordion(TitledPane... panes) {
@@ -219,6 +277,49 @@ public class FxLayout {
     return newAccordion(panes);
   }
 
+
+  public static GridPane newGrid1ColFillW(List<RowConstraints> rows, Node... children) {
+    return newGrid1ColFillW(DEFAULT_PADDING_INSETS, rows, children);
+  }
+
+  public static GridPane newGrid1ColFillW(Insets padding, List<RowConstraints> rows,
+      Node... children) {
+    return newGrid1ColFillW(padding, DEFAULT_SPACE_GRID, rows, children);
+  }
+
+  public static GridPane newGrid1ColFillW(Insets padding, double space, List<RowConstraints> rows,
+      Node... children) {
+    final List<ColumnConstraints> columns = newFillWidthColumns(1);
+    return newGridPane(padding, space, columns, rows, children);
+  }
+
+  public static GridPane newGridPane(List<ColumnConstraints> columns, List<RowConstraints> rows,
+      Node... children) {
+    return newGridPane(DEFAULT_PADDING_INSETS, DEFAULT_SPACE_GRID, columns, rows, children);
+  }
+
+  public static GridPane newGridPane(Insets padding, double space, List<ColumnConstraints> columns,
+      List<RowConstraints> rows, Node... children) {
+    final GridPane grid = new GridPane(space, space);
+    return applyToGrid(grid, padding, space, columns, rows, children);
+  }
+
+  public static GridPane applyToGrid(GridPane grid, Insets padding, double space,
+      List<ColumnConstraints> columns, List<RowConstraints> rows, Node... children) {
+    if (padding != null) {
+      grid.setPadding(padding);
+    }
+    grid.setVgap(space);
+    grid.setHgap(space);
+    if (columns != null) {
+      grid.getColumnConstraints().addAll(columns);
+    }
+    if (rows != null) {
+      grid.getRowConstraints().addAll(rows);
+    }
+    return addToGrid(grid, children);
+  }
+
   /**
    * Adding an empty ColumnConstraints object for column2 has the effect of not setting any
    * constraints, leaving the GridPane to compute the column's layout based solely on its content's
@@ -239,34 +340,71 @@ public class FxLayout {
 
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding,
       final Node... children) {
-    return newGrid2Col(grow, padding, DEFAULT_SPACE, children);
+    return newGrid2Col(grow, padding, DEFAULT_SPACE_GRID, children);
   }
 
   public static GridPane newGrid2Col(@NotNull GridColumnGrow grow, Insets padding, int space,
       final Node... children) {
     var grid = new GridPane(space, space);
-    grid.setPadding(padding);
+    return applyGrid2Col(grid, grow, padding, space, children);
+  }
 
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, final Node... children) {
+    // added more spacing, because validation overlaps with other components and takes away fokus
+    // like a text box is wider then and a spinner on top is hard to control with default spacing
+    return applyGrid2Col(grid, GridColumnGrow.RIGHT, DEFAULT_PADDING_INSETS, DEFAULT_SPACE_GRID,
+        children);
+  }
+
+  public static GridPane applyGrid2Col(@NotNull GridPane grid, @NotNull GridColumnGrow grow,
+      Insets padding, double space, final Node... children) {
     ColumnConstraints column1 = new ColumnConstraints();
+    column1.setHgrow(Priority.NEVER);
+    column1.setHalignment(HPos.RIGHT);
     ColumnConstraints column2 = new ColumnConstraints();
     switch (grow) {
       case BOTH -> setGrowColumn(column1, column2);
       case LEFT -> setGrowColumn(column1);
       case RIGHT -> setGrowColumn(column2);
     }
-    grid.getColumnConstraints().addAll(column1, column2);
-    var row = new RowConstraints();
-    row.setValignment(VPos.CENTER);
-    grid.getRowConstraints().add(row);
+    final List<ColumnConstraints> columns = List.of(column1, column2);
+    var rowConstraint = new RowConstraints();
+    rowConstraint.setValignment(VPos.CENTER);
+    final List<RowConstraints> rows = List.of(rowConstraint);
 
-    for (int i = 0; i < children.length; i += 2) {
-      grid.add(children[i], 0, i / 2);
-      if (i + 1 < children.length) {
-        grid.add(children[i + 1], 1, i / 2);
+    return applyToGrid(grid, padding, space, columns, rows, children);
+  }
+
+  /**
+   * Add all children to grid. Special handling of {@link GridRow} which fills a full row
+   */
+  public static GridPane addToGrid(final GridPane grid, final @Nullable Node... children) {
+    int cols = grid.getColumnCount();
+    int row = 0;
+    int col = 0;
+    for (final @Nullable Node child : children) {
+      // always fills a full row. If row is started this will flow into the new row
+      if (child instanceof GridRow || child instanceof Separator) {
+        if (col > 0) {
+          row++;
+        }
+        grid.add(child, 0, row, 2, 1);
+        col = 0;
+        row++;
+      } else {
+        if (child != null) {
+          grid.add(child, col, row);
+        }
+        col++;
+      }
+      if (col == cols) {
+        col = 0;
+        row++;
       }
     }
     return grid;
   }
+
 
   public static void setGrowColumn(final ColumnConstraints... columns) {
     for (final ColumnConstraints column : columns) {
@@ -275,7 +413,93 @@ public class FxLayout {
     }
   }
 
+  /**
+   * Bind managed to visible. Managed usually needs to be false if visible is false so that it does
+   * not take the space in the layout. But default is not bound. Sometimes this is not wanted.
+   *
+   * @return the input node
+   */
+  public static <T extends Node> T bindManagedToVisible(T node) {
+    node.managedProperty().bind(node.visibleProperty());
+    return node;
+  }
+
+  /**
+   * Default row constraints
+   */
+  public static RowConstraints newGridRowConstraints() {
+    return newGridRowConstraints(VPos.CENTER, false);
+  }
+
+  public static RowConstraints newGridRowConstraints(VPos vAlignment, boolean fillHeight) {
+    final RowConstraints constraints = new RowConstraints();
+    constraints.setValignment(vAlignment);
+    if (fillHeight) {
+      setFillHeightRow(constraints);
+    }
+    return constraints;
+  }
+
+  /**
+   * Spacer to fill HBox or VBox
+   */
+  public static @NotNull Region newHVFillSpacer() {
+    final Region spacer = new Region();
+    HBox.setHgrow(spacer, Priority.ALWAYS);
+    VBox.setVgrow(spacer, Priority.ALWAYS);
+    return spacer;
+  }
+
   public enum GridColumnGrow {
     LEFT, RIGHT, BOTH, NONE
+  }
+
+  public static ColumnConstraints newFillWidthColumn() {
+    final ColumnConstraints cc = new ColumnConstraints();
+    setGrowColumn(cc);
+    return cc;
+  }
+
+  public static List<ColumnConstraints> newFillWidthColumns(int numColumns) {
+    return IntStream.range(0, numColumns).mapToObj(i -> newFillWidthColumn()).toList();
+  }
+
+  public static RowConstraints newFillHeightRow() {
+    final RowConstraints rc = new RowConstraints();
+    setFillHeightRow(rc);
+    return rc;
+  }
+
+  public static List<RowConstraints> newFillHeightRows(int numRows) {
+    return IntStream.range(0, numRows).mapToObj(i -> newFillHeightRow()).toList();
+  }
+
+  private static void setFillHeightRow(RowConstraints rc) {
+    rc.setFillHeight(true);
+    rc.setVgrow(Priority.ALWAYS);
+  }
+
+  /**
+   * Fill a full
+   * {@link GridPane) row if combined with factory methods like {@link #newGrid2Col(Node...)}
+   */
+  public static GridRow gridRow(Node... children) {
+    return new GridRow(children);
+  }
+
+
+  public static BorderPane addNode(BorderPane borderPane, Node node, Position position) {
+    switch (position) {
+      case TOP -> borderPane.setTop(node);
+      case BOTTOM -> borderPane.setBottom(node);
+      case LEFT -> borderPane.setLeft(node);
+      case RIGHT -> borderPane.setRight(node);
+      case CENTER -> borderPane.setCenter(node);
+    }
+    return borderPane;
+  }
+
+  public enum Position {
+    CENTER, TOP, LEFT, BOTTOM, RIGHT
   }
 }

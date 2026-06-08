@@ -43,8 +43,8 @@ import org.w3c.dom.NodeList;
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
-public class ColorPaletteParameter
-    implements UserParameter<SimpleColorPalette, ColorPaletteComponent> {
+public class ColorPaletteParameter implements
+    UserParameter<SimpleColorPalette, ColorPaletteComponent> {
 
   private static final String PALETTE_ELEMENT = "palette";
   private static final String SELECTED_INDEX = "selected";
@@ -150,13 +150,13 @@ public class ColorPaletteParameter
   }
 
   @Override
-  public void setValueToComponent(ColorPaletteComponent component, @Nullable SimpleColorPalette newValue) {
+  public void setValueToComponent(ColorPaletteComponent component,
+      @Nullable SimpleColorPalette newValue) {
     component.setPalettes(palettes);
     component.setValue(newValue);
   }
 
-  protected @NotNull
-  List<SimpleColorPalette> getPalettes() {
+  public @NotNull List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 

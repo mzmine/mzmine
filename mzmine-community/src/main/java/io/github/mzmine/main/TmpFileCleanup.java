@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.main;
 
-import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -40,12 +39,10 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import sun.misc.Unsafe;
 
 public class TmpFileCleanup implements Runnable {
 
-  private static Unsafe theUnsafe;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(TmpFileCleanup.class.getName());
 
   private final File[] tempDirs;
 
@@ -88,9 +85,10 @@ public class TmpFileCleanup implements Runnable {
       // Find all temporary files with the mask mzmine*.scans
       File[] remainingTmpFiles = Arrays.stream(tempDirs).map(f -> f.listFiles((dir, name) -> {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
-            STR."(.)*\{RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER}(.)*") || name.matches(
-            STR."(.)*\{FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER}(.)*") || name.matches(
-            STR."(.)*\{ThermoRawImportTask.THERMO_RAW_PARSER_DIR}(.)*")) {
+            "(.)*%s(.)*".formatted(RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER))
+            || name.matches("(.)*%s(.)*".formatted(FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER))
+            // old thermo raw file parser was extracted to a folder in old mzmine versions
+            || name.matches("(.)*%s(.)*".formatted("mzmine_thermo_raw_parser"))) {
           return true;
         }
         return false;
@@ -110,7 +108,8 @@ public class TmpFileCleanup implements Runnable {
               FileUtils.deleteDirectory(remainingTmpFile);
             } catch (DirectoryNotEmptyException e) {
               logger.info(
-                  () -> STR."Unable to delete directory \{remainingTmpFile}, it might be used by another mzmine instance.");
+                  () -> "Unable to delete directory %s, it might be used by another mzmine instance.".formatted(
+                      remainingTmpFile));
             }
             continue;
           }
@@ -145,5 +144,4 @@ public class TmpFileCleanup implements Runnable {
       logger.log(Level.WARNING, "Error while checking for old temporary files", e);
     }
   }
-
 }

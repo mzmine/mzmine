@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
+import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
@@ -58,6 +59,7 @@ public class DoubleComponent extends FlowPane implements ValuePropertyComponent<
     textFormatter.setValue(defvalue);
 
     getChildren().add(textField);
+    setAlignment(Pos.CENTER_LEFT);
   }
 
   public String getText() {

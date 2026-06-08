@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -108,13 +109,14 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
       return;
     }
 
+    boolean anyNoDataFeatures = false;
+
     // get trees sorted ascending
     final List<PrecursorIonTree> trees = new ArrayList<>(
         ScanUtils.getMSnFragmentTrees(dataFile, mzTol));
     trees.sort(Comparator.comparingDouble(PrecursorIonTree::getPrecursorMz));
     List<Range<Double>> mzRangesSorted = trees.stream()
-        .mapToDouble(PrecursorIonTree::getPrecursorMz)
-        .mapToObj(mzTol::getToleranceRange).toList();
+        .mapToDouble(PrecursorIonTree::getPrecursorMz).mapToObj(mzTol::getToleranceRange).toList();
 
     extractorFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scanSelection,
         mzRangesSorted, ScanDataType.MASS_LIST, this);
@@ -140,11 +142,22 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
       // need to set mz if data was empty
       if (!hasData) {
         f.setMZ(mstree.getPrecursorMz());
+        f.setHeight(0f);
+        f.setArea(0f);
+        f.setRT(0f);
+        anyNoDataFeatures = true;
+        // should we discard the feature in that case? it is possible that the precursor ion is
+        // not found in the ms2 spectra at all but the ms2s still contain information
       }
       f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
       ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);
       newFeatureList.addRow(row);
       id++;
+    }
+
+    if (anyNoDataFeatures) {
+      DialogLoggerUtil.showWarningNotification("MSn tree feature detection",
+          "For some MSn features no precursor ion signals were detected in the provided scan selection. This may indicate too high noise levels.");
     }
 
     newFeatureList.setSelectedScans(dataFile, scans);

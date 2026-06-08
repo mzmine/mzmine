@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Groups several {@link MrmTransition}s in the
- * {@link io.github.mzmine.datamodel.features.ModularDataModel} for {@link ModularFeature}s.
+ * {@link ModularDataModel} for {@link ModularFeature}s.
  */
 public final class MrmTransitionList {
 

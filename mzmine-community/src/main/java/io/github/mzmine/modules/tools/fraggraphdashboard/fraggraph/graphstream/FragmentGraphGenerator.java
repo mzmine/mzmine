@@ -99,7 +99,8 @@ public class FragmentGraphGenerator {
   }
 
   private void generateNodes(Map<SignalWithFormulae, Double> nodeSizeMap) {
-    logger.finest(() -> STR."Generating nodes fragment graph of precursor \{root.toString()}");
+    logger.finest(
+        () -> "Generating nodes fragment graph of precursor %s".formatted(root.toString()));
 
     boolean rootFound = false;
     for (SignalWithFormulae signalWithFormulae : signalsWithFormulae) {
@@ -113,7 +114,7 @@ public class FragmentGraphGenerator {
   }
 
   private void addEdges() {
-    logger.finest(() -> STR."Generating edges for fragment graph of \{root.toString()}");
+    logger.finest(() -> "Generating edges for fragment graph of %s".formatted(root.toString()));
 
     final SubFormulaEdgeGenerator edgeGenerator = new SubFormulaEdgeGenerator(
         nodeModelMap.values().stream().toList(), nodeNameFormatter);
@@ -165,8 +166,8 @@ public class FragmentGraphGenerator {
     SignalWithFormulae smaller = a.peak().getMZ() < b.peak().getMZ() ? a : b;
     SignalWithFormulae larger = a.peak().getMZ() > b.peak().getMZ() ? a : b;
 
-    return STR."\{nodeNameFormatter.format(smaller.peak().getMZ())}-\{nodeNameFormatter.format(
-        larger.peak().getMZ())}";
+    return "%s-%s".formatted(nodeNameFormatter.format(smaller.peak().getMZ()),
+        nodeNameFormatter.format(larger.peak().getMZ()));
   }
 
   public MultiGraph getGraph() {

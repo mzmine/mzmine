@@ -88,7 +88,7 @@ class StarterFeatureListTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return STR."Runs task on \{featureList}";
+    return "Runs task on " + featureList;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,12 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,11 +59,10 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(RepeatingUnitSuggester.class.getName());
 
   private final FeatureList featureList;
   private final MZTolerance mzTolerance;
@@ -221,8 +220,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
   }
 
   private boolean passesSimpleNitrogenHeuristic(IMolecularFormula formula, Isotopes ifac) {
-    return MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("N"))
-           <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
+    return FormulaUtils.countElement(formula, "N") <= FormulaUtils.countElement(formula, "C");
   }
 
 
@@ -250,7 +248,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
     }
     double ratio = delta / baseDelta;
     return Math.abs(ratio - Math.round(ratio))
-           < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
+        < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
   }
 
   /*
@@ -259,7 +257,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
   private MZTolerance extractMzToleranceFromPreviousMethods() {
 
     try {
-      Collection<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
+      List<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
           .getAppliedMethods();
 
       return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
@@ -268,7 +266,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
     } catch (Exception e) {
       logger.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "
-          + e.getMessage());
+              + e.getMessage());
     }
     return new MZTolerance(0.005, 15);
   }

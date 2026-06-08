@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,6 +63,7 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   private SummedIntensityMobilitySeries rawMobilogram;
   private final Range<Double> mzRange;
   private double percentage = 0d;
+  private boolean isComputed;
 
   public FeatureRawMobilogramProvider(@NotNull final Feature f,
       @NotNull final Range<Double> mzRange) {
@@ -118,12 +119,20 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
       }
     }
 
-    final int binningWith = BinningMobilogramDataAccess.getPreviousBinningWith(
+    final int binningWith = BinningMobilogramDataAccess.getPreviousBinningWidth(
         (ModularFeatureList) f.getFeatureList(), f.getMobilityUnit());
     var binner = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), binningWith);
     binner.setMobilogram(mobilograms);
     rawMobilogram = binner.toSummedMobilogram(null);
     percentage = 1d;
+    isComputed = true;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return isComputed;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,54 +26,46 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
-import io.github.mzmine.gui.chartbasics.simplechart.AllowsRegionSelection;
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.generators.PreferredAnnotationItemLabelGenerator;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.text.DecimalFormat;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.annotations.XYShapeAnnotation;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 
-public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionSelection {
+public class KendrickMassPlotChart extends EChartViewer {
 
   private final String colorScaleLabel;
   private final Color legendBg = new Color(0, 0, 0, 0);
 
-  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
-  private RegionSelectionListener currentRegionListener = null;
-  private XYShapeAnnotation currentRegionAnnotation;
-
-  public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
-      String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
-    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
+  public KendrickMassPlotChart(final @NotNull String title, final @NotNull String xAxisLabel,
+      final @NotNull String yAxisLabel, final @Nullable String colorScaleLabel,
+      final @NotNull KendrickMassPlotXYZDataset dataset) {
+    super(FxChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
     setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
-    EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration().getDefaultChartTheme();
+    final EStandardChartTheme defaultChartTheme = ConfigService.getConfiguration()
+        .getDefaultChartTheme();
     defaultChartTheme.apply(this);
-    double[] colorScaleValues = dataset.getColorScaleValues();
+    final double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
-    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+    final PaintScale paintScale = ConfigService.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
     if (dataset.getParameters().getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .isKendrickType()) {
@@ -83,23 +75,26 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
         .isKendrickType()) {
       getChart().getXYPlot().getDomainAxis().setRange(-0.5, 0.5);
     }
-    ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
+    final ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
+    renderer.setDefaultItemLabelPaint(defaultChartTheme.getItemLabelPaint());
     renderer.setDefaultToolTipGenerator(
         new KendrickToolTipGenerator(xAxisLabel, yAxisLabel, colorScaleLabel,
             dataset.getBubbleKendrickDataType().getName()));
-    
-    PaintScaleLegend legend = generateLegend(paintScale);
+    renderer.setDefaultItemLabelGenerator(new PreferredAnnotationItemLabelGenerator());
+    renderer.setDefaultItemLabelsVisible(true);
+
+    final PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);
     this.getChart().getXYPlot().setRenderer(renderer);
   }
 
-  private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
-    Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
-    Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
-    Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
+  private @NotNull PaintScaleLegend generateLegend(final @NotNull PaintScale scale) {
+    final Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
+    final Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
+    final Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
 
-    NumberAxis scaleAxis = new NumberAxis(null);
+    final NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(scale.getLowerBound(),
         Math.max(scale.getUpperBound(), scale.getUpperBound()));
     scaleAxis.setAxisLinePaint(axisPaint);
@@ -112,7 +107,7 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     if (colorScaleLabel != null) {
       scaleAxis.setLabel(colorScaleLabel);
     }
-    PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
+    final PaintScaleLegend newLegend = new PaintScaleLegend(scale, scaleAxis);
     newLegend.setPadding(5, 0, 5, 0);
     newLegend.setStripOutlineVisible(false);
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
@@ -122,51 +117,4 @@ public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionS
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
-
-  /**
-   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by
-   * {@link SimpleXYZScatterPlot#finishPath()}.
-   */
-  @Override
-  public void startRegion() {
-    isDrawingRegion.set(true);
-
-    if (currentRegionListener != null) {
-      removeChartMouseListener(currentRegionListener);
-    }
-    currentRegionListener = new RegionSelectionListener(this);
-    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
-      if (currentRegionAnnotation != null) {
-        getChart().getXYPlot().removeAnnotation(currentRegionAnnotation, false);
-      }
-      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
-      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
-          regionColor);
-      getChart().getXYPlot().addAnnotation(currentRegionAnnotation, true);
-    }));
-    addChartMouseListener(currentRegionListener);
-  }
-
-  /**
-   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
-   * from the listener object.
-   *
-   * @return The finished listener
-   */
-  @Override
-  public RegionSelectionListener finishPath() {
-    if (!isDrawingRegion.get()) {
-      return null;
-    }
-    if (currentRegionAnnotation != null) {
-      getChart().getXYPlot().removeAnnotation(currentRegionAnnotation);
-    }
-    isDrawingRegion.set(false);
-    removeChartMouseListener(currentRegionListener);
-    RegionSelectionListener tempRegionListener = currentRegionListener;
-    currentRegionListener = null;
-    return tempRegionListener;
-  }
 }
-

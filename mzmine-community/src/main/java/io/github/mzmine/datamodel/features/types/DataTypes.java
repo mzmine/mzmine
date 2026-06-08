@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.DatasetIdType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSClusterUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSLibraryUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
@@ -39,16 +38,21 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.MasstUrlType;
+import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
-import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersType;
+import io.github.mzmine.datamodel.features.types.identifiers.DatasetIdType;
+import io.github.mzmine.datamodel.features.types.identifiers.MasstUrlType;
+import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
@@ -66,7 +70,11 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RIRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -75,9 +83,11 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,20 +119,33 @@ public class DataTypes {
       classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
           .forEach(classInfo -> {
             try {
-              Object o = classInfo.load().getDeclaredConstructor().newInstance();
+              final Class<?> clazz = classInfo.load();
+
+              if (clazz == null || !DataType.class.isAssignableFrom(clazz)) {
+                // avoid initializing so many javafx classes that fail with:
+//                Caused by: java.lang.IllegalStateException: Toolkit not initialized
+                return;
+              }
+              if (!clazz.getSimpleName().endsWith("Type")) {
+                logger.warning("DataType does not end with Type: " + clazz.getSimpleName());
+              }
+
+              Object o = clazz.getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
                 var value = map.put(dt.getUniqueID(), dt);
                 if (value != null) {
                   throw new IllegalStateException(
                       "FATAL: Multiple data types with unique ID " + dt.getUniqueID() + "\n"
-                      + value.getClass().getName() + "\n" + dt.getClass().getName());
+                          + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
                 TYPES.put(dt.getClass().getName(), dt);
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
               //               can go silent
-              //              logger.log(Level.INFO, e.getMessage(), e);
+//                            logger.log(Level.INFO, classInfo+" class, message: "+e.getMessage(), e);
+            } catch (Throwable e) {
+              logger.log(Level.INFO, classInfo + " class, message: " + e.getMessage(), e);
             }
           });
     } catch (IOException e) {
@@ -146,8 +169,8 @@ public class DataTypes {
     final DataType<?> old = map.put(oldUniqueId, newType);
     if (old != null) {
       throw new IllegalStateException(
-          STR."FATAL: Multiple data types with unique ID \{oldUniqueId}\n\{newType.getClass()
-              .getName()}\n\{old.getClass().getName()}");
+          "FATAL: Multiple data types with unique ID %s\n%s\n%s".formatted(oldUniqueId,
+              newType.getClass().getName(), old.getClass().getName()));
     }
   }
 
@@ -200,12 +223,15 @@ public class DataTypes {
    */
   @NotNull
   public static Map<DataType, Integer> getDataTypeOrderFeatureTable() {
-    List<Class> priority = List.of(IDType.class, DetectionType.class, MZType.class,
-        PrecursorMZType.class, NeutralMassType.class, MZRangeType.class, RTType.class,
+    List<Class> priority = List.of(CompoundIdType.class, CompoundMembersJsonType.class,
+        CompoundMembersType.class, IDType.class, DetectionType.class, MZType.class,
+        MZRangeType.class, PrecursorMZType.class, NeutralMassType.class, RTType.class,
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
-        CCSType.class, CCSRelativeErrorType.class, MobilityUnitType.class, AreaType.class,
-        HeightType.class, IntensityRangeType.class, ChargeType.class, FragmentScanNumbersType.class,
-        IsotopePatternType.class, TailingFactorType.class, AsymmetryFactorType.class,
+        RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
+        MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
+        NormalizedHeightType.class, IntensityRangeType.class, ChargeType.class,
+        FragmentScanNumbersType.class, IsotopePatternType.class, TailingFactorType.class,
+        AsymmetryFactorType.class,
         // annotation specific
         CompoundNameType.class, DatasetIdType.class, FormulaType.class, SmilesStructureType.class,
         InChIStructureType.class, InChIKeyStructureType.class, SplashType.class, UsiType.class,
@@ -213,9 +239,9 @@ public class DataTypes {
         GNPSClusterUrlType.class, CompoundDatabaseMatchesType.class, CommentType.class,
         // combined types with sub columns
         AlignmentMainType.class, NetworkStatsType.class, IonIdentityListType.class,
-        SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
-        LipidMatchListType.class, ConsensusFormulaListType.class, SimpleFormulaListType.class,
-        FormulaListType.class, ManualAnnotationType.class,
+        PreferredAnnotationType.class, SpectralLibraryMatchesType.class,
+        CompoundDatabaseMatchesType.class, LipidMatchListType.class, ConsensusFormulaListType.class,
+        SimpleFormulaListType.class, FormulaListType.class, ManualAnnotationType.class,
         // graphical columns
         FeatureShapeType.class, FeatureShapeMobilogramType.class,
         FeatureShapeIonMobilityRetentionTimeHeatMapType.class, ImageType.class);
@@ -226,6 +252,19 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
+  }
+
+  /**
+   * Default sorter is based on {@link DataType} order in {@link #getDataTypeOrderFeatureTable()}
+   *
+   * @return default sorter
+   */
+  @NotNull
+  public static Comparator<DataType> getDefaultSorterFeatureTable() {
+    final Map<DataType, Integer> order = DataTypes.getDataTypeOrderFeatureTable();
+
+    return Comparator.<DataType>comparingInt(t -> order.getOrDefault(t, 99999999))
+        .thenComparing(DataType::getUniqueID);
   }
 
   /**

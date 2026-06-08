@@ -47,7 +47,6 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SubFormulaEdge {
 
@@ -79,9 +78,8 @@ public class SubFormulaEdge {
       this.b = a;
     }
 
-    id = STR."\{nodeNameFormatter.format(
-        a.getPeakWithFormulae().peak().getMZ())}-\{nodeNameFormatter.format(
-        b.getPeakWithFormulae().peak().getMZ())}";
+    id = "%s-%s".formatted(nodeNameFormatter.format(a.getPeakWithFormulae().peak().getMZ()),
+        nodeNameFormatter.format(b.getPeakWithFormulae().peak().getMZ()));
 
 //    if (FormulaUtils.isSubFormula(a.getSelectedFormulaWithMz(), b.getSelectedFormulaWithMz())) {
 //      valid.set(true);
@@ -97,8 +95,8 @@ public class SubFormulaEdge {
         Bindings.createObjectBinding(this::computeLossFormula, a.selectedFormulaWithMzProperty(),
             b.selectedFormulaWithMzProperty()));
     lossFormulaString.bind(Bindings.createStringBinding(
-        () -> lossFormula.get() != null ? MolecularFormulaManipulator.getString(lossFormula.get())
-            : null, lossFormula));
+        () -> lossFormula.get() != null ? FormulaUtils.getFormulaString(lossFormula.get()) : null,
+        lossFormula));
     // the signals do not change, can just set this property for now
     measuredMassDiff.set(
         a.getPeakWithFormulae().peak().getMZ() - b.getPeakWithFormulae().peak().getMZ());
@@ -115,7 +113,8 @@ public class SubFormulaEdge {
 
     massErrorAbs.bind(Bindings.createObjectBinding(() -> {
       return isValid() && computedMassDiff.get() != null ? measuredMassDiff.get()
-          - computedMassDiff.get() : null; // double properties cannot be set to null.
+                                                           - computedMassDiff.get()
+          : null; // double properties cannot be set to null.
     }, computedMassDiff, measuredMassDiff, valid));
 
     massErrorPpm.bind(Bindings.createObjectBinding(
@@ -284,6 +283,6 @@ public class SubFormulaEdge {
 
   @Override
   public String toString() {
-    return STR."SubFormulaEdge{id='\{id}\{'\''}\{'}'}";
+    return "SubFormulaEdge{id='%s'}".formatted(id);
   }
 }

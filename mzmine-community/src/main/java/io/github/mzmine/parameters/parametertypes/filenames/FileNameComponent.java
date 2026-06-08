@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.download.AssetGroup;
 import io.github.mzmine.modules.io.download.DownloadAsset;
 import io.github.mzmine.modules.io.download.DownloadAssetButton;
+import io.github.mzmine.util.StringUtils;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
@@ -173,8 +174,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
 
   public File getValue() {
     String fileName = txtFilename.getText();
-    File file = new File(fileName);
-    return file;
+    return StringUtils.isBlank(fileName) ? null : new File(fileName);
   }
 
   public void setValue(File value) {
@@ -182,10 +182,8 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
   }
 
   public File getValue(boolean allowEmptyString) {
-    String fileName = txtFilename.getText();
-    if (!allowEmptyString && fileName.trim().isEmpty()) {
-      return null;
-    }
+    // we never allow empty strings in the component as this would lead to a new File("")
+    // which is saves interpreted as a relative path during load/save from xml
     return getValue();
   }
 

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,8 +28,11 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
@@ -38,19 +40,28 @@ import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityFwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.AreaPercentType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.NormalizationFunction;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +83,56 @@ public class FeatureDataUtils {
       DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
 
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
+
+  /**
+   * Create a subSeries of {@link IonTimeSeries} and {@link IonMobilogramTimeSeries}. Can also be
+   * called for {@link FeatureDataAccess}.
+   *
+   * @param series            the original series to subSeries of
+   * @param startRT           start retention time
+   * @param endRT             end retention time
+   * @param mobilogramBinning the mobilogram binning to build feature data. Consider
+   *                          {@link
+   *                          BinningMobilogramDataAccess#createWithPreviousParameters(IMSRawDataFile,
+   *                          FeatureList)} the default
+   * @return a subseries
+   */
+  public static <T extends IonTimeSeries<? extends Scan>> @NotNull T subSeries(
+      final @Nullable MemoryMapStorage storage, final T series, final float startRT,
+      final float endRT, final @Nullable BinningMobilogramDataAccess mobilogramBinning) {
+
+    return (T) switch (series) {
+      // needs to call a different method for Ion mobility data
+      case IonMobilogramTimeSeries imsSeries ->
+          imsSeries.subSeries(storage, startRT, endRT, mobilogramBinning);
+      // call the default method for the rest like {@link IonTimeSeries} {@link FeatureDataAccess}
+      default -> series.subSeries(storage, startRT, endRT);
+    };
+  }
+
+  /**
+   * Create a subSeries of {@link IonTimeSeries} and {@link IonMobilogramTimeSeries}. Can also be
+   * called for {@link FeatureDataAccess}.
+   *
+   * @param series            the original series to subSeries of
+   * @param mobilogramBinning the mobilogram binning to build feature data. Consider
+   *                          {@link
+   *                          BinningMobilogramDataAccess#createWithPreviousParameters(IMSRawDataFile,
+   *                          FeatureList)} the default
+   * @return a subseries
+   */
+  public static <T extends IonTimeSeries<? extends Scan>> @NotNull T subSeries(
+      final @Nullable MemoryMapStorage storage, final T series, final int startIndex,
+      final int endIndexExclusive, final @Nullable BinningMobilogramDataAccess mobilogramBinning) {
+
+    return (T) switch (series) {
+      // needs to call a different method for Ion mobility data
+      case IonMobilogramTimeSeries imsSeries ->
+          imsSeries.subSeries(storage, startIndex, endIndexExclusive, mobilogramBinning);
+      // call the default method for the rest like {@link IonTimeSeries} {@link FeatureDataAccess}
+      default -> series.subSeries(storage, startIndex, endIndexExclusive);
+    };
+  }
 
   /**
    * The Rt range of the series.
@@ -299,6 +360,16 @@ public class FeatureDataUtils {
       feature.set(RTType.class, featureData.getRetentionTime(mostIntenseIndex));
     }
     feature.set(RTRangeType.class, getRtRange(featureData));
+
+    final OtherFeature rawTrace = feature.get(RawTraceType.class);
+    if (rawTrace != null) {
+      final OtherFeature preProcessed = featureData.getTimeSeriesData()
+          .getPreProcessedFeatureForTrace(rawTrace);
+      if (preProcessed != null && preProcessed.get(AreaType.class) != null) {
+        feature.set(AreaPercentType.class,
+            feature.get(AreaType.class) / preProcessed.get(AreaType.class));
+      }
+    }
   }
 
   /**
@@ -334,10 +405,25 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
       feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
+
+      // since version 4.10
+      float fwhm = QualityParameters.calculateFWHM(summedMobilogram);
+      if (!Float.isNaN(fwhm)) {
+        feature.set(MobilityFwhmType.class, fwhm);
+      }
     }
 
     if (calcQuality) {
       calculateQualityParameters(feature);
+    }
+
+    // auto-apply normalization if present
+    if (feature.getRawDataFile() != null) {
+      // normalize or reset normalized intensities
+      IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
+              feature.getFeatureList(), feature.getRawDataFile())
+          .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
+              () -> clearIntensityNormalization(feature));
     }
   }
 
@@ -369,11 +455,12 @@ public class FeatureDataUtils {
     double smallestDelta = Double.POSITIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ims) {
-      int maxValues = ims.getMobilograms().stream().mapToInt(IonMobilitySeries::getNumberOfValues)
-          .max().orElse(0);
+      final List<IonMobilitySeries> mobilograms = ims.getMobilograms();
+      int maxValues = mobilograms.stream().mapToInt(IonMobilitySeries::getNumberOfValues).max()
+          .orElse(0);
 
       double[] mzBuffer = new double[maxValues];
-      for (IonMobilitySeries mobilogram : ims.getMobilograms()) {
+      for (IonMobilitySeries mobilogram : mobilograms) {
         mobilogram.getMzValues(mzBuffer);
         final double delta = ArrayUtils.smallestDelta(mzBuffer, mobilogram.getNumberOfValues());
         if (delta < smallestDelta) {
@@ -416,5 +503,28 @@ public class FeatureDataUtils {
     if (!Float.isNaN(af)) {
       feature.set(AsymmetryFactorType.class, af);
     }
+  }
+
+  public static void normalizeAbundances(@NotNull ModularFeature feature,
+      @Nullable final NormalizationFunction normalizer) {
+    if (normalizer == null) {
+      return;
+    }
+
+    final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
+    feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
+    feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
+  }
+
+  /**
+   * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
+   */
+  public static void clearIntensityNormalization(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  }
+
+  private static void clearIntensityNormalization(ModularFeature feature) {
+    feature.set(NormalizedAreaType.class, null);
+    feature.set(NormalizedHeightType.class, null);
   }
 }

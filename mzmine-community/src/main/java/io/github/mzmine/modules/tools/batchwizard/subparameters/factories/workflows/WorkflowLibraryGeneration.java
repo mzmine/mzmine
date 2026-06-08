@@ -38,10 +38,14 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.mzio.general.Result;
+import io.mzio.users.service.UserActiveService;
 import io.mzio.users.user.MZmineUser;
 import java.io.File;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +114,14 @@ public class WorkflowLibraryGeneration extends WorkflowWizardParameterFactory {
   }
 
   @Override
-  public boolean isAvailableWithLicense(@Nullable MZmineUser user) {
-    return true;
+  public @NotNull Set<@NotNull UserActiveService> getUnlockingServices() {
+    return EnumSet.allOf(UserActiveService.class);
+  }
+
+  @Override
+  public Result checkUserForServices(@Nullable MZmineUser user) {
+    // this workflow should be displayed in any case, even if no user is logged in to show the capabilities
+    // the execution is stopped as soon as a task requires user authentication.
+    return Result.OK;
   }
 }

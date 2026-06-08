@@ -33,6 +33,9 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RDBERestrictionParameters extends SimpleParameterSet {
 
@@ -44,7 +47,15 @@ public class RDBERestrictionParameters extends SimpleParameterSet {
       "RDBE must be an integer", "Only integer values are allowed for RDBE", true);
 
   public RDBERestrictionParameters() {
-    super(new Parameter[] {rdbeRange, rdbeWholeNum});
+    super(rdbeRange, rdbeWholeNum);
   }
 
+  public static @NotNull RDBERestrictionParameters create(@Nullable Range<Double> rdbeRange,
+      boolean rdbeWholeNum) {
+    final RDBERestrictionParameters p = (RDBERestrictionParameters) new RDBERestrictionParameters().cloneParameterSet();
+    p.setParameter(RDBERestrictionParameters.rdbeRange,
+        Objects.requireNonNullElse(rdbeRange, Range.closed(-1.0, 40.0)));
+    p.setParameter(RDBERestrictionParameters.rdbeWholeNum, rdbeWholeNum);
+    return p;
+  }
 }

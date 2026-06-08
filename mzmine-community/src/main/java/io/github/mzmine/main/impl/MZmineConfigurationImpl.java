@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -29,6 +28,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.ImsOptimization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.Themes;
@@ -46,6 +46,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentPa
 import io.github.mzmine.util.StringCrypter;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.logging.LoggerUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,12 +58,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -74,9 +74,13 @@ import org.w3c.dom.NodeList;
  */
 public class MZmineConfigurationImpl implements MZmineConfiguration {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MZmineConfigurationImpl.class.getName());
 
   private final MZminePreferences preferences;
+
+  // logging file - first is null but can be extracted from Logger.parent.handlers by reflection
+  // if this fails then resort to finding the log file in user folder
+  private @Nullable File logFile;
 
   // list of last used projects
   private final @NotNull FileNameListSilentParameter lastProjects;
@@ -89,6 +93,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   private final Map<String, ParameterSet> moduleParameters;
 
   private final EStandardChartTheme standardChartTheme;
+
+  @NotNull
+  private ImsOptimization cachedImsOptimization = ImsOptimization.MEMORY_EFFICIENCY;
 
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<>();
@@ -137,13 +144,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         } catch (Exception e) {
           logger.log(Level.SEVERE,
               "Could not create an instance of parameter set class " + parameterSetClass + " "
-              + e.getMessage(), e);
+                  + e.getMessage(), e);
           return null;
         }
       } catch (NoClassDefFoundError | Exception e) {
         logger.log(Level.WARNING,
             "Could not find the module or parameter class " + moduleClass.toString() + " "
-            + e.getMessage(), e);
+                + e.getMessage(), e);
         return null;
       }
 
@@ -168,7 +175,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!parametersClass.isInstance(parameters)) {
       throw new IllegalArgumentException(
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
-          + parametersClass);
+              + parametersClass);
     }
     moduleParameters.put(moduleClass.getName(), parameters);
 
@@ -241,10 +248,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     List<String> exculdeWarningsFor = List.of("jmzml", "adap");
 
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
+      final Document configuration = XMLUtils.load(file);
 
       XPathFactory factory = XPathFactory.newInstance();
       XPath xpath = factory.newXPath();
@@ -327,10 +331,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       // write sensitive parameters only to the local config file
       final boolean skipSensitive = !file.equals(MZmineConfiguration.CONFIG_FILE);
 
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-      Document configuration = dBuilder.newDocument();
+      final Document configuration = XMLUtils.newDocument();
       Element configRoot = configuration.createElement("configuration");
       configuration.appendChild(configRoot);
 
@@ -366,7 +367,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           moduleElement.appendChild(paramElement);
         } catch (Exception ex) {
           logger.log(Level.WARNING,
-              STR."Error while saving module parameters to config. Skipping class \{className}");
+              "Error while saving module parameters to config. Skipping class %s".formatted(
+                  className));
         }
       }
 
@@ -433,7 +435,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -446,7 +448,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default paint scale set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -471,7 +473,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public Themes getTheme() {
-    return getPreferences().getValue(MZminePreferences.theme);
+    return getPreferences().getThemeConfig();
   }
 
   @Override
@@ -504,5 +506,32 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       }
       return path;
     }
+  }
+
+  @Override
+  public synchronized @NotNull File getLogFile() {
+    if (logFile != null) {
+      return logFile;
+    }
+
+    logFile = LoggerUtils.getLogFile();
+    if (logFile != null) {
+      logger.fine("Found log file: " + logFile.getAbsolutePath());
+      return logFile;
+    }
+    // just use the first log file? Or maybe evaluate the log files based on creation date
+    logger.finest("No log file found. Using default log file.");
+    logFile = new File(FileUtils.getUserDirectory(), "mzmine_0_0.log");
+    return logFile;
+  }
+
+  @Override
+  public @NotNull ImsOptimization getCachedImsOptimization() {
+    return cachedImsOptimization;
+  }
+
+  @Override
+  public void setCachedImsOptimization(@NotNull ImsOptimization optimization) {
+    this.cachedImsOptimization = optimization;
   }
 }

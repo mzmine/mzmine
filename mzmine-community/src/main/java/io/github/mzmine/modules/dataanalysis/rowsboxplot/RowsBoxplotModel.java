@@ -27,9 +27,12 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +43,12 @@ public class RowsBoxplotModel {
   private final ObjectProperty<@Nullable RowBoxPlotDataset> dataset = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
+
+  private final BooleanProperty showCategoryAxislabel = new SimpleBooleanProperty(true);
+  private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
+  private final BooleanProperty showCategoryAxisColumnLabels = new SimpleBooleanProperty(true);
+
+  private final ObjectProperty<@Nullable EChartViewer> chart = new SimpleObjectProperty<>(null);
 
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
@@ -87,5 +96,37 @@ public class RowsBoxplotModel {
 
   public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
     return abundanceMeasure;
+  }
+
+  public boolean getShowCategoryAxislabel() {
+    return showCategoryAxislabel.get();
+  }
+
+  public BooleanProperty showCategoryAxisLabelProperty() {
+    return showCategoryAxislabel;
+  }
+
+  public boolean isShowTitle() {
+    return showTitle.get();
+  }
+
+  public BooleanProperty showTitleProperty() {
+    return showTitle;
+  }
+
+  public boolean getShowCategoryAxisColumnLabels() {
+    return showCategoryAxisColumnLabels.get();
+  }
+
+  public BooleanProperty showCategoryAxisColumnLabelsProperty() {
+    return showCategoryAxisColumnLabels;
+  }
+
+  public @Nullable EChartViewer getChart() {
+    return chart.get();
+  }
+
+  protected ObjectProperty<@Nullable EChartViewer> chartProperty() {
+    return chart;
   }
 }

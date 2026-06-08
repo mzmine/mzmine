@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +60,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private final MobilityType mobilityType;
 
   @NotNull
-  private Set<IonMobilityMsMsInfo> precursorInfos;
+  private Set<IonMobilityMsMsInfo> precursorInfos = new HashSet<>();
   private Range<Double> mobilityRange;
 
   private int mobilitySegment = -1;
@@ -67,7 +69,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<IonMobilityMsMsInfo> precursorInfos, Float accumulationTime) {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
@@ -116,6 +118,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityScanStorage;
   }
 
+  public void setMobilityScanStorage(final MobilityScanStorage mobilityScanStorage) {
+    this.mobilityScanStorage = mobilityScanStorage;
+  }
+
   @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
@@ -149,10 +155,6 @@ public class SimpleFrame extends SimpleScan implements Frame {
             useAsMassList));
   }
 
-  public void setMobilityScanStorage(final MobilityScanStorage mobilityScanStorage) {
-    this.mobilityScanStorage = mobilityScanStorage;
-  }
-
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment)
@@ -170,17 +172,18 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @NotNull
   @Override
   public Set<IonMobilityMsMsInfo> getImsMsMsInfos() {
-    return precursorInfos;
+    return Collections.unmodifiableSet(precursorInfos);
   }
 
   @Nullable
   @Override
   public IonMobilityMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
-    if (precursorInfos == null) {
+    if (precursorInfos == null || precursorInfos.isEmpty()) {
       return null;
     }
-    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream()
-        .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
+    Optional<IonMobilityMsMsInfo> pcInfo = precursorInfos.stream().filter(
+        info -> info.getSpectrumNumberRange() == null || info.getSpectrumNumberRange()
+            .contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 
@@ -206,10 +209,24 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilitySegment;
   }
 
+  // todo: rename to setImsMsMsInfos
   public void setPrecursorInfos(@Nullable Set<IonMobilityMsMsInfo> precursorInfos) {
     // precursorInfos needs to be modifiable
-    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>(0);
-    this.precursorInfos.forEach(i -> i.setMsMsScan(this));
+    this.precursorInfos = precursorInfos != null ? new HashSet<>(precursorInfos) : HashSet.newHashSet(0);
+    for (IonMobilityMsMsInfo info : this.precursorInfos) {
+      addImsMsMsInfo(info);
+    }
+  }
+
+  public void addImsMsMsInfo(@Nullable IonMobilityMsMsInfo info) {
+    if(info == null) {
+      return;
+    }
+
+    final var thisInfo = info.createCopy();
+    thisInfo.setMsMsScan(this);
+    checkSpectrumRanges(thisInfo);
+    precursorInfos.add(thisInfo);
   }
 
   /**
@@ -250,5 +267,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
       throw new IllegalStateException("Mobility scans not set");
     }
     return mobilityScanStorage.getMassListTotalNumPoints();
+  }
+
+  void checkSpectrumRanges(IonMobilityMsMsInfo info) {
+    if (info.getSpectrumNumberRange() != null && info.getMsMsFrame() == this
+        && this.mobilityScanStorage != null && (info.getSpectrumNumberRange().lowerEndpoint() < 0
+        || info.getSpectrumNumberRange().upperEndpoint() > this.getNumberOfMobilityScans())) {
+      throw new RuntimeException(
+          "Invalid spectrum number range (%d-%d) for frame id %d with %d mobility scans.".formatted(
+              info.getSpectrumNumberRange().lowerEndpoint(),
+              info.getSpectrumNumberRange().upperEndpoint(), getFrameId(),
+              getNumberOfMobilityScans()));
+    }
   }
 }

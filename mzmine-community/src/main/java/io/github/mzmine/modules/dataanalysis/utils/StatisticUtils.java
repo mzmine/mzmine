@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,48 +28,128 @@ package io.github.mzmine.modules.dataanalysis.utils;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.datamodel.statistics.DataTableProcessingHistory;
+import io.github.mzmine.datamodel.statistics.FeatureListRowAbundances;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.jetbrains.annotations.NotNull;
 
 public class StatisticUtils {
 
-  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
-      AbundanceMeasure measure) {
-    return group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
-        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).toArray();
+  /**
+   * Extract abundances and apply missing value imputation and other transformations
+   *
+   * @param config configures the preparation of data
+   * @return a data table
+   */
+  public static FeaturesDataTable extractAbundancesPrepareData(FeatureList flist,
+      AbundanceDataTablePreparationConfig config) {
+    return extractAbundancesPrepareData(flist.getRows(), flist.getRawDataFiles(), config);
   }
 
-  public static double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
-      List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
-      AbundanceMeasure abundanceMeasure) {
-    return testResults.stream().mapToDouble(result -> {
-      return calculateLog2FoldChange(groupAFiles, groupBFiles, abundanceMeasure, result);
-    }).toArray();
+  /**
+   * Extract abundances and apply missing value imputation and other transformations
+   *
+   * @param rows   define data
+   * @param files  define data
+   * @param config configures the preparation of data
+   * @return a data table
+   */
+  public static FeaturesDataTable extractAbundancesPrepareData(List<FeatureListRow> rows,
+      List<RawDataFile> files, AbundanceDataTablePreparationConfig config) {
+
+    // extract values for each row
+    FeatureListRowAbundances[] abundances = rows.stream().map(row -> {
+      // keep track of the original missing values
+      return FeatureListRowAbundances.of(row, extractAbundance(row, files, config.measure()), true);
+    }).toArray(FeatureListRowAbundances[]::new);
+
+    // create data table already setting history as this will be applied
+    FeaturesDataTable data = new FeaturesDataTable(files, abundances);
+
+    if (config.missingValueImputation().isActive()) {
+      data = config.missingValueImputation().getImputer().process(data, true);
+    }
+
+    if (config.scalingFunction().isActive()) {
+      // apply scaling
+      data = config.scalingFunction().getScalingFunction().process(data, true);
+    }
+    if (config.centeringFunction().isActive()) {
+      // apply centering after scaling!
+      data = config.centeringFunction().getScalingFunction().process(data, true);
+    }
+
+    final DataTableProcessingHistory history = new DataTableProcessingHistory(config);
+    data.setProcessingHistory(history);
+    return data;
+  }
+
+  /**
+   * @return data array with missing values as Double.NaN
+   */
+  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
+      AbundanceMeasure measure) {
+    final double[] abundances = new double[group.size()];
+    for (int i = 0; i < group.size(); i++) {
+      abundances[i] = measure.getOrNaN((ModularFeature) row.getFeature(group.get(i)));
+    }
+    return abundances;
   }
 
   /**
    * Calculates the log2 transformed fold change between two groups.
+   *
+   * @return log2(a / b), 0 if both are the same, if a or b are 0 intensity then fallback is -10 or
+   * 10
    */
-  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
-      List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
-      RowSignificanceTestResult result) {
-    final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
-        abundanceMeasure);
-    final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
-        abundanceMeasure);
-    return MathUtils.log(2,
-        Arrays.stream(ab1).average().getAsDouble() / Arrays.stream(abB).average().getAsDouble());
+  public static double[] calculateLog2FoldChange(FeaturesDataTable tableA,
+      FeaturesDataTable tableB) {
+    final int features = tableA.getNumberOfFeatures();
+    final double[] result = new double[features];
+
+    for (int i = 0; i < features; i++) {
+      final double[] dataA = tableA.getFeatureData(i, false);
+      final double[] dataB = tableB.getFeatureData(i, false);
+      result[i] = calculateLog2FoldChange(dataA, dataB);
+    }
+    return result;
+  }
+
+  /**
+   * Calculates the log2 transformed fold change between two groups.
+   *
+   * @return log2(a / b), 0 if both are the same, if a or b are 0 intensity then fallback is -10 or
+   * 10
+   */
+  public static double calculateLog2FoldChange(double[] ab1, double[] abB) {
+    final double meanA = Arrays.stream(ab1).average().orElse(0d);
+    final double meanB = Arrays.stream(abB).average().orElse(0d);
+    if (Double.compare(meanA, meanB) == 0) {
+      // both the same - may be 0
+      return 0;
+    } else if (Double.compare(meanA, 0) == 0) {
+      // return a fixed number
+      return -10;
+    } else if (Double.compare(meanB, 0) == 0) {
+      return 10;
+    }
+
+    return MathUtils.log(2, meanA / meanB);
   }
 
   /**
@@ -86,18 +166,18 @@ public class StatisticUtils {
 //      for (int row = 0; row < columnVector.getDimension(); row++) {
 //        sum += columnVector.getEntry(row);
 //      }
+
       final double sum = columnVector.getL1Norm();
       final double mean = sum / columnVector.getDimension();
 
-      var resultVector = result.getColumnVector(col);
-      resultVector = columnVector.mapSubtract(mean);
+      var resultVector = columnVector.mapSubtract(mean);
       result.setColumnVector(col, resultVector);
     }
     return result;
   }
 
   /**
-   * Scales the values in every column to be between 0-1. To be used before centering the matrix.
+   * Scales the values in every column. To be used before centering the matrix.
    */
   public static RealMatrix scale(RealMatrix data, ScalingFunction scaling, boolean inPlace) {
     final RealMatrix result = inPlace ? data
@@ -111,9 +191,9 @@ public class StatisticUtils {
     return result;
   }
 
-  public static RealMatrix centerAndScale(RealMatrix data, ScalingFunction scaling,
+  public static RealMatrix scaleAndCenter(RealMatrix data, ScalingFunction scaling,
       boolean inPlace) {
-    return scale(center(data, inPlace), scaling, inPlace);
+    return center(scale(data, scaling, inPlace), inPlace);
   }
 
   public static RealMatrix imputeMissingValues(RealMatrix data, boolean inPlace,
@@ -143,6 +223,11 @@ public class StatisticUtils {
     // file2  2   2   1   1
     // file3  3   4   4   5
 
+    if (rows.size() < allFiles.size()) {
+      throw new IllegalStateException(
+          "Cannot perform PCA on a dataset with less rows/features than samples.");
+    }
+
     final RealMatrix data = new Array2DRowRealMatrix(allFiles.size(), rows.size());
 
     for (int fileIndex = 0; fileIndex < allFiles.size(); fileIndex++) {
@@ -162,5 +247,53 @@ public class StatisticUtils {
     }
 
     return data;
+  }
+
+  /**
+   * Stream all non-NaN values
+   *
+   * @param data any dimensions
+   * @return a stream of all non-NaN values
+   */
+  public static @NotNull DoubleStream streamAllNonNaNValues(RealMatrix data) {
+    return IntStream.range(0, data.getColumnDimension()).boxed().mapMultiToDouble(
+        (col, consumer) -> IntStream.range(0, data.getRowDimension()).boxed().forEach(row -> {
+          final double value = data.getEntry(row, col);
+          if (!Double.isNaN(value)) {
+            consumer.accept(value);
+          }
+        }));
+  }
+
+  /**
+   * Allows to stream over all non-NaN values in all rows and multiple groups of raw data files.
+   *
+   * @param rows             all rows to be streamed
+   * @param abundanceMeasure measure
+   * @param raws             multiple groups of raw data files allowed
+   * @return a stream of all non-NaN values
+   */
+  public static @NotNull DoubleStream streamAllNonNaNValues(List<FeatureListRow> rows,
+      @NotNull AbundanceMeasure abundanceMeasure, List<RawDataFile> raws) {
+    return rows.stream().mapMultiToDouble((row, consumer) -> {
+      for (RawDataFile raw : raws) {
+        final ModularFeature feature = (ModularFeature) row.getFeature(raw);
+        if (feature != null) {
+          final double value = abundanceMeasure.getOrNaN(feature);
+          if (!Double.isNaN(value)) {
+            consumer.accept(value);
+          }
+        }
+      }
+    });
+
+  }
+
+  public static void replaceNaN(double[] data, double value, boolean replaceZero) {
+    for (int i = 0; i < data.length; i++) {
+      if (Double.isNaN(data[i]) || (replaceZero && Double.compare(data[i], 0d) == 0)) {
+        data[i] = value;
+      }
+    }
   }
 }

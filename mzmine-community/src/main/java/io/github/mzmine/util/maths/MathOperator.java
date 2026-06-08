@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,39 @@ public enum MathOperator {
   }
 
   public boolean checkValue(double base, double testedVal) {
+    return switch (this) {
+      case LESS -> testedVal < base;
+      case LESS_EQ -> testedVal <= base;
+      case GREATER -> testedVal > base;
+      case GREATER_EQ -> testedVal >= base;
+      case EQUAL -> testedVal == base;
+      case NOT_EQUAL -> testedVal != base;
+    };
+  }
+
+  public boolean checkValue(int base, int testedVal) {
+    return switch (this) {
+      case LESS -> testedVal < base;
+      case LESS_EQ -> testedVal <= base;
+      case GREATER -> testedVal > base;
+      case GREATER_EQ -> testedVal >= base;
+      case EQUAL -> testedVal == base;
+      case NOT_EQUAL -> testedVal != base;
+    };
+  }
+
+  public boolean checkValue(float base, float testedVal) {
+    return switch (this) {
+      case LESS -> testedVal < base;
+      case LESS_EQ -> testedVal <= base;
+      case GREATER -> testedVal > base;
+      case GREATER_EQ -> testedVal >= base;
+      case EQUAL -> testedVal == base;
+      case NOT_EQUAL -> testedVal != base;
+    };
+  }
+
+  public boolean checkValue(long base, long testedVal) {
     return switch (this) {
       case LESS -> testedVal < base;
       case LESS_EQ -> testedVal <= base;

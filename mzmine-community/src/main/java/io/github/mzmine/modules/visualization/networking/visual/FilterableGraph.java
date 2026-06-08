@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -37,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import static java.util.Objects.requireNonNullElse;
 import java.util.function.Consumer;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -106,7 +105,6 @@ public class FilterableGraph extends MultiGraph {
       boolean externalThread) {
     Task task = new NetworkLayoutParallelComputeTask(gl);
     if (externalThread) {
-      MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
       task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
         if (newStatus == TaskStatus.FINISHED) {
           if (Objects.equals(gl, edgeFilteredGraph)) {
@@ -117,6 +115,7 @@ public class FilterableGraph extends MultiGraph {
           showNetwork(gl);
         }
       });
+      MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
     } else {
       task.run();
     }

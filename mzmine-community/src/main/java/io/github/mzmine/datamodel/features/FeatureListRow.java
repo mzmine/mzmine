@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,16 +34,18 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -57,7 +59,8 @@ import org.jetbrains.annotations.Nullable;
 public interface FeatureListRow extends ModularDataModel {
 
   /**
-   * Return raw data with features on this row
+   * Return unmodifiable list of all raw data files in this feature list even those without
+   * detection in this row
    */
   List<RawDataFile> getRawDataFiles();
 
@@ -65,6 +68,13 @@ public interface FeatureListRow extends ModularDataModel {
    * Returns ID of this row
    */
   Integer getID();
+
+  /**
+   * unique ID for map keys
+   */
+  default FeatureListRowID getTypedID() {
+    return FeatureListRowID.of(this);
+  }
 
   /**
    * Returns number of features assigned to this row
@@ -104,6 +114,22 @@ public interface FeatureListRow extends ModularDataModel {
 
 
   /**
+   * Remove all features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void clearFeatures(boolean updateByRowBindings);
+
+  /**
+   * Remove all features from this row
+   */
+  default void clearFeatures() {
+    clearFeatures(true);
+  }
+
+  /**
    * apply row bindings of the feature list (if available) to this row
    */
   default void applyRowBindings() {
@@ -116,7 +142,18 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Remove a feature
    */
-  void removeFeature(RawDataFile file);
+  default void removeFeature(RawDataFile file) {
+    removeFeature(file, true);
+  }
+
+  /**
+   * Remove a features from this row
+   *
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple feature
+   *                            add/remove operations are done, this option may be set to false.
+   *                            Remember to call {@link #applyRowBindings()}.
+   */
+  void removeFeature(RawDataFile file, boolean updateByRowBindings);
 
   /**
    * Has a feature?
@@ -144,6 +181,12 @@ public interface FeatureListRow extends ModularDataModel {
   Float getAverageRT();
 
   /**
+   * Returns average RI for features on this row
+   */
+
+  Float getAverageRI();
+
+  /**
    * Sets average rt for this row
    */
   void setAverageRT(Float averageRT);
@@ -161,7 +204,10 @@ public interface FeatureListRow extends ModularDataModel {
   Float getMaxHeight();
 
   /**
-   * Returns the charge for feature on this row. If more charges are found 0 is returned
+   * Returns the most common charge for features on this row. (most common or the lowest charge if
+   * multiple charges have the same number of features).
+   *
+   * @return most common charge state
    */
   Integer getRowCharge();
 
@@ -173,7 +219,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns comment for this row
    */
-  String getComment();
+  @Nullable String getComment();
 
   /**
    * Sets comment for this row
@@ -207,6 +253,13 @@ public interface FeatureListRow extends ModularDataModel {
   @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
 
+  /**
+   * ManualAnnotation will be removed in the future together with {@link FeatureIdentity}. Manual
+   * annotations are now also in {@link CompoundDatabaseMatchesType} as
+   * {@link CompoundDBAnnotation}
+   *
+   */
+  @Deprecated(since = "4.8.0")
   @Nullable ManualAnnotation getManualAnnotation();
 
   /**
@@ -296,16 +349,25 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * @param annotations sets all compound annotations.
    */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+  void setCompoundAnnotations(@Nullable List<CompoundDBAnnotation> annotations);
 
   /**
    * Appends a compound annotation.
    *
    * @param id
    */
-  void addCompoundAnnotation(CompoundDBAnnotation id);
+  default void addCompoundAnnotation(@NotNull CompoundDBAnnotation id) {
+    addCompoundAnnotations(List.of(id));
+  }
 
-  void addSpectralLibraryMatch(SpectralDBAnnotation id);
+  /**
+   * Appends a compound annotation.
+   *
+   * @param ids
+   */
+  void addCompoundAnnotations(@NotNull List<CompoundDBAnnotation> ids);
+
+  void addSpectralLibraryMatch(@NotNull SpectralDBAnnotation id);
 
   boolean isIdentified();
 
@@ -328,7 +390,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return null or the current list. First element is the "preferred" element
    */
-  @Nullable List<IonIdentity> getIonIdentities();
+  @NotNull List<IonIdentity> getIonIdentities();
 
   /**
    * Set the list of ion identities with the first element being the preferred
@@ -448,9 +510,9 @@ public interface FeatureListRow extends ModularDataModel {
    * @return true if this row has at least 1 MS2 spectrum
    */
   default boolean hasMs2Fragmentation() {
-    // should be faster. Best fragmentation loops through all spectra to find best
-    final List<Scan> ms2 = getAllFragmentScans();
-    return ms2 != null && !ms2.isEmpty();
+    // should be faster. Best fragmentation loops through all spectra to find best  
+    // all fragment scans copies from all features
+    return streamFeatures().anyMatch(Feature::hasMs2Fragmentation);
   }
 
   /**
@@ -483,12 +545,37 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matchedLipid the matched lipid
    */
-  void addLipidAnnotation(MatchedLipid matchedLipid);
+  void addLipidAnnotation(@NotNull List<MatchedLipid> matchedLipid);
+
+  /**
+   * Sets and replaces annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
+  void setLipidAnnotations(@Nullable List<MatchedLipid> matchedLipid);
 
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
+  void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
+
+  /**
+   * Append analog spectral library matches under
+   * {@link io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType}.
+   * Existing analog matches are preserved.
+   */
+  void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
+
+  /**
+   * @return analog spectral library matches sorted from best (index 0) to last match, or empty
+   * list.
+   */
+  @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches();
+
+  /**
+   * Replace the list of analog matches.
+   */
+  void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
 
@@ -500,21 +587,54 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasIsotopePattern();
 
   /**
-   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   * Preferred annotation, either set by the user in the GUI or via
+   * {@link
+   * io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder#getComparatorHighFirst()}
+   * to find the best annotation from different methods.
    *
    * @return the preferred annotation or null
    */
-  @Nullable Object getPreferredAnnotation();
+  @Nullable FeatureAnnotation getPreferredAnnotation();
 
+  /**
+   *
+   * @return true if the preferred annotation was set by the user specifically, false if this row
+   * has no preferred annotation or it was computed automatically by a module or the default
+   * sorting.
+   */
+  boolean isUserPreferredAnnotation();
 
   @NotNull
-  default Stream<Object> streamAllFeatureAnnotations() {
-    return new FeatureAnnotationIterator(this).stream();
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
+    return streamAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included. Defaults to
+   *                      false because analog matches are informational and rank below regular
+   *                      identity-based annotations.
+   */
+  @NotNull
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations(final boolean includeAnalog) {
+    return getAllFeatureAnnotations(includeAnalog).stream();
   }
 
   @NotNull
-  default List<Object> getAllFeatureAnnotations() {
-    return streamAllFeatureAnnotations().toList();
+  default List<FeatureAnnotation> getAllFeatureAnnotations() {
+    return getAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included.
+   */
+  @NotNull
+  default List<FeatureAnnotation> getAllFeatureAnnotations(final boolean includeAnalog) {
+    final List<FeatureAnnotation> all = CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(
+        this);
+    if (includeAnalog) {
+      return all;
+    }
+    return all.stream().filter(a -> !a.isAnalogMatch()).toList();
   }
 
   /**
@@ -525,15 +645,13 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()}.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} of the first
+   * feature.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    final Feature bestFeature = getBestFeature();
-    if (bestFeature != null && bestFeature.getRepresentativePolarity() != null) {
-      return bestFeature.getRepresentativePolarity();
-    }
-    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
-        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+    return streamFeatures().map(Feature::getRepresentativePolarity).filter(Objects::nonNull)
+        .filter(p -> p.isDefined()).findFirst().orElse(null);
   }
+
 }

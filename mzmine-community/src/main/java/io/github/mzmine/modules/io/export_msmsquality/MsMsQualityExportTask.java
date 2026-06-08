@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,13 +71,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MsMsQualityExportTask extends AbstractTask {
 
@@ -164,7 +164,7 @@ public class MsMsQualityExportTask extends AbstractTask {
     mobScanAccess.jumpToFrame((Frame) frame);
     final double isolationPurityScore = IonMobilityUtils.getPurityInMzAndMobilityRange(
         feature.getMZ(), mobScanAccess, RangeUtils.rangeAround(feature.getMZ(), window),
-        info.getMobilityRange(), true);
+        Objects.requireNonNullElse(info.getMobilityRange(), Range.all()), true);
     return isolationPurityScore;
   }
 
@@ -260,17 +260,13 @@ public class MsMsQualityExportTask extends AbstractTask {
 
     final MSMSScore score;
 
-    if (formula != null && annotation.getAdductType() != null) {
-      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-          formula, SilentChemObjectBuilder.getInstance());
-      try {
-        FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    IMolecularFormula molecularFormula;
+    if (formula != null && annotation.getAdductType() != null && //
+        (molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formula)) != null) {
+
       final IonType adductType = annotation.getAdductType();
-      if (adductType.getCDKFormula() != null) {
-        molecularFormula.add(adductType.getCDKFormula());
+      if (adductType != null) {
+        molecularFormula = adductType.addToFormula(molecularFormula, true);
       }
 
       final double[][] filtered = factorOfLowest.getMassValues(msmsScan);

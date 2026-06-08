@@ -28,14 +28,20 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_baf.library;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafDataAccess;
@@ -52,11 +58,12 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BafImportTask extends AbstractTask {
+public class BafImportTask extends AbstractTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(BafImportTask.class.getName());
 
@@ -65,9 +72,10 @@ public class BafImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final MZmineProject project;
   private final ScanImportProcessorConfig scanProcessorConfig;
-  int totalScans = 0;
-  int importedScans = 0;
-  private NumberFormats formats = ConfigService.getGuiFormats();
+  private final NumberFormats formats = ConfigService.getGuiFormats();
+  private int totalScans = 0;
+  private int importedScans = 0;
+  private RawDataFileImpl file;
 
   public BafImportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       final File bafFileOrFolder, @NotNull final Class<? extends MZmineModule> callingModule,
@@ -80,6 +88,8 @@ public class BafImportTask extends AbstractTask {
     this.project = project;
 
     this.scanProcessorConfig = scanProcessorConfig;
+
+    assert parameters instanceof AllSpectralDataImportParameters;
   }
 
   @Override
@@ -98,10 +108,12 @@ public class BafImportTask extends AbstractTask {
 
     final File folderPath =
         bafFileOrFolder.isDirectory() ? bafFileOrFolder : bafFileOrFolder.getParentFile();
-    final RawDataFileImpl file = new RawDataFileImpl(folderPath.getName(),
-        folderPath.getAbsolutePath(), getMemoryMapStorage());
+    file = new RawDataFileImpl(folderPath.getName(), folderPath.getAbsolutePath(),
+        getMemoryMapStorage());
 
-    try (BafDataAccess baf = new BafDataAccess()) {
+    try (BafDataAccess baf = new BafDataAccess(
+        !parameters.getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters().getValue(
+            VendorImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
@@ -117,13 +129,24 @@ public class BafImportTask extends AbstractTask {
       totalScans = scanTable.getNumberOfScans();
       for (int i = 0; i < scanTable.getNumberOfScans(); i++) {
         final int id = scanTable.getId(i);
+        final MassSpectrumType availableSpectrumType = scanTable.getSpectrumType(i);
+        if (availableSpectrumType == null) {
+          // it is possible that no data was recorded for a specific spectrum (e.g. during column wash. Skip that spectrum.)
+          continue;
+        }
 
-        final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
+        MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
+        if(msMsInfo == null && scanTable.getMsLevel(i) == 2 && scanTable.getFallbackCe(i) != null) {
+          // in dia data, the Steps table is empty, but we can determine the ms level from the
+          // regular scans table (by using the acquisition keys)
+          // We can then use the fallback CE we have loaded in the scans table and assume that nothing was isolated
+          msMsInfo = new DIAMsMsInfoImpl(scanTable.getFallbackCe(i).floatValue(), null, 2, ActivationMethod.CID, null);
+        }
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
-            scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
+            scanTable.getPolarity(i), availableSpectrumType, scanTable.getRt(i), 0d, 0);
 
         if (scanProcessorConfig.scanFilter().matches(metadataScan)) {
-          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
+          final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i, availableSpectrumType);
           final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
               .processScan(metadataScan,
                   new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));
@@ -162,5 +185,10 @@ public class BafImportTask extends AbstractTask {
 
     project.addFile(file);
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @Override
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(file) : List.of();
   }
 }

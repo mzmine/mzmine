@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,19 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import org.apache.commons.math3.linear.RealVector;
+import io.github.mzmine.datamodel.statistics.DataTable;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
 
 public class ZeroImputer implements ImputationFunction {
 
   @Override
-  public Double apply(RealVector realVector) {
-    return 0d;
+  public <T extends DataTable> T processInPlace(T data) {
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      DataTableUtils.replaceNaN(data, featureIndex, 0d, true);
+    }
+
+    return data;
   }
+
 }

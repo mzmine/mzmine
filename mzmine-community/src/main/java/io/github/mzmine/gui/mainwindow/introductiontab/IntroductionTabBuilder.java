@@ -29,7 +29,9 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newScrollPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -37,15 +39,23 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
+import io.mzio.links.MzioMZmineLinks;
+import io.mzio.users.service.UserType;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -78,6 +88,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     title.setAlignment(Pos.TOP_CENTER);
 
     main.getChildren().add(title);
+    createAndAddQuickStartLink(main.getChildren());
     main.getChildren().add(createWizardRow());
     main.getChildren().add(createManagementRow());
     main.getChildren().add(createHowToCite());
@@ -202,4 +213,22 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     return box;
   }
 
+  private void createAndAddQuickStartLink(ObservableList<Node> children) {
+    final MZmineUser user = CurrentUserService.getUser();
+    // only show if not clicked yet, or the is null or trial
+    if (!ConfigService.getPreference(MZminePreferences.showQuickStart) || (user != null
+        && user.getUserType() != UserType.TRIAL_PRO)) {
+      return;
+    }
+
+    final LightAndDarkModeIcon icon = new LightAndDarkModeIcon(
+        "icons/introductiontab/quickstart_mockup_lightmode.png",
+        "icons/introductiontab/quickstart_mockup_darkmode.png", 350, 200);
+    final Button button = FxButtons.graphicButton(icon, "Open a quick start video for mzmine.",
+        _ -> {
+          DesktopService.getDesktop().openWebPage(MzioMZmineLinks.WIZARD_QUICKSTART_VIDEO.getUrl());
+          ConfigService.getPreferences().setParameter(MZminePreferences.showQuickStart, false);
+        });
+    children.add(button);
+  }
 }

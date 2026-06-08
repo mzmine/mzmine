@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.structures;
 
 
+import io.github.mzmine.util.FormulaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -35,11 +36,24 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * Contains precomputed values in case they need to be accessed more frequently
  */
 public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
-                                            @NotNull IMolecularFormula formula,
+                                            @Nullable IMolecularFormula formula,
                                             @Nullable String canonicalSmiles,
                                             @Nullable String isomericSmiles, @Nullable String inchi,
                                             @Nullable String inchiKey, double monoIsotopicMass,
                                             double mostAbundantMass,
                                             int totalFormalCharge) implements MolecularStructure {
 
+  @Override
+  public @NotNull String toString() {
+    return "PrecomputedMolecularStructure[" + "formula=" + FormulaUtils.getFormulaString(formula())
+        + ", " + "canonicalSmiles=" + canonicalSmiles + ", " + "isomericSmiles=" + isomericSmiles
+        + ", " + "inchi=" + inchi + ", " + "inchiKey=" + inchiKey + ", " + "monoIsotopicMass="
+        + monoIsotopicMass + ", " + "mostAbundantMass=" + mostAbundantMass + ", "
+        + "totalFormalCharge=" + totalFormalCharge + ']';
+  }
+
+  @Override
+  public int totalAtomsCount() {
+    return structure.getAtomCount();
+  }
 }
