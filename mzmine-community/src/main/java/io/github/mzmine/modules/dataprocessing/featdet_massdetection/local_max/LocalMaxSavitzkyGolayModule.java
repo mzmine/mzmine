@@ -47,13 +47,13 @@ public class LocalMaxSavitzkyGolayModule implements MassDetectorPreprocessorModu
    * Normalized Savitzky-Golay weights. Null for the no-arg module instance that only exposes the
    * parameters.
    */
-  private final double @Nullable [] weights;
+  private final double @NotNull [] weights;
 
   /**
    * No-arg constructor used to expose the parameter set through the module registry.
    */
   public LocalMaxSavitzkyGolayModule() {
-    this.weights = null;
+    this.weights = SavitzkyGolayFilter.getNormalizedWeights(3);
   }
 
   private LocalMaxSavitzkyGolayModule(final double @NotNull [] weights) {
