@@ -44,7 +44,7 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
   public static final IntegerParameter minNumberOfDp = new IntegerParameter(
       "Minimum non-zero points", "Minimum number of data points >0 intensity", 3);
   public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
-      "Intensity calculation", "", AbundanceMeasure.values(), AbundanceMeasure.Height);
+      "Intensity calculation", "", AbundanceMeasure.rawValues(), AbundanceMeasure.Height);
   public static final ModuleOptionsEnumComboParameter<LocalMaxSmoothingOptions> smoothing = new ModuleOptionsEnumComboParameter<>(
       "Smoothing",
       "Optional smoothing applied to the equidistant points of each consecutive range before maximum "
