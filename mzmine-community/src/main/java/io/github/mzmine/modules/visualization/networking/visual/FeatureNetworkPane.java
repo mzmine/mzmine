@@ -48,6 +48,7 @@ import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphCol
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphLabelStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphSizeStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphStyler;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
 import java.util.EnumMap;
@@ -97,6 +98,12 @@ public class FeatureNetworkPane extends NetworkPane {
   // the network generator
   private final FeatureNetworkGenerator generator;
   private final FeatureNetworkController controller;
+
+  // pie-chart grouping: feature nodes can be rendered as pies split by a metadata column
+  private final NetworkPieChartStyler pieStyler;
+  // the base stylesheet without the runtime pie fill-color rule (captured from NetworkPane)
+  private final String baseStyleSheet;
+  private boolean pieEnabled = false;
   /**
    * Max width in graph units. 1 is the distance between nodes
    */
@@ -125,6 +132,9 @@ public class FeatureNetworkPane extends NetworkPane {
     this.featureList = featureList;
     this.focussedRows = focussedRows;
     this.generator = generator;
+    // capture the default stylesheet before any runtime pie rule is appended
+    this.baseStyleSheet = styleSheet;
+    this.pieStyler = new NetworkPieChartStyler(featureList);
 
     uniqueEdgeTypes = GraphStreamUtils.getUniqueEdgeTypes(fullGraph);
 
@@ -141,6 +151,56 @@ public class FeatureNetworkPane extends NetworkPane {
     clearPrecomputedDynamicAttributeValues();
     applyDynamicStyles();
     collapseIonNodes(controller.cbCollapseIons.isSelected());
+    // the filtered graph was rebuilt - reapply pie styling to the new nodes
+    applyPieCharts();
+  }
+
+  /**
+   * Activate or deactivate pie-chart grouping of feature nodes. When active and the column produces
+   * at least 2 sample groups, every feature node is rendered as a pie split by the metadata column,
+   * with slice sizes given by the median (normalized) feature height per group.
+   *
+   * @param enabled whether pie grouping is requested
+   * @param column  the metadata column to group raw data files by (ignored if {@code enabled} is
+   *                false)
+   */
+  public void setPieChartGrouping(final boolean enabled, final @Nullable MetadataColumn<?> column) {
+    this.pieEnabled = enabled;
+    pieStyler.computeGroups(enabled ? column : null);
+    updatePieStyleSheet();
+    applyPieCharts();
+  }
+
+  /**
+   * @return true if pie grouping is enabled and the selected column produced at least 2 sample
+   * groups
+   */
+  public boolean isPieActive() {
+    return pieEnabled && pieStyler.hasEnoughGroups();
+  }
+
+  /**
+   * Append the per-group fill-color rule to the base stylesheet while pies are active, or restore
+   * the base stylesheet otherwise.
+   */
+  private void updatePieStyleSheet() {
+    if (isPieActive()) {
+      setStyleSheet(baseStyleSheet + System.lineSeparator() + pieStyler.buildFillColorStyleRule());
+    } else {
+      setStyleSheet(baseStyleSheet);
+    }
+  }
+
+  /**
+   * Apply or clear pie attributes on the currently displayed (filtered) graph.
+   */
+  private void applyPieCharts() {
+    final Graph filtered = graph(FILTERED);
+    if (isPieActive()) {
+      pieStyler.applyPies(filtered);
+    } else {
+      pieStyler.clearPies(filtered);
+    }
   }
 
   public @NotNull ObservableList<FeatureListRow> getVisibleRows() {
