@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
@@ -53,6 +54,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.IndexRangesList;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -118,6 +120,10 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean keepAnnotated;
   private final MinimumSamplesFilter minSamplesInOneGroup;
   private final RowTypeFilter rowTypeFilter;
+  // strong filters: null when off, otherwise the parsed ranges (always non-empty when on). When
+  // active the (compound) ID must match, overriding the keepAllWithMS2 / keepAnnotated options.
+  private final IndexRangesList rowIdRanges;
+  private final IndexRangesList compoundIdRanges;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -166,6 +172,10 @@ public class RowsFilterTask extends AbstractTask {
         RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
 
     rowTypeFilter = parameters.getOptionalValue(RowsFilterParameters.ROW_TYPE_FILTER).orElse(null);
+
+    rowIdRanges = parameters.getOptionalValue(RowsFilterParameters.ROW_ID_FILTER).orElse(null);
+    compoundIdRanges = parameters.getOptionalValue(RowsFilterParameters.COMPOUND_ID_FILTER)
+        .orElse(null);
 
     // create min samples filter based on all files and on groups in column
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
@@ -331,12 +341,17 @@ public class RowsFilterTask extends AbstractTask {
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
 
+      // Strong filters: when an ID / compound-ID filter is active the row must match it. A
+      // non-matching row is always removed, overriding the keepAllWithMS2 / keepAnnotated rescue.
+      final boolean matchesStrongFilters = matchesStrongIdFilters(row);
+
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
       // GC-EI-MS PseudoSpectra are not counted as MS2 here
-      boolean keepRow = (!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-          || isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != removeFailed;
+      boolean keepRow =
+          matchesStrongFilters && ((!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated
+              && annotated) || isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != removeFailed);
       if (keepRow) {
         rowsToAdd.add(row);
       }
@@ -629,6 +644,24 @@ public class RowsFilterTask extends AbstractTask {
 
     return removeRedundantIsotopeRows && isRowRedundantDueToIsotopePattern(row,
         row.getBestIsotopePattern());
+  }
+
+  /**
+   * Strong filters that always have to match when active. A non-matching row is removed regardless
+   * of the keepAllWithMS2 / keepAnnotated options and independent of the keep/remove choice.
+   *
+   * @return true if all active (compound) ID filters match this row
+   */
+  private boolean matchesStrongIdFilters(@NotNull final FeatureListRow row) {
+    if (rowIdRanges != null && !rowIdRanges.contains(row.getID())) {
+      return false;
+    }
+    // compound ID is assigned by the compound grouping step. Only CompoundRows carry one, so plain
+    // feature rows never match an active compound-id filter.
+    if (compoundIdRanges != null) {
+      return row instanceof CompoundRow cr && compoundIdRanges.contains(cr.getCompoundId());
+    }
+    return true;
   }
 
   /**
