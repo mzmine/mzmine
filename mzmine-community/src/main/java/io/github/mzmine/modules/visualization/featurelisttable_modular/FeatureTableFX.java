@@ -303,7 +303,7 @@ public class FeatureTableFX extends BorderPane {
       if (event.getCode() == KeyCode.DELETE) {
         final List<ModularFeatureListRow> rows = getSelectedRows();
         table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteWithConfirmation(featureListProperty.get(), rows);
+        DeleteRowsModule.deleteWithConfirmationThisThread(featureListProperty.get(), rows);
       }
     });
   }

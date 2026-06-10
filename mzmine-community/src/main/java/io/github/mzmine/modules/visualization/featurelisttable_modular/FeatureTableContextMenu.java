@@ -343,7 +343,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     table.getSelectionModel().clearSelection();
     // single module call handles both kinds — confirmation was already shown above
-    DeleteRowsModule.deleteRows(table.getFeatureList(), flatRows, compounds);
+    DeleteRowsModule.deleteRowsThisThread(table.getFeatureList(), flatRows, compounds);
     table.updateRows();
   }
 
