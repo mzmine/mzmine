@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,9 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
@@ -69,6 +72,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -757,6 +761,51 @@ public class FeatureListUtils {
       map.put(row.getID(), row);
     }
     return map;
+  }
+
+  /**
+   * Create a copy of a compound list (given its top-level compound rows {@code sourceTopRows})
+   * attached to {@code target}. Each member feature row is remapped via {@code rowMapping}; members
+   * whose row is absent (mapping returns {@code null}) are dropped and compound rows that end up
+   * empty are removed. Compound rows for which {@code compoundRowFilter} returns false are skipped
+   * — both top-level rows and nested compound members ({@code null} keeps all). Derived values and
+   * compound features are recomputed by the new list's bindings via
+   * {@link CompoundList#setRows(List)}.
+   *
+   * @param sourceTopRows     top-level compound rows of the source compound list
+   * @param target            feature list the new compound list is attached to
+   * @param rowMapping        old member feature row → new feature row, or {@code null} if removed
+   * @param compoundRowFilter keep predicate for top-level compound rows, or {@code null} to keep
+   *                          all
+   * @param storage           memory map storage for the new compound list schemas
+   * @return the new compound list, or {@code null} if nothing remains
+   */
+  public static @Nullable CompoundList copyCompoundList(
+      @NotNull final List<ModularCompoundRow> sourceTopRows,
+      @NotNull final ModularFeatureList target,
+      @NotNull final Function<FeatureListRow, ModularFeatureListRow> rowMapping,
+      @Nullable final Predicate<ModularCompoundRow> compoundRowFilter,
+      @Nullable final MemoryMapStorage storage) {
+    if (sourceTopRows.isEmpty()) {
+      return null;
+    }
+    final CompoundList newList = new CompoundList(target, storage, sourceTopRows.size());
+    final List<ModularCompoundRow> newTopRows = new ArrayList<>(sourceTopRows.size());
+    for (final ModularCompoundRow src : sourceTopRows) {
+      if (compoundRowFilter != null && !compoundRowFilter.test(src)) {
+        continue;
+      }
+      final ModularCompoundRow copy = CompoundRowUtils.copyRowFiltered(src, newList, rowMapping,
+          compoundRowFilter);
+      if (copy != null) {
+        newTopRows.add(copy);
+      }
+    }
+    if (newTopRows.isEmpty()) {
+      return null;
+    }
+    newList.setRows(newTopRows);
+    return newList;
   }
 
   /**
