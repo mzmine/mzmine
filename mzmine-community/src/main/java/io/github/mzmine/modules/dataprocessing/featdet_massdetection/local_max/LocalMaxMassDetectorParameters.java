@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +45,14 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
       "Minimum non-zero points", "Minimum number of data points >0 intensity", 3);
   public static final AbundanceMeasureParameter intensityCalculation = new AbundanceMeasureParameter(
       "Intensity calculation", "", AbundanceMeasure.values(), AbundanceMeasure.Height);
+  public static final ModuleOptionsEnumComboParameter<LocalMaxSmoothingOptions> smoothing = new ModuleOptionsEnumComboParameter<>(
+      "Smoothing",
+      "Optional smoothing applied to the equidistant points of each consecutive range before maximum "
+          + "and edge detection. The intensity calculation always uses the original (unsmoothed) "
+          + "intensities.", LocalMaxSmoothingOptions.NONE);
 
   public LocalMaxMassDetectorParameters() {
-    super(noiseLevel, minNumberOfDp, intensityCalculation);
+    super(noiseLevel, minNumberOfDp, intensityCalculation, smoothing);
   }
 
   public static LocalMaxMassDetectorParameters create(final double noiseLevel,
@@ -80,6 +86,11 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
     if (loadedVersion < 2) {
       setParameter(intensityCalculation, AbundanceMeasure.Height);
       setParameter(minNumberOfDp, 3);
+    }
+
+    // smoothing was added without a version bump - disable it for configs that did not store it
+    if (!loadedParams.containsKey(smoothing.getName())) {
+      setParameter(smoothing, LocalMaxSmoothingOptions.NONE);
     }
   }
 }

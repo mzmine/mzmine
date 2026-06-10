@@ -299,6 +299,19 @@
             ]
         },
         {
+            "moduleName": "com.github.ben-manes.caffeine:caffeine",
+            "moduleVersion": "3.2.2",
+            "moduleUrls": [
+                "https://github.com/ben-manes/caffeine"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
             "moduleName": "com.github.chhh:javolution-core-java-msftbx",
             "moduleVersion": "6.11.8",
             "moduleUrls": [
@@ -447,7 +460,7 @@
         },
         {
             "moduleName": "com.google.errorprone:error_prone_annotations",
-            "moduleVersion": "2.36.0",
+            "moduleVersion": "2.40.0",
             "moduleUrls": [
                 "https://errorprone.info/error_prone_annotations"
             ],
