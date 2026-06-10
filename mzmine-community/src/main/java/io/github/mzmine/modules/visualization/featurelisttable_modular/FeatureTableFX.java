@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -174,6 +175,14 @@ public class FeatureTableFX extends BorderPane {
   private static final Logger logger = Logger.getLogger(FeatureTableFX.class.getName());
   private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
+  // One per compound tree row: the filtered view of that row's member children. Rebuilt by
+  // updateRows() and re-predicated by applyCurrentRowFilter() so children can be hidden when
+  // "filter children" is on.
+  private final List<FilteredList<TreeItem<ModularFeatureListRow>>> childFilteredLists = new ArrayList<>();
+  // last applied row filter and child-filtering flag; re-applied after the tree is rebuilt so a new
+  // tree picks up the active filter without the user re-typing.
+  private @Nullable TableFeatureListRowFilter currentRowFilter = null;
+  private boolean filterChildren = false;
   // parameters
   private final ParameterSet parameters;
   private final DataTypeCheckListParameter rowTypesParameter;
@@ -673,6 +682,8 @@ public class FeatureTableFX extends BorderPane {
       final TreeItem<ModularFeatureListRow> selectedRow = table.getSelectionModel()
           .getSelectedItem();
       table.getSelectionModel().clearSelection(); // leads to npe or index out of bound
+      // discard child filtered lists of the previous tree before rebuilding
+      childFilteredLists.clear();
       final ModularFeatureList flist = getFeatureList();
       if (flist == null) {
         rowItems.clear();
@@ -700,6 +711,10 @@ public class FeatureTableFX extends BorderPane {
 
       rowItems.setAll(newRows);
 
+      // a freshly built tree has new (unfiltered) child lists; re-apply the active filter so the
+      // new rows immediately reflect it (children hidden / parents expanded as needed).
+      applyCurrentRowFilter();
+
       if (selectedRow != null) {
         FeatureTableFXUtil.selectAndScrollTo(selectedRow.getValue(), this);
       }
@@ -709,13 +724,127 @@ public class FeatureTableFX extends BorderPane {
     });
   }
 
-  private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
-    TreeItem<ModularFeatureListRow> root = new TreeItem<>(compound);
+  /**
+   * Collapse every expandable row so only the top-level (compound) rows remain visible. No-op for
+   * flat feature tables that have no member children.
+   */
+  public void collapseAllRows() {
+    FxThread.runLater(() -> {
+      for (final TreeItem<ModularFeatureListRow> item : rowItems) {
+        item.setExpanded(false);
+      }
+    });
+  }
 
+  /**
+   * Expand every top-level row so all member children become visible.
+   */
+  public void expandAllRows() {
+    FxThread.runLater(() -> {
+      for (final TreeItem<ModularFeatureListRow> item : rowItems) {
+        item.setExpanded(true);
+      }
+    });
+  }
+
+  private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
+    final TreeItem<ModularFeatureListRow> root = new TreeItem<>(compound);
+
+    // back the children by a filtered list so "filter children" can hide non-matching members
+    // while keeping TreeItem identity (selection / expansion) stable.
+    final ObservableList<TreeItem<ModularFeatureListRow>> members = FXCollections.observableArrayList();
     for (CompoundFeatureMember member : compound.getCompoundMembers()) {
-      root.getChildren().add(new TreeItem<>((ModularFeatureListRow) member.row()));
+      members.add(new TreeItem<>((ModularFeatureListRow) member.row()));
     }
+    final FilteredList<TreeItem<ModularFeatureListRow>> filteredMembers = new FilteredList<>(
+        members);
+    Bindings.bindContent(root.getChildren(), filteredMembers);
+    childFilteredLists.add(filteredMembers);
     return root;
+  }
+
+  /**
+   * Apply a row filter to the tree. The non-RT filters are evaluated on both the top-level rows and
+   * their member children: a compound row is kept when it matches itself or when any of its members
+   * match (in which case it is expanded so the match is visible). RT is special and only ever
+   * filters the top-level rows.
+   *
+   * @param filter         the filter to apply, or null to clear filtering
+   * @param filterChildren when true, non-matching member rows are hidden; otherwise all members of
+   *                       a retained compound stay visible
+   */
+  public void applyTreeRowFilter(@Nullable final TableFeatureListRowFilter filter,
+      final boolean filterChildren) {
+    this.currentRowFilter = filter;
+    this.filterChildren = filterChildren;
+    applyCurrentRowFilter();
+  }
+
+  /**
+   * (Re)apply {@link #currentRowFilter} / {@link #filterChildren} to the current tree. Child
+   * predicates are set first so that the top-level predicate sees the already-filtered children.
+   */
+  private void applyCurrentRowFilter() {
+    final TableFeatureListRowFilter filter = currentRowFilter;
+
+    // 1) children: hidden only when filtering children is on and a filter is present
+    final Predicate<TreeItem<ModularFeatureListRow>> childPredicate;
+    if (filter == null || !filterChildren) {
+      childPredicate = _ -> true;
+    } else {
+      childPredicate = child -> {
+        final ModularFeatureListRow row = child.getValue();
+        return row != null && filter.matchesAllExceptRT(row);
+      };
+    }
+    for (final FilteredList<TreeItem<ModularFeatureListRow>> children : childFilteredLists) {
+      children.setPredicate(childPredicate);
+    }
+
+    // 2) top level: RT on the top row, plus self-or-any-child match for the non-RT filters
+    filteredRowItems.setPredicate(item -> {
+      if (filter == null) {
+        return true;
+      }
+      final ModularFeatureListRow row = item.getValue();
+      if (row == null) {
+        return false;
+      }
+      if (!filter.matchesRT(row)) {
+        return false;
+      }
+      return filter.matchesAllExceptRT(row) || anyChildMatchesNonRt(item, filter);
+    });
+
+    // 3) expand compounds that are kept only because a member matched, so the match is visible
+    if (filter != null) {
+      for (final TreeItem<ModularFeatureListRow> item : rowItems) {
+        final ModularFeatureListRow row = item.getValue();
+        if (row == null) {
+          continue;
+        }
+        if (filter.matchesRT(row) && !filter.matchesAllExceptRT(row) && anyChildMatchesNonRt(item,
+            filter)) {
+          item.setExpanded(true);
+        }
+      }
+    }
+  }
+
+  /**
+   * @return true if any (currently visible) member of {@code item} passes the non-RT filters. When
+   * "filter children" is on the non-matching members are already hidden, so a match still implies a
+   * visible member; when off all members are present and searched.
+   */
+  private static boolean anyChildMatchesNonRt(@NotNull final TreeItem<ModularFeatureListRow> item,
+      @NotNull final TableFeatureListRowFilter filter) {
+    for (final TreeItem<ModularFeatureListRow> child : item.getChildren()) {
+      final ModularFeatureListRow row = child.getValue();
+      if (row != null && filter.matchesAllExceptRT(row)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
