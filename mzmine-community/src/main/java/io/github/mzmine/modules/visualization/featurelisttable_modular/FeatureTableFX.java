@@ -212,6 +212,10 @@ public class FeatureTableFX extends BorderPane {
    */
   private final DelayedListChangeListener<FeatureListRow> rowsChangedListener = new DelayedListChangeListener<>(
       Duration.millis(500), this::updateRows);
+  // The compound list keeps its rows in a separate observable list from the flat feature-list rows.
+  // Track which compound list we currently listen to so compound-row deletions/edits (which mutate
+  // CompoundList.getRows() via setRows) refresh the table. Rewired whenever the compound list changes.
+  private @Nullable CompoundList listenedCompoundList = null;
 
   /**
    * Package private to centralize creation in {@link FxFeatureTableController}
@@ -684,6 +688,9 @@ public class FeatureTableFX extends BorderPane {
       table.getSelectionModel().clearSelection(); // leads to npe or index out of bound
       // discard child filtered lists of the previous tree before rebuilding
       childFilteredLists.clear();
+      // make sure we are listening to the active compound list's rows (it may have been created or
+      // replaced after the feature list was first shown)
+      rewireCompoundListRowsListener();
       final ModularFeatureList flist = getFeatureList();
       if (flist == null) {
         rowItems.clear();
@@ -747,6 +754,27 @@ public class FeatureTableFX extends BorderPane {
     });
   }
 
+  /**
+   * Keep {@link #rowsChangedListener} attached to the active compound list's rows so compound-row
+   * deletions / edits (which mutate {@link CompoundList#getRows()} rather than the flat
+   * feature-list rows) refresh the table. Idempotent: only re-attaches when the compound list
+   * reference actually changed (including becoming null).
+   */
+  private void rewireCompoundListRowsListener() {
+    final ModularFeatureList flist = getFeatureList();
+    final CompoundList current = flist == null ? null : flist.getCompoundList();
+    if (current == listenedCompoundList) {
+      return;
+    }
+    if (listenedCompoundList != null) {
+      listenedCompoundList.getRows().removeListener(rowsChangedListener);
+    }
+    listenedCompoundList = current;
+    if (current != null) {
+      current.getRows().addListener(rowsChangedListener);
+    }
+  }
+
   private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
     final TreeItem<ModularFeatureListRow> root = new TreeItem<>(compound);
 
@@ -778,6 +806,9 @@ public class FeatureTableFX extends BorderPane {
     this.currentRowFilter = filter;
     this.filterChildren = filterChildren;
     applyCurrentRowFilter();
+    // changing the filter predicate re-populates the filtered list but does not re-trigger the
+    // TreeTableView's active column sort — re-apply it so rows stay sorted by the active sorter.
+    table.sort();
   }
 
   /**
@@ -913,7 +944,6 @@ public class FeatureTableFX extends BorderPane {
         }
       }
     }
-    
 
     // add features
     addFeaturesColumns();
@@ -1471,6 +1501,8 @@ public class FeatureTableFX extends BorderPane {
     if (oldFeatureList != null) {
       oldFeatureList.getRows().removeListener(rowsChangedListener);
     }
+    // detach/attach the compound-list rows listener for the new feature list (handles null too)
+    rewireCompoundListRowsListener();
     if (newFeatureList == null) {
       return;
     }
@@ -1572,6 +1604,9 @@ public class FeatureTableFX extends BorderPane {
       return;
     }
     flist.getRows().removeListener(rowsChangedListener);
+    if (listenedCompoundList != null) {
+      listenedCompoundList.getRows().removeListener(rowsChangedListener);
+    }
     flist.onFeatureTableFxClosed();
   }
 
