@@ -48,6 +48,7 @@ import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphCol
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphLabelStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphSizeStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphStyler;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
@@ -177,6 +178,14 @@ public class FeatureNetworkPane extends NetworkPane {
    */
   public boolean isPieActive() {
     return pieEnabled && pieStyler.hasEnoughGroups();
+  }
+
+  /**
+   * @return the sample groups currently drawn as pie slices (for the legend), or null when pies are
+   * not active. Group colors match the slice colors in the network.
+   */
+  public @Nullable List<ColorByMetadataGroup> getActivePieGroups() {
+    return isPieActive() ? pieStyler.getGroups() : null;
   }
 
   /**

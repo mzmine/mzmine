@@ -160,8 +160,11 @@ public class FeatureNetworkController {
     // the column selector only matters when grouping is on
     metadataGrouping.disableProperty().bind(enabled.not());
 
-    final Runnable update = () -> networkPane.setPieChartGrouping(enabled.get(),
-        metadataGrouping.valueProperty().getValue());
+    final Runnable update = () -> {
+      networkPane.setPieChartGrouping(enabled.get(), metadataGrouping.valueProperty().getValue());
+      // reflect the active groups (and their colors) in the legend
+      legend.setPieGroups(networkPane.getActivePieGroups());
+    };
     enabled.addListener((observable, oldValue, newValue) -> update.run());
     metadataGrouping.valueProperty().addListener((observable, oldValue, newValue) -> update.run());
 
