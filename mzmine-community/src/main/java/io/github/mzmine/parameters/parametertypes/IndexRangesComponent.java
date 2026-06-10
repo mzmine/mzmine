@@ -39,7 +39,7 @@ public class IndexRangesComponent extends TextField {
   public IndexRangesComponent() {
     super();
     setPrefColumnCount(12);
-    setPromptText("1,5-6");
+    setPromptText("Example: 1,5-6");
   }
 
   /**
