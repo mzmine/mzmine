@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorPreprocessor;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.PreprocessedIntensitiesProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.maths.Weighting;
@@ -43,7 +44,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LocalMaxMassDetector implements MassDetector {
+public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensitiesProvider {
 
   private static final Logger logger = Logger.getLogger(LocalMaxMassDetector.class.getName());
 
@@ -66,6 +67,12 @@ public class LocalMaxMassDetector implements MassDetector {
    * Returns the original intensities when no preprocessing is configured.
    */
   private final @NotNull MassDetectorPreprocessor preprocessor;
+
+  /**
+   * Preprocessed (e.g. smoothed) intensities of the most recently processed spectrum, or null if no
+   * preprocessing was applied. Kept for the preview to display the preprocessed series.
+   */
+  private double @Nullable [] lastPreprocessedIntensities;
 
   public LocalMaxMassDetector() {
     this(0, AbundanceMeasure.Height, 3, new LocalMaxNoSmoothingModule());
@@ -148,6 +155,9 @@ public class LocalMaxMassDetector implements MassDetector {
 
   @Override
   public double[][] getMassValues(final MassSpectrum spectrum) {
+    // reset so the preview never shows a stale preprocessed series for an unprocessed spectrum
+    lastPreprocessedIntensities = null;
+
     final int numPoints = spectrum.getNumberOfDataPoints();
     if (numPoints < minNonZeroDp) {
       return new double[2][0];
@@ -221,6 +231,8 @@ public class LocalMaxMassDetector implements MassDetector {
     // intensities, while the intensity calculation keeps using the original intensities.
     final double[] detectIntensities = preprocessor.preprocessIntensities(intensities,
         consecutiveRanges);
+    // store only if preprocessing actually changed the data (NONE returns the original array)
+    lastPreprocessedIntensities = (detectIntensities == intensities) ? null : detectIntensities;
 
     for (final IndexRange range : consecutiveRanges) {
       findAndCentroidPeaks(mzs, detectIntensities, intensities, range, absMinIntensity, resultMzs,
@@ -432,5 +444,10 @@ public class LocalMaxMassDetector implements MassDetector {
   public double[][] getMassValues(double[] mzs, double[] intensities,
       @NotNull MassSpectrumType type) {
     return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
+  }
+
+  @Override
+  public double @Nullable [] getLastPreprocessedIntensities() {
+    return lastPreprocessedIntensities;
   }
 }
