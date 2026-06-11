@@ -151,7 +151,7 @@ public class FeatureNetworkController {
    */
   private void addPieGroupingControls() {
     final BooleanProperty enabled = new SimpleBooleanProperty(false);
-    final CheckBox cbEnablePieCharts = FxCheckBox.newCheckBox("Pie charts", enabled);
+    final CheckBox cbEnablePieCharts = FxCheckBox.newCheckBox("Metadata column", enabled);
     cbEnablePieCharts.setTooltip(new Tooltip(
         "Render feature nodes as pie charts split by the selected metadata column. Each slice is "
             + "the median normalized height (or height) per sample group. Needs at least 2 groups."));
