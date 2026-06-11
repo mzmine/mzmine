@@ -71,9 +71,61 @@ public class IntegrationPlotModel {
   private final ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final StringProperty title = new SimpleStringProperty();
+  private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
+  private final BooleanProperty showControls = new SimpleBooleanProperty(true);
+  private final BooleanProperty showAxisTitles = new SimpleBooleanProperty(true);
+  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(false);
   private final BooleanProperty useTextlessButtons = new SimpleBooleanProperty(false);
   private final ObjectProperty<@Nullable BinningMobilogramDataAccess> binningMobilogramDataAccess = new SimpleObjectProperty<>(
       null);
+
+  public boolean isShowControls() {
+    return showControls.get();
+  }
+
+  public BooleanProperty showControlsProperty() {
+    return showControls;
+  }
+
+  public void setShowControls(boolean showControls) {
+    this.showControls.set(showControls);
+  }
+
+  public boolean isShowTitle() {
+    return showTitle.get();
+  }
+
+  public BooleanProperty showTitleProperty() {
+    return showTitle;
+  }
+
+  public void setShowTitle(boolean showTitle) {
+    this.showTitle.set(showTitle);
+  }
+
+  public boolean isShowAxisTitles() {
+    return showAxisTitles.get();
+  }
+
+  public BooleanProperty showAxisTitlesProperty() {
+    return showAxisTitles;
+  }
+
+  public void setShowAxisTitles(boolean showAxisTitles) {
+    this.showAxisTitles.set(showAxisTitles);
+  }
+
+  public boolean isUseSampleColor() {
+    return useSampleColor.get();
+  }
+
+  public BooleanProperty useSampleColorProperty() {
+    return useSampleColor;
+  }
+
+  public void setUseSampleColor(boolean useSampleColor) {
+    this.useSampleColor.set(useSampleColor);
+  }
 
   public ChromatogramPlotController getChromatogramPlot() {
     return chromatogramPlot.get();
