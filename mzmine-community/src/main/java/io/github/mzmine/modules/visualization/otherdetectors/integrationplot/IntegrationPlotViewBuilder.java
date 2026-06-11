@@ -44,13 +44,16 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -78,10 +81,16 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     this.onEditPressed = onEditPressed;
   }
 
+  private static String toStyleColor(Color awtColor) {
+    return "rgba(%d,%d,%d,%.3f)".formatted(awtColor.getRed(), awtColor.getGreen(),
+        awtColor.getBlue(), awtColor.getAlpha() / 255.0);
+  }
+
   @Override
   public Region build() {
     BorderPane pane = new BorderPane();
-    pane.setCenter(model.getChromatogramPlot().buildView());
+    final Region plotView = model.getChromatogramPlot().buildView();
+    pane.setCenter(plotView);
 
     pane.setFocusTraversable(true);
     pane.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
@@ -90,42 +99,50 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
     var chromPlot = model.getChromatogramPlot();
 
+    // JavaFX label title overlay — more reliable than JFreeChart chart title
+    final Label titleLabel = new Label();
+    titleLabel.setMaxWidth(Double.MAX_VALUE);
+    titleLabel.setStyle(
+        "-fx-padding: 1 4 1 4; -fx-font-size: 10px; -fx-font-weight: bold; -fx-alignment: center; -fx-background-color: transparent;");
+    titleLabel.setAlignment(Pos.CENTER);
+    titleLabel.setVisible(false);
+    titleLabel.setManaged(false);
+    pane.setTop(titleLabel);
+
+    final Runnable applyTitle = () -> {
+      final boolean show = model.isShowTitle();
+      final String title = model.getTitle();
+      final boolean hasTitle = show && title != null && !title.isBlank();
+      titleLabel.setText(hasTitle ? title : "");
+      titleLabel.setVisible(hasTitle);
+      titleLabel.setManaged(hasTitle);
+    };
+    model.showTitleProperty().subscribe(_ -> applyTitle.run());
+    model.titleProperty().subscribe(_ -> applyTitle.run());
+
     model.currentTimeSeriesProperty().addListener((_, _, series) -> {
-      chromPlot.clearDatasets();
-
-      if (series != null) {
-        final IntensityTimeSeriesToXYProvider provider = new IntensityTimeSeriesToXYProvider(series,
-            getColorForSeries(series));
-        chromPlot.addDataset(provider, new ColoredXYLineRenderer());
-
-        var formats = ConfigService.getGuiFormats();
-        final UnitFormat uf = formats.unitFormat();
-        chromPlot.setDomainAxisLabel(getSeriesDomainLabel(series));
-        chromPlot.setDomainAxisFormat(formats.rtFormat());
-
-        chromPlot.setRangeAxisLabel(getSeriesRangeLabel(series));
-        chromPlot.setRangeAxisFormat(formats.intensityFormat());
-
-        if (series.getNumberOfValues() > 0) {
-          final Range xRange = chromPlot.getDomainAxisRange();
-          final Range yRange = chromPlot.getRangeAxisRange();
-
-          if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(xRange,
-              com.google.common.collect.Range.closed(series.getRetentionTime(0),
-                  series.getRetentionTime(series.getNumberOfValues() - 1)))) {
-            chromPlot.applyAutoRangeToDomainAxis();
-            chromPlot.applyAutoRangeToRangeAxis(); // only change y axis if we also change x axis.
-          }
-        }
-      }
+      updateChromatogram(pane, plotView, chromPlot, series);
+      updateFeatures(chromPlot); // re-add features after full clear
     });
+
+    model.useSampleColorProperty().addListener((_, _, _) -> {
+      updateChromatogram(pane, plotView, chromPlot, model.getCurrentTimeSeries());
+      updateFeatures(chromPlot);
+    });
+
+    model.showAxisTitlesProperty().subscribe(show -> {
+      chromPlot.setDomainAxisLabelVisible(show);
+      chromPlot.setRangeAxisLabelVisible(show);
+    });
+
+    model.integratedFeaturesProperty()
+        .addListener((ListChangeListener<IntensityTimeSeries>) change -> {
+          updateFeatures(chromPlot);
+        });
 
     model.additionalTimeSeriesDatasetsProperty().subscribe(this::updateAdditionalDatasets);
 
-    addFeatureListeners(chromPlot);
-
     chromPlot.cursorPositionProperty().addListener((_, _, pos) -> {
-      // ctrl while clicking allows boundary setting
       if (pos == null) {
         return;
       }
@@ -165,9 +182,84 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     addMarkerListeners(chromPlot);
 
     final FlowPane buttonBar = createButtonBar();
+    buttonBar.setPadding(new Insets(1, 2, 1, 2));
+    buttonBar.setHgap(2);
+    buttonBar.setVgap(1);
+    buttonBar.setStyle("-fx-background-color: transparent;");
     pane.setBottom(buttonBar);
 
+    buttonBar.visibleProperty().bind(model.showControlsProperty());
+    buttonBar.managedProperty().bind(buttonBar.visibleProperty());
+
     return pane;
+  }
+
+  private void updateFeatures(ChromatogramPlotController chromPlot) {
+    // Remove only feature area datasets — do NOT remove the main chromatogram line renderer.
+    // Filtering by renderer type is the safest way to distinguish them.
+    chromPlot.getDatasetRenderers().entrySet().stream()
+        .filter(e -> e.getValue() instanceof ColoredAreaShapeRenderer).map(Map.Entry::getKey)
+        .toList().forEach(chromPlot::removeDataset);
+
+    final List<IntensityTimeSeries> features = model.getIntegratedFeatures();
+    if (features.isEmpty()) {
+      return;
+    }
+
+    final IntensityTimeSeries mainSeries = model.getCurrentTimeSeries();
+    final Color sampleColor = mainSeries != null ? getColorForSeries(mainSeries) : Color.GRAY;
+    final Color gold = new Color(255, 215, 0);
+
+    final List<DatasetAndRenderer> datasets = features.stream().map(feature -> {
+      final Color color = model.isUseSampleColor() ? sampleColor : gold;
+      final Color transparentColor = new Color(color.getRed(), color.getGreen(), color.getBlue(),
+          128);
+      return new DatasetAndRenderer(
+          new ColoredXYDataset(new IntensityTimeSeriesToXYProvider(feature, transparentColor),
+              RunOption.THIS_THREAD), new ColoredAreaShapeRenderer());
+    }).toList();
+    chromPlot.addDatasets(datasets);
+  }
+
+  private void updateChromatogram(BorderPane pane, Region plotView,
+      ChromatogramPlotController chromPlot, IntensityTimeSeries series) {
+    chromPlot.clearDatasets();
+
+    if (series != null) {
+      final Color color = getColorForSeries(series);
+      final Color lineColor = model.isUseSampleColor() ? color : Color.BLACK;
+
+      final IntensityTimeSeriesToXYProvider provider = new IntensityTimeSeriesToXYProvider(series,
+          lineColor);
+      chromPlot.addDataset(provider, new ColoredXYLineRenderer());
+
+      // Use inline style (highest CSS priority) so the sample color is never overridden by
+      // the application stylesheet.
+      pane.setStyle("-fx-background-color: " + toStyleColor(color) + ";");
+      // keep the chart area itself white
+      plotView.setStyle("-fx-background-color: white;");
+
+      var formats = ConfigService.getGuiFormats();
+      chromPlot.setDomainAxisLabel(getSeriesDomainLabel(series));
+      chromPlot.setDomainAxisFormat(formats.rtFormat());
+
+      chromPlot.setRangeAxisLabel(getSeriesRangeLabel(series));
+      chromPlot.setRangeAxisFormat(formats.intensityFormat());
+
+      if (series.getNumberOfValues() > 0) {
+        final Range xRange = chromPlot.getDomainAxisRange();
+
+        if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(xRange,
+            com.google.common.collect.Range.closed(series.getRetentionTime(0),
+                series.getRetentionTime(series.getNumberOfValues() - 1)))) {
+          chromPlot.applyAutoRangeToDomainAxis();
+          chromPlot.applyAutoRangeToRangeAxis(); // only change y axis if we also change x axis.
+        }
+      }
+    } else {
+      // Clear sample-color background so a stale color from the previous series doesn't persist.
+      pane.setStyle(null);
+    }
   }
 
   private String getSeriesRangeLabel(IntensityTimeSeries series) {
@@ -201,33 +293,6 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       case IonMobilitySeries mob -> mob.getSpectrum(0).getDataFile().getColorAWT();
       default -> ConfigService.getDefaultColorPalette().getMainColorAWT();
     };
-  }
-
-  private void addFeatureListeners(ChromatogramPlotController chromPlot) {
-    model.integratedFeaturesProperty()
-        .addListener((ListChangeListener<IntensityTimeSeries>) change -> {
-          while (change.next()) {
-            if (change.wasAdded()) {
-              final List<? extends IntensityTimeSeries> added = change.getAddedSubList();
-              final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
-              final List<DatasetAndRenderer> datasets = added.stream().map(
-                  feature -> new DatasetAndRenderer(new ColoredXYDataset(
-                      new IntensityTimeSeriesToXYProvider(feature, palette.getNextColorAWT()),
-                      RunOption.THIS_THREAD), new ColoredAreaShapeRenderer())).toList();
-              chromPlot.addDatasets(datasets);
-            }
-
-            if (change.wasRemoved()) {
-              final List<? extends IntensityTimeSeries> removed = change.getRemoved();
-              chromPlot.getDatasetRenderers().keySet().stream().filter(
-                      ds -> ds instanceof ColoredXYDataset cds
-                          && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
-                          && removed.contains(its.getTimeSeries()))
-                  .toList() // terminal operation prior to remove (concurrent mod otherwise)
-                  .forEach(chromPlot::removeDataset);
-            }
-          }
-        });
   }
 
   private void addMarkerListeners(ChromatogramPlotController chromPlot) {
@@ -267,6 +332,14 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         "Abort integration of the selected feature", onAbortPressed);
     final Button editSelected = FxButtons.createButton(strEditFeature, FxIcons.EDIT,
         "Edit the selected feature", onEditPressed);
+
+    final String smallStyle = "-fx-font-size: 9px; -fx-padding: 1 3 1 3;";
+    setLeftBoundary.setStyle(smallStyle);
+    setRightBoundary.setStyle(smallStyle);
+    finish.setStyle(smallStyle);
+    abortFeature.setStyle(smallStyle);
+    editSelected.setStyle(smallStyle);
+
     final FlowPane buttonBar = FxLayout.newFlowPane(setLeftBoundary, setRightBoundary, finish,
         abortFeature, editSelected);
 
@@ -310,3 +383,4 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     });
   }
 }
+
