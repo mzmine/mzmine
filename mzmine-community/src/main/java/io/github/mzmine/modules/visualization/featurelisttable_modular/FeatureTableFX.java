@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -34,6 +33,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.AreaBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -60,8 +63,10 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.CompoundHierarchyTreeTableRow;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -71,6 +76,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
@@ -86,6 +93,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -137,7 +145,6 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.TreeTableView.TreeTableViewSelectionModel;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -172,11 +179,20 @@ public class FeatureTableFX extends BorderPane {
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
 
+  // option to set an owner so that actions might know if this feature table is in the
+  // stats dashboard or compound dashboard
+  private final ObjectProperty<FeatureTableOwner> tableOwner = new SimpleObjectProperty<>(
+      FeatureTableOwner.UNDEFINED);
+
+
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
   private final NotificationPane dataChangedNotification;
   private final BooleanProperty sampleColVisibleParameter = new SimpleBooleanProperty();
+  // null = use feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
   private final List<TreeTableColumn<ModularFeatureListRow, String>> rawColumns = new ArrayList<>();
   private final FeatureTableContextMenu contextMenu;
   private final FeatureTableColumnMenuHelper contextMenuHelper;
@@ -192,6 +208,11 @@ public class FeatureTableFX extends BorderPane {
    * Package private to centralize creation in {@link FxFeatureTableController}
    */
   FeatureTableFX(@NotNull ParameterSet parameters) {
+    this(parameters, FeatureTableOwner.UNDEFINED);
+  }
+
+  FeatureTableFX(@NotNull ParameterSet parameters, FeatureTableOwner tableOwner) {
+    setTableOwner(tableOwner);
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
 
@@ -204,6 +225,10 @@ public class FeatureTableFX extends BorderPane {
     root.setExpanded(true);
     table.setRoot(root);
     table.setShowRoot(false);
+    // colored compound-hierarchy stripe drawn in the disclosure (indent) area; only visible when
+    // the table is showing compound rows so plain feature tables look unchanged.
+    table.setRowFactory(tv -> new CompoundHierarchyTreeTableRow(
+        compoundRowSelection.isEqualTo(CompoundRowSelection.COMPOUNDS)));
     // simple plus button over the scroll bar
     // hard to change layout and add more components as layout is hard coded
     // still use it to show the context menu from there
@@ -224,6 +249,9 @@ public class FeatureTableFX extends BorderPane {
     filteredRowItems = new FilteredList<>(rowItems);
     // auto reflect filtered items to table
     Bindings.bindContent(root.getChildren(), filteredRowItems);
+
+    // re-populate rows when the display mode is changed by the user
+    compoundRowSelection.subscribe(_ -> updateRows());
 
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
@@ -325,6 +353,20 @@ public class FeatureTableFX extends BorderPane {
     return switch (parameters.getValue(FeatureTableFXParameters.defaultAbundanceMeasure)) {
       case Height -> HeightType.class;
       case Area -> AreaType.class;
+      case NORMALIZED_HEIGHT -> {
+        if (getFeatureList() != null && getFeatureList().hasRowType(NormalizedHeightType.class)
+            && getFeatureList().hasFeatureType(NormalizedHeightType.class)) {
+          yield NormalizedHeightType.class;
+        }
+        yield HeightType.class;
+      }
+      case NORMALIZED_AREA -> {
+        if (getFeatureList() != null && getFeatureList().hasRowType(NormalizedAreaType.class)
+            && getFeatureList().hasFeatureType(NormalizedHeightType.class)) {
+          yield NormalizedAreaType.class;
+        }
+        yield AreaType.class;
+      }
     };
   }
 
@@ -628,13 +670,52 @@ public class FeatureTableFX extends BorderPane {
    */
   public void updateRows() {
     FxThread.runLater(() -> {
-      // create new list - filtering is applied automatically and table items updated
-      // work with copy of rows as rows may change during stream throwing exception
-      final List<TreeItem<ModularFeatureListRow>> newRows = featureListProperty.get().getRowsCopy()
-          .stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      final TreeItem<ModularFeatureListRow> selectedRow = table.getSelectionModel()
+          .getSelectedItem();
+      table.getSelectionModel().clearSelection(); // leads to npe or index out of bound
+      final ModularFeatureList flist = getFeatureList();
+      if (flist == null) {
+        rowItems.clear();
+        return;
+      }
+      final List<TreeItem<ModularFeatureListRow>> newRows;
+
+      final CompoundRowSelection selection = compoundRowSelection.get();
+      final CompoundList compoundList = flist.getCompoundList();
+      if (selection != null && compoundList != null) {
+        if (selection == CompoundRowSelection.COMPOUNDS) {
+          newRows = compoundList.getRowsCopy().stream().map(this::createTreeRow).toList();
+        } else {
+          // ALL_MAJOR_IONS or ALL_ISOTOPES: flat list of member rows
+          // TODO check if we want to show isotopes again as tree
+          newRows = compoundList.getRowsCopy(selection).stream()
+              .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+        }
+      } else {
+        // create new list - filtering is applied automatically and table items updated
+        // work with copy of rows as rows may change during stream throwing exception
+        final List<FeatureListRow> rows = flist.getRowsCopy();
+        newRows = rows.stream().map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
+      }
+
       rowItems.setAll(newRows);
+
+      if (selectedRow != null) {
+        FeatureTableFXUtil.selectAndScrollTo(selectedRow.getValue(), this);
+      }
+
+      // this applies the last sorting the the new rows
       table.sort();
     });
+  }
+
+  private TreeItem<ModularFeatureListRow> createTreeRow(ModularCompoundRow compound) {
+    TreeItem<ModularFeatureListRow> root = new TreeItem<>(compound);
+
+    for (CompoundFeatureMember member : compound.getCompoundMembers()) {
+      root.getChildren().add(new TreeItem<>((ModularFeatureListRow) member.row()));
+    }
+    return root;
   }
 
   /**
@@ -658,14 +739,30 @@ public class FeatureTableFX extends BorderPane {
     // add main column for row types to show name of feature list
     TreeTableColumn<ModularFeatureListRow, String> rowCol = new TreeTableColumn<>();
 
+    String totalRowsStr;
+    if (flist.getCompoundList() != null) {
+      totalRowsStr = String.format("%d compound rows; %d total rows",
+          flist.getCompoundList().size(), flist.getRows().size());
+    } else {
+      totalRowsStr = String.format("%d total rows", flist.getRows().size());
+    }
+
     // Add raw data file label
-    Label headerLabel = new Label(flist.getName());
+    final ObservableValue<String> title = Bindings.size(getFilteredRowItems()).map(
+        nrows -> "%d filtered rows (%s) in %s".formatted(nrows.intValue(), totalRowsStr,
+            flist.getName()));
+    Label headerLabel = FxLabels.newLabel(title);
+
     if (flist.getRawDataFiles().size() == 1) {
       RawDataFile raw = flist.getRawDataFiles().get(0);
       headerLabel.setTextFill(raw.getColor());
-      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(raw.getColor())));
+      headerLabel.setGraphic(FxIconUtil.getFileIconNode(raw.getColor()));
     }
     rowCol.setGraphic(headerLabel);
+
+    if (flist.getCompoundList() != null) {
+      addColumn(rowCol, DataTypes.get(CompoundIdType.class));
+    }
 
     // add row types
     featureList.getRowTypes().forEach(dataType -> addColumn(rowCol, dataType));
@@ -674,6 +771,20 @@ public class FeatureTableFX extends BorderPane {
 
     // finally add row column to table
     table.getColumns().add(rowCol);
+
+    // set the default sorting to the previous column or if none selected to the HeightType column
+    if (table.getSortOrder().isEmpty()) {
+      // Find the HeightType column and set it as the default sort column
+      for (TreeTableColumn<ModularFeatureListRow, ?> column : rowCol.getColumns()) {
+        ColumnID columnId = newColumnMap.get(column);
+        if (columnId != null && columnId.getDataType() instanceof HeightType) {
+          column.setSortType(TreeTableColumn.SortType.DESCENDING);
+          table.getSortOrder().add(column);
+          break;
+        }
+      }
+    }
+    
 
     // add features
     addFeaturesColumns();
@@ -968,7 +1079,7 @@ public class FeatureTableFX extends BorderPane {
       // Add raw data file label
       Label headerLabel = new Label(dataFile.getName());
       headerLabel.setTextFill(dataFile.getColor());
-      headerLabel.setGraphic(new ImageView(FxIconUtil.getFileIcon(dataFile.getColor())));
+      headerLabel.setGraphic(FxIconUtil.getFileIconNode(dataFile.getColor()));
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
@@ -1084,7 +1195,8 @@ public class FeatureTableFX extends BorderPane {
   @Nullable
   public ModularFeatureListRow getSelectedRow() {
     return table.getSelectionModel().getSelectedItem() != null ? table.getSelectionModel()
-        .getSelectedItem().getValue() : null;
+                                                                 .getSelectedItem().getValue()
+        : null;
   }
 
   /**
@@ -1178,6 +1290,18 @@ public class FeatureTableFX extends BorderPane {
     return featureListProperty;
   }
 
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public void setCompoundRowSelection(@Nullable CompoundRowSelection selection) {
+    compoundRowSelection.set(selection);
+  }
+
   /**
    * Initialises a listener to update the tables' contents to the current feature list. Also adds
    * and removes the row changed listener.
@@ -1226,6 +1350,11 @@ public class FeatureTableFX extends BorderPane {
     // too many samples slow down the table - therefore do not show sample specific columns then
     sampleColVisibleParameter.setValue(
         newFeatureList.getNumberOfRawDataFiles() <= SAMPLE_COLUMNS_THRESHOLD);
+
+    // decision: prefer compound list if available when a new feature list is loaded
+    compoundRowSelection.set(
+        newFeatureList.hasCompoundList() ? CompoundRowSelection.COMPOUNDS : null);
+
     addColumns(newFeatureList);
     // first check if feature list is too large
     applyDefaultColumnVisibilities();
@@ -1233,13 +1362,7 @@ public class FeatureTableFX extends BorderPane {
       showCompactChromatographyColumns();
     }
 
-    // add rows sorted by descending height
-    final List<FeatureListRow> sortedRows = newFeatureList.getRows().stream()
-        .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
-
-    final List<TreeItem<ModularFeatureListRow>> newRows = sortedRows.stream()
-        .map(row -> new TreeItem<>((ModularFeatureListRow) row)).toList();
-    rowItems.setAll(newRows);
+    updateRows();
 
     // reflect the changes to the feature list in the table
     newFeatureList.getRows().addListener(rowsChangedListener);
@@ -1438,5 +1561,17 @@ public class FeatureTableFX extends BorderPane {
 
   public ParameterSet getParameters() {
     return parameters;
+  }
+
+  public FeatureTableOwner getTableOwner() {
+    return tableOwner.get();
+  }
+
+  public ObjectProperty<FeatureTableOwner> tableOwnerProperty() {
+    return tableOwner;
+  }
+
+  public void setTableOwner(FeatureTableOwner tableOwner) {
+    this.tableOwner.set(tableOwner);
   }
 }

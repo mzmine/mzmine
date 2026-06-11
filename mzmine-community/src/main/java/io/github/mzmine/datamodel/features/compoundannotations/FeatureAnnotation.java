@@ -167,10 +167,37 @@ public interface FeatureAnnotation {
    */
   @Nullable MolecularStructure getStructure();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the canonical flat smiles (isomeric information stripped) or null if not preset
+   */
   @Nullable String getSmiles();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return isomeric smiles or the canonical smiles if there is no isomeric smiles, or null if no
+   * smiles available
+   */
+  @Nullable String getIsomericSmiles();
+
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the inchi or null if no inchi available.
+   */
   @Nullable String getInChI();
 
+  /**
+   * This structure should have been harmonized and canonicalized. Isotopic information is retained
+   * for correct masses.
+   *
+   * @return the inchi key or null if no value available.
+   */
   @Nullable String getInChIKey();
 
   @Nullable String getCompoundName();
@@ -214,7 +241,7 @@ public interface FeatureAnnotation {
         formula = structure.formula();
       }
     } else {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(formulaStr);
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(formulaStr);
     }
     return IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(formula, ionType);
   }
@@ -257,7 +284,6 @@ public interface FeatureAnnotation {
       case COMPOUND_NAME -> getCompoundName();
       case IUPAC_NAME -> getIupacName();
       case INTERNAL_ID -> getInternalId();
-      case FORMULA -> getFormula();
       case SMILES -> getSmiles();
       case INCHI_KEY -> getInChIKey();
       case INCHI -> getInChI();
@@ -285,6 +311,15 @@ public interface FeatureAnnotation {
    * ({@link CompoundAnnotationUtils#annotationTypePriority}
    */
   @NotNull Class<? extends DataType> getDataType();
+
+  /**
+   * @return true if this annotation came from an analog (modification-aware) spectral library
+   * search. Defaults to false. Used by row-level annotation accessors to optionally exclude analog
+   * matches from the standard annotation list.
+   */
+  default boolean isAnalogMatch() {
+    return false;
+  }
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
@@ -319,4 +354,13 @@ public interface FeatureAnnotation {
    * A comment
    */
   @Nullable String getComment();
+
+  @Nullable
+  default IMolecularFormula getCdkFormula() {
+    final String formula = getFormula();
+    if (formula == null) {
+      return null;
+    }
+    return FormulaUtils.parse(formula);
+  }
 }

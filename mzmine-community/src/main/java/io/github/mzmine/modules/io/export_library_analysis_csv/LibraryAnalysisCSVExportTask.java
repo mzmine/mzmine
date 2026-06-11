@@ -69,7 +69,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
    * Nodes file
    */
   private static final String[] NODES = {"ID", "name", "mz", "mass", "adduct", "formula",
-      "ion_mode", "instrument", "instrument_type", "smiles", "inchi", "inchi_key", "signals"};
+      "ion_mode", "instrument", "instrument_type", "smiles", "isomeric_smiles", "inchi",
+      "inchi_key", "signals"};
 
   /**
    * Edges file with correlations
@@ -319,6 +320,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.SMILES, ""));
+        append(line, ea.getOrElse(DBEntryField.ISOMERIC_SMILES, ""));
         append(line, ea.getOrElse(DBEntryField.INCHI, ""));
         append(line, ea.getOrElse(DBEntryField.INCHIKEY, ""));
         // last without separator

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -76,7 +75,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -103,10 +102,15 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
 
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, null);
 
     // match against own library
     makeAndAddLibrarySearchStep(q, true);
+
+    // compound grouping (requires meta correlation + IIN)
+    // for now disabled, might need a different algorithm for DIA and flow injection
+    // maybe only rely on ion identities then
+//    makeAndAddCompoundGrouperStep(q, null);
 
     // export all unannotated scans - after alignment to merge duplicates
     if (exportUnknownScansFile) {

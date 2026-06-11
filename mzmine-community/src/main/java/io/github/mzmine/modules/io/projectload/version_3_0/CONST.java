@@ -77,6 +77,22 @@ public class CONST {
   public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
   public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
   /**
+   * Compound list stuff
+   */
+  public static final String XML_COMPOUND_LIST_ELEMENT = "compoundlist";
+  public static final String XML_COMPOUND_ROW_ELEMENT = "compoundrow";
+  // Whitespace-separated compound IDs for every CompoundRow in the tree, at every level (top-level
+  // plus nested). Used by the loader to pre-register stubs in CompoundList.byCompoundId so that
+  // <member compound="true"> forward references resolve as <compoundrow> blocks are parsed.
+  public static final String XML_COMPOUND_IDS_ELEMENT = "ids";
+  // Whitespace-separated compound IDs of only the top-level CompoundRows (i.e. rows that appear in
+  // CompoundList.getRows()). Read after <ids>; used to rebuild CompoundList.rows in saved order.
+  public static final String XML_COMPOUND_TOP_LEVEL_IDS_ELEMENT = "toplevel_ids";
+  public static final String XML_COMPOUND_ID_ATTR = "id";
+  public static final String XML_COMPOUND_ATTR = "compound";
+  public static final String XML_COMPOUND_ID_REF_ATTR = "id_ref";
+  public static final String XML_COMPOUND_SOURCE_STRUCTURAL_VERSION_ATTR = "source_structural_version";
+  /**
    * Other data file stuff
    */
   public static final String XML_OTHER_TIME_VALUES_ELEMENT = "otherdata_times";

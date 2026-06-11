@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
@@ -51,7 +52,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SpectraPlotUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,10 +62,10 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
- * Predicts sum formulas just like io.github.mzmine.modules.peaklistmethods.identification.formulaprediction
+ * Predicts sum formulas just like
+ * io.github.mzmine.modules.peaklistmethods.identification.formulaprediction
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
@@ -108,20 +108,20 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     checkRDBE = parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions)
         .getValue();
     if (checkRDBE) {
-      RDBERestrictionParameters rdbeParameters = parameterSet
-          .getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions).getEmbeddedParameters();
+      RDBERestrictionParameters rdbeParameters = parameterSet.getParameter(
+          DPPSumFormulaPredictionParameters.rdbeRestrictions).getEmbeddedParameters();
       rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
       rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
     }
 
     checkIsotopes = parameterSet.getParameter(DPPSumFormulaPredictionParameters.isotopeFilter)
         .getValue();
-    final ParameterSet isoParam = parameterSet
-        .getParameter(DPPSumFormulaPredictionParameters.isotopeFilter).getEmbeddedParameters();
+    final ParameterSet isoParam = parameterSet.getParameter(
+        DPPSumFormulaPredictionParameters.isotopeFilter).getEmbeddedParameters();
 
     if (checkIsotopes) {
-      minIsotopeScore = isoParam
-          .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+      minIsotopeScore = isoParam.getValue(
+          IsotopePatternScoreParameters.isotopePatternScoreThreshold);
       isotopeNoiseLevel = isoParam.getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
       isotopeMZTolerance = isoParam.getValue(IsotopePatternScoreParameters.mzTolerance);
     } else {
@@ -133,8 +133,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     checkRatios = parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
         .getValue();
     if (checkRatios) {
-      ElementalHeuristicParameters ratiosParameters = parameterSet
-          .getParameter(DPPSumFormulaPredictionParameters.elementalRatios).getEmbeddedParameters();
+      ElementalHeuristicParameters ratiosParameters = parameterSet.getParameter(
+          DPPSumFormulaPredictionParameters.elementalRatios).getEmbeddedParameters();
       checkHC = ratiosParameters.getValue(ElementalHeuristicParameters.checkHC);
       checkNOPS = ratiosParameters.getValue(ElementalHeuristicParameters.checkNOPS);
       checkMultiple = ratiosParameters.getValue(ElementalHeuristicParameters.checkMultiple);
@@ -175,7 +175,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     if (getDataPoints().getNumberOfDataPoints() == 0) {
       logger.info(
           "Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
-          + " Please check the parameters.");
+              + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
@@ -204,12 +204,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
         continue;
       }
 
-      massRange = mzTolerance
-          .getToleranceRange((dataPoints.getMzValue(i) - ionType.getAddedMass()) / charge);
+      massRange = mzTolerance.getToleranceRange(
+          (dataPoints.getMzValue(i) - ionType.getAddedMass()) / charge);
 
       ProcessedDataPoint tmp = null; // dataPoints[i]
-      MolecularFormulaRange elCounts = DynamicParameterUtils
-          .buildFormulaRangeOnIsotopePatternResults(tmp, elementCounts);
+      MolecularFormulaRange elCounts = DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults(
+          tmp, elementCounts);
 
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elCounts);
@@ -250,16 +250,14 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
         continue;
       }
 
-      String formula = MolecularFormulaManipulator.getString(cdkFormula);
+      String formula = FormulaUtils.getFormulaString(cdkFormula);
 
       // calc rel mass deviation
       double relMassDev = ((((dp.getMZ() - //
-                              ionType.getAddedMass()) / charge)//
-                            - (FormulaUtils.calculateExactMass(//
-          MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((dp.getMZ() //
-                                                                            - ionType
-                                                                                .getAddedMass())
-                                                                           / charge)) * 1000000;
+          ionType.getAddedMass()) / charge)//
+          - (FormulaUtils.calculateExactMass(//
+          FormulaUtils.getFormulaString(cdkFormula))) / charge) / ((dp.getMZ() //
+          - ionType.getAddedMass()) / charge)) * 1000000;
 
       // write to map
       if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
@@ -327,21 +325,19 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-    predictedIsotopePattern = IsotopePatternCalculator
-        .calculateIsotopePattern(clonedFormula, minPredictedAbundance, charge,
-            ionType.getPolarity());
+    predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
+        minPredictedAbundance, charge, ionType.getPolarity());
 
-    return IsotopePatternScoreCalculator
-        .getSimilarityScore(detectedPattern, predictedIsotopePattern, isotopeMZTolerance,
-            isotopeNoiseLevel);
+    return IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
+        predictedIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
   }
 
   private boolean checkConstraints(IMolecularFormula cdkFormula) {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker
-          .checkFormula(cdkFormula, checkHC, checkNOPS, checkMultiple);
+      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, checkHC, checkNOPS,
+          checkMultiple);
       if (!check) {
         return false;
       }

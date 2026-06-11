@@ -34,6 +34,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.parameters.parametertypes.other_detectors.OtherRawOrProcessed;
 import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
@@ -85,8 +86,7 @@ public class OtherFeatureSelectionPane extends GridPane {
         otherFile);
     otherFileBox.setMinWidth(100);
 
-    rawOrProcessed = new SimpleObjectProperty<>(
-        rawOrProcessedChoices[0]);
+    rawOrProcessed = new SimpleObjectProperty<>(rawOrProcessedChoices[0]);
     final ComboBox<OtherRawOrProcessed> rawOrProcessedBox = FxComboBox.createComboBox(
         "Select the time series type", List.of(rawOrProcessedChoices), rawOrProcessed);
     rawOrProcessedBox.setMinWidth(40);
@@ -119,15 +119,21 @@ public class OtherFeatureSelectionPane extends GridPane {
       }
       otherFiles.setAll(
           f.getOtherDataFiles().stream().filter(OtherDataFile::hasTimeSeries).toList());
+      otherFileBox.setValue(otherFiles.stream().min(
+              Comparator.comparing(of -> of.getOtherTimeSeriesData().getChromatogramType().ordinal()))
+          .orElse(null));
     });
 
     otherFileBox.valueProperty().addListener((_, _, f) -> {
       if (f == null || !f.hasTimeSeries()) {
         otherFeatureCombo.setItems(List.of());
+        otherFeatureCombo.setSelectedFeature(null);
         return;
       }
       otherFeatureCombo.setItems(
           rawOrProcessed.get().streamMatching(f.getOtherTimeSeriesData()).toList());
+      otherFeatureCombo.setSelectedFeature(
+          otherFeatureCombo.getItems().stream().findFirst().orElse(null));
     });
 
     rawOrProcessedBox.valueProperty().addListener((_, _, rop) -> {
@@ -138,6 +144,8 @@ public class OtherFeatureSelectionPane extends GridPane {
         otherFeatureCombo.setItems(
             rawOrProcessed.get().streamMatching(otherFileBox.getValue().getOtherTimeSeriesData())
                 .toList());
+        otherFeatureCombo.setSelectedFeature(
+            otherFeatureCombo.getItems().stream().findFirst().orElse(null));
       }
     });
 
@@ -165,11 +173,11 @@ public class OtherFeatureSelectionPane extends GridPane {
   }
 
   public void setFeature(OtherFeature feature) {
-    if(feature != null && !otherFeatureCombo.getItems().contains(feature)) {
-      if(rawFileBox.getItems().contains(feature.getRawDataFile())) {
+    if (feature != null && !otherFeatureCombo.getItems().contains(feature)) {
+      if (rawFileBox.getItems().contains(feature.getRawDataFile())) {
         rawFileBox.setValue(feature.getRawDataFile());
       }
-      if(otherFileBox.getItems().contains(feature.getOtherDataFile())) {
+      if (otherFileBox.getItems().contains(feature.getOtherDataFile())) {
         otherFileBox.setValue(feature.getOtherDataFile());
       }
     }

@@ -26,12 +26,18 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping;
 
 
+import static java.util.Objects.requireNonNullElse;
+
+import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
@@ -39,8 +45,11 @@ import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
@@ -130,7 +139,8 @@ public class CorrelateGroupingTask extends AbstractTask {
     // by min percentage of samples in a sample set that contain this feature MIN_SAMPLES
     MinimumFeaturesFilterParameters minS = parameterSet.getParameter(
         CorrelateGroupingParameters.MIN_SAMPLES_FILTER).getEmbeddedParameters();
-    minFFilter = minS.createFilterWithGroups(project, featureList.getRawDataFiles(), null, minHeight);
+    minFFilter = minS.createFilterWithGroups(project, featureList.getRawDataFiles(), null,
+        minHeight);
 
     // tolerances
     rtTolerance = parameterSet.getParameter(CorrelateGroupingParameters.RT_TOLERANCE).getValue();
@@ -244,8 +254,17 @@ public class CorrelateGroupingTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-      // set correlation map
+
       var r2rNetworkingMaps = groupedPKL.getRowMaps();
+      // if ion mobility then correlated RT correlated rows
+      if (featureList.hasRowType(FeatureShapeMobilogramType.class)) {
+        R2RMap<RowsRelationship> imsMap = new R2RMap<>();
+        doR2RComparisonMobility(corrMap, imsMap);
+        r2rNetworkingMaps.removeAllRowRelationships(Type.MS1_MOBILITY_FEATURE_CORR);
+        r2rNetworkingMaps.addAllRowsRelationships(imsMap, Type.MS1_MOBILITY_FEATURE_CORR);
+      }
+
+      // set correlation map
       r2rNetworkingMaps.removeAllRowRelationships(Type.MS1_FEATURE_CORR);
       r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
@@ -291,6 +310,77 @@ public class CorrelateGroupingTask extends AbstractTask {
       setErrorMessage(t.getMessage());
       throw new MSDKRuntimeException(t);
     }
+  }
+
+  private void doR2RComparisonMobility(R2RMap<R2RCorrelationData> corrRTMap,
+      R2RMap<RowsRelationship> imsResults) {
+    final int totalMatched = corrRTMap.values().stream().parallel().mapToInt(rel -> {
+      if (correlateMobility(imsResults, rel.getRowA(), rel.getRowB())) {
+        return 1;
+      }
+      return 0;
+    }).sum();
+    logger.fine("Mobility correlated rows: " + totalMatched);
+  }
+
+  private boolean correlateMobility(R2RMap<RowsRelationship> imsResults, FeatureListRow rowA,
+      FeatureListRow rowB) {
+    final RawDataFile rawA = rowA.getBestFeature().getRawDataFile();
+    final RawDataFile rawB = rowB.getBestFeature().getRawDataFile();
+    float r = correlateMobility(rowA, rowB, rawA);
+
+    if (rawB != rawA) {
+      r = Math.max(r, correlateMobility(rowB, rowA, rawB));
+    }
+
+    if (r >= minShapeCorrR) {
+      imsResults.add(rowA, rowB,
+          new R2RSimpleSimilarity(rowA, rowB, Type.MS1_MOBILITY_FEATURE_CORR, r));
+      return true;
+    }
+    return false;
+  }
+
+  private float correlateMobility(FeatureListRow rowA, FeatureListRow rowB, RawDataFile raw) {
+    final Feature fa = rowA.getFeature(raw);
+    final Feature fb = rowB.getFeature(raw);
+
+    if (fa == null || fb == null || !(fa.getFeatureData() instanceof IonMobilogramTimeSeries dataA
+        && fb.getFeatureData() instanceof IonMobilogramTimeSeries dataB)) {
+      return -1;
+    }
+    if (!(fa instanceof ModularFeature mfa && fb instanceof ModularFeature mfb)) {
+      throw new IllegalStateException("Expected all feature to be modular");
+    }
+
+    if (!checkMobilityOverlap(mfa, mfb)) {
+      return -1;
+    }
+
+    // correlate mobilogram
+    return FeatureCorrelationUtil.correlatePearsonR(dataA.getSummedMobilogram(),
+        dataB.getSummedMobilogram(), minCorrelatedDataPoints);
+  }
+
+  private boolean checkMobilityOverlap(ModularFeature mfa, ModularFeature mfb) {
+    final Range<Float> rangeA = getMobilityRange(mfa);
+    final Range<Float> rangeB = getMobilityRange(mfb);
+    if (rangeA == null || rangeB == null) {
+      return false;
+    }
+    return rangeA.isConnected(rangeB);
+  }
+
+  private Range<Float> getMobilityRange(ModularFeature mfa) {
+    final Float mobility = mfa.getMobility();
+    if (mobility == null) {
+      return null;
+    }
+    final Float fwhm = mfa.getFWHM();
+    if (fwhm == null) {
+      return requireNonNullElse(mfa.getMobilityRange(), Range.singleton(mobility));
+    }
+    return Range.closed(mobility - fwhm / 2f, mobility + fwhm / 2f);
   }
 
   /**

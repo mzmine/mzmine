@@ -26,12 +26,14 @@
 package io.github.mzmine.gui.framework.fx;
 
 public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBinding,
-    SelectedMetadataColumnBinding, SelectedRowsBinding, SelectedFeaturesBinding,
-    SelectedFilesBinding, SelectedFeatureListsBinding {
+    SelectedCompoundRowBinding, SelectedCompoundRowSelectionBinding, SelectedMetadataColumnBinding,
+    SelectedRowsBinding, SelectedFeaturesBinding, SelectedFilesBinding,
+    SelectedFeatureListsBinding {
 
   public static void bindExposedProperties(Object master, Object child) {
-    if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
-      bindExposedProperties(master, child);
+    if (master instanceof FxControllerBinding fxmaster
+        && child instanceof FxControllerBinding fxchild) {
+      bindExposedProperties(fxmaster, fxchild);
     }
   }
 
@@ -45,6 +47,14 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     if (master instanceof SelectedAbundanceMeasureBinding m
         && child instanceof SelectedAbundanceMeasureBinding c) {
       c.abundanceMeasureProperty().bindBidirectional(m.abundanceMeasureProperty());
+    }
+    if (master instanceof SelectedCompoundRowSelectionBinding m
+        && child instanceof SelectedCompoundRowSelectionBinding c) {
+      c.compoundRowSelectionProperty().bindBidirectional(m.compoundRowSelectionProperty());
+    }
+    if (master instanceof SelectedCompoundRowBinding m
+        && child instanceof SelectedCompoundRowBinding c) {
+      c.selectedCompoundRowProperty().bindBidirectional(m.selectedCompoundRowProperty());
     }
     if (master instanceof SelectedFeatureListsBinding m
         && child instanceof SelectedFeatureListsBinding c) {
@@ -74,6 +84,10 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
       case SelectedRowsBinding _ -> {
       }
       case SelectedAbundanceMeasureBinding _ -> {
+      }
+      case SelectedCompoundRowSelectionBinding _ -> {
+      }
+      case SelectedCompoundRowBinding _ -> {
       }
       case SelectedFeatureListsBinding _ -> {
       }

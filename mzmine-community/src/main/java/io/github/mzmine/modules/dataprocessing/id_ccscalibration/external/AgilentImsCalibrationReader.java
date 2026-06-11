@@ -27,12 +27,11 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
 
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
+import io.github.mzmine.util.XMLUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -63,13 +62,9 @@ public class AgilentImsCalibrationReader {
       throw new IllegalArgumentException("Cannot find calibration file " + file.getAbsolutePath());
     }
 
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-
-    DocumentBuilder dBuilder;
-    Document calibration;
+    final Document calibration;
     try {
-      dBuilder = dbFactory.newDocumentBuilder();
-      calibration = dBuilder.parse(calFile);
+      calibration = XMLUtils.load(calFile);
     } catch (ParserConfigurationException | IOException | SAXException e) {
       logger.log(Level.WARNING, "Cannot parse calibration file. %s".formatted(e.getMessage()), e);
       throw new IllegalArgumentException(

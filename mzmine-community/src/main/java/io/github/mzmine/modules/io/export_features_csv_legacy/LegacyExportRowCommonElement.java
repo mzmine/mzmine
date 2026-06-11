@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 public enum LegacyExportRowCommonElement {
 
   ROW_ID("Export row ID"), //
+  ROW_COMPOUND_ID("Export compound ID"), //
   ROW_MZ("Export row m/z"), //
   ROW_RT("Export row retention time"), //
   ROW_ION_MOBILITY("Export row ion mobility"), //

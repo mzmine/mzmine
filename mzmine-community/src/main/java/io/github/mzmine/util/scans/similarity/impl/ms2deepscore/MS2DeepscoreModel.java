@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoCloseable {
+public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
 
   private static final Logger logger = Logger.getLogger(MS2DeepscoreModel.class.getName());
   private final MS2DeepscoreSpectrumTensorizer spectrumTensorizer;
@@ -100,6 +100,11 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoC
   public NDArray predictEmbedding(List<? extends MassSpectrum> scans) throws TranslateException {
     TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
     return predictEmbeddingFromTensors(tensorizedSepctra);
+  }
+
+  @Override
+  public NDManager getNDManager() {
+    return ndManager;
   }
 
   @Override

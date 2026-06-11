@@ -46,7 +46,6 @@ import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReacti
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -69,6 +68,13 @@ public interface FeatureListRow extends ModularDataModel {
    * Returns ID of this row
    */
   Integer getID();
+
+  /**
+   * unique ID for map keys
+   */
+  default FeatureListRowID getTypedID() {
+    return FeatureListRowID.of(this);
+  }
 
   /**
    * Returns number of features assigned to this row
@@ -200,6 +206,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns the most common charge for features on this row. (most common or the lowest charge if
    * multiple charges have the same number of features).
+   *
    * @return most common charge state
    */
   Integer getRowCharge();
@@ -383,7 +390,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return null or the current list. First element is the "preferred" element
    */
-  @Nullable List<IonIdentity> getIonIdentities();
+  @NotNull List<IonIdentity> getIonIdentities();
 
   /**
    * Set the list of ion identities with the first element being the preferred
@@ -552,6 +559,24 @@ public interface FeatureListRow extends ModularDataModel {
 
   void addSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
 
+  /**
+   * Append analog spectral library matches under
+   * {@link io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType}.
+   * Existing analog matches are preserved.
+   */
+  void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches);
+
+  /**
+   * @return analog spectral library matches sorted from best (index 0) to last match, or empty
+   * list.
+   */
+  @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches();
+
+  /**
+   * Replace the list of analog matches.
+   */
+  void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches);
+
   @Nullable Range<Float> getMobilityRange();
 
   /**
@@ -581,12 +606,35 @@ public interface FeatureListRow extends ModularDataModel {
 
   @NotNull
   default Stream<FeatureAnnotation> streamAllFeatureAnnotations() {
-    return getAllFeatureAnnotations().stream();
+    return streamAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included. Defaults to
+   *                      false because analog matches are informational and rank below regular
+   *                      identity-based annotations.
+   */
+  @NotNull
+  default Stream<FeatureAnnotation> streamAllFeatureAnnotations(final boolean includeAnalog) {
+    return getAllFeatureAnnotations(includeAnalog).stream();
   }
 
   @NotNull
   default List<FeatureAnnotation> getAllFeatureAnnotations() {
-    return CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(this);
+    return getAllFeatureAnnotations(false);
+  }
+
+  /**
+   * @param includeAnalog if true, analog spectral library matches are also included.
+   */
+  @NotNull
+  default List<FeatureAnnotation> getAllFeatureAnnotations(final boolean includeAnalog) {
+    final List<FeatureAnnotation> all = CompoundAnnotationUtils.getAllFeatureAnnotationsByDescendingConfidence(
+        this);
+    if (includeAnalog) {
+      return all;
+    }
+    return all.stream().filter(a -> !a.isAnalogMatch()).toList();
   }
 
   /**
@@ -597,13 +645,13 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable String getPreferredAnnotationName();
 
   /**
-   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} or MS2 scans.
+   * @return The polarity of this row. Based on {@link Feature#getRepresentativeScan()} of the first
+   * feature.
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
-    // checks best feature first
-    return streamFeatures().sorted(Comparator.comparingDouble(Feature::getHeight).reversed())
-        .map(Feature::getRepresentativePolarity).filter(Objects::nonNull).findFirst().orElse(null);
+    return streamFeatures().map(Feature::getRepresentativePolarity).filter(Objects::nonNull)
+        .filter(p -> p.isDefined()).findFirst().orElse(null);
   }
 
 }

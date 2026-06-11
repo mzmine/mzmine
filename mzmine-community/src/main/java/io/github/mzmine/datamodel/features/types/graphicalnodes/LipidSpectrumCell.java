@@ -82,6 +82,6 @@ public class LipidSpectrumCell extends ChartCell<LipidSpectrumPlot> {
 
   @Override
   protected LipidSpectrumPlot createChart() {
-    return new LipidSpectrumPlot(null, true, RunOption.THIS_THREAD);
+    return new LipidSpectrumPlot(null, true, RunOption.THIS_THREAD, false);
   }
 }

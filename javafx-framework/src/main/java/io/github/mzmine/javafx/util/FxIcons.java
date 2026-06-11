@@ -33,10 +33,10 @@ public enum FxIcons implements IconCodeSupplier {
   X_CIRCLE_FILL, EXCLAMATION_CIRCLE_FILL, INFO_CIRCLE_FILL,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, QUESTIONMARK, ARROW_IN_RIGHT,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, COLUMNS_DOTS, PLUS_CIRCLE, PLUS, ADD, EDIT, MERGE, QUESTIONMARK, ARROW_IN_RIGHT, LINK,
 
   // icons
-  FILE, FOLDER, LIST, COLLECTION, GROUPED_PARAMETERS,
+  FILE, FOLDER, FOLDER_FILL, LIST, COLLECTION, GROUPED_PARAMETERS, NETWORK, FEATURE_LIST, ALIGNED_FEATURE_LIST,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -94,6 +94,7 @@ public enum FxIcons implements IconCodeSupplier {
       case DRAW_REGION -> "bi-bounding-box";
       case BATCH -> "bi-layout-split";
       case ADD -> "bi-plus";
+      case MERGE -> "bi-box-arrow-in-left";
       case EDIT -> "bi-pencil-square";
       case DOWNLOAD -> "bi-download";
       case PLUS -> "bi-plus";
@@ -102,9 +103,14 @@ public enum FxIcons implements IconCodeSupplier {
       case LIGHTBULB -> "bi-lightbulb";
       case QUESTIONMARK -> "bi-question-circle";
       case ARROW_IN_RIGHT -> "bi-box-arrow-in-right";
+      case LINK -> "bi-link-45deg";
+      case NETWORK -> "bi-share";
       case FILE -> "bi-file-earmark-text";
       case FOLDER -> "bi-folder";
+      case FOLDER_FILL -> "bi-folder-fill";
       case SEARCH -> "bi-search";
+      case FEATURE_LIST -> "bi-file-spreadsheet";
+      case ALIGNED_FEATURE_LIST -> "bi-file-spreadsheet-fill";
     };
   }
 }

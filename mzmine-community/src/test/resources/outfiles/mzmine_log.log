@@ -43,7 +43,7 @@ java.lang.ClassNotFoundException: io.mzio.mzminepro.modules.otherdata.featdet_re
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector
-2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule
+2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule
 2025-03-21 10:22:02 FINEST io.github.mzmine.main.MZmineCore getModuleInstance Creating an instance of the module io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule

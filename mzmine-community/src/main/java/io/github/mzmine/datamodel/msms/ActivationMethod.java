@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.msms;
 
 import io.github.msdk.datamodel.ActivationType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,6 +80,17 @@ public enum ActivationMethod {
       case ETHCD -> ETHCD;
       case UVPD -> UVPD;
       case UNKNOWN -> UNKNOWN;
+    };
+  }
+
+  public static ActivationMethod fromCvAccession(String accession) {
+    return switch (accession) {
+      case MzMLCV.cvActivationCID -> CID;
+      case MzMLCV.cvElectronCaptureDissociation -> ECD;
+      case MzMLCV.cvHighEnergyCID -> HCD;
+      case MzMLCV.cvLowEnergyCID -> CID;
+      case MzMLCV.cvActivationModeEAD -> EAD;
+      case null, default -> null;
     };
   }
 }

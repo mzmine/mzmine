@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -30,11 +29,12 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassDescription;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidDatabaseCalculator {
 
@@ -114,14 +112,14 @@ public class LipidDatabaseCalculator {
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
               .map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
           for (IonizationType ionizationType : ionizationTypes) {
-            double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-                AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
+            double mz = FormulaUtils.getMonoisotopicMass(lipid.getMolecularFormula())
+                + ionizationType.getAddedMass();
             exactMassSB.append(ionizationType.getAdductName()).append(" ")
                 .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipid.getName(), // lipid class
-              MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
+              FormulaUtils.getFormulaString(lipid.getMolecularFormula()), // molecular
               // formula
               lipid.getAnnotation(),
               // abbr

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.parameters.parametertypes.WindowSettings;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -63,18 +64,22 @@ public class StageWindowSettingsUtil {
   }
 
   /**
-   * @return first screen index or -1 if none matches bounds
+   * @return first matching screen this window is on or null if none matches bounds
    */
-  public static int getCurrentScreen(@NotNull Stage stage) {
+  public static @Nullable Screen getCurrentScreen(@NotNull Stage stage) {
     final ObservableList<Screen> screens = Screen.getScreens();
     for (int i = 0; i < screens.size(); i++) {
       Screen screen = screens.get(i);
       if (screen.getBounds()
           .intersects(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight())) {
-        return i;
+        return screen;
       }
     }
-    return -1;
+    return null;
+  }
+
+  public static @NotNull Screen getCurrentScreenOrPrimary(@NotNull Stage stage) {
+    return Objects.requireNonNullElse(getCurrentScreen(stage), Screen.getPrimary());
   }
 
   /**
@@ -132,4 +137,22 @@ public class StageWindowSettingsUtil {
         .anyMatch(screen -> screen.getBounds().contains(stagePosition));
   }
 
+  /**
+   * @return the next best screen different from screen
+   */
+  @NotNull
+  public static Screen nextBestScreen(@NotNull Screen screen) {
+    final Screen primary = Screen.getPrimary();
+    if (!Objects.equals(primary, screen)) {
+      return primary;
+    }
+
+    final ObservableList<Screen> screens = Screen.getScreens();
+    for (Screen other : screens) {
+      if (!screen.equals(other) && other.getBounds().getWidth() > 400) {
+        return other;
+      }
+    }
+    return screen;
+  }
 }

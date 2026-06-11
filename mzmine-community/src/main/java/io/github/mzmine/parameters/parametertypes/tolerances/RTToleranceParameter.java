@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,6 +24,7 @@
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.util.Collection;
@@ -151,6 +151,21 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
     float tolerance = (float) value.getTolerance();
     String toleranceNum = String.valueOf(tolerance);
     xmlElement.setTextContent(toleranceNum);
+  }
+
+  @Override
+  public boolean valueEquals(final Parameter<?> that) {
+    if (!(that instanceof RTToleranceParameter thatParam)) {
+      return false;
+    }
+    if (value == null && thatParam.getValue() == null) {
+      return true;
+    }
+    if (value == null || thatParam.getValue() == null) {
+      return false;
+    }
+    return Float.compare(value.getTolerance(), thatParam.getValue().getTolerance()) == 0
+        && value.getUnit() == thatParam.getValue().getUnit();
   }
 
   @Override

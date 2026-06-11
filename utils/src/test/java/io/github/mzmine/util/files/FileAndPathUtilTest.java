@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import java.nio.DoubleBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
@@ -59,8 +60,8 @@ class FileAndPathUtilTest {
         WriterOptions.REPLACE.toOpenOption())) {
 
       try {
-        MemorySegment segment = FileAndPathUtil.memoryMapSparseTempFile("test", ".tmp",
-            tempDir, Arena.ofAuto(), 1L << 20);
+        MemorySegment segment = FileAndPathUtil.memoryMapSparseTempFile("test", ".tmp", tempDir,
+            Arena.ofAuto(), 1L << 20);
         Assertions.assertNotNull(segment);
       } catch (Exception e) {
         logger.warning("Issue memory mapping new file");
@@ -99,5 +100,23 @@ class FileAndPathUtilTest {
       }
       TimeUnit.SECONDS.sleep(1);
     }
+  }
+
+  final String allCorrect = "_-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'~!@#$%&()[]{}=.,+";
+
+  @Test
+  void getPathIllegalChars() {
+    Assertions.assertEquals(List.of(),
+        List.copyOf(FileAndPathUtil.getPathIllegalChars(allCorrect)));
+    Assertions.assertEquals(List.of("*", "\"", "?", "|", "\\", "\t"),
+        List.copyOf(FileAndPathUtil.getPathIllegalChars("*na\"me??te|st\\tab\t")));
+  }
+
+  @Test
+  void safePathEncode() {
+    Assertions.assertEquals(allCorrect, FileAndPathUtil.safePathEncode(allCorrect));
+
+    Assertions.assertEquals("_name_test_", FileAndPathUtil.safePathEncode("\"name?test*"));
+    Assertions.assertEquals("_na_me__test_", FileAndPathUtil.safePathEncode("*na\tme??test\\"));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
@@ -156,7 +156,7 @@ class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPane {
         fileWriter.close();
       } catch (IOException ex) {
         final String msg = "There was a problem writing the Lipid Fragmentation Rule file.";
-        MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
+        DesktopService.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
         logger.log(Level.SEVERE, msg, ex);
       }
 
