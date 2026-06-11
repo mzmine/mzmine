@@ -29,10 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableOwner;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
@@ -66,8 +66,8 @@ public class IntegrationDashboardModel {
   private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>();
   private final ListProperty<RawDataFile> sortedFiles = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private final ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumn = new SimpleObjectProperty<>(
-      ProjectService.getMetadata().getSampleTypeColumn());
+  private final ObjectProperty<@NotNull IntegrationDashboardSortOption> sortOption = new SimpleObjectProperty<>(
+      IntegrationDashboardSortOption.of(ProjectService.getMetadata().getSampleTypeColumn()));
   private final ObjectProperty<IntegrationTransfer> syncReIntegration = new SimpleObjectProperty<>(
       IntegrationTransfer.NONE);
   private final ObjectProperty<@NotNull MZTolerance> integrationTolerance = new SimpleObjectProperty<>(
@@ -77,6 +77,11 @@ public class IntegrationDashboardModel {
   private final ObjectProperty<@NotNull Function<IonTimeSeries, IonTimeSeries>> postProcessingMethod = new SimpleObjectProperty<>(
       t -> t);
   private final BooleanProperty applyPostProcessing = new SimpleBooleanProperty(false);
+  private final BooleanProperty showFileName = new SimpleBooleanProperty(true);
+  private final BooleanProperty showControls = new SimpleBooleanProperty(true);
+  private final BooleanProperty showAxisTitles = new SimpleBooleanProperty(true);
+  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(false);
+  private final ObjectProperty<@Nullable PlotCursorPosition> cursorPosition = new SimpleObjectProperty<>();
 
   private final IntegerProperty gridNumColumns = new SimpleIntegerProperty(3);
   private final IntegerProperty gridNumRows = new SimpleIntegerProperty(2);
@@ -173,16 +178,16 @@ public class IntegrationDashboardModel {
     return sortedFiles;
   }
 
-  public @NotNull MetadataColumn<?> getRawFileSortingColumn() {
-    return rawFileSortingColumn.get();
+  public @NotNull IntegrationDashboardSortOption getSortOption() {
+    return sortOption.get();
   }
 
-  public void setRawFileSortingColumn(@NotNull MetadataColumn<?> rawFileSortingColumn) {
-    this.rawFileSortingColumn.set(rawFileSortingColumn);
+  public void setSortOption(@NotNull IntegrationDashboardSortOption sortOption) {
+    this.sortOption.set(sortOption);
   }
 
-  public ObjectProperty<@NotNull MetadataColumn<?>> rawFileSortingColumnProperty() {
-    return rawFileSortingColumn;
+  public ObjectProperty<@NotNull IntegrationDashboardSortOption> sortOptionProperty() {
+    return sortOption;
   }
 
   public IntegrationTransfer getSyncReIntegration() {
@@ -251,5 +256,65 @@ public class IntegrationDashboardModel {
 
   public void setApplyPostProcessing(boolean applyPostProcessing) {
     this.applyPostProcessing.set(applyPostProcessing);
+  }
+
+  public boolean isShowFileName() {
+    return showFileName.get();
+  }
+
+  public BooleanProperty showFileNameProperty() {
+    return showFileName;
+  }
+
+  public void setShowFileName(boolean showFileName) {
+    this.showFileName.set(showFileName);
+  }
+
+  public boolean isShowControls() {
+    return showControls.get();
+  }
+
+  public BooleanProperty showControlsProperty() {
+    return showControls;
+  }
+
+  public void setShowControls(boolean showControls) {
+    this.showControls.set(showControls);
+  }
+
+  public boolean isShowAxisTitles() {
+    return showAxisTitles.get();
+  }
+
+  public BooleanProperty showAxisTitlesProperty() {
+    return showAxisTitles;
+  }
+
+  public void setShowAxisTitles(boolean showAxisTitles) {
+    this.showAxisTitles.set(showAxisTitles);
+  }
+
+  public boolean isUseSampleColor() {
+    return useSampleColor.get();
+  }
+
+  public BooleanProperty useSampleColorProperty() {
+    return useSampleColor;
+  }
+
+  public void setUseSampleColor(boolean useSampleColor) {
+    this.useSampleColor.set(useSampleColor);
+  }
+
+  public @Nullable PlotCursorPosition getCursorPosition() {
+    return cursorPosition.get();
+  }
+
+  public void setCursorPosition(@Nullable PlotCursorPosition cursorPosition) {
+    this.cursorPosition.set(cursorPosition);
+  }
+
+  public ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty() {
+    return cursorPosition;
   }
 }
