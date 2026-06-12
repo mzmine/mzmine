@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -114,12 +114,28 @@ public class ColorUtils {
     return sqrt;
   }
 
+  /**
+   * The perceived lightness of a color. On a display green seems brighter than red and blue
+   * <p>
+   * 100% blue is perceived 0.114 lightness
+   *
+   * @return 0-1 with 0 black and 1 white. 0.5 is a perceived 50% gray
+   */
+  public static double getPerceivedLightness(Color color) {
+    double r = color.getRed();
+    double g = color.getGreen();
+    double b = color.getBlue();
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
   public static boolean isLight(Color clr) {
-    return getColorDifference(clr, Color.WHITE) < 250;
+    return getPerceivedLightness(clr) > 0.9;
   }
 
   public static boolean isDark(Color clr) {
-    return getColorDifference(clr, Color.BLACK) < 250;
+    // 100% blue is perceived 0.114
+    // so smaller than blue is dark
+    return getPerceivedLightness(clr) < 0.1;
   }
 
   public static double maxBrightnessWidth() {
