@@ -136,6 +136,21 @@ node.FEATURE {
   #570025, black;
 }
 
+/* Pie-chart nodes. Activated for feature nodes when metadata grouping is enabled */
+/* (FeatureNetworkPane sets ui.class to PIE and ui.pie-values per node). Static shape/size/stroke */
+/* live here; the per-group fill-color list is injected at runtime by NetworkPieChartStyler. */
+node.PIE {
+  shape: pie-chart;
+  fill-mode: plain;
+  size-mode: dyn-size;
+  size: 15px;
+  stroke-mode: plain;
+  stroke-color: #636363;
+  stroke-width: 1px;
+  /* fallback fill-color list - overridden at runtime with one color per sample group */
+  fill-color: #636363, #b3b3b3;
+}
+
 node.root_fragment {
   fill-color: #156CA2;
 }
