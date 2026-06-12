@@ -181,6 +181,9 @@
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
+      <MenuItem onAction="#runModule"
+        text="Isotope labeling"
+        userData="io.github.mzmine.modules.dataprocessing.isolab_targeted.IsotopeLabelingTargetedModule"/>
     </Menu>
     <Menu text="GC-MS">
       <MenuItem onAction="#runModule" text="Chromatogram builder"
@@ -329,7 +332,9 @@
       <MenuItem onAction="#runModule" text="Isotopic signal finder (In scans)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
       <MenuItem text="Isotope feature scanner" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
+              userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
+      <MenuItem text="Natural Abundance Correction" onAction="#runModule"
+              userData="io.github.mzmine.modules.dataprocessing.isolab_natabundance.IsotopeNaturalAbundanceModule"/>
     </Menu>
 
     <Menu text="Feature grouping">
