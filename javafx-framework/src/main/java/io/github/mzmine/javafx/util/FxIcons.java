@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ public enum FxIcons implements IconCodeSupplier {
   ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION, DOWNLOAD, SEARCH, COLLAPSE, EXPAND;
 
 
   @Override
@@ -109,6 +109,8 @@ public enum FxIcons implements IconCodeSupplier {
       case FOLDER -> "bi-folder";
       case FOLDER_FILL -> "bi-folder-fill";
       case SEARCH -> "bi-search";
+      case COLLAPSE -> "bi-arrows-collapse";
+      case EXPAND -> "bi-arrows-expand";
       case FEATURE_LIST -> "bi-file-spreadsheet";
       case ALIGNED_FEATURE_LIST -> "bi-file-spreadsheet-fill";
     };

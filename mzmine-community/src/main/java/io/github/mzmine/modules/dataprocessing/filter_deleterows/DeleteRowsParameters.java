@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_deleterows;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.util.FeatureListUtils;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,24 +55,28 @@ public class DeleteRowsParameters extends SimpleParameterSet {
     super(flist, rowIds, compoundIds);
   }
 
-  public static @NotNull DeleteRowsParameters of(@NotNull final FeatureList featureList,
-      @NotNull final List<? extends FeatureListRow> rows) {
-    final DeleteRowsParameters parameterSet = (DeleteRowsParameters) new DeleteRowsParameters().cloneParameterSet();
-    parameterSet.setParameter(DeleteRowsParameters.flist,
-        new FeatureListsSelection((ModularFeatureList) featureList));
-    parameterSet.setParameter(rowIds, FeatureListUtils.rowsToIdString(rows));
-    parameterSet.setParameter(compoundIds, "");
-    return parameterSet;
+  public static @NotNull DeleteRowsParameters of(@NotNull final ModularFeatureList featureList,
+      @NotNull final List<? extends FeatureListRow> allRows) {
+    List<FeatureListRow> rows = new ArrayList<>();
+    List<CompoundRow> compounds = new ArrayList<>();
+    for (FeatureListRow row : allRows) {
+      if (row instanceof CompoundRow comp) {
+        compounds.add(comp);
+      } else {
+        rows.add(row);
+      }
+    }
+    return of(featureList, rows, compounds);
   }
 
   public static @NotNull DeleteRowsParameters of(@NotNull final ModularFeatureList featureList,
-      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
+      @NotNull final Collection<? extends CompoundRow> compounds) {
     return of(featureList, List.of(), compounds);
   }
 
   public static @NotNull DeleteRowsParameters of(@NotNull final ModularFeatureList featureList,
       @NotNull final List<? extends FeatureListRow> rows,
-      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
+      @NotNull final Collection<? extends CompoundRow> compounds) {
     final DeleteRowsParameters parameterSet = (DeleteRowsParameters) new DeleteRowsParameters().cloneParameterSet();
     parameterSet.setParameter(DeleteRowsParameters.flist, new FeatureListsSelection(featureList));
     parameterSet.setParameter(rowIds, FeatureListUtils.rowsToIdString(rows));
@@ -81,8 +85,8 @@ public class DeleteRowsParameters extends SimpleParameterSet {
   }
 
   private static @NotNull String joinCompoundIds(
-      @NotNull final Collection<? extends ModularCompoundRow> compounds) {
-    return compounds.stream().map(ModularCompoundRow::getCompoundId).map(Object::toString)
+      @NotNull final Collection<? extends CompoundRow> compounds) {
+    return compounds.stream().map(CompoundRow::getCompoundId).map(Object::toString)
         .collect(Collectors.joining(","));
   }
 }
