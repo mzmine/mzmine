@@ -291,8 +291,10 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblCols = FxLabels.newLabel("Columns");
     final Label lblRows = FxLabels.newLabel("Rows");
 
-    final Spinner<Integer> spCols = FxSpinners.newSpinner(1, 10, model.gridNumColumnsProperty());
-    final Spinner<Integer> spRows = FxSpinners.newSpinner(1, 10, model.gridNumRowsProperty());
+    final Spinner<Integer> spCols = FxSpinners.newSpinner(1, 30, model.gridNumColumnsProperty());
+    spCols.setPrefWidth(80);
+    final Spinner<Integer> spRows = FxSpinners.newSpinner(1, 30, model.gridNumRowsProperty());
+    spRows.setPrefWidth(80);
 
     final Button previousPage = FxButtons.createButton(null, FxIcons.ARROW_LEFT, "Previous page",
         () -> model.setGridPaneFileOffset(
@@ -324,10 +326,14 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     return FxLayout.newHBox(Pos.CENTER, lblCols, spCols, lblRows, spRows,
         new Separator(Orientation.VERTICAL), previousPage, lblEntries, lblPage, nextPage,
         new Separator(Orientation.VERTICAL),
-        FxCheckBox.newCheckBox("File name", model.showFileNameProperty()),
-        FxCheckBox.newCheckBox("Controls", model.showControlsProperty()),
-        FxCheckBox.newCheckBox("Axis titles", model.showAxisTitlesProperty()),
-        FxCheckBox.newCheckBox("Sample color", model.useSampleColorProperty()));
+        FxCheckBox.newCheckBox("Show file name", model.showFileNameProperty(),
+            "Show the file name as title on top of the plot."),
+        FxCheckBox.newCheckBox("Show controls", model.showControlsProperty(),
+            "Show control buttons underneath for each plot."),
+        FxCheckBox.newCheckBox("Show axis titles", model.showAxisTitlesProperty(),
+            "Show titles for the X and Y axes in each plot."),
+        FxCheckBox.newCheckBox("Use sample color", model.useSampleColorProperty(),
+            "Use sample-specific colors for the plots. The colors are defined in the sample metadata.\nIf not activated, all plots will use the same default colors."));
   }
 
   private Region buildMetadataColSelectionForSorting() {
