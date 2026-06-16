@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -59,9 +60,11 @@ public class IntegrationPane extends BorderPane {
 
   private final UnitFormat uf = ConfigService.getGuiFormats().unitFormat();
   private final NumberFormats formats = ConfigService.getGuiFormats();
-  private ObjectProperty<@Nullable RawDataFile> rawFile = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherDataFile> otherFile = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherFeature> preprocessedTrace = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable RawDataFile> rawFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable OtherDataFile> otherFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable OtherFeature> preprocessedTrace = new SimpleObjectProperty<>();
+  private final ObservableList<@Nullable OtherDataFile> selectableOtherFiles = FXCollections.observableArrayList();
+  private final ObservableList<@Nullable OtherFeature> selectableTimeSeries = FXCollections.observableArrayList();
   private final IntegrationPlotController plot = new IntegrationPlotController();
   private final BooleanProperty saveAllowedProperty = new SimpleBooleanProperty(false);
 
@@ -74,7 +77,7 @@ public class IntegrationPane extends BorderPane {
     final ComboBox<@Nullable OtherFeature> timeSeriesCombo = createTimeSeriesCombo();
     final Button saveButton = createSaveButton();
 
-    initializeListeners(otherFileCombo, timeSeriesCombo);
+    initializeListeners();
 
     final VBox vbox = FxLayout.newVBox(Pos.TOP_LEFT, rawFileCombo, otherFileCombo, timeSeriesCombo,
         saveButton);
@@ -103,7 +106,8 @@ public class IntegrationPane extends BorderPane {
         var data = preprocessedTrace.get().getFeatureData().getTimeSeriesData();
         data.replaceProcessedFeaturesForTrace(
             preprocessedTrace.get().get(RawTraceType.class) != null ? preprocessedTrace.get()
-                .get(RawTraceType.class) : preprocessedTrace.get(),
+                                                                      .get(RawTraceType.class)
+                : preprocessedTrace.get(),
             plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
                 .map(ts -> {
                   final OtherFeature integrated = preprocessedTrace.get()
@@ -150,7 +154,7 @@ public class IntegrationPane extends BorderPane {
 
   private @NotNull ComboBox<@Nullable OtherDataFile> createOtherFileCombo() {
     final ComboBox<@Nullable OtherDataFile> otherFileCombo = FxComboBox.createComboBox(
-        "Select a detector.", List.of(), otherFile);
+        "Select a detector.", selectableOtherFiles, otherFile);
     otherFileCombo.setConverter(new StringConverter<OtherDataFile>() {
       @Override
       public String toString(OtherDataFile object) {
@@ -170,7 +174,7 @@ public class IntegrationPane extends BorderPane {
 
   private @NotNull ComboBox<@Nullable OtherFeature> createTimeSeriesCombo() {
     final ComboBox<@Nullable OtherFeature> timeSeriesCombo = FxComboBox.createComboBox(
-        "Select a chromatogram.", List.of(), preprocessedTrace);
+        "Select a chromatogram.", selectableTimeSeries, preprocessedTrace);
     timeSeriesCombo.setConverter(new StringConverter<>() {
       @Override
       public String toString(OtherFeature object) {
@@ -188,31 +192,43 @@ public class IntegrationPane extends BorderPane {
     return timeSeriesCombo;
   }
 
-  private void initializeListeners(ComboBox<@Nullable OtherDataFile> otherFileCombo,
-      ComboBox<@Nullable OtherFeature> timeSeriesCombo) {
+  private void initializeListeners() {
     rawFile.addListener((_, _, file) -> {
-      if (file != null) {
-        otherFileCombo.setItems(FXCollections.observableList(
-            file.getOtherDataFiles().stream().filter(OtherDataFile::hasTimeSeries).toList()));
-        if (!otherFileCombo.getItems().isEmpty()) {
-          otherFileCombo.getSelectionModel().selectFirst();
-        }
-      } else {
-        otherFileCombo.getSelectionModel().clearSelection();
-        otherFileCombo.setItems(FXCollections.emptyObservableList());
+      if (file == null) {
+        selectableOtherFiles.clear();
+        setOtherFile(null);
+        return;
+      }
+
+      final List<OtherDataFile> matchingFiles = file.getOtherDataFiles().stream()
+          .filter(OtherDataFile::hasTimeSeries).toList();
+      selectableOtherFiles.setAll(matchingFiles);
+      final @Nullable OtherDataFile currentOtherFile = getOtherFile();
+
+      if (matchingFiles.isEmpty()) {
+        setOtherFile(null);
+      } else if (currentOtherFile == null || !matchingFiles.contains(currentOtherFile)) {
+        setOtherFile(matchingFiles.getFirst());
       }
     });
 
-    otherFile.addListener((_, _, otherFile) -> {
-      if (otherFile != null) {
-        timeSeriesCombo.setItems(FXCollections.observableList(
-            otherFile.getOtherTimeSeriesData().getPreprocessedTraces()));
-        if (!timeSeriesCombo.getItems().isEmpty()) {
-          timeSeriesCombo.getSelectionModel().selectFirst();
-        }
-      } else {
-        timeSeriesCombo.getSelectionModel().clearSelection();
-        timeSeriesCombo.setItems(FXCollections.emptyObservableList());
+    otherFile.addListener((_, _, selectedOtherFile) -> {
+      if (selectedOtherFile == null || selectedOtherFile.getOtherTimeSeriesData() == null
+          || selectedOtherFile.getOtherTimeSeriesData().getPreprocessedTraces() == null) {
+        selectableTimeSeries.clear();
+        setPreprocessedTrace(null);
+        return;
+      }
+
+      final List<OtherFeature> traces = selectedOtherFile.getOtherTimeSeriesData()
+          .getPreprocessedTraces();
+      selectableTimeSeries.setAll(traces);
+      final @Nullable OtherFeature currentTrace = getPreprocessedTrace();
+
+      if (traces.isEmpty()) {
+        setPreprocessedTrace(null);
+      } else if (currentTrace == null || !traces.contains(currentTrace)) {
+        setPreprocessedTrace(traces.getFirst());
       }
     });
 
@@ -247,6 +263,10 @@ public class IntegrationPane extends BorderPane {
   }
 
   public void setRawFile(@Nullable RawDataFile rawFile) {
+    if (rawFile == null) {
+      this.rawFile.set(null);
+      return;
+    }
     if (!rawFile.getOtherDataFiles().stream().anyMatch(OtherDataFile::hasTimeSeries)) {
       throw new RuntimeException(
           "Selected file does not have any associated other detector time series.");
