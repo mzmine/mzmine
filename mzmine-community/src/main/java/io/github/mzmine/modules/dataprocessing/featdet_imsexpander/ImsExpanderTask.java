@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -55,7 +56,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -157,39 +160,57 @@ public class ImsExpanderTask extends AbstractTask {
       return;
     }
 
-    final List<Frame> frames = (List<Frame>) flist.getSeletedScans(flist.getRawDataFile(0));
-    assert frames != null;
+    // group expanding traces by their row's scan selection so each selection's frames expand only
+    // its own traces (e.g. positive vs negative polarity). frames.indexOf(...) below requires the
+    // frame list to contain the trace's frames, so frames must match the trace's selection.
+    final Map<ScanSelection, List<ExpandingTrace>> tracesBySelection = new LinkedHashMap<>();
+    for (final ExpandingTrace trace : expandingTraces) {
+      tracesBySelection.computeIfAbsent(trace.getRow().getScanSelection(), _ -> new ArrayList<>())
+          .add(trace);
+    }
 
     // we partition the traces (sorted by rt) so we can start and end at specific frames. By splitting
     // the traces and not frames, we can also directly store the raw data on the SSD/HDD as soon as
     // a thread finishes. Thereby we can reduce the memory consumption, especially in images.
-    final int tracesPerList = Math.max(1,
-        Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces));
-    expandingTraces.sort(
-        (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
-    final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
+    for (var selectionEntry : tracesBySelection.entrySet()) {
+      final ScanSelection selection = selectionEntry.getKey();
+      final List<Frame> frames = (List<Frame>) flist.getScans(selection, flist.getRawDataFile(0));
+      if (frames == null) {
+        logger.warning(String.format(
+            "Cannot resolve selected frames for file %s and scan selection %s during IMS expanding. Skipping %d trace(s).",
+            imsFile.getName(), selection, selectionEntry.getValue().size()));
+        continue;
+      }
+      final List<ExpandingTrace> selectionTraces = selectionEntry.getValue();
 
-    for (final List<ExpandingTrace> subList : subLists) {
-      final Frame firstFrame = (Frame) subList.getFirst().getRow().getBestFeature().getFeatureData()
-          .getSpectrum(0);
-      final ExpandingTrace lastFrameTrace = subList.stream().max(
-              (a, b) -> Float.compare(a.getRtRange().upperEndpoint(), b.getRtRange().upperEndpoint()))
-          .orElseThrow(() -> new IllegalStateException("Cannot determine last frame."));
-      final IonTimeSeries<? extends Scan> lastTraceData = lastFrameTrace.getRow().getBestFeature()
-          .getFeatureData();
-      final Frame lastFrame = (Frame) lastTraceData.getSpectrum(
-          lastTraceData.getNumberOfValues() - 1);
-      final List<Frame> framesSubList = frames.subList(frames.indexOf(firstFrame),
-          frames.indexOf(lastFrame) + 1);
+      final int tracesPerList = Math.max(1,
+          Math.min(selectionTraces.size() / NUM_THREADS, maxNumTraces));
+      selectionTraces.sort(
+          (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
+      final List<List<ExpandingTrace>> subLists = Lists.partition(selectionTraces, tracesPerList);
 
-      final List<ExpandingTrace> traces = new ArrayList<>(subList);
-      traces.sort(Comparator.comparingDouble(a -> a.getMzRange().lowerEndpoint()));
+      for (final List<ExpandingTrace> subList : subLists) {
+        final Frame firstFrame = (Frame) subList.getFirst().getRow().getBestFeature()
+            .getFeatureData().getSpectrum(0);
+        final ExpandingTrace lastFrameTrace = subList.stream().max(
+                (a, b) -> Float.compare(a.getRtRange().upperEndpoint(), b.getRtRange().upperEndpoint()))
+            .orElseThrow(() -> new IllegalStateException("Cannot determine last frame."));
+        final IonTimeSeries<? extends Scan> lastTraceData = lastFrameTrace.getRow().getBestFeature()
+            .getFeatureData();
+        final Frame lastFrame = (Frame) lastTraceData.getSpectrum(
+            lastTraceData.getNumberOfValues() - 1);
+        final List<Frame> framesSubList = frames.subList(frames.indexOf(firstFrame),
+            frames.indexOf(lastFrame) + 1);
 
-      final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
-          binWidth);
-      tasks.add(
-          new ImsExpanderSubTask(getMemoryMapStorage(), parameters, framesSubList, flist, traces,
-              mobilogramDataAccess, imsFile));
+        final List<ExpandingTrace> traces = new ArrayList<>(subList);
+        traces.sort(Comparator.comparingDouble(a -> a.getMzRange().lowerEndpoint()));
+
+        final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
+            binWidth);
+        tasks.add(
+            new ImsExpanderSubTask(getMemoryMapStorage(), parameters, framesSubList, flist, traces,
+                mobilogramDataAccess, imsFile));
+      }
     }
 
     // might need a copy of task list -  we usually clear the tasks list to not hold on to memory

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListScans;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -41,6 +42,8 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ParsingUtils;
@@ -192,6 +195,20 @@ public class FeatureListSaveTask extends AbstractTask {
       }
     }
 
+    final FeatureListScans scansData = flist.getSelectedScansData();
+    // stable registry order: rows and per-file scan lists reference a selection by this index
+    final List<ScanSelection> selectionRegistry = scansData.getSelections();
+
+    // write the global scan selection registry (index = position in the list)
+    Element scanSelectionsListElement = document.createElement(
+        CONST.XML_FLIST_SCAN_SELECTIONS_LIST_ELEMENT);
+    for (ScanSelection selection : selectionRegistry) {
+      Element scanSelectionElement = document.createElement(CONST.XML_FLIST_SCAN_SELECTION_ELEMENT);
+      new ScanSelectionParameter(selection).saveValueToXML(scanSelectionElement);
+      scanSelectionsListElement.appendChild(scanSelectionElement);
+    }
+    root.appendChild(scanSelectionsListElement);
+
     // write selected files
     Element dataFilesListElement = document.createElement(CONST.XML_RAW_FILES_LIST_ELEMENT);
     for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
@@ -205,12 +222,24 @@ public class FeatureListSaveTask extends AbstractTask {
       filePathElement.setTextContent(rawDataFile.getAbsolutePath());
       fileElement.appendChild(filePathElement);
 
-      Element selectedScansElement = document.createElement(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
-      int[] indices = ParsingUtils.getIndicesOfSubListElements(
-          (List<Scan>) flist.getSeletedScans(rawDataFile), rawDataFile.getScans());
-      selectedScansElement.setTextContent(ParsingUtils.intArrayToString(indices, indices.length));
-
-      fileElement.appendChild(selectedScansElement);
+      // write one <selectedscans> entry per scan selection that has scans for this file. The scan
+      // indices are stored as text content; the selection is referenced by its registry index. This
+      // allows the same file to carry multiple scan lists (e.g. positive and negative polarity).
+      for (int selectionIndex = 0; selectionIndex < selectionRegistry.size(); selectionIndex++) {
+        final List<? extends Scan> scans = scansData.getScansExact(
+            selectionRegistry.get(selectionIndex), rawDataFile);
+        if (scans == null) {
+          continue;
+        }
+        Element selectedScansElement = document.createElement(
+            CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
+        selectedScansElement.setAttribute(CONST.XML_FLIST_SCAN_SELECTION_INDEX_ATTR,
+            String.valueOf(selectionIndex));
+        int[] indices = ParsingUtils.getIndicesOfSubListElements((List<Scan>) scans,
+            rawDataFile.getScans());
+        selectedScansElement.setTextContent(ParsingUtils.intArrayToString(indices, indices.length));
+        fileElement.appendChild(selectedScansElement);
+      }
       dataFilesListElement.appendChild(fileElement);
 
     }

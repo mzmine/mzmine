@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -211,7 +211,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     // Create new feature list
     processedFeatureList = new ModularFeatureList(dataFile.getName() + " " + suffix,
         getMemoryMapStorage(), dataFile);
-    processedFeatureList.setSelectedScans(dataFile, matchingScans);
+    processedFeatureList.setSelectedScans(dataFile, scanSelection, matchingScans);
 
     final CompoundDbLoadResult compoundResult = CSVParsingUtils.getAnnotationsFromCsvFile(
         featureListFile, fieldSeparator,
@@ -237,6 +237,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     for (int row = 0; row < mergedAnnotations.size(); row++) {
       FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedFeatureList,
           ID++);
+      newRow.setScanSelection(scanSelection);
       final OverlappingCompoundAnnotation mergedAnnotation = mergedAnnotations.get(row);
 
       final Range<Double> mzRange = mzTolerance.getToleranceRange(
@@ -303,7 +304,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   private boolean processImsFile(List<? extends Gap> gaps, IMSRawDataFile imsFile) {
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
         MobilityScanDataType.MASS_LIST,
-        (List<Frame>) processedFeatureList.getSeletedScans(imsFile));
+        (List<Frame>) processedFeatureList.getScansForFile(imsFile));
     List<ImsGap> imsGaps = (List<ImsGap>) gaps;
 
     while (access.hasNextFrame()) {

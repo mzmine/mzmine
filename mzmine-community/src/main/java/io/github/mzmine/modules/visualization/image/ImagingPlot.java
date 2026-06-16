@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,7 +85,7 @@ public class ImagingPlot extends BorderPane {
 
   public void setData(Feature feature) {
     FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(feature,
-        (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+        (List<ImagingScan>) feature.getFullScanList(),
         parameters.getValue(ImageVisualizerParameters.imageNormalization));
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     setData(ds);

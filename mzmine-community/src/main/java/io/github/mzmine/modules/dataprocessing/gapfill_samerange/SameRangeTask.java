@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -193,8 +193,9 @@ class SameRangeTask extends AbstractTask {
 
     // Get scan numbers
     final ScanSelection scanSelection = new ScanSelection(1, rtRange);
+    // use the scan selection the row was derived from to pick the right scan list for this file
     final List<Scan> matchingScans = scanSelection.getMatchingScans(
-        (List<Scan>) processedPeakList.getSeletedScans(fileToFill));
+        (List<Scan>) processedPeakList.getScans(row.getScanSelection(), fileToFill));
 
     boolean dataPointFound = false;
 

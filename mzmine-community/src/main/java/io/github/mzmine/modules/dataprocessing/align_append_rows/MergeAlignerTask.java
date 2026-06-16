@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListScans;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
@@ -132,18 +134,25 @@ public class MergeAlignerTask extends AbstractTask {
       alignedFeatureList.addRowType(featureList.getRowTypes());
       alignedFeatureList.addFeatureType(featureList.getFeatureTypes());
 
-      // selected scans during chromatogram creation needs to be the same list for the same data file
-      for (RawDataFile file : featureList.getRawDataFiles()) {
-        List<? extends Scan> seletedScans = alignedFeatureList.getSeletedScans(file);
-        List<? extends Scan> seletedScansNew = featureList.getSeletedScans(file);
-        if (seletedScans != null && (seletedScansNew == null
-            || seletedScans.size() != seletedScansNew.size())) {
-          setErrorMessage(
-              "Cannot merge feature lists from the same RawDataFile that were created with different selected scans (e.g., during chromatogram building). Try to harmonize the scan filters in the previous steps or split the raw data file in two data files, e.g., for positive and negative mode data.");
-          setStatus(TaskStatus.ERROR);
-          return;
-        } else {
-          alignedFeatureList.setSelectedScans(file, seletedScansNew);
+      // Copy the selected scans (used during chromatogram creation) per (scan selection, file).
+      // Different scan selections of the same file (e.g. positive and negative polarity) coexist.
+      // Only a genuine conflict - the same key already mapped to a different scan list - is rejected.
+      final FeatureListScans sourceScans = featureList.getSelectedScansData();
+      final FeatureListScans targetScans = alignedFeatureList.getSelectedScansData();
+      for (final ScanSelection selection : sourceScans.getSelections()) {
+        for (final RawDataFile file : featureList.getRawDataFiles()) {
+          final List<? extends Scan> seletedScansNew = sourceScans.getScansExact(selection, file);
+          if (seletedScansNew == null) {
+            continue;
+          }
+          final List<? extends Scan> existing = targetScans.getScansExact(selection, file);
+          if (existing != null && existing.size() != seletedScansNew.size()) {
+            setErrorMessage(
+                "Cannot merge feature lists from the same RawDataFile and scan selection that were created with different selected scans (e.g., during chromatogram building). Try to harmonize the scan filters in the previous steps or split the raw data file in two data files, e.g., for positive and negative mode data.");
+            setStatus(TaskStatus.ERROR);
+            return;
+          }
+          alignedFeatureList.setSelectedScans(file, selection, seletedScansNew);
         }
       }
 

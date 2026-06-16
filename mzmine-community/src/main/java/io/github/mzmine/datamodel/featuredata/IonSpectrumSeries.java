@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,7 +53,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    *                 this should be passed all scans obtained from the
    *                 {@link RawDataFile#getScans()} method, not the preselected scans obtained by
    *                 {@link
-   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getScansForFile(RawDataFile)}.
    */
   public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,
       IonSpectrumSeries<T> series, List<T> allScans) throws XMLStreamException {

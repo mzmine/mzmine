@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel.features;
 import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -50,6 +49,7 @@ import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
@@ -67,11 +67,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,7 +82,6 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -111,7 +108,14 @@ public class ModularFeatureList implements FeatureList {
   // unmodifiable list
   private final List<RawDataFile> dataFiles;
   private final List<RawDataFile> readOnlyRawDataFiles; // keep one copy in case it is used somewhere
-  private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+  /**
+   * Selected scans used to build the chromatograms/features, reused for reintegration. Organized as
+   * {@link ScanSelection} -> ({@link RawDataFile} -> scans) so that the same file may carry
+   * multiple independent scan lists (e.g. positive and negative polarity in polarity switching
+   * data). Each {@link FeatureListRow} records its {@link ScanSelection} so the matching list can
+   * be resolved per file. See {@link FeatureListScans}.
+   */
+  private final FeatureListScans selectedScansData = new FeatureListScans();
 
   private NodeGenerationThread nodeThread;
   private final ReentrantReadWriteLock nodeThreadLock = new ReentrantReadWriteLock(false);
@@ -207,7 +211,6 @@ public class ModularFeatureList implements FeatureList {
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
     dateCreated = DATA_FORMAT.format(new Date());
-    selectedScans = FXCollections.observableMap(new HashMap<>());
     this.memoryMapStorage = storage;
 
     // only a few standard types
@@ -313,27 +316,44 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * The selected scans to build this feature/chromatogram
+   * Registers the selected scans used to build chromatograms/features. The {@link ScanSelection}
+   * allows the same {@link RawDataFile} to carry multiple independent scan lists (e.g. positive and
+   * negative polarity in polarity switching data).
    *
-   * @param file  the data file of the scans
-   * @param scans all filtered scans that were used to build the chromatogram in the first place.
-   *              For ion mobility data, the Frames are returned
+   * @param file      the data file of the scans
+   * @param selection the scan filter that selected these scans. Use {@link ScanSelection#ALL_SCANS}
+   *                  when no specific filter applies.
+   * @param scans     all filtered scans that were used to build the chromatogram in the first
+   *                  place. For ion mobility data, the Frames are passed.
    */
-  public void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans) {
-    // the selected scans map needs contain a CachedImsFile as key during project load, but the
+  @Override
+  public void setSelectedScans(@NotNull RawDataFile file, @NotNull ScanSelection selection,
+      @Nullable List<? extends Scan> scans) {
+    // the selected scans need to contain a CachedImsFile as key during project load, but the
     // feature list itself will directly get the regular file during creation.
     // the CachedImsFiles are replaced later during project load.
-    selectedScans.put(file, scans);
+    selectedScansData.setScans(selection, file, scans);
   }
 
-  /**
-   * @param file the data file
-   * @return The scans used to build this feature list. For ion mobility data, the frames are
-   * returned.
-   */
-  @Nullable
-  public List<? extends Scan> getSeletedScans(@NotNull RawDataFile file) {
-    return selectedScans.get(file);
+  @Override
+  public @Nullable List<? extends Scan> getScans(@Nullable ScanSelection selection,
+      @NotNull RawDataFile file) {
+    return selectedScansData.getScans(selection, file);
+  }
+
+  @Override
+  public @Nullable List<? extends Scan> getScansForFile(@NotNull RawDataFile file) {
+    return selectedScansData.getScansForFile(file);
+  }
+
+  @Override
+  public @NotNull List<ScanSelection> getScanSelections(@NotNull RawDataFile file) {
+    return selectedScansData.getScanSelectionsForFile(file);
+  }
+
+  @Override
+  public @NotNull FeatureListScans getSelectedScansData() {
+    return selectedScansData;
   }
 
   /**
@@ -953,16 +973,14 @@ public class ModularFeatureList implements FeatureList {
    * further processing.
    */
   public void replaceCachedFilesAndScans() {
-    final List<Entry<RawDataFile, List<? extends Scan>>> selectedScansEntries = selectedScans.entrySet()
-        .stream().toList();
-
-    for (Entry<RawDataFile, List<? extends Scan>> entry : selectedScansEntries) {
-      final RawDataFile file = entry.getKey();
+    // snapshot to avoid concurrent modification while replacing
+    for (final RawDataFile file : selectedScansData.getRawDataFiles()) {
       if (file instanceof CachedIMSRawDataFile cached) {
-        final List<? extends Scan> scans = selectedScans.remove(cached);
-        final List<Frame> frames = scans.stream()
-            .map(scan -> ((CachedIMSFrame) scan).getOriginalFrame()).toList();
-        selectedScans.put(cached.getOriginalFile(), frames);
+        // keep the original scan selection, only swap the cached file for the real one and map
+        // the cached frames back to the original frames
+        selectedScansData.replaceRawDataFile(cached, cached.getOriginalFile(),
+            scans -> scans.stream().map(scan -> (Scan) ((CachedIMSFrame) scan).getOriginalFrame())
+                .toList());
       }
     }
   }

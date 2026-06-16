@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -156,7 +157,7 @@ public class IMSScanTypesTest {
       file.addScan(frame);
     }
 
-    flist.setSelectedScans(file, file.getFrames().subList(0, 4));
+    flist.setSelectedScans(file, ScanSelection.ALL_SCANS, file.getFrames().subList(0, 4));
   }
 
   @Test

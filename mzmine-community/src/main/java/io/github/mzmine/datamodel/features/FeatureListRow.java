@@ -37,12 +37,14 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ScanSelectionType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
@@ -68,6 +70,25 @@ public interface FeatureListRow extends ModularDataModel {
    * Returns ID of this row
    */
   Integer getID();
+
+  /**
+   * The scan selection this row (and its features) was derived from. Used to fetch the matching
+   * selected scan list per raw data file (e.g. during gap filling) - see
+   * {@link FeatureList#getScans(ScanSelection, RawDataFile)}. May be null for rows created before a
+   * selection was assigned; the feature list then falls back to the file's sole selection.
+   *
+   * @return the scan selection or null if not set
+   */
+  default @Nullable ScanSelection getScanSelection() {
+    return get(ScanSelectionType.class);
+  }
+
+  /**
+   * @param selection the scan selection this row was derived from
+   */
+  default void setScanSelection(@Nullable ScanSelection selection) {
+    set(ScanSelectionType.class, selection);
+  }
 
   /**
    * unique ID for map keys

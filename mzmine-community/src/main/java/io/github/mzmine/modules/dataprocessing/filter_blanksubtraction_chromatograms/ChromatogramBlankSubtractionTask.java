@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromatograms;
 
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -42,7 +44,6 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerTask;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
-import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -326,7 +327,12 @@ public class ChromatogramBlankSubtractionTask extends AbstractFeatureListTask {
 
   private CommonRtAxisChromatogram extractUnifiedRetentionTimes(final List<FeatureList> blanks) {
     setLogDescription("Unifying RT from blanks");
-    var flistScans = blanks.stream().map(flist -> flist.getSeletedScans(flist.getRawDataFile(0)))
+    // This builds a single common RT axis shared by all rows of each blank, so there is no per-row
+    // scan selection context. For polarity switching data the merged scans across all selections of
+    // the file are used (the RT grid spans both polarities).
+    // decision: file-level common RT axis cannot attribute to a single selection.
+    var flistScans = blanks.stream()
+        .map(flist -> flist.getSelectedScansData().getAllScansForFile(flist.getRawDataFile(0)))
         .toList();
 
     // less than maximum number of data points

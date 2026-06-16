@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -61,7 +62,9 @@ import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -152,21 +155,38 @@ class IsotopeFinderTask extends AbstractTask {
     processedRows = 0;
     RawDataFile raw = featureList.getRawDataFile(0);
 
-    // Loop through all rows
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
-        featureList.getSeletedScans(raw));
-
-    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
+    // group rows by their scan selection so each selection's scans drive its rows (e.g. positive
+    // and negative polarity). findBestScanOrMobilityScan requires the data access to contain the
+    // feature's representative scan, so a single access mixing selections would break that lookup.
+    final Map<ScanSelection, List<FeatureListRow>> rowsBySelection = new LinkedHashMap<>();
+    for (FeatureListRow row : featureList.getRows()) {
+      rowsBySelection.computeIfAbsent(row.getScanSelection(), _ -> new ArrayList<>()).add(row);
+    }
 
     int missingValues = 0;
     int detected = 0;
 
     try {
-      // find for all rows the isotope pattern
-      for (FeatureListRow row : featureList.getRows()) {
-        if (isCanceled()) {
-          return;
+      for (var selectionEntry : rowsBySelection.entrySet()) {
+        final ScanSelection selection = selectionEntry.getKey();
+        final List<? extends Scan> selectedScans = featureList.getScans(selection, raw);
+        if (selectedScans == null) {
+          logger.warning(() -> String.format(
+              "Cannot resolve selected scans for file %s and scan selection %s during isotope finding. Skipping %d row(s).",
+              raw.getName(), selection, selectionEntry.getValue().size()));
+          processedRows += selectionEntry.getValue().size();
+          continue;
         }
+
+        final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
+            selectedScans);
+        final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw, selectedScans);
+
+        // find for all rows of this selection the isotope pattern
+        for (FeatureListRow row : selectionEntry.getValue()) {
+          if (isCanceled()) {
+            return;
+          }
 
         // start at max intensity signal
         Feature feature = row.getFeature(raw);
@@ -248,7 +268,8 @@ class IsotopeFinderTask extends AbstractTask {
           //        missingValues++;
           //      }
         }
-        processedRows++;
+          processedRows++;
+        }
       }
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
@@ -374,11 +395,12 @@ class IsotopeFinderTask extends AbstractTask {
   }
 
   @Nullable
-  private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
+  private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw,
+      List<? extends Scan> selectedScans) {
     return
         raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
             ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
-            (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+            (List<Frame>) selectedScans) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,

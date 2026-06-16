@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -74,6 +75,15 @@ public class CONST {
   public static final String XML_FLIST_DATE_CREATED_ELEMENT = "date";
   public static final String XML_FLIST_NAME_ELEMENT = "name";
   public static final String XML_FLIST_SELECTED_SCANS_ELEMENT = "selectedscans";
+  // Polarity switching support: a feature list carries a registry of distinct ScanSelections
+  // (<scanselections> with one <scanselection> per distinct selection, position = index). Each
+  // <selectedscans> entry of a raw file stores its scan indices as text content and references the
+  // selection by the "selectionindex" attribute. Rows reference the same index via the
+  // ScanSelectionType. Legacy files store indices directly as text content of <selectedscans>
+  // without a selectionindex attribute and without a <scanselections> registry.
+  public static final String XML_FLIST_SCAN_SELECTIONS_LIST_ELEMENT = "scanselections";
+  public static final String XML_FLIST_SCAN_SELECTION_ELEMENT = "scanselection";
+  public static final String XML_FLIST_SCAN_SELECTION_INDEX_ATTR = "selectionindex";
   public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
   public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
   /**

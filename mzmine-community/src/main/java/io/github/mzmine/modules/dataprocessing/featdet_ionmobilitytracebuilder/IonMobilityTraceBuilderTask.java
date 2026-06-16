@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -536,7 +536,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(featureList);
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
-    featureList.setSelectedScans(rawDataFile, frames);
+    featureList.setSelectedScans(rawDataFile, scanSelection, frames);
 
     final int binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
       case DRIFT_TUBE -> dtimsBindWidth;
@@ -557,6 +557,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           rawDataFile, mobilogramBinner);
       ModularFeatureListRow newRow = new ModularFeatureListRow(featureList, featureId, modular);
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
+      newRow.setScanSelection(scanSelection);
       featureList.addRow(newRow);
       featureId++;
       progress += progressStep;

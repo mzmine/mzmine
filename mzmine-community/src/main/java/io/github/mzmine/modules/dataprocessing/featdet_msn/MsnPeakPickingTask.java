@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -178,6 +178,7 @@ public class MsnPeakPickingTask extends AbstractTask {
 
           ModularFeatureListRow newFeatureListRow = new ModularFeatureListRow(newFeatureList,
               scan.getScanNumber(), newFeature);
+          newFeatureListRow.setScanSelection(scanSelection);
 
           newFeatureList.addRow(newFeatureListRow);
         }
@@ -196,7 +197,7 @@ public class MsnPeakPickingTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
-    newFeatureList.setSelectedScans(dataFile, List.of(scans));
+    newFeatureList.setSelectedScans(dataFile, scanSelection, List.of(scans));
     newFeatureList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(MsnFeatureDetectionModule.class, parameterSet,
             getModuleCallDate()));

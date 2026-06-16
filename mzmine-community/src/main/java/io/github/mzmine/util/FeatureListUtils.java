@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -684,17 +684,13 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the selected scans from a collection of feature lists to the target feature list.
+   * Copies the selected scans from a collection of feature lists to the target feature list. Each
+   * (scan selection, file) entry is copied so files carrying multiple scan selections (e.g. positive
+   * and negative polarity) are preserved.
    */
   public static void transferSelectedScans(FeatureList target, Collection<FeatureList> flists) {
     for (FeatureList flist : flists) {
-      for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
-        if (target.getSeletedScans(rawDataFile) != null) {
-          throw new IllegalStateException(
-              "Error, selected scans for file " + rawDataFile + " already set.");
-        }
-        target.setSelectedScans(rawDataFile, flist.getSeletedScans(rawDataFile));
-      }
+      target.getSelectedScansData().putAll(flist.getSelectedScansData());
     }
   }
 

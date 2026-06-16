@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -42,8 +44,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Stroke;
@@ -314,7 +314,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       public void run() {
         setStatus(TaskStatus.PROCESSING);
         double area = FeatureUtils.integrateOverMzRtRange(rawDataFile,
-            (List<Scan>) flist.getSeletedScans(rawDataFile), RangeUtils.toFloatRange(rtRange),
+            (List<Scan>) flist.getScansForFile(rawDataFile), RangeUtils.toFloatRange(rtRange),
             mzRange);
         Platform.runLater(() -> txtArea.setText(intensityFormat.format(area)));
         setStatus(TaskStatus.FINISHED);
