@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -57,6 +58,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgori
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -239,9 +241,17 @@ public class FeatureResolverTask extends AbstractTask {
       final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
           getMemoryMapStorage());
 
+      // preserve the scan selection of the source row so resolved features keep their provenance.
+      // The resolved rows are otherwise fresh (no row types copied), but the scan selection is
+      // required for gap filling and chromatogram reconstruction of polarity switching data.
+      final FeatureListRow originalRow = originalFeature.getRow();
+      final ScanSelection scanSelection =
+          originalRow != null ? originalRow.getScanSelection() : null;
+
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);
+        newRow.setScanSelection(scanSelection);
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
             originalFeature.getRawDataFile(), originalFeature.getFeatureStatus());
         DataTypeUtils.copyAllBut(originalFeature, f, featureCopyExcludedTypes);

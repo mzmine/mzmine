@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -39,7 +40,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -99,6 +99,8 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
 
         // specifically do not copy any annotations or so, as we would not know which feature it was based on.
         final ModularFeatureListRow copiedRow = new ModularFeatureListRow(resultFlist, row.getID());
+        // keep the scan selection provenance so downstream gap filling / reconstruction still works
+        copiedRow.setScanSelection(row.getScanSelection());
 
         for (final RawDataFile file : sampleGroup.files()) {
           final Feature feature = row.getFeature(file);
