@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotation
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
@@ -215,6 +216,8 @@ public class ModularFeatureList implements FeatureList {
 
     // only a few standard types
     addRowType(new IDType());
+    // polarity is not stored but derived on demand from the row's representative polarity
+    addRowType(DataTypes.get(PolarityTypeType.class));
     addDefaultListeners();
   }
 
