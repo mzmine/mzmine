@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
@@ -42,6 +43,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -49,7 +51,9 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -98,10 +102,16 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         + endexcl + " of pkl:" + peakList);
 
     int totalDataFiles = endexcl - start;
-    // Calculate total number of scans in all files
+    // Calculate total number of scans in all files. A file may carry several scan selections
+    // (e.g. positive and negative polarity), each with its own scan list.
     for (int i = start; i < endexcl; i++) {
       RawDataFile dataFile = peakList.getRawDataFile(i);
-      totalScans += peakList.getSeletedScans(dataFile).size();
+      for (ScanSelection selection : peakList.getScanSelections(dataFile)) {
+        final List<? extends Scan> scans = peakList.getScans(selection, dataFile);
+        if (scans != null) {
+          totalScans += scans.size();
+        }
+      }
     }
 
     int filled = 0;
@@ -118,7 +128,10 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         return;
       }
 
-      List<Gap> gaps = new ArrayList<>();
+      // group gaps by the scan selection of their row so each selection's scan list feeds only its
+      // own gaps (e.g. positive vs negative polarity scans of a polarity switching file). Rows
+      // without a selection (key null) resolve to the file's sole selection via getScans.
+      Map<ScanSelection, List<Gap>> gapsBySelection = new LinkedHashMap<>();
 
       // Fill each row of this raw data file column, create new empty
       // gaps
@@ -134,34 +147,37 @@ class MultiThreadPeakFinderTask extends AbstractTask {
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
 
+          final Gap newGap;
           if (peakList.hasFeatureType(MobilityType.class) && dataFile instanceof IMSRawDataFile) {
             Range<Float> mobilityRange = sourceRow.getMobilityRange();
-            Gap newGap = new ImsGap(newRow, dataFile, mzRange, rtRange, mobilityRange, intTolerance,
+            newGap = new ImsGap(newRow, dataFile, mzRange, rtRange, mobilityRange, intTolerance,
                 mobilogramAccess);
-            gaps.add(newGap);
           } else {
-            Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
-            gaps.add(newGap);
+            newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance);
           }
+          gapsBySelection.computeIfAbsent(sourceRow.getScanSelection(), _ -> new ArrayList<>())
+              .add(newGap);
         }
       }
 
       // Stop processing this file if there are no gaps
-      if (gaps.isEmpty()) {
+      if (gapsBySelection.isEmpty()) {
         processedScans.addAndGet(dataFile.getNumOfScans());
         continue;
       }
 
-      // Get all scans of this data file
-      processFile(dataFile, gaps);
+      // Get all scans of this data file (per scan selection)
+      processFile(dataFile, gapsBySelection);
 
       if (isCanceled()) {
         return;
       }
       // Finalize gaps and add to feature list
-      for (Gap gap : gaps) {
-        if (gap.noMoreOffers(minDataPoints)) {
-          filled++;
+      for (List<Gap> gaps : gapsBySelection.values()) {
+        for (Gap gap : gaps) {
+          if (gap.noMoreOffers(minDataPoints)) {
+            filled++;
+          }
         }
       }
 
@@ -207,41 +223,53 @@ class MultiThreadPeakFinderTask extends AbstractTask {
            + " of pkl:" + peakList;
   }
 
-  private void processFile(RawDataFile file, List<Gap> gaps) {
-    if (file instanceof IMSRawDataFile imsFile && peakList.hasFeatureType(MobilityType.class)) {
-      final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-          MobilityScanDataType.MASS_LIST, (List<Frame>) peakList.getSeletedScans(file));
-      List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
+  private void processFile(RawDataFile file, Map<ScanSelection, List<Gap>> gapsBySelection) {
+    final boolean ims =
+        file instanceof IMSRawDataFile && peakList.hasFeatureType(MobilityType.class);
 
-      while (access.hasNextFrame()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        final Frame frame = access.nextFrame();
-        for (ImsGap gap : imsGaps) {
-          access.resetMobilityScan();
-          gap.offerNextScan(access);
-        }
-        processedScans.incrementAndGet();
+    // each scan selection of the file is fed its own scan list to only its gaps
+    for (var entry : gapsBySelection.entrySet()) {
+      final ScanSelection selection = entry.getKey();
+      final List<Gap> gaps = entry.getValue();
+      final List<? extends Scan> scans = peakList.getScans(selection, file);
+      if (scans == null) {
+        // cannot resolve which scans belong to this selection (e.g. an untagged row in a file with
+        // multiple selections). Skip these gaps rather than integrating over the wrong scans.
+        logger.warning(() -> String.format(
+            "Cannot resolve selected scans for file %s and scan selection %s during gap filling. Skipping %d gap(s).",
+            file.getName(), selection, gaps.size()));
+        continue;
       }
 
-    } else {
-      // no IMS dimension
-
-      final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
-          peakList.getSeletedScans(file));
-      while (scanAccess.hasNextScan()) {
-        if (isCanceled()) {
-          return;
+      if (ims) {
+        final MobilityScanDataAccess access = new MobilityScanDataAccess((IMSRawDataFile) file,
+            MobilityScanDataType.MASS_LIST, (List<Frame>) scans);
+        final List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
+        while (access.hasNextFrame()) {
+          if (isCanceled()) {
+            return;
+          }
+          access.nextFrame();
+          for (ImsGap gap : imsGaps) {
+            access.resetMobilityScan();
+            gap.offerNextScan(access);
+          }
+          processedScans.incrementAndGet();
         }
-        scanAccess.nextScan();
-        // Feed this scan to all gaps
-        for (Gap gap : gaps) {
-          gap.offerNextScan(scanAccess);
+      } else {
+        final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
+            scans);
+        while (scanAccess.hasNextScan()) {
+          if (isCanceled()) {
+            return;
+          }
+          scanAccess.nextScan();
+          // Feed this scan to all gaps of this selection
+          for (Gap gap : gaps) {
+            gap.offerNextScan(scanAccess);
+          }
+          processedScans.incrementAndGet();
         }
-
-        processedScans.incrementAndGet();
       }
     }
   }

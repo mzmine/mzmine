@@ -76,6 +76,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -115,15 +116,35 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   private final Object writeLock = new Object();
 
   /**
-   * Creates an empty row
+   * Creates an empty row without a scan selection. Convenience for rows that have no scan selection
+   * provenance (e.g. tests, compound rows, library import). Prefer
+   * {@link #ModularFeatureListRow(ModularFeatureList, int, ScanSelection)} where a selection is
+   * known.
    *
    * @param flist the feature list
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
+    this(flist, id, (ScanSelection) null);
+  }
+
+  /**
+   * Creates an empty row derived from a given scan selection.
+   *
+   * @param flist         the feature list
+   * @param id            the row id
+   * @param scanSelection the scan selection this row was derived from, or null if unknown. Used to
+   *                      resolve the correct scan list per file (e.g. polarity switching) during
+   *                      gap filling and chromatogram reconstruction.
+   */
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id,
+      @Nullable ScanSelection scanSelection) {
     this(flist, flist.getRowsSchema());
     // set ID
     this.set(IDType.class, id);
+    if (scanSelection != null) {
+      setScanSelection(scanSelection);
+    }
   }
 
   /**
@@ -139,14 +160,16 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   }
 
   /**
-   * Constructor for row with only one feature.
+   * Constructor for row with only one feature and the scan selection it was derived from.
    *
-   * @param flist   the feature list
-   * @param id      the row id
-   * @param feature a feature to add to the row
+   * @param flist         the feature list
+   * @param id            the row id
+   * @param feature       a feature to add to the row
+   * @param scanSelection the scan selection this row/feature was derived from, or null if unknown
    */
-  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature) {
-    this(flist, id);
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature,
+      @Nullable ScanSelection scanSelection) {
+    this(flist, id, scanSelection);
     addFeature(feature.getRawDataFile(), feature);
   }
 
@@ -172,9 +195,10 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
       boolean copyFeatures) {
-    this(flist, id);
+    this(flist, id, null);
 
-    // copy all but features and id
+    // copy all but features and id. This includes the ScanSelectionType, so the new row inherits
+    // the source row's scan selection (provenance for gap filling / reconstruction).
     if (row != null) {
       row.stream().filter(e -> !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));

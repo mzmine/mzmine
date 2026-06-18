@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,7 +127,7 @@ public class BaselineCorrectionTask extends AbstractSimpleTask {
   private void handleMrmFeature(Feature feature) {
     final ModularFeature f = (ModularFeature) feature;
     if (f.get(MrmTransitionListType.class) instanceof MrmTransitionList transitions) {
-      final List<? extends Scan> allScans = newFlist.getSeletedScans(f.getRawDataFile());
+      final List<? extends Scan> allScans = f.getFullScanList();
       final List<MrmTransition> correctedTransitions = new ArrayList<>();
       for (MrmTransition transition : transitions.transitions()) {
         // todo this may be optimised by an MrmDataAccess, similar to the feature data access,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,9 +110,10 @@ public class ChromatogramBlankSubtractionParameters extends SimpleParameterSet {
         return "Apply blank removal before resolving, after chromatogram builder and optionally smoothing.";
       }
 
-      // scans
-      List<? extends Scan> scans = flist.getSeletedScans(flist.getRawDataFile(0));
-      if (scans == null) {
+      // scans - file-level validity check, merged across scan selections (see task above)
+      List<? extends Scan> scans = flist.getSelectedScansData()
+          .getAllScansForFile(flist.getRawDataFile(0));
+      if (scans.isEmpty()) {
         String steps = flist.getAppliedMethods().stream().map(FeatureListAppliedMethod::getModule)
             .map(MZmineModule::getName).collect(Collectors.joining("; "));
         return

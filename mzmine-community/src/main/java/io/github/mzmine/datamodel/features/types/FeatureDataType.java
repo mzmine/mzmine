@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -98,8 +98,7 @@ public class FeatureDataType extends
     if (file == null) {
       throw new IllegalArgumentException("Cannot save feature data for file = null");
     }
-    final List<? extends Scan> selectedScans = flist.getSeletedScans(file);
-    if (selectedScans == null) {
+    if (flist.getScanSelections(file).isEmpty()) {
       // sanity check during saving.
       throw new IllegalArgumentException("Cannot find selected scans.");
     }

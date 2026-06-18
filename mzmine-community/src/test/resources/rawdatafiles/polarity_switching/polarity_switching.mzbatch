@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<batch mzmine_version="4.10.6">
+    <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
+        <parameter name="File names">
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\polarity_switching\pol_switch_a.mzML</file>
+            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\polarity_switching\pol_switch_b.mzML</file>
+        </parameter>
+        <parameter name="Vendor data options">
+            <parameter name="Try vendor centroiding">true</parameter>
+            <parameter name="Remove calibrant signals (Thermo)">true</parameter>
+            <parameter name="Apply lockmass on import (Waters)" selected="true">
+                <parameter name="Positive lockmass">556.276575</parameter>
+                <parameter name="Negative lockmass">554.262022</parameter>
+            </parameter>
+            <parameter name="Waters MassLynx data import">native</parameter>
+        </parameter>
+        <parameter name="Advanced import" selected="false">
+            <parameter name="Scan filters" selected="true">
+                <parameter name="Scan number"/>
+                <parameter name="Base Filtering Integer"/>
+                <parameter name="Retention time"/>
+                <parameter name="Mobility"/>
+                <parameter name="MS level filter" selected="All MS levels">1</parameter>
+                <parameter name="Scan definition"/>
+                <parameter name="Polarity">Any</parameter>
+                <parameter name="Spectrum type">ANY</parameter>
+            </parameter>
+            <parameter name="Crop MS1 m/z" selected="false"/>
+            <parameter name="MS1 detector (Advanced)" selected="true" selected_item="Factor of lowest signal">
+                <module name="Factor of lowest signal">
+                    <parameter name="Noise factor">5.0</parameter>
+                </module>
+                <module name="Auto">
+                    <parameter name="Noise level">1000.0</parameter>
+                </module>
+                <module name="Centroid">
+                    <parameter name="Noise level"/>
+                </module>
+                <module name="Exact mass">
+                    <parameter name="Noise level"/>
+                </module>
+                <module name="Local maxima">
+                    <parameter name="Noise level"/>
+                    <parameter name="Minimum non-zero points">3</parameter>
+                    <parameter name="Intensity calculation">Height</parameter>
+                </module>
+                <module name="Recursive threshold">
+                    <parameter name="Noise level"/>
+                    <parameter name="Min m/z peak width"/>
+                    <parameter name="Max m/z peak width"/>
+                </module>
+                <module name="Wavelet transform">
+                    <parameter name="Noise level"/>
+                    <parameter name="Scale level"/>
+                    <parameter name="Wavelet window size (%)"/>
+                </module>
+            </parameter>
+            <parameter name="MS2 detector (Advanced)" selected="true" selected_item="Factor of lowest signal">
+                <module name="Factor of lowest signal">
+                    <parameter name="Noise factor">2.5</parameter>
+                </module>
+                <module name="Auto">
+                    <parameter name="Noise level">1000.0</parameter>
+                </module>
+                <module name="Centroid">
+                    <parameter name="Noise level"/>
+                </module>
+                <module name="Exact mass">
+                    <parameter name="Noise level"/>
+                </module>
+                <module name="Local maxima">
+                    <parameter name="Noise level"/>
+                    <parameter name="Minimum non-zero points">3</parameter>
+                    <parameter name="Intensity calculation">Height</parameter>
+                </module>
+                <module name="Recursive threshold">
+                    <parameter name="Noise level"/>
+                    <parameter name="Min m/z peak width"/>
+                    <parameter name="Max m/z peak width"/>
+                </module>
+                <module name="Wavelet transform">
+                    <parameter name="Noise level"/>
+                    <parameter name="Scale level"/>
+                    <parameter name="Wavelet window size (%)"/>
+                </module>
+            </parameter>
+            <parameter name="Denormalize fragment scans (traps)">true</parameter>
+        </parameter>
+        <parameter name="Metadata file" selected="false"/>
+        <parameter name="Sort and color">true</parameter>
+        <parameter name="Spectral library files"/>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
+        <parameter name="Raw data files" type="BATCH_LAST_FILES">
+            <by_metadata column="" includeExcludeType="include"/>
+            <by_metadata column="" includeExcludeType="exclude"/>
+        </parameter>
+        <parameter name="Scan filters" selected="true">
+            <parameter name="Scan number"/>
+            <parameter name="Base Filtering Integer"/>
+            <parameter name="Retention time"/>
+            <parameter name="Mobility"/>
+            <parameter name="MS level filter" selected="MS1, level = 1">1</parameter>
+            <parameter name="Scan definition"/>
+            <parameter name="Polarity">Any</parameter>
+            <parameter name="Spectrum type">ANY</parameter>
+        </parameter>
+        <parameter name="Scan types (IMS)">All scan types</parameter>
+        <parameter name="Denormalize fragment scans (traps)">true</parameter>
+        <parameter name="Mass detector" selected_item="Factor of lowest signal">
+            <module name="Factor of lowest signal">
+                <parameter name="Noise factor">5.0</parameter>
+            </module>
+            <module name="Auto">
+                <parameter name="Noise level">1000.0</parameter>
+            </module>
+            <module name="Centroid">
+                <parameter name="Noise level"/>
+            </module>
+            <module name="Exact mass">
+                <parameter name="Noise level"/>
+            </module>
+            <module name="Local maxima">
+                <parameter name="Noise level"/>
+                <parameter name="Minimum non-zero points">3</parameter>
+                <parameter name="Intensity calculation">Height</parameter>
+            </module>
+            <module name="Recursive threshold">
+                <parameter name="Noise level"/>
+                <parameter name="Min m/z peak width"/>
+                <parameter name="Max m/z peak width"/>
+            </module>
+            <module name="Wavelet transform">
+                <parameter name="Noise level"/>
+                <parameter name="Scale level"/>
+                <parameter name="Wavelet window size (%)"/>
+            </module>
+        </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
+        <parameter name="Raw data files" type="BATCH_LAST_FILES">
+            <by_metadata column="" includeExcludeType="include"/>
+            <by_metadata column="" includeExcludeType="exclude"/>
+        </parameter>
+        <parameter name="Scan filters" selected="true">
+            <parameter name="Scan number"/>
+            <parameter name="Base Filtering Integer"/>
+            <parameter name="Retention time"/>
+            <parameter name="Mobility"/>
+            <parameter name="MS level filter" selected="MSn, level ≥ 2">3</parameter>
+            <parameter name="Scan definition"/>
+            <parameter name="Polarity">Any</parameter>
+            <parameter name="Spectrum type">ANY</parameter>
+        </parameter>
+        <parameter name="Scan types (IMS)">All scan types</parameter>
+        <parameter name="Denormalize fragment scans (traps)">true</parameter>
+        <parameter name="Mass detector" selected_item="Factor of lowest signal">
+            <module name="Factor of lowest signal">
+                <parameter name="Noise factor">2.5</parameter>
+            </module>
+            <module name="Auto">
+                <parameter name="Noise level">1000.0</parameter>
+            </module>
+            <module name="Centroid">
+                <parameter name="Noise level"/>
+            </module>
+            <module name="Exact mass">
+                <parameter name="Noise level"/>
+            </module>
+            <module name="Local maxima">
+                <parameter name="Noise level"/>
+                <parameter name="Minimum non-zero points">3</parameter>
+                <parameter name="Intensity calculation">Height</parameter>
+            </module>
+            <module name="Recursive threshold">
+                <parameter name="Noise level"/>
+                <parameter name="Min m/z peak width"/>
+                <parameter name="Max m/z peak width"/>
+            </module>
+            <module name="Wavelet transform">
+                <parameter name="Noise level"/>
+                <parameter name="Scale level"/>
+                <parameter name="Wavelet window size (%)"/>
+            </module>
+        </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" module_name="Chromatogram builder" parameter_version="1">
+        <parameter name="Raw data files" type="BATCH_LAST_FILES">
+            <by_metadata column="" includeExcludeType="include"/>
+            <by_metadata column="" includeExcludeType="exclude"/>
+        </parameter>
+        <parameter name="Scan filters" selected="true">
+            <parameter name="Scan number"/>
+            <parameter name="Base Filtering Integer"/>
+            <parameter name="Retention time">
+                <min>0.30000001192092896</min>
+                <max>8.0</max>
+            </parameter>
+            <parameter name="Mobility"/>
+            <parameter name="MS level filter" selected="MS1, level = 1">1</parameter>
+            <parameter name="Scan definition"/>
+            <parameter name="Polarity">+</parameter>
+            <parameter name="Spectrum type">ANY</parameter>
+        </parameter>
+        <parameter name="Minimum consecutive scans">5</parameter>
+        <parameter name="Minimum intensity for consecutive scans">10000.0</parameter>
+        <parameter name="Minimum absolute height">50000.0</parameter>
+        <parameter name="m/z tolerance (scan-to-scan)">
+            <absolutetolerance>0.002</absolutetolerance>
+            <ppmtolerance>10.0</ppmtolerance>
+        </parameter>
+        <parameter name="Suffix">eics</parameter>
+        <parameter name="Allow single scan chromatograms"/>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule" module_name="Local minimum feature resolver" parameter_version="2">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Suffix">r</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+        <parameter name="MS/MS scan pairing" selected="true">
+            <parameter name="MS1 to MS2 precursor tolerance (m/z)">
+                <absolutetolerance>0.01</absolutetolerance>
+                <ppmtolerance>10.0</ppmtolerance>
+            </parameter>
+            <parameter name="Retention time filter" selected="Use feature edges" unit="MINUTES">0.04</parameter>
+            <parameter name="Minimum relative feature height" selected="true">0.25</parameter>
+            <parameter name="Minimum required signals" selected="true">1</parameter>
+            <parameter name="Limit by ion mobility edges">true</parameter>
+            <parameter name="Merge MS/MS spectra (TIMS)">false</parameter>
+            <parameter name="Minimum detections in IMS dimension">2</parameter>
+            <parameter name="Advanced" selected="false">
+                <parameter name="Minimum signal intensity (absolute, TIMS)" selected="false">250.0</parameter>
+                <parameter name="Minimum signal intensity (relative, TIMS)" selected="false">0.01</parameter>
+                <parameter name="Group iterative MS2s" selected="false">mainQuantFile</parameter>
+            </parameter>
+        </parameter>
+        <parameter name="Dimension">Retention time</parameter>
+        <parameter name="Chromatographic threshold">0.844</parameter>
+        <parameter name="Minimum search range RT/Mobility (absolute)">0.03999999910593033</parameter>
+        <parameter name="Minimum relative height">0.0</parameter>
+        <parameter name="Minimum absolute height">50000.0</parameter>
+        <parameter name="Min ratio of peak top/edge">2.0</parameter>
+        <parameter name="Peak duration range (min/mobility)">
+            <min>0.0</min>
+            <max>1.1999999731779099</max>
+        </parameter>
+        <parameter name="Minimum scans (data points)">5</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule" module_name="13C isotope filter (formerly: isotope grouper)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Name suffix">deiso</parameter>
+        <parameter name="m/z tolerance (intra-sample)">
+            <absolutetolerance>0.0015</absolutetolerance>
+            <ppmtolerance>3.0</ppmtolerance>
+        </parameter>
+        <parameter name="Retention time tolerance" unit="MINUTES">0.04</parameter>
+        <parameter name="Mobility tolerance" selected="false">1.0</parameter>
+        <parameter name="Monotonic shape">true</parameter>
+        <parameter name="Maximum charge">2</parameter>
+        <parameter name="Representative isotope">Most intense</parameter>
+        <parameter name="Never remove feature with MS2">true</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" module_name="Chromatogram builder" parameter_version="1">
+        <parameter name="Raw data files" type="BATCH_LAST_FILES">
+            <by_metadata column="" includeExcludeType="include"/>
+            <by_metadata column="" includeExcludeType="exclude"/>
+        </parameter>
+        <parameter name="Scan filters" selected="true">
+            <parameter name="Scan number"/>
+            <parameter name="Base Filtering Integer"/>
+            <parameter name="Retention time">
+                <min>0.3</min>
+                <max>8.0</max>
+            </parameter>
+            <parameter name="Mobility"/>
+            <parameter name="MS level filter" selected="MS1, level = 1">1</parameter>
+            <parameter name="Scan definition"/>
+            <parameter name="Polarity">-</parameter>
+            <parameter name="Spectrum type">ANY</parameter>
+        </parameter>
+        <parameter name="Minimum consecutive scans">5</parameter>
+        <parameter name="Minimum intensity for consecutive scans">10000.0</parameter>
+        <parameter name="Minimum absolute height">50000.0</parameter>
+        <parameter name="m/z tolerance (scan-to-scan)">
+            <absolutetolerance>0.002</absolutetolerance>
+            <ppmtolerance>10.0</ppmtolerance>
+        </parameter>
+        <parameter name="Suffix">eics</parameter>
+        <parameter name="Allow single scan chromatograms"/>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule" module_name="Local minimum feature resolver" parameter_version="2">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Suffix">r</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+        <parameter name="MS/MS scan pairing" selected="true">
+            <parameter name="MS1 to MS2 precursor tolerance (m/z)">
+                <absolutetolerance>0.01</absolutetolerance>
+                <ppmtolerance>10.0</ppmtolerance>
+            </parameter>
+            <parameter name="Retention time filter" selected="Use feature edges" unit="MINUTES">0.04</parameter>
+            <parameter name="Minimum relative feature height" selected="true">0.25</parameter>
+            <parameter name="Minimum required signals" selected="true">1</parameter>
+            <parameter name="Limit by ion mobility edges">true</parameter>
+            <parameter name="Merge MS/MS spectra (TIMS)">false</parameter>
+            <parameter name="Minimum detections in IMS dimension">2</parameter>
+            <parameter name="Advanced" selected="false">
+                <parameter name="Minimum signal intensity (absolute, TIMS)" selected="false">250.0</parameter>
+                <parameter name="Minimum signal intensity (relative, TIMS)" selected="false">0.01</parameter>
+                <parameter name="Group iterative MS2s" selected="false">mainQuantFile</parameter>
+            </parameter>
+        </parameter>
+        <parameter name="Dimension">Retention time</parameter>
+        <parameter name="Chromatographic threshold">0.844</parameter>
+        <parameter name="Minimum search range RT/Mobility (absolute)">0.03999999910593033</parameter>
+        <parameter name="Minimum relative height">0.0</parameter>
+        <parameter name="Minimum absolute height">50000.0</parameter>
+        <parameter name="Min ratio of peak top/edge">2.0</parameter>
+        <parameter name="Peak duration range (min/mobility)">
+            <min>0.0</min>
+            <max>1.1999999731779099</max>
+        </parameter>
+        <parameter name="Minimum scans (data points)">5</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule" module_name="13C isotope filter (formerly: isotope grouper)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Name suffix">deiso</parameter>
+        <parameter name="m/z tolerance (intra-sample)">
+            <absolutetolerance>0.0015</absolutetolerance>
+            <ppmtolerance>3.0</ppmtolerance>
+        </parameter>
+        <parameter name="Retention time tolerance" unit="MINUTES">0.04</parameter>
+        <parameter name="Mobility tolerance" selected="false">1.0</parameter>
+        <parameter name="Monotonic shape">true</parameter>
+        <parameter name="Maximum charge">2</parameter>
+        <parameter name="Representative isotope">Most intense</parameter>
+        <parameter name="Never remove feature with MS2">true</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" module_name="Join aligner" parameter_version="1">
+        <parameter name="Feature lists" type="NAME_PATTERN">
+            <name_pattern>*iso</name_pattern>
+        </parameter>
+        <parameter name="Feature list name">Aligned feature list</parameter>
+        <parameter name="m/z tolerance (sample-to-sample)">
+            <absolutetolerance>0.0015</absolutetolerance>
+            <ppmtolerance>5.0</ppmtolerance>
+        </parameter>
+        <parameter name="Weight for m/z">3.0</parameter>
+        <parameter name="Retention time tolerance" unit="MINUTES">0.05</parameter>
+        <parameter name="Weight for RT">1.0</parameter>
+        <parameter name="Mobility tolerance" selected="false">1.0</parameter>
+        <parameter name="Mobility weight">1.0</parameter>
+        <parameter name="Require same charge state">false</parameter>
+        <parameter name="Require same ID">false</parameter>
+        <parameter name="Compare isotope pattern" selected="false">
+            <parameter name="Isotope m/z tolerance">
+                <absolutetolerance>0.002</absolutetolerance>
+                <ppmtolerance>5.0</ppmtolerance>
+            </parameter>
+            <parameter name="Minimum absolute intensity">0.0</parameter>
+            <parameter name="Minimum score">0.0</parameter>
+        </parameter>
+        <parameter name="Compare spectra similarity" selected="false">
+            <parameter name="Spectral m/z tolerance">
+                <absolutetolerance>0.001</absolutetolerance>
+                <ppmtolerance>10.0</ppmtolerance>
+            </parameter>
+            <parameter name="MS level">2</parameter>
+            <parameter name="Compare spectra similarity" selected_item="Weighted cosine similarity">
+                <module name="Weighted cosine similarity">
+                    <parameter name="Weights">MassBank (mz^2 * I^0.5)</parameter>
+                    <parameter name="Minimum  cos similarity">0.7</parameter>
+                    <parameter name="Handle unmatched signals">KEEP ALL AND MATCH TO ZERO</parameter>
+                </module>
+                <module name="Composite cosine identity (e.g., GC-EI-MS; similar to NIST search)">
+                    <parameter name="Weights">MassBank (mz^2 * I^0.5)</parameter>
+                    <parameter name="Minimum  cos similarity">0.7</parameter>
+                    <parameter name="Handle unmatched signals">KEEP ALL AND MATCH TO ZERO</parameter>
+                </module>
+            </parameter>
+        </parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule" module_name="Feature finder (multithreaded)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Name suffix">gaps</parameter>
+        <parameter name="Intensity tolerance">0.2</parameter>
+        <parameter name="m/z tolerance (sample-to-sample)">
+            <absolutetolerance>0.002</absolutetolerance>
+            <ppmtolerance>10.0</ppmtolerance>
+        </parameter>
+        <parameter name="Retention time tolerance" unit="MINUTES">0.05</parameter>
+        <parameter name="Minimum scans (data points)">3</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule" module_name="Duplicate peak filter" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Name suffix">dup</parameter>
+        <parameter name="Filter mode">NEW AVERAGE</parameter>
+        <parameter name="m/z tolerance">
+            <absolutetolerance>7.5E-4</absolutetolerance>
+            <ppmtolerance>1.5</ppmtolerance>
+        </parameter>
+        <parameter name="RT tolerance" unit="MINUTES">0.027999999</parameter>
+        <parameter name="Mobility tolerance" selected="false">1.0</parameter>
+        <parameter name="Require same identification">false</parameter>
+        <parameter name="Original feature list">KEEP</parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule" module_name="Correlation grouping (metaCorrelate)" parameter_version="3">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="RT tolerance" unit="MINUTES">0.03</parameter>
+        <parameter name="Minimum feature height">0.0</parameter>
+        <parameter name="Intensity threshold for correlation">5.0</parameter>
+        <parameter name="Min samples filter">
+            <parameter name="Min samples in all">
+                <abs>1</abs>
+                <rel>0.0</rel>
+            </parameter>
+            <parameter name="Min samples in group">
+                <abs>0</abs>
+                <rel>0.0</rel>
+            </parameter>
+            <parameter name="Min %-intensity overlap">0.6</parameter>
+            <parameter name="Exclude gap-filled features">true</parameter>
+        </parameter>
+        <parameter name="Feature shape correlation" selected="false">
+            <parameter name="Min data points">5</parameter>
+            <parameter name="Min data points on edge">2</parameter>
+            <parameter name="Measure">PEARSON</parameter>
+            <parameter name="Min feature shape correlation">0.85</parameter>
+            <parameter name="Min total correlation" selected="false">0.5</parameter>
+        </parameter>
+        <parameter name="Feature height correlation" selected="false">
+            <parameter name="Minimum samples">2</parameter>
+            <parameter name="Measure">PEARSON</parameter>
+            <parameter name="Min correlation">0.7</parameter>
+        </parameter>
+        <parameter name="Suffix (or auto)" selected="false"/>
+        <parameter name="Original feature list">KEEP</parameter>
+        <parameter name="Advanced" selected="true">
+            <parameter name="Keep extended stats">false</parameter>
+            <parameter name="Simplify for ≥ samples">250</parameter>
+        </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule" module_name="Ion identity networking" parameter_version="2">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="m/z tolerance (intra-sample)">
+            <absolutetolerance>0.0015</absolutetolerance>
+            <ppmtolerance>5.0</ppmtolerance>
+        </parameter>
+        <parameter name="Check">ONE FEATURE</parameter>
+        <parameter name="Min height">0.0</parameter>
+        <parameter libraryVersion="2" name="Ion library">
+            <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
+                <origin kind="builtin"/>
+                <name>mzmine default main ions (+/-)</name>
+                <savedDate>2026-06-17T11:12:18.5596198</savedDate>
+                <lastUpdatedDate>2026-06-17T10:42:34.3069106</lastUpdatedDate>
+                <parts>
+                    <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
+                    <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
+                    <parts charge="-1" id="2" mass="5.4857990927E-4" name="e"/>
+                    <parts charge="-1" formula="CHO2" id="3" mass="44.99820285190927" name="CHO2"/>
+                    <parts charge="-1" formula="Cl" id="4" mass="34.96940125990927" name="Cl"/>
+                    <parts charge="1" formula="K" id="5" mass="38.96315810009073" name="K"/>
+                    <parts charge="1" formula="H4N" id="6" mass="18.03382554809073" name="NH4"/>
+                    <parts charge="1" formula="Na" id="7" mass="22.98922070009073" name="Na"/>
+                </parts>
+                <ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-2" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-1" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="2"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="4"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="3"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-1" id="0"/>
+                        <part count="-1" id="2"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-1" id="0"/>
+                        <part count="1" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-1" id="2"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="6"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="7"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="1" id="5"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="-2" id="2"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="2" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="1">
+                        <part count="3" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="2">
+                        <part count="-1" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="2">
+                        <part count="1" id="4"/>
+                    </ionTypes>
+                    <ionTypes molecules="2">
+                        <part count="1" id="1"/>
+                    </ionTypes>
+                    <ionTypes molecules="2">
+                        <part count="1" id="7"/>
+                    </ionTypes>
+                </ionTypes>
+            </ionLibrary>
+        </parameter>
+        <parameter name="Annotation refinement" selected="true">
+            <parameter name="Minimum size" selected="false">2</parameter>
+            <parameter libraryVersion="2" name="Ion library" selected="false">
+                <ionLibrary id="b9e3d429-cd6b-302a-a709-a2c96f01ebbf">
+                    <origin kind="builtin"/>
+                    <name>mzmine default most common ions (+/-)</name>
+                    <savedDate>2026-06-17T11:12:18.5616155</savedDate>
+                    <lastUpdatedDate>2026-06-17T10:42:34.3069106</lastUpdatedDate>
+                    <parts>
+                        <parts charge="1" formula="H" id="0" mass="1.00727645209073" name="H"/>
+                        <parts charge="-1" id="1" mass="5.4857990927E-4" name="e"/>
+                        <parts charge="-1" formula="Cl" id="2" mass="34.96940125990927" name="Cl"/>
+                        <parts charge="1" formula="H4N" id="3" mass="18.03382554809073" name="NH4"/>
+                        <parts charge="1" formula="Na" id="4" mass="22.98922070009073" name="Na"/>
+                    </parts>
+                    <ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="-1" id="0"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="1" id="2"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="-1" id="1"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="1" id="0"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="1" id="3"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="1" id="4"/>
+                        </ionTypes>
+                        <ionTypes molecules="1">
+                            <part count="2" id="0"/>
+                        </ionTypes>
+                    </ionTypes>
+                </ionLibrary>
+            </parameter>
+            <parameter name="Delete smaller networks: Link threshold" selected="true">4</parameter>
+            <parameter name="Delete networks without monomer">true</parameter>
+            <parameter name="Only keep rows with ion ID">false</parameter>
+        </parameter>
+        <parameter name="Compound grouping" selected="false">
+            <parameter name="Componentizer" selected_item="simple_iin_correlation">
+                <module name="simple_iin_correlation">
+                    <parameter name="m/z tolerance (intra-sample)">
+                        <absolutetolerance>0.0015</absolutetolerance>
+                        <ppmtolerance>5.0</ppmtolerance>
+                    </parameter>
+                    <parameter name="RT tolerance" unit="MINUTES">0.04</parameter>
+                    <parameter name="Min network density">0.4</parameter>
+                </module>
+                <module name="weighted_graph">
+                    <parameter name="m/z tolerance (intra-sample)">
+                        <absolutetolerance>0.001</absolutetolerance>
+                        <ppmtolerance>5.0</ppmtolerance>
+                    </parameter>
+                    <parameter name="RT tolerance" unit="MINUTES">0.08</parameter>
+                    <parameter name="Weight: RT coherence">2.0</parameter>
+                    <parameter name="Weight: shape correlation">1.0</parameter>
+                    <parameter name="Weight: ion identity">0.5</parameter>
+                    <parameter name="Weight: isotope">0.5</parameter>
+                    <parameter name="Weight: annotation">0.5</parameter>
+                    <parameter name="Min core density">0.3</parameter>
+                    <parameter name="Core merge overlap">0.5</parameter>
+                    <parameter name="Assignment confidence">0.6</parameter>
+                    <parameter name="Near-tie margin">0.1</parameter>
+                    <parameter name="Size penalty threshold">10</parameter>
+                    <parameter name="Size penalty">0.3</parameter>
+                    <parameter name="RT spread threshold (min)">0.05</parameter>
+                    <parameter name="Message-passing rounds">3</parameter>
+                    <parameter name="Message-passing damping">0.5</parameter>
+                    <parameter name="Split on annotation conflict">true</parameter>
+                </module>
+            </parameter>
+            <parameter name="Representative row" selected_item="prefer_annotated">
+                <module name="prefer_annotated"/>
+                <module name="ion_type_ranking"/>
+            </parameter>
+        </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule" module_name="Compound grouping (beta)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Strategy" selected_item="simple_iin_correlation">
+            <module name="simple_iin_correlation">
+                <parameter name="m/z tolerance (intra-sample)">
+                    <absolutetolerance>0.0015</absolutetolerance>
+                    <ppmtolerance>5.0</ppmtolerance>
+                </parameter>
+                <parameter name="RT tolerance" unit="MINUTES">0.04</parameter>
+                <parameter name="Min network density">0.4</parameter>
+            </module>
+        </parameter>
+        <parameter name="Representative row" selected_item="prefer_annotated">
+            <module name="prefer_annotated"/>
+            <module name="ion_type_ranking"/>
+        </parameter>
+    </batchstep>
+</batch>

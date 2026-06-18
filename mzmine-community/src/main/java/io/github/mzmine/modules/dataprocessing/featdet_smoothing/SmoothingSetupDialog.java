@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -168,7 +168,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     // in case we smooth rt, we remap the rt dimension to all scans, as we would do usually.
     featureSeries =
         previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeriesUtils.remapRtAxis(
-            featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile())) : featureSeries;
+            featureSeries, f.getFullScanList()) : featureSeries;
 
     final SmoothingAlgorithm smoothing = FeatureSmoothingOptions.createSmoother(parameterSet);
     final IonTimeSeries<? extends Scan> smoothed = smoothing.smoothFeature(null, featureSeries, f,

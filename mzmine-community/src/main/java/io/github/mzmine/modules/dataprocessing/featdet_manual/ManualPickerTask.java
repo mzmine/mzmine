@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,7 +100,9 @@ class ManualPickerTask extends AbstractTask {
     logger.finest("Starting manual feature picker, RT: " + rtRange + ", m/z: " + mzRange);
 
     for (RawDataFile file : dataFiles) {
-      final List<? extends Scan> selectedScans = featureList.getSeletedScans(file);
+      // use the scan list of the row's scan selection (handles polarity switching)
+      final List<? extends Scan> selectedScans = featureList.getScans(
+          featureListRow.getScanSelection(), file);
       final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(file, selectedScans,
           mzRange, rtRange, featureList.getMemoryMapStorage());
 

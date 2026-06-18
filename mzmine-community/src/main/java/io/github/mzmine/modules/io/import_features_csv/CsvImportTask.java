@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -104,7 +105,8 @@ public class CsvImportTask extends AbstractTask {
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
 
-        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, counter - 1);
+        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, counter - 1,
+            ScanSelection.MS1);
         for (int j = 0; j < dataLine.length; j++) {
           switch (j) {
             case 1:
@@ -162,7 +164,8 @@ public class CsvImportTask extends AbstractTask {
         return;
       }
 
-      newFeatureList.setSelectedScans(rawDataFile, rawDataFile.getScanNumbers(1));
+      newFeatureList.setSelectedScans(rawDataFile, ScanSelection.MS1,
+          rawDataFile.getScanNumbers(1));
       newFeatureList.addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod(CsvImportModule.class, parameters,
               getModuleCallDate()));

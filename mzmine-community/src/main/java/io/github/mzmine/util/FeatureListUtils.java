@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -684,23 +684,21 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the selected scans from a collection of feature lists to the target feature list.
+   * Copies the selected scans from a collection of feature lists to the target feature list. Each
+   * (scan selection, file) entry is copied so files carrying multiple scan selections (e.g.
+   * positive and negative polarity) are preserved.
    */
   public static void transferSelectedScans(FeatureList target, Collection<FeatureList> flists) {
     for (FeatureList flist : flists) {
-      for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
-        if (target.getSeletedScans(rawDataFile) != null) {
-          throw new IllegalStateException(
-              "Error, selected scans for file " + rawDataFile + " already set.");
-        }
-        target.setSelectedScans(rawDataFile, flist.getSeletedScans(rawDataFile));
-      }
+      target.getSelectedScansData().putAll(flist.getSelectedScansData());
     }
   }
 
   /**
-   * Loops over all feature lists and collects all raw data files. If a file is present in multiple
-   * feature lists, an exception is thrown.
+   * Loops over all feature lists and collects all raw data files. Duplicates are ignored. mzmine
+   * <=4.10 was using unique RawDataFile and since then we allow multiple scan selections per raw
+   * data file like in polarity switching or when using different scan events like different mz
+   * ranges in separate ms1 scans.
    */
   public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
     List<RawDataFile> allDataFiles = new ArrayList<>();
@@ -709,8 +707,7 @@ public class FeatureListUtils {
         // Each data file can only have one column in aligned feature
         // list
         if (allDataFiles.contains(dataFile)) {
-          throw new IllegalArgumentException(
-              "File " + dataFile + " is present in multiple feature lists");
+          continue;
         }
         allDataFiles.add(dataFile);
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -175,11 +175,11 @@ class RansacAlignerTask extends AbstractTask {
       for (FeatureListRow row : allRows) {
         FeatureListRow targetRow = alignmentMapping.get(row);
 
-        // If we have no mapping for this row, add a new one
+        // If we have no mapping for this row, add a new one. Preserve the scan selection provenance
+        // for gap filling / reconstruction.
         if (targetRow == null) {
-          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
-          //(@NotNull ModularFeatureList flist, int id, RawDataFile raw,
-          //    ModularFeature p)
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID,
+              row.getScanSelection());
           newRowID++;
           alignedFeatureList.addRow(targetRow);
         }

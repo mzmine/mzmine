@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScore
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -154,10 +155,24 @@ public class JoinRowAlignScorer implements FeatureRowAlignScorer {
 
   private boolean additionalChecks(final FeatureListRow row,
       final FeatureListRow candidateInAligned) {
-    return (!sameChargeRequired || FeatureUtils.compareChargeState(row, candidateInAligned)) //
+    return compatibleScanSelection(row, candidateInAligned) //
+        && (!sameChargeRequired || FeatureUtils.compareChargeState(row, candidateInAligned)) //
            && (!sameIDRequired || FeatureUtils.compareIdentities(row, candidateInAligned))
            && checkIsotopePattern(row, candidateInAligned) //
            && checkSpectralSimilarity(row, candidateInAligned);
+  }
+
+  /**
+   * Only align rows that were derived from the same {@link ScanSelection}, so e.g. positive and
+   * negative polarity rows of polarity switching data are never aligned together. A null selection
+   * means "unknown" (e.g. legacy/untagged rows) and is treated as compatible to avoid regressions -
+   * alignment is only blocked when both rows carry an explicit, different selection.
+   */
+  // package-private for testing
+  static boolean compatibleScanSelection(final FeatureListRow row, final FeatureListRow candidate) {
+    final ScanSelection a = row.getScanSelection();
+    final ScanSelection b = candidate.getScanSelection();
+    return a == null || b == null || a.equals(b);
   }
 
   private boolean checkSpectralSimilarity(FeatureListRow row, FeatureListRow candidate) {

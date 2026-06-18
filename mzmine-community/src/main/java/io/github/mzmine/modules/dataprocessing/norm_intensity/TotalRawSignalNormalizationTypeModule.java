@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -57,13 +58,18 @@ public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormali
       @NotNull final ParameterSet linearNormalizerParameters,
       @NotNull final ParameterSet moduleSpecificParameters) {
 
-    // only use selected scans for data file might be limited to actual data region
-    final List<? extends Scan> scans = featureList.getSeletedScans(file);
-    // calculate average TIC of mass lists instead of raw scans - raw scans may be dominated by noise
-    // average TIC to factor out the scan rate
-    if (scans == null) {
+    // The total raw signal is a per-file normalization metric and is applied as a single factor per
+    // RawDataFile, so there is no per-row scan selection context here. For polarity switching data
+    // this therefore uses the merged scans across all scan selections of the file (combined signal).
+    // decision: per-file metric cannot attribute to a single selection - see getAllScansForFile.
+    if (!featureList.getSelectedScansData().hasScansForFile(file)) {
       throw new IllegalStateException("No scans selected for datafile: " + file.getName());
     }
+    // merged scans may still be empty (a selection was registered with an empty scan list) - that is
+    // handled by the "No TIC found" check below to preserve the previous behavior
+    final List<? extends Scan> scans = featureList.getSelectedScansData().getAllScansForFile(file);
+    // calculate average TIC of mass lists instead of raw scans - raw scans may be dominated by noise
+    // average TIC to factor out the scan rate
     ScanUtils.assertMassLists(scans);
 
     final double avgTIC = scans.stream().map(Scan::getMassList)

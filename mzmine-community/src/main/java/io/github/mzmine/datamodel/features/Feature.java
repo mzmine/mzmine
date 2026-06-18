@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.types.ScanSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import java.util.ArrayList;
 import java.util.List;
@@ -351,6 +353,41 @@ public interface Feature {
   default IonTimeSeries<? extends Scan> getFeatureData() {
     throw new UnsupportedOperationException(
         "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
+  }
+
+  /**
+   * The {@link ScanSelection} this feature was derived from. Resolved from the parent row first
+   * (where the selection is normally stored) and otherwise from a feature-level
+   * {@link ScanSelectionType} value if one was set.
+   *
+   * @return the scan selection or null if unknown
+   */
+  default @Nullable ScanSelection getScanSelection() {
+    final FeatureListRow row = getRow();
+    if (row != null) {
+      final ScanSelection rowSelection = row.getScanSelection();
+      if (rowSelection != null) {
+        return rowSelection;
+      }
+    }
+    // fall back to a feature-level value if present
+    return this instanceof ModularDataModel model ? model.get(ScanSelectionType.class) : null;
+  }
+
+  /**
+   * The full scan list this feature/chromatogram was built from (the selected scans of the feature
+   * list for this feature's raw data file and the {@link ScanSelection} of its row), including the
+   * scans that contributed zero intensity. Use this for chromatogram reconstruction (baseline
+   * correction, smoothing, resolving, full data access, image building).
+   *
+   * @return the full scan list (Frames for ion mobility data), or null if it cannot be resolved
+   */
+  default @Nullable List<? extends Scan> getFullScanList() {
+    final RawDataFile file = getRawDataFile();
+    if (file == null) {
+      return null;
+    }
+    return getFeatureList().getScans(getScanSelection(), file);
   }
 
   /**

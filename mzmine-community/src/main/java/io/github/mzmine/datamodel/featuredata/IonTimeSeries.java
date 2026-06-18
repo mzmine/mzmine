@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -134,7 +134,7 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
    * @param allScans All scans of the given raw data file (those are used during import). NOT the
    *                 preselected scans obtained from
    *                 {@link
-   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getScansForFile(RawDataFile)}.
    */
   void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -255,7 +255,7 @@ public class FeatureFindingTest {
       if (equalsFeatureListName(flist, sample1, chromSuffix)) {
         assertEquals(974, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
-        assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
+        assertEquals(87, flist.getScansForFile(flist.getRawDataFile(0)).size());
 
         // check random row
         FeatureListRow row = flist.getRow(100);
@@ -275,7 +275,7 @@ public class FeatureFindingTest {
       } else if (equalsFeatureListName(flist, sample2, chromSuffix)) {
         assertEquals(1027, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
-        assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
+        assertEquals(87, flist.getScansForFile(flist.getRawDataFile(0)).size());
 
         filesTested++;
       }

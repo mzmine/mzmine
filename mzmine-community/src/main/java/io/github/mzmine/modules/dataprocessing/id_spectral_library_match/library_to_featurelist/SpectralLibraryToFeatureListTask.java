@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -172,7 +172,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       var feature = createFeature(flist, libRaw, bestScan);
       feature.setAllMS2FragmentScans(compound.stream().map(s -> (Scan) s).toList());
 
-      var row = new ModularFeatureListRow(flist, counter, feature);
+      var row = new ModularFeatureListRow(flist, counter, feature, null);
 
       // add all scans as matches
       List<SpectralDBAnnotation> matches = new ArrayList<>();
@@ -213,7 +213,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
       var feature = createFeature(flist, libRaw, scan);
 
-      var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
+      var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature, null);
       var similarity = SpectralSimilarity.ofMatchIdentity(scan.getEntry());
       // add spectral lib match
       var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null, null);

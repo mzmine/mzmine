@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.DataTypeUtils;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -336,20 +337,53 @@ public interface FeatureList {
   String setNameNoChecks(@NotNull String name);
 
   /**
-   * The selected scans to build this feature/chromatogram
+   * Registers the selected scans used to build chromatograms/features. The {@link ScanSelection}
+   * allows the same {@link RawDataFile} to carry multiple independent scan lists (e.g. positive and
+   * negative polarity in polarity switching data).
    *
-   * @param file  the data file of the scans
-   * @param scans all filtered scans that were used to build the chromatogram in the first place.
-   *              For ion mobility data, the Frames are returned
+   * @param file      the data file of the scans
+   * @param selection the scan filter that selected these scans. Use {@link ScanSelection#ALL_SCANS}
+   *                  when no specific filter applies.
+   * @param scans     all filtered scans that were used to build the chromatogram in the first
+   *                  place. For ion mobility data, the Frames are passed.
    */
-  void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans);
+  void setSelectedScans(@NotNull RawDataFile file, @NotNull ScanSelection selection,
+      @Nullable List<? extends Scan> scans);
+
+  /**
+   * Resolves the scan list for a file given the scan selection a row/feature was derived from.
+   * Preferred accessor for chromatogram reconstruction. Disambiguates files that carry multiple
+   * scan selections (e.g. positive and negative polarity), and falls back to the file's sole
+   * selection when {@code selection} is null or unknown. See
+   * {@link FeatureListScans#getScans(ScanSelection, RawDataFile)}.
+   *
+   * @param selection the scan selection of the row/feature, may be null if unknown
+   * @param file      the data file
+   * @return the matching scans, or null if it cannot be resolved
+   */
+  @Nullable List<? extends Scan> getScans(@Nullable ScanSelection selection,
+      @NotNull RawDataFile file);
+
+  /**
+   * Returns the selected scans for a file only if exactly one scan selection is registered for it.
+   * Use this only when no row/feature context (and therefore no {@link ScanSelection}) is available.
+   *
+   * @param file the data file
+   * @return the scans, or null if none or multiple selections exist for the file. For ion mobility
+   * data, the frames are returned.
+   */
+  @Nullable List<? extends Scan> getScansForFile(@NotNull RawDataFile file);
 
   /**
    * @param file the data file
-   * @return The scans used to build this feature list. For ion mobility data, the frames are
-   * returned.
+   * @return all scan selections registered for the file (empty if none)
    */
-  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @NotNull List<ScanSelection> getScanSelections(@NotNull RawDataFile file);
+
+  /**
+   * @return the holder of all selected scans. Used for saving, transferring and sizing.
+   */
+  @NotNull FeatureListScans getSelectedScansData();
 
   /**
    * Returns all rows with average retention time within given range

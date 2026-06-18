@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -84,7 +85,7 @@ public class FeatureDataTypeTest {
     for (Scan scan : scans) {
       file.addScan(scan);
     }
-    flist.setSelectedScans(file, scans.subList(3, 18));
+    flist.setSelectedScans(file, ScanSelection.ALL_SCANS, scans.subList(3, 18));
 
     IonTimeSeries<Scan> series = new SimpleIonTimeSeries(null,
         new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d},
@@ -139,7 +140,7 @@ public class FeatureDataTypeTest {
       file.addScan(frame);
     }
 
-    flist.setSelectedScans(file, file.getFrames().subList(3, 18));
+    flist.setSelectedScans(file, ScanSelection.ALL_SCANS, file.getFrames().subList(3, 18));
 
     IonMobilogramTimeSeries series = generateTrace(file, 2);
 

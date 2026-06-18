@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -64,6 +65,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -150,7 +152,7 @@ public class RegularScanTypesTest {
       file.addScan(scan);
     }
 
-    flist.setSelectedScans(file, scans);
+    flist.setSelectedScans(file, ScanSelection.ALL_SCANS, scans);
 
     project = new MZmineProjectImpl();
     project.addFile(file);

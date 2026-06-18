@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -141,18 +141,22 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
       return IonTimeSeries.EMPTY;
     }
 
+    // resolve the exact selected scans for the feature when present (handles polarity switching),
+    // otherwise use the row's scan selection (re-integrating a gap that has no feature yet)
+    final List<? extends Scan> selectedScans =
+        feature != null ? feature.getFullScanList() : flist.getScans(row.getScanSelection(), file);
     if (file instanceof IMSRawDataFile ims && (FeatureUtils.isMrm(feature))) {
       final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWidth(flist,
           ims.getMobilityType());
       var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
           new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
-              (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
+              (List<Frame>) selectedScans), mzRange, extendedRtRange,
           row.getMobilityRange(), flist.getMemoryMapStorage(),
           new BinningMobilogramDataAccess(ims, previousBinningWith));
       chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
     } else {
-      var chrom = IonTimeSeriesUtils.extractIonTimeSeries(file,
-          (List<Scan>) flist.getSeletedScans(file), mzRange, extendedRtRange,
+      var chrom = IonTimeSeriesUtils.extractIonTimeSeries(file, (List<Scan>) selectedScans, mzRange,
+          extendedRtRange,
           model.getFeatureList().getMemoryMapStorage());
       chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
     }

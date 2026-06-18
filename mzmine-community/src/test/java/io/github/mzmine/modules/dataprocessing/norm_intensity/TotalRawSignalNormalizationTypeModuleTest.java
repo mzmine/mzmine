@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,6 +37,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,8 +62,8 @@ class TotalRawSignalNormalizationTypeModuleTest {
     addScan(fileB, 1, 1, 1f, new double[]{100d, 101d}, new double[]{5d, 10d});
 
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
-    featureList.setSelectedScans(fileA, fileA.getScanNumbers(1));
-    featureList.setSelectedScans(fileB, fileB.getScans());
+    featureList.setSelectedScans(fileA, ScanSelection.MS1, fileA.getScanNumbers(1));
+    featureList.setSelectedScans(fileB, ScanSelection.ALL_SCANS, fileB.getScans());
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -89,7 +91,7 @@ class TotalRawSignalNormalizationTypeModuleTest {
     addScan(file, 1, 2, 1f, new double[]{100d}, new double[]{100d});
 
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, file);
-    featureList.setSelectedScans(file, file.getScanNumbers(1));
+    featureList.setSelectedScans(file, ScanSelection.MS1, file.getScanNumbers(1));
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());

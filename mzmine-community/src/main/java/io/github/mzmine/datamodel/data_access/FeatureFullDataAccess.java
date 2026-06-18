@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -108,19 +109,12 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
       @Nullable BinningMobilogramDataAccess binningMobilogramDataAccess) {
     super(flist, dataFile, binningMobilogramDataAccess);
 
-    // return all scans that were used to create the chromatograms in the first place
-    int max = 0;
-    if (dataFile == null && flist.getNumberOfRawDataFiles() > 1) {
-      for (RawDataFile raw : flist.getRawDataFiles()) {
-        int scans = flist.getSeletedScans(raw).size();
-        if (max < scans) {
-          max = scans;
-        }
-      }
-    } else {
-      // one raw data file
-      max = flist.getSeletedScans(dataFile != null ? dataFile : flist.getRawDataFile(0)).size();
-    }
+    // size buffers to the longest selected scan list of all relevant files. A file may carry
+    // multiple scan selections (e.g. polarity switching), so take the max across all of them - the
+    // per-feature list resolved in nextFeature is always <= this length.
+    final RawDataFile singleFile = dataFile != null ? dataFile
+        : (flist.getNumberOfRawDataFiles() == 1 ? flist.getRawDataFile(0) : null);
+    final int max = flist.getSelectedScansData().largestScanCount(singleFile);
 
     mzs = new double[max];
     intensities = new double[max];
@@ -185,7 +179,7 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     super.nextFeature();
     if (feature != null) {
       // add detected data points and zero for missing values
-      allScans = (List<Scan>) flist.getSeletedScans(feature.getRawDataFile());
+      allScans = (List<Scan>) feature.getFullScanList();
       // read detected data in batch
       List<Scan> detectedScans = feature.getScanNumbers();
       featureData.getMzValues(detectedMzs);

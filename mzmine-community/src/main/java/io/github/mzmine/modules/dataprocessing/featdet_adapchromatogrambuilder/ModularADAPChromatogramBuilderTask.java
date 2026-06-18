@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
+
+import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -64,7 +66,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
-import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -361,7 +362,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,
             dataFile, chromatogram, mzTolerance);
         ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
-            modular);
+            modular, scanSelection);
         newFeatureList.addRow(newRow);
         // activate shape for this row
         if (!isImaging) {
@@ -374,7 +375,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // sort and reset IDs here to have the same sorting for every feature list
     FeatureListUtils.sortByDefault(newFeatureList, true);
 
-    newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
+    newFeatureList.setSelectedScans(dataFile, scanSelection, Arrays.asList(scans));
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     // Add new feature list to the project

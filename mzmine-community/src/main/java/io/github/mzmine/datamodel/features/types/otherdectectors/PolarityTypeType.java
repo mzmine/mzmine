@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,28 +25,20 @@
 
 package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import java.util.function.Function;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PolarityTypeType extends EnumDataType<PolarityType> implements NullColumnType,
-    NoTextColumn {
+public class PolarityTypeType extends EnumDataType<PolarityType> implements
+    MappingType<PolarityType> {
 
   public static final Function<@Nullable String, @Nullable PolarityType> mapper = s -> {
     if (s == null || s.isBlank()) {
@@ -78,5 +70,18 @@ public class PolarityTypeType extends EnumDataType<PolarityType> implements Null
   @Override
   public @Nullable Function<@Nullable String, @Nullable PolarityType> getMapper() {
     return mapper;
+  }
+
+  /**
+   * The polarity is not stored on the row but derived on demand from
+   * {@link FeatureListRow#getRepresentativePolarity()}. Other {@link ModularDataModel}s (e.g.
+   * {@link io.github.mzmine.datamodel.otherdetectors.OtherFeature} or feature annotations) still
+   * store and read the value directly, as only
+   * {@link ModularFeatureListRow#get(io.github.mzmine.datamodel.features.types.DataType)} routes
+   * through {@link MappingType}.
+   */
+  @Override
+  public @Nullable PolarityType getValue(@NotNull final ModularDataModel model) {
+    return model instanceof FeatureListRow row ? row.getRepresentativePolarity() : null;
   }
 }

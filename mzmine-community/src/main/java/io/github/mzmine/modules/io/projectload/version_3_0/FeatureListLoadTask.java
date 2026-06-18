@@ -46,6 +46,8 @@ import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredA
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -62,9 +64,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -483,7 +483,8 @@ public class FeatureListLoadTask extends AbstractTask {
         final int type = reader.next();
         if (type == XMLEvent.START_ELEMENT && reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
           int id = Integer.parseInt(reader.getAttributeValue(null, idTypeUniqueID));
-          flist.addRow(new ModularFeatureListRow(flist, id));
+          // scan selection will be loaded later with all other types
+          flist.addRow(new ModularFeatureListRow(flist, id, null));
         }
       }
     } catch (IOException | XMLStreamException e) {
@@ -541,13 +542,34 @@ public class FeatureListLoadTask extends AbstractTask {
       NodeList filesList = ((Element) nodelist.item(0)).getElementsByTagName(
           CONST.XML_RAW_FILE_ELEMENT);
 
+      // parse the global scan selection registry (new format). The position in the list is the
+      // index referenced by per-file <selectedscans> and by the row ScanSelectionType. Legacy files
+      // have no registry -> the per-file entries fall back to ScanSelection.ALL_SCANS.
+      final List<ScanSelection> selectionRegistry = new ArrayList<>();
+      final NodeList scanSelectionsListNodes = configuration.getElementsByTagName(
+          CONST.XML_FLIST_SCAN_SELECTIONS_LIST_ELEMENT);
+      if (scanSelectionsListNodes.getLength() > 0) {
+        final NodeList scanSelectionNodes = ((Element) scanSelectionsListNodes.item(
+            0)).getElementsByTagName(CONST.XML_FLIST_SCAN_SELECTION_ELEMENT);
+        for (int i = 0; i < scanSelectionNodes.getLength(); i++) {
+          final ScanSelectionParameter selParam = new ScanSelectionParameter();
+          selParam.loadValueFromXML((Element) scanSelectionNodes.item(i));
+          selectionRegistry.add(selParam.getValue());
+        }
+      }
+
       // order of raw files is not important. Will be sorted in feature list by name
-      Map<RawDataFile, List<Scan>> selectedScansMap = new HashMap<>();
+      // a file may carry multiple scan selections (e.g. positive and negative polarity), each
+      // stored as its own <selectedscans> entry referencing the registry by selectionindex
+      record LoadedSelectedScans(RawDataFile file, ScanSelection selection, List<Scan> scans) {
+
+      }
+      final List<RawDataFile> orderedFiles = new ArrayList<>();
+      final List<LoadedSelectedScans> loadedSelectedScans = new ArrayList<>();
       for (int i = 0; i < filesList.getLength(); i++) {
-        NodeList nameList = ((Element) filesList.item(i)).getElementsByTagName(
-            CONST.XML_RAW_FILE_NAME_ELEMENT);
-        NodeList pathList = ((Element) filesList.item(i)).getElementsByTagName(
-            CONST.XML_RAW_FILE_PATH_ELEMENT);
+        final Element fileElement = (Element) filesList.item(i);
+        NodeList nameList = fileElement.getElementsByTagName(CONST.XML_RAW_FILE_NAME_ELEMENT);
+        NodeList pathList = fileElement.getElementsByTagName(CONST.XML_RAW_FILE_PATH_ELEMENT);
         String name = nameList.item(0).getTextContent();
         String path = pathList.item(0).getTextContent();
 
@@ -559,17 +581,37 @@ public class FeatureListLoadTask extends AbstractTask {
           throw new IllegalStateException("Raw data file with name " + name + " and path " + path
               + " not imported to project.");
         }
+        final RawDataFile rawFile = f.get();
+        if (!orderedFiles.contains(rawFile)) {
+          orderedFiles.add(rawFile);
+        }
 
-        final Element selectedScansElement = (Element) ((Element) filesList.item(
-            i)).getElementsByTagName(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT).item(0);
-        final int[] selectedScanIndices = ParsingUtils.stringToIntArray(
-            selectedScansElement.getTextContent());
-        final List<Scan> selectedScans = ParsingUtils.getSublistFromIndices(f.get().getScans(),
-            selectedScanIndices);
-        selectedScansMap.put(f.get(), selectedScans);
+        final NodeList selectedScansList = fileElement.getElementsByTagName(
+            CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
+        for (int s = 0; s < selectedScansList.getLength(); s++) {
+          final Element selectedScansElement = (Element) selectedScansList.item(s);
+
+          // resolve the scan selection from the registry index; legacy files have no index -> ALL_SCANS
+          final String indexAttr = selectedScansElement.getAttribute(
+              CONST.XML_FLIST_SCAN_SELECTION_INDEX_ATTR);
+          final ScanSelection selection;
+          if (!indexAttr.isBlank()) {
+            final int idx = Integer.parseInt(indexAttr.trim());
+            selection = idx >= 0 && idx < selectionRegistry.size() ? selectionRegistry.get(idx)
+                : ScanSelection.ALL_SCANS;
+          } else {
+            selection = ScanSelection.ALL_SCANS;
+          }
+
+          final int[] selectedScanIndices = ParsingUtils.stringToIntArray(
+              selectedScansElement.getTextContent());
+          final List<Scan> selectedScans = ParsingUtils.getSublistFromIndices(rawFile.getScans(),
+              selectedScanIndices);
+          loadedSelectedScans.add(new LoadedSelectedScans(rawFile, selection, selectedScans));
+        }
       }
 
-      var dataFiles = new ArrayList<>(selectedScansMap.keySet());
+      var dataFiles = orderedFiles;
       var flistName = metadataElement.getElementsByTagName(CONST.XML_FLIST_NAME_ELEMENT).item(0)
           .getTextContent();
       // need data files in constructor
@@ -582,7 +624,13 @@ public class FeatureListLoadTask extends AbstractTask {
           metadataElement.getElementsByTagName(CONST.XML_FLIST_DATE_CREATED_ELEMENT).item(0)
               .getTextContent());
       flist.getAppliedMethods().addAll(appliedMethods);
-      selectedScansMap.forEach(flist::setSelectedScans);
+      // intern the registry in order first so the wrapper indices match the saved row indices
+      for (final ScanSelection selection : selectionRegistry) {
+        flist.getSelectedScansData().intern(selection);
+      }
+      for (LoadedSelectedScans entry : loadedSelectedScans) {
+        flist.setSelectedScans(entry.file(), entry.selection(), entry.scans());
+      }
 
       final FeatureListAppliedMethod preferredAnnoationSorting = ParameterUtils.getLatestModuleCall(
           appliedMethods, PreferredAnnotationRankingModule.class);

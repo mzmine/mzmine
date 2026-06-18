@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -170,7 +170,7 @@ public class ImageAllMs2Pane extends BorderPane {
 
     imagePlot.getChart().applyWithNotifyChanges(false, () -> {
       imagePlot.setData(new ColoredXYZDataset(new FeatureImageProvider<>(feature,
-          (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
+          (List<ImagingScan>) feature.getFullScanList(),
           imageNormalization)));
 
       final Map<Float, Color> ceColor = new HashMap<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -155,12 +155,12 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
               getMemoryMapStorage(), file));
 
       final List<Scan> selectedScans =
-          flist.getSeletedScans(file) != null ? (List<Scan>) flist.getSeletedScans(file)
+          flist.getScans(selection, file) != null ? (List<Scan>) flist.getScans(selection, file)
               : new ArrayList<>();
       if (!selectedScans.contains(scan)) {
         selectedScans.add(scan);
         selectedScans.sort(Scan::compareTo);
-        flist.setSelectedScans(file, selectedScans);
+        flist.setSelectedScans(file, selection, selectedScans);
       }
 
       for (int i = 0; i < scanAccess.getNumberOfDataPoints(); i++) {
@@ -173,7 +173,9 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
         final ModularFeature feature = new ModularFeature(flist, file, series,
             FeatureStatus.DETECTED);
         feature.set(MaldiSpotType.class, scan.getMaldiSpotInfo().spotName());
-        flist.addRow(new ModularFeatureListRow(flist, rowId.getAndIncrement(), feature));
+        final ModularFeatureListRow row = new ModularFeatureListRow(flist, rowId.getAndIncrement(),
+            feature, selection);
+        flist.addRow(row);
       }
       processedFrames++;
     }
@@ -215,7 +217,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
         (IMSRawDataFile) file,
         BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) file));
 
-    final List<Frame> selectedScans = (List<Frame>) flist.getSeletedScans(file);
+    final List<Frame> selectedScans = (List<Frame>) flist.getScans(selection, file);
     final var traces = createTracesMapForFeatureList(flist).asMapOfRanges().values().stream()
         .sorted(Comparator.comparingDouble(trace -> RangeUtils.rangeCenter(trace.getMzRange())))
         .toList();
@@ -230,6 +232,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
     flist.clearRows();
     for (ExpandedTrace expandedTrace : expandedTraces) {
+      // copy constructor carries the source row's scan selection
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
           false);
       final ModularFeature f = new ModularFeature(flist, expandedTrace.oldFeature());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -344,7 +345,7 @@ public class ReportUtils {
       if (rtRange != null) {
         final RawDataFile file = feature.getRawDataFile();
         final IonTimeSeries<Scan> chromatogram = IonTimeSeriesUtils.extractIonTimeSeries(file,
-            row.getFeatureList().getSeletedScans(file), mzRange, rtRange, null);
+            feature.getFullScanList(), mzRange, rtRange, null);
         final ColoredXYDataset eic = new ColoredXYDataset(
             new IonTimeSeriesToXYProvider(chromatogram, file.getName() + " eic", file.getColor()),
             RunOption.THIS_THREAD);
@@ -613,8 +614,7 @@ public class ReportUtils {
     final IonTimeSeries<Scan> msFeature = (IonTimeSeries<Scan>) bestFeature.getFeatureData();
     final RawDataFile bestFeatureFile = bestFeature.getRawDataFile();
 
-    final List<? extends Scan> selectedScans = row.getFeatureList()
-        .getSeletedScans(bestFeatureFile);
+    final List<? extends Scan> selectedScans = bestFeature.getFullScanList();
     final IonTimeSeries<Scan> msChrom = IonTimeSeriesUtils.extractIonTimeSeries(bestFeatureFile,
         selectedScans, row.getMZRange(), rtRange, null);
 

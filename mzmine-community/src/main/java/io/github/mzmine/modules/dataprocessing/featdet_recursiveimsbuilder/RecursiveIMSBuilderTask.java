@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -205,7 +205,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     currentStep++;
     final ModularFeatureList flist = new ModularFeatureList(file.getName(), getMemoryMapStorage(),
         file);
-    flist.setSelectedScans(file, access.getEligibleFrames());
+    flist.setSelectedScans(file, scanSelection, access.getEligibleFrames());
     logger.finest(() -> "Creation BinningMobilogramDataAccess for raw data file " + file.getName());
     final BinningMobilogramDataAccess binningMobilogramDataAccess = EfficientDataAccess.of(file,
         binWidth);
@@ -219,7 +219,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
 
       final ModularFeature f = FeatureConvertors.tempIMTraceToModularFeature(trace, file,
           binningMobilogramDataAccess, flist);
-      final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
+      final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f, scanSelection);
       row.set(FeatureShapeMobilogramType.class, true);
       flist.addRow(row);
       id++;
