@@ -195,7 +195,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
       boolean copyFeatures) {
-    this(flist, id);
+    this(flist, id, null);
 
     // copy all but features and id. This includes the ScanSelectionType, so the new row inherits
     // the source row's scan selection (provenance for gap filling / reconstruction).

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,8 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     return p;
   }
 
-  private AlignmentPath() {}
+  private AlignmentPath() {
+  }
 
   private AlignmentPath(int n) {
     peaks = new FeatureListRow[n];
@@ -101,8 +102,8 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /**
    * No peaks with differing mass should reach this point.
-   * 
-   * @param col column in peak table that contains this peak
+   *
+   * @param col        column in peak table that contains this peak
    * @param peak
    * @param matchScore
    */
@@ -149,7 +150,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /**
    * Is the whole alignment path still empty?
-   * 
+   *
    * @return
    */
   public boolean isEmpty() {
@@ -165,8 +166,9 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   }
 
   public FeatureListRow convertToAlignmentRow(int ID) {
-    FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) this.getPeak(0).getFeatureList(), ID);
+    final FeatureListRow first = this.getPeak(0);
+    FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) first.getFeatureList(),
+        ID, first.getScanSelection());
     try {
       for (FeatureListRow row : this.peaks) {
         if (row != null) {
@@ -199,7 +201,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   public int compareTo(AlignmentPath o) {
@@ -209,7 +211,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.Peak#getArea()
    */
   public double getArea() {
@@ -224,7 +226,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.Peak#getConcentration()
    */
   public double getConcentration() {
@@ -239,7 +241,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.Peak#matchesWithName(gcgcaligner.Peak)
    */
   /*
@@ -250,7 +252,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   /**
    * Should be called only for complete alignment paths, that is for paths that have gone through
    * the alignment process.
-   * 
+   *
    * @param other
    * @param calc
    * @param params
@@ -265,7 +267,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    * (other.peaks[i] != null) { peak = other.peaks[i]; } if (peak != null) { combinedPath = new
    * AlignmentPath(length(), peak, i); break; } } for (i = i + 1; i < peaks.length; i++) { double
    * matchScore = 0; ChromatographicPeak peak = null; boolean foundPeak = false;
-   * 
+   *
    * if (peaks[i] != null) { peak = peaks[i].combineWith(other.peaks[i]); matchScore =
    * calc.calculateScore(combinedPath, peak, params); foundPeak = true; } else if (other.peaks[i] !=
    * null) { peak = other.peaks[i]; matchScore = calc.calculateScore(combinedPath, peak, params);
@@ -277,13 +279,13 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
    * params.getParameter(ScoreAlignmentParameters.rt2Penalty).getDouble() +
    * params.getParameter(ScoreAlignmentParameters.rtiLax).getDouble() *
    * params.getParameter(ScoreAlignmentParameters.rtiPenalty).getDouble();
-   * 
+   *
    * combinedPath.addGap(i, gapPenalty); } } return combinedPath; }
    */
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see gcgcaligner.Peak#names()
    */
   /*

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -172,6 +172,8 @@ public class ADAP3DTask extends AbstractTask {
     // Create new MZmine feature list
     ModularFeatureList newPeakList = new ModularFeatureList(dataFile + " " + suffix,
         getMemoryMapStorage(), dataFile);
+    // register the selected scans so gap filling and chromatogram reconstruction can reuse them
+    newPeakList.setSelectedScans(dataFile, scanSelection, selectedScans);
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
@@ -181,7 +183,7 @@ public class ADAP3DTask extends AbstractTask {
       // TODO: implement FeatureConvertors.MSDKFeatureToModularFeature(...)
       ModularFeature mzmineFeature = FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature,
           dataFile, FeatureStatus.DETECTED);
-      FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId);
+      FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId, scanSelection);
       row.addFeature(dataFile, mzmineFeature);
       newPeakList.addRow(row);
       rowId++;

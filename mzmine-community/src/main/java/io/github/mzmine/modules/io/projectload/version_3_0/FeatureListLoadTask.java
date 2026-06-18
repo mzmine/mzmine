@@ -483,7 +483,8 @@ public class FeatureListLoadTask extends AbstractTask {
         final int type = reader.next();
         if (type == XMLEvent.START_ELEMENT && reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
           int id = Integer.parseInt(reader.getAttributeValue(null, idTypeUniqueID));
-          flist.addRow(new ModularFeatureListRow(flist, id));
+          // scan selection will be loaded later with all other types
+          flist.addRow(new ModularFeatureListRow(flist, id, null));
         }
       }
     } catch (IOException | XMLStreamException e) {
