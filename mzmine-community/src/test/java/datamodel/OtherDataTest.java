@@ -63,7 +63,7 @@ public class OtherDataTest {
   final RawDataFileImpl file = new RawDataFileImpl("testfile", null, null);
   final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
   final ModularFeature feature = new ModularFeature(flist, file, FeatureStatus.DETECTED);
-  final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, feature);
+  final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, feature, null);
 
   final OtherDataFileImpl otherFileA = new OtherDataFileImpl(file);
   final OtherTimeSeriesDataImpl dataA = new OtherTimeSeriesDataImpl(otherFileA);

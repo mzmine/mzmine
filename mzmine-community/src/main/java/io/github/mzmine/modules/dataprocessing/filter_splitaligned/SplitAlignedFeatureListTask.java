@@ -98,9 +98,9 @@ public class SplitAlignedFeatureListTask extends AbstractFeatureListTask {
         }
 
         // specifically do not copy any annotations or so, as we would not know which feature it was based on.
-        final ModularFeatureListRow copiedRow = new ModularFeatureListRow(resultFlist, row.getID());
         // keep the scan selection provenance so downstream gap filling / reconstruction still works
-        copiedRow.setScanSelection(row.getScanSelection());
+        final ModularFeatureListRow copiedRow = new ModularFeatureListRow(resultFlist, row.getID(),
+            row.getScanSelection());
 
         for (final RawDataFile file : sampleGroup.files()) {
           final Feature feature = row.getFeature(file);

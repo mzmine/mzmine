@@ -362,8 +362,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,
             dataFile, chromatogram, mzTolerance);
         ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
-            modular);
-        newRow.setScanSelection(scanSelection);
+            modular, scanSelection);
         newFeatureList.addRow(newRow);
         // activate shape for this row
         if (!isImaging) {

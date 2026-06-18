@@ -555,9 +555,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       ionTrace.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.IonMobilityIonTraceToModularFeature(ionTrace,
           rawDataFile, mobilogramBinner);
-      ModularFeatureListRow newRow = new ModularFeatureListRow(featureList, featureId, modular);
+      ModularFeatureListRow newRow = new ModularFeatureListRow(featureList, featureId, modular,
+          scanSelection);
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
-      newRow.setScanSelection(scanSelection);
       featureList.addRow(newRow);
       featureId++;
       progress += progressStep;

@@ -42,11 +42,7 @@ class JoinRowAlignScorerTest {
 
   private static ModularFeatureListRow row(final ModularFeatureList flist, final int id,
       final ScanSelection selection) {
-    final ModularFeatureListRow row = new ModularFeatureListRow(flist, id);
-    if (selection != null) {
-      row.setScanSelection(selection);
-    }
-    return row;
+    return new ModularFeatureListRow(flist, id, selection);
   }
 
   @Test

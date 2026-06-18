@@ -127,10 +127,8 @@ class FeatureListScansTest {
     flist.setSelectedScans(file, POS, posList);
     flist.setSelectedScans(file, NEG, negList);
 
-    final ModularFeatureListRow posRow = new ModularFeatureListRow(flist, 1);
-    posRow.setScanSelection(POS);
-    final ModularFeatureListRow negRow = new ModularFeatureListRow(flist, 2);
-    negRow.setScanSelection(NEG);
+    final ModularFeatureListRow posRow = new ModularFeatureListRow(flist, 1, POS);
+    final ModularFeatureListRow negRow = new ModularFeatureListRow(flist, 2, NEG);
 
     // the row's selection (auto-stored as a hidden row type) resolves the right scan list per file
     assertSame(POS, posRow.getScanSelection());

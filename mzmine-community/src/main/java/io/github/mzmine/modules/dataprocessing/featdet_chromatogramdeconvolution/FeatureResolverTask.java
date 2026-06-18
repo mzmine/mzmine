@@ -250,8 +250,7 @@ public class FeatureResolverTask extends AbstractTask {
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-            peakId++);
-        newRow.setScanSelection(scanSelection);
+            peakId++, scanSelection);
         final ModularFeature f = new ModularFeature(resolvedFeatureList,
             originalFeature.getRawDataFile(), originalFeature.getFeatureStatus());
         DataTypeUtils.copyAllBut(originalFeature, f, featureCopyExcludedTypes);

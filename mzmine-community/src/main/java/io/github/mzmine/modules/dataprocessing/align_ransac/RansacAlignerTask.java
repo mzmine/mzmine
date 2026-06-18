@@ -175,13 +175,11 @@ class RansacAlignerTask extends AbstractTask {
       for (FeatureListRow row : allRows) {
         FeatureListRow targetRow = alignmentMapping.get(row);
 
-        // If we have no mapping for this row, add a new one
+        // If we have no mapping for this row, add a new one. Preserve the scan selection provenance
+        // for gap filling / reconstruction.
         if (targetRow == null) {
-          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
-          //(@NotNull ModularFeatureList flist, int id, RawDataFile raw,
-          //    ModularFeature p)
-          // preserve the scan selection provenance for gap filling / reconstruction
-          targetRow.setScanSelection(row.getScanSelection());
+          targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID,
+              row.getScanSelection());
           newRowID++;
           alignedFeatureList.addRow(targetRow);
         }

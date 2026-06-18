@@ -150,8 +150,7 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
         // not found in the ms2 spectra at all but the ms2s still contain information
       }
       f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
-      ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);
-      row.setScanSelection(scanSelection);
+      ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f, scanSelection);
       newFeatureList.addRow(row);
       id++;
     }

@@ -236,8 +236,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     final List<Gap> gaps = new ArrayList<>();
     for (int row = 0; row < mergedAnnotations.size(); row++) {
       FeatureListRow newRow = new ModularFeatureListRow((ModularFeatureList) processedFeatureList,
-          ID++);
-      newRow.setScanSelection(scanSelection);
+          ID++, scanSelection);
       final OverlappingCompoundAnnotation mergedAnnotation = mergedAnnotations.get(row);
 
       final Range<Double> mzRange = mzTolerance.getToleranceRange(

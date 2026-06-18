@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import javafx.beans.property.ObjectProperty;
@@ -49,7 +50,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link io.github.mzmine.datamodel.features.FeatureListScans}. The full {@link ScanSelection}
  * objects are serialized once at the feature list level (raw data files block).
  */
-public class ScanSelectionType extends DataType<ScanSelection> implements NullColumnType {
+public class ScanSelectionType extends DataType<ScanSelection> implements NullColumnType,
+    NoTextColumn {
 
   @Override
   public @NotNull String getUniqueID() {

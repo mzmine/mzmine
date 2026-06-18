@@ -219,9 +219,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
 
       final ModularFeature f = FeatureConvertors.tempIMTraceToModularFeature(trace, file,
           binningMobilogramDataAccess, flist);
-      final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
+      final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f, scanSelection);
       row.set(FeatureShapeMobilogramType.class, true);
-      row.setScanSelection(scanSelection);
       flist.addRow(row);
       id++;
       stepProcessed.getAndIncrement();

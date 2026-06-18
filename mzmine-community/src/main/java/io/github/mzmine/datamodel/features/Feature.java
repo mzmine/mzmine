@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.types.ScanSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import java.util.ArrayList;
@@ -355,6 +356,25 @@ public interface Feature {
   }
 
   /**
+   * The {@link ScanSelection} this feature was derived from. Resolved from the parent row first
+   * (where the selection is normally stored) and otherwise from a feature-level
+   * {@link ScanSelectionType} value if one was set.
+   *
+   * @return the scan selection or null if unknown
+   */
+  default @Nullable ScanSelection getScanSelection() {
+    final FeatureListRow row = getRow();
+    if (row != null) {
+      final ScanSelection rowSelection = row.getScanSelection();
+      if (rowSelection != null) {
+        return rowSelection;
+      }
+    }
+    // fall back to a feature-level value if present
+    return this instanceof ModularDataModel model ? model.get(ScanSelectionType.class) : null;
+  }
+
+  /**
    * The full scan list this feature/chromatogram was built from (the selected scans of the feature
    * list for this feature's raw data file and the {@link ScanSelection} of its row), including the
    * scans that contributed zero intensity. Use this for chromatogram reconstruction (baseline
@@ -367,9 +387,7 @@ public interface Feature {
     if (file == null) {
       return null;
     }
-    final FeatureListRow row = getRow();
-    final ScanSelection selection = row != null ? row.getScanSelection() : null;
-    return getFeatureList().getScans(selection, file);
+    return getFeatureList().getScans(getScanSelection(), file);
   }
 
   /**

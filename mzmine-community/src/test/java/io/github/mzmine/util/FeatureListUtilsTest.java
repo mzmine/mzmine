@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,7 +94,7 @@ class FeatureListUtilsTest {
     f.set(RTType.class, values);
     f.set(MobilityType.class, values);
     f.set(DetectionType.class, FeatureStatus.DETECTED);
-    ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, f);
+    ModularFeatureListRow row = new ModularFeatureListRow(flist, 1, f, null);
     flist.addRow(row);
     return row;
   }

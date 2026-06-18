@@ -714,11 +714,11 @@ public class GridMassTask extends AbstractTask {
             peak.finishChromatogram();
             if (peak.getArea() > 1e-6) {
               newPeakID++;
-              ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newPeakID);
+              ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newPeakID,
+                  scanSelection);
               newRow.addFeature(dataFile,
                   FeatureConvertors.ChromatogramToModularFeature(newFeatureList, peak));
               newRow.setComment(sx.toString(retentionTime));
-              newRow.setScanSelection(scanSelection);
               newFeatureList.addRow(newRow);
               if (debug > 0) {
                 System.out.println(

@@ -174,8 +174,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
             FeatureStatus.DETECTED);
         feature.set(MaldiSpotType.class, scan.getMaldiSpotInfo().spotName());
         final ModularFeatureListRow row = new ModularFeatureListRow(flist, rowId.getAndIncrement(),
-            feature);
-        row.setScanSelection(selection);
+            feature, selection);
         flist.addRow(row);
       }
       processedFrames++;
@@ -233,13 +232,13 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
     flist.clearRows();
     for (ExpandedTrace expandedTrace : expandedTraces) {
+      // copy constructor carries the source row's scan selection
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
           false);
       final ModularFeature f = new ModularFeature(flist, expandedTrace.oldFeature());
       f.set(FeatureDataType.class, expandedTrace.series());
       FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
       row.addFeature(file, f);
-      row.setScanSelection(selection);
       flist.addRow(row);
     }
   }

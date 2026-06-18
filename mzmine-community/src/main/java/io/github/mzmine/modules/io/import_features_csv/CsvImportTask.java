@@ -105,7 +105,8 @@ public class CsvImportTask extends AbstractTask {
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
 
-        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, counter - 1);
+        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, counter - 1,
+            ScanSelection.MS1);
         for (int j = 0; j < dataLine.length; j++) {
           switch (j) {
             case 1:
@@ -156,7 +157,6 @@ public class CsvImportTask extends AbstractTask {
             feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
             List.of(), finalRTRange, finalMZRange, finalIntensityRange);
         newRow.addFeature(rawDataFile, feature);
-        newRow.setScanSelection(ScanSelection.MS1);
         newFeatureList.addRow(newRow);
       }
 

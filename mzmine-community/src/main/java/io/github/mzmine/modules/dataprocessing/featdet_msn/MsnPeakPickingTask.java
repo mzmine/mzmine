@@ -177,8 +177,7 @@ public class MsnPeakPickingTask extends AbstractTask {
         if (newFeature != null) {
 
           ModularFeatureListRow newFeatureListRow = new ModularFeatureListRow(newFeatureList,
-              scan.getScanNumber(), newFeature);
-          newFeatureListRow.setScanSelection(scanSelection);
+              scan.getScanNumber(), newFeature, scanSelection);
 
           newFeatureList.addRow(newFeatureListRow);
         }
