@@ -23,40 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.datamodel.features.correlation.project_io;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.util.io.JsonUtils;
+import java.io.IOException;
+import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Can use a random type string
+ * Writes a {@link R2RNetworkingMaps} as JSON via the shared {@link JsonUtils#MAPPER}. Does not
+ * close the stream so the caller can keep writing to the same
+ * {@link java.util.zip.ZipOutputStream}.
  */
-public final class SimpleRowsRelationship extends AbstractRowsRelationship {
+public final class R2RNetworkingMapsSaver {
 
-  private final double score;
-  private final String type;
-  private final String annotation;
-
-  public SimpleRowsRelationship(final FeatureListRow a, final FeatureListRow b, final double score,
-      final String type, final String annotation) {
-    super(a, b);
-    this.score = score;
-    this.type = type;
-    this.annotation = annotation;
+  private R2RNetworkingMapsSaver() {
   }
 
-  @Override
-  public double getScore() {
-    return score;
-  }
-
-  @Override
-  public @NotNull String getType() {
-    return type;
-  }
-
-  @Override
-  public @NotNull String getAnnotation() {
-    return annotation;
+  public static void save(@NotNull final R2RNetworkingMaps maps, @NotNull final OutputStream out)
+      throws IOException {
+    final R2RNetworkingMapsDto dto = R2RDtoConverter.toDto(maps);
+    JsonUtils.MAPPER.writeValue(out, dto);
   }
 }

@@ -23,40 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.datamodel.features.correlation.project_io;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.util.io.JsonUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Can use a random type string
+ * Loads a {@link R2RNetworkingMaps} from JSON written by {@link R2RNetworkingMapsSaver}. Rows are
+ * resolved on the given feature list by their {@code getID()}; edges whose endpoints are missing
+ * are silently dropped.
  */
-public final class SimpleRowsRelationship extends AbstractRowsRelationship {
+public final class R2RNetworkingMapsLoader {
 
-  private final double score;
-  private final String type;
-  private final String annotation;
-
-  public SimpleRowsRelationship(final FeatureListRow a, final FeatureListRow b, final double score,
-      final String type, final String annotation) {
-    super(a, b);
-    this.score = score;
-    this.type = type;
-    this.annotation = annotation;
+  private R2RNetworkingMapsLoader() {
   }
 
-  @Override
-  public double getScore() {
-    return score;
-  }
-
-  @Override
-  public @NotNull String getType() {
-    return type;
-  }
-
-  @Override
-  public @NotNull String getAnnotation() {
-    return annotation;
+  @NotNull
+  public static R2RNetworkingMaps load(@NotNull final InputStream in,
+      @NotNull final ModularFeatureList flist) throws IOException {
+    final R2RNetworkingMapsDto dto = JsonUtils.MAPPER.readValue(in, R2RNetworkingMapsDto.class);
+    return R2RDtoConverter.fromDto(dto, flist);
   }
 }

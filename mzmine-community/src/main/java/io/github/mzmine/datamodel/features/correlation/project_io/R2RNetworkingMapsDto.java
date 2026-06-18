@@ -23,40 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.datamodel.features.correlation.project_io;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import org.jetbrains.annotations.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Can use a random type string
+ * Top-level JSON DTO for one feature list's {@code R2RNetworkingMaps}. Outer key is the
+ * relationship type string ({@code RowsRelationship.getType()}); value is the list of edges of that
+ * type.
  */
-public final class SimpleRowsRelationship extends AbstractRowsRelationship {
+@JsonIgnoreProperties(ignoreUnknown = true)
+record R2RNetworkingMapsDto(Map<String, List<R2RRelationshipDto>> mapsByType) {
 
-  private final double score;
-  private final String type;
-  private final String annotation;
-
-  public SimpleRowsRelationship(final FeatureListRow a, final FeatureListRow b, final double score,
-      final String type, final String annotation) {
-    super(a, b);
-    this.score = score;
-    this.type = type;
-    this.annotation = annotation;
-  }
-
-  @Override
-  public double getScore() {
-    return score;
-  }
-
-  @Override
-  public @NotNull String getType() {
-    return type;
-  }
-
-  @Override
-  public @NotNull String getAnnotation() {
-    return annotation;
-  }
 }
