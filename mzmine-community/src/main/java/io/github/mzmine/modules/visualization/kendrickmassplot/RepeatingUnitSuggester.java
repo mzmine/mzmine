@@ -40,7 +40,6 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -258,7 +257,7 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
   private MZTolerance extractMzToleranceFromPreviousMethods() {
 
     try {
-      Collection<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
+      List<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
           .getAppliedMethods();
 
       return ParameterUtils.getValueFromAppliedMethods(appliedMethods,

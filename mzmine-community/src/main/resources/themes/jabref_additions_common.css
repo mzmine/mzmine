@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -271,4 +270,26 @@ Text.contrast-label {
 .large-title-pane > .title > .text {
   -fx-font-size: 10.0pt;
   -fx-font-weight: bold;
+}
+
+/* === Lipid QC quality pane === */
+.quality-content {
+  -fx-padding: 8;
+}
+
+.small-label {
+  -fx-font-size: 11px;
+}
+
+.metric-bar-label {
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+}
+
+.metric-bar-label-white-text {
+  -fx-text-fill: white;
+}
+
+.metric-bar-label-dark-text {
+  -fx-text-fill: #1f1f1f;
 }

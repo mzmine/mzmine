@@ -352,13 +352,13 @@ public class IonParts {
     return create(name, null, singleMass, singleCharge, count);
   }
 
-  public static List<IonPart> parseMultiple(final String input) {
-    return IonPartParser.parseMultiple(input);
-  }
-
   @Nullable
-  public static IonPart parse(@NotNull String part) {
-    return IonPartParser.parse(part);
+  public static IonPart parseSilent(@NotNull String part) {
+    try {
+      return IonPartParser.parseOrThrow(part);
+    } catch (IonPartParsingException e) {
+      return null;
+    }
   }
 
   /**

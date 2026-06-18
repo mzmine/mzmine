@@ -34,6 +34,7 @@ import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -68,6 +69,12 @@ public class FeatureListsSelection implements Cloneable {
   }
 
   public FeatureListsSelection() {
+  }
+
+  public FeatureListsSelection(List<? extends ModularFeatureList> featureLists) {
+    this();
+    specificFeatureLists = FeatureListPlaceholder.of(featureLists).toArray(new FeatureListPlaceholder[0]);
+    selectionType = FeatureListsSelectionType.SPECIFIC_FEATURELISTS;
   }
 
   /**

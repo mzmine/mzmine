@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.structures;
 
 import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,16 +42,18 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 class StructureParserTest {
 
+  private static final Logger logger = Logger.getLogger(StructureParserTest.class.getName());
+
   record Case(String input, String formula, String isomericSmiles, String canonicalSmiles,
               int charge) {
 
   }
 
   final static List<Case> cases = List.of( //
-      new Case("CC(=O)O", "C2H4O2", "CC(=O)O", "O=C(O)C", 0) //
-//      , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
-//      , new Case("[12CH](=O)[O-]", "[CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
-//      , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "C(=O)[O-]", "O=C[O-]", -1) //
+      new Case("CC(=O)O", "C2H4O2", "CC(=O)O", "CC(O)=O", 0) //
+      , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "C(=O)[O-]", -1) //
+      , new Case("[12CH](=O)[O-]", "[CHO2]-", "[12CH](=O)[O-]", "[12CH](=O)[O-]", -1) //
+      , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "[13CH](=O)[O-]", "[13CH](=O)[O-]", -1) //
   );
 
   @ParameterizedTest
@@ -183,5 +186,38 @@ class StructureParserTest {
 
     Assertions.assertEquals(0, CHOO);
     Assertions.assertEquals(iterations, CHO2);
+  }
+
+  @Test
+  void testIsotopicStructure() {
+    final String isotopicSmiles = "[2H]/C(CCCC(O)=O)=C([2H])/C/C([2H])=C([2H])\\C/C([2H])=C([2H])\\C=C([2H])\\C(CCCCC)([2H])O";
+
+    MolecularStructure structure = StructureParser.silent()
+        .parseStructure(isotopicSmiles, StructureInputType.SMILES);
+    Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
+    Assertions.assertEquals(
+        "CCCCCC(C(=CC(=C(CC(=C(CC(=C(CCCC(O)=O)[2H])[2H])[2H])[2H])[2H])[2H])[2H])(O)[2H]",
+        structure.canonicalSmiles());
+    Assertions.assertEquals(
+        "CCCCCC([2H])(/C(/[2H])=C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\CCCC(=O)O)O",
+        structure.isomericSmiles());
+    Assertions.assertEquals("JSFATNQSLKRBCI-HAVWKUCESA-N", structure.inchiKey());
+    Assertions.assertEquals(
+        "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D",
+        structure.inchi());
+
+    final String isotopicInchi = "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D";
+    structure = StructureParser.silent().parseStructure(isotopicInchi, StructureInputType.INCHI);
+    Assertions.assertEquals("C20H24[2]H8O3", structure.formulaString());
+    Assertions.assertEquals(
+        "CCCCCC(C(=CC(=C(CC(=C(CC(=C(CCCC(O)=O)[2H])[2H])[2H])[2H])[2H])[2H])[2H])(O)[2H]",
+        structure.canonicalSmiles());
+    Assertions.assertEquals(
+        "CCCCCC([2H])(/C(/[2H])=C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\C/C(/[2H])=C(/[2H])\\CCCC(=O)O)O",
+        structure.isomericSmiles());
+    Assertions.assertEquals("JSFATNQSLKRBCI-HAVWKUCESA-N", structure.inchiKey());
+    Assertions.assertEquals(
+        "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D",
+        structure.inchi());
   }
 }

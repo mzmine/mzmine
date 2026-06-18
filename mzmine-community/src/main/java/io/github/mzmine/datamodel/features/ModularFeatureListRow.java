@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
@@ -120,10 +121,21 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
-    super(flist.getRowsSchema());
-    this.flist = flist;
+    this(flist, flist.getRowsSchema());
     // set ID
     this.set(IDType.class, id);
+  }
+
+  /**
+   * Protected constructor for subclasses (e.g. ModularCompoundRow) that store their row data in a
+   * separate schema rather than flist.getRowsSchema() and must keep IDType unset to avoid colliding
+   * with source-row ids. The flist reference satisfies getFeatureList() — it is the compound's
+   * source feature list, not its storage owner.
+   */
+  protected ModularFeatureListRow(@NotNull ModularFeatureList flist,
+      @NotNull ColumnarModularFeatureListRowsSchema schema) {
+    super(schema);
+    this.flist = flist;
   }
 
   /**
@@ -597,6 +609,31 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
     List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void addAnalogSpectralLibraryMatches(@NotNull List<SpectralDBAnnotation> matches) {
+    synchronized (writeLock) {
+      List<SpectralDBAnnotation> old = requireNonNullElseGet(
+          get(AnalogSpectralLibraryMatchesType.class), ArrayList::new);
+      old.addAll(matches);
+      set(AnalogSpectralLibraryMatchesType.class, old);
+    }
+    CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+  }
+
+  @Override
+  public @NotNull List<SpectralDBAnnotation> getAnalogSpectralLibraryMatches() {
+    List<SpectralDBAnnotation> matches = get(AnalogSpectralLibraryMatchesType.class);
+    return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public void setAnalogSpectralLibraryMatch(@Nullable List<SpectralDBAnnotation> matches) {
+    set(AnalogSpectralLibraryMatchesType.class, matches);
+    if (matches != null) {
+      CompoundAnnotationUtils.precalculateAnnotationValues(matches, this);
+    }
   }
 
   @Override

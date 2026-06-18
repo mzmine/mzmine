@@ -45,7 +45,12 @@ public record SimpleMolecularStructure(@NotNull IAtomContainer structure) implem
 
   private static final Logger logger = Logger.getLogger(SimpleMolecularStructure.class.getName());
 
-  @NotNull
+  /**
+   * @return the structure formula or null if the structure contains a PseudoAtom class with label *
+   * or maybe R for residual.
+   */
+  @Override
+  @Nullable
   public IMolecularFormula formula() {
     return StructureUtils.getFormula(structure());
   }

@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.util.maths.Precision;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -66,7 +67,7 @@ public record MrmTransition(double q1mass, double q3mass,
   private static void checkChromatogramMasses(double q1mass,
       IonTimeSeries<? extends Scan> chromatogram) {
     if (chromatogram.getNumberOfValues() != 0
-        && Double.compare(chromatogram.getMZ(0), q1mass) != 0) {
+        && !Precision.equalDoubleSignificance(chromatogram.getMZ(0), q1mass)) {
       // this must be the case to not alter the feature m/z if the {@link FeatureDataType} is updated.
       throw new IllegalArgumentException(
           "The m/zs in this chromatogram are not equal to the q1 mass.");

@@ -595,7 +595,7 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
       rootScene = loader.load();
       mainWindowController = loader.getController();
       stage.setScene(rootScene);
-      preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
+      preferences.getThemeConfig().apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
       StartupSplash.hide();

@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -61,6 +62,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.TanimotoSimilarity;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
@@ -71,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,16 +86,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class CompoundAnnotationUtils {
 
   /**
    * This list does <b>not</b> represent an absolute order of annotation priorities, but may be used
-   * for rough pre-grouping if required.
+   * for rough pre-grouping if required. Analog spectral library matches are listed last and are
+   * filtered out by default — pass {@code includeAnalog=true} to row accessors to keep them.
    */
   public static final List<DataType> annotationTypePriority = DataTypes.getAll(
-      CompoundDatabaseMatchesType.class, LipidMatchListType.class,
-      SpectralLibraryMatchesType.class);
+      CompoundDatabaseMatchesType.class, LipidMatchListType.class, SpectralLibraryMatchesType.class,
+      AnalogSpectralLibraryMatchesType.class);
 
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 
@@ -371,7 +376,7 @@ public class CompoundAnnotationUtils {
         if (instance.getValueClass().isInstance(value)) {
           db.putIfNotNull((Class) dataType, value);
         } else if (instance instanceof IonTypeType && value instanceof String s) {
-          var ionType = IonTypeParser.parse(s);
+          var ionType = IonTypeParser.parseOptional(s).orElse(null);
           db.putIfNotNull((Class) dataType, ionType);
         } else {
           logger.finest("Skipping value conversion of field\t" + field + "  for type\t"
@@ -497,6 +502,23 @@ public class CompoundAnnotationUtils {
   }
 
   /**
+   * Best annotation across multiple rows
+   */
+  public static @Nullable AnnotationSummary getBestAnnotationSummary(
+      @NotNull final List<FeatureListRow> models) {
+    if (models.isEmpty()) {
+      return null;
+    }
+    final Comparator<@Nullable AnnotationSummary> sorter = models.getFirst().getFeatureList()
+        .getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
+
+    return models.stream().<AnnotationSummary>mapMulti((model, consumer) -> {
+      getTopAnnotationsPerType(model).stream().map(a -> AnnotationSummary.of(model, a))
+          .forEach(consumer);
+    }).min(sorter).orElse(null);
+  }
+
+  /**
    *
    * @param topN Number of annotations <b>per</b> annotation type.
    * @return Annotation types sorted by descending confidence as defined by
@@ -566,5 +588,128 @@ public class CompoundAnnotationUtils {
     }
 
     return result;
+  }
+
+  /// Collect the unique {@link MolecularStructure}s across all annotations. Dedupes by InChIKey
+  /// when available, falls back to canonical SMILES, then to object identity. Preserves insertion
+  /// order so the first member's structure appears first.
+  public static @NotNull List<@NotNull MolecularStructure> uniqueStructures(
+      @NotNull List<@NotNull FeatureAnnotation> annotations) {
+    final Map<String, MolecularStructure> byKey = new LinkedHashMap<>();
+    for (final FeatureAnnotation a : annotations) {
+      final MolecularStructure mol = a.getStructure();
+      if (mol == null) {
+        continue;
+      }
+      String key = mol.inchiKey();
+      if (key == null || key.isBlank()) {
+        key = mol.canonicalSmiles();
+      }
+      if (key == null || key.isBlank()) {
+        // last resort — keep distinct by identity so two unrelated structures both appear
+        key = "id:" + System.identityHashCode(mol);
+      }
+      byKey.putIfAbsent(key, mol);
+    }
+    return new ArrayList<>(byKey.values());
+  }
+
+  /// Count distinct annotations keyed by InChIKey first block; fall back to the molecular formula
+  /// then name when the key is missing, and to object identity when both are missing (so two
+  /// unidentified annotations stay distinct). Returns the size of the resulting key set.
+  public static Collection<FeatureAnnotation> getUniqueAnnotations(
+      @NotNull List<@NotNull FeatureAnnotation> annotations) {
+    final Map<String, FeatureAnnotation> keys = new HashMap<>();
+    for (final FeatureAnnotation a : annotations) {
+      final String firstBlock = inchiKeyFirstBlock(a.getInChIKey());
+      if (firstBlock != null) {
+        keys.put("K:" + firstBlock, a);
+        continue;
+      }
+      final String formula = a.getFormula();
+      if (formula != null && !formula.isBlank()) {
+        keys.put("F:" + formula.trim(), a);
+        continue;
+      }
+      final String name = a.getCompoundName();
+      if (name != null && !name.isBlank()) {
+        keys.put("N:" + name.trim(), a);
+        continue;
+      }
+
+      // last resort — keep distinct by identity so two unidentified annotations do not collapse
+      keys.put("id:" + System.identityHashCode(a), a);
+    }
+    return keys.values();
+  }
+
+  /// Count distinct annotations keyed by InChIKey first block; fall back to the molecular formula
+  /// then name when the key is missing, and to object identity when both are missing (so two
+  /// unidentified annotations stay distinct). Returns the size of the resulting key set.
+  public static int countUniqueAnnotations(@NotNull List<@NotNull FeatureAnnotation> annotations) {
+    return getUniqueAnnotations(annotations).size();
+  }
+
+  /// All annotations must share the same InChIKey first block (the 14-char connectivity hash).
+  /// Returns false when any annotation lacks an InChIKey — the comparison is undefined and the UI
+  /// then surfaces the similarity score instead.
+  public static boolean allShareInchiKeyFirstBlock(
+      @NotNull List<@NotNull FeatureAnnotation> annotations) {
+    String reference = null;
+    for (final FeatureAnnotation a : annotations) {
+      final String fb = inchiKeyFirstBlock(a.getInChIKey());
+      if (fb == null) {
+        // missing key -> structural equality is not provable
+        return false;
+      }
+      if (reference == null) {
+        reference = fb;
+      } else if (!reference.equals(fb)) {
+        return false;
+      }
+    }
+    return reference != null;
+  }
+
+  /// First {@code "-"}-separated block of an InChIKey, or null when the key is blank.
+  public static @Nullable String inchiKeyFirstBlock(@Nullable String inchiKey) {
+    if (inchiKey == null || inchiKey.isBlank()) {
+      return null;
+    }
+    final int dash = inchiKey.indexOf('-');
+    return dash < 0 ? inchiKey : inchiKey.substring(0, dash);
+  }
+
+  /// All annotations must share the same trimmed molecular formula string. Returns false when any
+  /// annotation lacks a formula.
+  public static boolean allShareFormula(@NotNull List<@NotNull FeatureAnnotation> annotations) {
+    String reference = null;
+    for (final FeatureAnnotation a : annotations) {
+      final String f = a.getFormula();
+      if (f == null || f.isBlank()) {
+        return false;
+      }
+      final String norm = f.trim();
+      if (reference == null) {
+        reference = norm;
+      } else if (!reference.equals(norm)) {
+        return false;
+      }
+    }
+    return reference != null;
+  }
+
+  /// Mean pairwise Tanimoto similarity over the molecular fingerprints of every annotation that
+  /// carries a {@link MolecularStructure}. Returns null when fewer than two structures are
+  /// available or when the CDK fingerprint computation fails (e.g. for an unsupported structure).
+  public static @Nullable Double meanPairwiseTanimoto(
+      @NotNull List<@NotNull FeatureAnnotation> annotations) {
+    final TanimotoSimilarity tanimoto = new TanimotoSimilarity();
+
+    final List<@NotNull IAtomContainer> structures = annotations.stream()
+        .map(FeatureAnnotation::getStructure).filter(Objects::nonNull)
+        .map(MolecularStructure::structure).toList();
+
+    return tanimoto.forMols(structures);
   }
 }

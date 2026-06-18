@@ -31,13 +31,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Contains precomputed values in case they need to be accessed more frequently
  */
 public record PrecomputedMolecularStructure(@NotNull IAtomContainer structure,
-                                            @NotNull IMolecularFormula formula,
+                                            @Nullable IMolecularFormula formula,
                                             @Nullable String canonicalSmiles,
                                             @Nullable String isomericSmiles, @Nullable String inchi,
                                             @Nullable String inchiKey, double monoIsotopicMass,

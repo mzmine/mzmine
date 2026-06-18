@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.utils;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleRating;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
@@ -59,13 +60,8 @@ public class LipidParsingUtils {
 
     public static LipidAnnotationLevel lipidAnnotationLevelNameToLipidAnnotationLevel(
         String lipidAnnotationLevelName) {
-        LipidAnnotationLevel[] lipidAnnotationLevels = LipidAnnotationLevel.class.getEnumConstants();
-        for (LipidAnnotationLevel lipidAnnotationLevel : lipidAnnotationLevels) {
-            if (lipidAnnotationLevel.name().equals(lipidAnnotationLevelName)) {
-                return lipidAnnotationLevel;
-            }
-        }
-        return null;
+        return UniqueIdSupplier.parseOrElse(lipidAnnotationLevelName, LipidAnnotationLevel.values(),
+            null);
     }
 
     public static LipidCategories lipidCategoryNameToLipidLipidCategory(String lipidCategoryName) {

@@ -42,7 +42,6 @@ import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsFormats;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -336,7 +335,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       root.setPrefSize(width, height);
       root.setMinSize(width, height);
       Scene scene = new Scene(root, width, height);
-      MZmineCore.getConfiguration().getPreferences().getValue(MZminePreferences.theme)
+      MZmineCore.getConfiguration().getPreferences().getThemeConfig()
           .apply(scene.getStylesheets());
 
       WritableImage[] images = new WritableImage[elementsToExport];

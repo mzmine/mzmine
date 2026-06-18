@@ -479,6 +479,9 @@
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
+      <MenuItem text="Lipid annotation multi-row cleanup"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_lipidannotationcleanup.LipidAnnotationCleanupModule"/>
     </Menu>
 
     <Menu text="Statistics">

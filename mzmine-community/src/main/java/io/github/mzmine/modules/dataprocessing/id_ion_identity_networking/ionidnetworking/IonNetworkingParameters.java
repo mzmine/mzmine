@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperSubParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -87,6 +89,13 @@ public class IonNetworkingParameters extends SimpleParameterSet {
       "Refinement of ion identity networks like minimum network size and main ion types to be required.",
       new IonNetworkRefinementParameters(true), true);
 
+  /// name of {@link CompoundGrouperModule}
+  public static final OptionalModuleParameter<CompoundGrouperSubParameters> COMPOUND_GROUPING = new OptionalModuleParameter<CompoundGrouperSubParameters>(
+      "Compound grouping", """
+      Creates a compounds list within this feature list where feature rows are grouped into compound rows with multiple ion and correlated row children.
+      This step can also be done with a separate module call to "%s".""".formatted(
+      CompoundGrouperModule.NAME), new CompoundGrouperSubParameters(), true);
+
   // setup
   private final Setup setup;
 
@@ -104,9 +113,10 @@ public class IonNetworkingParameters extends SimpleParameterSet {
     switch (setup) {
       case FULL:
         return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT, fullIonLibrary,
-            ANNOTATION_REFINEMENTS};
+            ANNOTATION_REFINEMENTS, COMPOUND_GROUPING};
       case SUB:
-        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, fullIonLibrary, ANNOTATION_REFINEMENTS};
+        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, fullIonLibrary, ANNOTATION_REFINEMENTS,
+            COMPOUND_GROUPING};
     }
     return new Parameter[0];
   }

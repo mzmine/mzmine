@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,6 @@ public class RowTypeFilterParameter extends
   private final ComboParameter<MatchingMode> matchingMode;
   private final ComboParameter<RowTypeFilterOption> selectedType;
   private final StringParameter searchValue;
-  private RowTypeFilter value;
 
   public RowTypeFilterParameter() {
     this("Flexible filter (e.g., annotation)", """
@@ -55,12 +54,25 @@ public class RowTypeFilterParameter extends
 
   public RowTypeFilterParameter(String name, String description) {
     super(name, description);
+    final RowTypeFilterOption DEFAULT_OPTION = RowTypeFilterOption.COMPOUND_NAME;
+
     matchingMode = new ComboParameter<>("Matching mode",
         "Determines how the filter should match entries", MatchingMode.values(),
-        MatchingMode.CONTAINS);
+        DEFAULT_OPTION.getMatchingModes().getFirst());
+
     selectedType = new ComboParameter<>("Type", "What type of information to match against",
-        RowTypeFilterOption.values(), RowTypeFilterOption.COMPOUND_NAME);
+        RowTypeFilterOption.values(), DEFAULT_OPTION);
     searchValue = new StringParameter("Search value", "The value to search for", "");
+  }
+
+  public RowTypeFilterParameter(String name, String description,
+      ComboParameter<MatchingMode> matchingMode, ComboParameter<RowTypeFilterOption> selectedType,
+      StringParameter searchValue) {
+    super(name, description);
+
+    this.matchingMode = matchingMode.cloneParameter();
+    this.selectedType = selectedType.cloneParameter();
+    this.searchValue = searchValue.cloneParameter();
   }
 
   @Override
@@ -78,7 +90,7 @@ public class RowTypeFilterParameter extends
   }
 
   public RowTypeFilterComponent createEditingComponent(boolean addPresetButton) {
-    return new RowTypeFilterComponent(value, selectedType.createEditingComponent(),
+    return new RowTypeFilterComponent(selectedType.createEditingComponent(),
         matchingMode.createEditingComponent(), searchValue.createEditingComponent(),
         addPresetButton);
   }
@@ -99,19 +111,16 @@ public class RowTypeFilterParameter extends
     final MatchingMode matchingMode = this.matchingMode.getValue();
     final String query = searchValue.getValue();
     if (selectedType == null || matchingMode == null || query.isBlank()) {
-      value = null;
+      return null;
     } else {
-      value = RowTypeFilter.create(selectedType, matchingMode, query);
+      return RowTypeFilter.create(selectedType, matchingMode, query);
     }
-    return value;
   }
 
   @Override
   public void setValue(@Nullable RowTypeFilter value) {
-    this.value = value;
     if (value == null) {
-      matchingMode.setValue(null);
-      selectedType.setValue(null);
+      // keep the selection here and just empty the query
       searchValue.setValue("");
       return;
     }
@@ -122,13 +131,13 @@ public class RowTypeFilterParameter extends
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    return value != null;
+    return getValue() != null;
   }
 
   @Override
   public RowTypeFilterParameter cloneParameter() {
-    RowTypeFilterParameter clone = new RowTypeFilterParameter(getName(), getDescription());
-    clone.setValue(getValue());
+    RowTypeFilterParameter clone = new RowTypeFilterParameter(getName(), getDescription(),
+        matchingMode, selectedType, searchValue);
     return clone;
   }
 }

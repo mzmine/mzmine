@@ -44,6 +44,7 @@ import javafx.beans.binding.DoubleExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Label;
@@ -70,6 +71,7 @@ public class FxIconUtil {
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
   public static final int DEFAULT_ICON_SIZE = 18;
   public static final int DEFAULT_LARGE_ICON_SIZE = 24;
+  public static final int LIST_ICON_SIZE = 15;
 
 
   @NotNull
@@ -102,23 +104,8 @@ public class FxIconUtil {
     return view;
   }
 
-  /**
-   * Returns file icon of the given color.
-   *
-   * @param color color of the icon
-   * @return file icon
-   */
-  public static Image getFileIcon(Color color) {
-    // Define colors mapping for the initial file icon
-    HashMap<Color, Color> colorsMapping = new HashMap<>();
-    colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0), color);
-    colorsMapping.put(new Color(0.9921568632125854, 0.6078431606292725, 0.1882352977991104, 1.0),
-        tintColor(color, 0.25));
-    colorsMapping.put(new Color(1.0, 0.7372549176216125, 0.4470588266849518, 1.0),
-        tintColor(color, 0.5));
-
-    // Recolor file icon according to the mapping
-    return ImageUtils.recolor(loadImageFromResources("icons/fileicon.png"), colorsMapping);
+  public static Node getFileIconNode(Color color) {
+    return FxIconUtil.getFontIcon(FxIcons.FOLDER_FILL, LIST_ICON_SIZE, color);
   }
 
   /**

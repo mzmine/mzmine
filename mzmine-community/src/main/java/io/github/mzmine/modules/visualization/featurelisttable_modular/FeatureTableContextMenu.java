@@ -47,6 +47,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
@@ -60,16 +62,20 @@ import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.MergeCompoundRowsModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SetRepresentativeRowModule;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.edit.SplitCompoundRowModule;
 import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui.PubChemResultsController;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -136,6 +142,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -152,6 +159,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu searchMenu;
   final Menu idsMenu;
   final Menu exportMenu;
+  final Menu compoundMenu;
 
   private final FeatureTableFX table;
   private final BooleanProperty hasIonMobilityData = new SimpleBooleanProperty();
@@ -163,6 +171,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   private Set<RawDataFile> selectedFiles;
   private List<ModularFeature> selectedFeatures = List.of();
   private List<ModularFeatureListRow> selectedRows = List.of();
+  private List<TreeItem<ModularFeatureListRow>> selectedTreeItems = List.of();
   @Nullable
   private ModularFeature selectedFeature = null;
   private @Nullable ModularFeature selectedOrBestFeature = null;
@@ -175,7 +184,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     searchMenu = new Menu("Search");
     exportMenu = new Menu("Export");
     idsMenu = new Menu("Identification");
-    this.getItems().addAll(showMenu, searchMenu, idsMenu, exportMenu);
+    compoundMenu = new Menu("Compound");
+    this.getItems().addAll(showMenu, searchMenu, idsMenu, exportMenu, compoundMenu);
 
     this.setOnShowing(event -> onShown());
 
@@ -183,18 +193,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     initSearchMenu();
     initExportMenu();
     initIdentitiesMenu();
+    initCompoundMenu();
 
     final MenuItem deleteRowsItem = new ConditionalMenuItem("Delete row(s)",
         () -> !selectedRows.isEmpty());
-    deleteRowsItem.setOnAction(_ -> {
-      if (selectedRows.size() == 1) {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteRows(table.getFeatureList(), selectedRows);
-      } else {
-        table.getSelectionModel().clearSelection();
-        DeleteRowsModule.deleteWithConfirmation(table.getFeatureList(), selectedRows);
-      }
-    });
+    deleteRowsItem.setOnAction(_ -> onDeleteSelectedRows());
 
     // final MenuItem addNewRowItem;
     final MenuItem manuallyDefineItem = new ConditionalMenuItem("Define manually",
@@ -217,6 +220,184 @@ public class FeatureTableContextMenu extends ContextMenu {
     hasPseudoSpectra.set(
         featureList.streamFeatures().map(ModularFeature::getMostIntenseFragmentScan)
             .anyMatch(PseudoSpectrum.class::isInstance));
+  }
+
+  /**
+   * Adds three items to {@link #compoundMenu}:
+   * <ul>
+   *   <li>Set as representative row — single selected non-compound row whose tree parent is a
+   *       {@link ModularCompoundRow}.</li>
+   *   <li>Split into new compound row — 2+ selected non-compound rows that share the same
+   *       compound parent.</li>
+   *   <li>Merge compound rows — multiple selected compounds (merged into the first), or a single
+   *       selected compound with additional non-compound rows whose tree parents are compounds
+   *       (the extras are moved into the selected compound).</li>
+   * </ul>
+   * The menu itself is hidden when the feature list has no {@link CompoundList}.
+   */
+  private void initCompoundMenu() {
+    final MenuItem setRepresentativeItem = new ConditionalMenuItem("Set as representative row",
+        this::canSetRepresentative);
+    setRepresentativeItem.setOnAction(_ -> onSetRepresentative());
+
+    final MenuItem splitItem = new ConditionalMenuItem("Split into new compound row",
+        this::canSplitIntoNewCompound);
+    splitItem.setOnAction(_ -> onSplitIntoNewCompound());
+
+    final MenuItem mergeItem = new ConditionalMenuItem("Merge compound rows",
+        this::canMergeCompoundRows);
+    mergeItem.setOnAction(_ -> onMergeCompoundRows());
+
+    compoundMenu.getItems().addAll(setRepresentativeItem, splitItem, mergeItem);
+  }
+
+  /**
+   * @return the TreeItem parent's compound row if the selected tree item is a non-compound member
+   * row hanging under a compound row; null otherwise.
+   */
+  private @Nullable ModularCompoundRow parentCompoundOf(
+      @Nullable final TreeItem<ModularFeatureListRow> item) {
+    if (item == null || item.getValue() instanceof ModularCompoundRow) {
+      return null;
+    }
+    final TreeItem<ModularFeatureListRow> parent = item.getParent();
+    if (parent == null || !(parent.getValue() instanceof ModularCompoundRow compound)) {
+      return null;
+    }
+    return compound;
+  }
+
+  private boolean canSetRepresentative() {
+    if (selectedTreeItems.size() != 1) {
+      return false;
+    }
+    return parentCompoundOf(selectedTreeItems.getFirst()) != null;
+  }
+
+  private boolean canSplitIntoNewCompound() {
+    if (selectedTreeItems.size() < 1) {
+      return false;
+    }
+    ModularCompoundRow sharedParent = null;
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      final ModularCompoundRow parent = parentCompoundOf(item);
+      if (parent == null) {
+        return false;
+      }
+      if (sharedParent == null) {
+        sharedParent = parent;
+      } else if (sharedParent != parent) {
+        return false;
+      }
+    }
+    // require at least one remaining member after the split so we don't no-op into an identical
+    // compound — splitting all members away is not a meaningful split
+    return sharedParent != null && sharedParent.compoundSize() > selectedTreeItems.size();
+  }
+
+  private boolean canMergeCompoundRows() {
+    if (selectedTreeItems.size() < 2) {
+      return false;
+    }
+    int compounds = 0;
+    int membersUnderCompound = 0;
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() instanceof ModularCompoundRow) {
+        compounds++;
+      } else if (parentCompoundOf(item) != null) {
+        membersUnderCompound++;
+      } else {
+        return false;
+      }
+    }
+    // either 2+ compounds (with or without extras), or 1 compound + 1+ child rows from compounds
+    return compounds >= 2 || (compounds == 1 && membersUnderCompound >= 1);
+  }
+
+  /**
+   * Split selected rows into compound rows and plain feature rows, both handled by
+   * {@link DeleteRowsModule}. A confirmation dialog is shown when more than one row will be removed
+   * in total.
+   */
+  private void onDeleteSelectedRows() {
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    final List<ModularFeatureListRow> flatRows = new ArrayList<>();
+    for (final ModularFeatureListRow row : selectedRows) {
+      if (row instanceof ModularCompoundRow cr) {
+        compounds.add(cr);
+      } else {
+        flatRows.add(row);
+      }
+    }
+    final int total = compounds.size() + flatRows.size();
+    if (total == 0) {
+      return;
+    }
+    if (total > 1) {
+      final boolean ok = DialogLoggerUtil.showDialogYesNo("Deleting rows?",
+          "Are you sure you want to delete %d row(s) (%d compound row(s), %d feature row(s))?".formatted(
+              total, compounds.size(), flatRows.size()));
+      if (!ok) {
+        return;
+      }
+    }
+    table.getSelectionModel().clearSelection();
+    // single module call handles both kinds — confirmation was already shown above
+    DeleteRowsModule.deleteRowsThisThread(table.getFeatureList(), flatRows, compounds);
+    table.updateRows();
+  }
+
+  private void onSetRepresentative() {
+    final TreeItem<ModularFeatureListRow> item = selectedTreeItems.getFirst();
+    final ModularCompoundRow parent = parentCompoundOf(item);
+    if (parent == null) {
+      return;
+    }
+    if (!(item.getValue() instanceof ModularFeatureListRow row)) {
+      return;
+    }
+    SetRepresentativeRowModule.apply(parent.getFeatureList(), parent, row);
+    table.refresh();
+  }
+
+  private void onSplitIntoNewCompound() {
+    if (selectedTreeItems.isEmpty()) {
+      return;
+    }
+    final ModularCompoundRow parent = parentCompoundOf(selectedTreeItems.getFirst());
+    if (parent == null) {
+      return;
+    }
+    final List<ModularFeatureListRow> rowsToMove = new ArrayList<>(selectedTreeItems.size());
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() != null && !(item.getValue() instanceof ModularCompoundRow)) {
+        rowsToMove.add(item.getValue());
+      }
+    }
+    table.getSelectionModel().clearSelection();
+    SplitCompoundRowModule.apply(parent.getFeatureList(), parent, rowsToMove);
+    table.updateRows();
+  }
+
+  private void onMergeCompoundRows() {
+    final List<ModularCompoundRow> compounds = new ArrayList<>();
+    final List<ModularFeatureListRow> extras = new ArrayList<>();
+    for (final TreeItem<ModularFeatureListRow> item : selectedTreeItems) {
+      if (item.getValue() instanceof ModularCompoundRow cr) {
+        compounds.add(cr);
+      } else if (item.getValue() != null) {
+        extras.add(item.getValue());
+      }
+    }
+    if (compounds.isEmpty()) {
+      return;
+    }
+    final ModularCompoundRow target = compounds.getFirst();
+    final List<ModularCompoundRow> others =
+        compounds.size() > 1 ? compounds.subList(1, compounds.size()) : List.of();
+    table.getSelectionModel().clearSelection();
+    MergeCompoundRowsModule.apply(target.getFeatureList(), target, others, extras);
+    table.updateRows();
   }
 
   private void initIdentitiesMenu() {
@@ -290,9 +471,39 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
+    final Menu lipidAnnotationsMenu = new Menu("Lipid Annotations");
+    final MenuItem preferSpeciesLevel = new ConditionalMenuItem("Prefer species level",
+        () -> !selectedRows.isEmpty() && selectedRows.stream()
+            .anyMatch(this::rowHasMatchedLipidSignals));
+    preferSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.SPECIES_LEVEL));
+
+    final MenuItem preferMolecularSpeciesLevel = new ConditionalMenuItem(
+        "Prefer molecular species level", () -> !selectedRows.isEmpty() && selectedRows.stream()
+        .anyMatch(this::rowHasMatchedLipidSignals));
+    preferMolecularSpeciesLevel.setOnAction(
+        _ -> setPreferredLipidAnnotationLevel(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL));
+    lipidAnnotationsMenu.getItems().addAll(preferSpeciesLevel, preferMolecularSpeciesLevel);
+
     idsMenu.getItems()
         .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,
-            bioTransformerItem, clearAnnotationsMenu);
+            bioTransformerItem, lipidAnnotationsMenu, clearAnnotationsMenu);
+  }
+
+  private void setPreferredLipidAnnotationLevel(final @NotNull LipidAnnotationLevel level) {
+    for (final ModularFeatureListRow row : selectedRows) {
+      final List<MatchedLipid> matches = row.getLipidMatches();
+      if (matches.isEmpty()) {
+        continue;
+      }
+      for (final MatchedLipid match : matches) {
+        if (match.getPreferredAnnotationLevel() == level) {
+          continue;
+        }
+        match.setPreferredAnnotationLevel(level);
+      }
+    }
+    table.refresh();
   }
 
   /**
@@ -764,6 +975,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     selectedFiles = table.getSelectedRawDataFiles();
     selectedFeatures = table.getSelectedFeatures();
     selectedRows = table.getSelectedRows();
+    selectedTreeItems = List.copyOf(table.getSelectedTableRows());
     selectedFeature = table.getSelectedFeature();
     selectedRow = table.getSelectedRow();
     selectedOrBestFeature = selectedFeature;
@@ -777,6 +989,10 @@ public class FeatureTableContextMenu extends ContextMenu {
       selectedFeature = selectedRows.getFirst()
           .getFeature(selectedRows.getFirst().getRawDataFiles().getFirst());
     }
+
+    // Compound menu is only meaningful when the feature list has a compound list
+    final FeatureList currentList = table.getFeatureList();
+    compoundMenu.setVisible(currentList != null && currentList.hasCompoundList());
 
     for (MenuItem item : getItems()) {
       updateItem(item);

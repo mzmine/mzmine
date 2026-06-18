@@ -1,0 +1,154 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * Twilight - A dark theme with soft purple/lavender accents
+ * Inspired by the Catppuccin Mocha palette.
+ * Palette reference: https://catppuccin.com/palette
+ */
+
+.root {
+    /* Catppuccin Mocha accent: Mauve */
+    -jr-theme: #cba6f7;
+    /* decision: blue accent for interactive controls - better affordance than purple */
+    -jr-accent: #89b4fa;
+    -jr-accent-below-text: #1e3a6e;
+    -jr-selected: -jr-accent;
+    -jr-hover: #fff1;
+
+    -jr-row-odd-background: #313244;
+    -jr-row-even-background: #1e1e2e;
+    -jr-accent-alt: -jr-accent;
+
+    /* Catppuccin Mocha semantic colors */
+    -jr-red: #f38ba8;
+    -jr-light-red: #eba0ac;
+    -jr-green: #a6e3a1;
+    -jr-light-green: #b4f0af;
+    -jr-blue: #89b4fa;
+    -jr-light-blue: #b4d0ff;
+    -jr-purple: #cba6f7;
+    -jr-light-purple: #dbbafe;
+    -jr-yellow: #f9e2af;
+    -jr-orange: #fab387;
+
+    /* Base layer */
+    -jr-base: #1e1e2e;
+    -jr-background-alt: #181825;
+    -jr-menu-background: #11111b;
+    -jr-toolbar: -jr-menu-background;
+    -jr-sidepane-background: #313244;
+    -jr-search-background: #313244;
+
+    -jr-sidepane-header-background: -jr-background-alt;
+    -jr-group-hits-bg: -jr-background-alt;
+    -jr-group-hits-fg: -fx-light-text-color;
+    -fx-control-inner-background: #313244;
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+
+    -fx-dark-text-color: black;
+    -fx-mid-text-color: #bac2de;
+    -fx-light-text-color: #cdd6f4;
+    -jr-separator: #45475a;
+    -fx-outer-border: #585b70;
+
+    -jr-icon: -fx-light-text-color;
+    -jr-icon-active: derive(-fx-light-text-color, 50%);
+    -jr-icon-background-active: -jr-hover;
+    -jr-icon-background-armed: #fff2;
+
+    -jr-menu-foreground: -fx-light-text-color;
+    -jr-menu-item-foreground: -fx-light-text-color;
+    -jr-menu-forground-active: derive(-fx-light-text-color, 50%);
+
+    -jr-scrollbar-thumb: #585b70;
+    -jr-scrollbar-track: derive(-fx-control-inner-background, -90%);
+
+    -fx-focused-text-base-color: -fx-dark-text-color;
+
+    -jr-tooltip-fg: #cdd6f4;
+
+    -jr-drag-target: -jr-accent;
+    -jr-drag-target-hover: -jr-accent;
+
+    -js-summary-text-color: derive(-fx-light-text-color, 70%);
+    -js-summary-text-color-selected: derive(-fx-dark-text-color, 70%);
+}
+
+.region-match-chart-bg, .tool-bar, .status-bar {
+    -fx-background-color: -jr-menu-background;
+}
+
+#previewBody {
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+/* Alternating table rows */
+.table-row-cell:odd {
+    -fx-background-color: #313244;
+}
+
+.table-row-cell:even {
+    -fx-background-color: #1e1e2e;
+}
+
+.table-row-cell:hover,
+.tree-table-row-cell:hover {
+    -fx-background-color: -jr-hover;
+}
+
+.table-view .groupColumnBackground {
+    -fx-stroke: #585b70;
+}
+
+.code-area .lineno {
+    -fx-background-color: #11111b;
+    -fx-text-fill: #bac2de;
+}
+
+.text-unchanged {
+    -fx-fill: -fx-light-text-color;
+}
+
+.radio-button > .radio {
+    -fx-background-color: -fx-light-text-color, -fx-control-inner-background;
+}
+
+.numberColumn > .hits:any-selected {
+    -fx-background-color: derive(#585b70, 25%);
+}
+
+.numberColumn > .hits:all-selected {
+    -fx-background-color: #585b70;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -jr-background-alt;
+    -fx-padding: 0 .5 0 .5;
+}
+
+.file-row-text {
+    -fx-text-fill: -fx-light-text-color;
+}

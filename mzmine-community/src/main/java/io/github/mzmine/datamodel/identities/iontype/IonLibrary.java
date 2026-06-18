@@ -70,7 +70,11 @@ public interface IonLibrary {
 
     final List<IonType> ions = ions().stream().filter(ion -> ion.getPolarity() == polarity)
         .toList();
-    return new UnmodifiableIonLibrary(name() + " filtered " + polarity.name(), ions);
+    if (isInternalLibrary()) {
+      return new UnmodifiableIonLibrary("internal lib filtered " + polarity.name(), ions);
+    } else {
+      return new UnmodifiableIonLibrary(name() + " filtered " + polarity.name(), ions);
+    }
   }
 
   /**

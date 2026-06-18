@@ -267,7 +267,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     }
     // check for valid adduct with the adduct parser from export
     // use as adduct
-    final IonType adduct = IonTypeParser.parse(adductCandidate);
+    final IonType adduct = IonTypeParser.parseOptional(adductCandidate).orElse(null);
     if (adduct != null && !adduct.isUndefinedAdduct()) {
       fields.put(DBEntryField.ION_TYPE, adduct.toString());
     }

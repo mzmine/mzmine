@@ -63,7 +63,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -717,6 +719,33 @@ public class FeatureListUtils {
   }
 
   /**
+   * Among all raw data files referenced by {@code rows} (union of each row's
+   * {@link FeatureListRow#getRawDataFiles()}), return the file in which the largest number of rows
+   * has a non-null {@link Feature}. Returns {@code null} only if {@code rows} is empty or no row
+   * has any feature.
+   */
+  public static @Nullable RawDataFile pickRawDataFileWithMostRowCoverage(
+      @NotNull final List<? extends FeatureListRow> rows) {
+    if (rows.isEmpty()) {
+      return null;
+    }
+
+    final Map<RawDataFile, int[]> counts = new LinkedHashMap<>();
+    for (final FeatureListRow r : rows) {
+      for (final RawDataFile f : r.getRawDataFiles()) {
+        final Feature feat = r.getFeature(f);
+        if (feat == null) {
+          continue;
+        }
+        counts.computeIfAbsent(f, _ -> new int[1])[0]++;
+      }
+    }
+    return counts.entrySet().stream()
+        .max(Comparator.comparingInt((Map.Entry<RawDataFile, int[]> e) -> e.getValue()[0]))
+        .map(Map.Entry::getKey).orElse(null);
+  }
+
+  /**
    * Maps the row ID to the feature list for quick lookup
    *
    * @return ID to row map
@@ -828,19 +857,20 @@ public class FeatureListUtils {
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferMetadata(@NotNull FeatureList source, @NotNull ModularFeatureList target,
-      boolean transferTypes) {
+  public static void transferMetadata(@NotNull FeatureList source,
+      @NotNull ModularFeatureList target, boolean transferTypes) {
     transferMetadata(List.of(source), target, transferTypes);
   }
+
   /**
    * Transfer selected scans, applied methods, annotation sort config, row and feature types
    *
-   * @param sources        copy from
+   * @param sources       copy from
    * @param target        copy to
    * @param transferTypes true then transfer all row and feature types
    */
-  public static void transferMetadata(@NotNull List<FeatureList> sources, @NotNull ModularFeatureList target,
-      boolean transferTypes) {
+  public static void transferMetadata(@NotNull List<FeatureList> sources,
+      @NotNull ModularFeatureList target, boolean transferTypes) {
     if (sources.isEmpty()) {
       throw new IllegalArgumentException("No source feature list");
     }

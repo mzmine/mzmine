@@ -284,24 +284,48 @@ public class ParameterUtils {
     return true;
   }
 
+  /**
+   * Now returns the latest method call parameter. Similar to
+   * {@link #getParameterOfLatestMethodCall(List, Class, Parameter)} but for ParameterSet matching
+   * instead of module.
+   *
+   * @param appliedMethods all applied methods (newest last)
+   * @param parameterClass the parameters to find in applied methods
+   * @param parameter      the parameter to extract
+   * @return latest method call parameter or empty
+   */
   @NotNull
   public static <T> Optional<T> getValueFromAppliedMethods(
-      Collection<FeatureListAppliedMethod> appliedMethods,
-      Class<? extends ParameterSet> parameterClass, Parameter<T> mzTolParameter) {
-    return appliedMethods.stream()
-        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
-        .findFirst().map(FeatureListAppliedMethod::getParameters)
-        .map(parameterSet -> parameterSet.getValue(mzTolParameter));
+      List<FeatureListAppliedMethod> appliedMethods, Class<? extends ParameterSet> parameterClass,
+      Parameter<T> parameter) {
+    return getParameterFromAppliedMethods(appliedMethods, parameterClass, parameter).map(
+        Parameter::getValue);
   }
 
+  /**
+   * Now returns the latest method call parameter. Similar to
+   * {@link #getParameterOfLatestMethodCall(List, Class, Parameter)} but for ParameterSet matching
+   * instead of module.
+   *
+   * @param appliedMethods all applied methods (newest last)
+   * @param parameterClass the parameters to find in applied methods
+   * @param parameter      the parameter to extract
+   * @return latest method call parameter or empty
+   */
   @NotNull
   public static <T extends Parameter<?>> Optional<T> getParameterFromAppliedMethods(
-      Collection<FeatureListAppliedMethod> appliedMethods,
-      Class<? extends ParameterSet> parameterClass, T parameter) {
-    return appliedMethods.stream()
-        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
-        .findFirst().map(FeatureListAppliedMethod::getParameters)
-        .map(parameterSet -> parameterSet.getParameter(parameter));
+      List<FeatureListAppliedMethod> appliedMethods, Class<? extends ParameterSet> parameterClass,
+      T parameter) {
+
+    for (int i = appliedMethods.size() - 1; i >= 0; i--) {
+      var appliedMethod = appliedMethods.get(i);
+
+      final ParameterSet params = appliedMethod.getParameters();
+      if (params.getClass().equals(parameterClass)) {
+        return Optional.ofNullable(params.getParameter(parameter));
+      }
+    }
+    return Optional.empty();
   }
 
 

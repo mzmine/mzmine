@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.FormattedTableCell;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
@@ -234,7 +235,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
   private Color getColor(SignalAlignmentAnnotation match) {
     return switch (match) {
       case MATCH -> MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor();
-      case MODIFIED -> MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
+      case MODIFIED -> ColorsFX.getModifiedSignalColor();
       case NONE, FILTERED ->
           MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColor();
     };
@@ -257,8 +258,10 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     String precursorString =
         !hasPrecursorMz ? MessageFormat.format(": m/z {0}↔{1}; top↔bottom", labelA, labelB)
-            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
-                mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
+            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom; Δm/z={2}",
+                mzFormat.format(precursorMZA) + " " + labelA,
+                mzFormat.format(precursorMZB) + " " + labelB,
+                mzFormat.format(precursorMZB - precursorMZA));
 
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);
@@ -427,6 +430,11 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     tableNLMIrror.getItems().clear();
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);
+    lbTitleCos.setText("");
+    lbMirrorModifiedStats.setText("");
+    lbNeutralLossStats.setText("");
+    lbMirrorStats.setText("");
+    lbTitleNL.setText("");
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
