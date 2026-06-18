@@ -27,6 +27,7 @@ package integrationtest;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -328,7 +329,8 @@ public class IntegrationTestUtils {
     } else {
       final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
           FeatureListRowsFilter.ALL, true, ";", ",",
-          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+          CompoundRowSelection.ALL_FEATURE_ROWS);
       queue.add(
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
               parameters));
@@ -366,7 +368,7 @@ public class IntegrationTestUtils {
 
     final CSVExportModularTask exportTask = new CSVExportModularTask(
         new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
-        FeatureListRowsFilter.ALL, true, Instant.now());
+        FeatureListRowsFilter.ALL, true, Instant.now(), CompoundRowSelection.ALL_FEATURE_ROWS);
     exportTask.run();
     return csvExportFile;
   }

@@ -32,6 +32,7 @@ public class ColocatedImageVisualizerTab extends SimpleFeatureListTab {
 
   public ColocatedImageVisualizerTab(String title, FeatureTableFX table) {
     super(title, table, true, true);
+    getParentGroup().featureTableFXProperty().set(table);
 
     final ColocatedImageVisualizerPane pane = new ColocatedImageVisualizerPane(getParentGroup());
     pane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());

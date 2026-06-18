@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,10 @@ import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphCol
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphLabelStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphSizeStyler;
 import io.github.mzmine.modules.visualization.networking.visual.stylers.GraphStyler;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.spectraldb.entry.AnalogCompoundGroup;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +99,12 @@ public class FeatureNetworkPane extends NetworkPane {
   // the network generator
   private final FeatureNetworkGenerator generator;
   private final FeatureNetworkController controller;
+
+  // pie-chart grouping: feature nodes can be rendered as pies split by a metadata column
+  private final NetworkPieChartStyler pieStyler;
+  // the base stylesheet without the runtime pie fill-color rule (captured from NetworkPane)
+  private final String baseStyleSheet;
+  private boolean pieEnabled = false;
   /**
    * Max width in graph units. 1 is the distance between nodes
    */
@@ -124,6 +133,9 @@ public class FeatureNetworkPane extends NetworkPane {
     this.featureList = featureList;
     this.focussedRows = focussedRows;
     this.generator = generator;
+    // capture the default stylesheet before any runtime pie rule is appended
+    this.baseStyleSheet = styleSheet;
+    this.pieStyler = new NetworkPieChartStyler(featureList);
 
     uniqueEdgeTypes = GraphStreamUtils.getUniqueEdgeTypes(fullGraph);
 
@@ -140,6 +152,64 @@ public class FeatureNetworkPane extends NetworkPane {
     clearPrecomputedDynamicAttributeValues();
     applyDynamicStyles();
     collapseIonNodes(controller.cbCollapseIons.isSelected());
+    // the filtered graph was rebuilt - reapply pie styling to the new nodes
+    applyPieCharts();
+  }
+
+  /**
+   * Activate or deactivate pie-chart grouping of feature nodes. When active and the column produces
+   * at least 2 sample groups, every feature node is rendered as a pie split by the metadata column,
+   * with slice sizes given by the median (normalized) feature height per group.
+   *
+   * @param enabled whether pie grouping is requested
+   * @param column  the metadata column to group raw data files by (ignored if {@code enabled} is
+   *                false)
+   */
+  public void setPieChartGrouping(final boolean enabled, final @Nullable MetadataColumn<?> column) {
+    this.pieEnabled = enabled;
+    pieStyler.computeGroups(enabled ? column : null);
+    updatePieStyleSheet();
+    applyPieCharts();
+  }
+
+  /**
+   * @return true if pie grouping is enabled and the selected column produced at least 2 sample
+   * groups
+   */
+  public boolean isPieActive() {
+    return pieEnabled && pieStyler.hasEnoughGroups();
+  }
+
+  /**
+   * @return the sample groups currently drawn as pie slices (for the legend), or null when pies are
+   * not active. Group colors match the slice colors in the network.
+   */
+  public @Nullable List<ColorByMetadataGroup> getActivePieGroups() {
+    return isPieActive() ? pieStyler.getGroups() : null;
+  }
+
+  /**
+   * Append the per-group fill-color rule to the base stylesheet while pies are active, or restore
+   * the base stylesheet otherwise.
+   */
+  private void updatePieStyleSheet() {
+    if (isPieActive()) {
+      setStyleSheet(baseStyleSheet + System.lineSeparator() + pieStyler.buildFillColorStyleRule());
+    } else {
+      setStyleSheet(baseStyleSheet);
+    }
+  }
+
+  /**
+   * Apply or clear pie attributes on the currently displayed (filtered) graph.
+   */
+  private void applyPieCharts() {
+    final Graph filtered = graph(FILTERED);
+    if (isPieActive()) {
+      pieStyler.applyPies(filtered);
+    } else {
+      pieStyler.clearPies(filtered);
+    }
   }
 
   public @NotNull ObservableList<FeatureListRow> getVisibleRows() {
@@ -226,6 +296,27 @@ public class FeatureNetworkPane extends NetworkPane {
 
   public List<FeatureListRow> getRowsFromNodes(final List<? extends Node> nodes) {
     return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getRowFromNode)
+        .filter(Objects::nonNull).toList();
+  }
+
+  /**
+   * @return the {@link AnalogCompoundGroup} backing this node if it is an analog-compound node, or
+   * null otherwise. The group is attached during graph construction in
+   * {@link FeatureNetworkGenerator#createAnalogCompoundNode}.
+   */
+  @Nullable
+  public AnalogCompoundGroup getAnalogGroupFromNode(final Node a) {
+    return (AnalogCompoundGroup) a.getAttribute(FeatureNetworkGenerator.ANALOG_GROUP_ATTR);
+  }
+
+  /**
+   * @return the analog-compound groups for every analog node in {@code nodes}. Non-analog nodes are
+   * filtered out, so this list and {@link #getRowsFromNodes(List)} on the same selection are
+   * disjoint partitions of the original.
+   */
+  public @NotNull List<@NotNull AnalogCompoundGroup> getAnalogGroupsFromNodes(
+      final List<? extends Node> nodes) {
+    return nodes.stream().map(super::mapGraphicObjectToGraph).map(this::getAnalogGroupFromNode)
         .filter(Objects::nonNull).toList();
   }
 
@@ -371,7 +462,8 @@ public class FeatureNetworkPane extends NetworkPane {
       if (type != null) {
         switch (type) {
           case ION_IDENTITY -> setVisible(edge, !collapse);
-          case MS2_MODIFIED_COSINE, NETWORK_RELATIONS, MS2Deepscore, DREAMS -> setVisible(edge, true);
+          case MS2_MODIFIED_COSINE, NETWORK_RELATIONS, MS2Deepscore, DREAMS ->
+              setVisible(edge, true);
           default -> {
           }
         }

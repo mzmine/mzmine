@@ -66,14 +66,17 @@ public enum NodeAtt implements GraphElementAttr {
   LOG10_SUM_INTENSITY, MAX_INTENSITY, SUM_INTENSITY, //
   ADDUCT, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
   IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
-  ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY, // Structure
+  ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY, ANNOTATION_WITH_ANALOGS, // Structure
   CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT, NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, SMILES, INCHI, INCHIKEY;
 
 
   private static @Nullable <T> T extractFirstFeatureAnnotation(FeatureListRow row,
       Function<FeatureAnnotation, T> function) {
-    return row.streamAllFeatureAnnotations().map(function)
-        .filter(Objects::nonNull).findFirst().orElse(null);
+    final FeatureAnnotation preferredAnnotation = row.getPreferredAnnotation();
+    if (preferredAnnotation == null) {
+      return null;
+    }
+    return function.apply(preferredAnnotation);
   }
 
   @Override
@@ -83,7 +86,8 @@ public enum NodeAtt implements GraphElementAttr {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
+      case NONE, ROW, ANNOTATION, ANNOTATION_WITH_ANALOGS, TYPE, FORMULA, ADDUCT, LABEL,
+           MS2_VERIFICATION, COMPOUND_NAME, //
            LIB_MATCH, SMILES, INCHI, INCHIKEY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH,
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY -> false;
@@ -116,6 +120,10 @@ public enum NodeAtt implements GraphElementAttr {
    * @return the value from row (if defined and available) or null
    */
   public Object getValue(FeatureListRow row) {
+    if (row == null) {
+      return null;
+    }
+
     return switch (this) {
       case NONE, MS2_VERIFICATION, NEIGHBOR_DISTANCE -> null;
       case LABEL -> Stream.of(ID.getValue(row), MZ.getFormattedValue(row, false),
@@ -157,7 +165,9 @@ public enum NodeAtt implements GraphElementAttr {
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
       case CLUSTER_SIZE -> getNetworkStatsOrElse(MolNetClusterSizeType.class, row, -1);
       case ANNOTATION ->
-          row.streamAllFeatureAnnotations().findFirst().map(Object::toString).orElse(null);
+          row.streamAllFeatureAnnotations(false).findFirst().map(Object::toString).orElse(null);
+      case ANNOTATION_WITH_ANALOGS ->
+          row.streamAllFeatureAnnotations(true).findFirst().map(Object::toString).orElse(null);
       case COMPOUND_NAME -> extractFirstFeatureAnnotation(row, FeatureAnnotation::getCompoundName);
       case CLASSYFIRE_SUPERCLASS ->
           extractFirstFeatureAnnotation(row, ClassyFireSuperclassType.class);
@@ -239,7 +249,8 @@ public enum NodeAtt implements GraphElementAttr {
   @Nullable
   public NumberFormat getNumberFormat(boolean export) {
     return switch (this) {
-      case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
+      case NONE, ROW, ANNOTATION, ANNOTATION_WITH_ANALOGS, TYPE, FORMULA, ADDUCT, LABEL,
+           MS2_VERIFICATION, COMPOUND_NAME, //
            CLASSYFIRE_SUPERCLASS, CLASSYFIRE_CLASS, CLASSYFIRE_SUBCLASS, CLASSYFIRE_PARENT,
            NPCLASSIFIER_SUPERCLASS, NPCLASSIFIER_CLASS, NPCLASSIFIER_PATHWAY, LIB_MATCH,
            ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, INCHI, INCHIKEY, SMILES,

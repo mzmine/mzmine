@@ -62,7 +62,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   private SpectralLibrary library;
-  private @Nullable MolecularStructure structure;
+  private boolean isHarmonizedStructure = false;
+
   /**
    * Pattern is calculated for ion
    * <p>
@@ -191,13 +192,19 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public void putAll(Map<DBEntryField, Object> fields) {
+    if (fields.containsKey(DBEntryField.SMILES) || fields.containsKey(DBEntryField.INCHI)
+        || fields.containsKey(DBEntryField.ISOMERIC_SMILES) || fields.containsKey(
+        DBEntryField.INCHIKEY)) {
+      isHarmonizedStructure = false;
+    }
     this.fields.putAll(fields);
   }
 
   @Override
   public boolean putIfNotNull(DBEntryField field, Object value) {
-    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI) {
-      structure = null; // clear and recalculate later
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      isHarmonizedStructure = false;
     }
 
     if (field != null && value != null) {
@@ -205,6 +212,24 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       return true;
     }
     return false;
+  }
+
+  public boolean put(DBEntryField field, Object value) {
+    if (field == null) {
+      return false;
+    }
+
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      isHarmonizedStructure = false;
+    }
+
+    if (value == null) {
+      fields.remove(field);
+      return true;
+    }
+    fields.put(field, value);
+    return true;
   }
 
   @Override
@@ -312,22 +337,25 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return library != null ? library.getName() : null;
   }
 
+  /**
+   * Formula may be set independently in the entry (e.g. when the library file supplies it but no
+   * SMILES/InChI is present). Try harmonization first — if it succeeds, the FORMULA field has been
+   * replaced with the canonical formula; if it fails, the originally mapped value is returned.
+   */
   @Override
   @Nullable
   public String getFormula() {
+    if (!isHarmonizedStructure) {
+      // best-effort harmonization populates FORMULA via setStructure on success
+      enrichMetadata();
+    }
     final String formula = getOrElse(DBEntryField.FORMULA, null);
-    if (StringUtils.hasValue(formula)) {
-      return formula;
-    }
-    final MolecularStructure structure = getStructure();
-    if (structure != null) {
-      final String formulaString = structure.formulaString();
-      if (formulaString != null) {
-        putIfNotNull(DBEntryField.FORMULA, formulaString);
-      }
-      return formulaString;
-    }
-    return null;
+    return StringUtils.hasValue(formula) ? formula : null;
+  }
+
+  @Override
+  public boolean isStructureHarmonized() {
+    return isHarmonizedStructure;
   }
 
   @Override
@@ -337,14 +365,43 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   @Override
+  @Nullable
   public MolecularStructure getStructure() {
-    if (structure != null) {
-      return structure;
+    if (!isHarmonizedStructure) {
+      return enrichMetadata(); // creates new structure if inchi or smiles present
     }
-    String smiles = getOrElse(DBEntryField.SMILES, "");
-    String inchi = getOrElse(DBEntryField.INCHI, "");
-    structure = StructureParser.silent().parseStructure(smiles, inchi);
-    return structure;
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+    return StructureParser.silent().parseStructure(smiles, inchi);
+  }
+
+  @Override
+  public void setStructure(final MolecularStructure structure) {
+    if (structure == null) {
+      return;
+    }
+    putIfNotNull(DBEntryField.SMILES, structure.canonicalSmiles());
+    putIfNotNull(DBEntryField.ISOMERIC_SMILES, structure.isomericSmiles());
+    putIfNotNull(DBEntryField.INCHIKEY, structure.inchiKey());
+    putIfNotNull(DBEntryField.INCHI, structure.inchi());
+    putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
+    putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
+    isHarmonizedStructure = true;
+    // DO NOT KEEP structure as it is too memory heavy
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    isHarmonizedStructure = false;
+    put(DBEntryField.SMILES, null);
+    put(DBEntryField.ISOMERIC_SMILES, null);
+    put(DBEntryField.INCHI, null);
+    put(DBEntryField.INCHIKEY, null);
   }
 
   @Override

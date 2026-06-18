@@ -131,6 +131,9 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
      * samples. see {@link CorrelateGroupingTask} and {@link CorrelationGroupingUtils}
      */
     MS1_FEATURE_CORR,
+    /// those rows that show MS1 FEATURE_CORR will also be checked for mobility shape correlation
+    /// features correlated in IMS might be fragments after the IM separation
+    MS1_MOBILITY_FEATURE_CORR,
     /**
      * Member of the same ion identity network
      */
@@ -157,6 +160,13 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
     MS2Deepscore,
     DREAMS,
     /**
+     * {@link
+     * io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule}
+     * Not R2R relationships constructed currently, but we need the enum values for the network
+     * visualizer
+     */
+    ANALOG_COSINE, ANALOG_DREAMS, ANALOG_MS2DEEPSCORE,
+    /**
      * External or other undefined
      */
     OTHER;
@@ -180,6 +190,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
     public String toString() {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 shape correlation";
+        case MS1_MOBILITY_FEATURE_CORR -> "MS1 mobility shape correlation";
         case ION_IDENTITY_NET -> "Ion Identity";
         case MS2_COSINE_SIM -> "MS2 (modified) cosine";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
@@ -187,6 +198,9 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
+        case ANALOG_COSINE -> "Analog (Cosine)";
+        case ANALOG_DREAMS -> "Analog (DreaMS)";
+        case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
         case OTHER -> "Other";
       };
     }

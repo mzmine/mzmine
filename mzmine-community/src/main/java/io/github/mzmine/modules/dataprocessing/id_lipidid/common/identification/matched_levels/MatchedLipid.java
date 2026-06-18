@@ -356,6 +356,11 @@ public class MatchedLipid implements FeatureAnnotation {
   }
 
   @Override
+  public @Nullable String getIsomericSmiles() {
+    return null;
+  }
+
+  @Override
   public @Nullable String getInChI() {
     return null;
   }

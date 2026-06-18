@@ -121,10 +121,21 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
-    super(flist.getRowsSchema());
-    this.flist = flist;
+    this(flist, flist.getRowsSchema());
     // set ID
     this.set(IDType.class, id);
+  }
+
+  /**
+   * Protected constructor for subclasses (e.g. ModularCompoundRow) that store their row data in a
+   * separate schema rather than flist.getRowsSchema() and must keep IDType unset to avoid colliding
+   * with source-row ids. The flist reference satisfies getFeatureList() — it is the compound's
+   * source feature list, not its storage owner.
+   */
+  protected ModularFeatureListRow(@NotNull ModularFeatureList flist,
+      @NotNull ColumnarModularFeatureListRowsSchema schema) {
+    super(schema);
+    this.flist = flist;
   }
 
   /**

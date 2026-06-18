@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
@@ -359,17 +360,48 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable String getSmiles() {
-    return entry.getOrElse(DBEntryField.SMILES, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.canonicalSmiles();
+  }
+
+  @Override
+  public @Nullable String getIsomericSmiles() {
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.isomericSmiles();
   }
 
   @Override
   public @Nullable String getInChI() {
-    return entry.getOrElse(DBEntryField.INCHI, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      return null;
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.inchi();
   }
 
   @Override
   public @Nullable String getInChIKey() {
-    return entry.getOrElse(DBEntryField.INCHIKEY, null);
+    final MolecularStructure structure = getStructure();
+    if (structure == null) {
+      // no parseable structure -> fall back to the raw entry field so callers (e.g. the analog
+      // grouper) can still link by InChIKey when SMILES/InChI are missing
+      return get(InChIKeyStructureType.class);
+    }
+    // return parsed structure value instead of the value inserted into entry
+    // this is cleaner
+    return structure.inchiKey();
   }
 
   @Override
@@ -384,11 +416,11 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
 
   @Override
   public @Nullable IonType getAdductType() {
-    final Object adduct = entry.getField(DBEntryField.ION_TYPE).orElse(null) ;
+    final Object adduct = entry.getField(DBEntryField.ION_TYPE).orElse(null);
     if (adduct == null) {
       return null;
     }
-    if(adduct instanceof IonType ion) {
+    if (adduct instanceof IonType ion) {
       return ion;
     }
 

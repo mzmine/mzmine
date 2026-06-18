@@ -26,7 +26,7 @@
 package io.github.mzmine.util;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -374,11 +374,11 @@ public class StringUtils {
     return join(Arrays.stream(values), delimiter, mapper);
   }
 
-  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter) {
+  public static <T> String join(final @NotNull Collection<T> values, @NotNull String delimiter) {
     return join(values, delimiter, Objects::toString);
   }
 
-  public static <T> String join(final @NotNull List<T> values, @NotNull String delimiter,
+  public static <T> String join(final @NotNull Collection<T> values, @NotNull String delimiter,
       @NotNull final Function<T, String> mapper) {
     return join(values.stream(), delimiter, mapper);
   }

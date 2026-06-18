@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.MethodType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -177,7 +178,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
       // Create a list of column DataTypes
       var columns = Stream.of(IDType.class, CompoundNameType.class, IonTypeType.class,
               ScoreType.class, PrecursorMZType.class, MobilityType.class, CCSType.class, RTType.class,
-              FormulaType.class, SmilesStructureType.class, InChIStructureType.class,
+              FormulaType.class, SmilesStructureType.class, SmilesIsomericStructureType.class,
+              InChIStructureType.class,
               InChIKeyStructureType.class, MethodType.class, UsiType.class, EntryIdType.class,
               IupacNameType.class, CASType.class, InternalIdType.class, QuerySpectrumUsiType.class)
           .map(c -> DataTypes.get((Class) c)).toList();
@@ -210,6 +212,7 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
           Float getCCS = annotation.getCCS();
           Float getRT = annotation.getRT();
           String smiles = annotation.getSmiles();
+          String isoSmiles = annotation.getIsomericSmiles();
           String inchi = annotation.getInChI();
           String inchikey = annotation.getInChIKey();
           String formula = annotation.getFormula();
@@ -229,7 +232,8 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
           }
 
           String result = Stream.of(rowId, compoundName, adductType, scoreType, precursorMZ,
-                  mobility, getCCS, getRT, formula, smiles, inchi, inchikey, method, usi, entryId,
+                  mobility, getCCS, getRT, formula, smiles, isoSmiles, inchi, inchikey, method, usi,
+                  entryId,
                   iupacName, CAS, internalId, queryScan)
               .map(o -> (o == null) ? "" : CSVUtils.escape(o.toString(), fieldSeparator))
               .collect(Collectors.joining(","));
@@ -240,9 +244,9 @@ public class CompoundAnnotationsCSVExportTask extends AbstractTask {
           methodCounter.put(method, alreadyExported + 1);
         }
       }
-      System.out.println("Export successful!");
+      logger.info("Export successful!");
     } catch (IOException e) {
-      System.out.println("Error exporting feature annotations: " + e.getMessage());
+      logger.log(Level.WARNING, "Error exporting feature annotations: " + e.getMessage(), e);
     }
   }
 }

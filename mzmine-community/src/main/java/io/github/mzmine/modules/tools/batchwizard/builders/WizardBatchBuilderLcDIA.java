@@ -73,6 +73,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Double minPearson;
   private final Integer minCorrelatedPoints;
   private final Boolean exportAnnotationGraphics;
+  private final boolean analogSearch;
 
   public WizardBatchBuilderLcDIA(WizardSequence steps) {
     super(steps);
@@ -99,6 +100,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         WorkflowDiaWizardParameters.exportAnnotationGraphics);
     minPearson = getValue(params, WorkflowDiaWizardParameters.minPearson);
     minCorrelatedPoints = getValue(params, WorkflowDiaWizardParameters.minCorrelatedPoints);
+    analogSearch = getValue(params, WorkflowDiaWizardParameters.analogSearch);
   }
 
   @Override
@@ -133,14 +135,20 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
         rtFwhm, imsInstrumentType);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, intraSampleRtTol);
 
     // annotation
     makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
+    if(analogSearch) {
+      makeAndAddAnalogSearchStep(q);
+    }
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     makeAndAddLipidAnnotationStep(q);
     makeAndAddFormulaPredictionStep(q);
+
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q, intraSampleRtTol);
 
     // export
     makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,

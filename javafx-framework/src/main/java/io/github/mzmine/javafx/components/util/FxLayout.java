@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +28,7 @@ package io.github.mzmine.javafx.components.util;
 import io.github.mzmine.javafx.components.GridRow;
 import java.util.List;
 import java.util.stream.IntStream;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -448,6 +450,12 @@ public class FxLayout {
     HBox.setHgrow(spacer, Priority.ALWAYS);
     VBox.setVgrow(spacer, Priority.ALWAYS);
     return spacer;
+  }
+
+  public static void bindVisibleManaged(@NotNull final Node node,
+      @NotNull final ObservableValue<Boolean> visible) {
+    node.visibleProperty().bind(visible);
+    node.managedProperty().bind(visible);
   }
 
   public enum GridColumnGrow {

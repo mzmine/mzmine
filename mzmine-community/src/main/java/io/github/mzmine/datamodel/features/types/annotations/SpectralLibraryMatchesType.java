@@ -74,6 +74,7 @@ public final class SpectralLibraryMatchesType extends AbstractSpectralLibraryMat
       new FormulaType(),//
       new MolecularStructureType(),//
       new SmilesStructureType(),//
+      new SmilesIsomericStructureType(),//
       // classifiers
       new InChIStructureType(), new ClassyFireSuperclassType(), new ClassyFireClassType(),
       new ClassyFireSubclassType(), new ClassyFireParentType(), new NPClassifierSuperclassType(),

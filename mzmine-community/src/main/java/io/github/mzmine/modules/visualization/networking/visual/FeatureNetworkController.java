@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Gra
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
@@ -40,11 +41,14 @@ import io.github.mzmine.modules.visualization.networking.visual.enums.GraphEleme
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphObject;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -52,12 +56,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import org.controlsfx.control.CheckComboBox;
@@ -86,6 +92,9 @@ public class FeatureNetworkController {
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
   public Button btnFocusSelectedNodes;
+  public NetworkLegend legend;
+  // holds the pie-chart enable checkbox + metadata column selector (populated in code)
+  public HBox pieGroupingBox;
 
   private FeatureNetworkPane networkPane;
 
@@ -104,6 +113,7 @@ public class FeatureNetworkController {
     FeatureNetworkController controller = loader.getController();
 
     controller.setFeatureListCreateNetworkPane(flist, focussedRows, flavor);
+
     return controller;
   }
 
@@ -122,9 +132,43 @@ public class FeatureNetworkController {
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
+    // Filter the legend to the node/edge types actually emitted by the generator. The generator
+    // tracks them in observable sets while building the graph, so the legend reflects what's in
+    // this particular network instead of every possible enum value.
+    legend.bindToTypes(generator.getNodeTypes(), generator.getEdgeTypes());
+
     addMenuOptions(flavor);
     addAnnotationFilterOptions(flist);
+    addPieGroupingControls();
     addBindings();
+  }
+
+  /**
+   * Adds a checkbox in front of a {@link MetadataGroupingComponent} to the visuals. The checkbox
+   * activates/deactivates pie-chart grouping; the component selects the metadata column used to
+   * group raw data files. Pies are only shown when active and the column yields at least 2 sample
+   * groups (enforced in {@link FeatureNetworkPane#setPieChartGrouping}).
+   */
+  private void addPieGroupingControls() {
+    final BooleanProperty enabled = new SimpleBooleanProperty(false);
+    final CheckBox cbEnablePieCharts = FxCheckBox.newCheckBox("Metadata column", enabled);
+    cbEnablePieCharts.setTooltip(new Tooltip(
+        "Render feature nodes as pie charts split by the selected metadata column. Each slice is "
+            + "the median normalized height (or height) per sample group. Needs at least 2 groups."));
+
+    final MetadataGroupingComponent metadataGrouping = new MetadataGroupingComponent();
+    // the column selector only matters when grouping is on
+    metadataGrouping.disableProperty().bind(enabled.not());
+
+    final Runnable update = () -> {
+      networkPane.setPieChartGrouping(enabled.get(), metadataGrouping.valueProperty().getValue());
+      // reflect the active groups (and their colors) in the legend
+      legend.setPieGroups(networkPane.getActivePieGroups());
+    };
+    enabled.addListener((observable, oldValue, newValue) -> update.run());
+    metadataGrouping.valueProperty().addListener((observable, oldValue, newValue) -> update.run());
+
+    pieGroupingBox.getChildren().setAll(cbEnablePieCharts, metadataGrouping);
   }
 
   private void addBindings() {

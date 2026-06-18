@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -73,12 +75,14 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -141,6 +145,14 @@ public class ModularFeatureList implements FeatureList {
    */
   private int annotationSortConfigVersion = 0;
   private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
+
+  private final AtomicLong structuralVersion = new AtomicLong(0);
+  @Nullable
+  private volatile CompoundList compoundList;
+  // True while {@link #removeRow}/{@link #removeRows} runs after it has already propagated the
+  // deletion into the compound list. The featureListRows listener uses this to keep the compound
+  // list alive (just syncs its source structural version) instead of disposing it.
+  private volatile boolean compoundListPropagationInFlight = false;
 
   /**
    * Used to buffer charts of rows and features to display in the
@@ -221,6 +233,36 @@ public class ModularFeatureList implements FeatureList {
           .anyMatch(t -> CompoundAnnotationUtils.annotationTypePriority.contains(t))) {
         // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
         addRowType(DataTypes.get(PreferredAnnotationType.class));
+      }
+    });
+
+    featureListRows.addListener((ListChangeListener<FeatureListRow>) change -> {
+      boolean structural = false;
+      while (change.next()) {
+        if (change.wasAdded() || change.wasRemoved() || change.wasReplaced()) {
+          structural = true;
+          break;
+        }
+      }
+      if (!structural) {
+        return;
+      }
+      structuralVersion.incrementAndGet();
+      // {@link #removeRow(s)} already propagated the deletion into the compound list — keep it
+      // alive and just sync its source structural version so {@link CompoundList#isStale()} stays
+      // false.
+      if (compoundListPropagationInFlight) {
+        final CompoundList alive = compoundList;
+        if (alive != null) {
+          alive.syncSourceStructuralVersion();
+        }
+        return;
+      }
+      // implicit invalidation — dispose the old compound list so its listeners are removed
+      final CompoundList old = compoundList;
+      compoundList = null;
+      if (old != null) {
+        old.dispose();
       }
     });
   }
@@ -610,7 +652,16 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    featureListRows.remove(row);
+    if (row == null) {
+      return;
+    }
+    detachFromCompoundListIfPresent(List.of(row));
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.remove(row);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
   }
 
   /**
@@ -626,7 +677,16 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
-    featureListRows.remove(rowNum);
+    if (rowNum < 0 || rowNum >= featureListRows.size()) {
+      return;
+    }
+    detachFromCompoundListIfPresent(List.of(featureListRows.get(rowNum)));
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.remove(rowNum);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
   }
 
   /**
@@ -642,7 +702,30 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
-    featureListRows.removeAll(rowsToRemove);
+    if (rowsToRemove == null || rowsToRemove.isEmpty()) {
+      return;
+    }
+    detachFromCompoundListIfPresent(rowsToRemove);
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.removeAll(rowsToRemove);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
+  }
+
+  /**
+   * If a compound list is attached, strip {@code rows} from every compound row's member list
+   * (promoting a new representative if needed, dropping empty compounds). Dispatched to the FX
+   * thread because {@link CompoundList} mutation may touch FX-bound row data.
+   */
+  private void detachFromCompoundListIfPresent(
+      @NotNull final Collection<? extends FeatureListRow> rows) {
+    final CompoundList cl = compoundList;
+    if (cl == null) {
+      return;
+    }
+    CompoundRowUtils.detachMemberRows(cl, rows);
   }
 
   @Override
@@ -1020,5 +1103,24 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public int getAnnotationSortConfigVersion() {
     return annotationSortConfigVersion;
+  }
+
+  @Override
+  public long getStructuralVersion() {
+    return structuralVersion.get();
+  }
+
+  @Override
+  public @Nullable CompoundList getCompoundList() {
+    return compoundList;
+  }
+
+  @Override
+  public synchronized void setCompoundList(@Nullable final CompoundList cl) {
+    final CompoundList old = this.compoundList;
+    this.compoundList = cl;
+    if (old != null && old != cl) {
+      old.dispose();
+    }
   }
 }

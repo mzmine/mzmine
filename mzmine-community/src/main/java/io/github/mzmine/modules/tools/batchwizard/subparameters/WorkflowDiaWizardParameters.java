@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.workflows.WorkflowDIA;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.Map;
 
 public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters {
 
@@ -47,6 +49,11 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
       Integer.MAX_VALUE);
 
   public static final BooleanParameter applySpectralNetworking = WorkflowDdaWizardParameters.applySpectralNetworking.cloneParameter();
+
+  public static final BooleanParameter analogSearch = new BooleanParameter("Apply analog search",
+      """
+          Applies analog search to find structurally related compounds.
+          """, false);
 
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
@@ -66,19 +73,20 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
   public WorkflowDiaWizardParameters() {
     super(new WorkflowDIA(),
         // actual parameters
-        minPearson, minCorrelatedPoints, applySpectralNetworking, exportPath, exportGnps,
+        minPearson, minCorrelatedPoints, applySpectralNetworking, analogSearch, exportPath, exportGnps,
         exportSirius, exportAnnotationGraphics);
   }
 
 
   public WorkflowDiaWizardParameters(final double minPearsonCorrelation, final int minPoints,
-      final boolean applyNetworking, final boolean exportActive, final File exportBasePath,
+      final boolean applyNetworking, final boolean applyAnalogSearch, final boolean exportActive, final File exportBasePath,
       final boolean exportGnpsActive, boolean exportSiriusActive,
       boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(minPearson, minPearsonCorrelation);
     setParameter(minCorrelatedPoints, minPoints);
     setParameter(applySpectralNetworking, applyNetworking);
+    setParameter(analogSearch, applyAnalogSearch);
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
@@ -86,4 +94,12 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
     setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (!loadedParams.containsKey(WorkflowDdaWizardParameters.analogSearch.getName())) {
+      setParameter(WorkflowDdaWizardParameters.analogSearch, false);
+    }
+  }
 }

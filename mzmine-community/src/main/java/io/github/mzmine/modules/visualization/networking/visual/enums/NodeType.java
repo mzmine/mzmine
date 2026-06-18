@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.networking.visual.enums;
 import java.util.Optional;
 
 public enum NodeType implements ElementType {
-  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER;
+  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER, LIB_ANALOG_COMPOUND;
 
   /**
    * Some nodes define a special UI class in graph_network_style.css
@@ -40,7 +40,19 @@ public enum NodeType implements ElementType {
     return switch (this) {
       case ION_FEATURE, SINGLE_FEATURE -> Optional.of("FEATURE");
       case NEUTRAL_M -> Optional.of("MOL");
+      case LIB_ANALOG_COMPOUND -> Optional.of("ANALOG");
       case NEUTRAL_LOSS_CENTER -> Optional.empty();
+    };
+  }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case NEUTRAL_M -> "Neutral Molecule";
+      case ION_FEATURE, SINGLE_FEATURE -> "Feature";
+      case NEUTRAL_LOSS_CENTER -> "Neutral Loss Center";
+      case LIB_ANALOG_COMPOUND -> "Analog";
     };
   }
 }
