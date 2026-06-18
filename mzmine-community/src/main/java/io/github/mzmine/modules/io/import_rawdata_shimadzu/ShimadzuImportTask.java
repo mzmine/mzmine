@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_shimadzu;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -237,8 +238,9 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
       if (msLevel >= 2 && precursorMz > 0) {
         // Bridge always emits collisionEnergy (primitive int on SDK side).
         final float ce = (float) hdr.path("collisionEnergy").asDouble(0d);
+        final Range<Double> isolationWindow = buildIsolationWindow(hdr, precursorMz);
         msMs = new DDAMsMsInfoImpl(precursorMz, charge > 0 ? charge : null, ce, null, null, msLevel,
-            ActivationMethod.UNKNOWN, null);
+            ActivationMethod.UNKNOWN, isolationWindow);
       } else {
         msMs = null;
       }
@@ -261,6 +263,25 @@ public class ShimadzuImportTask extends AbstractTask implements RawDataImportTas
    * segment/event/event-mode gives something descriptive for multi-segment Shimadzu acquisitions
    * where many scans share the same retention time across different functions.
    */
+  /**
+   * Build the precursor isolation window from the bridge's {@code isolationWidth} (the full quad
+   * transmission width in m/z, centered on the precursor), or {@code null} when the bridge did not
+   * report a usable width for this scan.
+   */
+  @Nullable
+  private static Range<Double> buildIsolationWindow(@NotNull JsonNode hdr, double precursorMz) {
+    final JsonNode widthNode = hdr.path("isolationWidth");
+    if (widthNode.isMissingNode() || widthNode.isNull()) {
+      return null;
+    }
+    final double width = widthNode.asDouble(0d);
+    if (width <= 0) {
+      return null;
+    }
+    final double half = width / 2d;
+    return Range.closed(precursorMz - half, precursorMz + half);
+  }
+
   private static String buildScanDefinition(JsonNode hdr) {
     final int seg = hdr.path("segmentNo").asInt(-1);
     final int evt = hdr.path("eventNo").asInt(-1);
