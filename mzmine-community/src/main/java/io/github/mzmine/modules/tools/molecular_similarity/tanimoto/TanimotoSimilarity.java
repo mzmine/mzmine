@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,23 +34,72 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.fingerprint.Fingerprinter;
+import org.openscience.cdk.fingerprint.IFingerprinter;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.similarity.Tanimoto;
 
 /**
+ * Computes molecular fingerprints and Tanimoto similarities between structures. A single instance
+ * can be shared across threads: the underlying CDK {@link IFingerprinter} is kept in a
+ * {@link ThreadLocal} because some implementations (e.g. circular / PubChem fingerprinters) keep
+ * mutable state during calculation and are not thread-safe.
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class TanimotoSimilarity {
 
   private static final Logger logger = Logger.getLogger(TanimotoSimilarity.class.getName());
-  private final Fingerprinter fingerprinter = new Fingerprinter();
+
+  private final @NotNull FingerprintType fingerprintType;
+  // one fingerprinter per thread - safe to share this TanimotoSimilarity instance across threads
+  private final ThreadLocal<IFingerprinter> fingerprinter;
+
+  public TanimotoSimilarity() {
+    // historic default for the annotation-agreement check
+    this(FingerprintType.DAYLIGHT_1024);
+  }
+
+  public TanimotoSimilarity(@NotNull final FingerprintType fingerprintType) {
+    this.fingerprintType = fingerprintType;
+    this.fingerprinter = ThreadLocal.withInitial(fingerprintType::createFingerprinter);
+  }
+
+  /**
+   * Maximum Tanimoto similarity between any pair of fingerprints from the two lists. Returns 0 when
+   * either list is empty.
+   *
+   * @param a fingerprints of the first row's structures
+   * @param b fingerprints of the second row's structures
+   * @return the maximum pairwise Tanimoto similarity (0-1)
+   */
+  public static float maxTanimoto(@NotNull final List<BitSet> a, @NotNull final List<BitSet> b) {
+    float max = 0f;
+    for (final BitSet fpa : a) {
+      for (final BitSet fpb : b) {
+        try {
+          final float sim = Tanimoto.calculate(fpa, fpb);
+          if (sim > max) {
+            max = sim;
+          }
+        } catch (CDKException e) {
+          // fingerprints of different bit length cannot be compared - skip this pair
+          logger.log(Level.FINE, () -> "Failed to compute Tanimoto similarity: " + e.getMessage());
+        }
+      }
+    }
+    return max;
+  }
+
+  @NotNull
+  public FingerprintType getFingerprintType() {
+    return fingerprintType;
+  }
 
   @Nullable
-  public Float forSmiles(String a, String b) throws CDKException {
+  public Float forSmiles(final String a, final String b) throws CDKException {
     // maybe need to add explicit hydrogens etc?
-    var mola = StructureParser.silent().parseStructure(a, StructureInputType.SMILES);
-    var molb = StructureParser.silent().parseStructure(b, StructureInputType.SMILES);
+    final var mola = StructureParser.silent().parseStructure(a, StructureInputType.SMILES);
+    final var molb = StructureParser.silent().parseStructure(b, StructureInputType.SMILES);
     if (mola == null || molb == null) {
       return null;
     }
@@ -59,21 +108,41 @@ public class TanimotoSimilarity {
   }
 
   @NotNull
-  private Float forMol(@NotNull IAtomContainer a, @NotNull IAtomContainer b) throws CDKException {
-    final BitSet fpa = fingerprinter.getFingerprint(a);
-    final BitSet fpb = fingerprinter.getFingerprint(b);
+  private Float forMol(@NotNull final IAtomContainer a, @NotNull final IAtomContainer b)
+      throws CDKException {
+    final BitSet fpa = computeFingerprint(a);
+    final BitSet fpb = computeFingerprint(b);
     return Tanimoto.calculate(fpa, fpb);
   }
 
-  public @Nullable Double forMols(@NotNull List<IAtomContainer> mols) {
+  /**
+   * Computes the bit fingerprint for the structure using the configured {@link FingerprintType}.
+   *
+   * @return the fingerprint as a {@link BitSet} or null if the structure could not be fingerprinted
+   */
+  @Nullable
+  public BitSet getFingerprint(@NotNull final IAtomContainer mol) {
+    try {
+      return computeFingerprint(mol);
+    } catch (CDKException | RuntimeException e) {
+      logger.log(Level.FINE, () -> "Failed to compute fingerprint: " + e.getMessage());
+      return null;
+    }
+  }
+
+  @NotNull
+  private BitSet computeFingerprint(@NotNull final IAtomContainer mol) throws CDKException {
+    return fingerprinter.get().getBitFingerprint(mol).asBitSet();
+  }
+
+  public @Nullable Double forMols(@NotNull final List<IAtomContainer> mols) {
     if (mols.size() < 2) {
       return null;
     }
     try {
-      final Fingerprinter fingerprinter = new Fingerprinter();
       final BitSet[] fps = new BitSet[mols.size()];
       for (int i = 0; i < mols.size(); i++) {
-        fps[i] = fingerprinter.getFingerprint(mols.get(i));
+        fps[i] = computeFingerprint(mols.get(i));
       }
       double sum = 0;
       int pairs = 0;

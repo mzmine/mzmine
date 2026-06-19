@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto.StructureTanimotoNetworkingTask;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -80,6 +81,9 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
               this.getClass())).toList();
       case COSINE_NO_PRECURSOR -> Arrays.stream(featureLists).map(
           flist -> new NoPrecursorCosineSpectralNetworkingTask(parameters, flist, moduleCallDate,
+              this.getClass())).toList();
+      case STRUCTURE_TANIMOTO -> Arrays.stream(featureLists)
+          .map(flist -> new StructureTanimotoNetworkingTask(parameters, flist, moduleCallDate,
               this.getClass())).toList();
       // one task for all
       case MS2_DEEPSCORE -> List.of(

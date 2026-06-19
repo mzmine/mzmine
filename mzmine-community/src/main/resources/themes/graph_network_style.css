@@ -40,6 +40,13 @@ edge.MS2Deepscore {
   fill-mode: dyn-plain;
   fill-color: #c58bff, #f700ff, #5b195d, #490d38;
 }
+edge.STRUCTURE_TANIMOTO {
+  /*size-mode: dyn-size;*/
+  fill-mode: dyn-plain;
+  fill-color: #b6e3c6, #57c785, #2a9d5c, #14532d;
+  stroke-width: 1.5px;
+  stroke-mode: dots;
+}
 edge.OTHER {
   size-mode: dyn-size;
   fill-mode: dyn-plain;
