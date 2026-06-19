@@ -26,45 +26,79 @@
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
-import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
- * Editor for a single {@link MetadataRegexMapping}. Shows the column configuration in one row and
- * an optional, auto-growing list of case-insensitive value mappings below it.
+ * Model and grid cells for a single {@link MetadataRegexMapping}. The column configuration is shown
+ * as one row of the shared grid in {@link MetadataRegexExtractionComponent}; the value mappings are
+ * edited in the shared {@link MetadataValueMappingEditor} whenever this row is selected and are kept
+ * in this model in the meantime.
  */
-public class MetadataRegexMappingRow extends VBox {
+public class MetadataRegexMappingRow {
 
+  // matches roughly the height of a regular button
+  private static final int SELECT_ICON_SIZE = 18;
+
+  // fixed instruction block appended to the generated LLM regex prompt
+  private static final String REGEX_PROMPT_INSTRUCTIONS = """
+      Return exactly:
+      specific: <Java regex>
+      general: <Java regex>
+      
+      Create Java regexes with exactly one capturing group: the filename/path value to extract.
+      
+      Rules:
+      - Case-insensitive matching is handled externally.
+      - Use non-capturing groups for any extra grouping.
+      - Escape literal regex metacharacters.
+      - Do not use .* or .+ unless unavoidable.
+
+      specific:
+      Match only the listed Values in the same position shown in Examples. Capture only the value, usually as an alternation.
+      
+      general:
+      Extract any value from that same position. Use the narrowest safe token pattern:
+      - Prefer [A-Za-z0-9]+ for word/number tokens.
+      - Use [^_<right-separator>]+ only if values may contain more characters.
+      Use the shortest left and right literal qualifiers needed to uniquely identify the position.""";
+
+  private final Label selectIcon = new Label();
   private final ComboBox<RegexInputSource> sourceCombo;
   private final TextField columnField;
   private final ComboBox<ExtractColumnType> typeCombo;
   private final TextField regexField;
   private final TextField defaultField;
-  private final ToggleButton mappingToggle;
-  private final CheckBox dropUnmappedCheck;
-  private final VBox valueMapBox;
+  private final ButtonBase generateButton;
+  private final ButtonBase removeButton;
   private final List<RawDataFile> rawFiles;
+
+  // value mapping data lives here; it is edited via the shared MetadataValueMappingEditor
+  private final List<MetadataValueMapping> valueMappings = new ArrayList<>();
+  private boolean dropUnmapped;
+  // whether the extracted value is mapped (value-mapping mode) or used directly (extract mode)
+  private boolean useValueMappings;
 
   private @Nullable Consumer<MetadataRegexMappingRow> onActivate;
   private @Nullable Runnable onChange;
@@ -72,9 +106,13 @@ public class MetadataRegexMappingRow extends VBox {
 
   public MetadataRegexMappingRow(@NotNull final MetadataRegexMapping mapping,
       @NotNull final List<String> columnSuggestions, @NotNull final List<RawDataFile> rawFiles) {
-    super(FxLayout.DEFAULT_SPACE);
-    setPadding(new Insets(FxLayout.DEFAULT_SPACE));
     this.rawFiles = rawFiles;
+
+    selectIcon.setMinWidth(24);
+    selectIcon.setStyle("-fx-cursor: hand;");
+    selectIcon.setTooltip(
+        new Tooltip("Selected mapping – shown in the preview and value-mapping editor below."));
+    selectIcon.setOnMouseClicked(_ -> fireActivate());
 
     sourceCombo = FxComboBox.createComboBox("String of the file used as regex input",
         List.of(RegexInputSource.values()));
@@ -101,44 +139,16 @@ public class MetadataRegexMappingRow extends VBox {
     defaultField.setTooltip(new Tooltip(
         "Value used when the regex does not match this file. Leave empty to keep the cell blank."));
 
-    mappingToggle = new ToggleButton("Value map");
-    mappingToggle.setTooltip(new Tooltip(
-        "Map extracted values to other values, e.g. media → blank (case-insensitive)."));
+    generateButton = FxIconUtil.newIconButton(FxIcons.LIGHTBULB,
+        "Copy an LLM prompt to the clipboard that asks for a regex extracting these files' values.",
+        this::generateRegexQuery);
+    removeButton = FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Remove this mapping",
+        this::fireRemove);
 
-    final var removeButton = FxButtons.createButton("✕", "Remove this mapping", () -> fireRemove());
-
-    final HBox controls = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, FxLabels.newLabel("from"),
-        sourceCombo, FxLabels.newLabel("to column"), columnField, typeCombo,
-        FxLabels.newLabel("regex"), regexField, FxLabels.newLabel("default"), defaultField,
-        mappingToggle, removeButton);
-
-    dropUnmappedCheck = new CheckBox("Drop values not listed below");
-    dropUnmappedCheck.setSelected(mapping.dropUnmapped());
-    dropUnmappedCheck.setTooltip(new Tooltip(
-        "If checked, extracted values that are not in the mapping list below are left empty."));
-
-    final var fillButton = FxButtons.createButton("Fill values from files",
-        "Add all values matched in the loaded raw data files to the list below.",
-        this::autoFillFromFiles);
-
-    valueMapBox = FxLayout.newVBox(Insets.EMPTY);
-    final HBox optionsRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fillButton,
-        dropUnmappedCheck);
-    final VBox mappingArea = FxLayout.newVBox(Insets.EMPTY,
-        FxLabels.newItalicLabel("Value mappings (extracted value → stored value)"), optionsRow,
-        valueMapBox);
-    // hidden until the toggle is selected, but keeps its values either way
-    mappingArea.managedProperty().bind(mappingArea.visibleProperty());
-    mappingArea.visibleProperty().bind(mappingToggle.selectedProperty());
-
-    getChildren().addAll(controls, mappingArea);
-
-    // build the value mapping rows (plus a trailing empty one to type into)
-    for (final MetadataValueMapping vm : mapping.activeValueMappings()) {
-      addValueMapRow(vm.from(), vm.to());
-    }
-    ensureTrailingEmptyRow();
-    mappingToggle.setSelected(!mapping.activeValueMappings().isEmpty());
+    this.dropUnmapped = mapping.dropUnmapped();
+    this.valueMappings.addAll(mapping.activeValueMappings());
+    // start in value-mapping mode only if mappings were loaded
+    this.useValueMappings = !mapping.activeValueMappings().isEmpty();
 
     registerListeners();
   }
@@ -146,20 +156,17 @@ public class MetadataRegexMappingRow extends VBox {
   private void registerListeners() {
     registerEditable(sourceCombo);
     registerEditable(typeCombo);
-    sourceCombo.valueProperty().addListener((_, _, _) -> fireChangeActivated());
-    typeCombo.valueProperty().addListener((_, _, _) -> fireChange());
-
     registerEditable(columnField);
     registerEditable(regexField);
     registerEditable(defaultField);
+    sourceCombo.valueProperty().addListener((_, _, _) -> fireChangeActivated());
+    typeCombo.valueProperty().addListener((_, _, _) -> fireChange());
     columnField.textProperty().addListener((_, _, _) -> fireChange());
     regexField.textProperty().addListener((_, _, _) -> fireChangeActivated());
     defaultField.textProperty().addListener((_, _, _) -> fireChange());
-    dropUnmappedCheck.selectedProperty().addListener((_, _, _) -> fireChange());
-    mappingToggle.selectedProperty().addListener((_, _, _) -> fireActivate());
   }
 
-  // focusing any control makes this the active row for the preview
+  // focusing any control makes this the active row for the preview and value-mapping editor
   private void registerEditable(final Control control) {
     control.focusedProperty().addListener((_, _, focused) -> {
       if (focused) {
@@ -168,114 +175,83 @@ public class MetadataRegexMappingRow extends VBox {
     });
   }
 
-  // -------------------------------------------------------------------------------------- value map
-
-  private void addValueMapRow(@NotNull final String from, @NotNull final String to) {
-    final TextField fromField = new TextField(from);
-    fromField.setPromptText("extracted value");
-    FxTextFields.autoGrowFitText(fromField, 10, 25);
-    final TextField toField = new TextField(to);
-    toField.setPromptText("stored value");
-    FxTextFields.autoGrowFitText(toField, 10, 25);
-
-    // action is set below once the row HBox exists
-    final var removeButton = FxButtons.createButton("✕", "Remove this value mapping", () -> {
-    });
-
-    // layout is fixed: [fromField, arrow, toField, removeButton] - see fromField()/toField()
-    final HBox row = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fromField,
-        FxLabels.newLabel("→"), toField, removeButton);
-
-    removeButton.setOnAction(_ -> {
-      valueMapBox.getChildren().remove(row);
-      ensureTrailingEmptyRow();
-      fireChange();
-    });
-
-    fromField.textProperty().addListener((_, _, _) -> {
-      maybeAppendRow();
-      fireChange();
-    });
-    toField.textProperty().addListener((_, _, _) -> fireChange());
-    fromField.focusedProperty().addListener((_, _, focused) -> {
-      if (focused) {
-        fireActivate();
-      }
-    });
-
-    valueMapBox.getChildren().add(row);
+  /**
+   * @return the cells of this row in grid-column order: select icon, source, column, type, regex,
+   * default, generate-query button, remove button.
+   */
+  public @NotNull Node[] gridCells() {
+    return new Node[]{selectIcon, sourceCombo, columnField, typeCombo, regexField, defaultField,
+        generateButton, removeButton};
   }
 
-  // append a new empty row once the user starts typing into the last one
-  private void maybeAppendRow() {
-    final List<Node> rows = valueMapBox.getChildren();
-    if (rows.isEmpty()) {
-      return;
-    }
-    final HBox last = (HBox) rows.getLast();
-    if (!fromField(last).getText().isBlank()) {
-      addValueMapRow("", "");
+  public void setSelected(final boolean selected) {
+    if (selected) {
+      final FontIcon icon = MZmineIconUtils.getCheckedIcon();
+      icon.setIconSize(SELECT_ICON_SIZE);
+      selectIcon.setGraphic(icon);
+    } else {
+      // no icon when not selected
+      selectIcon.setGraphic(null);
     }
   }
 
-  private void ensureTrailingEmptyRow() {
-    final List<Node> rows = valueMapBox.getChildren();
-    if (rows.isEmpty() || !fromField((HBox) rows.getLast()).getText().isBlank()) {
-      addValueMapRow("", "");
+  // copies an LLM prompt to extract the target values from the current input source of all files
+  private void generateRegexQuery() {
+    final MetadataRegexMapping mapping = toMapping();
+    final String values = valueMappings.stream().filter(MetadataValueMapping::isActive)
+        .map(MetadataValueMapping::from).collect(Collectors.joining(" "));
+
+    final StringBuilder query = new StringBuilder("Values:\n");
+    query.append(values.isBlank() ? "<your target values, space separated>" : values);
+    query.append("\n\nExamples:\n");
+    for (final RawDataFile raw : rawFiles) {
+      query.append(mapping.inputSource().extract(raw)).append('\n');
     }
+    query.append('\n').append(REGEX_PROMPT_INSTRUCTIONS);
+
+    final ClipboardContent content = new ClipboardContent();
+    content.putString(query.toString());
+    Clipboard.getSystemClipboard().setContent(content);
+    DialogLoggerUtil.showDialogForTime("Copied to clipboard",
+        "LLM prompt to generate a regex was copied to the clipboard.", AlertType.INFORMATION);
   }
 
-  // pre-fill the left (extracted value) side with all values matched across the loaded files
-  private void autoFillFromFiles() {
-    final List<String> values = SampleMetadataExtractionUtils.distinctMatchedValues(toMapping(),
-        rawFiles);
-    final Set<String> existing = new HashSet<>();
-    for (final Node node : valueMapBox.getChildren()) {
-      final String from = fromField((HBox) node).getText();
-      if (from != null && !from.isBlank()) {
-        existing.add(from.trim().toLowerCase());
-      }
-    }
-    // drop the empty/trailing rows so the new values append in matching order
-    valueMapBox.getChildren().removeIf(node -> fromField((HBox) node).getText().isBlank());
-    for (final String value : values) {
-      if (existing.add(value.trim().toLowerCase())) {
-        addValueMapRow(value, "");
-      }
-    }
-    ensureTrailingEmptyRow();
-    fireChange();
+  // ----------------------------------------------------------------- value mapping data accessors
+
+  public @NotNull List<MetadataValueMapping> getValueMappings() {
+    return valueMappings;
   }
 
-  private static TextField fromField(@NotNull final HBox row) {
-    return (TextField) row.getChildren().get(0);
+  public void setValueMappings(@NotNull final List<MetadataValueMapping> mappings) {
+    valueMappings.clear();
+    valueMappings.addAll(mappings);
   }
 
-  private static TextField toField(@NotNull final HBox row) {
-    return (TextField) row.getChildren().get(2);
+  public boolean isDropUnmapped() {
+    return dropUnmapped;
   }
 
-  private @NotNull List<MetadataValueMapping> collectValueMappings() {
-    final List<MetadataValueMapping> result = new ArrayList<>();
-    for (final Node node : valueMapBox.getChildren()) {
-      final HBox row = (HBox) node;
-      final String from = fromField(row).getText();
-      if (from != null && !from.isBlank()) {
-        result.add(new MetadataValueMapping(from.trim(), toField(row).getText()));
-      }
-    }
-    return result;
+  public void setDropUnmapped(final boolean dropUnmapped) {
+    this.dropUnmapped = dropUnmapped;
   }
 
-  // ------------------------------------------------------------------------------------------ value
+  public boolean isUseValueMappings() {
+    return useValueMappings;
+  }
+
+  public void setUseValueMappings(final boolean useValueMappings) {
+    this.useValueMappings = useValueMappings;
+  }
 
   /**
    * @return the mapping represented by the current state of this row.
    */
   public @NotNull MetadataRegexMapping toMapping() {
+    // value mappings only take effect in the value-mapping mode
+    final boolean useMaps = useValueMappings;
     return new MetadataRegexMapping(sourceCombo.getValue(), columnField.getText().trim(),
-        typeCombo.getValue(), regexField.getText(), defaultField.getText(),
-        dropUnmappedCheck.isSelected(), collectValueMappings());
+        typeCombo.getValue(), regexField.getText(), defaultField.getText(), useMaps && dropUnmapped,
+        useMaps ? new ArrayList<>(valueMappings) : List.of());
   }
 
   // --------------------------------------------------------------------------------------- callbacks

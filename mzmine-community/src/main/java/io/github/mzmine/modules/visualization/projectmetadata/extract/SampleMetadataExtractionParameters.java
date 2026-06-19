@@ -48,6 +48,6 @@ public class SampleMetadataExtractionParameters extends SimpleParameterSet {
           + "filled and existing values are kept.", true);
 
   public SampleMetadataExtractionParameters() {
-    super(dataFiles, mappings, overwrite);
+    super(dataFiles, overwrite, mappings);
   }
 }
