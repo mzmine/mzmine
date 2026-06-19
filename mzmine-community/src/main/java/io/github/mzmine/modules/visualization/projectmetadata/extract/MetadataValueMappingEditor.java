@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.main.ConfigService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,8 +45,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +71,8 @@ public class MetadataValueMappingEditor extends VBox {
   private final VBox fieldsBox = FxLayout.newVBox(Insets.EMPTY);
   // holds the value-mapping controls; only shown in the VALUE_MAPPINGS mode
   private final VBox valueSection;
+  // distinct resulting metadata groups across all loaded files (mapping/default/drop applied)
+  private final FlowPane resultsFlow = FxLayout.newFlowPane();
 
   private @Nullable MetadataRegexMappingRow target;
   // guards against writing back into the target while the controls are being (re)populated
@@ -90,6 +95,7 @@ public class MetadataValueMappingEditor extends VBox {
     dropUnmappedCheck.selectedProperty().addListener((_, _, selected) -> {
       if (!loading && target != null) {
         target.setDropUnmapped(selected);
+        refreshResults();
         onChange.run();
       }
     });
@@ -107,13 +113,14 @@ public class MetadataValueMappingEditor extends VBox {
 
     final HBox headerRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, modeCombo,
         forColumnLabel);
-    getChildren().addAll(headerRow, valueSection);
+    getChildren().addAll(headerRow, resultsFlow, valueSection);
 
     modeCombo.valueProperty().addListener((_, _, mode) -> {
       final boolean useMaps = mode == ValueHandlingMode.VALUE_MAPPINGS;
       valueSection.setVisible(useMaps);
       if (!loading && target != null) {
         target.setUseValueMappings(useMaps);
+        refreshResults();
         onChange.run();
       }
     });
@@ -136,6 +143,7 @@ public class MetadataValueMappingEditor extends VBox {
       modeCombo.setValue(ValueHandlingMode.EXTRACT_VALUES);
       valueSection.setVisible(false);
       setDisable(true);
+      refreshResults();
       loading = false;
       return;
     }
@@ -163,6 +171,37 @@ public class MetadataValueMappingEditor extends VBox {
     }
     final String column = target.toMapping().columnName();
     forColumnLabel.setText("for column '" + (column.isBlank() ? "?" : column) + "'");
+    // the regex/source/default may have changed, so the resulting groups can change too
+    refreshResults();
+  }
+
+  // shows the distinct resulting metadata groups across all loaded files, with the row's mapping,
+  // default value and drop-unmapped option applied; alternating regular and positive text color
+  private void refreshResults() {
+    resultsFlow.getChildren().setAll(FxLabels.newBoldLabel("Results for all loaded samples:"));
+    if (target == null) {
+      return;
+    }
+    final MetadataRegexMapping mapping = target.toMapping();
+    final List<String> groups = rawFiles.stream().map(
+            raw -> SampleMetadataExtractionUtils.extractValue(mapping,
+                SampleMetadataExtractionUtils.inputString(raw, mapping)))
+        .map(value -> value == null ? "(empty)" : value).distinct()
+        .sorted(String.CASE_INSENSITIVE_ORDER).toList();
+
+    if (groups.isEmpty()) {
+      resultsFlow.getChildren().add(FxLabels.newItalicLabel("(no samples loaded)"));
+      return;
+    }
+    final Color positive = ConfigService.getDefaultColorPalette().getPositiveColor();
+    for (int i = 0; i < groups.size(); i++) {
+      final Label chip = new Label(groups.get(i));
+      // alternate between the regular text color and the positive color
+      if (i % 2 == 1) {
+        FxLabels.colored(chip, positive);
+      }
+      resultsFlow.getChildren().add(chip);
+    }
   }
 
   private void addFieldRow(@NotNull final String from, @NotNull final String to) {
@@ -256,6 +295,7 @@ public class MetadataValueMappingEditor extends VBox {
       }
     }
     target.setValueMappings(result);
+    refreshResults();
     onChange.run();
   }
 

@@ -47,6 +47,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -70,6 +71,8 @@ public class MetadataRegexExtractionComponent extends VBox implements
   private static final Color HIGHLIGHT_COLOR = Color.web("#E8590C");
   private static final String[] HEADERS = {"", "Source", "Target column", "Type", "Regex",
       "Default", ""};
+  // the regex column absorbs the free horizontal space so the grid fills the dialog width
+  private static final int GROW_COLUMN = 4;
 
   private final List<MetadataRegexMappingRow> rows = new ArrayList<>();
   private final GridPane grid = new GridPane();
@@ -83,6 +86,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
   public MetadataRegexExtractionComponent() {
     super(FxLayout.DEFAULT_SPACE);
     setPadding(new Insets(FxLayout.DEFAULT_SPACE));
+    setMaxWidth(Double.MAX_VALUE);
 
     previewFiles =
         ProjectService.getProject() != null ? ProjectService.getProject().getCurrentRawDataFiles()
@@ -91,6 +95,8 @@ public class MetadataRegexExtractionComponent extends VBox implements
 
     grid.setHgap(FxLayout.DEFAULT_SPACE);
     grid.setVgap(FxLayout.DEFAULT_SPACE);
+    grid.setMaxWidth(Double.MAX_VALUE);
+    setupGridColumns();
 
     valueEditor = new MetadataValueMappingEditor(previewFiles, this::refreshPreview);
 
@@ -132,6 +138,18 @@ public class MetadataRegexExtractionComponent extends VBox implements
   }
 
   // -------------------------------------------------------------------------------------------- grid
+
+  // one column (the regex column) grows to absorb free width; the others size to their content
+  private void setupGridColumns() {
+    for (int col = 0; col < HEADERS.length; col++) {
+      final ColumnConstraints cc = new ColumnConstraints();
+      if (col == GROW_COLUMN) {
+        cc.setHgrow(Priority.ALWAYS);
+        cc.setFillWidth(true);
+      }
+      grid.getColumnConstraints().add(cc);
+    }
+  }
 
   private void rebuildGrid() {
     grid.getChildren().clear();

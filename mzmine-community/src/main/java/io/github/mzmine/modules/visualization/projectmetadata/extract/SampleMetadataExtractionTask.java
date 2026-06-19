@@ -56,10 +56,23 @@ public class SampleMetadataExtractionTask extends AbstractRawDataFileTask {
   public SampleMetadataExtractionTask(@NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
+    this(moduleCallDate, parameters, moduleClass, raws,
+        parameters.getValue(SampleMetadataExtractionParameters.mappings),
+        parameters.getValue(SampleMetadataExtractionParameters.overwrite));
+  }
+
+  /**
+   * Explicit-values constructor for callers that provide the mappings and files directly (e.g. the
+   * embedded use in raw data import via {@link SampleMetadataExtractionEmbeddedParameters}).
+   */
+  public SampleMetadataExtractionTask(@NotNull final Instant moduleCallDate,
+      @NotNull final ParameterSet parameters,
+      @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws,
+      @NotNull final List<MetadataRegexMapping> mappings, final boolean overwrite) {
     super(null, moduleCallDate, parameters, moduleClass);
     this.raws = List.of(raws);
-    this.mappings = parameters.getValue(SampleMetadataExtractionParameters.mappings);
-    this.overwrite = parameters.getValue(SampleMetadataExtractionParameters.overwrite);
+    this.mappings = mappings;
+    this.overwrite = overwrite;
   }
 
   @Override

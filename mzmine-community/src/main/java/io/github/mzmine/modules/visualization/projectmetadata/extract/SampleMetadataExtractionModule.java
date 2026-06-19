@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SampleMetadataExtractionModule extends SingleTaskRawDataFilesModule {
 
-  public static final String MODULE_NAME = "Extract metadata from file names";
+  public static final String MODULE_NAME = "Extract project sample metadata";
 
   public SampleMetadataExtractionModule() {
     super(MODULE_NAME, SampleMetadataExtractionParameters.class,

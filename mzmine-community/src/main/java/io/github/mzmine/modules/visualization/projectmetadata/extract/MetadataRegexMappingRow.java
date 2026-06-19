@@ -32,7 +32,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.util.javafx.MZmineIconUtils;
+import io.github.mzmine.main.ConfigService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -61,22 +61,21 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class MetadataRegexMappingRow {
 
-  // matches roughly the height of a regular button
-  private static final int SELECT_ICON_SIZE = 18;
-
   // fixed instruction block appended to the generated LLM regex prompt
   private static final String REGEX_PROMPT_INSTRUCTIONS = """
       Return exactly:
       specific: <Java regex>
       general: <Java regex>
       
-      Create Java regexes with exactly one capturing group: the filename/path value to extract.
-      
       Rules:
       - Case-insensitive matching is handled externally.
+      - Create Java regexes with exactly one capturing group.
       - Use non-capturing groups for any extra grouping.
       - Escape literal regex metacharacters.
       - Do not use .* or .+ unless unavoidable.
+      - The returned regex must include the literal left and right separators around the captured value. \
+      For underscore-delimited filename tokens, the capture should appear between literal underscores, \
+      e.g. _(<capture>)_. Do not omit those separators from the regex.
       
       specific:
       Match only the listed Values in the same position shown in Examples. Capture only the value, usually as an alternation.
@@ -84,8 +83,7 @@ public class MetadataRegexMappingRow {
       general:
       Extract any value from that same position. Use the narrowest safe token pattern:
       - Prefer [A-Za-z0-9]+ for word/number tokens.
-      - Use [^_<right-separator>]+ only if values may contain more characters.
-      Use the shortest left and right literal qualifiers needed to uniquely identify the position.""";
+      - Use the shortest left and right literal qualifiers needed to uniquely identify the position.""";
 
   private final Label selectIcon = new Label();
   private final ComboBox<RegexInputSource> sourceCombo;
@@ -137,6 +135,8 @@ public class MetadataRegexMappingRow {
     regexField = new TextField(mapping.regex());
     regexField.setPromptText("regex, e.g. _([A-Za-z]+)_  (case-insensitive)");
     FxTextFields.autoGrowFitText(regexField, 16, 60);
+    // let the regex field fill the grid column that grows with the dialog width
+    regexField.setMaxWidth(Double.MAX_VALUE);
 
     defaultField = new TextField(mapping.defaultValue());
     defaultField.setPromptText("default");
@@ -192,8 +192,8 @@ public class MetadataRegexMappingRow {
 
   public void setSelected(final boolean selected) {
     if (selected) {
-      final FontIcon icon = MZmineIconUtils.getCheckedIcon();
-      icon.setIconSize(SELECT_ICON_SIZE);
+      final FontIcon icon = FxIconUtil.getFontIcon(FxIcons.CHECK_CIRCLE, 20,
+          ConfigService.getDefaultColorPalette().getPositiveColor());
       selectIcon.setGraphic(icon);
     } else {
       // no icon when not selected
@@ -215,11 +215,29 @@ public class MetadataRegexMappingRow {
     }
     query.append('\n').append(REGEX_PROMPT_INSTRUCTIONS);
 
+    final String text = query.toString();
     final ClipboardContent content = new ClipboardContent();
-    content.putString(query.toString());
+    content.putString(text);
+    // also offer an HTML flavor: rich-text editors (e.g. ChatGPT web) prefer it and, unlike with
+    // plain text, keep the blank lines between sections as paragraph breaks
+    content.putHtml(toHtmlParagraphs(text));
     Clipboard.getSystemClipboard().setContent(content);
     DialogLoggerUtil.showDialogForTime("Copied to clipboard",
         "LLM prompt to generate a regex was copied to the clipboard.", AlertType.INFORMATION);
+  }
+
+  // converts the plain-text prompt to HTML where blank-line-separated blocks become <p> paragraphs
+  // and single line breaks become <br>. Text is HTML-escaped so tokens like <Java regex> survive.
+  private static @NotNull String toHtmlParagraphs(@NotNull final String text) {
+    final StringBuilder html = new StringBuilder();
+    for (final String paragraph : text.split("\n{2,}")) {
+      html.append("<p>").append(escapeHtml(paragraph).replace("\n", "<br>")).append("</p>");
+    }
+    return html.toString();
+  }
+
+  private static @NotNull String escapeHtml(@NotNull final String s) {
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
   }
 
   // ----------------------------------------------------------------- value mapping data accessors

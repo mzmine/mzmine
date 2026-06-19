@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.files.ExtensionFilters;
@@ -80,6 +82,12 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
       ProjectMetadataImportParameters.fileName);
 
+  public static final OptionalModuleParameter<SampleMetadataExtractionEmbeddedParameters> extractMetadata = new OptionalModuleParameter<>(
+      "Extract sample metadata",
+      "Extract sample metadata columns from the file name or path of the imported raw data files using regular expressions. Runs after the metadata file import.",
+      EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionEmbeddedParameters(),
+      false);
+
   public static final BooleanParameter sortAndRecolor = new BooleanParameter("Sort and color", """
       Apply default sorting and coloring by sample type.
       To color by metadata, apply the "%s" module in batch, quick access, or via right click in the MS data files list.""".formatted(
@@ -95,6 +103,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
             vendorOptions, //
             advancedImport, // directly process masslists
             metadataFile, // metadata import
+            extractMetadata, // extract metadata from file names (after metadata import)
             sortAndRecolor, // sort and recolor
             // allow import of spectral libraries
             SpectralLibraryImportParameters.dataBaseFiles},
