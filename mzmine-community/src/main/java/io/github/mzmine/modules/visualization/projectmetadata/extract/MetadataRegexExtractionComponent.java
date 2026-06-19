@@ -69,7 +69,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
   private static final int MAX_PREVIEW_FILES = 1000;
   private static final Color HIGHLIGHT_COLOR = Color.web("#E8590C");
   private static final String[] HEADERS = {"", "Source", "Target column", "Type", "Regex",
-      "Default", "", ""};
+      "Default", ""};
 
   private final List<MetadataRegexMappingRow> rows = new ArrayList<>();
   private final GridPane grid = new GridPane();

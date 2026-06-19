@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.extract;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBase;
@@ -46,6 +48,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -53,8 +56,8 @@ import org.kordamp.ikonli.javafx.FontIcon;
 /**
  * Model and grid cells for a single {@link MetadataRegexMapping}. The column configuration is shown
  * as one row of the shared grid in {@link MetadataRegexExtractionComponent}; the value mappings are
- * edited in the shared {@link MetadataValueMappingEditor} whenever this row is selected and are kept
- * in this model in the meantime.
+ * edited in the shared {@link MetadataValueMappingEditor} whenever this row is selected and are
+ * kept in this model in the meantime.
  */
 public class MetadataRegexMappingRow {
 
@@ -74,7 +77,7 @@ public class MetadataRegexMappingRow {
       - Use non-capturing groups for any extra grouping.
       - Escape literal regex metacharacters.
       - Do not use .* or .+ unless unavoidable.
-
+      
       specific:
       Match only the listed Values in the same position shown in Examples. Capture only the value, usually as an alternation.
       
@@ -92,6 +95,8 @@ public class MetadataRegexMappingRow {
   private final TextField defaultField;
   private final ButtonBase generateButton;
   private final ButtonBase removeButton;
+  // generate + remove icon buttons grouped in one cell with icon-button spacing
+  private final FlowPane buttonBox;
   private final List<RawDataFile> rawFiles;
 
   // value mapping data lives here; it is edited via the shared MetadataValueMappingEditor
@@ -144,6 +149,7 @@ public class MetadataRegexMappingRow {
         this::generateRegexQuery);
     removeButton = FxIconUtil.newIconButton(FxIcons.X_CIRCLE, "Remove this mapping",
         this::fireRemove);
+    buttonBox = FxLayout.newIconPane(Orientation.HORIZONTAL, generateButton, removeButton);
 
     this.dropUnmapped = mapping.dropUnmapped();
     this.valueMappings.addAll(mapping.activeValueMappings());
@@ -177,11 +183,11 @@ public class MetadataRegexMappingRow {
 
   /**
    * @return the cells of this row in grid-column order: select icon, source, column, type, regex,
-   * default, generate-query button, remove button.
+   * default, and the grouped generate-query + remove icon buttons.
    */
   public @NotNull Node[] gridCells() {
     return new Node[]{selectIcon, sourceCombo, columnField, typeCombo, regexField, defaultField,
-        generateButton, removeButton};
+        buttonBox};
   }
 
   public void setSelected(final boolean selected) {
