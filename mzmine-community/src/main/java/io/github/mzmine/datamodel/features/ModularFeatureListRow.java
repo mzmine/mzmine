@@ -552,6 +552,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    */
   @Override
   public boolean isIdentified() {
+    // need to override in ModularCompoundRow because getTypes() returns the compound list types there.
     for (DataType dt : getTypes()) {
       if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
           && !(dt instanceof IonIdentityListType)) {
