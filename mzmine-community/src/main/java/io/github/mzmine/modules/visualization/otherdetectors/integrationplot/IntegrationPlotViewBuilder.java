@@ -40,6 +40,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
@@ -96,6 +97,15 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     return luminance > 0.5 ? Color.BLACK : Color.WHITE;
   }
 
+  private void updateTitle(final Label titleLabel) {
+    final boolean show = model.isShowTitle();
+    final String title = model.getTitle();
+    final boolean hasTitle = title != null && !title.isBlank();
+    titleLabel.setText(hasTitle ? title : "");
+    titleLabel.setVisible(show);
+    titleLabel.setManaged(show);
+  }
+
   @Override
   public Region build() {
     BorderPane pane = new BorderPane();
@@ -109,23 +119,14 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
 
     var chromPlot = model.getChromatogramPlot();
 
-    final Label titleLabel = new Label();
+    final Label titleLabel = new Label("-");
     titleLabel.getStyleClass().add("integration-dashboard-plot-title");
     titleLabel.setMaxWidth(Double.MAX_VALUE);
-    titleLabel.setVisible(false);
-    titleLabel.setManaged(false);
+    titleLabel.setVisible(model.isShowTitle());
+    titleLabel.setManaged(model.isShowTitle());
     pane.setTop(titleLabel);
 
-    final Runnable applyTitle = () -> {
-      final boolean show = model.isShowTitle();
-      final String title = model.getTitle();
-      final boolean hasTitle = show && title != null && !title.isBlank();
-      titleLabel.setText(hasTitle ? title : "");
-      titleLabel.setVisible(hasTitle);
-      titleLabel.setManaged(hasTitle);
-    };
-    model.showTitleProperty().subscribe(_ -> applyTitle.run());
-    model.titleProperty().subscribe(_ -> applyTitle.run());
+    PropertyUtils.onChange(() -> this.updateTitle(titleLabel), model.titleProperty(), model.showTitleProperty());
 
     model.currentTimeSeriesProperty().addListener((_, _, series) -> {
       updateChromatogram(titleLabel, plotView, chromPlot, series);
@@ -367,6 +368,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       titleLabel.setStyle(
           "-fx-background-color: " + toStyleColor(sampleColor) + "; -fx-text-fill: " + toStyleColor(
               sampleNameColor) + ";");
+      updateTitle(titleLabel);
 
       var formats = ConfigService.getGuiFormats();
       chromPlot.setDomainAxisLabel(getSeriesDomainLabel(series));
@@ -388,6 +390,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     } else {
       // Clear sample-color background so a stale color from the previous series doesn't persist.
       titleLabel.setStyle(null);
+      updateTitle(titleLabel);
     }
   }
 }

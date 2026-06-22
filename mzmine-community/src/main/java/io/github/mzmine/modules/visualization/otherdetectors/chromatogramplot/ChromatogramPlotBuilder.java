@@ -83,7 +83,7 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
     chart.getXYPlot().setDomainCrosshairStroke(new BasicStroke(0.5f));
     chart.getXYPlot().setRangeCrosshairStroke(new BasicStroke(0.5f));
 
-    chart.setOnMouseMoved(e -> {
+    chart.setOnMouseClicked(e -> {
       final PlotCursorPosition pos = chart.getCursorPosition();
       if (pos != null) {
         model.setCursorPosition(pos);

@@ -80,7 +80,7 @@ public class IntegrationDashboardModel {
   private final BooleanProperty showFileName = new SimpleBooleanProperty(true);
   private final BooleanProperty showControls = new SimpleBooleanProperty(true);
   private final BooleanProperty showAxisTitles = new SimpleBooleanProperty(true);
-  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(false);
+  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(true);
   private final ObjectProperty<@Nullable PlotCursorPosition> cursorPosition = new SimpleObjectProperty<>();
 
   private final IntegerProperty gridNumColumns = new SimpleIntegerProperty(3);

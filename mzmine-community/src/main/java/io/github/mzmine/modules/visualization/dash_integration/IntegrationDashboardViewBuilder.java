@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -74,6 +75,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDashboardModel> {
@@ -323,7 +325,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         }, model.sortedFilesProperty(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
 
-    return FxLayout.newHBox(Pos.CENTER, lblCols, spCols, lblRows, spRows,
+    FlowPane flowPane = FxLayout.newFlowPane(lblCols, spCols, lblRows, spRows,
         new Separator(Orientation.VERTICAL), previousPage, lblEntries, lblPage, nextPage,
         new Separator(Orientation.VERTICAL),
         FxCheckBox.newCheckBox("Show file name", model.showFileNameProperty(),
@@ -334,6 +336,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
             "Show titles for the X and Y axes in each plot."),
         FxCheckBox.newCheckBox("Use sample color", model.useSampleColorProperty(),
             "Use sample-specific colors for the plots. The colors are defined in the sample metadata.\nIf not activated, all plots will use the same default colors."));
+    flowPane.setAlignment(Pos.CENTER);
+    flowPane.setPrefWrapLength(1200);
+    return flowPane;
   }
 
   private Region buildMetadataColSelectionForSorting() {
@@ -350,7 +355,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         FXCollections.observableArrayList(options));
     cmbSort.valueProperty().bindBidirectional(model.sortOptionProperty());
 
-    return FxLayout.newVBox(lblSortBy, cmbSort);
+    return FxLayout.newFlowPane(lblSortBy, cmbSort);
   }
 
   private Region buildIntegrationTransfer() {
