@@ -24,6 +24,7 @@
 
 package io.github.mzmine.modules.visualization.dash_integration;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import javafx.collections.MapChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +74,7 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
 
     // re-sort when feature data entries change (area values may have updated)
     model.featureDataEntriesProperty().addListener(
-        (javafx.collections.MapChangeListener<io.github.mzmine.datamodel.RawDataFile, FeatureIntegrationData>) _ -> {
+        (MapChangeListener<RawDataFile, FeatureIntegrationData>) _ -> {
           if (model.getSortOption().isArea()) {
             updateSortedFiles();
           }

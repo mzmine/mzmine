@@ -70,7 +70,7 @@ public class IntegrationPlotModel {
       Integer.MAX_VALUE);
   private final ListProperty<FeatureIntegratedListener> integrationListeners = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private final StringProperty title = new SimpleStringProperty();
+  private final StringProperty title = new SimpleStringProperty("-");
   private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
   private final BooleanProperty showControls = new SimpleBooleanProperty(true);
   private final BooleanProperty showAxisTitles = new SimpleBooleanProperty(true);
