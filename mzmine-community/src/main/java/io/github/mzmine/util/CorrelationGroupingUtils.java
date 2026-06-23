@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,24 +25,20 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowGroupSimple;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -52,25 +48,17 @@ public class CorrelationGroupingUtils {
   private static final Logger logger = Logger.getLogger(CorrelationGroupingUtils.class.getName());
 
   /**
-   * Set all groups to their rows
+   * Create list of correlated rows (connected components) on demand from the MS1 correlation map of
+   * the feature list. The resulting groups are backed by the correlation map and are not stored on
+   * the feature list - generate them when a task needs the connected components and discard them
+   * afterwards.
    *
-   * @param groups the list of rows
+   * @param flist feature list
+   * @return a list of all groups within the feature list, an empty list if no correlation map
+   * exists, or null on error
    */
-  public static void setGroupsToAllRows(List<RowGroup> groups) {
-    for (RowGroup g : groups) {
-      g.setGroupToAllRows();
-    }
-  }
-
-  /**
-   * Create list of correlated rows
-   *
-   * @param flist             feature list
-   * @param keepExtendedStats keep extended statistics otherwise create simplified object
-   * @return a list of all groups within the feature list
-   */
-  public static List<RowGroup> createCorrGroups(FeatureList flist,
-      final boolean keepExtendedStats) {
+  @Nullable
+  public static List<RowGroup> createCorrGroups(FeatureList flist) {
     logger.log(Level.INFO, "Corr: Creating correlation groups for {0}", flist.getName());
 
     try {
@@ -89,7 +77,6 @@ public class CorrelationGroupingUtils {
       HashMap<Integer, RowGroup> used = new HashMap<>();
 
       int nextGroupID = 1;
-      List<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
       for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();
@@ -110,11 +97,7 @@ public class CorrelationGroupingUtils {
             groups.remove(group2);
           } else if (group == null && group2 == null) {
             // create new group with both rows
-            if (keepExtendedStats) {
-              group = new CorrelationRowGroup(raw, nextGroupID);
-            } else {
-              group = new RowGroupSimple(nextGroupID, corrMap);
-            }
+            group = new RowGroupSimple(nextGroupID, corrMap);
             // increment group - the groups are renumbered later
             nextGroupID++;
             group.addAll(rowA, rowB);
@@ -146,30 +129,5 @@ public class CorrelationGroupingUtils {
       logger.log(Level.SEVERE, "Error while creating groups", e);
       return null;
     }
-  }
-
-
-  /**
-   * Stream all R2RCorrelationData found in PKLRowGroups (is distinct)
-   *
-   * @param FeatureList
-   * @return
-   */
-  public static Stream<R2RCorrelationData> streamFrom(FeatureList FeatureList) {
-    if (FeatureList.getGroups() == null) {
-      return Stream.empty();
-    }
-    return FeatureList.getGroups().stream().filter(g -> g instanceof CorrelationRowGroup)
-        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
-            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
-  }
-
-  public static Stream<R2RCorrelationData> streamFrom(FeatureListRow[] rows) {
-    return Arrays.stream(rows).map(FeatureListRow::getGroup).filter(Objects::nonNull)
-        .filter(g -> g instanceof CorrelationRowGroup).distinct()
-        .map(g -> ((CorrelationRowGroup) g).getCorrelation()).flatMap(Arrays::stream) // R2GCorr
-        .flatMap(r2g -> r2g.getCorrelation() == null ? null : r2g.getCorrelation().stream() //
-            .filter(r2r -> r2r.getRowA().equals(r2g.getRow()))); // a is always the lower id
   }
 }
