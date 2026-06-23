@@ -220,7 +220,8 @@ public class MetadataRegexMappingRow {
     content.putString(text);
     // also offer an HTML flavor: rich-text editors (e.g. ChatGPT web) prefer it and, unlike with
     // plain text, keep the blank lines between sections as paragraph breaks
-    content.putHtml(toHtmlParagraphs(text));
+    // HTML also has its issues and seems to not paste nicely into claude desktop so stick to plain text
+//    content.putHtml(toHtmlParagraphs(text));
     Clipboard.getSystemClipboard().setContent(content);
     DialogLoggerUtil.showDialogForTime("Copied to clipboard",
         "LLM prompt to generate a regex was copied to the clipboard.", AlertType.INFORMATION);
