@@ -35,15 +35,12 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
-import javafx.util.StringConverter;
-import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.Nullable;
 
 public class MetadataGroupingComponent extends FlowPane implements
@@ -52,7 +49,7 @@ public class MetadataGroupingComponent extends FlowPane implements
   private final List<AvailableTypes> availableTypes;
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
-  private final TextField text;
+  private final ComboBox<String> combo;
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -67,7 +64,9 @@ public class MetadataGroupingComponent extends FlowPane implements
     setHgap(FxLayout.DEFAULT_SPACE);
     setPadding(Insets.EMPTY);
 
-    text = new TextField();
+    combo = new ComboBox<>();
+    combo.setEditable(true);
+    combo.setPromptText("Select metadata column");
 
     var icon = FxIconUtil.newIconButton(FxIcons.METADATA_TABLE,
         "Open project metadata. (Import data files and metadata to then modify project metadata)",
@@ -75,26 +74,18 @@ public class MetadataGroupingComponent extends FlowPane implements
           MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
         });
 
-    getChildren().addAll(text, icon);
+    getChildren().addAll(combo, icon);
 
     this.availableTypes = types;
-    final String[] columns = ProjectService.getMetadata().getColumns().stream()
+    final List<String> columns = ProjectService.getMetadata().getColumns().stream()
         .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
-        .toArray(String[]::new);
-    TextFields.bindAutoCompletion(text, columns);
+        .toList();
+    combo.getItems().addAll(columns);
 
-    Bindings.bindBidirectional(text.textProperty(), valueProperty(),
-        new StringConverter<MetadataColumn<?>>() {
-          @Override
-          public String toString(MetadataColumn<?> object) {
-            return object != null ? object.getTitle() : "";
-          }
-
-          @Override
-          public MetadataColumn<?> fromString(String string) {
-            return ProjectService.getMetadata().getColumnByName(string);
-          }
-        });
+    // One-way listener: editor text → columnProperty. Never feed back the other way so that
+    // a null lookup result (column not yet loaded) cannot wipe out the typed text.
+    combo.getEditor().textProperty().addListener((obs, oldText, newText) ->
+        columnProperty.set(ProjectService.getMetadata().getColumnByName(newText)));
   }
 
   @Override
@@ -103,10 +94,10 @@ public class MetadataGroupingComponent extends FlowPane implements
   }
 
   public void setValue(String value) {
-    text.setText(value);
+    combo.getEditor().setText(value);
   }
 
   public String getValue() {
-    return text.getText();
+    return combo.getEditor().getText();
   }
 }
