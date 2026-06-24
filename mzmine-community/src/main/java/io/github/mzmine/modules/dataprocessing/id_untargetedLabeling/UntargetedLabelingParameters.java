@@ -204,16 +204,6 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   public static final IsotopologueAnnotationType isotopologueAnnotationType = new IsotopologueAnnotationType();
 
   /**
-   * Wasserstein-1 distance between labeled and unlabeled isotopologue distributions (stored on M+0)
-   */
-  public static final IsotopeDistributionDistanceType isotopeDistributionDistanceType = new IsotopeDistributionDistanceType();
-
-  /**
-   * Chi-squared distribution comparison p-value (stored on M+0)
-   */
-  public static final IsotopeDistributionPValueType isotopeDistributionPValueType = new IsotopeDistributionPValueType();
-
-  /**
    * Constructor for UntargetedLabelingParameters
    */
   public UntargetedLabelingParameters() {
