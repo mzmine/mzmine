@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -144,8 +144,9 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // create copy or work on same list
     ModularFeatureList deisotopedFeatureList = switch (handleOriginal) {
-      case KEEP, REMOVE -> featureList.createCopy(featureList.getName() + " " + suffix,
-          getMemoryMapStorage(), false);
+      case KEEP, REMOVE ->
+          featureList.createCopy(featureList.getName() + " " + suffix, getMemoryMapStorage(),
+              false);
       case PROCESS_IN_PLACE -> featureList;
     };
     //    DataTypeUtils.copyTypes(featureList, deisotopedFeatureList, true, true);
@@ -162,11 +163,11 @@ class IsotopeGrouperTask extends AbstractTask {
         SortingDirection.Ascending);
 
     // Sort peaks by descending height
-    List<FeatureListRow> rowsSortedByHeight = new ArrayList<>(deisotopedFeatureList.getRows());
+    List<FeatureListRow> rowsSortedByHeight = deisotopedFeatureList.getRowsCopy();
     rowsSortedByHeight.sort(rowsHeightSorter);
 
     // use a second sorted list to limit the number of comparisons
-    List<FeatureListRow> rowsSortedByMz = new ArrayList<>(deisotopedFeatureList.getRows());
+    List<FeatureListRow> rowsSortedByMz = deisotopedFeatureList.getRowsCopy();
     rowsSortedByMz.sort(rowsMzSorter);
 
     // Loop through all peaks
@@ -278,11 +279,8 @@ class IsotopeGrouperTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(IsotopeGrouperModule.MODULE_NAME,
             IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
-    // sort by RT
-    finalRows.sort(FeatureListRowSorter.DEFAULT_RT);
-
     // replace rows in list
-    deisotopedFeatureList.setRows(finalRows);
+    deisotopedFeatureList.setRowsApplySort(finalRows);
 
     // Remove the original peakList if requested, or add, or work in place
     handleOriginal.reflectNewFeatureListToProject(suffix, project, deisotopedFeatureList,

@@ -90,10 +90,21 @@ public class WeakAdapter {
     listenerParentMap.entrySet().removeIf(e -> Objects.equals(e.getValue(), parent));
   }
 
-  public final <T> void addChangeListener(@Nullable Object parent,
+  /**
+   * Adds change listener and applies changes
+   */
+  public final <T> void addApplyChangeListener(@Nullable Object parent,
+      final ObservableValue<T> observable, ChangeListener<T> listener) {
+    final WeakChangeListener<T> weak = addChangeListener(parent, observable, listener);
+    weak.changed(observable, null, observable.getValue());
+  }
+
+  public final <T> WeakChangeListener<T> addChangeListener(@Nullable Object parent,
       final ObservableValue<T> observable, ChangeListener<T> listener) {
     listenerParentMap.put(listener, parent);
-    observable.addListener(new WeakChangeListener<>(listener));
+    final WeakChangeListener<T> weakListener = new WeakChangeListener<>(listener);
+    observable.addListener(weakListener);
+    return weakListener;
   }
 
   public final <T> void addListChangeListener(@Nullable Object parent, ObservableList<T> list,

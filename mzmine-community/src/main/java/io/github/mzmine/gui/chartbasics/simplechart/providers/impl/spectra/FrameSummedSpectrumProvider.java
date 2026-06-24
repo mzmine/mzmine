@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,5 +108,12 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 1;
+  }
+
+  /**
+   * @return true if computed. Providers that are precomputed may use true always
+   */
+  public boolean isComputed() {
+    return true;
   }
 }

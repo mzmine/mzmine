@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -53,11 +53,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * @param typeToCalculate The type to calculate the value for.
- * @param calc            A function to calculate the desired value of the type. May trhow an
+ * @param calc            A function to calculate the desired value of the type. May throw an
  *                        {@link NullPointerException} (caught) but no other exception.
  * @param <T>
  */
@@ -68,8 +67,8 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
 
       new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
         final MolecularStructure structure = db.getStructure();
-        if(structure != null) {
-          return MolecularFormulaManipulator.getString(structure.formula());
+        if (structure != null) {
+          return FormulaUtils.getFormulaString(structure.formula());
         }
         return null;
       }),
@@ -77,33 +76,45 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
       new ConnectedTypeCalculation<>(DataTypes.get(PrecursorMZType.class), (row, db) -> {
         final IonType adduct = db.getAdductType(); // adduct defined
         final String formula = db.getFormula(); // formula calculated above
-        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
-        try {
-          final IMolecularFormula ionized = adduct.addToFormula(molFormula);
-          return FormulaUtils.calculateMzRatio(ionized);
-        } catch (CloneNotSupportedException e) {
+        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+            formula);
+        if (molFormula == null || adduct == null) {
           return null;
         }
+        final IMolecularFormula ionized = adduct.addToFormula(molFormula, true);
+        return FormulaUtils.calculateMzRatio(ionized);
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzPpmDifferenceType.class), (row, db) -> {
         final Double exactMass = db.get(PrecursorMZType.class);
-        return (float) MathUtils.getPpmDiff(exactMass, row.getAverageMZ());
+        if (exactMass != null) {
+          return (float) MathUtils.getPpmDiff(exactMass, row.getAverageMZ());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzAbsoluteDifferenceType.class), (row, db) -> {
         final Double exactMass = db.get(PrecursorMZType.class);
-        return MzAbsoluteDifferenceType.calculate(exactMass, row.getAverageMZ());
+        if (exactMass != null) {
+          return MzAbsoluteDifferenceType.calculate(exactMass, row.getAverageMZ());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(CCSRelativeErrorType.class), (row, db) -> {
         final Float ccs = db.get(CCSType.class);
-        return PercentTolerance.getPercentError(ccs, row.getAverageCCS());
+        if (ccs != null) {
+          return PercentTolerance.getPercentError(ccs, row.getAverageCCS());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(RtAbsoluteDifferenceType.class), (row, db) -> {
         final Float rt = db.get(RTType.class);
-        return rt - row.getAverageRT();
+        if (rt != null) {
+          return rt - row.getAverageRT();
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(NeutralMassType.class),
@@ -111,10 +122,12 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
 
       new ConnectedTypeCalculation<>(DataTypes.get(IonTypeType.class), (row, db) -> {
         final Double neutralMass = db.get(NeutralMassType.class);
-        var mod = IonModification.getBestIonModification(neutralMass, row.getAverageMZ(),
-            SpectraMerging.defaultMs1MergeTol,
-            row.getBestFeature().getRepresentativeScan().getPolarity());
-        return new IonType(mod);
+        if (neutralMass == null) {
+          return null;
+        }
+        final List<IonType> matchingIons = IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN_SEARCHABLE.searchRows(
+            row, neutralMass, SpectraMerging.defaultMs1MergeTol);
+        return matchingIons.isEmpty() ? null : matchingIons.getFirst();
       }));
 
   public static final Map<DataType<?>, ConnectedTypeCalculation<?>> MAP = LIST.stream()
@@ -132,7 +145,7 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
         annotation.putIfNotNull(typeToCalculate, result);
       }
     } catch (NullPointerException e) {
-      logger.info("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
+      logger.fine("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
     }
   }
 }

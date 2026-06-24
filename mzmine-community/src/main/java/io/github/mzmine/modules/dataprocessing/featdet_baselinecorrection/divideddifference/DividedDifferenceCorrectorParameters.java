@@ -30,6 +30,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.Abstra
 public class DividedDifferenceCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
   public DividedDifferenceCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter());
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter());
   }
 }

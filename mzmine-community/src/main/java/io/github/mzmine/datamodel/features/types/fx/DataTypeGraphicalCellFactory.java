@@ -47,7 +47,8 @@ import org.jetbrains.annotations.Nullable;
 public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalColumType<S>> implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  private static final Logger logger = Logger.getLogger(DataTypeGraphicalCellFactory.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      DataTypeGraphicalCellFactory.class.getName());
   @NotNull
   private final DataType type;
   @Nullable
@@ -89,9 +90,9 @@ public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalCo
             return;
           }
 
+          getTableColumn().setPrefWidth(type.getPrefColumnWidth());
           if (type instanceof GraphicalColumType graphicalColumType) {
             Node node = graphicalColumType.getCellNode(this, param, type, item, raw);
-            getTableColumn().setPrefWidth(graphicalColumType.getColumnWidth());
             setGraphic(node);
           }
 

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,17 +24,28 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Objects;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record OptionalValue<T>(boolean active, T value) {
 
-  public T orElse(T defaultValue) {
-    return Objects.requireNonNullElse(value, defaultValue);
+  /**
+   * @param defaultValue the default value. may be null.
+   * @return the value if not null or the default value. The default value may be null.
+   */
+  @Nullable
+  public T orElse(@Nullable T defaultValue) {
+    return active && value != null ? value : defaultValue;
   }
 
-  public T orElseGet(Supplier<? extends T> defaultValue) {
-    return Objects.requireNonNullElseGet(value, defaultValue);
+  /**
+   * @param defaultValue the default value supplier. may return null.
+   * @return the value if not null or the default value. The default value may be null.
+   */
+  @Nullable
+  public T orElseGet(@NotNull Supplier<? extends @Nullable T> defaultValue) {
+    return active && value != null ? value : defaultValue.get();
   }
 
 }

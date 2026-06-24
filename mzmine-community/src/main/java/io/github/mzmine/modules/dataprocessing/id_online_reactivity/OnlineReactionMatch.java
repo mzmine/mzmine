@@ -117,14 +117,14 @@ public class OnlineReactionMatch extends InternalTypedRowsRelationship {
   @Override
   public String toString() {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getGuiFormats().mzFormat();
-    return STR."\{reaction.reactionName()} Δm/z: \{mzFormat.format(reaction.deltaMz())}";
+    return "%s Δm/z: %s".formatted(reaction.reactionName(), mzFormat.format(reaction.deltaMz()));
   }
 
 
   public String toFullString() {
     NumberFormat mzFormat = MZmineCore.getConfiguration().getGuiFormats().mzFormat();
-    return STR."\{reaction.reactionName()} Educt: \{reaction.eductSmarts()} Reaction: \{reaction.reactionSmarts()} Δm/z: \{mzFormat.format(
-        reaction.deltaMz())}";
+    return "%s Educt: %s Reaction: %s Δm/z: %s".formatted(reaction.reactionName(),
+        reaction.eductSmarts(), reaction.reactionSmarts(), mzFormat.format(reaction.deltaMz()));
   }
 
   public int getPartnerRowId() {

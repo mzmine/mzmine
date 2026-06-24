@@ -52,4 +52,24 @@ public class SemverVersionReader {
       return new Semver("4-SNAPSHOT", SemverType.LOOSE);
     }
   }
+
+  @NotNull
+  public static Semver getMZmineProVersion() {
+    try {
+      ClassLoader classLoader = SemverVersionReader.class.getClassLoader();
+      InputStream inStream = classLoader.getResourceAsStream("mzmineproversion.properties");
+      if (inStream == null) {
+        return new Semver("4-NONE", SemverType.LOOSE);
+      }
+      Properties properties = new Properties();
+      properties.load(inStream);
+      String versionString = properties.getProperty("version.semver");
+      if ((versionString == null) || (versionString.startsWith("$"))) {
+        return new Semver("4-SNAPSHOT", SemverType.LOOSE);
+      }
+      return new Semver(versionString, SemverType.LOOSE);
+    } catch (Exception e) {
+      return new Semver("4-SNAPSHOT", SemverType.LOOSE);
+    }
+  }
 }

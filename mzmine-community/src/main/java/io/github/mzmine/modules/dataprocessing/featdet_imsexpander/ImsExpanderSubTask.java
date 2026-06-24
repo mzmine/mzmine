@@ -40,10 +40,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -85,8 +87,8 @@ public class ImsExpanderSubTask extends AbstractTask {
     this.customNoiseLevel = parameters.getParameter(ImsExpanderParameters.useRawData)
         .getEmbeddedParameter().getValue();
     traceMzRange = expandingTraces.size() > 0 ? Range.closed(
-        expandingTraces.get(0).getMzRange().lowerEndpoint(),
-        expandingTraces.get(expandingTraces.size() - 1).getMzRange().upperEndpoint())
+        expandingTraces.getFirst().getMzRange().lowerEndpoint(),
+        expandingTraces.getLast().getMzRange().upperEndpoint())
         : Range.singleton(0d);
 
     totalFrames = frames.size();
@@ -135,10 +137,15 @@ public class ImsExpanderSubTask extends AbstractTask {
 
         while (access.hasNextMobilityScan()) {
           final MobilityScan mobilityScan = access.nextMobilityScan();
+          if (access.getNumberOfDataPoints() == 0) {
+            continue;
+          }
 
-          int traceIndex = 0;
-          for (int dpIndex = 0; dpIndex < access.getNumberOfDataPoints() && traceIndex < numTraces;
-              dpIndex++) {
+          // memorise the first trace that had an mz range that fit the last mz
+          int firstTraceIndex = 0;
+          for (int dpIndex = 0;
+              dpIndex < access.getNumberOfDataPoints() && firstTraceIndex < numTraces; dpIndex++) {
+
             final double mz = access.getMzValue(dpIndex);
             final double intensity = access.getIntensityValue(dpIndex);
 
@@ -146,21 +153,26 @@ public class ImsExpanderSubTask extends AbstractTask {
               continue;
             }
 
-            // while the trace upper mz smaller than the current mz, we increment the trace index
-            while (expandingTraces.get(traceIndex).getMzRange().upperEndpoint() < mz
-                && traceIndex < numTraces - 1) {
-              traceIndex++;
-            }
-            // if the current lower mz passed the current data point, we go to the next data point
-            if (expandingTraces.get(traceIndex).getMzRange().lowerEndpoint() > mz) {
-              continue;
-            }
+            // offer the data point to all traces, but only those that have the fitting mz ranges
+            for (int traceIndex = firstTraceIndex; traceIndex < expandingTraces.size();
+                traceIndex++) {
+              final ExpandingTrace trace = expandingTraces.get(traceIndex);
+              final Range<Double> traceMzRange = trace.getMzRange();
 
-            // try to offer the current data point to the trace
-            while (expandingTraces.get(traceIndex).getMzRange().contains(mz)
-                && !expandingTraces.get(traceIndex).offerDataPoint(access, dpIndex)
-                && traceIndex < numTraces - 1) {
-              traceIndex++;
+              if (traceMzRange.lowerEndpoint() > mz) {
+                // all further traces have an even higher start-mz
+                break;
+              }
+
+              // increment the counter if the current mz is past the width of the first trace,
+              // then we do not need to consider it for the next traces
+              if (traceMzRange.upperEndpoint() < mz && traceIndex == firstTraceIndex) {
+                firstTraceIndex++;
+                continue;
+              }
+
+              // offer the data point to all traces
+              trace.offerDataPoint(access, dpIndex);
             }
           }
         }
@@ -172,10 +184,8 @@ public class ImsExpanderSubTask extends AbstractTask {
     } catch (MissingMassListException e) {
       // allow traces to be released
       expandingTraces = null;
-      e.printStackTrace();
-      logger.log(Level.WARNING, e.getMessage(), e);
-      setErrorMessage(e.getMessage());
-      setStatus(TaskStatus.ERROR);
+      error("Error in IMS expander", e);
+      return;
     }
 
     for (var expandingTrace : expandingTraces) {
@@ -199,10 +209,6 @@ public class ImsExpanderSubTask extends AbstractTask {
 
     // allow traces to be released
     expandingTraces = null;
-
-//    synchronized (newFlist) {
-//      newRows.forEach(newFlist::addRow);
-//    }
 
     setStatus(TaskStatus.FINISHED);
   }

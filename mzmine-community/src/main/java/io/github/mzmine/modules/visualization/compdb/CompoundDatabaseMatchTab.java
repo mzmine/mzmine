@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.compdb;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -35,7 +36,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -65,6 +68,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
       weak.addListChangeListener(table, table.getSelectionModel().getSelectedItems(),
           c -> selectionChanged());
     }
+    selectionChanged();
   }
 
   public static void addNewTab(@Nullable final FeatureTableFX table) {
@@ -76,7 +80,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
   }
 
   private void selectionChanged() {
-    if (weak.isDisposed() || table==null) {
+    if (weak.isDisposed() || table == null || !isUpdateOnSelection()) {
       return;
     }
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
@@ -107,6 +111,8 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
       }
     }
     scrollPane.setContent(pane);
+    setSubTitle(selectedRows.stream()
+        .map(FeatureUtils::rowToString).collect(Collectors.joining(", ")));
   }
 
   public void setFeatureRow(final ModularFeatureListRow selectedRow) {
@@ -122,10 +128,17 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
       pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
     }
     scrollPane.setContent(pane);
+    setSubTitle(
+        selectedRow.getFeatureList().getName() + " " + FeatureUtils.rowToString(selectedRow));
   }
 
   @Override
   public boolean hasContent() {
     return matches > 0;
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
+    // nothing, title updated by selected row
   }
 }

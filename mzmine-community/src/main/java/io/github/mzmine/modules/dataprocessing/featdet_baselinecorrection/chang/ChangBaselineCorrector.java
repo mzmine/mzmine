@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.IndexRange;
-import io.github.mzmine.util.collections.SimpleIndexRange;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -114,7 +113,7 @@ public class ChangBaselineCorrector extends AbstractBaselineCorrector {
 
     final List<IndexRange> indices = new ArrayList<>();
     for (int i = 0; i < numSegments; i++) {
-      IndexRange indexRange = new SimpleIndexRange(i * numPerSegment,
+      IndexRange indexRange = IndexRange.ofInclusive(i * numPerSegment,
           Math.min((i + 1) * numPerSegment - 1, numValues - 1));
       indices.add(indexRange);
       if (indexRange.maxExclusive() >= numValues) {

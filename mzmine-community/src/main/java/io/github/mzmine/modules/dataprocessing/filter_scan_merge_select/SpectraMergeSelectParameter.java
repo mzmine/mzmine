@@ -92,17 +92,7 @@ public class SpectraMergeSelectParameter extends
   private SpectraMergeSelectParameter(final String name, final String description,
       final SpectraMergeSelectModuleOptions selectedValue,
       final EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> parameters) {
-    super(name, description, selectedValue, parameters);
-  }
-
-  @Override
-  public SpectraMergeSelectParameter cloneParameter() {
-    EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> copy = new EnumMap<>(parametersMap);
-    for (final SpectraMergeSelectModuleOptions key : copy.keySet()) {
-      var cloneParam = copy.get(key).cloneParameterSet();
-      copy.put(key, cloneParam);
-    }
-    return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
+    super(name, description, selectedValue, parameters, true);
   }
 
   /**
@@ -168,6 +158,21 @@ public class SpectraMergeSelectParameter extends
 
   public static SpectraMergeSelectParameter createLipidSearchAllSpectraDefault() {
     return new Builder().useExportAllInputScans().createParameters();
+  }
+
+  @NotNull
+  public static SpectraMergeSelectParameter createLimitedToFewScans() {
+    return new Builder().includeAdvanced(false).limitToFewScans().createParameters();
+  }
+
+  @Override
+  public SpectraMergeSelectParameter cloneParameter() {
+    EnumMap<SpectraMergeSelectModuleOptions, ParameterSet> copy = new EnumMap<>(parametersMap);
+    for (final SpectraMergeSelectModuleOptions key : copy.keySet()) {
+      var cloneParam = copy.get(key).cloneParameterSet();
+      copy.put(key, cloneParam);
+    }
+    return new SpectraMergeSelectParameter(getName(), getDescription(), getValue(), copy);
   }
 
   /**
@@ -380,6 +385,19 @@ public class SpectraMergeSelectParameter extends
       inputSelection = SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES;
 
       presetOptions(new SpectraMergeSelectPresets[]{SpectraMergeSelectPresets.SINGLE_MERGED_SCAN});
+      preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN);
+      includeAdvanced(false);
+      return this;
+    }
+
+    public Builder limitToFewScans() {
+      inputScansOptions = new SelectInputScans[]{SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES,
+          SelectInputScans.MOST_INTENSE_PER_SAMPLE};
+      inputSelection = SelectInputScans.MOST_INTENSE_ACROSS_SAMPLES;
+
+      presetOptions(new SpectraMergeSelectPresets[]{SpectraMergeSelectPresets.SINGLE_MERGED_SCAN,
+          SpectraMergeSelectPresets.REPRESENTATIVE_SCANS,
+          SpectraMergeSelectPresets.REPRESENTATIVE_MSn_TREE});
       preset(SpectraMergeSelectPresets.SINGLE_MERGED_SCAN);
       includeAdvanced(false);
       return this;

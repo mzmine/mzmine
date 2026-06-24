@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,12 +41,12 @@ import java.util.logging.Logger;
  */
 public class StandardsListCsvExtractor implements StandardsListExtractor {
 
+  private static final Logger logger = Logger.getLogger(StandardsListCsvExtractor.class.getName());
+
   protected static final int retentionTimeColumn = 0;
   protected static final int ionFormulaColumn = 1;
   protected static final int nameColumn = 2;
   protected static final int mzColumn = 3;
-
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected String filename;
 
@@ -92,16 +92,17 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
         }
         extractedData.add(calibrant);
       } catch (Exception e) {
-        logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
+        logger.fine(
+            "Exception occurred when reading row index %d".formatted(lines.indexOf(lineValues)));
         logger.fine(e.toString());
       }
     }
 
-    logger.info(
-        STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+    logger.info("Extracted %d standard molecules from %d rows".formatted(extractedData.size(),
+        lines.size()));
     if (extractedData.size() < lines.size()) {
-      logger.warning(STR."Skipped \{lines.size()
-          - extractedData.size()} rows when reading standards list in csv file \{filename}");
+      logger.warning("Skipped %d rows when reading standards list in csv file %s".formatted(
+          lines.size() - extractedData.size(), filename));
     }
 
     return new StandardsList(extractedData);

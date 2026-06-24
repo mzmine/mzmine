@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -213,8 +212,22 @@ public class MzMLCV {
   public static final String cvActivationCID = "MS:1000133";
   /// activation energies
   public static final String cvElectronCaptureDissociation = "MS:1000250";
-  public static final String cvHighEnergyCID = "MS:1000422";
+  public static final String cvHighEnergyCID = "MS:1000422"; // HCD
   public static final String cvLowEnergyCID = "MS:1000433";
+
+  /**
+   * EAD electron activated dissociation
+   * <pre>
+   *               <activation>
+   *                 <cvParam cvRef="MS" accession="MS:1003294" name="electron activated dissociation" value=""/>
+   *                 <cvParam cvRef="MS" accession="MS:1003410" name="electron beam energy" value="10.0" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+   *                 <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="12.0" unitCvRef="UO" unitAccession="UO:0000266" unitName="electronvolt"/>
+   *               </activation>
+   * </pre>
+   */
+  public static final String cvActivationModeEAD = "MS:1003294"; // the method
+  public static final String cvElectronBeamEnergyEAD = "MS:1003410"; // the energy
+
   /**
    * Constant <code>cvIsolationWindowTarget="MS:1000827"</code>
    */
@@ -286,6 +299,11 @@ public class MzMLCV {
   public static final String cvUnitsSquareAngstrom = "UO:0000324";
   public static final String cvUnitsAreaUnit = "UO:0000047";
   public static final String cvUnitsDimensionlessUnit = "UO:0000186";
+  public static final String cvAmpere = "UO:0000011";
+  public static final String cvMilliAmpere = "UO:0000037";
+  public static final String cvMicroAmpere = "UO:0000038";
+  public static final String cvPicoAmpere = "UO:0010054";
+
 
 
   // Intensity array unit
@@ -299,6 +317,7 @@ public class MzMLCV {
   // square centimeter"/>
   public static final String cvMobilityInverseReduced = "MS:1002815";
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
+  public static final String cvIonMobilityArray = "MS:1003007";
 
 
   /**

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -27,7 +27,8 @@
 
 <!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
 
-<?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
+<?import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView?>
+<?import impl.org.controlsfx.skin.DecorationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -52,12 +53,10 @@
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
   fx:id="mainScene">
-  <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400"
-    minWidth="600"
-    prefHeight="${screen.visualBounds.height*0.9}"
-    prefWidth="${screen.visualBounds.width*0.9}"
-    xmlns="http://javafx.com/javafx/14.0.1"
-    fx:id="mainPane">
+
+<!--  For controlsfx ValidatorSupport -->
+  <DecorationPane>
+  <BorderPane fx:id="mainPane">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
@@ -79,18 +78,16 @@
       </VBox>
     </bottom>
     <center>
-      <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
+      <SplitPane fx:id="splitPane" BorderPane.alignment="CENTER" dividerPositions="0.30" >
         <items>
           <!--              Left side-->
-          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE">
+          <TabPane fx:id="projectTabPane" tabClosingPolicy="UNAVAILABLE" SplitPane.resizableWithParent="false">
             <tabs>
               <Tab fx:id="tabMsData" closable="false" text="MS data files">
                 <content>
-                  <AnchorPane minHeight="0.0" minWidth="0.0">
-                    <children>
-                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
-                        editable="true" fx:id="rawDataList">
+                  <BorderPane minHeight="0.0" minWidth="0.0">
+                    <center>
+                      <GroupableTreeView fx:id="rawDataList">
                         <contextMenu>
                           <ContextMenu fx:id="rawDataContextMenu">
                             <items>
@@ -131,7 +128,12 @@
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
-                                text="Group/Ungroup files" fx:id="rawDataGroupMenuItem"/>
+                                text="Group files" fx:id="rawDataGroupMenuItem"/>
+                              <MenuItem onAction="#handleUngroupRawDataFiles"
+                                text="Ungroup files" fx:id="rawDataUngroupMenuItem"/>
+                              <MenuItem onAction="#handleRenameRawDataGroup"
+                                text="Rename group" fx:id="rawDataRenameGroupMenuItem"
+                                disable="true"/>
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
@@ -139,29 +141,28 @@
                             </items>
                           </ContextMenu>
                         </contextMenu>
-                      </GroupableListView>
-                    </children>
-                  </AnchorPane>
+                      </GroupableTreeView>
+                    </center>
+                  </BorderPane>
                 </content>
               </Tab>
               <Tab fx:id="tabFeatureLists" closable="false" text="Feature lists">
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
-                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      <GroupableTreeView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
-                        editable="true" fx:id="featureListsList">
+                        fx:id="featureListsList">
                         <contextMenu>
                           <ContextMenu fx:id="featureListContextMenu">
                             <items>
-                              <MenuItem onAction="#handleOpenFeatureList"
-                                text="Open feature list" fx:id="openFeatureListMenuItem"/>
-                              <MenuItem onAction="#handleShowFeatureListSummary"
-                                text="Show feature list summary"
-                                fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleOpenFeatureList" text="Open feature list" fx:id="openFeatureListMenuItem"/>
+                              <MenuItem onAction="#handleShowFeatureListSummary" text="Show feature list summary" fx:id="showFeatureListSummaryMenuItem"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleShowCompoundDashboard" fx:id="showCompoundDashboardItem" text="Show compound dashboard"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowScatterPlot"
-                                text="Show scatter plot"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard" text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowLipidDashboard" text="Show lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
@@ -172,7 +173,7 @@
                             </items>
                           </ContextMenu>
                         </contextMenu>
-                      </GroupableListView>
+                      </GroupableTreeView>
                     </children>
                   </AnchorPane>
                 </content>
@@ -193,6 +194,8 @@
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleSpectralLibraryRemove"
                                 text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                              <MenuItem onAction="#handleMergeLibraries"
+                                text="Merge and export libraries" fx:id="mergeLibrariesMenuItem"/>
                             </items>
                           </ContextMenu>
                         </contextMenu>
@@ -220,6 +223,7 @@
       <fx:include source="MainMenu.fxml"/>
     </top>
   </BorderPane>
+</DecorationPane>
   <stylesheets>
     <URL value="@/themes/MZmine_default.css"/>
   </stylesheets>

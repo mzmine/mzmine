@@ -45,9 +45,9 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
     super();
   }
 
-  public NevilleBaselineCorrector(MemoryMapStorage storage, int numSamples, @NotNull String suffix,
-      MinimumSearchFeatureResolver resolver) {
-    super(storage, numSamples, suffix, resolver);
+  public NevilleBaselineCorrector(MemoryMapStorage storage, double samplePercentage,
+      @NotNull String suffix, MinimumSearchFeatureResolver resolver) {
+    super(storage, samplePercentage, suffix, resolver);
   }
 
   @Override
@@ -61,12 +61,13 @@ public class NevilleBaselineCorrector extends UnivariateBaselineCorrector {
     final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    final Integer numSamples = embedded.getValue(AbstractBaselineCorrectorParameters.numSamples);
+    final Double samplePercentage = embedded.getValue(
+        AbstractBaselineCorrectorParameters.samplePercentage);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
             ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
-    return new NevilleBaselineCorrector(storage, numSamples, suffix, resolver);
+    return new NevilleBaselineCorrector(storage, samplePercentage, suffix, resolver);
   }
 
   @Override

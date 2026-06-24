@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,9 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
@@ -56,8 +58,8 @@ public class SpectralLibrarySelection {
     this(SpectralLibrarySelectionType.ALL_IMPORTED, List.of());
   }
 
-  public SpectralLibrarySelection(SpectralLibrarySelectionType selectionType,
-      List<File> specificLibraryNames) {
+  public SpectralLibrarySelection(@NotNull SpectralLibrarySelectionType selectionType,
+      @NotNull List<File> specificLibraryNames) {
     this.selectionType = selectionType;
     this.specificLibraryNames = specificLibraryNames;
   }
@@ -73,6 +75,13 @@ public class SpectralLibrarySelection {
           ProjectService.getProjectManager().getCurrentProject().getCurrentSpectralLibraries()
               .stream().toList();
       case SPECIFIC -> getMatchingSpecificFiles();
+      case AS_SELECTED_IN_MAIN_WINDOW -> {
+        final Desktop desktop = DesktopService.getDesktop();
+        if (desktop instanceof MZmineDesktop desk) {
+          yield List.of(desk.getSelectedSpectralLibraries());
+        }
+        yield List.of();
+      }
     };
   }
 
@@ -135,8 +144,8 @@ public class SpectralLibrarySelection {
           // user wants libraries to be imported
           Instant now = Instant.now();
           List<Task> tasks = missing.stream().map(
-                  file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now))
-              .toList();
+              file -> (Task) new SpectralLibraryImportTask(ProjectService.getProject(), file, now,
+                  true)).toList();
           FixedThreadPoolTask masterImportTask = new FixedThreadPoolTask(
               "Import missing spectral libraries", tasks.size(), tasks);
           // block until finished import
@@ -181,5 +190,10 @@ public class SpectralLibrarySelection {
 
   public List<File> getSpecificLibraryNames() {
     return specificLibraryNames;
+  }
+
+  @Override
+  public String toString() {
+    return getSelectionType().toString();
   }
 }

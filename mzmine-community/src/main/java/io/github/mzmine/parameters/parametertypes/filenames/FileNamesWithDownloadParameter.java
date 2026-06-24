@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,10 @@ import io.github.mzmine.modules.io.download.DownloadAsset;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Function;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FileNamesWithDownloadParameter extends FileNamesParameter {
 
@@ -37,26 +40,29 @@ public class FileNamesWithDownloadParameter extends FileNamesParameter {
   private final List<DownloadAsset> downloadLinks;
 
   public FileNamesWithDownloadParameter(final String name, final String description,
-      final List<ExtensionFilter> filters, List<DownloadAsset> assets) {
-    super(name, description, filters);
+      final List<ExtensionFilter> filters, List<DownloadAsset> assets,
+      @Nullable String dragPrompt) {
+    super(name, description, filters, dragPrompt);
     downloadLinks = assets;
   }
 
   public FileNamesWithDownloadParameter(final String name, final String description,
       final List<ExtensionFilter> filters, final Path defaultDir, final File[] defaultFiles,
-      final List<DownloadAsset> downloadLinks) {
-    super(name, description, filters, defaultDir, defaultFiles);
+      final List<DownloadAsset> downloadLinks, @Nullable String dragPrompt,
+      @NotNull Function<File[], File[]> allFilesMapper) {
+    super(name, description, filters, defaultDir, defaultFiles, dragPrompt, allFilesMapper);
     this.downloadLinks = downloadLinks;
   }
 
   @Override
   public FileNamesComponent createEditingComponent() {
-    return new FileNamesComponent(getFilters(), getDefaultDir(), downloadLinks);
+    return new FileNamesComponent(getFilters(), getDefaultDir(), downloadLinks, dragPrompt,
+        allFilesMapper);
   }
 
   @Override
   public FileNamesWithDownloadParameter cloneParameter() {
     return new FileNamesWithDownloadParameter(getName(), getDescription(), getFilters(),
-        getDefaultDir(), getValue(), this.downloadLinks);
+        getDefaultDir(), getValue(), this.downloadLinks, dragPrompt, allFilesMapper);
   }
 }

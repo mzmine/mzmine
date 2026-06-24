@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractBaselineCorrector implements BaselineCorrector {
 
-  protected final int numSamples;
+  protected final double samplePercentage;
   protected final MemoryMapStorage storage;
   protected final String suffix;
   protected final List<PlotXYDataProvider> additionalData = new ArrayList<>();
@@ -48,11 +48,11 @@ public abstract class AbstractBaselineCorrector implements BaselineCorrector {
   boolean preview = false;
 
 
-  public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, int numSamples,
+  public AbstractBaselineCorrector(@Nullable MemoryMapStorage storage, double samplePercentage,
       @NotNull String suffix) {
 
     this.storage = storage;
-    this.numSamples = numSamples;
+    this.samplePercentage = samplePercentage;
     this.suffix = suffix;
   }
 

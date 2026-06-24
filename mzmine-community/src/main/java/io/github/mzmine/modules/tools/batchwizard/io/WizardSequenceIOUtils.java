@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -76,11 +74,8 @@ public class WizardSequenceIOUtils {
   public static void saveToFile(final List<WizardStepParameters> workflow, final File file,
       final boolean skipSensitive) throws IOException {
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-      Document configuration = dBuilder.newDocument();
-      Element configRoot = configuration.createElement(ELEMENT_TAG);
+      final Document configuration = XMLUtils.newDocument();
+      final Element configRoot = configuration.createElement(ELEMENT_TAG);
       configuration.appendChild(configRoot);
 
       for (var step : workflow) {
@@ -133,11 +128,9 @@ public class WizardSequenceIOUtils {
    */
   public static @NotNull WizardSequence loadFromFile(final File file) throws IOException {
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
-      XPathFactory xPathFactory = XPathFactory.newInstance();
-      XPath xpath = xPathFactory.newXPath();
+      final Document configuration = XMLUtils.load(file);
+      final XPathFactory xPathFactory = XPathFactory.newInstance();
+      final XPath xpath = xPathFactory.newXPath();
 
       logger.finest("Loading wizard parameters from file " + file.getAbsolutePath());
       // use all presets from the WizardTab
@@ -166,7 +159,7 @@ public class WizardSequenceIOUtils {
           });
         } catch (Exception e) {
           logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
-                         + ". Maybe it was renamed. " + e.getMessage());
+              + ". Maybe it was renamed. " + e.getMessage());
         }
       }
 
@@ -213,8 +206,8 @@ public class WizardSequenceIOUtils {
       return List.of();
     }
 
-    return FileAndPathUtil.findFilesInDir(path, FILE_FILTER, false).stream()
-        .filter(Objects::nonNull).flatMap(Arrays::stream).filter(Objects::nonNull).map(file -> {
+    return Arrays.stream(FileAndPathUtil.findFilesInDirFlat(path, FILE_FILTER, false, false))
+        .map(file -> {
           try {
             WizardSequence presets = WizardSequenceIOUtils.loadFromFile(file);
             return new LocalWizardSequenceFile(file, presets);

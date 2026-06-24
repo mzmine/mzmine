@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ import javafx.scene.paint.Color;
  */
 class Fx3DSamplingTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(Fx3DSamplingTask.class.getName());
 
   private RawDataFile dataFile;
   private Scan scans[];
@@ -128,8 +128,9 @@ class Fx3DSamplingTask extends AbstractTask {
       // load scans
       for (int scanIndex = 0; scanIndex < scans.length; scanIndex++) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         Scan scan = scans[scanIndex];
         final MZmineDesktop desktop = MZmineCore.getDesktop();
@@ -164,8 +165,9 @@ class Fx3DSamplingTask extends AbstractTask {
           if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
             intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
           }
-          if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
+          if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity) {
             maxBinnedIntensity = binnedIntensities[mzIndex];
+          }
         }
 
         rtDataSet[scanBinIndex] = true;
@@ -178,21 +180,25 @@ class Fx3DSamplingTask extends AbstractTask {
       for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
 
         // If the data was set, go to next RT line
-        if (rtDataSet[rtIndex])
+        if (rtDataSet[rtIndex]) {
           continue;
+        }
         int prevIndex, nextIndex;
         for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
-          if (rtDataSet[prevIndex])
+          if (rtDataSet[prevIndex]) {
             break;
+          }
         }
         for (nextIndex = rtIndex + 1; nextIndex < rtResolution; nextIndex++) {
-          if (rtDataSet[nextIndex])
+          if (rtDataSet[nextIndex]) {
             break;
+          }
         }
 
         // If no neighboring data was found, give up
-        if ((prevIndex < 0) || (nextIndex >= rtResolution))
+        if ((prevIndex < 0) || (nextIndex >= rtResolution)) {
           continue;
+        }
 
         for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
@@ -213,13 +219,13 @@ class Fx3DSamplingTask extends AbstractTask {
       for (int rtIndex = 0; rtIndex < rtResolution; rtIndex++) {
         for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
           int valueIndex = (rtResolution * mzIndex) + rtIndex;
-          finalIntensityValues[rtIndex][mzIndex] =
-              (float) (intensityValues[0][valueIndex] / maxBinnedIntensity);
+          finalIntensityValues[rtIndex][mzIndex] = (float) (intensityValues[0][valueIndex]
+              / maxBinnedIntensity);
         }
       }
-      Fx3DRawDataFileDataset plotMesh =
-          new Fx3DRawDataFileDataset(dataFile, finalIntensityValues, rtResolution, mzResolution,
-              maxBinnedIntensity, dataFile.toString(), PEAK_COLORS[random.nextInt(14)]);
+      Fx3DRawDataFileDataset plotMesh = new Fx3DRawDataFileDataset(dataFile, finalIntensityValues,
+          rtResolution, mzResolution, maxBinnedIntensity, dataFile.toString(),
+          PEAK_COLORS[random.nextInt(14)]);
 
       Platform.runLater(() -> {
         controller.addDataset(plotMesh);

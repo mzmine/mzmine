@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.EmbeddingBasedSimilarity;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -46,86 +45,92 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DreaMSModel extends EmbeddingBasedSimilarity implements AutoCloseable {
+public class DreaMSModel extends EmbeddingBasedSimilarity {
 
-    private static final Logger logger = Logger.getLogger(DreaMSModel.class.getName());
-    private final DreaMSSpectrumTensorizer spectrumTensorizer;
-    private final NDManager ndManager;
-    private final Predictor<NDList, NDList> predictor;
-    private final ZooModel<NDList, NDList> model;
+  private static final Logger logger = Logger.getLogger(DreaMSModel.class.getName());
+  private final DreaMSSpectrumTensorizer spectrumTensorizer;
+  private final NDManager ndManager;
+  private final Predictor<NDList, NDList> predictor;
+  private final ZooModel<NDList, NDList> model;
 
-    public DreaMSModel(File modelFilePath, File settingsFilePath)
-            throws ModelNotFoundException, MalformedModelException, IOException {
-        this(modelFilePath.toPath(), settingsFilePath.toPath());
-    }
+  public DreaMSModel(File modelFilePath, File settingsFilePath)
+      throws ModelNotFoundException, MalformedModelException, IOException {
+    this(modelFilePath.toPath(), settingsFilePath.toPath());
+  }
 
-    public DreaMSModel(Path modelFilePath, Path settingsFilePath)
-            throws ModelNotFoundException, MalformedModelException, IOException {
-        /*
-         * Predicts the DreaMS embedding
-         * Model is autocloseable
-         */
-        Criteria<NDList, NDList> criteria = Criteria.builder().setTypes(NDList.class, NDList.class)
-                .optModelPath(modelFilePath)
-                .optOption("mapLocation", "true") // this model requires mapLocation for GPU
-                .optProgress(new ProgressBar()).build();
-        model = criteria.loadModel();
-
-        DreaMSSettings settings = DreaMSSettings.load(settingsFilePath.toFile());
-        this.spectrumTensorizer = new DreaMSSpectrumTensorizer(settings);
-        this.ndManager = NDManager.newBaseManager();
-        this.predictor = model.newPredictor();
-    }
-
-    /**
-     * Predicts a DreaMS embedding from a tensorized spectrum.
+  public DreaMSModel(Path modelFilePath, Path settingsFilePath)
+      throws ModelNotFoundException, MalformedModelException, IOException {
+    /*
+     * Predicts the DreaMS embedding
+     * Model is autocloseable
      */
-    public NDArray predictEmbeddingFromTensors(float[][][] tensorizedSpectra) throws TranslateException {
+    Criteria<NDList, NDList> criteria = Criteria.builder().setTypes(NDList.class, NDList.class)
+        .optModelPath(modelFilePath)
+        .optOption("mapLocation", "true") // this model requires mapLocation for GPU
+        .optProgress(new ProgressBar()).build();
+    model = criteria.loadModel();
 
-        // Convert 3D float[][][] to 3D NDList
-        NDList tensorizedList = new NDList();
-        for (float[][] spectrum : tensorizedSpectra) {
-            NDArray slice = ndManager.create(spectrum);
-            tensorizedList.add(slice);
-        }
-        NDArray tensorizedArray = NDArrays.stack(tensorizedList);
+    DreaMSSettings settings = DreaMSSettings.load(settingsFilePath.toFile());
+    this.spectrumTensorizer = new DreaMSSpectrumTensorizer(settings);
+    this.ndManager = NDManager.newBaseManager();
+    this.predictor = model.newPredictor();
+  }
 
-        // Predict embeddings
-        NDList predictions = predictor.predict(new NDList(tensorizedArray));
+  /**
+   * Predicts a DreaMS embedding from a tensorized spectrum.
+   */
+  public NDArray predictEmbeddingFromTensors(float[][][] tensorizedSpectra)
+      throws TranslateException {
 
-        // Assuming the predictor outputs a single NDArray, return it
-        return predictions.singletonOrThrow();
+    // Convert 3D float[][][] to 3D NDList
+    NDList tensorizedList = new NDList();
+    for (float[][] spectrum : tensorizedSpectra) {
+      NDArray slice = ndManager.create(spectrum);
+      tensorizedList.add(slice);
     }
+    NDArray tensorizedArray = NDArrays.stack(tensorizedList);
 
-    /**
-     * Predicts a DreaMS embedding from a MassSpectrum.
-     */
-    @Override
-    public NDArray predictEmbedding(List<? extends MassSpectrum> scans) throws TranslateException {
-        float[][][] tensorizedSpectra = spectrumTensorizer.tensorizeSpectra(scans);
-        return predictEmbeddingFromTensors(tensorizedSpectra);
-    }
+    // Predict embeddings
+    NDList predictions = predictor.predict(new NDList(tensorizedArray));
 
-    @Override
-    public void close() {
-        try {
-            ndManager.close();
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Could not close ND manager: " + ex.getMessage(), ex);
-        }
-        try {
-            predictor.close();
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Could not close predictor: " + ex.getMessage(), ex);
-        }
-        try {
-            model.close();
-        } catch (Exception ex) {
-            logger.log(Level.WARNING, "Could not close model: " + ex.getMessage(), ex);
-        }
-    }
+    // Assuming the predictor outputs a single NDArray, return it
+    return predictions.singletonOrThrow();
+  }
 
-    public DreaMSSpectrumTensorizer getSpectrumTensorizer() {
-        return spectrumTensorizer;
+  /**
+   * Predicts a DreaMS embedding from a MassSpectrum.
+   */
+  @Override
+  public NDArray predictEmbedding(List<? extends MassSpectrum> scans) throws TranslateException {
+    float[][][] tensorizedSpectra = spectrumTensorizer.tensorizeSpectra(scans);
+    return predictEmbeddingFromTensors(tensorizedSpectra);
+  }
+
+  @Override
+  public NDManager getNDManager() {
+    return ndManager;
+  }
+
+  @Override
+  public void close() {
+    try {
+      ndManager.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close ND manager: " + ex.getMessage(), ex);
     }
+    try {
+      predictor.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close predictor: " + ex.getMessage(), ex);
+    }
+    try {
+      model.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close model: " + ex.getMessage(), ex);
+    }
+  }
+
+  public DreaMSSpectrumTensorizer getSpectrumTensorizer() {
+    return spectrumTensorizer;
+  }
 }

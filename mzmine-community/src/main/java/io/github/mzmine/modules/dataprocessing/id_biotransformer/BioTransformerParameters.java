@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,25 +30,27 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
@@ -73,8 +75,9 @@ public class BioTransformerParameters extends SimpleParameterSet {
       "Filter parameters", "Additional filtering parameters.", new BioTransformerFilterParameters(),
       false);
 
-  public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion library",
-      "Potential ionizations of product molecules.", new IonLibraryParameterSet());
+  public static final IonLibraryParameter ionLibrary = new IonLibraryParameter("Ion library",
+      "Potential ionizations of product molecules.",
+      IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN);
 
   public static final ComboParameter<SmilesSource> smilesSource = new ComboParameter<>(
       "SMILES source", """
@@ -154,5 +157,10 @@ public class BioTransformerParameters extends SimpleParameterSet {
         case env -> "env";
       };
     }
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

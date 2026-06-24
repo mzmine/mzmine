@@ -74,7 +74,7 @@ public interface TDFLibrary extends Library {
    * API calls, in particular to the required call to tims_close(). On failure, returns 0, and you
    * can use tims_get_last_error_string() to obtain a string describing the problem.
    */
-  long tims_open_v2(String analysis_dir, long use_recalib, int pressureCompensation);
+  long tims_open_v2(byte[] analysis_dir, long use_recalib, int pressureCompensation);
 
   /**
    * Close data set.

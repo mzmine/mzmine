@@ -47,6 +47,7 @@ public class LoessBaselineCorrectorParameters extends AbstractBaselineCorrectorP
       1, 10);
 
   public LoessBaselineCorrectorParameters() {
-    super(applyPeakRemoval.cloneParameter(), numSamples.cloneParameter(), bandwidth, iterations);
+    super(applyPeakRemoval.cloneParameter(), samplePercentage.cloneParameter(), bandwidth,
+        iterations);
   }
 }

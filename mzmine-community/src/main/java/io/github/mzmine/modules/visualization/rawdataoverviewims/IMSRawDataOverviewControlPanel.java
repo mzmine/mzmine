@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.rawdataoverviewims;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
@@ -36,9 +37,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -57,6 +58,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
+
+  private static final Logger logger = Logger.getLogger(
+      IMSRawDataOverviewControlPanel.class.getName());
 
   public static final String TOOLTIP_MOBILITYSCAN_NL = "Noise level for mobility scan processing.\n"
       + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "
@@ -79,10 +83,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
 
   private final IMSRawDataOverviewPane pane;
-  private final NumberFormat mzFormat;
-  private final NumberFormat intensityFormat;
-  private final NumberFormat rtFormat;
-  private final NumberFormat mobilityFormat;
+  private final NumberFormat mzFormat = ConfigService.getConfiguration().getMZFormat();
+  private final NumberFormat intensityFormat = ConfigService.getConfiguration().getIntensityFormat();
+  private final NumberFormat rtFormat = ConfigService.getConfiguration().getRTFormat();
+  private final NumberFormat mobilityFormat = ConfigService.getConfiguration().getMobilityFormat();
 
   private MZTolerance mzTolerance;
   private MsLevelFilter scanSelection;
@@ -94,6 +98,14 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private double mobilityScanNoiseLevel;
   private DoubleRangeComponent mobilogramRangeComp;
   private MsLevelFilterParameter msLevelFilterParameter;
+  private Button update;
+  private final DoubleComponent frameNoiseLevelComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE,
+      intensityFormat, 1E3);;
+  private final DoubleComponent mobilityScanNoiseLevelComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE,
+      intensityFormat, 5E2);
+  private DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
+  private final MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
+  private final IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
       double mobilityScanNoiseLevel, MZTolerance mzTolerance, MsLevelFilter scanSelection,
@@ -105,28 +117,17 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     this.scanSelection = scanSelection;
     this.rtWidth = rtWidth;
     this.binWidth = binWidth;
-    mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    rtFormat = MZmineCore.getConfiguration().getRTFormat();
-    mobilityFormat = new DecimalFormat("0.0000");
     initControlPanel();
   }
 
   private void initControlPanel() {
-    DoubleComponent frameNoiseLevelComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE,
-        intensityFormat, frameNoiseLevel);
     frameNoiseLevelComponent.setText(intensityFormat.format(frameNoiseLevel));
-    DoubleComponent mobilityScanNoiseLevelComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE,
-        intensityFormat, mobilityScanNoiseLevel);
     mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
-    MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
-    DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
 
     msLevelFilterParameter = new MsLevelFilterParameter(TOOLTIP_SCANSEL,
         new Options[]{Options.MS1, Options.MS2}, scanSelection);
     var scanSelectionComponent = msLevelFilterParameter.createEditingComponent();
-    IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
     binWidthComponent.setText(binWidth.toString());
 
     setPadding(new Insets(5));
@@ -193,7 +194,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       }
     });
 
-    Button update = new Button("Update");
+    update = new Button("Update");
     update.setOnAction(e -> {
       try {
         frameNoiseLevel = Double.parseDouble(frameNoiseLevelComponent.getText());
@@ -301,6 +302,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public void setFrameNoiseLevel(double frameNoiseLevel) {
     this.frameNoiseLevel = frameNoiseLevel;
+    frameNoiseLevelComponent.setText(intensityFormat.format(frameNoiseLevel));
   }
 
   public double getMobilityScanNoiseLevel() {
@@ -309,6 +311,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public void setMobilityScanNoiseLevel(double mobilityScanNoiseLevel) {
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
+    mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
   }
 
   public void setRangeToMobilogramRangeComp(@Nullable Range<Double> range) {

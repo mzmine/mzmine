@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
@@ -58,7 +59,12 @@ public class SubModuleParameter<SUB extends ParameterSet> implements
   }
 
   public void setEmbeddedParameters(SUB param) {
-    embeddedParameters = param;
+    if (embeddedParameters == null) {
+      this.embeddedParameters = param;
+    } else {
+      // copy parameters over. Just in case if there is already a component showing those parameters
+      ParameterUtils.copyParameters(param, embeddedParameters);
+    }
   }
 
   /**

@@ -47,9 +47,8 @@ public class FxVersionCheckTask extends FxUpdateTask<IntroductionTabModel> {
   protected void process() {
     check.run();
     result = check.getResult();
-    logger.finest(
-        STR."Version check finished for IntroductionTab. Result: \{result != null ? result.type()
-            : "failed"}");
+    logger.finest("Version check finished for IntroductionTab. Result: %s".formatted(
+        result != null ? result.type() : "failed"));
   }
 
   @Override

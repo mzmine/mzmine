@@ -50,6 +50,23 @@ edge.OTHER {
   fill-mode: dyn-plain;
   fill-color: #ffe519, #ffa63e, #da7e0e, #885313, #492d0d;
 }
+
+edge.ANALOG_MS2Deepscore {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #19475d;
+}
+edge.ANALOG_DreaMS {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #19475d;
+}
+edge.ANALOG_COSINE {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #19475d;
+}
+
 edge.GNPS {
   fill-color: rgb(77, 108, 187);
   size-mode: dyn-size;
@@ -106,6 +123,15 @@ node.MOL {
 
 node.NEUTRAL {
   fill-color: violet;
+}
+
+node.ANALOG {
+  /* inherit the base node text-visibility threshold (3) so analog labels show at the same zoom as feature labels */
+  text-visibility-mode: under-zoom;
+  text-visibility: 0.5;
+  fill-color: #565656;
+  size: 15px;
+  shape: diamond;
 }
 
 /* add gradient to node: node1.setAttribute("ui.color", 0); from 0 - 1 */

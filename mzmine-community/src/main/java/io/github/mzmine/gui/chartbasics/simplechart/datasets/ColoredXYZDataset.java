@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,9 @@ import org.jfree.data.xy.XYZDataset;
 /**
  * Used to plot XYZ datasets in a scatterplot-type of plot. Used to display spatial distribution in
  * imaging and ion mobility heatmaps.
+ * <br>
+ * When using a ColoredXYDataset, also use a renderer that respects the color set in the dataset.
+ * Available renderers are located in io.github.mzmine.gui.chartbasics.simplechart.renderers
  *
  * @author https://github.com/SteffenHeu
  */
@@ -79,8 +82,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider, final boolean useAlphaInPaintscale,
-      @NotNull final RunOption runOption) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, @NotNull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
 
@@ -94,8 +97,9 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
 
+    // already computed will always be on this thread then
     this.runOption = checkRunOption(runOption);
-    handleRunOption(runOption);
+    handleRunOption(this.runOption);
   }
 
   public boolean isUseAlphaInPaintscale() {

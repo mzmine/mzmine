@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.components.util.TextLabelMeasurementUtil;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -84,5 +86,14 @@ public class HeightType extends FloatType {
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+
+  @Override
+  public double getPrefColumnWidth() {
+    // number otherwise smaller than header
+    // setting pref width makes table open faster due to less calculations needed
+    return TextLabelMeasurementUtil.measureWidth(
+        getHeaderString() + TableColumns.EXTRA_WIDTH_MARGIN);
   }
 }

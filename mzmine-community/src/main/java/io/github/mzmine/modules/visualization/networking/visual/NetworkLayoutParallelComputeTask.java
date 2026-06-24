@@ -34,6 +34,7 @@ import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.graph.Node;
@@ -70,13 +71,14 @@ public class NetworkLayoutParallelComputeTask extends AbstractTask {
     double progressStep = 0.5 / clusters.size();
     // all graphs with layout applied
     List<MeasuredGraph> graphs = clusters.stream().parallel()
-        .map(cluster -> GraphStreamUtils.createFilteredCopy(cluster.nodes())).peek(graph -> {
+        .map(cluster -> GraphStreamUtils.createFilteredCopy(cluster.nodes())).map(graph -> {
           if (isCanceled()) {
-            return;
+            return null;
           }
           NetworkLayoutComputeTask.applyLayout(null, graph);
           progress.addAndGet(progressStep);
-        }).map(this::measureSize).toList();
+          return measureSize(graph);
+        }).filter(Objects::nonNull).toList();
 
     if (isCanceled()) {
       return;

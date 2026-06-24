@@ -25,6 +25,9 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import java.text.ParseException;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -32,6 +35,63 @@ import java.util.Objects;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class Comparators {
+
+  /**
+   * Compares by number of raw data files, then by date created, then by number of applied methods
+   */
+  public static final Comparator<FeatureList> FEATURE_LIST_DEFAULT = Comparator.<FeatureList>comparingInt(
+      fl -> fl.getNumberOfRawDataFiles() > 1 ? 1 : 0).thenComparing((o1, o2) -> {
+    try {
+      return ModularFeatureList.DATA_FORMAT.parse(o1.getDateCreated())
+          .compareTo(ModularFeatureList.DATA_FORMAT.parse(o2.getDateCreated()));
+    } catch (ParseException e) {
+      return 0;
+    }
+  }).thenComparing(fl -> fl.getAppliedMethods().size()).reversed();
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, nullsFirst())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsFirst(Comparator.naturalOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> nullsFirst() {
+    return Comparator.nullsFirst(Comparator.naturalOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, nullsLast())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsLast(Comparator.naturalOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> nullsLast() {
+    return Comparator.nullsLast(Comparator.naturalOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, reversedNullsFirst())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsFirst(Comparator.reverseOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> reversedNullsFirst() {
+    return Comparator.nullsFirst(Comparator.reverseOrder());
+  }
+
+  /// Useful when using the following pattern:
+  ///
+  /// `Comparator.comparing(Object::toString, reversedNullsLast())`
+  ///
+  /// instead of
+  ///
+  /// `Comparator.comparing(Object::toString, Comparator.nullsLast(Comparator.reverseOrder()))`
+  public static <T extends Comparable<? super T>> Comparator<T> reversedNullsLast() {
+    return Comparator.nullsLast(Comparator.reverseOrder());
+  }
 
   public static Comparator<Float> COMPARE_ABS_FLOAT = (a, b) -> {
     if (Objects.equals(a, b)) {
@@ -87,4 +147,6 @@ public class Comparators {
   public static <T extends Comparable<? super T>> Comparator<T> scoreDescending() {
     return Comparator.nullsLast(Comparator.reverseOrder());
   }
+
+
 }

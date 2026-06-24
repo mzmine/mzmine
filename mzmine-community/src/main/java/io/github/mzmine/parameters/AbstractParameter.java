@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters;
 
 import javafx.scene.Node;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractParameter<ValueType, EditorComponent extends Node> implements
     UserParameter<ValueType, EditorComponent> {
@@ -33,11 +34,17 @@ public abstract class AbstractParameter<ValueType, EditorComponent extends Node>
   protected final String name;
   protected final String description;
 
-  public AbstractParameter(String name, String description, ValueType defaultVal) {
+  public AbstractParameter(String name, String description) {
+    this(name, description, null);
+  }
+
+  public AbstractParameter(String name, String description, @Nullable ValueType defaultVal) {
     this.name = name;
     this.description = description;
     // delegate to sub classes
-    setValue(defaultVal);
+    if (defaultVal != null) {
+      setValue(defaultVal);
+    }
   }
 
   @Override

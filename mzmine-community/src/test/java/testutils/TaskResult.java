@@ -36,9 +36,10 @@ public sealed interface TaskResult permits TaskResult.ERROR, TaskResult.FINISHED
 
   default String description() {
     return switch (this) {
-      case TIMEOUT f -> STR."Timeout during \{f.moduleClass.getName()}. Not finished in time.";
-      case ERROR f -> STR."Error during \{f.moduleClass.getName()}.";
-      case FINISHED f -> STR."Finished \{f.moduleClass().getName()} in \{f.getMiliSeconds()} ms";
+      case TIMEOUT f -> "Timeout during " + f.moduleClass.getName() + ". Not finished in time.";
+      case ERROR f -> "Error during " + f.moduleClass.getName() + ".";
+      case FINISHED f ->
+          "Finished " + f.moduleClass().getName() + " in " + f.getMiliSeconds() + " ms";
     };
   }
 

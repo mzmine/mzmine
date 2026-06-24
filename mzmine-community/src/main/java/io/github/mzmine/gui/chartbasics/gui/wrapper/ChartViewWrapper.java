@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,22 @@
 
 package io.github.mzmine.gui.chartbasics.gui.wrapper;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.FxXYPlot;
+import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.XYPlot;
-
-import io.github.mzmine.gui.chartbasics.ChartLogics;
-import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.gui.swing.ChartGestureMouseAdapter;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 
 public class ChartViewWrapper {
 
@@ -55,6 +56,18 @@ public class ChartViewWrapper {
   public ChartViewWrapper(ChartViewer cc) {
     super();
     this.cc = cc;
+  }
+
+  /**
+   * @return If the XYPlot is of instance {@link FxXYPlot} then this plot is returned otherwise null
+   */
+  @Nullable
+  public FxXYPlot getFxPlot() {
+    final JFreeChart chart = getChart();
+    if (chart != null && chart.getXYPlot() instanceof FxXYPlot fxplot) {
+      return fxplot;
+    }
+    return null;
   }
 
   public ChartViewer getChartFX() {
@@ -97,12 +110,12 @@ public class ChartViewWrapper {
   }
 
   public void setMouseZoomable(boolean zoomable) {
-    if (cp != null)
+    if (cp != null) {
       cp.setMouseZoomable(zoomable);
-    else {
-      if (cc instanceof EChartViewer)
+    } else {
+      if (cc instanceof EChartViewer) {
         ((EChartViewer) cc).setMouseZoomable(zoomable);
-      else {
+      } else {
         cc.getCanvas().setDomainZoomable(zoomable);
         cc.getCanvas().setRangeZoomable(zoomable);
       }
@@ -111,80 +124,86 @@ public class ChartViewWrapper {
 
   /**
    * Auto range the range axis
-   * 
+   *
    */
   public void autoAxes() {
-    if (cp != null)
+    if (cp != null) {
       ChartLogics.autoAxes(cp);
-    else
+    } else {
       ChartLogicsFX.autoAxes(cc);
+    }
   }
 
   /**
    * Auto range the range axis
-   * 
+   *
    */
   public void autoRangeAxis() {
-    if (cp != null)
+    if (cp != null) {
       ChartLogics.autoRangeAxis(cp);
-    else
+    } else {
       ChartLogicsFX.autoRangeAxis(cc);
+    }
   }
 
   /**
    * Auto range the range axis
-   * 
+   *
    */
   public void autoDomainAxis() {
-    if (cp != null)
+    if (cp != null) {
       ChartLogics.autoDomainAxis(cp);
-    else
+    } else {
       ChartLogicsFX.autoDomainAxis(cc);
+    }
   }
 
   /**
    * The ZoomHistory of this ChartPanel/ChartCanvas
-   * 
+   *
    * @return
    */
   public ZoomHistory getZoomHistory() {
     if (cp != null) {
-      if (cp instanceof EChartPanel)
+      if (cp instanceof EChartPanel) {
         return ((EChartPanel) cp).getZoomHistory();
-      else {
+      } else {
         Object o = cp.getClientProperty(ZoomHistory.PROPERTY_NAME);
-        if (o != null && o instanceof ZoomHistory)
+        if (o != null && o instanceof ZoomHistory) {
           return (ZoomHistory) o;
-        else
+        } else {
           return null;
+        }
       }
     } else {
       // fx TODO
-      if (cc instanceof EChartViewer)
+      if (cc instanceof EChartViewer) {
         return ((EChartViewer) cc).getZoomHistory();
-      else
+      } else {
         return null;
+      }
     }
   }
 
   public void setZoomHistory(ZoomHistory h) {
     if (cp != null) {
-      if (cp instanceof EChartPanel)
+      if (cp instanceof EChartPanel) {
         ((EChartPanel) cp).setZoomHistory(h);
-      else {
+      } else {
         cp.putClientProperty(h, ZoomHistory.PROPERTY_NAME);
       }
     } else {
       // TODO
 
-      if (cc instanceof EChartViewer)
+      if (cc instanceof EChartViewer) {
         ((EChartViewer) cc).setZoomHistory(h);
+      }
     }
   }
 
   /**
    * Subplot or main plot at point
-   * 
+   *
    * @param mouseX
    * @param mouseY
    * @return
@@ -196,7 +215,7 @@ public class ChartViewWrapper {
 
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
-   * 
+   *
    * @param mx mouse coordinates
    * @param my mouse coordinates
    * @return
@@ -208,26 +227,31 @@ public class ChartViewWrapper {
 
   /**
    * Get the chart gesture mouse adapter
-   * 
+   *
    * @return
    */
   public GestureMouseAdapter getGestureAdapter() {
     if (cp != null) {
-      if (cp instanceof EChartPanel)
+      if (cp instanceof EChartPanel) {
         return ((EChartPanel) cp).getGestureAdapter();
-      else
-        for (MouseListener l : cp.getMouseListeners())
-          if (ChartGestureMouseAdapter.class.isInstance(l))
+      } else {
+        for (MouseListener l : cp.getMouseListeners()) {
+          if (ChartGestureMouseAdapter.class.isInstance(l)) {
             return (ChartGestureMouseAdapter) l;
+          }
+        }
+      }
       // none
       return null;
     } else if (cc != null) {
-      if (cc instanceof EChartViewer)
+      if (cc instanceof EChartViewer) {
         return ((EChartViewer) cc).getGestureAdapter();
-      else
+      } else {
         return null;
+      }
       // TODO export adapter for normal ChartViewer
-    } else
+    } else {
       return null;
+    }
   }
 }

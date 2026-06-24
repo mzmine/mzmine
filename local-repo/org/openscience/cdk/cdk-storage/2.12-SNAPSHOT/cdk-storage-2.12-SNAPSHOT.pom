@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>cdk</artifactId>
+        <groupId>org.openscience.cdk</groupId>
+        <version>2.12-SNAPSHOT</version>
+    </parent>
+    <name>cdk-storage</name>
+    <modules>
+        <module>ctab</module>
+        <module>inchi</module>
+        <module>io</module>
+        <module>ioformats</module>
+        <module>jniinchi-support</module>
+        <module>libiocml</module>
+        <module>libiomd</module>
+        <module>pdb</module>
+        <module>pdbcml</module>
+        <module>rinchi</module>
+        <module>smiles</module>
+    </modules>
+    <packaging>pom</packaging>
+    <artifactId>cdk-storage</artifactId>
+    <profiles>
+        <profile>
+            <id>jdk11-plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <modules>
+                <module>iordf</module>
+            </modules>
+        </profile>
+    </profiles>
+</project>

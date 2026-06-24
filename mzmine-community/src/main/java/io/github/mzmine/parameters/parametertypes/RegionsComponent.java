@@ -25,9 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import static io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper.REGION_FILE_EXTENSION;
-
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
+import static io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper.REGION_FILE_EXTENSION;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -62,7 +61,7 @@ public class RegionsComponent extends FlowPane {
 
     label = new Label();
     label.textProperty().bind(Bindings.createStringBinding(
-        () -> STR."\{value != null && !value.isEmpty() ? value.size() : 0} region(s) selected",
+        () -> (value != null && !value.isEmpty() ? value.size() : 0) + " region(s) selected",
         value));
 
     final Button loadButton = FxButtons.createLoadButton(() -> {

@@ -112,6 +112,8 @@ public interface Desktop {
    */
   void displayErrorMessage(String msg);
 
+  void displayErrorMessageAndThrow(RuntimeException ex);
+
   /**
    * Displays an error message
    */

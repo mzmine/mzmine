@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,31 +25,33 @@
 
 package io.github.mzmine.gui.chartbasics.gestures;
 
-import java.awt.geom.Point2D;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.entity.AxisEntity;
-import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.plot.PlotOrientation;
-
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
+import java.awt.geom.Point2D;
+import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.AxisEntity;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.RectangleEdge;
 
 /**
  * The {@link ChartGestureDragDiffHandler} consumes primary mouse events to generate
  * {@link ChartGestureDragDiffEvent}s. These events are then processed by one or multiple
  * {@link Consumer}s. Each Consumer has a specific {@link Key} filter. Key and Consumer array have
  * to be sorted accordingly.
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGestureDragDiffHandler extends ChartGestureHandler {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public enum Orientation {
     VERTICAL, HORIZONTAL;
@@ -62,7 +64,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
 
   public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler) {
-    this(entity, button, key, new Consumer[] {dragDiffHandler});
+    this(entity, button, key, new Consumer[]{dragDiffHandler});
   }
 
   public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
@@ -72,8 +74,9 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
 
   public ChartGestureDragDiffHandler(ChartGesture.Entity entity, GestureButton button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler[], Orientation defaultOrientation) {
-    super(new ChartGesture(entity, new Event[] {Event.RELEASED, Event.PRESSED, Event.DRAGGED},
-        button, Key.ALL));
+    super(
+        new ChartGesture(entity, new Event[]{Event.RELEASED, Event.PRESSED, Event.DRAGGED}, button,
+            Key.ALL));
     /**
      * Handles PRESSED, DRAGGED, RELEASED Events Fires the correct DragDiffHandlers for the Key
      * filter
@@ -87,33 +90,66 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
 
   /**
    * use default orientation or orientation of axis
-   * 
+   *
    * @param event
-   * @return
+   * @return the orientation of the event along the axis if the entity is a {@link AxisEntity},
+   * otherwise the plot orientation.
    */
-  public Orientation getOrientation(ChartGestureEvent event) {
+  public @NotNull Orientation getOrientation(final @NotNull ChartGestureEvent event) {
+    final Orientation axisOrientation = getAxisOrientation(event);
+    if (axisOrientation != null) {
+      orient = axisOrientation;
+      return orient;
+    }
+
     ChartEntity ce = event.getEntity();
     if (ce instanceof AxisEntity) {
       JFreeChart chart = event.getChart();
       PlotOrientation plotorient = PlotOrientation.HORIZONTAL;
-      if (chart.getXYPlot() != null)
+      if (chart.getXYPlot() != null) {
         plotorient = chart.getXYPlot().getOrientation();
-      else if (chart.getCategoryPlot() != null)
+      } else if (chart.getCategoryPlot() != null) {
         plotorient = chart.getCategoryPlot().getOrientation();
+      }
 
       Entity entity = event.getGesture().getEntity();
-      if ((entity.equals(Entity.DOMAIN_AXIS) && plotorient.equals(PlotOrientation.VERTICAL))
-          || (entity.equals(Entity.RANGE_AXIS) && plotorient.equals(PlotOrientation.HORIZONTAL)))
+      if ((entity.equals(Entity.DOMAIN_AXIS) && plotorient.equals(PlotOrientation.VERTICAL)) || (
+          entity.equals(Entity.RANGE_AXIS) && plotorient.equals(PlotOrientation.HORIZONTAL))) {
         orient = Orientation.HORIZONTAL;
-      else
+      } else {
         orient = Orientation.VERTICAL;
+      }
     }
     return orient;
   }
 
   /**
+   * @return the orientation of the axis, or {@code null} if the axis is not a {@link AxisEntity}
+   */
+  private @Nullable Orientation getAxisOrientation(final @NotNull ChartGestureEvent event) {
+    final ValueAxis axis = event.getAxis();
+    if (axis == null || !(axis.getPlot() instanceof XYPlot plot)) {
+      return null;
+    }
+
+    for (int i = 0; i < plot.getDomainAxisCount(); i++) {
+      if (axis.equals(plot.getDomainAxis(i))) {
+        final RectangleEdge edge = plot.getDomainAxisEdge(i);
+        return RectangleEdge.isTopOrBottom(edge) ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+      }
+    }
+    for (int i = 0; i < plot.getRangeAxisCount(); i++) {
+      if (axis.equals(plot.getRangeAxis(i))) {
+        final RectangleEdge edge = plot.getRangeAxisEdge(i);
+        return RectangleEdge.isTopOrBottom(edge) ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Handle PRESSED, DRAGGED, RELEASED events to generate drag diff events
-   * 
+   *
    * @return
    */
   private Consumer<ChartGestureEvent> createConsumer() {
@@ -146,29 +182,23 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
         } else if (event.checkEvent(Event.DRAGGED)) {
           if (last != null) {
             // get data space coordinates
-            Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
+            final Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
             if (released != null) {
-              double offset = 0;
-              double start = 0;
-              // scroll x
-              if (getOrientation(event).equals(Orientation.HORIZONTAL)) {
-                offset = -(released.getX() - last.getX());
-                start = first.getX();
-              }
-              // scroll y
-              else {
-                offset = -(released.getY() - last.getY());
-                start = first.getY();
-              }
+              final Orientation dragOrientation = getOrientation(event);
+              final double offset = -(getAxisCoordinate(event, released, dragOrientation)
+                  - getAxisCoordinate(event, last, dragOrientation));
+              final double start = getAxisCoordinate(startEvent, first, dragOrientation);
 
               // new dragdiff event
               ChartGestureDragDiffEvent dragEvent = new ChartGestureDragDiffEvent(startEvent,
-                  lastEvent, event, start, offset, orient);
+                  lastEvent, event, start, offset, dragOrientation);
               // scroll / zoom / do anything with this new event
               // choose handler by key filter
-              for (int i = 0; i < dragDiffHandler.length; i++)
-                if (key[i].filter(event.getMouseEvent()))
+              for (int i = 0; i < dragDiffHandler.length; i++) {
+                if (key[i].filter(event.getMouseEvent())) {
                   dragDiffHandler[i].accept(dragEvent);
+                }
+              }
               // set last event
               lastEvent = event;
               // save updated last
@@ -178,5 +208,24 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
         }
       }
     };
+  }
+
+  /**
+   *
+   * @param axisOrientation the axis orientation like horizontal or vertical when
+   *                        {@link PlotOrientation} changes.
+   * @return the coordinate of the point along the axis orientation
+   */
+  private double getAxisCoordinate(final @NotNull ChartGestureEvent event,
+      final @NotNull Point2D point, final @NotNull Orientation axisOrientation) {
+    final Entity entity = event.getGesture().getEntity();
+    if (Entity.DOMAIN_AXIS.equals(entity)) {
+      return point.getX();
+    }
+    if (Entity.RANGE_AXIS.equals(entity)) {
+      return point.getY();
+    }
+    // assumption: for generic axis gestures use the rendered axis direction as fallback.
+    return axisOrientation.equals(Orientation.HORIZONTAL) ? point.getX() : point.getY();
   }
 }

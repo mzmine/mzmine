@@ -124,7 +124,7 @@ public record DataFileStats(String fileName, boolean advanced, int numScans, int
     var imagingScan = streamScans(raw).filter(scan -> scan instanceof ImagingScan)
         .map(scan -> (ImagingScan) scan).toList();
     var imageScanCoord = imagingScan.stream().map(ImagingScan::getCoordinates)
-        .filter(Objects::nonNull).map(c -> STR."\{c.getX()},\{c.getY()}").toList();
+        .filter(Objects::nonNull).map(c -> c.getX() + "," + c.getY()).toList();
 
     return new DataFileStats(raw.getFileName(), advanced, numScans, numScansMs1, numScansMs2,
         maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType,
@@ -164,7 +164,7 @@ public record DataFileStats(String fileName, boolean advanced, int numScans, int
       case List<?> list -> "List.of(" + list.stream() //
           .filter(Objects::nonNull) // cannot handle null in List.of
           .map(DataFileStats::convertToString).collect(Collectors.joining(", ")) + ")";
-      default -> STR."\"\{o}\"";
+      default -> "\"" + o + "\"";
     };
   }
 
@@ -220,10 +220,10 @@ public record DataFileStats(String fileName, boolean advanced, int numScans, int
         return;
       }
       if (e == null ^ a == null) {
-        throw new IllegalArgumentException(STR."Expected \{e} but is \{a} for \{field}");
+        throw new IllegalArgumentException("Expected " + e + " but is " + a + " for " + field);
       }
       if (!Precision.equals(e, a, maxDiff)) {
-        throw new IllegalArgumentException(STR."Expected \{e} but is \{a} for \{field}");
+        throw new IllegalArgumentException("Expected " + e + " but is " + a + " for " + field);
       }
     }
   }
@@ -247,7 +247,7 @@ public record DataFileStats(String fileName, boolean advanced, int numScans, int
     String arguments = Arrays.stream(getClass().getRecordComponents()).map(this::getValue)
         .map(DataFileStats::convertToString).collect(Collectors.joining(", "));
 
-    String s = STR."new import_data.DataFileStats(\{arguments})";
+    String s = "new import_data.DataFileStats(" + arguments + ")";
     return s;
   }
 

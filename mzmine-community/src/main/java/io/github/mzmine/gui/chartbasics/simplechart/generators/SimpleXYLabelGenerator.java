@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import java.util.ArrayList;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
@@ -79,9 +80,10 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     double originalY = coloredXYDataset.getYValue(0, item);
 
     // Check if the intensity of this data point is above threshold
-    if (originalY
+    final XYValueProvider valueProvider = coloredXYDataset.getValueProvider();
+    if (!valueProvider.isComputed() || (valueProvider.getValueCount()>5 &&  originalY
         < (coloredXYDataset.getMinimumRangeValue().doubleValue() + 0.0001)
-        * THRESHOLD_FOR_ANNOTATION) {
+        * THRESHOLD_FOR_ANNOTATION)) {
       return null;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.apache.commons.codec.digest.DigestUtils;
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKMethod;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -57,8 +47,18 @@ import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIon;
 import io.github.msdk.io.mzml.data.MzMLProduct;
 import io.github.msdk.io.mzml.data.MzMLRawDataFile;
 import io.github.msdk.io.mzml.data.MzMLTags;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 import javolution.xml.internal.stream.XMLStreamWriterImpl;
 import javolution.xml.stream.XMLStreamException;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -75,14 +75,13 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
   private static final String XML_VERSION = "1.0";
   private static final String MZML_NAMESPACE = "http://psi.hupo.org/ms/mzml";
   private static final String XML_SCHEMA_INSTANCE = "http://www.w3.org/2001/XMLSchema-instance";
-  private static final String XML_SCHEMA_LOCATION =
-      "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd";
+  private static final String XML_SCHEMA_LOCATION = "http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd";
   private static final String DEFAULT_VERSION = "1.1.0";
   private static final String CV_REF_MS = "MS";
 
   private static final String PREFIX_XSI = "xsi";
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MzMLFileExportMethod.class.getName());
 
   private final @NotNull RawDataFile rawDataFile;
   private final @NotNull File target;
@@ -91,19 +90,19 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
   private boolean canceled = false;
 
-  private long totalScans = 0, totalChromatograms = 0, parsedScans, parsedChromatograms,
-      indexListOffset;
+  private long totalScans = 0, totalChromatograms = 0, parsedScans, parsedChromatograms, indexListOffset;
 
   /**
    * <p>
    * Constructor for MzMLFileExportMethod.
    * </p>
    *
-   * @param rawDataFile the input {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile}
-   *        which contains the data to be exported
-   * @param target the target {@link File File} to write the data, in mzML format
+   * @param rawDataFile            the input
+   *                               {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile}
+   *                               which contains the data to be exported
+   * @param target                 the target {@link File File} to write the data, in mzML format
    * @param doubleArrayCompression compression type for <code>double[]</code> which are encoded
-   * @param floatArrayCompression compression type for <code>float[]</code> which are encoded
+   * @param floatArrayCompression  compression type for <code>float[]</code> which are encoded
    */
   public MzMLFileExportMethod(@NotNull RawDataFile rawDataFile, @NotNull File target,
       @NotNull MzMLCompressionType doubleArrayCompression,
@@ -119,7 +118,8 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    *
    * <p>
    * Execute the process of writing the data from the the input
-   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target {@link File File}
+   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target
+   * {@link File File}
    * </p>
    */
   @Override
@@ -196,16 +196,14 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_ID, rawDataFile.getName());
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF,
           rawDataFile instanceof MzMLRawDataFile
-              ? ((MzMLRawDataFile) rawDataFile).getDefaultInstrumentConfiguration()
-              : "unknown");
+              ? ((MzMLRawDataFile) rawDataFile).getDefaultInstrumentConfiguration() : "unknown");
 
       // <spectrumList>
       xmlStreamWriter.writeStartElement(MzMLTags.TAG_SPECTRUM_LIST);
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_COUNT, String.valueOf(scans.size()));
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF,
           rawDataFile instanceof MzMLRawDataFile
-              ? ((MzMLRawDataFile) rawDataFile).getDefaultDataProcessingScan()
-              : "unknown");
+              ? ((MzMLRawDataFile) rawDataFile).getDefaultDataProcessingScan() : "unknown");
 
       byte[] mzBuffer = null;
       byte[] intensityBuffer = null;
@@ -229,17 +227,19 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
             String.valueOf(scan.getNumberOfDataPoints()));
 
         MzMLMsScan spectrum = null;
-        if (scan instanceof MzMLMsScan)
+        if (scan instanceof MzMLMsScan) {
           spectrum = (MzMLMsScan) scan;
+        }
 
         // spectrum type CV param
         if (!(rawDataFile instanceof MzMLRawDataFile) || (rawDataFile instanceof MzMLRawDataFile
-            && !spectrum.getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()
-            && !spectrum.getCVValue(MzMLCV.cvProfileSpectrum).isPresent())) {
-          if (scan.getSpectrumType() == MsSpectrumType.CENTROIDED)
+            && !spectrum.getCVValue(MzMLCV.cvCentroidSpectrum).isPresent() && !spectrum.getCVValue(
+            MzMLCV.cvProfileSpectrum).isPresent())) {
+          if (scan.getSpectrumType() == MsSpectrumType.CENTROIDED) {
             writeCVParam(xmlStreamWriter, MzMLCV.centroidCvParam);
-          else
+          } else {
             writeCVParam(xmlStreamWriter, MzMLCV.profileCvParam);
+          }
         }
 
         // ms level CV param
@@ -263,22 +263,25 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         }
 
         // m/z range CV param
-        if (!(rawDataFile instanceof MzMLRawDataFile) || (rawDataFile instanceof MzMLRawDataFile
-            && !spectrum.getCVValue(MzMLCV.cvLowestMz).isPresent()
-            || !spectrum.getCVValue(MzMLCV.cvHighestMz).isPresent())) {
+        if (!(rawDataFile instanceof MzMLRawDataFile) || (
+            rawDataFile instanceof MzMLRawDataFile && !spectrum.getCVValue(MzMLCV.cvLowestMz)
+                .isPresent() || !spectrum.getCVValue(MzMLCV.cvHighestMz).isPresent())) {
           if (scan.getMzRange() != null) {
             Double lowestMz = scan.getMzRange().lowerEndpoint();
             Double highestMz = scan.getMzRange().upperEndpoint();
-            writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvLowestMz,
-                String.valueOf(lowestMz), "lowest observed m/z", MzMLCV.cvMz));
-            writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvHighestMz,
-                String.valueOf(highestMz), "highest observed m/z", MzMLCV.cvMz));
+            writeCVParam(xmlStreamWriter,
+                new MzMLCVParam(MzMLCV.cvLowestMz, String.valueOf(lowestMz), "lowest observed m/z",
+                    MzMLCV.cvMz));
+            writeCVParam(xmlStreamWriter,
+                new MzMLCVParam(MzMLCV.cvHighestMz, String.valueOf(highestMz),
+                    "highest observed m/z", MzMLCV.cvMz));
           }
         }
 
         // Write the missing CV params parsed
-        if (rawDataFile instanceof MzMLRawDataFile)
+        if (rawDataFile instanceof MzMLRawDataFile) {
           writeCVGroup(xmlStreamWriter, spectrum.getCVParams());
+        }
 
         // <scanList>
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_SCAN_LIST);
@@ -297,15 +300,17 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         // retention time CV param
         if (scan.getRetentionTime() != null) {
           Float rt = scan.getRetentionTime();
-          writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.MS_RT_SCAN_START, String.valueOf(rt),
-              "scan time", MzMLCV.cvUnitsSec));
+          writeCVParam(xmlStreamWriter,
+              new MzMLCVParam(MzMLCV.MS_RT_SCAN_START, String.valueOf(rt), "scan time",
+                  MzMLCV.cvUnitsSec));
         }
 
         // scan polarity CV param
-        if (scan.getPolarity() == PolarityType.POSITIVE)
+        if (scan.getPolarity() == PolarityType.POSITIVE) {
           writeCVParam(xmlStreamWriter, MzMLCV.polarityPositiveCvParam);
-        else if (scan.getPolarity() == PolarityType.NEGATIVE)
+        } else if (scan.getPolarity() == PolarityType.NEGATIVE) {
           writeCVParam(xmlStreamWriter, MzMLCV.polarityNegativeCvParam);
+        }
 
         // <scanWindowList>
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_SCAN_WINDOW_LIST);
@@ -318,10 +323,12 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         if (scan.getScanningRange() != null) {
           Double lowerLimit = scan.getScanningRange().lowerEndpoint();
           Double upperLimit = scan.getScanningRange().upperEndpoint();
-          writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvScanWindowLowerLimit,
-              String.valueOf(lowerLimit), "scan window lower limit", MzMLCV.cvMz));
-          writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvScanWindowUpperLimit,
-              String.valueOf(upperLimit), "scan window upper limit", MzMLCV.cvMz));
+          writeCVParam(xmlStreamWriter,
+              new MzMLCVParam(MzMLCV.cvScanWindowLowerLimit, String.valueOf(lowerLimit),
+                  "scan window lower limit", MzMLCV.cvMz));
+          writeCVParam(xmlStreamWriter,
+              new MzMLCVParam(MzMLCV.cvScanWindowUpperLimit, String.valueOf(upperLimit),
+                  "scan window upper limit", MzMLCV.cvMz));
         }
 
         // Closing tags
@@ -397,8 +404,9 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
               // <isolationWindow>
               xmlStreamWriter.writeStartElement(MzMLTags.TAG_ISOLATION_WINDOW);
-              if (product.getIsolationWindow().isPresent())
+              if (product.getIsolationWindow().isPresent()) {
                 writeCVGroup(xmlStreamWriter, product.getIsolationWindow().get());
+              }
               xmlStreamWriter.writeEndElement(); // </isolationWindow>
 
               xmlStreamWriter.writeEndElement(); // </product>
@@ -436,8 +444,9 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
             String.valueOf(mzBuffer.length));
 
         // data array precision CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLBitLength.SIXTY_FOUR_BIT_FLOAT.getValue(),
-            "", "64-bit float", null));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLBitLength.SIXTY_FOUR_BIT_FLOAT.getValue(), "", "64-bit float",
+                null));
 
         // data array compression CV param
         writeCVParam(xmlStreamWriter, new MzMLCVParam(doubleArrayCompression.getAccession(), "",
@@ -456,23 +465,25 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         xmlStreamWriter.writeEndElement(); // </binaryDataArray>
 
         // <binaryDataArray> (intensity)
-        intensityBuffer =
-            MzMLPeaksEncoder.encodeFloat(scan.getIntensityValues(), floatArrayCompression);
+        intensityBuffer = MzMLPeaksEncoder.encodeFloat(scan.getIntensityValues(),
+            floatArrayCompression);
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_BINARY_DATA_ARRAY);
         xmlStreamWriter.writeAttribute(MzMLTags.ATTR_ENCODED_LENGTH,
             String.valueOf(intensityBuffer.length));
 
         // data array precision CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(),
-            "", "32-bit float", null));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(), "", "32-bit float",
+                null));
 
         // data array compression CV param
         writeCVParam(xmlStreamWriter, new MzMLCVParam(floatArrayCompression.getAccession(), "",
             floatArrayCompression.getName(), null));
 
         // data array type CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLArrayType.INTENSITY.getAccession(), "",
-            "intensity array", MzMLCV.cvUnitsIntensity1));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLArrayType.INTENSITY.getAccession(), "", "intensity array",
+                MzMLCV.cvUnitsIntensity1));
 
         // <binary>
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_BINARY);
@@ -495,8 +506,7 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_COUNT, String.valueOf(chromatograms.size()));
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF,
           rawDataFile instanceof MzMLRawDataFile
-              ? ((MzMLRawDataFile) rawDataFile).getDefaultDataProcessingChromatogram()
-              : "unknown");
+              ? ((MzMLRawDataFile) rawDataFile).getDefaultDataProcessingChromatogram() : "unknown");
 
       byte[] rtBuffer = null;
       byte[] intensityBuffer2 = null;
@@ -529,12 +539,14 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
                 "selected reaction monitoring chromatogram", null));
             break;
           case SIC:
-            writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvChromatogramSIC, "",
-                "selected ion current chromatogram", null));
+            writeCVParam(xmlStreamWriter,
+                new MzMLCVParam(MzMLCV.cvChromatogramSIC, "", "selected ion current chromatogram",
+                    null));
             break;
           case TIC:
-            writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvChromatogramTIC, "",
-                "total ion current chromatogram", null));
+            writeCVParam(xmlStreamWriter,
+                new MzMLCVParam(MzMLCV.cvChromatogramTIC, "", "total ion current chromatogram",
+                    null));
             break;
           default:
             break;
@@ -552,8 +564,9 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
             xmlStreamWriter.writeStartElement(MzMLTags.TAG_ISOLATION_WINDOW);
 
             Double mz = isolationInfo.getPrecursorMz();
-            writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvIsolationWindowTarget,
-                String.valueOf(mz), "isolation window target m/z", MzMLCV.cvMz));
+            writeCVParam(xmlStreamWriter,
+                new MzMLCVParam(MzMLCV.cvIsolationWindowTarget, String.valueOf(mz),
+                    "isolation window target m/z", MzMLCV.cvMz));
 
             xmlStreamWriter.writeEndElement(); // </isolationWindow>
           }
@@ -566,23 +579,24 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
             switch (activationInfo.getActivationType()) {
               case CID:
-                writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvActivationCID, "",
-                    "collision-induced dissociation", null));
+                writeCVParam(xmlStreamWriter,
+                    new MzMLCVParam(MzMLCV.cvActivationCID, "", "collision-induced dissociation",
+                        null));
                 break;
               default:
                 break;
             }
 
-            if (activationInfo.getActivationEnergy() != null)
+            if (activationInfo.getActivationEnergy() != null) {
               writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvActivationEnergy,
                   String.valueOf(activationInfo.getActivationEnergy()), "collision energy", null));
+            }
 
             xmlStreamWriter.writeEndElement(); // </activation>
           }
 
           xmlStreamWriter.writeEndElement(); // </precursor>
         }
-
 
         // product m/z value CV param
         if (chromatogram.getMz() != null) {
@@ -593,8 +607,9 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
           xmlStreamWriter.writeStartElement(MzMLTags.TAG_ISOLATION_WINDOW);
 
           Double mz = chromatogram.getMz();
-          writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLCV.cvIsolationWindowTarget,
-              String.valueOf(mz), "isolation window target m/z", MzMLCV.cvMz));
+          writeCVParam(xmlStreamWriter,
+              new MzMLCVParam(MzMLCV.cvIsolationWindowTarget, String.valueOf(mz),
+                  "isolation window target m/z", MzMLCV.cvMz));
 
           // Closing tags
           xmlStreamWriter.writeEndElement(); // </isolationWindow>
@@ -613,16 +628,18 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
             String.valueOf(rtBuffer.length));
 
         // data array precision CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(),
-            "", "32-bit float", null));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(), "", "32-bit float",
+                null));
 
         // data array compression CV param
         writeCVParam(xmlStreamWriter, new MzMLCVParam(floatArrayCompression.getAccession(), "",
             floatArrayCompression.getName(), null));
 
         // data array type CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLArrayType.TIME.getAccession(), "",
-            "time array", MzMLCV.cvUnitsMin2));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLArrayType.TIME.getAccession(), "", "time array",
+                MzMLCV.cvUnitsMin2));
 
         // <binary>
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_BINARY);
@@ -633,23 +650,25 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         xmlStreamWriter.writeEndElement(); // </binaryDataArray>
 
         // <binaryDataArray> (intensity)
-        intensityBuffer2 =
-            MzMLPeaksEncoder.encodeFloat(chromatogram.getIntensityValues(), floatArrayCompression);
+        intensityBuffer2 = MzMLPeaksEncoder.encodeFloat(chromatogram.getIntensityValues(),
+            floatArrayCompression);
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_BINARY_DATA_ARRAY);
         xmlStreamWriter.writeAttribute(MzMLTags.ATTR_ENCODED_LENGTH,
             String.valueOf(intensityBuffer2.length));
 
         // data array precision CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(),
-            "", "32-bit float", null));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLBitLength.THIRTY_TWO_BIT_FLOAT.getValue(), "", "32-bit float",
+                null));
 
         // data array compression CV param
         writeCVParam(xmlStreamWriter, new MzMLCVParam(floatArrayCompression.getAccession(), "",
             floatArrayCompression.getName(), null));
 
         // data array type CV param
-        writeCVParam(xmlStreamWriter, new MzMLCVParam(MzMLArrayType.INTENSITY.getAccession(), "",
-            "intensity array", MzMLCV.cvUnitsIntensity1));
+        writeCVParam(xmlStreamWriter,
+            new MzMLCVParam(MzMLArrayType.INTENSITY.getAccession(), "", "intensity array",
+                MzMLCV.cvUnitsIntensity1));
 
         // <binary>
         xmlStreamWriter.writeStartElement(MzMLTags.TAG_BINARY);
@@ -725,27 +744,33 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
     } catch (
 
-    Exception e) {
+        Exception e) {
       throw new MSDKException(e);
     }
 
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Float getFinishedPercentage() {
     return (totalScans + totalChromatograms) == 0 ? null
         : (float) (parsedScans + parsedChromatograms) / (totalScans + totalChromatograms);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Void getResult() {
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void cancel() {
     this.canceled = true;
@@ -757,7 +782,7 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * </p>
    *
    * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
-   * @param cvParam the CV Parameter to be written to the target {@link File File}
+   * @param cvParam         the CV Parameter to be written to the target {@link File File}
    * @throws XMLStreamException
    */
   private void writeCVParam(XMLStreamWriterImpl xmlStreamWriter, MzMLCVParam cvParam)
@@ -774,16 +799,17 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
     // Get optional CV param attribute such as value, name and unitAccession and write if they are
     // present
-    Optional<String> value = cvParam.getValue(), name = cvParam.getName(),
-        unitAccession = cvParam.getUnitAccession();
+    Optional<String> value = cvParam.getValue(), name = cvParam.getName(), unitAccession = cvParam.getUnitAccession();
 
-    if (name.isPresent())
+    if (name.isPresent()) {
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_NAME, name.get());
+    }
 
     xmlStreamWriter.writeAttribute(MzMLTags.ATTR_VALUE, value.orElse(""));
 
-    if (unitAccession.isPresent())
+    if (unitAccession.isPresent()) {
       xmlStreamWriter.writeAttribute(MzMLTags.ATTR_UNIT_ACCESSION, unitAccession.get());
+    }
 
     xmlStreamWriter.writeEndElement(); // </cvParam>
 
@@ -795,14 +821,15 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * </p>
    *
    * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
-   * @param cvGroup the list (or group) of CV Parameters to be written to the target {@link File
-   *        File}
+   * @param cvGroup         the list (or group) of CV Parameters to be written to the target
+   *                        {@link File File}
    * @throws XMLStreamException
    */
   private void writeCVGroup(XMLStreamWriterImpl xmlStreamWriter, MzMLCVGroup cvGroup)
       throws XMLStreamException {
-    for (MzMLCVParam cvParam : cvGroup.getCVParamsList())
+    for (MzMLCVParam cvParam : cvGroup.getCVParamsList()) {
       writeCVParam(xmlStreamWriter, cvParam);
+    }
   }
 
 }

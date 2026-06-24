@@ -72,6 +72,16 @@ public interface Feature {
   void setRT(float rt);
 
   /**
+   * This method returns retention index of the feature if available
+   */
+  Float getRI();
+
+  /**
+   * Sets retention index of the feature
+   */
+  void setRI(float ri);
+
+  /**
    * This method returns the raw height of the feature
    */
   Float getHeight();
@@ -331,11 +341,6 @@ public interface Feature {
   void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
-  @Nullable
-  default Integer getParentChromatogramRowID() {
-    return null;
-  }
-
   @NotNull FeatureList getFeatureList();
 
   int getNumberOfDataPoints();
@@ -363,11 +368,31 @@ public interface Feature {
   void setRow(@Nullable FeatureListRow row);
 
   /**
-   * @return The polarity of the scan obtained by {@link Feature#getRepresentativeScan()}
+   * @return The polarity of the scan obtained by {@link Feature#getRepresentativeScan()} or
+   * {@link Feature#getAllMS2FragmentScans()}
    */
   @Nullable
   default PolarityType getRepresentativePolarity() {
     final Scan representativeScan = getRepresentativeScan();
-    return representativeScan == null ? null : representativeScan.getPolarity();
+    if (representativeScan != null) {
+      return representativeScan.getPolarity();
+    }
+    // some features do not have MS1 scan for example after MSn tree builder if MS1 signal mz was off
+    final List<Scan> ms2 = getAllMS2FragmentScans();
+    if (!ms2.isEmpty()) {
+      return ms2.getFirst().getPolarity();
+    }
+    return null;
   }
+
+  default boolean hasMs2Fragmentation() {
+    return !getAllMS2FragmentScans().isEmpty();
+  }
+
+  boolean isMrm();
+
+  /**
+   * @return A string containing every data type currently present for the feature.
+   */
+  String toFullString();
 }

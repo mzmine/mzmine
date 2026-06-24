@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,14 +29,17 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
+import io.github.mzmine.util.spectraldb.parser.LibraryParsingErrors;
 import io.github.mzmine.util.spectraldb.parser.SpectralDBParser;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
@@ -49,16 +52,23 @@ import org.jetbrains.annotations.Nullable;
 public class GNPSJsonParser extends SpectralDBParser {
 
   private static final Logger logger = Logger.getLogger(GNPSJsonParser.class.getName());
+  private final boolean extensiveErrorLogging;
   private boolean finished = false;
 
-  public GNPSJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
+  public GNPSJsonParser(int bufferEntries, LibraryEntryProcessor processor,
+      boolean extensiveErrorLogging) {
     super(bufferEntries, processor);
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
-  public boolean parse(@Nullable AbstractTask mainTask, File dataBaseFile,
-      @Nullable SpectralLibrary library) throws IOException {
+  public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
+      @NotNull SpectralLibrary library) throws IOException {
     logger.info("Parsing GNPS spectral json library " + dataBaseFile.getAbsolutePath());
+
+    final LibraryParsingErrors errors = new LibraryParsingErrors(
+        library != null ? library.getName() : dataBaseFile.getName());
+
     int error = 0;
     ObjectMapper mapper = new ObjectMapper();
     // Create a JsonParser instance
@@ -68,15 +78,21 @@ public class GNPSJsonParser extends SpectralDBParser {
       if (jsonParser.nextToken() != JsonToken.START_ARRAY) {
         throw new IllegalStateException("Expected content to be an array");
       }
+      final MemoryMapStorage storage = library == null ? null : library.getStorage();
 
       // Iterate over the tokens until the end of the array
       while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
         try {
           SpectralLibraryEntry entry = mapper.readValue(jsonParser, GnpsLibraryEntry.class)
               .toSpectralLibraryEntry(library);
-          addLibraryEntry(entry);
+          addLibraryEntry(storage, errors, entry);
         } catch (Exception ex) {
-          logger.log(Level.WARNING, ex.getMessage(), ex);
+          errors.addUnknownException("GNPS json parsing error: " + ex.getMessage());
+          int totalErrors = errors.addUnknownException("Total GNPS json parsing errors");
+          // only log first 5 errors otherwise log overflows
+          if (extensiveErrorLogging && totalErrors <= 5) {
+            logger.log(Level.WARNING, ex.getMessage(), ex);
+          }
           error++;
         }
       }
@@ -87,6 +103,10 @@ public class GNPSJsonParser extends SpectralDBParser {
         getProcessedEntries(), error));
 
     finished = true;
+
+    // log errors
+    logger.fine(extensiveErrorLogging ? errors.toString() : errors.toStringShort());
+
     return true;
   }
 

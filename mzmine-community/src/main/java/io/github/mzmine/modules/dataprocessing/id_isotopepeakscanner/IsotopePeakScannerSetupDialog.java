@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
@@ -54,7 +55,6 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.NumberStringConverter;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
@@ -70,7 +70,8 @@ import org.jfree.data.xy.XYSeriesCollection;
  */
 public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPreview {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      IsotopePeakScannerSetupDialog.class.getName());
 
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intFormat = new DecimalFormat("0.00 %");
@@ -113,7 +114,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
   @Override
   protected void showPreview(boolean show) {
     super.showPreview(show);
-    if(show) {
+    if (show) {
       updatePreview();
     }
   }
@@ -127,7 +128,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     theme.initialize();
     ttGen = new SpectraToolTipGenerator();
 
-    chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
+    chart = FxChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         new XYSeriesCollection(new XYSeries("")));
     pnlChart = new EChartViewer(chart);
     pnlChart.setMinSize(400, 300);
@@ -135,8 +136,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     pnlPreview.setCenter(pnlChart);
 
     // get components
-    cmpAutoCarbon = (OptionalModuleComponent) this
-        .getComponentForParameter(IsotopePeakScannerParameters.autoCarbonOpt);
+    cmpAutoCarbon = (OptionalModuleComponent) this.getComponentForParameter(
+        IsotopePeakScannerParameters.autoCarbonOpt);
     cmpAutoCarbonCbx = cmpAutoCarbon.getCheckbox();
 
     previewWrapperPane.setCenter(pnlPreview);
@@ -328,8 +329,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
     charge = (charge > 0) ? charge : charge * -1;
     try {
       // *0.2 so the user can see the peaks below the threshold
-      pattern = (SimpleIsotopePattern) IsotopePatternCalculator
-          .calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
+      pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern,
+          minIntensity * 0.1, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid.");
       return null;

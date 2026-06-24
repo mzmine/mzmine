@@ -113,9 +113,9 @@ public class OtherDataTest {
   @Test
   void testMsOtherCorrelationResultType() {
     final MsOtherCorrelationResult resultA = new MsOtherCorrelationResult(featureA,
-        MsOtherCorrelationType.CALCULATED);
+        MsOtherCorrelationType.CALCULATED, 0.988f);
     final MsOtherCorrelationResult resultB = new MsOtherCorrelationResult(featureB,
-        MsOtherCorrelationType.MANUAL);
+        MsOtherCorrelationType.MANUAL, null);
     List<MsOtherCorrelationResult> results = List.of(resultA, resultB);
 
     DataTypeTestUtils.testSaveLoad(new MsOtherCorrelationResultType(), results, proj, flist, row,

@@ -26,12 +26,14 @@
 package io.github.mzmine.gui.framework.fx;
 
 public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBinding,
-    SelectedMetadataColumnBinding, SelectedRowsBinding, SelectedFeaturesBinding,
-    SelectedFilesBinding, SelectedFeatureListsBinding {
+    SelectedCompoundRowBinding, SelectedCompoundRowSelectionBinding, SelectedMetadataColumnBinding,
+    SelectedRowsBinding, SelectedFeaturesBinding, SelectedFilesBinding,
+    SelectedFeatureListsBinding {
 
   public static void bindExposedProperties(Object master, Object child) {
-    if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
-      bindExposedProperties(master, child);
+    if (master instanceof FxControllerBinding fxmaster
+        && child instanceof FxControllerBinding fxchild) {
+      bindExposedProperties(fxmaster, fxchild);
     }
   }
 
@@ -39,27 +41,37 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     if (master == null || child == null) {
       return;
     }
-
+    // value of the argument property is set to the calling property.
+    // -> propA.bindBidirectional(probB) -> propA gets the value of propB
+    // the "master" value shall be the initial value.
     if (master instanceof SelectedAbundanceMeasureBinding m
         && child instanceof SelectedAbundanceMeasureBinding c) {
-      m.abundanceMeasureProperty().bindBidirectional(c.abundanceMeasureProperty());
+      c.abundanceMeasureProperty().bindBidirectional(m.abundanceMeasureProperty());
+    }
+    if (master instanceof SelectedCompoundRowSelectionBinding m
+        && child instanceof SelectedCompoundRowSelectionBinding c) {
+      c.compoundRowSelectionProperty().bindBidirectional(m.compoundRowSelectionProperty());
+    }
+    if (master instanceof SelectedCompoundRowBinding m
+        && child instanceof SelectedCompoundRowBinding c) {
+      c.selectedCompoundRowProperty().bindBidirectional(m.selectedCompoundRowProperty());
     }
     if (master instanceof SelectedFeatureListsBinding m
         && child instanceof SelectedFeatureListsBinding c) {
-      m.selectedFeatureListsProperty().bindBidirectional(c.selectedFeatureListsProperty());
+      c.selectedFeatureListsProperty().bindBidirectional(m.selectedFeatureListsProperty());
     }
     if (master instanceof SelectedFeaturesBinding m && child instanceof SelectedFeaturesBinding c) {
-      m.selectedFeaturesProperty().bindBidirectional(c.selectedFeaturesProperty());
+      c.selectedFeaturesProperty().bindBidirectional(m.selectedFeaturesProperty());
     }
     if (master instanceof SelectedFilesBinding m && child instanceof SelectedFilesBinding c) {
-      m.selectedRawFilesProperty().bindBidirectional(c.selectedRawFilesProperty());
+      c.selectedRawFilesProperty().bindBidirectional(m.selectedRawFilesProperty());
     }
     if (master instanceof SelectedMetadataColumnBinding m
         && child instanceof SelectedMetadataColumnBinding c) {
-      m.groupingColumnProperty().bindBidirectional(c.groupingColumnProperty());
+      c.groupingColumnProperty().bindBidirectional(m.groupingColumnProperty());
     }
     if (master instanceof SelectedRowsBinding m && child instanceof SelectedRowsBinding c) {
-      m.selectedRowsProperty().bindBidirectional(c.selectedRowsProperty());
+      c.selectedRowsProperty().bindBidirectional(m.selectedRowsProperty());
     }
   }
 
@@ -72,6 +84,10 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
       case SelectedRowsBinding _ -> {
       }
       case SelectedAbundanceMeasureBinding _ -> {
+      }
+      case SelectedCompoundRowSelectionBinding _ -> {
+      }
+      case SelectedCompoundRowBinding _ -> {
       }
       case SelectedFeatureListsBinding _ -> {
       }

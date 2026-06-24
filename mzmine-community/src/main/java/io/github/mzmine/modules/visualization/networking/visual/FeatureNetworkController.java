@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Gra
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
@@ -62,7 +63,6 @@ import javafx.util.Duration;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
-import org.controlsfx.control.textfield.TextFields;
 import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,6 +86,7 @@ public class FeatureNetworkController {
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
   public Button btnFocusSelectedNodes;
+  public NetworkLegend legend;
 
   private FeatureNetworkPane networkPane;
 
@@ -104,6 +105,7 @@ public class FeatureNetworkController {
     FeatureNetworkController controller = loader.getController();
 
     controller.setFeatureListCreateNetworkPane(flist, focussedRows, flavor);
+
     return controller;
   }
 
@@ -122,6 +124,11 @@ public class FeatureNetworkController {
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
+    // Filter the legend to the node/edge types actually emitted by the generator. The generator
+    // tracks them in observable sets while building the graph, so the legend reflects what's in
+    // this particular network instead of every possible enum value.
+    legend.bindToTypes(generator.getNodeTypes(), generator.getEdgeTypes());
+
     addMenuOptions(flavor);
     addAnnotationFilterOptions(flist);
     addBindings();
@@ -136,7 +143,7 @@ public class FeatureNetworkController {
   private void addAnnotationFilterOptions(final FeatureList flist) {
     var annotations = flist.stream().map(FeatureListRow::getAllFeatureAnnotations)
         .flatMap(Collection::stream).map(Object::toString).toList();
-    TextFields.bindAutoCompletion(txtFilterAnnotations, annotations);
+    FxTextFields.bindAutoCompletion(txtFilterAnnotations, annotations);
     PauseTransition delayedFilter = new PauseTransition(Duration.seconds(1));
     delayedFilter.setOnFinished(event -> {
       // finally filter and select nodes

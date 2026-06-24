@@ -26,8 +26,9 @@
 package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.WindowSettings;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.Arrays;
 import javafx.collections.ListChangeListener;
@@ -53,9 +54,9 @@ public class MZmineWindow extends Stage {
   protected final TabPane tabPane;
 
   /**
-   * If this flag is set to true, no tabs will be added to this window via {@link
-   * MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by directly calling the {@link
-   * MZmineWindow#addTab(MZmineTab)} method of this window.
+   * If this flag is set to true, no tabs will be added to this window via
+   * {@link MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by directly calling the
+   * {@link MZmineWindow#addTab(MZmineTab)} method of this window.
    */
   private final boolean isExclusive;
 
@@ -67,19 +68,28 @@ public class MZmineWindow extends Stage {
   }
 
   /**
-   * @param isExclusive If this flag is set to true, no tabs will be added to this window via {@link
-   *                    MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by directly
-   *                    calling the {@link MZmineWindow#addTab(MZmineTab)} method of this window.
-   *                    The default value is false.
+   * @param isExclusive If this flag is set to true, no tabs will be added to this window via
+   *                    {@link MZmineGUI#addTab(MZmineTab)}. However, tabs can still be added by
+   *                    directly calling the {@link MZmineWindow#addTab(MZmineTab)} method of this
+   *                    window. The default value is false.
    */
   public MZmineWindow(boolean isExclusive) {
     super();
+
+    final Stage mainWindow = MZmineCore.getDesktop().getMainWindow();
+    final Screen mainScreen = StageWindowSettingsUtil.getCurrentScreenOrPrimary(mainWindow);
+    final Screen otherScreen = StageWindowSettingsUtil.nextBestScreen(mainScreen);
 
     Image mzmineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
     this.getIcons().add(mzmineIcon);
 
     setWidth(DEFAULT_WIDTH);
     setHeight(DEFAULT_HEIGHT);
+
+    if (otherScreen != mainScreen) {
+      StageWindowSettingsUtil.applySettingsToWindow(this,
+          WindowSettings.createMaximizedOnScreen(otherScreen));
+    }
 
     this.isExclusive = isExclusive;
 
@@ -89,12 +99,11 @@ public class MZmineWindow extends Stage {
     scene.getStylesheets()
         .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     mainPane.setCenter(tabPane);
-    tabPane.getSelectionModel().selectedItemProperty()
-        .addListener((obs, old, newVal) -> {
-          if (newVal != null) {
-            setTitle(newVal.getText());
-          }
-        });
+    tabPane.getSelectionModel().selectedItemProperty().addListener((_, _, newVal) -> {
+      if (newVal != null) {
+        setTitle(MZmineTab.getText(newVal));
+      }
+    });
     this.setScene(scene);
 
     // update if tab selection in main window changes
@@ -105,9 +114,8 @@ public class MZmineWindow extends Stage {
             || ((MZmineTab) val).getRawDataFiles().size() != MZmineCore.getDesktop()
             .getSelectedDataFiles().length) {
           if (((MZmineTab) val).isUpdateOnSelection()) {
-            ((MZmineTab) val)
-                .onRawDataFileSelectionChanged(
-                    Arrays.asList(MZmineCore.getDesktop().getSelectedDataFiles()));
+            ((MZmineTab) val).onRawDataFileSelectionChanged(
+                Arrays.asList(MZmineCore.getDesktop().getSelectedDataFiles()));
           }
         }
         // TODO: Add the same for feature lists

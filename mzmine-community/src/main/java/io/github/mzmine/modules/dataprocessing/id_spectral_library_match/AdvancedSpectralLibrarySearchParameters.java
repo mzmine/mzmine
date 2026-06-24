@@ -26,14 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RIToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import java.util.Collection;
+import java.util.Map;
 
 public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet {
 
@@ -45,6 +48,10 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
       new RTToleranceParameter());
+
+  public static final OptionalParameter<RIToleranceParameter> riTolerance = new OptionalParameter<>(
+      new RIToleranceParameter("Retention index tolerance",
+          "Maximum difference in retention index for spectral library entries to be matched against a feature."));
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
       "13C deisotoping",
@@ -61,8 +68,14 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
           "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
           3, 0, 1000), false);
 
+  // old parameter, maps to riTolerance since >4.8.5
+  private final BooleanParameter ignoreWithoutRI = new BooleanParameter(
+      "Skip library entries without RIs",
+      "Only use library entries that have a numerical retention index");
+
   public AdvancedSpectralLibrarySearchParameters() {
-    super(rtTolerance, ccsTolerance, deisotoping, needsIsotopePattern, cropSpectraToOverlap);
+    super(rtTolerance, riTolerance, ccsTolerance, deisotoping, needsIsotopePattern,
+        cropSpectraToOverlap);
   }
 
 
@@ -79,4 +92,25 @@ public class AdvancedSpectralLibrarySearchParameters extends SimpleParameterSet 
     return check;
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final var map = super.getNameParameterMap();
+    map.put(ignoreWithoutRI.getName(), ignoreWithoutRI);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (getNameParameterMap().containsKey(ignoreWithoutRI.getName())) {
+      final BooleanParameter param = (BooleanParameter) getNameParameterMap().get(
+          ignoreWithoutRI.getName());
+
+      final var previousRiTol = getParameter(riTolerance).getEmbeddedParameter().getValue();
+      final var newRiTol =
+          previousRiTol != null ? previousRiTol.withMatchOnNull(param.getValue()) : null;
+      getParameter(riTolerance).getEmbeddedParameter().setValue(newRiTol);
+    }
+  }
 }

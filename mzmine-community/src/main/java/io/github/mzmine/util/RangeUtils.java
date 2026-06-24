@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,15 @@ package io.github.mzmine.util;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
 import io.github.mzmine.util.maths.ArithmeticUtils;
+import io.github.mzmine.util.maths.Precision;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,13 +81,43 @@ public class RangeUtils {
     return Range.closedOpen(lower, upper);
   }
 
+
+  /**
+   * Parses string of the given filter text field and returns a range of values satisfying the
+   * filter. Examples: "5.34" -> [5.34 - epsilon, 5.34 + epsilon] "2.37 - 6" -> [2.37 - epsilon,
+   * 6.00 + epsilon]
+   *
+   * @param filterStr filter string, either a single value or a range as 1-2
+   * @return Range of values satisfying the filter or RangeUtils.DOUBLE_NAN_RANGE if the filter
+   * string is invalid
+   */
+  @NotNull
+  public static Range<Double> getSingleValueToCeilDecimalRangeOrRange(@NotNull String filterStr)
+      throws IllegalArgumentException {
+    // need to remove spaces around the range definition
+    filterStr = filterStr.trim().replace(" ", "");
+
+    if (filterStr.isEmpty()) { // Empty filter
+      return Range.all();
+    } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
+      return RangeUtils.parseDoubleRange(filterStr);
+    } else { // Filter by single value
+      return RangeUtils.getRangeToCeilDecimal(filterStr);
+    }
+  }
+
   /**
    * Converts given range to Float range.
    *
    * @param range Input range
    * @return Converted Float range
    */
-  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+  @Contract("null -> null")
+  public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(
+      @Nullable Range<N> range) {
+    if (range == null) {
+      return null;
+    }
     if (!(range.hasLowerBound() && range.hasUpperBound())) {
       return Range.all();
     }
@@ -97,7 +130,11 @@ public class RangeUtils {
    * @param range Input range
    * @return Converted Double range
    */
+  @Contract("null -> null")
   public static <N extends Number & Comparable<N>> Range<Double> toDoubleRange(Range<N> range) {
+    if (range == null) {
+      return null;
+    }
     return Range.closed(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue());
   }
 
@@ -128,6 +165,10 @@ public class RangeUtils {
    */
   public static <N extends Number & Comparable<?>> N rangeLength(Range<N> range) {
     return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
+  }
+
+  public static <N extends Number & Comparable<?>> N rangeLength(SimpleRange<N> range) {
+    return ArithmeticUtils.subtract(range.upperBound(), range.lowerBound());
   }
 
   /**
@@ -269,8 +310,17 @@ public class RangeUtils {
     if (jfreeRange == null || guavaRange == null) {
       return false;
     }
-    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange.contains(
-        guavaRange.upperEndpoint().doubleValue());
+    return Range.closed(jfreeRange.getLowerBound(), jfreeRange.getUpperBound()).isConnected(
+        Range.closed(guavaRange.lowerEndpoint().doubleValue(),
+            guavaRange.upperEndpoint().doubleValue()));
+  }
+
+  public static boolean isDefaultJFreeRange(org.jfree.data.Range jfreeRange) {
+    if (Precision.equals(0d, jfreeRange.getLowerBound(), 0.0001d) && Precision.equals(1d,
+        jfreeRange.getUpperBound(), 0.1d)) {
+      return true;
+    }
+    return false;
   }
 
   public static boolean isJFreeRangeEnclosingGuavaRange(org.jfree.data.Range jfreeRange,
@@ -394,5 +444,52 @@ public class RangeUtils {
    */
   public static <T extends Number & Comparable<?>> Range<T> min(Range<T> a, Range<T> b) {
     return rangeLength(a).doubleValue() < rangeLength(b).doubleValue() ? a : b;
+  }
+
+  /**
+   * Same like {@link #formatRange(Range, NumberFormat)}
+   */
+  public static <T extends Number & Comparable<?>> String toString(Range<T> range,
+      NumberFormat format) {
+    return formatRange(range, format);
+  }
+
+  @Nullable
+  public static <N extends Comparable> Range<N> span(@Nullable Range<N> a, @Nullable Range<N> b) {
+    if (a == null && b == null) {
+      return null;
+    }
+    if (a == null) {
+      return b;
+    }
+    if (b == null) {
+      return a;
+    }
+    return a.span(b);
+  }
+
+  public static Range<Float> multiplyGrow(Range<Float> range, float factor) {
+    final float length = rangeLength(range);
+    final float diff = length * (factor - 1) * 0.5f;
+    return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
+  }
+
+  public static Range<Double> multiplyGrow(Range<Double> range, double factor) {
+    final double length = rangeLength(range);
+    final double diff = length * (factor - 1) * 0.5;
+    return Range.closed(range.lowerEndpoint() - diff, range.upperEndpoint() + diff);
+  }
+
+  /**
+   * @param range original range
+   * @param min   may be null to keep original
+   * @param max   may be null to keep original
+   * @return a closed range within min max bounds
+   */
+  public static <T extends Number & Comparable<T>> Range<T> withinBounds(@NotNull Range<T> range,
+      @Nullable T min, @Nullable T max) {
+    T lower = ArithmeticUtils.max(range.lowerEndpoint(), min);
+    T upper = ArithmeticUtils.min(range.upperEndpoint(), max);
+    return Range.closed(lower, upper);
   }
 }

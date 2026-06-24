@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.modules.dataprocessing.align_gc.GCConsensusAlignerPostProcessor;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +54,7 @@ public sealed interface FeatureCloner {
       final ModularFeatureList targetFeatureList, final FeatureListRow targetAlignRow);
 
   /**
-   * Always just clones the feature. For GC use {@link ExtractMzMismatchFeatureCloner}
+   * Always just clones the feature.
    */
   record SimpleFeatureCloner() implements FeatureCloner {
 
@@ -66,6 +67,10 @@ public sealed interface FeatureCloner {
   }
 
   /**
+   * Currently unused - previously this was used for GC but now GC aligner just clones the orginal
+   * features and later the {@link GCConsensusAlignerPostProcessor} will find a consensus main
+   * feature.
+   * <p>
    * On mz mismatch between row and feature, this cloner extracts a new series to create a
    * completely new feature. This is useful for GC alignment as features in GC are based on random
    * representative m/z for a pseudo spectrum feature

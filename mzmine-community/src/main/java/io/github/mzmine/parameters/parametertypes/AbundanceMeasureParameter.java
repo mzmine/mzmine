@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,16 +26,29 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> {
 
-  public static final String DEFAULT_DESC = STR."Select which abundance type should be used for the calculations. \{Arrays.toString(
-      AbundanceMeasure.values())}";
+  public static final String NAME = "Abundance measure";
+  public static final String DESCRIPTION = "Select the abundance measure.";
 
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices) {
     this(name, description, choices, AbundanceMeasure.Height);
+  }
+
+  public AbundanceMeasureParameter() {
+    this(AbundanceMeasure.Height);
+  }
+
+  public AbundanceMeasureParameter(@NotNull AbundanceMeasure[] choices, @Nullable AbundanceMeasure defaultValue) {
+    this(NAME, DESCRIPTION, choices, defaultValue);
+  }
+  public AbundanceMeasureParameter(AbundanceMeasure defaultValue) {
+    this(NAME, DESCRIPTION, AbundanceMeasure.values(),
+        defaultValue);
   }
 
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices,
@@ -51,5 +64,10 @@ public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> 
   public AbundanceMeasureParameter(String name, String description, List<AbundanceMeasure> choices,
       AbundanceMeasure defaultValue) {
     super(name, description, choices, defaultValue);
+  }
+
+  @Override
+  public AbundanceMeasureParameter cloneParameter() {
+    return new AbundanceMeasureParameter(getName(), getDescription(), getChoices(), value);
   }
 }

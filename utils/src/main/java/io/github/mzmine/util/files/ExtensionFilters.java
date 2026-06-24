@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.util.files;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ExtensionFilters {
@@ -39,6 +41,11 @@ public class ExtensionFilters {
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
   public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
       "*.mzmwizard");
+  public static final ExtensionFilter MZ_PRESETS = new ExtensionFilter("mzmine presets",
+      "*.mzpresets");
+  public static final ExtensionFilter MZ_PROJECT = new ExtensionFilter("mzmine project file",
+      "*.mzmine");
+  public static final ExtensionFilter MZ_LOG = new ExtensionFilter("mzmine log file", "*.log");
 
   /**
    * PyTorch DJL specific
@@ -51,6 +58,13 @@ public class ExtensionFilters {
   public static final ExtensionFilter ZIP = new ExtensionFilter("zip compressed", "*.zip");
   public static final ExtensionFilter EXE = new ExtensionFilter("Microsoft Windows executable",
       "*.exe");
+
+  /*
+   * graphics
+   */
+  public static final ExtensionFilter SVG = new ExtensionFilter("Scalable vector graphic", ".svg");
+  public static final ExtensionFilter PDF = new ExtensionFilter("PDF", ".pdf");
+  public static final ExtensionFilter PNG = new ExtensionFilter("PNG pixel graphics", ".png");
 
   /*
    * CSV and TSV import export
@@ -75,7 +89,7 @@ public class ExtensionFilters {
   public static final ExtensionFilter JSON_LIBRARY = new ExtensionFilter(
       "json libraries from MoNA, GNPS, MZmine", "*.json");
   public static final ExtensionFilter MSP = new ExtensionFilter("msp mass spectra format (NIST)",
-      "*.msp");
+      "*.msp", "*.msp_RIKEN", "*.msp_NIST");
   public static final ExtensionFilter MGF = new ExtensionFilter("mgf mass spectra format", "*.mgf");
   public static final ExtensionFilter JDCAMX = new ExtensionFilter("JCAM-DX files", "*.jdx");
 
@@ -88,39 +102,53 @@ public class ExtensionFilters {
       "*.mzxml");
   public static final ExtensionFilter IMZML = new ExtensionFilter("imzML MS imaging data",
       "*.imzML", "*.imzml");
-  public static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker .d files", "*.d",
-      ".tsf", "*.tdf");
-  public static final ExtensionFilter AGILENT_D = new ExtensionFilter("Agilent .d files", "*.d");
-  public static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
-      "*.RAW");
-  public static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
-      "*.raw", "*.RAW");
+  // Bruker formats - each format in separate filter to add buttons for each to FileNamesComponent
+  public static final ExtensionFilter BRUKER_OR_AGILENT_D = new ExtensionFilter(
+      "Bruker .d folders or Agilent .d folders", "*.d");
+  public static final ExtensionFilter BRUKER_TSF = new ExtensionFilter("Bruker .tsf files",
+      "*.tsf");
+  public static final ExtensionFilter BRUKER_TDF = new ExtensionFilter("Bruker .tdf files",
+      "*.tdf");
+  // Waters is .raw folder thermo is file
+  public static final ExtensionFilter THERMO_OR_WATERS_RAW = new ExtensionFilter(
+      "Thermo RAW files or Waters RAW folders", "*.raw", "*.RAW");
   public static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");
   //  public static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
 //      "*.Aird", "*.AIRD");
+  // additional cdf formats extensions - but different extensions will not be shown as button in FileNamesComponent
   public static final ExtensionFilter NETCDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF",
       "*.netcdf", "*.NETCDF", "*.nc", "*.NC");
+  // just CDF to generate All .cdf button
+  public static final ExtensionFilter CDF = new ExtensionFilter("netCDF", "*.cdf", "*.CDF");
   public static final ExtensionFilter MZML_ZIP_GZIP = new ExtensionFilter("zip", "*.zip", "*.gz");
   public static final ExtensionFilter WIFF = new ExtensionFilter("wiff", "*.wiff");
   public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
+  public static final ExtensionFilter SHIMADZU = new ExtensionFilter(".lcd", "*.lcd");
+  public static final ExtensionFilter MBI = new ExtensionFilter("MOBILion", "*.mbi");
+
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
-      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2");
+      "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2", "*.lcd",
+      "*.mbi");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
       MZXML, //
       IMZML, //
-      BRUKER_D, //
-      THERMO_RAW, //
-      WATERS_RAW, //
+      THERMO_OR_WATERS_RAW, //
+      BRUKER_OR_AGILENT_D, //
+      BRUKER_TSF, //
+      BRUKER_TDF, //
       MZDATA, //
 //      AIRD, //
+      CDF, //
       NETCDF, //
       MZML_ZIP_GZIP, //
       WIFF, //
       WIFF2, //
+      MBI, //
+      SHIMADZU, //
       ALL_FILES);
   private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(
       "All spectral libraries", "*.json", "*.msp", "*.mgf", "*.jdx");
@@ -131,10 +159,46 @@ public class ExtensionFilters {
   public static final ExtensionFilter MSCONVERT = new ExtensionFilter("MSConvert", "msconvert.exe");
 
 
-  public static String getExtensionName(ExtensionFilter filter) {
-    return filter.getExtensions().stream().findFirst().map(ext -> {
-      var split = ext.split("\\.");
-      return split[split.length - 1];
-    }).orElse("");
+  /**
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static String getCleanExtensionName(String filter) {
+    return filter.replaceAll("[.*]", "");
+  }
+
+  /**
+   * All extension filter clean names. Each filter may have multiple. The all filter (*.*) is
+   * removed
+   *
+   * @param filters usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static Stream<String> getAllCleanExtensionNames(List<ExtensionFilter> filters) {
+    return filters.stream().map(ExtensionFilter::getExtensions).flatMap(Collection::stream)
+        .map(ExtensionFilters::getCleanExtensionName).filter(s -> !s.isBlank());
+  }
+
+  /**
+   * All extension filter clean names. Each filter may have multiple. The all filter (*.*) is
+   * removed
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static Stream<String> getAllCleanExtensionNames(ExtensionFilter filter) {
+    return getAllCleanExtensionNames(List.of(filter));
+  }
+
+  /**
+   * Only the first extension filter
+   *
+   * @param filter usually *.csv and similar
+   * @return csv without the star and .
+   */
+  public static String getFirstCleanExtensionName(ExtensionFilter filter) {
+    return filter.getExtensions().stream().findFirst().map(ExtensionFilters::getCleanExtensionName)
+        .orElse("");
   }
 }

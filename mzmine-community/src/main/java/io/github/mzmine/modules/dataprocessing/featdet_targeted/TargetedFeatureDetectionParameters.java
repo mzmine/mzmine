@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -46,11 +47,10 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
@@ -64,14 +64,12 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter rawDataFile = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
-  public static final StringParameter suffix = new StringParameter(
-      "Name suffix", "Suffix to be added to feature list name", "detectedPeak");
-  public static final FileNameParameter featureListFile = new FileNameParameter(
-      "Database file",
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "detectedPeak");
+  public static final FileNameParameter featureListFile = new FileNameParameter("Database file",
       "Name of the file that contains a list of peaks for targeted feature detection.",
       FileSelectionType.OPEN);
-  public static final StringParameter fieldSeparator = new StringParameter(
-      "Field separator",
+  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file. Use '\\t' for tab separated files.",
       ",");
   public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
@@ -83,24 +81,24 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
       new MobilityToleranceParameter());
 
-  public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
-      "Calculate adduct masses",
-      "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
-      new IonLibraryParameterSet());
+  public static final OptionalParameter<IonLibraryParameter> ionLibrary = new OptionalParameter<>(
+      new IonLibraryParameter("Calculate adduct masses",
+          "Ion types to search for. Either neutral mass, formula or smiles must be imported for every compound.",
+          IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_MAIN));
 
-  private static final List<ImportType> importTypes = List.of(
-      new ImportType(true, "neutral mass", new NeutralMassType()),
-      new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), //
-      new ImportType(true, "formula", new FormulaType()),
-      new ImportType(true, "smiles", new SmilesStructureType()),
-      new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchi key", new InChIKeyStructureType()),
-      new ImportType(false, "name", new CompoundNameType()),
-      new ImportType(false, "CCS", new CCSType()),
-      new ImportType(false, "mobility", new MobilityType()),
-      new ImportType(true, "comment", new CommentType()));
+  private static final List<ImportType<?>> importTypes = List.of(
+      new ImportType<>(true, "neutral mass", new NeutralMassType()),
+      new ImportType<>(true, "mz", new PrecursorMZType()), //
+      new ImportType<>(true, "rt", new RTType()), //
+      new ImportType<>(true, "formula", new FormulaType()),
+      new ImportType<>(true, "smiles", new SmilesStructureType()),
+      new ImportType<>(false, "adduct", new IonAdductType()),
+      new ImportType<>(false, "inchi", new InChIStructureType()),
+      new ImportType<>(false, "inchi key", new InChIKeyStructureType()),
+      new ImportType<>(false, "name", new CompoundNameType()),
+      new ImportType<>(false, "CCS", new CCSType()),
+      new ImportType<>(false, "mobility", new MobilityType()),
+      new ImportType<>(true, "comment", new CommentType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);

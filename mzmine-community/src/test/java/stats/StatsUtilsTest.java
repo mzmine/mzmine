@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,6 @@
 package stats;
 
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.OneFifthOfMinimumImputer;
-import io.github.mzmine.modules.dataanalysis.utils.imputation.ZeroImputer;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.RangeScalingFunction;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -65,21 +63,9 @@ public class StatsUtilsTest {
 
     Assertions.assertEquals(0, unitVar.getEntry(0, 0));
     Assertions.assertEquals(1, unitVar.getEntry(1, 1));
-    Assertions.assertEquals(0.5, unitVar.getEntry(2, 1));
-    Assertions.assertEquals((double) 1 / 5, unitVar.getEntry(0, 2));
+    Assertions.assertEquals(0.0, unitVar.getEntry(2, 1));
+    Assertions.assertEquals(0d, unitVar.getEntry(0, 2));
     Assertions.assertEquals(0, unitVar.getEntry(2, 3));
   }
 
-  @Test
-  void testImputation() {
-    final Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(missingData);
-    final RealMatrix zero = StatisticUtils.imputeMissingValues(matrix, false, new ZeroImputer());
-    Assertions.assertEquals(0, zero.getEntry(1, 1));
-    Assertions.assertEquals(0, zero.getEntry(2, 3));
-
-    final RealMatrix oneFifth = StatisticUtils.imputeMissingValues(matrix, false,
-        new OneFifthOfMinimumImputer());
-    Assertions.assertEquals((double) 1 / 5, oneFifth.getEntry(1, 1));
-    Assertions.assertEquals((double) 2 / 5, oneFifth.getEntry(2, 3));
-  }
 }

@@ -54,9 +54,10 @@ public class PolynomialBaselineCorrection extends UnivariateBaselineCorrector {
     iterations = 1;
   }
 
-  public PolynomialBaselineCorrection(MemoryMapStorage storage, int numSamples, String suffix,
+  public PolynomialBaselineCorrection(MemoryMapStorage storage, double samplePercentage,
+      String suffix,
       MinimumSearchFeatureResolver resolver, int degree, int iterations) {
-    super(storage, numSamples, suffix, resolver);
+    super(storage, samplePercentage, suffix, resolver);
     this.degree = degree;
     this.iterations = iterations;
   }
@@ -82,13 +83,14 @@ public class PolynomialBaselineCorrection extends UnivariateBaselineCorrector {
     final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    final Integer numSamples = embedded.getValue(AbstractBaselineCorrectorParameters.numSamples);
+    final Double samplePercentage = embedded.getValue(
+        AbstractBaselineCorrectorParameters.samplePercentage);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
             ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
     final Integer degree = embedded.getValue(PolynomialBaselineCorrectorParameters.degree);
 
-    return new PolynomialBaselineCorrection(storage, numSamples, suffix, resolver, degree,
+    return new PolynomialBaselineCorrection(storage, samplePercentage, suffix, resolver, degree,
         Integer.MAX_VALUE);
   }
 

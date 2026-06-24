@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -47,11 +49,14 @@ import java.time.Instant;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +67,6 @@ public class ProjectSavingTask extends AbstractTask {
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
   public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
   public static final String CONFIG_FILENAME = MZmineConfiguration.CONFIG_FILE.getName();
-  public static final String PARAMETERS_FILENAME = "User parameters.xml";
   private static final Logger logger = Logger.getLogger(ProjectSavingTask.class.getName());
   private final ProjectSaveOption projectType;
 
@@ -73,7 +77,6 @@ public class ProjectSavingTask extends AbstractTask {
   // This hashtable maps raw data files to their ID within the saved project
   private final Hashtable<RawDataFile, String> dataFilesIDMap;
   private RawDataFileSaveHandler rawDataFileSaveHandler;
-  private UserParameterSaveHandler userParameterSaveHandler;
   private int currentStage;
   private String currentSavedObjectName;
 
@@ -133,11 +136,6 @@ public class ProjectSavingTask extends AbstractTask {
     if (rawDataFileSaveHandler != null) {
       rawDataFileSaveHandler.cancel();
     }
-
-    if (userParameterSaveHandler != null) {
-      userParameterSaveHandler.cancel();
-    }
-
   }
 
   @Override
@@ -145,6 +143,22 @@ public class ProjectSavingTask extends AbstractTask {
     try {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
+
+      if (Boolean.TRUE.equals(savedProject.isStandalone())
+          && projectType == ProjectSaveOption.REFERENCING) {
+        Optional<ButtonType> result = DialogLoggerUtil.showDialog(AlertType.WARNING,
+            "Project warning",
+            "The project was loaded from a standalone project. Saving as referencing will result in a project that cannot be opened. "
+                + "Do you want to save as referencing project anyway?", ButtonType.YES,
+            ButtonType.NO);
+        // in batch the return is Optional.empty
+        final boolean continueSaving = result.map(ButtonType.YES::equals).orElse(false);
+        if (!continueSaving) {
+          error(
+              "The project was loaded from a standalone project. Saving as referencing will result in a project that cannot be opened. Save as standalone or update the imported project to referencing.");
+          return;
+        }
+      }
 
       switch (projectType) {
         case STANDALONE -> savedProject.setStandalone(true);
@@ -205,7 +219,6 @@ public class ProjectSavingTask extends AbstractTask {
 
       // Stage 4 - save user parameters
       currentStage++;
-      saveUserParameters(zipStream);
       if (isCanceled()) {
         zipStream.close();
         tempFile.delete();
@@ -221,6 +234,14 @@ public class ProjectSavingTask extends AbstractTask {
       if (isCanceled()) {
         tempFile.delete();
         return;
+      }
+
+      // stage 6 - copy sirius file, same filename as mzmine project, but .sirius
+      if (Sirius.getSessionSpecificTempProject() != null) {
+        logger.info("Saving SIRIUS project.");
+        Sirius.copyDefaultProject(
+            FileAndPathUtil.getRealFilePath(saveFile.getParentFile(), saveFile.getName(),
+                ".sirius"));
       }
 
       // Move the temporary ZIP file to the final location
@@ -367,13 +388,11 @@ public class ProjectSavingTask extends AbstractTask {
           zipStream);
 
       AtomicBoolean finished = new AtomicBoolean(false);
-      saveTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      saveTask.addTaskStatusListener((_, newStatus, _) -> {
         switch (newStatus) {
           case WAITING, PROCESSING -> {
           }
-          case FINISHED, ERROR, CANCELED -> {
-            finished.set(true);
-          }
+          case FINISHED, ERROR, CANCELED -> finished.set(true);
         }
       });
       MZmineCore.getTaskController().addTask(saveTask);
@@ -390,31 +409,6 @@ public class ProjectSavingTask extends AbstractTask {
         break;
       }
     }
-  }
-
-  /**
-   * Save the feature lists
-   *
-   * @throws SAXException
-   * @throws TransformerConfigurationException
-   */
-  private void saveUserParameters(ZipOutputStream zipStream)
-      throws IOException, TransformerConfigurationException, SAXException {
-
-    if (isCanceled()) {
-      return;
-    }
-
-    logger.info("Saving user parameters");
-
-    zipStream.putNextEntry(new ZipEntry(PARAMETERS_FILENAME));
-
-    userParameterSaveHandler = new UserParameterSaveHandler(zipStream, savedProject,
-        dataFilesIDMap);
-
-    currentSavedObjectName = "User parameters";
-    userParameterSaveHandler.saveParameters();
-
   }
 
 }

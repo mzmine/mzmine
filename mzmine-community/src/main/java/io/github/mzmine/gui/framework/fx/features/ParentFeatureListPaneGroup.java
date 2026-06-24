@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,9 @@ import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +51,8 @@ import org.jetbrains.annotations.NotNull;
 public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
 
   private final WeakAdapter weak = new WeakAdapter();
+
+  protected final BooleanProperty autoUpdateProperty = new SimpleBooleanProperty(true);
 
   // source of data - table might be null if this was directly opened for a feature list
   private final ObjectProperty<FeatureTableFX> featureTableFX = new SimpleObjectProperty<>();
@@ -95,7 +99,9 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     featureList.addListener((obs, oldList, newList) -> {
       weak.removeAllForParent(oldList);
       // weakly bind
-      FeatureListUtils.bindRows(weak, newList, rows);
+      if (newList != null) {
+        FeatureListUtils.bindRows(weak, newList, rows);
+      }
     });
 
     featureTableFX.addListener((obs, oldTable, newTable) -> {
@@ -161,5 +167,10 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     weak.dipose();
     featureList.setValue(null);
     featureTableFX.setValue(null);
+  }
+
+  @Override
+  public @NotNull BooleanProperty autoUpdateProperty() {
+    return autoUpdateProperty;
   }
 }

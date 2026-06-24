@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,12 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -38,33 +41,23 @@ import javafx.util.converter.NumberStringConverter;
 
 public class DoubleRangeComponent extends HBox {
 
-  protected final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(DoubleRangeComponent.class.getName());
 
   protected final TextField minTxtField, maxTxtField;
-  protected final Label minusLabel;
 
   protected NumberFormat format;
   protected NumberStringConverter formatConverter;
 
   public DoubleRangeComponent(NumberFormat format) {
-
-    super.setSpacing(3.0);
+    FxLayout.apply(this, FxLayout.DEFAULT_SPACE, Insets.EMPTY, Pos.CENTER_LEFT);
 
     minTxtField = new TextField();
     minTxtField.setPrefColumnCount(8);
-    // minTxtField.setMinWidth(100.0);
 
     maxTxtField = new TextField();
     maxTxtField.setPrefColumnCount(8);
-    // maxTxtField.setMinWidth(100.0);
 
-    minusLabel = new Label(" - ");
-    minusLabel.setMinWidth(15.0);
-
-    getChildren().addAll(minTxtField, minusLabel, maxTxtField);
-
-    setMinWidth(200.0);
-    // setStyle("-fx-border-color: red");
+    getChildren().addAll(minTxtField, new Label(" - "), maxTxtField);
 
     setNumberFormat(format);
   }

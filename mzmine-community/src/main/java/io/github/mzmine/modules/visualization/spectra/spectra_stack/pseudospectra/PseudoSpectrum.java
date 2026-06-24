@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,12 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.FxChartFactory;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -102,7 +102,7 @@ public class PseudoSpectrum {
   public static JFreeChart createChart(PseudoSpectrumDataSet dataset, RawDataFile raw, boolean sum,
       String title) {
     //
-    JFreeChart chart = ChartFactory.createXYLineChart(title, // title
+    JFreeChart chart = FxChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
         dataset, // data set

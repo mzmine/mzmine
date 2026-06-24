@@ -30,7 +30,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidChain implements ILipidChain {
 
@@ -104,7 +103,7 @@ public class LipidChain implements ILipidChain {
     writer.writeCharacters(chainAnnotation);
     writer.writeEndElement();
     writer.writeStartElement(XML_CHAIN_FORMULA);
-    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeCharacters(FormulaUtils.getFormulaString(molecularFormula));
     writer.writeEndElement();
     writer.writeStartElement(XML_NUMBER_OF_CARBONS);
     writer.writeCharacters(String.valueOf(numberOfCarbons));
@@ -138,7 +137,9 @@ public class LipidChain implements ILipidChain {
         String elementName = reader.getLocalName();
         switch (elementName) {
           case "chainAnnotation" -> chainAnnotation = reader.getElementText();
-          case "chainFormula" -> molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          case "chainFormula" ->
+              molecularFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+                  reader.getElementText());
           case "numberOfCarbons" -> numberOfCarbons = Integer.parseInt(reader.getElementText());
           case "numberOfDBEs" -> numberOfDBEs = Integer.parseInt(reader.getElementText());
           case "chainType" -> lipidChainType = LipidChainType.valueOf(reader.getElementText());
@@ -148,7 +149,8 @@ public class LipidChain implements ILipidChain {
       }
     }
 
-    if (chainAnnotation == null || molecularFormula == null || numberOfCarbons == null || numberOfDBEs == null || lipidChainType == null) {
+    if (chainAnnotation == null || molecularFormula == null || numberOfCarbons == null
+        || numberOfDBEs == null || lipidChainType == null) {
       throw new XMLStreamException("Missing data in lipid chain XML.");
     }
 

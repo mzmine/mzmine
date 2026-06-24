@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -108,6 +109,7 @@ public class  MobilityScanMergerTask extends AbstractTask {
 
         frame.setDataPoints(merged[0], merged[1]);
         frame.addMassList(new ScanPointerMassList(frame));
+        frame.setSpectrumType(MassSpectrumType.CENTROIDED);
 
         processedFrames++;
       }

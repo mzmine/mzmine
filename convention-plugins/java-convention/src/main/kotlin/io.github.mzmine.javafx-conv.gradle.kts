@@ -29,12 +29,14 @@ plugins {
 }
 
 // https://github.com/gradle/gradle/issues/15383
-val libs = versionCatalogs.named("libs")/*
+val libs = versionCatalogs.named("libs")
+
+/*
  * Include JavaFX modules
  */
 javafx {
-//    version = libs.findVersion("javafx").get().strictVersion
-    version = "21"
+    version = libs.findVersion("javafx").get().strictVersion
+//    version = "23.0.2"
     modules(
         "javafx.base",
         "javafx.controls",

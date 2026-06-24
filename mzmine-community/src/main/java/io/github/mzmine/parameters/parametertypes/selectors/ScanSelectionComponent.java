@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import javafx.scene.control.Button;
@@ -32,33 +33,35 @@ import javafx.scene.text.Text;
 
 public class ScanSelectionComponent extends OptionalModuleComponent {
 
-  private final Text textDescription;
-  private final ScanSelectionFiltersParameters parameters;
+  private final Text textDescription = new Text();
 
   public ScanSelectionComponent(final ScanSelectionFiltersParameters embeddedParameters,
       final EmbeddedComponentOptions viewOption, final String title, final boolean active) {
     super(embeddedParameters, viewOption, title, false, active);
-    this.parameters = embeddedParameters;
 
     var clearbtn = new Button("Clear");
     topPane.getChildren().add(clearbtn);
     clearbtn.setOnAction(event -> setSelection(ScanSelection.ALL_SCANS));
 
-    var selection = createSelection();
-    textDescription = new Text(selection.toShortDescription());
+    var selection = createSelection(embeddedParameters);
+    textDescription.setText(selection.toShortDescription());
     textDescription.setWrappingWidth(350);
     if (active) {
       topPane.getChildren().add(textDescription);
     }
   }
 
-  private void setSelection(final ScanSelection selection) {
-    parameters.setFilter(selection);
-    setParameterValuesToComponents();
+  private ScanSelectionFiltersParameters getSelectionParameters() {
+    return (ScanSelectionFiltersParameters) getEmbeddedParameters();
   }
 
-  public ScanSelection createSelection() {
-    return parameters.createFilter();
+  private void setSelection(final ScanSelection selection) {
+    getSelectionParameters().setFilter(selection);
+    setParameterValuesToComponents(getEmbeddedParameters());
+  }
+
+  public ScanSelection createSelection(ParameterSet embeddedParameters) {
+    return ((ScanSelectionFiltersParameters) embeddedParameters).createFilter();
   }
 
   @Override
@@ -76,21 +79,25 @@ public class ScanSelectionComponent extends OptionalModuleComponent {
   @Override
   public void onViewStateChange(final boolean hidden) {
     super.onViewStateChange(hidden);
-    updateParameterSetFromComponents();
+    updateParameterSetFromComponents(getEmbeddedParameters());
   }
 
   @Override
-  public void updateParameterSetFromComponents() {
-    super.updateParameterSetFromComponents();
-    var selection = createSelection();
+  public void updateParameterSetFromComponents(ParameterSet embeddedParameters) {
+    // not yet initialized
+    if (textDescription == null) {
+      return;
+    }
+    super.updateParameterSetFromComponents(embeddedParameters);
+    var selection = createSelection(embeddedParameters);
     textDescription.setText(selection.toShortDescription());
   }
 
   @Override
-  public void setParameterValuesToComponents() {
-    super.setParameterValuesToComponents();
-    var selection = createSelection();
-    textDescription.setText(selection!=null? selection.toShortDescription() : "");
+  public void setParameterValuesToComponents(ParameterSet embeddedParameters) {
+    super.setParameterValuesToComponents(embeddedParameters);
+    var selection = createSelection(embeddedParameters);
+    textDescription.setText(selection != null ? selection.toShortDescription() : "");
   }
 
 }

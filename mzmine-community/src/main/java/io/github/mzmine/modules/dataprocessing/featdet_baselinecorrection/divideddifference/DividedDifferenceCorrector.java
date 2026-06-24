@@ -45,9 +45,9 @@ public class DividedDifferenceCorrector extends UnivariateBaselineCorrector {
     super();
   }
 
-  public DividedDifferenceCorrector(MemoryMapStorage storage, int numSamples, String suffix,
-      MinimumSearchFeatureResolver resolver) {
-    super(storage, numSamples, suffix, resolver);
+  public DividedDifferenceCorrector(MemoryMapStorage storage, double samplePercentage,
+      String suffix, MinimumSearchFeatureResolver resolver) {
+    super(storage, samplePercentage, suffix, resolver);
   }
 
   @Override
@@ -62,12 +62,13 @@ public class DividedDifferenceCorrector extends UnivariateBaselineCorrector {
     final String suffix = parameters.getValue(BaselineCorrectionParameters.suffix);
     final ParameterSet embedded = parameters.getParameter(
         BaselineCorrectionParameters.correctionAlgorithm).getEmbeddedParameters();
-    final Integer numSamples = embedded.getValue(AbstractBaselineCorrectorParameters.numSamples);
+    final Double samplePercentage = embedded.getValue(
+        AbstractBaselineCorrectorParameters.samplePercentage);
     final MinimumSearchFeatureResolver resolver =
         embedded.getValue(AbstractBaselineCorrectorParameters.applyPeakRemoval)
             ? initializeLocalMinResolver((ModularFeatureList) flist) : null;
 
-    return new DividedDifferenceCorrector(storage, numSamples, suffix, resolver);
+    return new DividedDifferenceCorrector(storage, samplePercentage, suffix, resolver);
   }
 
   @Override

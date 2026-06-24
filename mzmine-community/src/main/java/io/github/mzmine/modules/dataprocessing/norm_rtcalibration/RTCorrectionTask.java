@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -41,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,9 +56,10 @@ import org.jetbrains.annotations.Nullable;
 
 class RTCorrectionTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(RTCorrectionTask.class.getName());
+
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ModularFeatureList[] originalFeatureLists;
   private ModularFeatureList[] normalizedFeatureLists;
 
@@ -103,15 +104,18 @@ class RTCorrectionTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running retention time normalizer");
-    Arrays.sort(originalFeatureLists,
-        Comparator.comparingInt(featureList -> featureList.getRows().size()));
+    Arrays.sort(originalFeatureLists, Comparator.comparingInt(ModularFeatureList::getNumberOfRows));
     totalRows = originalFeatureLists[0].getNumberOfRows();
     normalizedFeatureLists = new ModularFeatureList[originalFeatureLists.length];
 
     for (int i = 0; i < originalFeatureLists.length; i++) {
-      normalizedFeatureLists[i] = new ModularFeatureList(originalFeatureLists[i] + " " + suffix,
-          getMemoryMapStorage(), originalFeatureLists[i].getRawDataFiles());
-      totalRows += originalFeatureLists[i].getNumberOfRows();
+      final int listRows = originalFeatureLists[i].getNumberOfRows();
+      final int totalFeatures = originalFeatureLists[i].stream().mapToInt(FeatureListRow::getNumberOfFeatures)
+          .sum();
+      normalizedFeatureLists[i] = FeatureListUtils.createCopyWithoutRows(originalFeatureLists[i], suffix,
+          getMemoryMapStorage(), listRows, totalFeatures);
+
+      totalRows += listRows;
     }
 
     List<ModularFeatureListRow[]> goodStandards = findGoodStandards();
@@ -127,16 +131,8 @@ class RTCorrectionTask extends AbstractTask {
     }
 
     for (int i = 0; i < originalFeatureLists.length; i++) {
-      for (FeatureListAppliedMethod proc : originalFeatureLists[i].getAppliedMethods()) {
-        normalizedFeatureLists[i].addDescriptionOfAppliedTask(proc);
-      }
-
-      for (RawDataFile f : originalFeatureLists[i].getRawDataFiles()) {
-        normalizedFeatureLists[i].setSelectedScans(f, originalFeatureLists[i].getSeletedScans(f));
-      }
-
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod("Retention time normalization",
+          new SimpleFeatureListAppliedMethod(RTCorrectionModule.MODULE_NAME,
               RTCorrectionModule.class, parameters, getModuleCallDate()));
 
       handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureLists[i],
@@ -212,8 +208,7 @@ class RTCorrectionTask extends AbstractTask {
       }
 
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList,
-          (ModularFeatureListRow) originalRow,
-          standards, normalizedStdRTs);
+          (ModularFeatureListRow) originalRow, standards, normalizedStdRTs);
       normalizedFeatureList.addRow(normalizedRow);
       processedRows++;
     }
@@ -282,7 +277,7 @@ class RTCorrectionTask extends AbstractTask {
 
     if (standards.length == 1) {
       return originalRT + (normalizedStdRTs[0] - standards[0].getAverageRT());
-    } else if (prevStdIndex == nextStdIndex) {
+    } else if (prevStdIndex == nextStdIndex && prevStdIndex != -1) {
       return normalizedStdRTs[prevStdIndex];
     } else if (prevStdIndex != -1 && nextStdIndex != -1) {
       double weight = (originalRT - standards[prevStdIndex].getAverageRT()) / (

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.MzMode;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
@@ -89,7 +88,8 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return STR."Calculating \{mzRangesSorted.size()} base peak chromatogram(s) in \{rawDataFiles.size()} files.";
+    return "Calculating " + mzRangesSorted.size() + " base peak chromatogram(s) in "
+        + rawDataFiles.size() + " files.";
   }
 
   @Override
@@ -119,7 +119,7 @@ public class FeatureDataSetCalc extends AbstractTask {
       }
       logger.info("Adding EIC datasets to plot");
       chromPlot.applyWithNotifyChanges(false, true, () -> {
-        chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class, false);
+        chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class);
         chromPlot.addDataSets(datasets);
       });
     });
@@ -153,8 +153,7 @@ public class FeatureDataSetCalc extends AbstractTask {
       Range<Double> mzRange = mzRangesSorted.get(i);
       IonTimeSeries<? extends Scan> series = builder.toIonTimeSeriesWithLeadingAndTrailingZero(null,
           scans);
-      datasets.add(
-          new MzRangeEicDataSet(series, mzRange, dataFile.getColor()));
+      datasets.add(new MzRangeEicDataSet(series, mzRange, dataFile));
     }
     doneFiles.incrementAndGet();
     return datasets;

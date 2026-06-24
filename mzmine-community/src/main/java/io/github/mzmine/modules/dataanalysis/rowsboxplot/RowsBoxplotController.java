@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
@@ -34,8 +35,11 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.JFreeChart;
 
 public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
     SelectedRowsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
@@ -58,8 +62,8 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
         model.setDataset(null);
         return;
       }
-      model.setDataset(
-          new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
+      model.setDataset(new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(),
+          model.getAbundanceMeasure()));
     });
   }
 
@@ -74,12 +78,28 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
   }
 
   @Override
-  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+  public ObjectProperty<@Nullable MetadataColumn<?>> groupingColumnProperty() {
     return model.groupingColumnProperty();
   }
 
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
+  }
+
+  public BooleanProperty showCategoryAxisLabelProperty() {
+    return model.showCategoryAxisLabelProperty();
+  }
+
+  public BooleanProperty showTitleProperty() {
+    return model.showTitleProperty();
+  }
+
+  public BooleanProperty showColumnAxisLabelsProperty() {
+    return model.showCategoryAxisColumnLabelsProperty();
+  }
+
+  public EChartViewer getChart() {
+    return model.getChart();
   }
 }

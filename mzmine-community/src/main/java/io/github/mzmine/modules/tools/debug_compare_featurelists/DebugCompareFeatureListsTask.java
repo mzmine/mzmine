@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
-import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -81,8 +80,8 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
 
   private void compareRowFeatures(final FeatureList list1, final FeatureList list2) {
     Set<DataType> ignoredTypes = Set.copyOf(
-        DataTypes.getAll(FeaturesType.class, ManualAnnotationType.class,
-            SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
+        DataTypes.getAll(ManualAnnotationType.class, SpectralLibraryMatchesType.class,
+            CompoundDatabaseMatchesType.class,
             // different community ID is not stable
             NetworkStatsType.class,
             // check separately
@@ -107,7 +106,7 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
       logger.info("Same number of rows: %d".formatted(list1.getNumberOfRows()));
       // sorting of rows the same?
       List<String> errors = new ArrayList<>();
-      for (int i = 0; i < list1.getRows().size(); i++) {
+      for (int i = 0; i < list1.getNumberOfRows(); i++) {
         // n features
         var row1 = list1.getRow(i);
         var row2 = list2.getRow(i);
@@ -137,7 +136,7 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             for (int ion = 0; ion < ions1.size(); ion++) {
               var adduct1 = ions1.get(ion);
               var adduct2 = ions2.get(ion);
-              if (!adduct1.equalsAdduct(adduct2.getIonType())) {
+              if (!adduct1.equalsIonType(adduct2.getIonType())) {
                 errors.add("Ion types were different for row i=%d. %s : %s".formatted(i, adduct1,
                     adduct2));
               }

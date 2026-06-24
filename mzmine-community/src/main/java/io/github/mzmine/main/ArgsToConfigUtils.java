@@ -1,10 +1,34 @@
+/*
+ * Copyright (c) 2004-2025 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.main;
 
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
@@ -30,7 +54,6 @@ class ArgsToConfigUtils {
    * @param argsParser The args parser
    */
   static void applyArgsToConfig(final MZmineCoreArgumentParser argsParser) {
-    ConfigService.setTsfProfile(argsParser.isLoadTsfProfile());
     ConfigService.setTdfPseudoProfile(argsParser.isLoadTdfPseudoProfile());
 
     checkAndLoadArgsConfiguration(argsParser);
@@ -41,8 +64,6 @@ class ArgsToConfigUtils {
     applyTempDirFromConfiguration();
     TmpFileCleanup.runCleanup(); // clean temp files in new dir
 
-    checkAndOverrideArgsProxy(argsParser);
-
     checkAndOverrideArgsUser(argsParser);
 
     checkAndOverrideArgsMemoryOption(argsParser);
@@ -51,6 +72,7 @@ class ArgsToConfigUtils {
 
     checkAndHandleArgsUserLoginOptions(argsParser);
 
+    ConfigService.setIgnoreParameterWarningsInBatch(argsParser.isIgnoreParameterWarnings());
   }
 
   static void checkAndOverrideArgsTempDir(MZmineCoreArgumentParser argsParser) {
@@ -125,18 +147,14 @@ class ArgsToConfigUtils {
     }
   }
 
-  static void checkAndOverrideArgsProxy(@NotNull final MZmineCoreArgumentParser argsParser) {
-    //set proxy to config
-    if (argsParser.getFullProxy() != null) {
-      // proxy was already set
-      ConfigService.getPreferences().setProxy(ProxyUtils.getSelectedSystemProxy());
-    }
-  }
-
   static void checkAndLoadArgsConfiguration(@NotNull final MZmineCoreArgumentParser argsParser) {
     // override preferences file by command line argument pref
     final File prefFile = Objects.requireNonNullElse(argsParser.getPreferencesFile(),
         MZmineConfiguration.CONFIG_FILE);
+    if ("null".equals(prefFile.getName())) {
+      logger.info("Preference file was set to null, not loading configuration.");
+      return;
+    }
 
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {

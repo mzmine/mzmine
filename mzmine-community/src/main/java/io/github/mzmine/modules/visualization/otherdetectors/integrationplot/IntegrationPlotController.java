@@ -25,16 +25,27 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.visualization.dash_integration.FeatureIntegrationData;
+import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import java.awt.BasicStroke;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 
 public class IntegrationPlotController extends FxController<IntegrationPlotModel> {
@@ -45,7 +56,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       this::onSetLeftPressed, this::onSetRightPressed, this::onFinishPressed, this::onAbortPressed,
       this::onEditPressed);
 
-  protected IntegrationPlotController() {
+  public IntegrationPlotController() {
     super(new IntegrationPlotModel());
 
     model.currentIntegrationValidProperty().bind(Bindings.createBooleanBinding(
@@ -61,6 +72,11 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         value != null ? new ValueMarker(value,
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
             : null));
+
+    model.additionalDataProvidersProperty()
+        .subscribe(_ -> onTaskThread(new UpdateAdditionalDatasetsTask(model)));
+
+    model.getChromatogramPlot().title().bindBidirectional(model.titleProperty());
   }
 
   @Override
@@ -77,20 +93,50 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onFinishPressed() {
-    assert model.isCurrentIntegrationValid();
+    integrateFeature(EventType.INTERNAL_CHANGE);
+  }
+
+  void integrateFeature(EventType eventType) {
+    if (!model.isCurrentIntegrationValid()) {
+      if (eventType == EventType.EXTERNAL_CHANGE) {
+        clearIntegration();
+      }
+      return;
+    }
 
     final Double start = model.getCurrentStartTime();
     final Double end = model.getCurrentEndTime();
     logger.finest("Finish feature pressed. %.2f-%.2f".formatted(start, end));
     if (start != null && end != null) {
+
       final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
+      @Nullable IntensityTimeSeries integrated;
+      if (currentTimeSeries instanceof IonMobilogramTimeSeries imts) {
+        integrated = imts.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
+            end.floatValue(), model.getBinningMobilogramDataAccess());
+      } else {
+        integrated = currentTimeSeries.subSeries(currentTimeSeries.getStorage(), start.floatValue(),
+            end.floatValue());
+      }
+      if (FeatureDataUtils.calculateArea(integrated) <= 0) {
+        integrated = null;
+      }
 
-      final IntensityTimeSeries integrated = currentTimeSeries.subSeries(
-          currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
+      final int maxIntegratedFeatures = model.getMaxIntegratedFeatures();
+      if (model.getIntegratedFeatures().size() + 1 > maxIntegratedFeatures && integrated != null) {
+        // if there are more than the allowed integrated features, remove the first one.
+        final List<IntensityTimeSeries> list = new ArrayList<>(model.getIntegratedFeatures());
+        list.removeFirst();
+        list.add(integrated);
+        model.setIntegratedFeatures(list);
+      } else if (integrated != null) {
+        model.addIntegratedFeature(integrated);
+      }
 
-      model.addIntegratedFeature(integrated);
       model.setSelectedFeature(integrated);
-
+      final @Nullable IntensityTimeSeries finalIntegrated = integrated;
+      model.getIntegrationListeners().forEach(l -> l.accept(eventType, finalIntegrated,
+          Range.closed(start.floatValue(), end.floatValue())));
     }
     clearIntegration();
   }
@@ -99,7 +145,6 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     logger.finest("Abort integration pressed");
     clearIntegration();
   }
-
 
   private void clearIntegration() {
     logger.finest("Clearing integration");
@@ -135,6 +180,7 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   /**
    * A copy of the current features.
    */
+  @NotNull
   public List<IntensityTimeSeries> getIntegratedFeatures() {
     return List.copyOf(model.getIntegratedFeatures());
   }
@@ -144,11 +190,81 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
       model.integratedFeaturesProperty().clear();
       return;
     }
-
     model.setIntegratedFeatures((List<IntensityTimeSeries>) integratedFeatures);
   }
 
   public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
     return model.integratedFeaturesProperty();
+  }
+
+  public void setAdditionalFeatures(List<IntensityTimeSeriesToXYProvider> additionalFeatures) {
+    model.setAdditionalDataProviders(additionalFeatures);
+  }
+
+  public void clear() {
+    setOtherTimeSeries(null);
+    setIntegratedFeatures(null);
+  }
+
+  public void setFeatureDataEntry(@Nullable FeatureIntegrationData featureIntegrationData) {
+    clear();
+    if (featureIntegrationData == null) {
+      return;
+    }
+    setOtherTimeSeries(featureIntegrationData.chromatogram());
+    setIntegratedFeatures(
+        featureIntegrationData.feature() != null ? List.of(featureIntegrationData.feature())
+            : null);
+    setAdditionalFeatures(featureIntegrationData.additionalData());
+  }
+
+  public void addIntegrationListener(@NotNull FeatureIntegratedListener listener) {
+    model.getIntegrationListeners().add(listener);
+  }
+
+  public void removeIntegrationListener(@NotNull FeatureIntegratedListener listener) {
+    model.getIntegrationListeners().remove(listener);
+  }
+
+  public StringProperty titleProperty() {
+    return model.titleProperty();
+  }
+
+  public String getTitle() {
+    return model.getTitle();
+  }
+
+  public void setTitle(String title) {
+    model.setTitle(title);
+  }
+
+  public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {
+    model.setCurrentStartTime(newIntegrationRange.lowerEndpoint().doubleValue());
+    model.setCurrentEndTime(newIntegrationRange.upperEndpoint().doubleValue());
+    integrateFeature(EventType.EXTERNAL_CHANGE);
+  }
+
+  public void setChartGroup(ChartGroup group) {
+    model.getChromatogramPlot().setChartGroup(group);
+  }
+
+  public int getMaxIntegratedFeatures() {
+    return model.getMaxIntegratedFeatures();
+  }
+
+  public void setMaxIntegratedFeatures(int max) {
+    model.setMaxIntegratedFeatures(max);
+  }
+
+  public void setRangeAxisStickyZero(boolean rangeStickyZero) {
+    model.getChromatogramPlot().setRangeAxisStickyZero(rangeStickyZero);
+  }
+
+  public void setTextLessButtons(boolean textLessButtons) {
+    model.setUseTextlessButtons(textLessButtons);
+  }
+
+  public void setBinningMobilogramDataAccess(@Nullable BinningMobilogramDataAccess dataAccess) {
+    model.setBinningMobilogramDataAccess(dataAccess);
   }
 }

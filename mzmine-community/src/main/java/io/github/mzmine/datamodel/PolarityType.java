@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents the polarity of ionization.
  */
-public enum PolarityType {
+public enum PolarityType implements UniqueIdSupplier {
 
   POSITIVE(+1, "+"), //
   NEGATIVE(-1, "-"), //
@@ -62,9 +65,11 @@ public enum PolarityType {
     }
 
     return switch (str.toLowerCase()) {
-      case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
+      case "+", "positive", "pos", "p", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
-      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
+      case "any polarity", "any" -> PolarityType.ANY; // sometimes used as filter option
+      case "neutral", "n" -> PolarityType.NEUTRAL;
+      case "unknown" -> PolarityType.UNKNOWN;
       default -> UNKNOWN;
     };
   }
@@ -79,8 +84,56 @@ public enum PolarityType {
   }
 
   public static PolarityType fromInt(@Nullable Integer i) {
+    // UNKNOWN was the default - maybe has to change to NEUTRAL? but depends on use case
+    return fromInt(i, UNKNOWN);
+  }
+
+
+  /**
+   * @return Get polarity from scan selection or if scan selection is undefined, then use data file
+   * polarity from all scans. Either positive, negative, or {@link PolarityType#ANY} for both
+   * polarities. Empty optional if no polarity is defined
+   */
+  @NotNull
+  public static Optional<PolarityType> fromScans(@Nullable ScanSelection scanSelection,
+      @Nullable RawDataFile dataFile) {
+    if (scanSelection != null) {
+      final PolarityType polarity = scanSelection.getPolarity();
+      if (PolarityType.isDefined(polarity)) {
+        return Optional.of(polarity);
+      }
+    }
+    if (dataFile != null) {
+      PolarityType polarity = PolarityType.UNKNOWN;
+      for (Scan scan : dataFile.getScans()) {
+        final PolarityType scanPol = scan.getPolarity();
+        if (PolarityType.isDefined(scanPol)) {
+          if (polarity == PolarityType.UNKNOWN) {
+            // first defined polarity
+            polarity = scanPol;
+          } else if (polarity != scanPol) {
+            // both positive and negative
+            return Optional.of(PolarityType.ANY);
+          }
+        }
+      }
+
+      if (polarity != PolarityType.UNKNOWN) {
+        return Optional.of(polarity);
+      }
+    }
+    return Optional.empty();
+  }
+
+  /**
+   *
+   * @param i              charge state
+   * @param defaultForZero default value if i is null or zero
+   */
+  @Nullable
+  public static PolarityType fromInt(@Nullable Integer i, @Nullable PolarityType defaultForZero) {
     if (i == null || i == 0) {
-      return UNKNOWN;
+      return defaultForZero;
     } else if (i < 0) {
       return NEGATIVE;
     } else {
@@ -139,5 +192,16 @@ public enum PolarityType {
    */
   public boolean includesCharge(final int charge) {
     return this == ANY || (this == NEGATIVE && charge < 0) || (this == POSITIVE && charge > 0);
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case ANY -> "Any";
+      case NEGATIVE -> "-";
+      case POSITIVE -> "+";
+      case NEUTRAL -> "n";
+      case UNKNOWN -> "?";
+    };
   }
 }

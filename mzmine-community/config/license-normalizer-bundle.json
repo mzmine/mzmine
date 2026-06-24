@@ -96,6 +96,7 @@
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "LGPL.*(v|version)\\.?\\s?2\\.1" },
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU Lesser General Public License Version 2.1.*" },
     { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU LESSER GENERAL PUBLIC LICENSE 2.1" },
+    { "bundleName" : "LGPL-2.1-only", "licenseNamePattern" : "GNU Lesser General Public License" },
     { "bundleName" : "LGPL-2.1-only", "licenseUrlPattern" : ".*www\\.gnu\\.org/licenses/old-licenses/lgpl-2\\.1\\.html" },
     { "bundleName" : "LGPL-2.1-only", "licenseUrlPattern" : ".*(www\\.)?repository.jboss.org/licenses/lgpl-2.1\\.txt" },
 
@@ -103,6 +104,7 @@
     { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "lgplv?3" },
     { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "GNU LGPL" },
     { "bundleName" : "LGPL-3.0-only", "licenseUrlPattern" : ".*(www\\.)?gnu\\.org/licenses(/old-licenses)?/lgpl(-3)?(\\.(html|txt))?" },
+    { "bundleName" : "LGPL-3.0-only", "licenseNamePattern" : "GNU Lesser General Public License, Version 3.0" },
 
     { "bundleName" : "MIT", "licenseNamePattern" : "(The\\s)?MIT(\\slicen(c|s)e)?(\\s\\(MIT\\))?" },
     { "bundleName" : "MIT", "licenseNamePattern" : "Bouncy Castle Licence" },

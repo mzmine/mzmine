@@ -26,9 +26,11 @@
 package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPane;
@@ -38,6 +40,7 @@ import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
@@ -64,7 +67,11 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
     final Button addButton = FxButtons.createButton(null, FxIcons.ADD, "Add another trace",
         this::addNewDetector);
-    final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, addButton);
+    final ButtonBase help = FxButtons.createButton(null, FxIcons.QUESTIONMARK,
+        "Open documentation", () -> DesktopService.getDesktop()
+            .openWebPage(
+                "https://mzmine.github.io/mzmine_documentation/module_docs/uv/uv_multi_detector_visualizer/uv_multi_detector_visualizer.html"));
+    final HBox addWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, help, addButton);
     final VBox contentWrapper = content = FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true,
         content, addWrapper);
 

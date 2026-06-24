@@ -65,41 +65,6 @@ public interface MZmineProject {
   File getProjectFile();
 
   /**
-   * Adds a new experimental parameter to the project
-   */
-  void addParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Removes an experimental parameter from the project
-   */
-  void removeParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns true if project contains the experimental parameter
-   */
-  boolean hasParameter(UserParameter<?, ?> parameter);
-
-  /**
-   * Returns all experimental parameter of the project
-   */
-  UserParameter<?, ?>[] getParameters();
-
-  UserParameter<?, ?> getParameterByName(String name);
-
-  /**
-   * Sets experimental parameter's value corresponding to a RawDataFile.
-   * <p>
-   * If the parameter does not exists in the project, it is added to the project. If parameter
-   * already has a value corresponding the given file, previous value is replaced.
-   */
-  void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
-
-  /**
-   * Returns experimental parameter's value corresponding to a RawDataFile.
-   */
-  Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
-
-  /**
    * Adds a new RawDataFile to the project.
    */
   void addFile(@NotNull RawDataFile newFile);

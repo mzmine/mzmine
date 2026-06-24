@@ -1,0 +1,6 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Thu Oct 30 16:48:36 CET 2025
+cdk-iordf-2.12-20251009.055433-5.jar>central-snapshots=
+cdk-iordf-2.12-20251009.055433-5.pom>central-snapshots=
+cdk-iordf-2.12-SNAPSHOT.jar>=
+cdk-iordf-2.12-SNAPSHOT.pom>=

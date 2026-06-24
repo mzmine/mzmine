@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -48,6 +49,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   private final EmbeddedComponentOptions componentViewOption;
   private T embeddedParameters;
   private boolean value;
+  private final boolean openHidden;
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters) {
     this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters);
@@ -60,24 +62,37 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
-    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal);
+    this(name, description, embeddedParameters, defaultVal, true);
+  }
+
+  public OptionalModuleParameter(String name, String description, T embeddedParameters,
+      boolean defaultVal, boolean openHidden) {
+    this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal,
+        openHidden);
   }
 
   public OptionalModuleParameter(String name, String description,
       EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal) {
+    this(name, description, componentViewOption, embeddedParameters, defaultVal, true);
+  }
+
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal,
+      boolean openHidden) {
     this.name = name;
     this.description = description;
     this.componentViewOption = componentViewOption;
     // requires cloning to avoid usage of static parameters
     this.embeddedParameters = (T) embeddedParameters.cloneParameterSet();
     value = defaultVal;
+    this.openHidden = openHidden;
   }
 
   public T getEmbeddedParameters() {
     return embeddedParameters;
   }
 
-  public void setEmbeddedParameters(T embeddedParameters) {
+  public void setEmbeddedParameters(@NotNull T embeddedParameters) {
     if (this.embeddedParameters == null) {
       this.embeddedParameters = embeddedParameters;
     } else {
@@ -98,7 +113,8 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   @Override
   public OptionalModuleComponent createEditingComponent() {
-    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value);
+    return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value,
+        openHidden);
   }
 
   @Override
@@ -115,19 +131,19 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
     return new OptionalModuleParameter<>(name, description, componentViewOption,
-        embeddedParametersClone, getValue());
+        embeddedParametersClone, getValue(), openHidden);
   }
 
   @Override
   public void setValueFromComponent(OptionalModuleComponent component) {
     this.value = component.isSelected();
-    component.updateParameterSetFromComponents();
+    component.updateParameterSetFromComponents(embeddedParameters);
   }
 
   @Override
   public void setValueToComponent(OptionalModuleComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
-    component.setParameterValuesToComponents();
+    component.setParameterValuesToComponents(embeddedParameters);
   }
 
   @Override

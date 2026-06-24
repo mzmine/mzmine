@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -48,27 +47,22 @@ package testutils;/*
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import static io.mzio.testing.MZmineTestInitializer.init;
-
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.mzio.users.client.UserAuthStore;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.UserFileReader;
+import io.github.mzmine.util.FeatureListUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -174,11 +168,16 @@ public class MZmineTestUtil {
    * @return
    */
   public static boolean isSorted(FeatureList flist) {
-    return Comparators.isInOrder(flist.getRows(), FeatureListRowSorter.DEFAULT_RT);
+    return Comparators.isInOrder(flist.getRows(), FeatureListUtils.getDefaultRowSorter(flist));
   }
 
   public static void cleanProject() {
     ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+  }
+
+  public static void clearProjectAndLibraries() {
+    ProjectService.getProjectManager().clearProject();
+    ProjectService.getProject().clearSpectralLibrary();
   }
 
 
@@ -189,6 +188,18 @@ public class MZmineTestUtil {
 
   public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds,
       @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
+    return importFiles(fileNames, timeoutSeconds, VendorImportParameters.createDefault(), advanced);
+  }
+
+  @Nullable
+  public static RawDataFile getRawFromProject(final String name) {
+    return ProjectService.getProject().getCurrentRawDataFiles().stream()
+        .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
+  }
+
+  public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds,
+      @NotNull VendorImportParameters vendorParam,
+      @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
     File[] files = fileNames.stream().map(name -> {
       var file = new File(name);
       if (file.exists()) {
@@ -197,14 +208,8 @@ public class MZmineTestUtil {
       return new File(MZmineTestUtil.class.getClassLoader().getResource(name).getFile());
     }).toArray(File[]::new);
 
-    AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
-    paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
-    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, advanced != null);
-    if (advanced != null) {
-      var advancedP = paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport);
-      advancedP.setEmbeddedParameters(advanced);
-    }
+    final ParameterSet paramDataImport = AllSpectralDataImportParameters.create(vendorParam, files,
+        null, null, advanced);
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,
@@ -215,12 +220,6 @@ public class MZmineTestUtil {
     return finished;
   }
 
-  @Nullable
-  public static RawDataFile getRawFromProject(final String name) {
-    return ProjectService.getProject().getCurrentRawDataFiles().stream()
-        .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
-  }
-
   @NotNull
   public static Stream<RawDataFile> streamDataFiles(List<String> fileNames) {
     return fileNames.stream().map(n -> new File(n).getName())
@@ -229,33 +228,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      init();
-
-      try {
-        logger.fine("Trying to find TESTRUNNER_USER env");
-        String testRunner = System.getenv("TESTRUNNER_USER");
-        if (testRunner != null && !testRunner.isBlank()) {
-          logger.info("Loaded TESTRUNNER_USER from env var");
-        } else {
-          logger.info("Unable to load test user from env variable.");
-        }
-        var user = UserFileReader.parseUser(testRunner);
-        if (user != null) {
-          logger.info("Test user TESTRUNNER_USER loaded successfully");
-          CurrentUserService.setUser(user);
-        }
-      } catch (Exception ex) {
-        logger.fine("Cannot find testrunner user, set environment variable with license code");
-      }
-      if (!CurrentUserService.isValid()) {
-        // load testrunner user from users dir / e.g. on github actions
-        var file = UserAuthStore.resolveInUsersPath("testrunner.mzuserstr");
-        var user = UserFileReader.readUserFile(file);
-        if (user != null) {
-          CurrentUserService.setUser(user);
-        }
-      }
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
+      MZmineCore.main(new String[]{"-r", "-m", "all", "-pref", "null"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,

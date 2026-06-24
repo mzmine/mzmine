@@ -30,6 +30,52 @@ import java.util.Objects;
 
 public class ObjectUtils {
 
+  public static int countTrue(boolean... states) {
+    int count = 0;
+    for (boolean state : states) {
+      if (state) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  public static boolean allTrue(boolean... states) {
+    for (boolean state : states) {
+      if (!state) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static boolean anyTrue(boolean... states) {
+    for (boolean state : states) {
+      if (state) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean allFalse(boolean... states) {
+    for (boolean state : states) {
+      if (state) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static boolean anyFalse(boolean... states) {
+    for (boolean state : states) {
+      if (!state) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * No object is null
    */
@@ -43,4 +89,25 @@ public class ObjectUtils {
   public static boolean anyIsNull(Object... objs) {
     return Arrays.stream(objs).anyMatch(Objects::isNull);
   }
+
+  /**
+   * @return number of null objects
+   */
+  public static int countNull(final Object... objs) {
+    return objs.length - countNonNull(objs);
+  }
+
+  /**
+   * @return number of non-null objects
+   */
+  public static int countNonNull(final Object... objs) {
+    int count = 0;
+    for (Object obj : objs) {
+      if (obj != null) {
+        count++;
+      }
+    }
+    return count;
+  }
+
 }

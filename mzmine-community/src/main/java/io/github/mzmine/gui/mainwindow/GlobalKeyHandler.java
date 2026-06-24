@@ -28,6 +28,7 @@ package io.github.mzmine.gui.mainwindow;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.logging.Logger;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -37,6 +38,8 @@ import javafx.scene.input.KeyEvent;
  * E.g. quick search. Adds support for double-click on keys like double shift
  */
 public class GlobalKeyHandler implements EventHandler<KeyEvent> {
+
+  private static final Logger logger = Logger.getLogger(GlobalKeyHandler.class.getName());
 
   public static final GlobalKeyHandler instance = new GlobalKeyHandler();
   private KeyEvent lastKeyEvent = null;
@@ -52,9 +55,19 @@ public class GlobalKeyHandler implements EventHandler<KeyEvent> {
   @Override
   public void handle(final KeyEvent event) {
     Instant now = Instant.now();
-    if (lastKeyEventTime != null && Duration.between(lastKeyEventTime, now).toMillis() > 500) {
+
+    long timeDiff =
+        lastKeyEventTime != null ? Duration.between(lastKeyEventTime, now).toMillis() : -1;
+    // there is an issue with an editable ComboBox duplicating key events with 0-1 ms delay
+    // therefore filter events that occur within 4 ms of each other
+    if (timeDiff <= 5 || timeDiff > 600) {
       lastKeyEvent = null;
     }
+
+    // some debugging message in case issues arise
+//    logger.info("KEY %s as %s and lastKEY %s times %s - %s diff %d ms".formatted(event.getCode(),
+//        event.getEventType(), lastKeyEvent != null ? lastKeyEvent.getCode() : "null", now,
+//        lastKeyEventTime != null ? lastKeyEventTime : "null", timeDiff));
 
     if (event.getCode() == KeyCode.F && event.isShortcutDown()) {
       ModuleQuickSelectDialog.openQuickSearch();

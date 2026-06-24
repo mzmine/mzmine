@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
@@ -37,10 +41,15 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.CombinedDomainCategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeCategoryPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.Zoomable;
@@ -66,19 +75,56 @@ public class ChartLogicsFX {
    * @param mouseY
    * @return Range as chart coordinates
    */
-  public static Point2D mouseXYToPlotXY(ChartViewer myChart, double mouseX, double mouseY) {
-    return mouseXYToPlotXY(myChart, (int) mouseX, (int) mouseY);
+  public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
+    return mouseXYToPlotXY(myChart, (double) mouseX, (double) mouseY);
   }
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
    *
-   * @param myChart
-   * @param mouseX
-   * @param mouseY
-   * @return Range as chart coordinates (never null)
+   * @return Range as chart coordinates
    */
-  public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
+  public static Point2D mouseXYToPlotXY(ChartViewer myChart, double mouseX, double mouseY) {
+    ChartRenderingInfo info = myChart.getRenderingInfo();
+    if (info == null) {
+      return null; // this should not happen if there is actually a mouse event on the chart. musst be renedered first.
+    }
+
+    final XYPlot plot = findPlotAtMouseXY(myChart, mouseX, mouseY);
+
+    final Rectangle2D dataArea = getDataArea(mouseX, mouseY, info);
+
+    // coordinates
+    double cx = 0;
+    double cy = 0;
+    if (plot != null) {
+      // find axis
+      RenderedValueAxis domainAxis = RenderedValueAxis.domainOf(plot);
+      RenderedValueAxis rangeAxis = RenderedValueAxis.rangeOf(plot);
+
+      if (domainAxis != null) {
+        cx = domainAxis.java2DToValue(getCoordinateForAxis(mouseX, mouseY, domainAxis.edge()),
+            dataArea);
+      }
+      if (rangeAxis != null) {
+        cy = rangeAxis.java2DToValue(getCoordinateForAxis(mouseX, mouseY, rangeAxis.edge()),
+            dataArea);
+      }
+    }
+    return new Point2D.Double(cx, cy);
+  }
+
+  private static double getCoordinateForAxis(double x, double y, RectangleEdge axisEdge) {
+    // decision: horizontal edges use the x-coordinate, vertical edges use y.
+    return RectangleEdge.isTopOrBottom(axisEdge) ? x : y;
+  }
+
+  private static XYPlot findPlotAtMouseXY(ChartViewer myChart, double mouseX, double mouseY) {
+    ChartRenderingInfo info = myChart.getRenderingInfo();
+    if (info == null) {
+      return null; // this should not happen if there is actually a mouse event on the chart. musst be renedered first.
+    }
+
     XYPlot plot = null;
     // find plot as parent of axis
     ChartEntity entity = findChartEntity(myChart.getCanvas(), mouseX, mouseY);
@@ -89,45 +135,20 @@ public class ChartLogicsFX {
       }
     }
 
-    ChartRenderingInfo info = myChart.getRenderingInfo();
+    // find subplot or plot
+    if (plot == null) {
+      plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY);
+    }
+    return plot;
+  }
+
+  public static Rectangle2D getDataArea(double mouseX, double mouseY, ChartRenderingInfo info) {
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     if (subplot != -1) {
       dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
     }
-
-    // find subplot or plot
-    if (plot == null) {
-      plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY);
-    }
-
-    // coordinates
-    double cx = 0;
-    double cy = 0;
-    if (plot != null) {
-      // find axis
-      ValueAxis domainAxis = plot.getDomainAxis();
-      ValueAxis rangeAxis = plot.getRangeAxis();
-      RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
-      RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
-      // parent?
-      if (domainAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot pp) {
-        domainAxis = pp.getDomainAxis();
-        domainAxisEdge = pp.getDomainAxisEdge();
-      }
-      if (rangeAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot pp) {
-        rangeAxis = pp.getRangeAxis();
-        rangeAxisEdge = pp.getRangeAxisEdge();
-      }
-
-      if (domainAxis != null) {
-        cx = domainAxis.java2DToValue(mouseX, dataArea, domainAxisEdge);
-      }
-      if (rangeAxis != null) {
-        cy = rangeAxis.java2DToValue(mouseY, dataArea, rangeAxisEdge);
-      }
-    }
-    return new Point2D.Double(cx, cy);
+    return dataArea;
   }
 
   /**
@@ -148,9 +169,55 @@ public class ChartLogicsFX {
       EntityCollection entities = info.getEntityCollection();
       if (entities != null) {
         entity = entities.getEntity(x, y);
+        if (entity instanceof XYItemEntity && !isInAnyDataArea(info, x, y)) {
+          // decision: data items should only be selectable inside plot data bounds.
+          entity = findNonDataEntityAt(entities, x, y);
+        }
       }
     }
     return entity;
+  }
+
+  private static boolean isInAnyDataArea(final @NotNull ChartRenderingInfo info, final double x,
+      final double y) {
+    final PlotRenderingInfo plotInfo = info.getPlotInfo();
+    if (plotInfo == null) {
+      return false;
+    }
+
+    final Rectangle2D mainDataArea = plotInfo.getDataArea();
+    if (mainDataArea != null && mainDataArea.contains(x, y)) {
+      return true;
+    }
+
+    for (int i = 0; i < plotInfo.getSubplotCount(); i++) {
+      final PlotRenderingInfo subplotInfo = plotInfo.getSubplotInfo(i);
+      if (subplotInfo == null) {
+        continue;
+      }
+      final Rectangle2D subplotDataArea = subplotInfo.getDataArea();
+      if (subplotDataArea != null && subplotDataArea.contains(x, y)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static @Nullable ChartEntity findNonDataEntityAt(final @NotNull EntityCollection entities,
+      final double x, final double y) {
+    final var allEntities = new ArrayList<>(entities.getEntities());
+    for (int i = allEntities.size() - 1; i >= 0; i--) {
+      if (!(allEntities.get(i) instanceof ChartEntity candidate)) {
+        continue;
+      }
+      if (candidate instanceof XYItemEntity || candidate.getArea() == null) {
+        continue;
+      }
+      if (candidate.getArea().contains(x, y)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   /**
@@ -501,7 +568,8 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      // nullable but ok here
+      PlotRenderingInfo pri = getPlotRenderingInfo(myChart);
       boolean saved = plot.isNotify();
       plot.setNotify(false);
       z.zoomDomainAxes(0, pri, endPoint);
@@ -597,6 +665,98 @@ public class ChartLogicsFX {
       chart.getXYPlot().getRangeAxis().setLowerMargin(margin);
     } catch (Exception ex) {
       // ignore as it only fails for combined plots or non XY plots
+    }
+  }
+
+  /**
+   * Set all axis of this chart to auto range or not when data is added. Auto range on axis is very
+   * slow if many datasets are added
+   *
+   * @param state auto range on of off
+   */
+  public static void setAutoRangeAxis(final JFreeChart chart, final boolean state) {
+    setAutoRangeAxis(chart.getPlot(), state);
+  }
+
+  public static void setAutoRangeAxis(final Plot plot, final boolean state) {
+    switch (plot) {
+      case CombinedDomainXYPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < cp.getDomainAxisCount(); i++) {
+          cp.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedRangeXYPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < cp.getDomainAxisCount(); i++) {
+          cp.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedRangeCategoryPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case CombinedDomainCategoryPlot cp -> {
+        for (final Object sub : cp.getSubplots()) {
+          if (sub instanceof Plot p) {
+            setAutoRangeAxis(p, state);
+          }
+        }
+        for (int i = 0; i < cp.getRangeAxisCount(); i++) {
+          cp.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case XYPlot p -> {
+        for (int i = 0; i < p.getRangeAxisCount(); i++) {
+          p.getRangeAxis(i).setAutoRange(state);
+        }
+        for (int i = 0; i < p.getDomainAxisCount(); i++) {
+          p.getDomainAxis(i).setAutoRange(state);
+        }
+      }
+      case CategoryPlot p -> {
+        for (int i = 0; i < p.getRangeAxisCount(); i++) {
+          p.getRangeAxis(i).setAutoRange(state);
+        }
+      }
+      case null, default -> {
+      }
+    }
+  }
+
+  public static void withNotifyLater(List<EChartViewer> viewers, Runnable later) {
+    List<Boolean> oldNotify = new ArrayList<>();
+    for (EChartViewer viewer : viewers) {
+      oldNotify.add(viewer.isNotifyChange());
+    }
+    try {
+      later.run();
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    } finally {
+      for (int i = 0; i < viewers.size(); i++) {
+        viewers.get(i).setNotifyChange(oldNotify.get(i));
+      }
     }
   }
 }

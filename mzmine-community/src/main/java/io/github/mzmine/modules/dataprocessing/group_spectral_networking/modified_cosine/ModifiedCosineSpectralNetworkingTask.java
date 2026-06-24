@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modifi
 import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
 import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
 import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
+import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -46,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.NetworkCluster;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
@@ -65,7 +67,6 @@ import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import io.github.mzmine.util.scans.similarity.Weights;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.graphstream.algorithm.community.Community;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -311,23 +312,12 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
           weights.getIntensity(), weights.getMz());
 
       final double cosineDivisor = Similarity.cosineDivisor(diffArray);
-      double[] contributions = new double[diffArray.length];
-      SignalAlignmentAnnotation[] annotations = new SignalAlignmentAnnotation[diffArray.length];
+      final double[] contributions = new double[diffArray.length];
       for (int i = 0; i < diffArray.length; i++) {
-        final double[] pair = diffArray[i];
-        contributions[i] = Similarity.cosineSignalContribution(pair, cosineDivisor);
-
-        final DataPoint[] dps = aligned.get(i);
-        if (dps[0] != null && dps[1] != null) {
-          if (mzTol.checkWithinTolerance(dps[0].getMZ(), dps[1].getMZ())) {
-            annotations[i] = SignalAlignmentAnnotation.MATCH;
-          } else {
-            annotations[i] = SignalAlignmentAnnotation.MODIFIED;
-          }
-        } else {
-          annotations[i] = SignalAlignmentAnnotation.NONE;
-        }
+        contributions[i] = Similarity.cosineSignalContribution(diffArray[i], cosineDivisor);
       }
+      final SignalAlignmentAnnotation[] annotations = SignalAlignmentAnnotation.classify(aligned,
+          mzTol);
 
       return new CosinePairContributions(aligned, contributions, annotations);
     }
@@ -401,19 +391,19 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var graph = generator.createNewGraph(featureList.getRows(), false, true, r2RNetworkingMaps,
         false);
-    GraphStreamUtils.detectCommunities(graph);
+    final Map<Integer, Integer> communitySizes = GraphStreamUtils.detectCommunities(graph).stream()
+        .collect(Collectors.toMap(NetworkCluster::id, NetworkCluster::size));
 
-    Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
     // add cluster id
     GraphStreamUtils.detectClusters(graph, true);
 
     // for each node in cluster
     graph.nodes().forEach(node -> {
       if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
-        Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
+        int communityId = requireNonNullElse((Integer) node.getAttribute(COMMUNITY_ID.toString()),
+            -1);
 
-        int communityId = communityKey instanceof Community com ? com.id() : -1;
-        int communitySize = communitySizes.getOrDefault(communityKey, 0);
+        int communitySize = communitySizes.getOrDefault(communityId, 0);
         int clusterId = (int) node.getAttribute(CLUSTER_ID.toString());
         int clusterSize = (int) node.getAttribute(CLUSTER_SIZE.toString());
 

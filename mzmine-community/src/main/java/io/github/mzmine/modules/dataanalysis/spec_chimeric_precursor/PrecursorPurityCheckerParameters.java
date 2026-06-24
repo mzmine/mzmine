@@ -55,4 +55,8 @@ public class PrecursorPurityCheckerParameters extends SimpleParameterSet {
         HandleChimericMsMsParameters.minimumPrecursorPurity);
   }
 
+  @Override
+  public String getRestrictedIonMobilitySupportMessage() {
+    return "The precursor purity is only checked in MS dimension, not in ion mobility dimension.";
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,6 +28,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -38,6 +38,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
+import java.util.NoSuchElementException;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
@@ -49,6 +50,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
   public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@NotNull ModularFeature f,
       AtomicDouble progress) {
     super(true);
+
+    final var type = new FeatureShapeIonMobilityRetentionTimeHeatMapType();
 
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();
     ColoredXYZDataset dataset = new ColoredXYZDataset(
@@ -68,17 +71,19 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends BufferedCh
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeMinimumSize(0.005);
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    setPrefWidth(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH);
+    setPrefWidth(type.getPrefColumnWidth());
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
-    //  over all data points (also means the renderers have to support it)
-    chart.getXYPlot().getDomainAxis()
-        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
-    chart.getXYPlot().getRangeAxis()
-        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
+    try {
+      chart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
+      chart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
+    } catch (NullPointerException | NoSuchElementException e) {
+      // error in jfreechart draw method
+    }
 
-    setChartCreateImage(chart, GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
+    setChartCreateImage(chart, (int) type.getPrefColumnWidth(),
         GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

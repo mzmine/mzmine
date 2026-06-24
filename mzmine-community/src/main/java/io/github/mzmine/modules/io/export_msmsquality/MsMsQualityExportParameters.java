@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_msmsquality;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class MsMsQualityExportParameters extends SimpleParameterSet {
 
@@ -57,5 +59,10 @@ public class MsMsQualityExportParameters extends SimpleParameterSet {
   public MsMsQualityExportParameters() {
     super(new Parameter[]{flists, file, onlyCompoundAnnotated, formulaTolerance,
         matchCompoundNameToFlist});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -33,6 +33,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_last_error_string;
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_sqlite_cache_filename_v2;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
@@ -54,7 +55,7 @@ import org.sqlite.JDBC;
 public class BafDataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(BafDataAccess.class.getName());
-  private final SpectraAcquisitionStepsTable spectraTable = new SpectraAcquisitionStepsTable();
+  private final SpectraAcquisitionStepsTable spectraTable;
   private final BafPropertiesTable metadata = new BafPropertiesTable();
   private final Ms2Table ms2Table = new Ms2Table();
   @NotNull
@@ -65,7 +66,8 @@ public class BafDataAccess implements AutoCloseable {
   private MemorySegment mzBufferSegment;
   private MemorySegment intensityBufferSegment;
 
-  public BafDataAccess() {
+  public BafDataAccess(final boolean importProfileIfPossible) {
+    spectraTable = new SpectraAcquisitionStepsTable(importProfileIfPossible);
     this.arena = Arena.ofConfined();
     mzSizeBuffer = arena.allocate(BafLib.uint64_t);
     intensitySizeBuffer = arena.allocate(BafLib.uint64_t);
@@ -185,11 +187,11 @@ public class BafDataAccess implements AutoCloseable {
     return handle != 0;
   }
 
-  public SimpleSpectralArrays loadPeakData(int index) {
+  public SimpleSpectralArrays loadPeakData(int index, MassSpectrumType spectrumType) {
     assert valid();
 
-    final long mzIds = spectraTable.getMzIds(index);
-    final long intensityIds = spectraTable.getIntensityIds(index);
+    final long mzIds = spectraTable.getMzIds(index, spectrumType);
+    final long intensityIds = spectraTable.getIntensityIds(index, spectrumType);
 
     long success = baf2sql_array_get_num_elements(handle, mzIds, mzSizeBuffer);
     if (success == 0) {

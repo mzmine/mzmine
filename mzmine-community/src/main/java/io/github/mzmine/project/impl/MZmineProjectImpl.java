@@ -12,7 +12,6 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -34,6 +33,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.util.StringUtils;
@@ -47,7 +47,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -73,9 +72,8 @@ public class MZmineProjectImpl implements MZmineProject {
   // use read lock to allow unlimited reads while no write is happening
   private final ReadWriteLock rawLock = new ReentrantReadWriteLock();
   private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
-
-  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private final MetadataTable projectMetadata;
+  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
   @Nullable
@@ -105,14 +103,14 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public @NotNull MetadataTable getProjectMetadata() {
-    return projectMetadata;
-  }
-
-  @Override
   public void setProjectParametersAndValues(
       Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
+  }
+
+  @Override
+  public @NotNull MetadataTable getProjectMetadata() {
+    return projectMetadata;
   }
 
   @Nullable
@@ -129,86 +127,23 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void addParameter(UserParameter<?, ?> parameter) {
-    if (projectParametersAndValues.containsKey(parameter)) {
-      return;
-    }
-
-    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<>();
-    projectParametersAndValues.put(parameter, parameterValues);
-
-  }
-
-  @Override
-  public void removeParameter(UserParameter<?, ?> parameter) {
-    projectParametersAndValues.remove(parameter);
-  }
-
-  @Override
-  public UserParameter<?, ?> getParameterByName(String name) {
-    for (UserParameter<?, ?> parameter : getParameters()) {
-      if (parameter.getName().equals(name)) {
-        return parameter;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    // matching by name
-    UserParameter<?, ?> param = getParameterByName(parameter.getName());
-    return param != null;
-  }
-
-  @Override
-  public UserParameter<?, ?>[] getParameters() {
-    return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
-  }
-
-  @Override
-  public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
-      Object value) {
-    if (!(hasParameter(parameter))) {
-      addParameter(parameter);
-    }
-    Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    if (value == null) {
-      parameterValues.remove(rawDataFile);
-    } else {
-      parameterValues.put(rawDataFile, value);
-    }
-  }
-
-  @Override
-  public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
-    if (!(hasParameter(parameter))) {
-      return null;
-    }
-
-    return projectParametersAndValues.get(parameter).get(rawDataFile);
-  }
-
-  @Override
   public void addFile(@NotNull final RawDataFile newFile) {
     try {
       rawLock.writeLock().lock();
       // avoid duplicate file names and check the actual names of the files of the raw data files
       // since that will be the problem during project save (duplicate zip entries)
-      final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
-          .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+      final List<ProjectFile> names = rawDataFiles.stream().map(ProjectFile::new).toList();
       // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
-      final String name =
-          newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
-      if (names.contains(name)) {
+      final ProjectFile newProjectFile = new ProjectFile(newFile);
+      if (names.contains(newProjectFile)) {
         if (!MZmineCore.isHeadLessMode()) {
-          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-                                                      + " because a file with the same name already exists in the project. Please copy "
-                                                      + "the file and rename it, if you want to import it twice.");
+          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + newProjectFile
+              + " because a file with the same name already exists in the project. Please copy "
+              + "the file and rename it, if you want to import it twice.");
         }
         logger.warning(
             "Cannot add file with an original name that already exists in project. (filename="
-            + newFile.getName() + ")");
+                + newFile.getName() + ")");
         return;
       }
 
@@ -319,10 +254,15 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     try {
       rawLock.readLock().lock();
-      name = name.trim();
+      // check by exact name + format match first
+      for (RawDataFile file : rawDataFiles) {
+        if (file.getName().matches(name)) {
+          return file;
+        }
+      }
+      // check by name match, no format match
       for (final RawDataFile raw : rawDataFiles) {
-        if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
-            FileAndPathUtil.eraseFormat(raw.getName()))) {
+        if (MetadataTableUtils.matchesFilename(name, raw)) {
           return raw;
         }
       }

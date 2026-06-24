@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra;
 
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
 import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
 
 public class IntraFeatureRowMs2SimilarityParameters extends SimpleParameterSet {
 
@@ -72,4 +74,8 @@ public class IntraFeatureRowMs2SimilarityParameters extends SimpleParameterSet {
     super(featureLists, filename, mzTol, minMatchedSignals, signalFilters, splitByFragmentationEnergy);
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

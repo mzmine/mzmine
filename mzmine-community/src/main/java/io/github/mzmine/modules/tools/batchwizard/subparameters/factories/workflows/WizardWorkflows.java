@@ -18,7 +18,7 @@ public class WizardWorkflows {
 
   public static synchronized WorkflowWizardParameterFactory[] values() {
     return values.stream()
-        .filter(workflow -> workflow.isAvailableWithLicense(CurrentUserService.getUser()))
+        .filter(workflow -> workflow.checkUserForServices(CurrentUserService.getUser()).isOk())
         .toArray(WorkflowWizardParameterFactory[]::new);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor;
 
+import org.jetbrains.annotations.NotNull;
+
 public record ChimericPrecursorResults(double purity, ChimericPrecursorFlag flag) {
 
   public static final ChimericPrecursorResults MISSING_MAIN_SIGNAL = new ChimericPrecursorResults(1,
@@ -36,4 +38,7 @@ public record ChimericPrecursorResults(double purity, ChimericPrecursorFlag flag
 
   public static final ChimericPrecursorResults PASSED = new ChimericPrecursorResults(1,
       ChimericPrecursorFlag.PASSED);
+
+  public static final @NotNull ChimericPrecursorResults NOT_APPLICABLE = new ChimericPrecursorResults(
+      1, ChimericPrecursorFlag.NOT_APPLICABLE);
 }

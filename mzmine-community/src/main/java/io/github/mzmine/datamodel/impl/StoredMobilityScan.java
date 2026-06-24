@@ -65,7 +65,7 @@ public class StoredMobilityScan implements MobilityScan {
 
   @Override
   public MassSpectrumType getSpectrumType() {
-    return storage.getFrame().getSpectrumType();
+    return storage.getSpectrumType();
   }
 
   @Override

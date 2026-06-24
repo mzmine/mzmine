@@ -158,7 +158,7 @@ public class MzMLPeaksDecoder {
         dis.close();
         throw new IllegalArgumentException(
             "Precision MUST be specified and be either 32-bit or 64-bit, "
-            + "if MS-NUMPRESS compression was not used");
+                + "if MS-NUMPRESS compression was not used");
     }
 
     try {
@@ -243,7 +243,13 @@ public class MzMLPeaksDecoder {
       data = new double[numPoints];
     }
 
-    byte[] bytes = Base64.getDecoder().decode(binaryData);
+    byte[] bytes;
+    if (binaryData.charAt(0) == '\n') {
+      // shimadzu's in-house converter uses an illegal linebreak in a binary array
+      bytes = Base64.getDecoder().decode(binaryData.strip());
+    } else {
+      bytes = Base64.getDecoder().decode(binaryData);
+    }
 
     if (binaryDataInfo.getCompressionType().isZlibCompressed()) {
       // if CVParam states the data is compressed
@@ -255,7 +261,7 @@ public class MzMLPeaksDecoder {
         data = decompressIfNumpress(binaryDataInfo, data, bytes);
         return data;
       } catch (MSDKException e) {
-        logger.warning(STR."Could not decompress numpress \{binaryDataInfo.getCompressionType()}");
+        logger.warning("Could not decompress numpress " + binaryDataInfo.getCompressionType());
       }
     }
 

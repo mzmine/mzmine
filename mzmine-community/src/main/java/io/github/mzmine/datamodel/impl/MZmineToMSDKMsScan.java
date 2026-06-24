@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of the Scan interface.
@@ -142,6 +143,7 @@ public class MZmineToMSDKMsScan implements MsScan {
     return (float) (mzmineScan.getRetentionTime() * 60d);
   }
 
+  @Nullable
   @Override
   public Range<Double> getScanningRange() {
     return mzmineScan.getScanningMZRange();

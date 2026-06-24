@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MSnTreeVisualizerModule implements MZmineRunnableModule {
 
-  public static final String MODULE_NAME = "MS(n) spectra tree";
+  public static final String MODULE_NAME = "MSn spectral trees";
 
   public static final String DESCRIPTION = "Open fragment spectra trees of MS2 to MSn.";
 

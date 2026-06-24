@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
+import io.github.mzmine.datamodel.statistics.DataTable;
+import io.github.mzmine.datamodel.statistics.DataTableUtils;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
@@ -35,6 +37,27 @@ public class ParetoScalingFunction implements ScalingFunction {
   @Override
   public RealVector apply(RealVector realVector) {
     final double sd = dev.evaluate(realVector.toArray());
-    return realVector.mapDivide(Math.sqrt(sd));
+    if (Double.compare(sd, 0d) == 0) {
+      return realVector.mapToSelf(v -> 0);
+    }
+    return realVector.mapDivide(Math.sqrt(sd)).mapToSelf(scalingResultChecker);
+  }
+
+  @Override
+  public <T extends DataTable> T processInPlace(T data) {
+    // do not use data array directly as it is not given that all tables.featureArray will reflect the changes
+    for (int featureIndex = 0; featureIndex < data.getNumberOfFeatures(); featureIndex++) {
+      final double sd = dev.evaluate(data.getFeatureData(featureIndex, false));
+      if (Double.compare(sd, 0d) == 0) {
+        DataTableUtils.fillFeatureData(data, featureIndex, 0d);
+      } else {
+        final double sqrtSD = Math.sqrt(sd);
+        for (int i = 0; i < data.getNumberOfSamples(); i++) {
+          final double scaled = scalingResultChecker.value(data.getValue(featureIndex, i) / sqrtSD);
+          data.setValue(featureIndex, i, scaled);
+        }
+      }
+    }
+    return data;
   }
 }

@@ -52,6 +52,7 @@ public class FeatureDataSet extends AbstractXYDataset {
   private final double[] mzValues;
   private final String name;
   private final int featureItem;
+  private final String seriesKey;
 
   /**
    * Create the data set.
@@ -60,9 +61,9 @@ public class FeatureDataSet extends AbstractXYDataset {
    * @param id peak identity to use as a label.
    */
   public FeatureDataSet(final Feature p, final String id) {
-
     feature = p;
     name = id;
+    seriesKey = FeatureUtils.featureToString(feature);
 
     final List<Scan> scanNumbers = feature.getScanNumbers();
     final RawDataFile dataFile = feature.getRawDataFile();
@@ -121,7 +122,7 @@ public class FeatureDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(final int series) {
-    return FeatureUtils.featureToString(feature);
+    return seriesKey;
   }
 
   @Override

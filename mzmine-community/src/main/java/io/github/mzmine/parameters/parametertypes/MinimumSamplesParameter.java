@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,8 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 
 public class MinimumSamplesParameter extends AbsoluteAndRelativeIntParameter {
 
-  public static final String DEFAULT_NAME = "Minimum aligned features (samples)";
-  public static final String DEFAULT_DESCRIPTION = "Minimum number of feature detections required per row. The value will be rounded down to the nearest whole number.";
+  public static final String DEFAULT_NAME = "Minimum aligned samples";
+  public static final String DEFAULT_DESCRIPTION = "Minimum number of samples a feature was detected and aligned per row. Both the absolute threshold and a percentage is applied. The value will be rounded down to the nearest whole number.";
 
   public MinimumSamplesParameter() {
     this(DEFAULT_NAME, DEFAULT_DESCRIPTION, new AbsoluteAndRelativeInt(1, 0f, Mode.ROUND_DOWN));
@@ -58,7 +58,7 @@ public class MinimumSamplesParameter extends AbsoluteAndRelativeIntParameter {
   }
 
   @Override
-  public AbsoluteAndRelativeIntParameter cloneParameter() {
+  public MinimumSamplesParameter cloneParameter() {
     return new MinimumSamplesParameter(name, description, value, minAbs);
   }
 }

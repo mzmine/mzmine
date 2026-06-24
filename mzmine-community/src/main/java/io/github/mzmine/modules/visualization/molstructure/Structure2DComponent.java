@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,30 @@
 
 package io.github.mzmine.modules.visualization.molstructure;
 
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
 import java.awt.Font;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.io.MDLV2000Reader;
-import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class Structure2DComponent extends Canvas {
@@ -47,6 +56,13 @@ public class Structure2DComponent extends Canvas {
   private static final Logger logger = Logger.getLogger(Structure2DComponent.class.getName());
   private final Structure2DRenderer renderer;
   private final Property<IAtomContainer> molecule = new SimpleObjectProperty<>();
+  private final ObjectProperty<Structure2DRenderConfig> renderConfig = new SimpleObjectProperty<>(
+      ConfigService.getStructureRenderConfig());
+
+  private final BooleanProperty contextMenuEnabled = new SimpleBooleanProperty(true);
+
+  // overlay drawn after the structure in the top-right corner; null/empty = no overlay
+  private final StringProperty topRightText = new SimpleStringProperty(null);
 
   public static Structure2DComponent create(String structure) throws CDKException, IOException {
 
@@ -80,20 +96,35 @@ public class Structure2DComponent extends Canvas {
       final Structure2DRenderer renderer) {
     this.renderer = renderer;
     molecule.addListener((_, _, mol) -> onStructureChange(mol));
+    // overlay text changes trigger a full repaint (the renderer clears the canvas background, so
+    // we cannot just append; the structure has to be redrawn too)
+    topRightText.addListener((_, _, _) -> repaint());
     setMolecule(container);
+
+    // Create context menu
+    final ContextMenu contextMenu = new ContextMenu();
+    MenuItem saveSvg = new MenuItem("Save structure as svg");
+    saveSvg.setOnAction(e -> {
+      final IAtomContainer mol = molecule.getValue();
+      if (mol == null) {
+        return;
+      }
+      StructureGraphicsExportModule.exportToSvg(mol);
+    });
+    contextMenu.getItems().addAll(saveSvg);
+
+    // Show context menu on right click if enabled
+    setOnContextMenuRequested(e -> {
+      if (isContextMenuEnabled()) {
+        contextMenu.show(this, e.getScreenX(), e.getScreenY());
+      }
+    });
   }
 
   private void onStructureChange(final IAtomContainer mol) {
     // If the model has no coordinates, let's generate them
-    if (mol != null && !GeometryUtil.has2DCoordinates(mol)) {
-      try {
-//        logger.info("generate coordinates for structure");
-        StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-        sdg.setMolecule(mol, false);
-        sdg.generateCoordinates();
-      } catch (CDKException e) {
-        logger.warning("Cannot generate coordinates for structure");
-      }
+    if (mol != null) {
+      renderer.prepareStructure2D(mol);
     }
     repaint();
   }
@@ -102,7 +133,27 @@ public class Structure2DComponent extends Canvas {
    * ensures fx thread repaint
    */
   private void repaint() {
-    FxThread.runLater(() -> renderer.drawStructure(this, molecule.getValue()));
+    renderer.drawStructure(this, molecule.getValue(), renderConfig.getValue());
+    drawTopRightOverlay();
+  }
+
+  // Draws topRightText (if set) on top of the rendered structure. Called after the renderer fills
+  // and paints, so the overlay sits above the structure.
+  private void drawTopRightOverlay() {
+    final String text = topRightText.get();
+    if (text == null || text.isBlank()) {
+      return;
+    }
+    final GraphicsContext gc = getGraphicsContext2D();
+    final double padding = 4d;
+    final javafx.scene.text.Font font = javafx.scene.text.Font.font(11d);
+    gc.save();
+    gc.setFont(font);
+    gc.setTextAlign(TextAlignment.RIGHT);
+    gc.setTextBaseline(VPos.TOP);
+    gc.setFill(Color.BLACK);
+    gc.fillText(text, getWidth() - padding, padding);
+    gc.restore();
   }
 
   @Override
@@ -112,12 +163,12 @@ public class Structure2DComponent extends Canvas {
 
   @Override
   public double minWidth(double height) {
-    return 100d;
+    return 25d;
   }
 
   @Override
   public double minHeight(double width) {
-    return 50d;
+    return 25d;
   }
 
   @Override
@@ -157,5 +208,45 @@ public class Structure2DComponent extends Canvas {
 
   public Property<IAtomContainer> moleculeProperty() {
     return molecule;
+  }
+
+  public Structure2DRenderConfig getRenderConfig() {
+    return renderConfig.get();
+  }
+
+  public ObjectProperty<Structure2DRenderConfig> renderConfigProperty() {
+    return renderConfig;
+  }
+
+  public void setRenderConfig(Structure2DRenderConfig renderConfig) {
+    this.renderConfig.set(renderConfig);
+  }
+
+  public boolean isContextMenuEnabled() {
+    return contextMenuEnabled.get();
+  }
+
+  public BooleanProperty contextMenuEnabledProperty() {
+    return contextMenuEnabled;
+  }
+
+  public void setContextMenuEnabled(boolean contextMenuEnabled) {
+    this.contextMenuEnabled.set(contextMenuEnabled);
+  }
+
+  public @Nullable String getTopRightText() {
+    return topRightText.get();
+  }
+
+  public StringProperty topRightTextProperty() {
+    return topRightText;
+  }
+
+  /**
+   * Set an optional short label drawn over the structure in the top-right corner. Pass null or
+   * empty to clear.
+   */
+  public void setTopRightText(@Nullable String text) {
+    this.topRightText.set(text);
   }
 }

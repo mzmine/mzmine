@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,22 +47,33 @@ public class SpectralLibraryImportTask extends AbstractTask {
 
   private final MZmineProject project;
   private final File dataBaseFile;
+  private final boolean extensiveErrorLogging;
   private AutoLibraryParser parser;
+  private int totalEntries = 0;
+  private int totalEnrichedEntries = 0;
+
 
   public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, boolean extensiveErrorLogging) {
     super(MemoryMapStorage.forMassList(), moduleCallDate);
     this.project = project;
     this.dataBaseFile = dataBaseFile;
+    this.extensiveErrorLogging = extensiveErrorLogging;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return parser == null ? 0 : parser.getProgress();
+    return parser == null ? 0 : (parser.getProgress());
+//           + (totalEntries > 0 ? totalEnrichedEntries / (double) totalEntries
+//            : 0)) * 0.5;
   }
 
   @Override
   public String getTaskDescription() {
+    if (totalEnrichedEntries > 0) {
+      return "Harmonizing structures for %d/%d entries".formatted(totalEnrichedEntries,
+          totalEntries);
+    }
     if (parser != null) {
       return "Import spectral library from %s (%d)".formatted(dataBaseFile,
           parser.getProcessedEntries());
@@ -82,6 +93,27 @@ public class SpectralLibraryImportTask extends AbstractTask {
       library.trim(); // trim to save memory
       final List<SpectralLibraryEntry> entries = library.getEntries();
       if (!entries.isEmpty()) {
+        // enrich structure metadata
+        // enriching structures is done on demand once visualized or used as getSmiles or so
+//        totalEntries = entries.size();
+//        for (SpectralLibraryEntry entry : entries) {
+//          entry.enrichMetadata();
+//          totalEnrichedEntries++;
+//        }
+        // decision: log cumulative cache stats rather than a per-task delta — libraries are
+        // typically imported concurrently, so a snapshot/diff would attribute other tasks'
+        // activity to this one. Eviction count signals whether either cap is undersized.
+//        final CacheStats rawStats = StructureParser.getRawCacheStats();
+//        final CacheStats cleanStats = StructureParser.getCleanCacheStats();
+//        final long rawSize = StructureParser.getRawCacheSize();
+//        final long cleanSize = StructureParser.getCleanCacheSize();
+//        logger.log(Level.INFO,
+//            () -> "Structure caches after harmonizing %s: raw %d hits / %d misses (%.1f%%, %d evictions, size %d); clean %d hits / %d misses (%.1f%%, %d evictions, size %d)".formatted(
+//                dataBaseFile.getName(), rawStats.hitCount(), rawStats.missCount(),
+//                rawStats.hitRate() * 100, rawStats.evictionCount(), rawSize, cleanStats.hitCount(),
+//                cleanStats.missCount(), cleanStats.hitRate() * 100, cleanStats.evictionCount(),
+//                cleanSize));
+
         project.addSpectralLibrary(library);
 
         logger.log(Level.INFO,
@@ -92,7 +124,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       }
     } catch (Exception e) {
       logger.log(Level.SEVERE,
-          STR."Could not read file \{dataBaseFile}. The file/path may not exist.", e);
+          "Could not read file %s. The file/path may not exist.".formatted(dataBaseFile), e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;
@@ -115,9 +147,9 @@ public class SpectralLibraryImportTask extends AbstractTask {
    */
   private SpectralLibrary parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
-    //
     SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
-    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list));
+    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list),
+        extensiveErrorLogging);
     // return tasks
     parser.parse(this, dataBaseFile, library);
     return library;

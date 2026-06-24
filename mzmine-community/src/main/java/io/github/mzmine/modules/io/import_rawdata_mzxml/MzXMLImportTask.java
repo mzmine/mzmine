@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
@@ -38,10 +39,12 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.ByteArrayInputStream;
@@ -59,7 +62,6 @@ import java.util.zip.DataFormatException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -69,12 +71,13 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  *
  */
-public class MzXMLImportTask extends AbstractTask {
+public class MzXMLImportTask extends AbstractTask implements RawDataImportTask {
+
+  private static final Logger logger = Logger.getLogger(MzXMLImportTask.class.getName());
 
   private final ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final File file;
   private final MZmineProject project;
@@ -109,7 +112,7 @@ public class MzXMLImportTask extends AbstractTask {
   private SimpleScan lastScan;
 
 
-  public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  public MzXMLImportTask(MZmineProject project, File fileToOpen,
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, final @Nullable MemoryMapStorage storage) {
@@ -121,7 +124,8 @@ public class MzXMLImportTask extends AbstractTask {
     charBuffer = new StringBuilder(1 << 18);
     this.project = project;
     this.file = fileToOpen;
-    this.newMZmineFile = newMZmineFile;
+    this.newMZmineFile = new RawDataFileImpl(file.getName(), file.getAbsolutePath(),
+        getMemoryMapStorage());
   }
 
   @Override
@@ -135,14 +139,12 @@ public class MzXMLImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started parsing file " + file);
 
-    // Use the default (non-validating) parser
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-
     try {
 
       dataTypeFactory = DatatypeFactory.newInstance();
 
-      SAXParser saxParser = factory.newSAXParser();
+      // decision: reject DTDs and external entities in user-supplied XML files.
+      final SAXParser saxParser = XMLUtils.newSAXParser();
       saxParser.parse(file, handler);
 
       newMZmineFile.getAppliedMethods()
@@ -206,6 +208,11 @@ public class MzXMLImportTask extends AbstractTask {
 
     // after peaks the scan is done - add to stack and wait for last scan to be closed before adding to file
     parentStack.add(lastScan);
+  }
+
+  @Override
+  public @NotNull List<RawDataFile> getImportedRawDataFiles() {
+    return getStatus() == TaskStatus.FINISHED ? List.of(newMZmineFile) : List.of();
   }
 
   private class MzXMLHandler extends DefaultHandler {

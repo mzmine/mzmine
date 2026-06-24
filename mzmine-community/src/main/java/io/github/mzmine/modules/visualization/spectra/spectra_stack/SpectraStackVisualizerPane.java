@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,7 @@
  */
 package io.github.mzmine.modules.visualization.spectra.spectra_stack;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -43,6 +44,8 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -95,6 +98,9 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
   private List<AbstractMSMSIdentity> msmsAnnotations;
   private int currentColumns = 2;
   private FeatureListRow[] rows;
+  // Library-entry "spectra" that should appear in the stack alongside the row MS2 charts. Populated
+  // when the network selection includes analog-compound nodes; cleared on a plain row selection.
+  private List<SpectralDBAnnotation> analogEntries = new ArrayList<>();
   private RawDataFile selectedRaw;
   private RawDataFile[] allRaw;
   private boolean createMS1;
@@ -178,7 +184,7 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
     final boolean showCrosshair = parameters.getValue(
         SpectraStackVisualizerParameters.showCrosshair);
     if (group != null) {
-      group.setShowCrosshair(showCrosshair, showCrosshair);
+      group.setUseMouseMovementCrosshair(showCrosshair, showCrosshair);
 
       int rows = currentRows();
       for (int i = 0; i < group.getList().size(); i++) {
@@ -313,6 +319,18 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
     setData(rows.toArray(FeatureListRow[]::new), null, null, createMS1);
   }
 
+  /**
+   * Create the stack from a mix of feature rows and library entries (e.g. analog-compound matches
+   * from the network view). Row MS2 charts come first, followed by one chart per library entry.
+   * Passing an empty {@code analogEntries} list is equivalent to {@link #setData(List, boolean)}.
+   */
+  public void setRowsAndAnalogs(@NotNull List<? extends FeatureListRow> rows,
+      @NotNull List<SpectralDBAnnotation> analogEntries, boolean createMS1) {
+    // decision: store analogs before delegating because setData -> updateAllCharts reads the field
+    this.analogEntries = new ArrayList<>(analogEntries);
+    setData(rows.toArray(FeatureListRow[]::new), null, null, createMS1);
+  }
+
   public void setData(FeatureListRow[] rows, @Nullable RawDataFile[] allRaw,
       @Nullable RawDataFile raw, boolean createMS1) {
     rows = Arrays.stream(rows).filter(FeatureListRow::hasMs2Fragmentation).limit(ROW_LIMIT)
@@ -343,7 +361,9 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
         SpectraStackVisualizerParameters.showCrosshair);
 
     msone = null;
-    group = new ChartGroup(showCrosshair, showCrosshair, true, false);
+    group = new ChartGroup(false, false, true, false);
+    group.setUseMouseMovementCrosshair(showCrosshair, showCrosshair);
+
     // MS1
     if (createMS1) {
       Scan scan = null;
@@ -394,7 +414,39 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
       }
     }
 
+    // Library entries from analog-compound nodes are rendered as standalone fragment-spectrum
+    // charts and stacked after the row MS2 charts. Treated like rows for the user, but they come
+    // from the library not the feature list.
+    for (final SpectralDBAnnotation analog : analogEntries) {
+      final EChartViewer c = createLibraryEntryChart(analog);
+      if (c != null) {
+        group.add(new ChartViewWrapper(c));
+      }
+    }
+
     renewGridLayout(group);
+  }
+
+  /**
+   * Build a single fragment-spectrum chart from a library entry (precursor m/z + data points). Used
+   * for analog-compound nodes whose underlying spectra live in a library rather than a raw file.
+   */
+  @Nullable
+  private static EChartViewer createLibraryEntryChart(final SpectralDBAnnotation annotation) {
+    final SpectralLibraryEntry entry = annotation.getEntry();
+    final DataPoint[] dps = entry.getDataPoints();
+    if (dps == null || dps.length == 0) {
+      return null;
+    }
+    final Double precursorMz = entry.getPrecursorMZ();
+    final String compoundName = annotation.getCompoundName();
+    final String label = "Library: " + (compoundName != null ? compoundName : "analog entry");
+    // RT is irrelevant for a library entry; pass 0 so the title falls back to precursor-only info
+    final PseudoSpectrumDataSet dataset = MirrorChartFactory.createMSMSDataSet(precursorMz, 0d, dps,
+        label);
+    final JFreeChart chart = SpectrumChartFactory.createChart(dataset, false, false, 0d,
+        precursorMz != null ? precursorMz : 0d);
+    return SpectrumChartFactory.createChartViewer(chart);
   }
 
   public void renewGridLayout(ChartGroup group) {
@@ -497,7 +549,7 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
 
     boolean changed =
         mzTolerance != this.mzTolerance || (this.mzTolerance == null && mzTolerance != null)
-        || !this.mzTolerance.equals(mzTolerance);
+            || !this.mzTolerance.equals(mzTolerance);
     this.mzTolerance = mzTolerance;
     exchangeTolerance = false;
 
@@ -540,6 +592,8 @@ public class SpectraStackVisualizerPane extends BorderPane implements FeatureRow
 
   @Override
   public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+    // plain row selection clears any analog-entry context from a prior selection
+    this.analogEntries = new ArrayList<>();
     setData(selectedRows, createMS1);
   }
 }

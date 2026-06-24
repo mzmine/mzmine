@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
-import io.github.mzmine.datamodel.Scan;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Logger;
-import org.jfree.data.xy.XYSeries;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.Trend2D;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.BiasEstimator;
@@ -48,12 +39,22 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standards
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist.StandardsListItem;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Logger;
+import org.jfree.data.xy.XYSeries;
 
 /**
  * Class for calibrating mass spectra
  */
 public class MassCalibrator {
 
+  private static final Logger logger = Logger.getLogger(MassCalibrator.class.getName());
   public static final ErrorType massError = new PpmError();
 
   protected final RTTolerance retentionTimeTolerance;
@@ -64,7 +65,6 @@ public class MassCalibrator {
   protected double errorMaxRangeLength;
   protected Range<Double> percentileRange;
 
-  protected final Logger logger;
   protected int all, zero, single, multiple = 0;
   protected int massListsCount = 0;
 
@@ -80,17 +80,19 @@ public class MassCalibrator {
   /**
    * Create new mass calibrator
    *
-   * @param retentionTimeTolerance max difference in RT between standard calibrants and actual mz
-   *        peaks
-   * @param mzRatioTolerance max difference in mz ratio between standard calibrants and actual mz
-   *        peaks
+   * @param retentionTimeTolerance    max difference in RT between standard calibrants and actual mz
+   *                                  peaks
+   * @param mzRatioTolerance          max difference in mz ratio between standard calibrants and
+   *                                  actual mz peaks
    * @param errorDistributionDistance clustering distance parameter for extracting high density
-   *        range of errors that are meant to approximate the set of substantial errors to the bias
-   *        estimate
-   * @param errorMaxRangeLength max length of the range to be found containing most errors in it
-   * @param standardsList list of standard calibrants used for m/z peaks matching and bias
-   *        estimation
-   * @param errorVsMzTrend trend used for modeling error vs mz ratio for mass peak matches made
+   *                                  range of errors that are meant to approximate the set of
+   *                                  substantial errors to the bias estimate
+   * @param errorMaxRangeLength       max length of the range to be found containing most errors in
+   *                                  it
+   * @param standardsList             list of standard calibrants used for m/z peaks matching and
+   *                                  bias estimation
+   * @param errorVsMzTrend            trend used for modeling error vs mz ratio for mass peak
+   *                                  matches made
    */
   public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
       double errorDistributionDistance, double errorMaxRangeLength, StandardsList standardsList,
@@ -103,21 +105,20 @@ public class MassCalibrator {
     this.mzRatioTolerance = mzRatioTolerance;
     this.standardsList = standardsList;
     this.errorVsMzTrend = errorVsMzTrend;
-
-    this.logger = Logger.getLogger(this.getClass().getName());
   }
 
   /**
    * Create new mass calibrator
    *
    * @param retentionTimeTolerance max difference in RT between standard calibrants and actual mz
-   *        peaks
-   * @param mzRatioTolerance max difference in mz ratio between standard calibrants and actual mz
-   *        peaks
-   * @param percentileRange percentile range used to extract errors from their distribution
-   * @param standardsList list of standard calibrants used for m/z peaks matching and bias
-   *        estimation
-   * @param errorVsMzTrend trend used for modeling error vs mz ratio for mass peak matches made
+   *                               peaks
+   * @param mzRatioTolerance       max difference in mz ratio between standard calibrants and actual
+   *                               mz peaks
+   * @param percentileRange        percentile range used to extract errors from their distribution
+   * @param standardsList          list of standard calibrants used for m/z peaks matching and bias
+   *                               estimation
+   * @param errorVsMzTrend         trend used for modeling error vs mz ratio for mass peak matches
+   *                               made
    */
   public MassCalibrator(RTTolerance retentionTimeTolerance, MZTolerance mzRatioTolerance,
       Range<Double> percentileRange, StandardsList standardsList, Trend2D errorVsMzTrend) {
@@ -129,7 +130,6 @@ public class MassCalibrator {
     this.standardsList = standardsList;
     this.errorVsMzTrend = errorVsMzTrend;
 
-    this.logger = Logger.getLogger(this.getClass().getName());
   }
 
   public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime) {
@@ -147,8 +147,8 @@ public class MassCalibrator {
    */
   public ArrayList<MassPeakMatch> addMassList(DataPoint[] massList, float retentionTime,
       Scan scanNumber, double intensityThreshold) {
-    ArrayList<MassPeakMatch> matches =
-        matchPeaksWithCalibrants(massList, retentionTime, scanNumber, intensityThreshold);
+    ArrayList<MassPeakMatch> matches = matchPeaksWithCalibrants(massList, retentionTime, scanNumber,
+        intensityThreshold);
     massPeakMatches.addAll(matches);
     return matches;
   }
@@ -161,8 +161,8 @@ public class MassCalibrator {
    *
    * @param massList
    * @param retentionTime
-   * @param matchesStore if not null, mass peak matches made in the process will be added to the
-   *        list store
+   * @param matchesStore  if not null, mass peak matches made in the process will be added to the
+   *                      list store
    * @return
    */
   public ArrayList<Double> findMassListErrors(DataPoint[] massList, float retentionTime,
@@ -207,7 +207,6 @@ public class MassCalibrator {
       errorVsMzTrend.setDataset(errorVsMzSeries);
     }
 
-
     biasEstimate = BiasEstimator.arithmeticMean(extractedRange.getExtractedItems());
     logger.info(String.format("Errors %d, extracted %d, unique %s, bias estimate %f", errors.size(),
         extractedRange.getExtractedItems().size(), unique ? "true" : "false", biasEstimate));
@@ -236,10 +235,10 @@ public class MassCalibrator {
 
     if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.RANGE_METHOD) {
       if (errorMaxRangeLength != 0) {
-        DistributionRange range =
-            DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
-        DistributionRange stretchedRange =
-            DistributionExtractor.fixedToleranceExtensionRange(range, errorDistributionDistance);
+        DistributionRange range = DistributionExtractor.fixedLengthRange(errors,
+            errorMaxRangeLength);
+        DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+            errorDistributionDistance);
         extractedRange = stretchedRange;
 
         errorRanges.put("High-density range of errors", range);
@@ -248,8 +247,8 @@ public class MassCalibrator {
         }
 
       } else if (errorDistributionDistance != 0) {
-        DistributionRange biggestCluster =
-            DistributionExtractor.mostPopulatedRangeCluster(errors, errorDistributionDistance);
+        DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
+            errorDistributionDistance);
         extractedRange = biggestCluster;
 
         errorRanges.put("Biggest range by tolerance", biggestCluster);
@@ -258,7 +257,8 @@ public class MassCalibrator {
         DistributionRange wholeRange = DistributionExtractor.wholeRange(errors);
         extractedRange = wholeRange;
       }
-    } else if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
+    } else if (rangeExtractionMethod
+        == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
       DistributionRange range = DistributionExtractor.interpercentileRange(errors,
           percentileRange.lowerEndpoint(), percentileRange.upperEndpoint());
       extractedRange = range;
@@ -272,10 +272,10 @@ public class MassCalibrator {
   /**
    * Estimate measurement bias from errors
    *
-   * @param errors list of errors
-   * @param unique filter out duplicates from the list of errors if unique is set to true
+   * @param errors          list of errors
+   * @param unique          filter out duplicates from the list of errors if unique is set to true
    * @param errorRangeStore if not null, error ranges extracted in the process will be added to the
-   *        map store
+   *                        map store
    * @return measurement bias estimate
    */
   public double estimateBiasFromErrors(List<Double> errors, boolean unique,
@@ -298,10 +298,10 @@ public class MassCalibrator {
     List<Double> extracted = null;
     if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.RANGE_METHOD) {
       if (errorMaxRangeLength != 0) {
-        DistributionRange range =
-            DistributionExtractor.fixedLengthRange(errors, errorMaxRangeLength);
-        DistributionRange stretchedRange =
-            DistributionExtractor.fixedToleranceExtensionRange(range, errorDistributionDistance);
+        DistributionRange range = DistributionExtractor.fixedLengthRange(errors,
+            errorMaxRangeLength);
+        DistributionRange stretchedRange = DistributionExtractor.fixedToleranceExtensionRange(range,
+            errorDistributionDistance);
         extracted = stretchedRange.getExtractedItems();
 
         errorRangeStore.put("Most populated range", range);
@@ -310,8 +310,8 @@ public class MassCalibrator {
         }
 
       } else if (errorDistributionDistance != 0) {
-        DistributionRange biggestCluster =
-            DistributionExtractor.mostPopulatedRangeCluster(errors, errorDistributionDistance);
+        DistributionRange biggestCluster = DistributionExtractor.mostPopulatedRangeCluster(errors,
+            errorDistributionDistance);
         extracted = biggestCluster.getExtractedItems();
 
         errorRangeStore.put("Biggest range by tolerance", biggestCluster);
@@ -321,7 +321,8 @@ public class MassCalibrator {
         extracted = errors;
 
       }
-    } else if (rangeExtractionMethod == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
+    } else if (rangeExtractionMethod
+        == MassCalibrationParameters.RangeExtractionChoice.PERCENTILE_RANGE) {
       DistributionRange range = DistributionExtractor.interpercentileRange(errors,
           percentileRange.lowerEndpoint(), percentileRange.upperEndpoint());
       extracted = range.getExtractedItems();
@@ -370,7 +371,7 @@ public class MassCalibrator {
    * currently given by an estimate of an overall ppm error of mass measurement should be obtained
    * by other methods in this class
    *
-   * @param massList the list of mz peaks to calibrate
+   * @param massList     the list of mz peaks to calibrate
    * @param biasEstimate bias estimate against which the mass list should be calibrated
    * @return new mass calibrated list of mz peaks
    */
@@ -438,8 +439,8 @@ public class MassCalibrator {
       double mz = dataPoint.getMZ();
       Range<Double> mzRange = mzRatioTolerance.getToleranceRange(mz);
 
-      List<StandardsListItem> dataPointMatches =
-          retentionTimeFiltered.getInRanges(mzRange, null).getStandardMolecules();
+      List<StandardsListItem> dataPointMatches = retentionTimeFiltered.getInRanges(mzRange, null)
+          .getStandardMolecules();
 
       all++;
 

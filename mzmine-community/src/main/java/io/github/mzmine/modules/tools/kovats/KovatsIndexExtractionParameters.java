@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -57,8 +56,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   );
 
   // last saved file
-  public static final FileNameParameter lastSavedFile = new FileNameParameter("Last file",
-      "Last saved file", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter lastSavedFile = new FileNameSuffixExportParameter(
+      "Last file", "Last saved file", extensions, "retention_index");
 
   public static final StringParameter pickedKovatsValues = new StringParameter(
       "Picked Kovats values", "The picked values as C10:time,C12:time ... ");

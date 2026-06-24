@@ -40,14 +40,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class WatersImsCalibrationReader {
 
-  private WatersImsCalibrationReader() {
-  }
-
-  private static final Logger logger = Logger.getLogger(WatersImsCalibrationReader.class.getName());
-
   public static final String WATERS_MOB_CAL = "mob_cal.csv";
   public static final String WATERS_EXTERN_INF = "_extern.inf";
-
+  private static final Logger logger = Logger.getLogger(WatersImsCalibrationReader.class.getName());
   private static final Pattern coefficientPattern = Pattern.compile(
       "(\\*\\sCoefficient:\\s)(\\d+.\\d+)");
   private static final Pattern exponentPattern = Pattern.compile("(\\*\\sExponent:\\s)(\\d+.\\d+)");
@@ -59,6 +54,8 @@ public class WatersImsCalibrationReader {
       "(Transfer.EDCCoefficientLow.Setting)(\\s+)(\\d+.\\d+)");
   private static final Pattern edcHighPattern = Pattern.compile(
       "(Transfer.EDCCoefficientHigh.Setting)(\\s+)(\\d+.\\d+)");
+  private WatersImsCalibrationReader() {
+  }
 
   public static CCSCalibration readCalibrationFile(@NotNull final File file)
       throws RuntimeException {
@@ -105,7 +102,7 @@ public class WatersImsCalibrationReader {
     final double exp = Double.parseDouble(strExponent);
     final double t0 = Double.parseDouble(strT0);
 
-    final File externInf = new File(file.getParentFile(), WATERS_EXTERN_INF);
+    final File externInf = new File(calFile.getParentFile(), WATERS_EXTERN_INF);
 
     if (!file.exists() || !file.canRead()) {
       throw new IllegalArgumentException("Cannot find or read extern.inf file.");
@@ -153,8 +150,8 @@ public class WatersImsCalibrationReader {
   }
 
   /**
-   * Finds the calibration file from a file path. The path can be the .d directory, the AcqData
-   * directory or the OverrideImsCal.xml.
+   * Finds the calibration file from a file path. The path can be the .raw directory or the
+   * mob_cal.csv.
    *
    * @param file The initial file path.
    * @return The path to the OverrideImsCal.xml.
@@ -170,7 +167,7 @@ public class WatersImsCalibrationReader {
     final File calibrationFile;
     if (file.isDirectory()) {
       if (file.getName().endsWith(".raw")) {
-        calibrationFile = new File(file.getAbsolutePath() + File.separator + WATERS_MOB_CAL);
+        calibrationFile = new File(file.getAbsolutePath(), WATERS_MOB_CAL);
         if (!calibrationFile.exists()) {
           logger.warning(() -> "Waters raw " + file.getAbsolutePath() + " is not calibrated. File "
               + file.toPath().relativize(calibrationFile.toPath()) + " does not exist.");
