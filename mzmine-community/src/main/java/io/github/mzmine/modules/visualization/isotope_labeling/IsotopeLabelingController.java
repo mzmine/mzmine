@@ -100,7 +100,8 @@ public class IsotopeLabelingController extends FxController<IsotopeLabelingModel
     // Listen for changes in visualization settings or selected clusters
     PropertyUtils.onChange(this::updateVisualization, model.visualizationTypeProperty(),
         model.selectedClustersProperty(), model.maxIsotopologuesProperty(),
-        model.normalizeToBaseIsotopologueProperty(), model.showSignificanceMarkersProperty());
+        model.normalizationRankProperty(), model.showSignificanceMarkersProperty(),
+        model.groupingColumnNameProperty(), model.stackedBarsProperty());
     
     model.selectedRowsProperty().addListener((obs, oldValue, newValue) -> {
       if (newValue == null || newValue.isEmpty()) {

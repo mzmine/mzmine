@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.isotope_labeling;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -45,13 +44,7 @@ public class IsotopeLabelingParameters extends SimpleParameterSet {
   public static final IntegerParameter maxIsotopologues = new IntegerParameter(
       "Maximum isotopologues", "Maximum number of isotopologues to display in a chart", 10);
 
-  public static final BooleanParameter stackBars = new BooleanParameter("Stack bars",
-      "Stack bars by sample group in the chart", true);
-
-  public static final BooleanParameter showErrorBars = new BooleanParameter("Show error bars",
-      "Show error bars representing standard deviation in the chart", true);
-
   public IsotopeLabelingParameters() {
-    super(featureLists, visualizationType, maxIsotopologues, stackBars, showErrorBars);
+    super(featureLists, visualizationType, maxIsotopologues);
   }
 }

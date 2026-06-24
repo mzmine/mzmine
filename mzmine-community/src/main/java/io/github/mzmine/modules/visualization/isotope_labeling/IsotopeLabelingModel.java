@@ -67,19 +67,30 @@ public class IsotopeLabelingModel {
 
   // Visualization properties
   private final StringProperty visualizationType = new SimpleStringProperty("Relative intensities");
-  private final BooleanProperty normalizeToBaseIsotopologue = new SimpleBooleanProperty(false);
+  // -1 = no normalization (fraction of total in relative mode), 0 = M+0, 1 = M+1, etc.
+  private final IntegerProperty normalizationRank = new SimpleIntegerProperty(-1);
   private final IntegerProperty maxIsotopologues = new SimpleIntegerProperty(10);
   private final BooleanProperty showSignificanceMarkers = new SimpleBooleanProperty(true);
+  // true = stacked bars (isotopologue layers per group), false = grouped bars (groups side-by-side per isotopologue)
+  private final BooleanProperty stackedBars = new SimpleBooleanProperty(true);
 
   // Chart data
   private final ObjectProperty<JFreeChart> chart = new SimpleObjectProperty<>();
   private final ObjectProperty<Map<Integer, Map<String, double[]>>> processedData = new SimpleObjectProperty<>(
       new HashMap<>());
+  // Fractional contribution per cluster — updated after each task run
+  private final ObjectProperty<Map<Integer, Double>> labeledFractions = new SimpleObjectProperty<>(
+      new HashMap<>());
+
+  // User-selectable grouping column (null/empty = use the one from the applied method)
+  private final StringProperty groupingColumnName = new SimpleStringProperty(null);
 
   // Labeling group identifiers extracted from the feature list's applied methods
   private String metadataColumnName = null;
   private String labeledGroupValue = null;
   private String unlabeledGroupValue = null;
+  // Tracer mass difference per isotopologue step (at charge 1), e.g. 1.003355 for 13C
+  private double tracerMassDiff = 1.003355;
 
   /**
    * Extract isotope clusters from the feature list
@@ -218,8 +229,11 @@ public class IsotopeLabelingModel {
             .getValue();
         unlabeledGroupValue = params.getParameter(UntargetedLabelingParameters.unlabeledGroupValue)
             .getValue();
+        String tracer = params.getParameter(UntargetedLabelingParameters.tracerType).getValue();
+        tracerMassDiff = lookupTracerMassDiff(tracer);
         logger.info("Extracted labeling params from feature list: column=" + metadataColumnName
-            + ", labeled=" + labeledGroupValue + ", unlabeled=" + unlabeledGroupValue);
+            + ", labeled=" + labeledGroupValue + ", unlabeled=" + unlabeledGroupValue
+            + ", tracer=" + tracer + " (" + tracerMassDiff + " Da)");
         return;
       }
     }
@@ -237,19 +251,26 @@ public class IsotopeLabelingModel {
   public Map<String, String> determineSampleGroups(List<RawDataFile> files) {
     Map<String, String> groups = new HashMap<>();
 
-    if (metadataColumnName == null || labeledGroupValue == null || unlabeledGroupValue == null) {
-      // Params were never set — all files labeled Unknown
-      for (RawDataFile file : files) {
-        groups.put(file.getName(), "Unknown");
-      }
-      return groups;
+    // User override takes precedence; fall back to the column extracted from applied methods
+    String effectiveColumn = groupingColumnName.get();
+    if (effectiveColumn == null || effectiveColumn.isBlank()) {
+      effectiveColumn = metadataColumnName;
     }
 
     MetadataTable metadata = ProjectService.getMetadata();
-    MetadataColumn<?> column = metadata.getColumnByName(metadataColumnName);
+    MetadataColumn<?> column = effectiveColumn != null
+        ? metadata.getColumnByName(effectiveColumn) : null;
 
     if (column == null) {
-      logger.warning("Metadata column '" + metadataColumnName + "' not found in project metadata");
+      // No column available — use "Labeled"/"Unlabeled" from the applied-method values if known,
+      // or mark everything Unknown.
+      if (metadataColumnName == null || labeledGroupValue == null || unlabeledGroupValue == null) {
+        for (RawDataFile file : files) {
+          groups.put(file.getName(), "Unknown");
+        }
+        return groups;
+      }
+      logger.warning("Metadata column '" + effectiveColumn + "' not found in project metadata");
       for (RawDataFile file : files) {
         groups.put(file.getName(), "Unknown");
       }
@@ -262,17 +283,40 @@ public class IsotopeLabelingModel {
         groups.put(file.getName(), "Unknown");
       } else {
         String strValue = value.toString().trim();
-        if (labeledGroupValue.equalsIgnoreCase(strValue)) {
+        // When using the original column, apply the known labeled/unlabeled mapping.
+        // When using a user-selected column, every distinct value becomes its own group.
+        if (labeledGroupValue != null && labeledGroupValue.equalsIgnoreCase(strValue)
+            && (effectiveColumn.equals(metadataColumnName))) {
           groups.put(file.getName(), "Labeled");
-        } else if (unlabeledGroupValue.equalsIgnoreCase(strValue)) {
+        } else if (unlabeledGroupValue != null && unlabeledGroupValue.equalsIgnoreCase(strValue)
+            && (effectiveColumn.equals(metadataColumnName))) {
           groups.put(file.getName(), "Unlabeled");
         } else {
-          groups.put(file.getName(), "Unknown");
+          // For a user-selected grouping column, use the raw metadata value as group name
+          groups.put(file.getName(), strValue);
         }
       }
     }
 
     return groups;
+  }
+
+  public double getTracerMassDiff() {
+    return tracerMassDiff;
+  }
+
+  private static double lookupTracerMassDiff(String tracer) {
+    if (tracer == null) {
+      return 1.003355;
+    }
+    return switch (tracer.trim().toUpperCase()) {
+      case "D", "2H" -> 1.006277;
+      case "15N" -> 0.997035;
+      case "17O" -> 1.004217;
+      case "18O" -> 2.004244;
+      case "34S" -> 1.995796;
+      default -> 1.003355; // 13C
+    };
   }
 
   // Getters and setters for the properties
@@ -341,16 +385,16 @@ public class IsotopeLabelingModel {
     this.visualizationType.set(visualizationType);
   }
 
-  public boolean getNormalizeToBaseIsotopologue() {
-    return normalizeToBaseIsotopologue.get();
+  public int getNormalizationRank() {
+    return normalizationRank.get();
   }
 
-  public BooleanProperty normalizeToBaseIsotopologueProperty() {
-    return normalizeToBaseIsotopologue;
+  public IntegerProperty normalizationRankProperty() {
+    return normalizationRank;
   }
 
-  public void setNormalizeToBaseIsotopologue(boolean normalizeToBaseIsotopologue) {
-    this.normalizeToBaseIsotopologue.set(normalizeToBaseIsotopologue);
+  public void setNormalizationRank(int rank) {
+    this.normalizationRank.set(rank);
   }
 
   public int getMaxIsotopologues() {
@@ -399,5 +443,41 @@ public class IsotopeLabelingModel {
 
   public void setProcessedData(Map<Integer, Map<String, double[]>> processedData) {
     this.processedData.set(processedData);
+  }
+
+  public Map<Integer, Double> getLabeledFractions() {
+    return labeledFractions.get();
+  }
+
+  public ObjectProperty<Map<Integer, Double>> labeledFractionsProperty() {
+    return labeledFractions;
+  }
+
+  public void setLabeledFractions(Map<Integer, Double> fractions) {
+    this.labeledFractions.set(fractions);
+  }
+
+  public String getGroupingColumnName() {
+    return groupingColumnName.get();
+  }
+
+  public StringProperty groupingColumnNameProperty() {
+    return groupingColumnName;
+  }
+
+  public void setGroupingColumnName(String name) {
+    this.groupingColumnName.set(name);
+  }
+
+  public boolean isStackedBars() {
+    return stackedBars.get();
+  }
+
+  public BooleanProperty stackedBarsProperty() {
+    return stackedBars;
+  }
+
+  public void setStackedBars(boolean stacked) {
+    this.stackedBars.set(stacked);
   }
 }

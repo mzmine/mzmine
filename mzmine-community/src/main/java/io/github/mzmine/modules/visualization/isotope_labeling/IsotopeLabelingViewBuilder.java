@@ -28,6 +28,8 @@ package io.github.mzmine.modules.visualization.isotope_labeling;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -48,7 +50,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
@@ -82,9 +83,10 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
 
   private SwingNode chartNode;
   private ChartPanel chartPanel;
-  private ListView<Integer> clusterListView;
+  private javafx.scene.control.TableView<ClusterTableEntry> clusterTableView;
   private Label statusLabel;
   private ComboBox<String> visTypeCombo;
+  private IsotopologueDetailPanel detailPanel;
   private Map<Integer, List<FeatureListRow>> allClusters = new HashMap<>();
   private boolean updatingSelection = false;
 
@@ -150,89 +152,108 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
   }
 
   /**
-   * Create the panel with the list of available isotope clusters
+   * Create the panel with the sortable table of available isotope clusters
    */
+  @SuppressWarnings("unchecked")
   private VBox createClusterSelectionPanel() {
     VBox panel = new VBox(SPACING);
     panel.setPadding(new Insets(SPACING));
 
-    // Title
     Label titleLabel = new Label("Isotope Clusters");
     titleLabel.setStyle("-fx-font-weight: bold;");
 
-    // Create list view for clusters
-    clusterListView = new ListView<>();
-    clusterListView.setPlaceholder(new Label("No isotope clusters available"));
+    clusterTableView = new javafx.scene.control.TableView<>();
+    clusterTableView.setPlaceholder(new Label("No isotope clusters available"));
+    clusterTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    clusterTableView.setColumnResizePolicy(
+        javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
-    // Enable multiple selection
-    clusterListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    // Cluster ID column
+    javafx.scene.control.TableColumn<ClusterTableEntry, Integer> idCol =
+        new javafx.scene.control.TableColumn<>("Cluster");
+    idCol.setCellValueFactory(
+        c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getClusterId()).asObject());
+    idCol.setMaxWidth(60);
 
-    // Add selection listener
-    clusterListView.getSelectionModel().selectedItemProperty()
-        .addListener((obs, oldVal, newVal) -> {
-          if (newVal != null && !updatingSelection) {
-            // Get all selected clusters
-            List<Integer> selectedClusters = new ArrayList<>(
-                clusterListView.getSelectionModel().getSelectedItems());
+    // m/z column
+    javafx.scene.control.TableColumn<ClusterTableEntry, String> mzCol =
+        new javafx.scene.control.TableColumn<>("m/z");
+    mzCol.setCellValueFactory(
+        c -> new javafx.beans.property.SimpleStringProperty(MZ_FORMAT.format(c.getValue().getMz())));
+    mzCol.setComparator((a, b) -> Double.compare(Double.parseDouble(a), Double.parseDouble(b)));
 
-            // Update model with selection
-            model.setSelectedClusters(selectedClusters);
+    // RT column
+    javafx.scene.control.TableColumn<ClusterTableEntry, String> rtCol =
+        new javafx.scene.control.TableColumn<>("RT (min)");
+    rtCol.setCellValueFactory(
+        c -> new javafx.beans.property.SimpleStringProperty(
+            RT_FORMAT.format(c.getValue().getRtMin())));
+    rtCol.setComparator((a, b) -> Double.compare(Double.parseDouble(a), Double.parseDouble(b)));
+    rtCol.setMaxWidth(70);
 
-            // Sync selected rows so external feature table highlights them
-            List<FeatureListRow> rows = new ArrayList<>();
-            for (Integer id : selectedClusters) {
-              List<FeatureListRow> cr = allClusters.get(id);
-              if (cr != null) {
-                rows.addAll(cr);
-              }
-            }
-            model.setSelectedRows(rows);
+    // # isotopologues column
+    javafx.scene.control.TableColumn<ClusterTableEntry, Integer> nCol =
+        new javafx.scene.control.TableColumn<>("#M+n");
+    nCol.setCellValueFactory(
+        c -> new javafx.beans.property.SimpleIntegerProperty(
+            c.getValue().getIsotopologueCount()).asObject());
+    nCol.setMaxWidth(55);
 
-            // Update the status label
-            updateStatusLabel();
+    // Fractional contribution column
+    javafx.scene.control.TableColumn<ClusterTableEntry, String> fcCol =
+        new javafx.scene.control.TableColumn<>("FC (%)");
+    fcCol.setCellValueFactory(c -> {
+      double fc = c.getValue().getFractionalContribution();
+      String text = Double.isNaN(fc) ? "—" : String.format("%.1f", fc * 100);
+      return new javafx.beans.property.SimpleStringProperty(text);
+    });
+    fcCol.setComparator((a, b) -> {
+      if (a.equals("—")) return -1;
+      if (b.equals("—")) return 1;
+      return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
+    });
+    fcCol.setMaxWidth(60);
+
+    clusterTableView.getColumns().addAll(idCol, mzCol, rtCol, nCol, fcCol);
+
+    clusterTableView.getSelectionModel().getSelectedItems()
+        .addListener((javafx.collections.ListChangeListener<ClusterTableEntry>) change -> {
+          if (updatingSelection) return;
+          List<Integer> selectedIds = clusterTableView.getSelectionModel().getSelectedItems()
+              .stream().map(ClusterTableEntry::getClusterId).toList();
+          model.setSelectedClusters(selectedIds);
+          List<FeatureListRow> rows = new ArrayList<>();
+          for (Integer id : selectedIds) {
+            List<FeatureListRow> cr = allClusters.get(id);
+            if (cr != null) rows.addAll(cr);
           }
+          model.setSelectedRows(rows);
+          updateStatusLabel();
         });
 
-    clusterListView.setMinWidth(200);
-    VBox.setVgrow(clusterListView, Priority.ALWAYS);
+    VBox.setVgrow(clusterTableView, Priority.ALWAYS);
+    clusterTableView.setTooltip(
+        new Tooltip("Select clusters to visualize. Hold Ctrl/Cmd to select multiple."));
 
-    // Add tooltip to explain selection
-    clusterListView.setTooltip(
-        new Tooltip("Select clusters to visualize. Hold Ctrl/Cmd to select multiple clusters."));
-
-    // Add selection buttons
     HBox buttonBox = new HBox(SPACING);
     buttonBox.setAlignment(Pos.CENTER);
-
     Button selectAllButton = new Button("Select All");
     selectAllButton.setOnAction(e -> {
-      if (clusterListView.getItems() != null && !clusterListView.getItems().isEmpty()) {
-        clusterListView.getSelectionModel().selectAll();
-
-        // Update model with all clusters
-        model.setSelectedClusters(new ArrayList<>(clusterListView.getItems()));
-
-        // Update the status label
-        updateStatusLabel();
-      }
-    });
-
-    Button clearSelectionButton = new Button("Clear Selection");
-    clearSelectionButton.setOnAction(e -> {
-      clusterListView.getSelectionModel().clearSelection();
-      model.setSelectedClusters(List.of());
-
-      // Update the status label
+      clusterTableView.getSelectionModel().selectAll();
       updateStatusLabel();
     });
-
+    Button clearSelectionButton = new Button("Clear Selection");
+    clearSelectionButton.setOnAction(e -> {
+      clusterTableView.getSelectionModel().clearSelection();
+      model.setSelectedClusters(List.of());
+      updateStatusLabel();
+    });
     buttonBox.getChildren().addAll(selectAllButton, clearSelectionButton);
 
-    // Add status label
     statusLabel = new Label("No clusters selected");
     updateStatusLabel();
 
-    panel.getChildren().addAll(titleLabel, clusterListView, buttonBox, statusLabel);
+    panel.getChildren().addAll(titleLabel, clusterTableView, buttonBox, statusLabel);
     return panel;
   }
 
@@ -240,18 +261,17 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
    * Create the control panel for chart settings
    */
   private Region createChartControlsPane() {
-    // Create accordion for controls
     Accordion accordion = new Accordion();
 
-    // Create visualization settings panel
     TitledPane visualizationPane = new TitledPane("Visualization Settings",
         createVisualizationControlsPane());
 
-    // Create appearance settings panel
+    detailPanel = new IsotopologueDetailPanel();
+    TitledPane detailPane = new TitledPane("Isotopologue Details", detailPanel);
+
     TitledPane appearancePane = new TitledPane("Export Options", createExportControlsPane());
 
-    // Add panes to accordion
-    accordion.getPanes().addAll(visualizationPane, appearancePane);
+    accordion.getPanes().addAll(visualizationPane, detailPane, appearancePane);
     accordion.setExpandedPane(visualizationPane);
 
     return accordion;
@@ -284,25 +304,38 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
 
     visTypeBox.getChildren().addAll(visTypeLabel, visTypeCombo);
 
-    // Normalization option
-    CheckBox normalizeCheck = new CheckBox("Normalize to base peak (M+0)");
-    normalizeCheck.setSelected(model.getNormalizeToBaseIsotopologue());
-    normalizeCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
-      if (newVal != null && newVal != model.getNormalizeToBaseIsotopologue()) {
-        model.setNormalizeToBaseIsotopologue(newVal);
+    // Normalization option: "None" = fraction of total, "M+0"/"M+1"/... = ratio to that isotopologue
+    HBox normalizeBox = new HBox(SPACING);
+    Label normalizeLabel = new Label("Normalize to:");
+    List<String> normOptions = new ArrayList<>();
+    normOptions.add("None (fraction of total)");
+    for (int k = 0; k <= model.getMaxIsotopologues(); k++) {
+      normOptions.add("M+" + k);
+    }
+    ComboBox<String> normalizeCombo = new ComboBox<>(FXCollections.observableList(normOptions));
+    int initRank = model.getNormalizationRank();
+    normalizeCombo.setValue(initRank < 0 ? "None (fraction of total)" : "M+" + initRank);
+    normalizeCombo.setOnAction(e -> {
+      String sel = normalizeCombo.getValue();
+      int rank = (sel == null || sel.startsWith("None")) ? -1
+          : Integer.parseInt(sel.substring(2));
+      if (rank != model.getNormalizationRank()) {
+        model.setNormalizationRank(rank);
       }
     });
-
-    // Update checkbox when model changes
-    model.normalizeToBaseIsotopologueProperty().addListener((obs, oldVal, newVal) -> {
-      if (newVal != null && newVal != normalizeCheck.isSelected()) {
-        normalizeCheck.setSelected(newVal);
+    model.normalizationRankProperty().addListener((obs, oldVal, newVal) -> {
+      if (newVal != null) {
+        String expected = newVal.intValue() < 0 ? "None (fraction of total)"
+            : "M+" + newVal.intValue();
+        if (!expected.equals(normalizeCombo.getValue())) {
+          normalizeCombo.setValue(expected);
+        }
       }
     });
-
     // Disable normalization option if not using relative intensities
-    normalizeCheck.disableProperty()
+    normalizeBox.disableProperty()
         .bind(visTypeCombo.valueProperty().isNotEqualTo("Relative intensities"));
+    normalizeBox.getChildren().addAll(normalizeLabel, normalizeCombo);
 
     // Max isotopologues spinner
     HBox maxIsotopologuesBox = new HBox(SPACING);
@@ -342,7 +375,52 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
     });
 
     // Add all controls to the flow pane
-    controls.getChildren().addAll(visTypeBox, normalizeCheck, maxIsotopologuesBox, sigMarkersCheck);
+    // Metadata grouping dropdown
+    HBox groupingBox = new HBox(SPACING);
+    Label groupingLabel = new Label("Group by:");
+    List<String> columnNames = new ArrayList<>();
+    columnNames.add("(default — from labeling task)");
+    ProjectService.getMetadata().getColumns().stream()
+        .map(MetadataColumn::getTitle).forEach(columnNames::add);
+    ComboBox<String> groupingCombo = new ComboBox<>(
+        FXCollections.observableList(columnNames));
+    String currentGrouping = model.getGroupingColumnName();
+    groupingCombo.setValue(
+        (currentGrouping == null || currentGrouping.isBlank())
+            ? columnNames.get(0) : currentGrouping);
+    groupingCombo.setOnAction(e -> {
+      String sel = groupingCombo.getValue();
+      String newCol = (sel == null || sel.startsWith("(default")) ? null : sel;
+      if (!java.util.Objects.equals(newCol, model.getGroupingColumnName())) {
+        model.setGroupingColumnName(newCol);
+      }
+    });
+    groupingBox.getChildren().addAll(groupingLabel, groupingCombo);
+
+    // Chart layout: stacked vs grouped
+    HBox chartTypeBox = new HBox(SPACING);
+    Label chartTypeLabel = new Label("Chart type:");
+    ComboBox<String> chartTypeCombo = new ComboBox<>(
+        FXCollections.observableList(Arrays.asList("Stacked", "Grouped")));
+    chartTypeCombo.setValue(model.isStackedBars() ? "Stacked" : "Grouped");
+    chartTypeCombo.setOnAction(e -> {
+      boolean stacked = "Stacked".equals(chartTypeCombo.getValue());
+      if (stacked != model.isStackedBars()) {
+        model.setStackedBars(stacked);
+      }
+    });
+    model.stackedBarsProperty().addListener((obs, oldVal, newVal) -> {
+      if (newVal != null) {
+        String expected = newVal ? "Stacked" : "Grouped";
+        if (!expected.equals(chartTypeCombo.getValue())) {
+          chartTypeCombo.setValue(expected);
+        }
+      }
+    });
+    chartTypeBox.getChildren().addAll(chartTypeLabel, chartTypeCombo);
+
+    controls.getChildren().addAll(visTypeBox, normalizeBox, maxIsotopologuesBox, sigMarkersCheck,
+        groupingBox, chartTypeBox);
 
     return controls;
   }
@@ -487,7 +565,7 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
       }
     });
 
-    // Listen for changes in selected clusters (status label + reverse-sync from external sources)
+    // Listen for changes in selected clusters (status label + reverse-sync + detail panel refresh)
     model.selectedClustersProperty().addListener((obs, oldVal, newVal) -> {
       Platform.runLater(() -> {
         updateStatusLabel();
@@ -499,7 +577,13 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
             updatingSelection = false;
           }
         }
+        refreshDetailPanel(newVal);
       });
+    });
+
+    // Refresh FC column in cluster table when fractions are updated after a task run
+    model.labeledFractionsProperty().addListener((obs, oldVal, newVal) -> {
+      Platform.runLater(() -> updateClusterList(allClusters));
     });
 
     // Listen for visualization type changes
@@ -538,88 +622,66 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
   }
 
   /**
-   * Update the cluster list with available clusters
-   *
-   * @param clusters Map of available isotope clusters
+   * Update the cluster table with available clusters. Fractions are read from the model if already
+   * computed (i.e. after a visualization task has run); they show as "—" otherwise.
    */
   public void updateClusterList(Map<Integer, List<FeatureListRow>> clusters) {
     this.allClusters = clusters != null ? clusters : new HashMap<>();
 
     if (clusters == null || clusters.isEmpty()) {
-      clusterListView.setItems(FXCollections.observableArrayList());
+      clusterTableView.setItems(FXCollections.observableArrayList());
       return;
     }
 
     try {
-      // Get list of cluster IDs sorted numerically
-      List<Integer> clusterIds = clusters.keySet().stream().sorted().toList();
+      Map<Integer, Double> fractions = model.getLabeledFractions();
+      List<ClusterTableEntry> entries = clusters.entrySet().stream()
+          .sorted(Map.Entry.comparingByKey())
+          .map(e -> {
+            int id = e.getKey();
+            List<FeatureListRow> rows = e.getValue();
+            FeatureListRow base = IsotopeLabelingModel.findBasePeak(rows);
+            double mz = base != null ? base.getAverageMZ() : 0;
+            double rt = base != null ? base.getAverageRT() : 0;
+            double fc = fractions != null ? fractions.getOrDefault(id, Double.NaN) : Double.NaN;
+            return new ClusterTableEntry(id, mz, rt, rows.size(), fc, rows);
+          })
+          .toList();
 
-      // Update list view with cluster IDs
-      clusterListView.setItems(FXCollections.observableArrayList(clusterIds));
-
-      // Custom cell factory: show "Cluster N | m/z X.XXXX | RT X.XX min"
-      clusterListView.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
-        @Override
-        protected void updateItem(Integer id, boolean empty) {
-          super.updateItem(id, empty);
-          if (empty || id == null) {
-            setText(null);
-            return;
-          }
-          List<FeatureListRow> crows = allClusters.get(id);
-          FeatureListRow base = IsotopeLabelingModel.findBasePeak(
-              crows != null ? crows : List.of());
-          if (base != null) {
-            setText(
-                "Cluster " + id + "  |  m/z " + MZ_FORMAT.format(base.getAverageMZ()) + "  |  RT "
-                    + RT_FORMAT.format(base.getAverageRT()) + " min");
-          } else {
-            setText("Cluster " + id);
-          }
-        }
-      });
+      clusterTableView.setItems(FXCollections.observableArrayList(entries));
 
       // Restore or initialize selection
       List<Integer> selectedClusters = model.getSelectedClusters();
-
-      // Clear current selection
-      clusterListView.getSelectionModel().clearSelection();
-
+      clusterTableView.getSelectionModel().clearSelection();
       if (selectedClusters != null && !selectedClusters.isEmpty()) {
-        // Restore existing selection
-        for (Integer clusterId : selectedClusters) {
-          int index = clusterIds.indexOf(clusterId);
-          if (index >= 0) {
-            clusterListView.getSelectionModel().select(index);
+        for (ClusterTableEntry entry : clusterTableView.getItems()) {
+          if (selectedClusters.contains(entry.getClusterId())) {
+            clusterTableView.getSelectionModel().select(entry);
           }
         }
-      } else if (!clusterIds.isEmpty()) {
-        // Select first cluster by default if none selected
-        clusterListView.getSelectionModel().select(0);
-        model.setSelectedClusters(List.of(clusterIds.get(0)));
+      } else if (!entries.isEmpty()) {
+        clusterTableView.getSelectionModel().select(0);
+        model.setSelectedClusters(List.of(entries.get(0).getClusterId()));
       }
 
-      // Update status
       updateStatusLabel();
     } catch (Exception e) {
-      logger.warning("Error updating cluster list: " + e.getMessage());
+      logger.warning("Error updating cluster table: " + e.getMessage());
     }
   }
 
   /**
-   * Sync the cluster list view selection to match the given list of cluster IDs (e.g. when the
-   * selection is driven externally from the feature table).
+   * Sync the cluster table selection to match the given list of cluster IDs (e.g. when selection
+   * is driven externally from the feature table).
    */
   private void syncClusterListToModel(List<Integer> selectedClusters) {
-    clusterListView.getSelectionModel().clearSelection();
+    clusterTableView.getSelectionModel().clearSelection();
     if (selectedClusters == null || selectedClusters.isEmpty()) {
       return;
     }
-    List<Integer> items = clusterListView.getItems();
-    for (Integer id : selectedClusters) {
-      int idx = items.indexOf(id);
-      if (idx >= 0) {
-        clusterListView.getSelectionModel().select(idx);
+    for (ClusterTableEntry entry : clusterTableView.getItems()) {
+      if (selectedClusters.contains(entry.getClusterId())) {
+        clusterTableView.getSelectionModel().select(entry);
       }
     }
   }
@@ -634,6 +696,25 @@ public class IsotopeLabelingViewBuilder extends FxViewBuilder<IsotopeLabelingMod
       statusLabel.setText("No clusters selected");
     } else {
       statusLabel.setText(selectedClusters.size() + " cluster(s) selected");
+    }
+  }
+
+  /**
+   * Refresh the isotopologue detail panel for the first selected cluster.
+   */
+  private void refreshDetailPanel(List<Integer> selectedClusterIds) {
+    if (detailPanel == null) {
+      return;
+    }
+    if (selectedClusterIds == null || selectedClusterIds.isEmpty()) {
+      detailPanel.clear();
+      return;
+    }
+    List<FeatureListRow> rows = allClusters.get(selectedClusterIds.get(0));
+    if (rows == null || rows.isEmpty()) {
+      detailPanel.clear();
+    } else {
+      detailPanel.update(rows, model.getTracerMassDiff());
     }
   }
 }
