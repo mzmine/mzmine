@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -53,8 +54,9 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   /**
    * Metadata column for sample grouping
    */
-  public static final StringParameter metadataGrouping = new StringParameter("Sample grouping",
-      "Name of the metadata column that distinguishes labeled from unlabeled samples", "");
+  public static final MetadataGroupingParameter metadataGrouping = new MetadataGroupingParameter(
+      "Sample grouping",
+      "Select metadata column to distinguish between labeled and unlabeled samples");
 
   /**
    * Value identifying unlabeled samples in metadata
@@ -173,6 +175,18 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
       "Require statistically significant enrichment (disable for more permissive detection)",
       false);
 
+  /**
+   * Minimum Pearson correlation of per-sample peak heights between a candidate isotopologue and the
+   * base peak. Values below this threshold suggest a co-eluting isobar rather than a true
+   * isotopologue. Set to 0 to disable.
+   */
+  public static final DoubleParameter minPeakShapeCorrelation = new DoubleParameter(
+      "Min peak shape correlation",
+      "Minimum average Pearson r of within-sample chromatographic peak shapes (scan-by-scan) vs. the base peak. "
+          + "Isomers with different elution profiles will have low shape correlation and are rejected. "
+          + "Use 0 to disable. Applied only when ≥ 5 scans overlap in at least one raw file.",
+      NumberFormat.getNumberInstance(), 0.0, 0.0, 1.0);
+
   // ---- RESULT ANNOTATION TYPES ----
   /**
    * Data type for isotope cluster ID
@@ -183,6 +197,21 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
    * Data type for isotopologue rank
    */
   public static final IsotopologueRankType isotopologueRankType = new IsotopologueRankType();
+
+  /**
+   * Data type for the likely isotope annotation of each isotopologue step (e.g. "13C", "D", "17O")
+   */
+  public static final IsotopologueAnnotationType isotopologueAnnotationType = new IsotopologueAnnotationType();
+
+  /**
+   * Wasserstein-1 distance between labeled and unlabeled isotopologue distributions (stored on M+0)
+   */
+  public static final IsotopeDistributionDistanceType isotopeDistributionDistanceType = new IsotopeDistributionDistanceType();
+
+  /**
+   * Chi-squared distribution comparison p-value (stored on M+0)
+   */
+  public static final IsotopeDistributionPValueType isotopeDistributionPValueType = new IsotopeDistributionPValueType();
 
   /**
    * Constructor for UntargetedLabelingParameters
@@ -205,6 +234,9 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
         enrichmentTolerance, allowIncompletePatterns,
 
         // options for stricter or more permissive detection
-        minimumSampleCoverage, requireStatisticalSignificance,});
+        minimumSampleCoverage, requireStatisticalSignificance,
+
+        // peak shape filter
+        minPeakShapeCorrelation,});
   }
 }
