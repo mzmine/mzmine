@@ -204,6 +204,11 @@ public class UntargetedLabelingParameters extends SimpleParameterSet {
   public static final IsotopologueAnnotationType isotopologueAnnotationType = new IsotopologueAnnotationType();
 
   /**
+   * Fractional contribution of the tracer label for this cluster; stored on the M+0 row only.
+   */
+  public static final LabeledFractionType labeledFractionType = new LabeledFractionType();
+
+  /**
    * Constructor for UntargetedLabelingParameters
    */
   public UntargetedLabelingParameters() {

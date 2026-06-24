@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SimpleRowsRelationship;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_untargetedLabeling.UntargetedLabelingParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -65,6 +66,7 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
   private final String metadataColumnName;
   private final String labeledGroupValue;
   private final double minICSScore;
+  private final double minLabeledFraction;
   private final boolean useArea;
 
   private int processedPairs = 0;
@@ -80,6 +82,8 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
     this.labeledGroupValue = parameters.getValue(
         IsotopeLabelingNetworkingParameters.labeledGroupValue);
     this.minICSScore = parameters.getValue(IsotopeLabelingNetworkingParameters.minICSScore);
+    this.minLabeledFraction = parameters.getValue(
+        IsotopeLabelingNetworkingParameters.minLabeledFraction);
     String measure = parameters.getValue(IsotopeLabelingNetworkingParameters.intensityMeasure);
     this.useArea = "Area".equals(measure);
   }
@@ -122,10 +126,13 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
       return;
     }
 
-    // Build normalized isotopologue distribution and representative (M+0) row per cluster
+    // Build normalized isotopologue distribution, representative (M+0) row, rank→row map, and FC per cluster
     Map<Integer, double[]> distributions = new HashMap<>();
     Map<Integer, Integer> maxRanks = new HashMap<>();
     Map<Integer, FeatureListRow> representatives = new HashMap<>();
+    // clusterId → rank → row  (for extending edges to all shared isotopologue ranks)
+    Map<Integer, Map<Integer, FeatureListRow>> rankRows = new HashMap<>();
+    Map<Integer, Double> fractions = new HashMap<>();
 
     for (Map.Entry<Integer, List<RankedRow>> entry : clusterRows.entrySet()) {
       int clusterId = entry.getKey();
@@ -134,13 +141,25 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
 
       int maxRank = ranked.get(ranked.size() - 1).rank;
       maxRanks.put(clusterId, maxRank);
-      representatives.put(clusterId, ranked.get(0).row);
+      FeatureListRow m0Row = ranked.get(0).row;
+      representatives.put(clusterId, m0Row);
 
+      Map<Integer, FeatureListRow> byRank = new HashMap<>();
       double[] dist = new double[maxRank + 1];
       for (RankedRow rr : ranked) {
         dist[rr.rank] = meanLabeledIntensity(rr.row, labeledFiles);
+        byRank.put(rr.rank, rr.row);
       }
       distributions.put(clusterId, dist);
+      rankRows.put(clusterId, byRank);
+
+      // Read labeled fraction stored on M+0 row by UntargetedLabelingTask
+      if (m0Row instanceof ModularFeatureListRow modRow) {
+        Double fc = modRow.get(UntargetedLabelingParameters.labeledFractionType);
+        if (fc != null && !Double.isNaN(fc)) {
+          fractions.put(clusterId, fc);
+        }
+      }
     }
 
     // Compute pairwise ICS and collect edges above threshold
@@ -158,19 +177,39 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
       double[] distA = distributions.get(idA);
       int nA = maxRanks.get(idA);
       FeatureListRow repA = representatives.get(idA);
+      double fcA = fractions.getOrDefault(idA, Double.NaN);
 
       for (int j = i + 1; j < n; j++) {
         int idB = clusterIds.get(j);
         double[] distB = distributions.get(idB);
         int nB = maxRanks.get(idB);
         FeatureListRow repB = representatives.get(idB);
+        double fcB = fractions.getOrDefault(idB, Double.NaN);
+
+        // Skip pairs where either cluster is below the minimum labeling threshold
+        if (minLabeledFraction > 0 && (!Double.isNaN(fcA) && fcA < minLabeledFraction
+            || !Double.isNaN(fcB) && fcB < minLabeledFraction)) {
+          processedPairs++;
+          continue;
+        }
 
         double ics = IsotopologueSimilarityCalculator.computeICS(distA, nA, distB, nB);
 
         if (ics >= minICSScore) {
-          String annotation = buildAnnotation(idA, idB, nA, nB, ics);
-          edgeMap.add(repA, repB,
-              new SimpleRowsRelationship(repA, repB, ics, EDGE_TYPE.toString(), annotation));
+          double mzDelta = Math.abs(repA.getAverageMZ() - repB.getAverageMZ());
+          String annotation = buildAnnotation(idA, idB, nA, nB, mzDelta, fcA, fcB, ics);
+
+          // Add one edge per shared isotopologue rank (not just M+0↔M+0)
+          Map<Integer, FeatureListRow> byRankA = rankRows.get(idA);
+          Map<Integer, FeatureListRow> byRankB = rankRows.get(idB);
+          for (Map.Entry<Integer, FeatureListRow> eA : byRankA.entrySet()) {
+            FeatureListRow rB = byRankB.get(eA.getKey());
+            if (rB != null) {
+              FeatureListRow rA = eA.getValue();
+              edgeMap.add(rA, rB,
+                  new SimpleRowsRelationship(rA, rB, ics, EDGE_TYPE.toString(), annotation));
+            }
+          }
         }
         processedPairs++;
       }
@@ -214,11 +253,16 @@ public class IsotopeLabelingNetworkingTask extends AbstractFeatureListTask {
     return count > 0 ? sum / count : 0.0;
   }
 
-  private static String buildAnnotation(int idA, int idB, int nA, int nB, double ics) {
+  private static String buildAnnotation(int idA, int idB, int nA, int nB, double mzDelta,
+      double fcA, double fcB, double ics) {
     int delta = Math.abs(nA - nB);
     String deltaStr = delta == 0 ? "same size" : "Δ" + delta + " atoms";
-    return "Cluster %d (n=%d) ↔ Cluster %d (n=%d), %s, ICS=%.3f".formatted(idA, nA, idB, nB,
-        deltaStr, ics);
+    String fcStr = "";
+    if (!Double.isNaN(fcA) && !Double.isNaN(fcB)) {
+      fcStr = ", FC_A=%.1f%%, FC_B=%.1f%%".formatted(fcA * 100, fcB * 100);
+    }
+    return "Cluster %d (n=%d) ↔ Cluster %d (n=%d), %s, Δm/z=%.4f%s, ICS=%.3f".formatted(
+        idA, nA, idB, nB, deltaStr, mzDelta, fcStr, ics);
   }
 
   @Override

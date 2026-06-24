@@ -51,6 +51,12 @@ public class IsotopeLabelingNetworkingParameters extends SimpleParameterSet {
       "Minimum Isotopologue Compatibility Score (0–1) to create a network edge.",
       NumberFormat.getNumberInstance(), 0.7, 0.0, 1.0);
 
+  public static final DoubleParameter minLabeledFraction = new DoubleParameter(
+      "Min labeled fraction",
+      "Skip cluster pairs where either cluster's fractional label enrichment is below this value. "
+          + "Prevents edges between effectively-unlabeled compounds. Set to 0 to disable.",
+      NumberFormat.getNumberInstance(), 0.05, 0.0, 1.0);
+
   public static final ComboParameter<String> intensityMeasure = new ComboParameter<>(
       "Intensity measure",
       "Per-sample feature intensity to use when building the isotopologue distribution",
@@ -58,6 +64,6 @@ public class IsotopeLabelingNetworkingParameters extends SimpleParameterSet {
 
   public IsotopeLabelingNetworkingParameters() {
     super(new Parameter[]{featureLists, metadataGrouping, labeledGroupValue, minICSScore,
-        intensityMeasure});
+        minLabeledFraction, intensityMeasure});
   }
 }

@@ -1419,6 +1419,16 @@ public class UntargetedLabelingTask extends AbstractTask {
       pValues = calculatePValues(data);
     }
 
+    // Compute labeled fractional contribution: (Σ k·p_k) / ((n-1)·Σ p_k)
+    double fcWeighted = 0, fcTotal = 0;
+    for (int i = 0; i < numIsotopologues; i++) {
+      fcWeighted += i * data.meanLabeledRelIntensities[i];
+      fcTotal += data.meanLabeledRelIntensities[i];
+    }
+    double fc = (numIsotopologues > 1 && fcTotal > 0)
+        ? fcWeighted / ((numIsotopologues - 1) * fcTotal)
+        : Double.NaN;
+
     // Create result object
     IsotopeGroupResult result = new IsotopeGroupResult();
     result.baseMz = isotopologues.get(0).row.getAverageMZ();
@@ -1426,6 +1436,7 @@ public class UntargetedLabelingTask extends AbstractTask {
     result.isotopologues = isotopologues;
     result.enrichmentRatios = enrichmentRatios;
     result.pValues = pValues;
+    result.labeledFractionalContribution = fc;
 
     return result;
   }
@@ -1546,6 +1557,10 @@ public class UntargetedLabelingTask extends AbstractTask {
       resultFeatureList.addRowType(UntargetedLabelingParameters.isotopologueAnnotationType);
     }
 
+    if (!resultFeatureList.hasRowType(UntargetedLabelingParameters.labeledFractionType)) {
+      resultFeatureList.addRowType(UntargetedLabelingParameters.labeledFractionType);
+    }
+
     // Verify feature list has the required columns
     if (!resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopeClusterType)
         || !resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopologueRankType)) {
@@ -1568,6 +1583,10 @@ public class UntargetedLabelingTask extends AbstractTask {
           resultRow.set(UntargetedLabelingParameters.isotopologueAnnotationType,
               annotateIsotopeType(candidate.row.getAverageMZ() - baseMz, candidate.massShift,
                   baseMz));
+          if (candidate.massShift == 0 && !Double.isNaN(result.labeledFractionalContribution)) {
+            resultRow.set(UntargetedLabelingParameters.labeledFractionType,
+                result.labeledFractionalContribution);
+          }
 
           // Log the stored values for debugging
           Integer storedClusterId = resultRow.get(UntargetedLabelingParameters.isotopeClusterType);
@@ -1892,5 +1911,6 @@ public class UntargetedLabelingTask extends AbstractTask {
     List<IsotopeCandidate> isotopologues;
     double[] enrichmentRatios;
     double[] pValues;
+    double labeledFractionalContribution = Double.NaN;
   }
 }
