@@ -217,6 +217,14 @@ public class ScanRtCorrectionTask extends AbstractTask {
       }
     }
     monotonousStandards.sort(Comparator.comparingDouble(rtMeasure::getRt));
+
+    final DoubleSummaryStatistics stats = goodStandardsByRt.stream().mapToDouble(rtMeasure::getRt)
+        .summaryStatistics();
+    logger.finest(
+        "Filtered %d down to %d monotonous standards that appear in all %d feature lists. %s".formatted(
+            goodStandardsByRt.size(), monotonousStandards.size(), referenceFlists.size(),
+            stats.toString()));
+
     return monotonousStandards;
   }
 
@@ -284,8 +292,9 @@ public class ScanRtCorrectionTask extends AbstractTask {
 
     final DoubleSummaryStatistics stats = goodStandards.stream().mapToDouble(rtMeasure::getRt)
         .summaryStatistics();
-    logger.finest("Found %d good standards that appear in all %d feature lists. %s".formatted(
-        goodStandards.size(), referenceFlists.size(), stats.toString()));
+    logger.finest(
+        "Found %d standards that appear in all %d feature lists. %s".formatted(goodStandards.size(),
+            referenceFlists.size(), stats.toString()));
 
     return goodStandards;
   }
@@ -415,6 +424,14 @@ public class ScanRtCorrectionTask extends AbstractTask {
         calibrationModule, rtMeasure, calibrationModuleParameters, parameters);
 
     ApplyRtCorrectionToRawFileModule.applyOnThisThread(allCalibrations);
+
+    for (int i = 0; i < preFilteredStandards.size(); i++) {
+      // todo - these are currently kept during alignment depending on what is the base row
+      final RtStandard rtStandard = preFilteredStandards.get(i);
+      int finalI = i;
+      rtStandard.standards().forEach(
+          (file, row) -> row.addCompoundAnnotation(rtStandard.toAnnotation(rtMeasure, finalI)));
+    }
 
     for (FeatureList flist : flists) {
       for (FeatureListRow row : flist.getRowsCopy()) {

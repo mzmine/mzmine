@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -60,7 +61,8 @@ public class MultilinearStandardRtCalibrationParameters extends SimpleParameterS
 
   public static final List<ImportType<?>> importTypeList = List.of(
       new ImportType<>(true, new MZType().getUniqueID(), new PrecursorMZType()), //
-      new ImportType<>(true, new RTType().getUniqueID(), new RTType()));
+      new ImportType<>(true, new RTType().getUniqueID(), new RTType()), //
+      new ImportType<>(false, new CompoundNameType().getUniqueID(), new CompoundNameType()));
 
   public static final ImportTypeParameter importTypes = new ImportTypeParameter("Column headers",
       "Set the column headers in your quantification table.", importTypeList);

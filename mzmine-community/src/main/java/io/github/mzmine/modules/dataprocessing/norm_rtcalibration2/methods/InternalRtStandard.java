@@ -28,6 +28,10 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RtStandard;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -49,5 +53,14 @@ class InternalRtStandard extends RtStandard {
   public String toString() {
     return "InternalRtStandard{" + "avgRt=" + avgRt + ", medianRt=" + medianRt + ", standards="
         + standards + '}';
+  }
+
+  @Override
+  public CompoundDBAnnotation toAnnotation(RTMeasure measure, int standardIndex) {
+    var a = super.toAnnotation(measure, standardIndex);
+    a.putIfNotNull(RTType.class, internalStd.getRT());
+    a.putIfNotNull(PrecursorMZType.class, internalStd.getPrecursorMZ());
+    a.putIfNotNull(CompoundNameType.class, internalStd.getCompoundName());
+    return a;
   }
 }
