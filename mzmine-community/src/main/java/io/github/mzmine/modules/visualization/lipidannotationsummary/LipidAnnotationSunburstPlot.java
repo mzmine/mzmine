@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -34,8 +33,8 @@ import eu.hansolo.fx.charts.tools.VisibleData;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidMainClasses;

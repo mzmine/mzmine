@@ -224,7 +224,7 @@ public class SpectralLibraryEntryFactory {
     polarity.ifPresent(pol -> entry.putIfNotNull(DBEntryField.POLARITY, pol));
 
     final Optional<IonType> ionType = FeatureUtils.extractBestIonIdentity(match, row);
-    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString(false)));
+    ionType.ifPresent(ion -> entry.putIfNotNull(DBEntryField.ION_TYPE, ion.toString()));
 
     // online reactivity workflow
     addOnlineReactivityFlags(entry, row);
@@ -425,6 +425,7 @@ public class SpectralLibraryEntryFactory {
         entry.putIfNotNull(DBEntryField.INCHI, match.getInChI());
         entry.putIfNotNull(DBEntryField.INCHIKEY, match.getInChIKey());
         entry.putIfNotNull(DBEntryField.SMILES, match.getSmiles());
+        entry.putIfNotNull(DBEntryField.ISOMERIC_SMILES, match.getIsomericSmiles());
       }
     }
   }
@@ -455,7 +456,8 @@ public class SpectralLibraryEntryFactory {
     }
     for (var dbentry : match.getFields().entrySet()) {
       switch (dbentry.getKey()) {
-        case RT, NAME, FORMULA, SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE, SYNONYMS, CAS,
+        case RT, NAME, FORMULA, SMILES, ISOMERIC_SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE,
+             SYNONYMS, CAS,
              PUBCHEM, PUBMED, MOLWEIGHT -> entry.putIfNotNull(dbentry.getKey(), dbentry.getValue());
       }
     }

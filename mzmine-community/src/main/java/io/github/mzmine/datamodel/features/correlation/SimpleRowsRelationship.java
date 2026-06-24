@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Can use a random type string
  */
-public class SimpleRowsRelationship extends AbstractRowsRelationship {
+public final class SimpleRowsRelationship extends AbstractRowsRelationship {
 
   private final double score;
   private final String type;

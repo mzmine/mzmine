@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,10 @@ import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.xy.XYDataset;
 
 public record RenderedValueAxis(@NotNull ValueAxis axis, @NotNull RectangleEdge edge) {
 
@@ -63,6 +65,57 @@ public record RenderedValueAxis(@NotNull ValueAxis axis, @NotNull RectangleEdge 
       rangeAxisEdge = pp.getRangeAxisEdge();
     }
     return RenderedValueAxis.of(rangeAxis, rangeAxisEdge);
+  }
+
+  @Nullable
+  public static RenderedValueAxis domainOfDataset(final @NotNull XYPlot plot,
+      final @NotNull XYDataset dataset) {
+    final int datasetIndex = plot.indexOf(dataset);
+    ValueAxis domainAxis = datasetIndex >= 0 ? plot.getDomainAxisForDataset(datasetIndex) : null;
+    if (domainAxis == null) {
+      return domainOf(plot);
+    }
+
+    final int axisIndex = findDomainAxisIndex(plot, domainAxis);
+    final RectangleEdge edge =
+        axisIndex >= 0 ? Plot.resolveDomainAxisLocation(plot.getDomainAxisLocation(axisIndex),
+            plot.getOrientation()) : plot.getDomainAxisEdge();
+    return RenderedValueAxis.of(domainAxis, edge);
+  }
+
+  @Nullable
+  public static RenderedValueAxis rangeOfDataset(final @NotNull XYPlot plot,
+      final @NotNull XYDataset dataset) {
+    final int datasetIndex = plot.indexOf(dataset);
+    ValueAxis rangeAxis = datasetIndex >= 0 ? plot.getRangeAxisForDataset(datasetIndex) : null;
+    if (rangeAxis == null) {
+      return rangeOf(plot);
+    }
+
+    final int axisIndex = findRangeAxisIndex(plot, rangeAxis);
+    final RectangleEdge edge =
+        axisIndex >= 0 ? Plot.resolveRangeAxisLocation(plot.getRangeAxisLocation(axisIndex),
+            plot.getOrientation()) : plot.getRangeAxisEdge();
+    return RenderedValueAxis.of(rangeAxis, edge);
+  }
+
+  private static int findDomainAxisIndex(final @NotNull XYPlot plot,
+      final @NotNull ValueAxis axis) {
+    for (int i = 0; i < plot.getDomainAxisCount(); i++) {
+      if (plot.getDomainAxis(i) == axis) {
+        return i;
+      }
+    }
+    return plot.getDomainAxis() == axis ? 0 : -1;
+  }
+
+  private static int findRangeAxisIndex(final @NotNull XYPlot plot, final @NotNull ValueAxis axis) {
+    for (int i = 0; i < plot.getRangeAxisCount(); i++) {
+      if (plot.getRangeAxis(i) == axis) {
+        return i;
+      }
+    }
+    return plot.getRangeAxis() == axis ? 0 : -1;
   }
 
   public double java2DToValue(double coordinate, Rectangle2D dataArea) {

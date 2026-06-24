@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,7 +30,11 @@ import static integrationtest.IntegrationTestUtils.urlToFile;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import io.github.mzmine.util.ArrayUtils;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -48,8 +53,33 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
   }
 
   public List<CheckResult> runBatchGetCheckResults(String expectedResultsFullPath) {
-    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath,
-        runBatchGetCsvFile(), batchFile().getName());
+    // run batch
+    final File batchExportedFile = runBatchGetCsvFile();
+
+    // This is used to overwrite each expected results csv with the actual processing results
+//    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
+
+    // compare
+    return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
+        batchFile().getName());
+  }
+
+  private static void overwriteResultFileSHOULD_BE_COMMENTED_OUT(String expectedResultsFullPath,
+      File batchExportedFile) {
+    try {
+      // add local resources path to overwrite files
+      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
+      Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
+          StandardCopyOption.REPLACE_EXISTING);
+
+      // copy to res folder and also to out/resources folder so that test succeeds first time
+      Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()
+          .getResource(expectedResultsFullPath)).toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    throw new IllegalStateException(
+        "This method should be commented out for production use. The integration test result files were overwritten and now comment out this method.");
   }
 
   // -----------------------------------------------------------

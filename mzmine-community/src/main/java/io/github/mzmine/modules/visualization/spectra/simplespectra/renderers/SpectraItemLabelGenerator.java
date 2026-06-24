@@ -67,7 +67,6 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
    * int, int)
    */
   public String generateLabel(XYDataset dataset, int series, int item) {
-
     // X and Y values of current data point
     double originalX = dataset.getX(series, item).doubleValue();
     double originalY = dataset.getY(series, item).doubleValue();
@@ -137,7 +136,6 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     } else {
       datasetToLabelsCoords.put(dataset, new ArrayList<>(List.of(newCoord)));
     }
-
     // Create label
     String label = null;
     if (dataset instanceof ScanDataSet) {

@@ -24,22 +24,18 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.IntOrAutoValue.IntOrAuto;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 public class ComboWithIntOrAutoParameter extends
-    ComboWithInputParameter<IntOrAuto, IntOrAutoValue, IntegerParameter> {
+    ComboWithInputParameter<ValueOrAuto, IntOrAutoValue, IntegerParameter> {
 
   public ComboWithIntOrAutoParameter(IntegerParameter embeddedParameter) {
-    super(embeddedParameter, IntOrAuto.values(), IntOrAuto.MANUAL,
-        new IntOrAutoValue(IntOrAuto.AUTO, 5));
+    super(embeddedParameter, ValueOrAuto.values(), ValueOrAuto.MANUAL,
+        new IntOrAutoValue(ValueOrAuto.AUTO, 5));
   }
 
   @Override
-  public IntOrAutoValue createValue(IntOrAuto option, IntegerParameter embeddedParameter) {
+  public IntOrAutoValue createValue(ValueOrAuto option, IntegerParameter embeddedParameter) {
     return new IntOrAutoValue(option, embeddedParameter.getValue());
   }
 

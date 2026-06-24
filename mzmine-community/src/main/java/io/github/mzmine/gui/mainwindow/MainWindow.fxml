@@ -2,6 +2,7 @@
 
 <!--
   ~ Copyright (c) 2004-2026 The mzmine Development Team
+  ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
   ~ files (the "Software"), to deal in the Software without
@@ -27,6 +28,7 @@
 <!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
 
 <?import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView?>
+<?import impl.org.controlsfx.skin.DecorationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -48,7 +50,6 @@
 <?import javafx.stage.Screen?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import org.controlsfx.control.StatusBar?>
-<?import impl.org.controlsfx.skin.DecorationPane?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
   fx:id="mainScene">
@@ -155,14 +156,13 @@
                         <contextMenu>
                           <ContextMenu fx:id="featureListContextMenu">
                             <items>
-                              <MenuItem onAction="#handleOpenFeatureList"
-                                text="Open feature list" fx:id="openFeatureListMenuItem"/>
-                              <MenuItem onAction="#handleShowFeatureListSummary"
-                                text="Show feature list summary"
-                                fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleOpenFeatureList" text="Open feature list" fx:id="openFeatureListMenuItem"/>
+                              <MenuItem onAction="#handleShowFeatureListSummary" text="Show feature list summary" fx:id="showFeatureListSummaryMenuItem"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleShowCompoundDashboard" fx:id="showCompoundDashboardItem" text="Show compound dashboard"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowIntegrationDashboard"
-                                text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard" text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowLipidDashboard" text="Show lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>

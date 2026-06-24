@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class NormalizedHeightType extends HeightType {
 
+  public static final String UNIQUE_ID = "height_norm";
+
   @Override
   public @NotNull String getUniqueID() {
-    return "height_norm";
+    return UNIQUE_ID;
   }
 
   @Override

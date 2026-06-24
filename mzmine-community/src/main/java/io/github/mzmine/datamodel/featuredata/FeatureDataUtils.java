@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityFwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
@@ -404,6 +405,12 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
       feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
+
+      // since version 4.10
+      float fwhm = QualityParameters.calculateFWHM(summedMobilogram);
+      if (!Float.isNaN(fwhm)) {
+        feature.set(MobilityFwhmType.class, fwhm);
+      }
     }
 
     if (calcQuality) {
@@ -411,10 +418,12 @@ public class FeatureDataUtils {
     }
 
     // auto-apply normalization if present
-    final NormalizationFunction normalizer = IntensityNormalizerModule.getNormalizationFunctionOfLatestCallForFile(
-        feature.getFeatureList(), feature.getRawDataFile());
-    if (normalizer != null) {
-      normalizeAbundances(feature, normalizer);
+    if (feature.getRawDataFile() != null) {
+      // normalize or reset normalized intensities
+      IntensityNormalizerModule.getNormalizationFunctionsOfLatestCallForFile(
+              feature.getFeatureList(), feature.getRawDataFile())
+          .ifPresentOrElse(normalizer -> normalizeAbundances(feature, normalizer),
+              () -> clearIntensityNormalization(feature));
     }
   }
 
@@ -505,5 +514,17 @@ public class FeatureDataUtils {
     final double factor = normalizer.getNormalizationFactor(feature.getMZ(), feature.getRT());
     feature.set(NormalizedAreaType.class, (float) (feature.getArea() * factor));
     feature.set(NormalizedHeightType.class, (float) (feature.getHeight() * factor));
+  }
+
+  /**
+   * Reset all {@link NormalizedAreaType} and {@link NormalizedHeightType}
+   */
+  public static void clearIntensityNormalization(FeatureList flist) {
+    flist.streamFeatures().forEach(FeatureDataUtils::clearIntensityNormalization);
+  }
+
+  private static void clearIntensityNormalization(ModularFeature feature) {
+    feature.set(NormalizedAreaType.class, null);
+    feature.set(NormalizedHeightType.class, null);
   }
 }

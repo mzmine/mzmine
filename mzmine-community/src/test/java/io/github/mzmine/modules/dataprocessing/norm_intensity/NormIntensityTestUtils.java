@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -62,13 +63,19 @@ final class NormIntensityTestUtils {
   static @NotNull ParameterSet createMainParameters(
       final @NotNull AbundanceMeasure abundanceMeasure) {
     return IntensityNormalizerParameters.create(
-        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "norm",
-        NormalizationType.MedianFeatureIntensity, createFactorParameters(), abundanceMeasure,
-        OriginalFeatureListOption.KEEP, List.of());
+        new FeatureListsSelection(FeatureListsSelectionType.ALL_FEATURELISTS), "norm", null,
+        NormalizationType.NoNormalization, null,
+        NormalizationType.ByFeatureIntensity, createFeatureIntensityParameters(
+            FeatureIntensityNormalizationMode.MEDIAN), null, abundanceMeasure, OriginalFeatureListOption.KEEP, null);
   }
 
-  static @NotNull FactorNormalizationModuleParameters createFactorParameters() {
-    return FactorNormalizationModuleParameters.create(List.of(SampleType.QC));
+  static @NotNull FeatureIntensityNormalizationParameters createFeatureIntensityParameters(
+      FeatureIntensityNormalizationMode mode) {
+    return FeatureIntensityNormalizationParameters.create(List.of(SampleType.QC), mode);
+  }
+  static @NotNull FeatureIntensityNormalizationParameters createFeatureIntensityParametersAllSamples(
+      FeatureIntensityNormalizationMode mode) {
+    return FeatureIntensityNormalizationParameters.create(List.of(SampleType.values()), mode);
   }
 
   static @NotNull List<FeatureSelection> toFeatureSelections(
@@ -85,7 +92,7 @@ final class NormIntensityTestUtils {
         throw new IllegalStateException("Row has no average RT: " + row.getID());
       }
 
-      selections.add(new FeatureSelection(Range.singleton(row.getID()), Range.singleton(averageMz),
+      selections.add(new FeatureSelection(null, Range.singleton(averageMz),
           Range.singleton(averageRt), null));
     }
     return selections;
@@ -98,12 +105,19 @@ final class NormIntensityTestUtils {
 
   static @NotNull ModularFeature createFeature(final @NotNull ModularFeatureList featureList,
       final @NotNull RawDataFile rawDataFile, final float height, final float area) {
+    return createFeature(featureList, rawDataFile, height, area, 100d, 5f, null);
+  }
+
+  static @NotNull ModularFeature createFeature(final @NotNull ModularFeatureList featureList,
+      final @NotNull RawDataFile rawDataFile, final float height, final float area,
+      final double mz, final float rt, final @Nullable Float mobility) {
     final ModularFeature feature = new ModularFeature(featureList, rawDataFile,
         FeatureStatus.DETECTED);
     feature.setHeight(height);
     feature.setArea(area);
-    feature.setMZ(100d);
-    feature.setRT(5f);
+    feature.setMZ(mz);
+    feature.setRT(rt);
+    feature.setMobility(mobility);
     return feature;
   }
 
@@ -111,13 +125,25 @@ final class NormIntensityTestUtils {
       final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAHeight,
       final @Nullable Float fileAArea, final @Nullable RawDataFile fileB,
       final @Nullable Float fileBHeight, final @Nullable Float fileBArea) {
+    return addRow(featureList, rowId, fileA, fileAHeight, fileAArea, fileB, fileBHeight, fileBArea,
+        100d, 5f, null);
+  }
+
+  static @NotNull ModularFeatureListRow addRow(final @NotNull ModularFeatureList featureList,
+      final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAHeight,
+      final @Nullable Float fileAArea, final @Nullable RawDataFile fileB,
+      final @Nullable Float fileBHeight, final @Nullable Float fileBArea, final double mz,
+      final float rt, final @Nullable Float mobility) {
     final ModularFeatureListRow row = new ModularFeatureListRow(featureList, rowId);
     if (fileAHeight != null && fileAArea != null) {
-      row.addFeature(fileA, createFeature(featureList, fileA, fileAHeight, fileAArea), false);
+      row.addFeature(fileA, createFeature(featureList, fileA, fileAHeight, fileAArea, mz, rt,
+          mobility), false);
     }
     if (fileB != null && fileBHeight != null && fileBArea != null) {
-      row.addFeature(fileB, createFeature(featureList, fileB, fileBHeight, fileBArea), false);
+      row.addFeature(fileB, createFeature(featureList, fileB, fileBHeight, fileBArea, mz, rt,
+          mobility), false);
     }
+    row.applyRowBindings();
     featureList.addRow(row);
     return row;
   }
@@ -129,11 +155,20 @@ final class NormIntensityTestUtils {
         fileBAbundance);
   }
 
+  static @NotNull ModularFeatureListRow addRow(final @NotNull ModularFeatureList featureList,
+      final int rowId, final @NotNull RawDataFile fileA, final @Nullable Float fileAAbundance,
+      final @Nullable RawDataFile fileB, final @Nullable Float fileBAbundance, final double mz,
+      final float rt, final @Nullable Float mobility) {
+    return addRow(featureList, rowId, fileA, fileAAbundance, fileAAbundance, fileB, fileBAbundance,
+        fileBAbundance, mz, rt, mobility);
+  }
+
   static void addScan(final @NotNull RawDataFileImpl file, final int scanNumber, final int msLevel,
       final float rt, final @NotNull double[] mzValues, final @NotNull double[] intensityValues) {
     final SimpleScan scan = new SimpleScan(file, scanNumber, msLevel, rt, null, mzValues,
         intensityValues, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(0d, 2000d));
+    scan.addMassList(new ScanPointerMassList(scan));
     file.addScan(scan);
   }
 }

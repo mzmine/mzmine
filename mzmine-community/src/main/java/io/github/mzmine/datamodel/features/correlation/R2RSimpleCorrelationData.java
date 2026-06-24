@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,10 @@
 
 package io.github.mzmine.datamodel.features.correlation;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 
-public class R2RSimpleCorrelationData extends R2RCorrelationData {
+public final class R2RSimpleCorrelationData extends R2RCorrelationData {
 
   private final double totalSim;
   private final double heightSim;
@@ -37,13 +38,20 @@ public class R2RSimpleCorrelationData extends R2RCorrelationData {
   private final double avgDPcount;
 
   public R2RSimpleCorrelationData(R2RFullCorrelationData full) {
-    super(full.getRowA(), full.getRowB());
-    totalSim = full.getTotalPearsonR();
-    heightSim = full.getHeightPearsonR();
-    avgShapeSim = full.getAvgShapeR();
-    minShapeSim = full.getMinShapeR();
-    maxShapeSim = full.getMaxShapeR();
-    avgDPcount = full.getAvgDPcount();
+    this(full.getRowA(), full.getRowB(), full.getTotalPearsonR(), full.getHeightPearsonR(),
+        full.getAvgShapeR(), full.getMinShapeR(), full.getMaxShapeR(), full.getAvgDPcount());
+  }
+
+  public R2RSimpleCorrelationData(FeatureListRow a, FeatureListRow b, double totalSim,
+      double heightSim, double avgShapeSim, double minShapeSim, double maxShapeSim,
+      double avgDPcount) {
+    super(a, b);
+    this.totalSim = totalSim;
+    this.heightSim = heightSim;
+    this.avgShapeSim = avgShapeSim;
+    this.minShapeSim = minShapeSim;
+    this.maxShapeSim = maxShapeSim;
+    this.avgDPcount = avgDPcount;
   }
 
 

@@ -188,19 +188,6 @@ public class SimpleParameterSet implements ParameterSet {
    */
   @Override
   public ParameterSet cloneParameterSet(boolean keepSelection) {
-
-    // Make a deep copy of the parameters
-    Parameter<?>[] newParameters = new Parameter[parameters.length];
-    for (int i = 0; i < parameters.length; i++) {
-      if (parameters[i] instanceof RawDataFilesParameter rfp) {
-        newParameters[i] = rfp.cloneParameter(keepSelection);
-      } else if (parameters[i] instanceof FeatureListsParameter flp) {
-        newParameters[i] = flp.cloneParameter(keepSelection);
-      } else {
-        newParameters[i] = parameters[i].cloneParameter();
-      }
-    }
-
     try {
       /*
        * Do not create a new instance of SimpleParameterSet, but instead clone the runtime class of
@@ -208,7 +195,8 @@ public class SimpleParameterSet implements ParameterSet {
        * proper behavior of showSetupDialog(xxx) method for cloned classes.
        */
       SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
-      newSet.parameters = newParameters;
+      // Make a deep copy of the parameters
+      newSet.parameters = ParameterUtils.cloneParameters(parameters, keepSelection);
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
       newSet.setModuleNameAttribute(this.getModuleNameAttribute());
       newSet.helpUrl = helpUrl;
@@ -216,7 +204,6 @@ public class SimpleParameterSet implements ParameterSet {
       return newSet;
     } catch (Throwable e) {
       logger.log(Level.WARNING, "While cloning parameters: " + e.getMessage(), e);
-      e.printStackTrace();
       return null;
     }
   }
