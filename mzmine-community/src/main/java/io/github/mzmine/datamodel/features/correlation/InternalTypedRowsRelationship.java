@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class InternalTypedRowsRelationship extends AbstractRowsRelationship {
+public abstract sealed class InternalTypedRowsRelationship extends AbstractRowsRelationship permits
+    OnlineReactionMatch, R2RCorrelationData, R2RMS2CosineSimilarityGNPS, R2RSimpleSimilarity,
+    R2RSpectralSimilarity {
 
   private final Type type;
 

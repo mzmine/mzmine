@@ -96,8 +96,8 @@ public class CompoundAnnotationUtils {
    * filtered out by default — pass {@code includeAnalog=true} to row accessors to keep them.
    */
   public static final List<DataType> annotationTypePriority = DataTypes.getAll(
-      CompoundDatabaseMatchesType.class, LipidMatchListType.class, SpectralLibraryMatchesType.class,
-      AnalogSpectralLibraryMatchesType.class);
+      CompoundDatabaseMatchesType.class, AnalogSpectralLibraryMatchesType.class,
+      LipidMatchListType.class, SpectralLibraryMatchesType.class);
 
   private static final Logger logger = Logger.getLogger(CompoundAnnotationUtils.class.getName());
 

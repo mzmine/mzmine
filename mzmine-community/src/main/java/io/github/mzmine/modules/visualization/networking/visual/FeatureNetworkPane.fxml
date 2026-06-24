@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import io.github.mzmine.modules.visualization.networking.visual.NetworkLegend?>
@@ -60,6 +61,7 @@
                      <rowConstraints>
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                      </rowConstraints>
                      <children>
                         <Label text="Node" />
@@ -70,6 +72,8 @@
                         <SearchableComboBox fx:id="comboEdgeLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <SearchableComboBox fx:id="comboEdgeSize" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                         <SearchableComboBox fx:id="comboEdgeColor" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                        <Label text="Pies" GridPane.rowIndex="2" />
+                        <HBox fx:id="pieGroupingBox" alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.columnSpan="4" GridPane.rowIndex="2" />
                      </children>
                   </GridPane>
                </content>

@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeType;
+import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataGroup;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +79,10 @@ public class NetworkLegend extends TitledPane {
   // graph is later extended.
   private @Nullable ObservableSet<NodeType> boundNodeTypes;
   private @Nullable ObservableSet<EdgeType> boundEdgeTypes;
+
+  // sample groups currently drawn as pie slices, or null when pie grouping is off. Colors match
+  // the slice colors used in the network.
+  private @Nullable List<ColorByMetadataGroup> pieGroups;
 
   // Schedule rebuilds on the FX thread because the generator may populate the sets from any
   // thread; mutating the scene graph off-FX would throw.
@@ -115,19 +121,30 @@ public class NetworkLegend extends TitledPane {
   }
 
   /**
+   * Set (or clear) the sample groups shown in the "Pies" section. Pass null when pie grouping is
+   * off. Triggers a rebuild on the FX thread.
+   */
+  public void setPieGroups(@Nullable final List<ColorByMetadataGroup> groups) {
+    this.pieGroups = groups;
+    FxThread.runLater(this::rebuildContent);
+  }
+
+  /**
    * Build the legend from a specific stylesheet (useful for tests or for reflecting a hot-reloaded
    * style). Filters respect the currently bound type sets.
    */
   public void rebuildFrom(@NotNull final NetworkStyleSheet style) {
-    setContent(buildContent(style, boundNodeTypes, boundEdgeTypes));
+    setContent(buildContent(style, boundNodeTypes, boundEdgeTypes, pieGroups));
   }
 
   private void rebuildContent() {
-    setContent(buildContent(NetworkStyleSheet.loadDefault(), boundNodeTypes, boundEdgeTypes));
+    setContent(
+        buildContent(NetworkStyleSheet.loadDefault(), boundNodeTypes, boundEdgeTypes, pieGroups));
   }
 
   private static @NotNull javafx.scene.Node buildContent(@NotNull final NetworkStyleSheet style,
-      @Nullable final Set<NodeType> nodeFilter, @Nullable final Set<EdgeType> edgeFilter) {
+      @Nullable final Set<NodeType> nodeFilter, @Nullable final Set<EdgeType> edgeFilter,
+      @Nullable final List<ColorByMetadataGroup> pieGroups) {
     final FlowPane nodeRow = new FlowPane(10, 4);
     // Dedup by toString() so enum values that share a display label (e.g. ION_FEATURE +
     // SINGLE_FEATURE both labelled "Feature") render as a single entry. nodeFilter == null means
@@ -154,8 +171,19 @@ public class NetworkLegend extends TitledPane {
       }
     }
 
-    // VBox keeps the two sections stacked; small left-side labels identify them
+    // VBox keeps the sections stacked; small left-side labels identify them
     final VBox box = new VBox(4, withSection("Nodes:", nodeRow), withSection("Edges:", edgeRow));
+
+    // Pies section: only shown while pie grouping is active. One swatch per sample group, colored
+    // exactly like the corresponding pie slice in the network.
+    if (pieGroups != null && !pieGroups.isEmpty()) {
+      final FlowPane pieRow = new FlowPane(10, 4);
+      for (final ColorByMetadataGroup group : pieGroups) {
+        pieRow.getChildren().add(pieItem(group));
+      }
+      box.getChildren().add(withSection("Pies:", pieRow));
+    }
+
     box.setPadding(new Insets(4));
     return box;
   }
@@ -199,6 +227,15 @@ public class NetworkLegend extends TitledPane {
     line.setStroke(fillOf(fills));
     applyStrokeMode(line, strokeMode);
     return labelled(line, type.toString());
+  }
+
+  // One pie group: a narrow rectangle filled with the group color + the group label.
+  private static @NotNull Node pieItem(@NotNull final ColorByMetadataGroup group) {
+    final Rectangle icon = new Rectangle(SWATCH_W / 2.0, SWATCH_H);
+    icon.setFill(group.color());
+    icon.setStroke(Color.gray(0.4));
+    icon.setStrokeWidth(0.5);
+    return labelled(icon, group.valueString());
   }
 
   private static @NotNull HBox labelled(@NotNull final Shape icon, @NotNull final String text) {
