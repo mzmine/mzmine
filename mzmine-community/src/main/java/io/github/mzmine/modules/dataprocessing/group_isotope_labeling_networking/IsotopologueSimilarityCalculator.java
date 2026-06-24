@@ -96,7 +96,7 @@ public class IsotopologueSimilarityCalculator {
    * Wasserstein-1 similarity between two distributions on the same fractional grid. W1 =
    * (1/(size-1)) * sum|CDF_A - CDF_B|; similarity = max(0, 1 - W1).
    */
-  static double wasserstein1Similarity(double[] gridA, double[] gridB) {
+  public static double wasserstein1Similarity(double[] gridA, double[] gridB) {
     int size = Math.min(gridA.length, gridB.length);
     double cdfA = 0.0, cdfB = 0.0, totalL1 = 0.0;
     for (int i = 0; i < size; i++) {
