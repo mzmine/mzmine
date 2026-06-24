@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_untargetedLabeling;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.correlation.CorrelationData;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -103,6 +105,7 @@ public class UntargetedLabelingTask extends AbstractTask {
   private boolean allowIncompletePatterns;
   private double minimumSampleCoverage;
   private boolean requireStatisticalSignificance;
+  private double minPeakShapeCorrelation;
 
   // Results storage
   private List<IsotopeGroupResult> isotopeLabelResults;
@@ -169,6 +172,8 @@ public class UntargetedLabelingTask extends AbstractTask {
         UntargetedLabelingParameters.minimumSampleCoverage).getValue();
     requireStatisticalSignificance = parameters.getParameter(
         UntargetedLabelingParameters.requireStatisticalSignificance).getValue();
+    minPeakShapeCorrelation = parameters.getParameter(
+        UntargetedLabelingParameters.minPeakShapeCorrelation).getValue();
   }
 
   @Override
@@ -342,13 +347,57 @@ public class UntargetedLabelingTask extends AbstractTask {
       }
 
       if (bestMatch != null) {
-        pattern.add(new IsotopeCandidate(bestMatch, massShift, charge));
+        if (!peakShapeCorrPasses(basePeak, bestMatch)) {
+          if (!allowIncompletePatterns) {
+            break;
+          }
+        } else {
+          pattern.add(new IsotopeCandidate(bestMatch, massShift, charge));
+        }
       } else if (!allowIncompletePatterns) {
         break;
       }
     }
 
     return pattern;
+  }
+
+  /** Returns the isotope symbol whose per-step mass difference best matches the observed spacing. */
+  private static String annotateIsotopeType(double obsDiff, int rank, double baseMz) {
+    if (rank == 0) {
+      return "";
+    }
+    double perStep = obsDiff / rank;
+    double tol = (baseMz + obsDiff) * 15e-6; // 15 ppm window for unambiguous assignment
+    String[] names  = {"13C",     "D",       "15N",     "17O",     "18O",     "34S"};
+    double[] masses = {1.003355, 1.006277,  0.997035,  0.999218,  2.004244,  1.995796};
+    String best = "";
+    double bestDiff = Double.MAX_VALUE;
+    for (int i = 0; i < names.length; i++) {
+      double diff = Math.abs(perStep - masses[i]);
+      if (diff < bestDiff && diff < tol) {
+        bestDiff = diff;
+        best = names[i];
+      }
+    }
+    return best;
+  }
+
+  private boolean peakShapeCorrPasses(FeatureListRow basePeak, FeatureListRow candidate) {
+    if (minPeakShapeCorrelation <= 0.0) {
+      return true;
+    }
+    List<RawDataFile> rawDataFiles = basePeak.getRawDataFiles();
+    Map<RawDataFile, CorrelationData> shapeCorr = FeatureCorrelationUtil.corrR2RFeatureShapes(
+        null, rawDataFiles, basePeak, candidate, 5, 0, noiseLevel);
+    if (shapeCorr == null || shapeCorr.isEmpty()) {
+      return true;
+    }
+    double avgR = shapeCorr.values().stream()
+        .filter(c -> c != null && c.getDPCount() >= 5)
+        .mapToDouble(CorrelationData::getPearsonR)
+        .average().orElse(Double.NaN);
+    return Double.isNaN(avgR) || avgR >= minPeakShapeCorrelation;
   }
 
   /**
@@ -1493,6 +1542,10 @@ public class UntargetedLabelingTask extends AbstractTask {
       logger.info("Added isotopologueRankType to result feature list");
     }
 
+    if (!resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopologueAnnotationType)) {
+      resultFeatureList.addRowType(UntargetedLabelingParameters.isotopologueAnnotationType);
+    }
+
     // Verify feature list has the required columns
     if (!resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopeClusterType)
         || !resultFeatureList.hasRowType(UntargetedLabelingParameters.isotopologueRankType)) {
@@ -1512,6 +1565,9 @@ public class UntargetedLabelingTask extends AbstractTask {
         try {
           resultRow.set(UntargetedLabelingParameters.isotopeClusterType, clusterID);
           resultRow.set(UntargetedLabelingParameters.isotopologueRankType, candidate.massShift);
+          resultRow.set(UntargetedLabelingParameters.isotopologueAnnotationType,
+              annotateIsotopeType(candidate.row.getAverageMZ() - baseMz, candidate.massShift,
+                  baseMz));
 
           // Log the stored values for debugging
           Integer storedClusterId = resultRow.get(UntargetedLabelingParameters.isotopeClusterType);
