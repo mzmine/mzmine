@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.MissingCompoundListException;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -468,19 +467,6 @@ public interface FeatureList {
   default boolean isAligned() {
     return getNumberOfRawDataFiles() > 1;
   }
-
-  /**
-   * List of RowGroups group features based on different methods
-   *
-   * @return
-   */
-  @NotNull List<RowGroup> getGroups();
-
-  /**
-   * List of RowGroups group features based on different methods
-   */
-  void setGroups(List<RowGroup> groups);
-
 
   /**
    * Short cut to get the MS1 correlation map of grouped features

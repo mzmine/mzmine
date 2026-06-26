@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
@@ -372,20 +371,6 @@ public interface FeatureListRow extends ModularDataModel {
   boolean isIdentified();
 
   /**
-   * Correlated features grouped
-   *
-   * @return
-   */
-  RowGroup getGroup();
-
-  /**
-   * Correlated features grouped
-   *
-   * @param group
-   */
-  void setGroup(RowGroup group);
-
-  /**
    * The list of ion identities
    *
    * @return null or the current list. First element is the "preferred" element
@@ -486,16 +471,6 @@ public interface FeatureListRow extends ModularDataModel {
       return removed;
     }
     return false;
-  }
-
-  /**
-   * Returns the group ID
-   *
-   * @return return the group ID or -1 if not part of a group {@link #getGroup()}
-   */
-  default int getGroupID() {
-    RowGroup g = getGroup();
-    return g == null ? -1 : g.getGroupID();
   }
 
   List<ResultFormula> getFormulas();

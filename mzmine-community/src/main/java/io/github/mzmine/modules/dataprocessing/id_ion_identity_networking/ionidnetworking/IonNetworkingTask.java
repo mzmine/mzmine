@@ -51,6 +51,7 @@ import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CorrelationGroupingUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -168,7 +169,8 @@ public class IonNetworkingTask extends AbstractTask {
         setStatus(TaskStatus.FINISHED);
         return;
       }
-      List<RowGroup> groups = featureList.getGroups();
+      // generate correlation groups (connected components) on demand from the MS1 correlation map
+      List<RowGroup> groups = CorrelationGroupingUtils.createCorrGroups(featureList);
       if (groups == null || groups.isEmpty()) {
         // check if processing contains metaCorrelate - otherwise error out
 
@@ -193,7 +195,7 @@ public class IonNetworkingTask extends AbstractTask {
       // add types
       featureList.addRowType(DataTypes.get(IonIdentityListType.class));
 
-      annotateGroups();
+      annotateGroups(groups);
 
       if (parameters.getValue(IonNetworkingParameters.COMPOUND_GROUPING)) {
         final CompoundGrouperParameters compoundParams = parameters.getParameter(
@@ -222,10 +224,7 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
 
-  private void annotateGroups() {
-    // get groups
-    List<RowGroup> groups = featureList.getGroups();
-
+  private void annotateGroups(final List<RowGroup> groups) {
     //
     AtomicInteger compared = new AtomicInteger(0);
     // for all groups
@@ -359,7 +358,7 @@ public class IonNetworkingTask extends AbstractTask {
 
     // show all annotations with the highest count of links
     LOG.info("Corr: show most likely annotations");
-    IonNetworkLogic.sortIonIdentities(featureList, true);
+    IonNetworkLogic.sortIonIdentities(featureList);
 
     // create network IDs
     LOG.info("Corr: create annotation network numbers");
