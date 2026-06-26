@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import java.util.List;
 import javafx.collections.ObservableList;
 
 public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> extends
@@ -38,7 +39,7 @@ public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> ex
   }
 
   public ComboWithStringInputParameter(StringParameter embeddedParameter,
-      ObservableList<EnumType> values, EnumType inputTrigger,
+      ObservableList<EnumType> values, List<EnumType> inputTrigger,
       ComboWithStringInputValue<EnumType> defaultValue) {
     super(embeddedParameter, values, inputTrigger, defaultValue);
   }
@@ -49,7 +50,7 @@ public class ComboWithStringInputParameter<EnumType extends UniqueIdSupplier> ex
     final ComboWithStringInputValue<EnumType> clonedValue = new ComboWithStringInputValue<>(
         value.getSelectedOption(), value.embeddedValue());
     final ComboWithStringInputParameter<EnumType> clone = new ComboWithStringInputParameter<>(
-        embeddedClone, choices, inputTrigger, clonedValue);
+        embeddedClone, choices, inputTriggers, clonedValue);
     clone.setValue(clonedValue);
     return clone;
   }
