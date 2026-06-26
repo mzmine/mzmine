@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,12 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
+import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -137,12 +139,18 @@ class ArgsToConfigUtils {
 
   static void checkAndOverrideArgsUser(@NotNull final MZmineCoreArgumentParser argsParser) {
     if (argsParser.getUserFile() == null) {
-      // listen for user changes so that the latest user is saved
       String username = ConfigService.getPreference(MZminePreferences.username);
-      // this will set the current user to CurrentUserService
-      // loads all users already logged in from the user folder
       if (StringUtils.hasValue(username)) {
-        UsersController.getInstance().setCurrentUserByName(username);
+        // Read user files directly from disk without initialising UsersController.
+        // UsersController.getInstance() must not be called here because TaskService
+        // has not been initialised yet at this point in the startup sequence, and
+        // the controller's background LoadUsersTask would fail with an NPE.
+        try {
+          UserAuthStore.readAllUserFiles().stream().filter(u -> username.equals(u.getNickname()))
+              .findFirst().ifPresent(CurrentUserService::setUser);
+        } catch (IOException e) {
+          logger.log(Level.WARNING, "Could not restore saved user: " + username, e);
+        }
       }
     }
   }
