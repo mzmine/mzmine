@@ -62,7 +62,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Shapes";
+    return "Chromatogram";
   }
 
   @Override
@@ -70,6 +70,7 @@ public class FeatureShapeType extends LinkedGraphicalType {
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     final TreeTableColumn<ModularFeatureListRow, Object> column = super.createColumn(raw,
         parentType);
+    column.setText(getHeaderString()+" (min)");
     column.setCellFactory(new CountingRowChartCellFactory(ChromatogramFeatureShapeCell::new));
     column.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return column;
