@@ -394,6 +394,8 @@ public class FeatureNetworkGenerator {
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
       case FEATURE_SHAPE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
+      case ISOTOPE_LABELING ->
+          edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
     }
   }
 

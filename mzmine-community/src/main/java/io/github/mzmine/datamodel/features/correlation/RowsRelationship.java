@@ -160,6 +160,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
      */
     MS2Deepscore,
     DREAMS,
+    ISOTOPE_LABELING_SIM,
     /**
      * {@link
      * AnalogSpectralLibrarySearchModule}
@@ -199,6 +200,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
         case ONLINE_REACTION -> "Online reaction";
         case MS2Deepscore -> "MS2Deepscore";
         case DREAMS -> "DreaMS";
+        case ISOTOPE_LABELING_SIM -> "Isotope Labeling Similarity";
         case ANALOG_COSINE -> "Analog (Cosine)";
         case ANALOG_DREAMS -> "Analog (DreaMS)";
         case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
