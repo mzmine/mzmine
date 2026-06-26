@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper class to apply all parsed args from the
@@ -138,20 +139,30 @@ class ArgsToConfigUtils {
   }
 
   static void checkAndOverrideArgsUser(@NotNull final MZmineCoreArgumentParser argsParser) {
-    if (argsParser.getUserFile() == null) {
-      String username = ConfigService.getPreference(MZminePreferences.username);
-      if (StringUtils.hasValue(username)) {
-        // Read user files directly from disk without initialising UsersController.
-        // UsersController.getInstance() must not be called here because TaskService
-        // has not been initialised yet at this point in the startup sequence, and
-        // the controller's background LoadUsersTask would fail with an NPE.
-        try {
-          UserAuthStore.readAllUserFiles().stream().filter(u -> username.equals(u.getNickname()))
-              .findFirst().ifPresent(CurrentUserService::setUser);
-        } catch (IOException e) {
-          logger.log(Level.WARNING, "Could not restore saved user: " + username, e);
-        }
-      }
+    if (argsParser.getUserFile() != null) {
+      return; // user was already read and locked in MZmineCoreArgumentParser
+    }
+    if (argsParser.isGuiMode()) {
+      return; // GUI: caller will restore the user asynchronously after TaskService is ready
+    }
+    // Headless / CLI mode: restore synchronously so the user is set before the batch runs.
+    restoreUserFromConfig(ConfigService.getPreference(MZminePreferences.username));
+  }
+
+  /**
+   * Restores the previously active user identified by {@code username} by scanning all saved user
+   * files. Safe to call from any thread. May do network I/O when the user file is older than 5
+   * days.
+   */
+  static void restoreUserFromConfig(@Nullable final String username) {
+    if (!StringUtils.hasValue(username)) {
+      return;
+    }
+    try {
+      UserAuthStore.readAllUserFiles().stream().filter(u -> username.equals(u.getNickname()))
+          .findFirst().ifPresent(CurrentUserService::setUser);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Could not restore saved user: " + username, e);
     }
   }
 
