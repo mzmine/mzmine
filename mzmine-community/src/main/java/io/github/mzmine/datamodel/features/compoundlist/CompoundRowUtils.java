@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -19,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -418,6 +444,56 @@ public final class CompoundRowUtils {
 
     list.setRows(nextRows);
     return true;
+  }
+
+  /**
+   * Build a copy of {@code src} attached to {@code target} compound list, remapping each member's
+   * feature row via {@code rowMapping} (old row → new row, or {@code null} when the row was removed
+   * from the new feature list). Nested compound members are copied recursively and dropped when
+   * {@code compoundRowFilter} rejects them ({@code null} keeps all). Members whose row is gone are
+   * stripped, and the representative is re-picked when it was removed. Compound id, member roles,
+   * scores, confidence and neutral mass are preserved; derived values and compound features are
+   * recomputed when the target list's {@link CompoundList#setRows(List)} applies its bindings.
+   *
+   * @param compoundRowFilter keep predicate applied to nested compound members, or {@code null} to
+   *                          keep all. The caller applies it to {@code src} itself (top-level
+   *                          rows).
+   * @return the copied compound row, or {@code null} if no member survived (the compound is
+   * dropped)
+   */
+  public static @Nullable ModularCompoundRow copyRowFiltered(@NotNull final ModularCompoundRow src,
+      @NotNull final CompoundList target,
+      @NotNull final Function<FeatureListRow, ModularFeatureListRow> rowMapping,
+      @Nullable final Predicate<ModularCompoundRow> compoundRowFilter) {
+    final List<CompoundFeatureMember> members = src.getCompoundMembers();
+    final List<CompoundFeatureMember> kept = new ArrayList<>(members.size());
+    for (final CompoundFeatureMember m : members) {
+      final FeatureListRow memberRow = m.row();
+      if (memberRow instanceof ModularCompoundRow nested) {
+        // drop nested compound rows rejected by the compound-id filter
+        if (compoundRowFilter != null && !compoundRowFilter.test(nested)) {
+          continue;
+        }
+        // recurse: a nested compound survives only if it still has members
+        final ModularCompoundRow nestedCopy = copyRowFiltered(nested, target, rowMapping,
+            compoundRowFilter);
+        if (nestedCopy != null) {
+          kept.add(new CompoundFeatureMember(nestedCopy, m.role(), m.score()));
+        }
+      } else {
+        final ModularFeatureListRow mapped = rowMapping.apply(memberRow);
+        if (mapped != null) {
+          kept.add(new CompoundFeatureMember(mapped, m.role(), m.score()));
+        }
+      }
+    }
+    if (kept.isEmpty()) {
+      return null;
+    }
+    final List<CompoundFeatureMember> normalized = ensureRepresentative(kept);
+    final ModularFeatureListRow preferred = pickRepresentativeRow(normalized);
+    return new ModularCompoundRow(target, src.getCompoundId(), preferred, normalized,
+        src.getCompoundConfidenceScore(), src.getCompoundNeutralMass());
   }
 
   // ----- helpers -----

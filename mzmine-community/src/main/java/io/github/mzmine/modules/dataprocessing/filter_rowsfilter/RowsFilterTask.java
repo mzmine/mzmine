@@ -36,6 +36,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
@@ -53,12 +55,16 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.collections.IndexRangesList;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -118,6 +124,13 @@ public class RowsFilterTask extends AbstractTask {
   private final boolean keepAnnotated;
   private final MinimumSamplesFilter minSamplesInOneGroup;
   private final RowTypeFilter rowTypeFilter;
+  // row-ID filter: null when off. A strong filter on feature list rows — it respects the
+  // keep/remove choice and overrides the keepAllWithMS2 / keepAnnotated rescue.
+  private final IndexRangesList rowIdRanges;
+  // compound-ID filter: null when off. Only filters the copied CompoundList by compound ID
+  // (top-level and nested compound rows), respecting the keep/remove choice; does not affect which
+  // feature list rows are kept.
+  private final IndexRangesList compoundIdRanges;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -166,6 +179,10 @@ public class RowsFilterTask extends AbstractTask {
         RowsFilterParameters.onlyCorrelatedWithOtherDetectors);
 
     rowTypeFilter = parameters.getOptionalValue(RowsFilterParameters.ROW_TYPE_FILTER).orElse(null);
+
+    rowIdRanges = parameters.getOptionalValue(RowsFilterParameters.ROW_ID_FILTER).orElse(null);
+    compoundIdRanges = parameters.getOptionalValue(RowsFilterParameters.COMPOUND_ID_FILTER)
+        .orElse(null);
 
     // create min samples filter based on all files and on groups in column
     minSamples = parameters.getOptionalValue(RowsFilterParameters.MIN_FEATURE_COUNT)
@@ -301,6 +318,15 @@ public class RowsFilterTask extends AbstractTask {
     // otherwise we remove those that match all criteria
     boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
+    // capture the source compound list before any row mutation; the filtered feature list gets a
+    // remapped copy at the end so the compound grouping is not lost. oldToNew maps each surviving
+    // source row to its row in the new list (identity, so it also works when IDs are renumbered).
+    final CompoundList srcCompoundList = featureList.getCompoundList();
+    final List<ModularCompoundRow> srcCompoundRows =
+        srcCompoundList != null ? srcCompoundList.getRowsCopy() : List.of();
+    final Map<FeatureListRow, ModularFeatureListRow> oldToNew =
+        srcCompoundList != null ? new IdentityHashMap<>() : null;
+
     // check if min samples filter is valid
     final List<String> errors = prechecks(featureList);
     if (!errors.isEmpty()) {
@@ -331,12 +357,23 @@ public class RowsFilterTask extends AbstractTask {
       final boolean hasMS2 = row.hasMs2Fragmentation();
       final boolean annotated = row.isIdentified();
 
-      // Only remove rows that match *all* of the criteria, so add
-      // rows that fail any of the criteria.
-      // Only add the row if none of the criteria have failed.
-      // GC-EI-MS PseudoSpectra are not counted as MS2 here
-      boolean keepRow = (!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
-          || isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != removeFailed;
+      // Rows with MS2 or an annotation are normally rescued (kept regardless of other criteria).
+      // GC-EI-MS PseudoSpectra are not counted as MS2 here.
+      final boolean rescued =
+          (!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated);
+
+      // The row-ID filter is a strong filter: it respects the keep/remove choice (it is a normal
+      // criterion in isFilterRowCriteriaFailed) and additionally overrides the rescue above. In
+      // keep mode a non-matching id, in remove mode a matching id, blocks the rescue so the row is
+      // removed even when it has MS2 or is annotated.
+      final boolean idFilterBlocksRescue =
+          rowIdRanges != null && rowIdRanges.contains(row.getID()) != removeFailed;
+
+      // Keep rows matching all criteria (keep mode) or failing any criterion (remove mode); a
+      // rescued row is kept unless the strong row-ID filter blocks the rescue.
+      boolean keepRow =
+          (rescued && !idFilterBlocksRescue) || (isFilterRowCriteriaFailed(row, rowIndex, hasMS2)
+              != removeFailed);
       if (keepRow) {
         rowsToAdd.add(row);
       }
@@ -354,6 +391,12 @@ public class RowsFilterTask extends AbstractTask {
           rowsToAdd.get(i).set(IDType.class, i + 1);
         }
       }
+      if (oldToNew != null) {
+        // rows are reused in place — map each surviving row to itself
+        for (final FeatureListRow row : rowsToAdd) {
+          oldToNew.put(row, (ModularFeatureListRow) row);
+        }
+      }
     } else {
       final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
       // exact number of needed features and rows
@@ -365,10 +408,25 @@ public class RowsFilterTask extends AbstractTask {
       // add rows to new list
       for (int i = 0; i < rowsToAdd.size(); i++) {
         var row = rowsToAdd.get(i);
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+        ModularFeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
         newFeatureList.addRow(resetRow);
+        if (oldToNew != null) {
+          oldToNew.put(row, resetRow);
+        }
       }
+    }
+
+    // transfer a remapped copy of the compound list (if any) to the filtered feature list. Members
+    // removed from the feature list are stripped and empty compounds dropped. The compound-ID
+    // filter (if active) is applied to top-level and nested compound rows and respects the
+    // keep/remove choice: keep mode keeps matching compound ids, remove mode keeps non-matching.
+    if (srcCompoundList != null && !srcCompoundRows.isEmpty()) {
+      final Predicate<ModularCompoundRow> compoundIdFilter = compoundIdRanges == null ? null
+          : cr -> compoundIdRanges.contains(cr.getCompoundId()) == removeFailed;
+      final CompoundList newCompoundList = FeatureListUtils.copyCompoundList(srcCompoundRows,
+          newFeatureList, oldToNew::get, compoundIdFilter, getMemoryMapStorage());
+      newFeatureList.setCompoundList(newCompoundList);
     }
 
     // Add task description to featureList.
@@ -427,6 +485,12 @@ public class RowsFilterTask extends AbstractTask {
 
     // Check ms2 filter .
     if (filterByMS2 && !hasMS2) {
+      return true;
+    }
+
+    // Check feature list row ID filter. A normal criterion so it respects the keep/remove choice;
+    // it is additionally enforced over the rescue in the caller (strong filter).
+    if (rowIdRanges != null && !rowIdRanges.contains(row.getID())) {
       return true;
     }
 
