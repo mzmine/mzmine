@@ -35,28 +35,30 @@ import org.junit.jupiter.api.Test;
 class SampleMetadataExtractionUtilsTest {
 
   private static MetadataRegexMapping mapping(final String regex, final String defaultValue,
-      final boolean dropUnmapped, final List<MetadataValueMapping> valueMappings) {
+      final DropUnmappedMode dropUnmapped, final List<MetadataValueMapping> valueMappings) {
     return new MetadataRegexMapping(RegexInputSource.FILE_NAME, "type", ExtractColumnType.AUTO,
         regex, defaultValue, dropUnmapped, valueMappings);
   }
 
   @Test
   void usesFirstCaptureGroup() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", false, List.of());
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.KEEP_UNMAPPED,
+        List.of());
     Assertions.assertEquals("QC",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
   }
 
   @Test
   void fallsBackToWholeMatchWithoutCapturingGroup() {
-    final MetadataRegexMapping m = mapping("\\d{8}", "", false, List.of());
+    final MetadataRegexMapping m = mapping("\\d{8}", "", DropUnmappedMode.KEEP_UNMAPPED, List.of());
     Assertions.assertEquals("20210610",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
   }
 
   @Test
   void namedGroupIsExtracted() {
-    final MetadataRegexMapping m = mapping("_(?<stype>[A-Za-z]+)_", "", false, List.of());
+    final MetadataRegexMapping m = mapping("_(?<stype>[A-Za-z]+)_", "",
+        DropUnmappedMode.KEEP_UNMAPPED, List.of());
     Assertions.assertEquals("blank",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_blank_01.mzML"));
   }
@@ -64,14 +66,14 @@ class SampleMetadataExtractionUtilsTest {
   @Test
   void regexMatchingIsCaseInsensitive() {
     // lowercase pattern matches the upper-case token in the file name
-    final MetadataRegexMapping m = mapping("(qc)", "", false, List.of());
+    final MetadataRegexMapping m = mapping("(qc)", "", DropUnmappedMode.KEEP_UNMAPPED, List.of());
     Assertions.assertEquals("QC",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
   }
 
   @Test
   void valueMappingIsCaseInsensitive() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", false,
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.KEEP_UNMAPPED,
         List.of(new MetadataValueMapping("media", "blank")));
     Assertions.assertEquals("blank",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_Media_01.mzML"));
@@ -79,7 +81,7 @@ class SampleMetadataExtractionUtilsTest {
 
   @Test
   void unmappedValuePassesThroughByDefault() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", false,
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.KEEP_UNMAPPED,
         List.of(new MetadataValueMapping("media", "blank")));
     Assertions.assertEquals("QC",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
@@ -87,31 +89,35 @@ class SampleMetadataExtractionUtilsTest {
 
   @Test
   void dropUnmappedReturnsNull() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", true,
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.DROP_UNMAPPED,
         List.of(new MetadataValueMapping("media", "blank")));
     Assertions.assertNull(SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
   }
 
   @Test
   void defaultValueUsedWhenNoMatch() {
-    final MetadataRegexMapping withDefault = mapping("QC_(\\d+)", "unknown", false, List.of());
+    final MetadataRegexMapping withDefault = mapping("QC_(\\d+)", "unknown",
+        DropUnmappedMode.KEEP_UNMAPPED, List.of());
     Assertions.assertEquals("unknown",
         SampleMetadataExtractionUtils.extractValue(withDefault, "20210610_blank_01.mzML"));
 
-    final MetadataRegexMapping noDefault = mapping("QC_(\\d+)", "", false, List.of());
+    final MetadataRegexMapping noDefault = mapping("QC_(\\d+)", "", DropUnmappedMode.KEEP_UNMAPPED,
+        List.of());
     Assertions.assertNull(
         SampleMetadataExtractionUtils.extractValue(noDefault, "20210610_blank_01.mzML"));
   }
 
   @Test
   void invalidRegexReturnsNoMatch() {
-    final MetadataRegexMapping m = mapping("([unclosed", "", false, List.of());
+    final MetadataRegexMapping m = mapping("([unclosed", "", DropUnmappedMode.KEEP_UNMAPPED,
+        List.of());
     Assertions.assertNull(SampleMetadataExtractionUtils.firstGroupMatch(m, "anything"));
   }
 
   @Test
   void groupMatchReportsHighlightRange() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", false, List.of());
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.KEEP_UNMAPPED,
+        List.of());
     final String input = "20210610_QC_01.mzML";
     final GroupMatch match = SampleMetadataExtractionUtils.firstGroupMatch(m, input);
     Assertions.assertNotNull(match);
@@ -121,7 +127,8 @@ class SampleMetadataExtractionUtilsTest {
 
   @Test
   void distinctMatchedValuesDedupCaseInsensitively() {
-    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", false, List.of());
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.KEEP_UNMAPPED,
+        List.of());
     final List<RawDataFile> raws = List.of(new RawDataFilePlaceholder("x_QC_1.mzML", null),
         new RawDataFilePlaceholder("y_qc_2.mzML", null),
         new RawDataFilePlaceholder("z_blank_3.mzML", null));
