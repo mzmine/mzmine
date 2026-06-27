@@ -61,6 +61,16 @@ import org.kordamp.ikonli.javafx.FontIcon;
  */
 public class MetadataRegexMappingRow {
 
+  // tooltip strings also reused on the column header labels in MetadataRegexExtractionComponent
+  static final String TOOLTIP_SOURCE = "The input that is searched by regex (filenames and paths).";
+  static final String TOOLTIP_COLUMN = "Name of the metadata column to populate with the extracted value.";
+  static final String TOOLTIP_TYPE = "Target column type. Auto detects the type from all extracted values.";
+  static final String TOOLTIP_REGEX = """
+      Java regex (regular expression) applied case-insensitively to the input string. \
+      If the regex defines a capture group (in paratheses), the first capture group is extracted; \
+      otherwise the whole match is used.""";
+  static final String TOOLTIP_DEFAULT = "Value used when the regex does not match this file. Leave empty to keep the cell blank.";
+
   // fixed instruction block appended to the generated LLM regex prompt
   private static final String REGEX_PROMPT_INSTRUCTIONS = """
       Return exactly:
@@ -99,7 +109,7 @@ public class MetadataRegexMappingRow {
 
   // value mapping data lives here; it is edited via the shared MetadataValueMappingEditor
   private final List<MetadataValueMapping> valueMappings = new ArrayList<>();
-  private boolean dropUnmapped;
+  private DropUnmappedMode dropUnmapped;
   // whether the extracted value is mapped (value-mapping mode) or used directly (extract mode)
   private boolean useValueMappings;
 
@@ -117,23 +127,22 @@ public class MetadataRegexMappingRow {
         new Tooltip("Selected mapping – shown in the preview and value-mapping editor below."));
     selectIcon.setOnMouseClicked(_ -> fireActivate());
 
-    sourceCombo = FxComboBox.createComboBox("String of the file used as regex input",
-        List.of(RegexInputSource.values()));
+    sourceCombo = FxComboBox.createComboBox(TOOLTIP_SOURCE, List.of(RegexInputSource.values()));
     sourceCombo.setValue(mapping.inputSource());
 
     columnField = new TextField(mapping.columnName());
     columnField.setPromptText("column name");
+    columnField.setTooltip(new Tooltip(TOOLTIP_COLUMN));
     FxTextFields.autoGrowFitText(columnField, 10, 30);
     // suggest existing metadata columns (e.g. mzmine_sample_type) while still allowing new names
     FxTextFields.bindAutoCompletion(columnField, columnSuggestions);
 
-    typeCombo = FxComboBox.createComboBox(
-        "Target column type. Auto detects the type from all extracted values.",
-        List.of(ExtractColumnType.values()));
+    typeCombo = FxComboBox.createComboBox(TOOLTIP_TYPE, List.of(ExtractColumnType.values()));
     typeCombo.setValue(mapping.type());
 
     regexField = new TextField(mapping.regex());
-    regexField.setPromptText("regex, e.g. _([A-Za-z]+)_  (case-insensitive)");
+    regexField.setPromptText("e.g., _([A-Za-z]+)_");
+    regexField.setTooltip(new Tooltip(TOOLTIP_REGEX));
     FxTextFields.autoGrowFitText(regexField, 16, 60);
     // let the regex field fill the grid column that grows with the dialog width
     regexField.setMaxWidth(Double.MAX_VALUE);
@@ -141,8 +150,7 @@ public class MetadataRegexMappingRow {
     defaultField = new TextField(mapping.defaultValue());
     defaultField.setPromptText("default");
     FxTextFields.autoGrowFitText(defaultField, 6, 20);
-    defaultField.setTooltip(new Tooltip(
-        "Value used when the regex does not match this file. Leave empty to keep the cell blank."));
+    defaultField.setTooltip(new Tooltip(TOOLTIP_DEFAULT));
 
     generateButton = FxIconUtil.newIconButton(FxIcons.LIGHTBULB,
         "Copy an LLM prompt to the clipboard that asks for a regex extracting these files' values.",
@@ -252,11 +260,11 @@ public class MetadataRegexMappingRow {
     valueMappings.addAll(mappings);
   }
 
-  public boolean isDropUnmapped() {
+  public @NotNull DropUnmappedMode getDropUnmapped() {
     return dropUnmapped;
   }
 
-  public void setDropUnmapped(final boolean dropUnmapped) {
+  public void setDropUnmapped(@NotNull final DropUnmappedMode dropUnmapped) {
     this.dropUnmapped = dropUnmapped;
   }
 
@@ -275,7 +283,8 @@ public class MetadataRegexMappingRow {
     // value mappings only take effect in the value-mapping mode
     final boolean useMaps = useValueMappings;
     return new MetadataRegexMapping(sourceCombo.getValue(), columnField.getText().trim(),
-        typeCombo.getValue(), regexField.getText(), defaultField.getText(), useMaps && dropUnmapped,
+        typeCombo.getValue(), regexField.getText(), defaultField.getText(),
+        useMaps ? dropUnmapped : DropUnmappedMode.KEEP_UNMAPPED,
         useMaps ? new ArrayList<>(valueMappings) : List.of());
   }
 

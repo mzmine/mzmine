@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * detect the most appropriate type from all extracted values of the whole column (see
  * {@link AvailableTypes#castToMostAppropriateType}).
  */
-public enum ExtractColumnType {
+public enum ExtractColumnType implements UniqueIdSupplier {
 
   /**
    * Detect the type automatically from all extracted values of the column.
@@ -74,5 +76,15 @@ public enum ExtractColumnType {
   @Override
   public String toString() {
     return label;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case AUTO -> "AUTO";
+      case NUMBER -> "NUMBER";
+      case DATE -> "DATE";
+      case TEXT -> "TEXT";
+    };
   }
 }

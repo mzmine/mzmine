@@ -42,14 +42,13 @@ import org.jetbrains.annotations.NotNull;
  *                      The first capture group is extracted if the regex defines one, otherwise the
  *                      whole match is used.
  * @param defaultValue  the value used when the regex does not match a file (blank = leave empty)
- * @param dropUnmapped  if true and value mappings are defined, extracted values that are not in the
- *                      mapping list are dropped (cell left empty)
+ * @param dropUnmapped  controls what happens to extracted values not found in the mapping list
  * @param valueMappings case-insensitive value mappings applied to the extracted value
  */
 public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
                                    @NotNull String columnName, @NotNull ExtractColumnType type,
                                    @NotNull String regex, @NotNull String defaultValue,
-                                   boolean dropUnmapped,
+                                   @NotNull DropUnmappedMode dropUnmapped,
                                    @NotNull List<MetadataValueMapping> valueMappings) {
 
   public MetadataRegexMapping {
@@ -58,6 +57,7 @@ public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
     type = type == null ? ExtractColumnType.AUTO : type;
     regex = regex == null ? "" : regex;
     defaultValue = defaultValue == null ? "" : defaultValue;
+    dropUnmapped = dropUnmapped == null ? DropUnmappedMode.KEEP_UNMAPPED : dropUnmapped;
     valueMappings = valueMappings == null ? List.of() : List.copyOf(valueMappings);
   }
 
@@ -66,7 +66,7 @@ public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
    */
   public static MetadataRegexMapping createDefault() {
     return new MetadataRegexMapping(RegexInputSource.FILE_NAME, "", ExtractColumnType.AUTO, "", "",
-        false, List.of());
+        DropUnmappedMode.KEEP_UNMAPPED, List.of());
   }
 
   /**

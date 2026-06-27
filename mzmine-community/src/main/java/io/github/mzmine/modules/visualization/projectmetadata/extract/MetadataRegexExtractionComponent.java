@@ -43,10 +43,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -71,6 +73,10 @@ public class MetadataRegexExtractionComponent extends VBox implements
   private static final Color HIGHLIGHT_COLOR = Color.web("#E8590C");
   private static final String[] HEADERS = {"", "Source", "Target column", "Type", "Regex",
       "Default", ""};
+  // tooltips parallel to HEADERS – reuses the same strings defined on the input fields
+  private static final String[] HEADER_TOOLTIPS = {"", MetadataRegexMappingRow.TOOLTIP_SOURCE,
+      MetadataRegexMappingRow.TOOLTIP_COLUMN, MetadataRegexMappingRow.TOOLTIP_TYPE,
+      MetadataRegexMappingRow.TOOLTIP_REGEX, MetadataRegexMappingRow.TOOLTIP_DEFAULT, ""};
   // the regex column absorbs the free horizontal space so the grid fills the dialog width
   private static final int GROW_COLUMN = 4;
 
@@ -155,7 +161,11 @@ public class MetadataRegexExtractionComponent extends VBox implements
     grid.getChildren().clear();
     for (int col = 0; col < HEADERS.length; col++) {
       if (!HEADERS[col].isEmpty()) {
-        grid.add(FxLabels.newBoldLabel(HEADERS[col]), col, 0);
+        final Label headerLabel = FxLabels.newBoldLabel(HEADERS[col]);
+        if (!HEADER_TOOLTIPS[col].isEmpty()) {
+          headerLabel.setTooltip(new Tooltip(HEADER_TOOLTIPS[col]));
+        }
+        grid.add(headerLabel, col, 0);
       }
     }
     for (int row = 0; row < rows.size(); row++) {

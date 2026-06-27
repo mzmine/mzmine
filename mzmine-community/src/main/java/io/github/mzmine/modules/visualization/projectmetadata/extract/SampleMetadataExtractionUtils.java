@@ -144,7 +144,8 @@ public class SampleMetadataExtractionUtils {
     }
 
     // unmapped value: optionally drop it when mappings are defined
-    if (mapping.dropUnmapped() && !mapping.activeValueMappings().isEmpty()) {
+    if (mapping.dropUnmapped() == DropUnmappedMode.DROP_UNMAPPED && !mapping.activeValueMappings()
+        .isEmpty()) {
       return null;
     }
     return blankToNull(captured);

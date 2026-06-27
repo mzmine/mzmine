@@ -42,11 +42,9 @@ import org.jetbrains.annotations.NotNull;
 public class SampleMetadataExtractionEmbeddedParameters extends SimpleParameterSet {
 
   public static final MetadataRegexExtractionParameter mappings = new MetadataRegexExtractionParameter(
-      "Regex column mappings", """
-      Define one or multiple mappings that extract a metadata column from the file name or path of \
-      each imported raw data file. Each mapping defines the input source (file name or path), the \
-      target column name and type, a regular expression with a capture group, and optional \
-      case-insensitive value mappings (e.g. media → blank).""");
+      SampleMetadataExtractionParameters.mappings.getName(),
+      SampleMetadataExtractionParameters.mappings.getDescription()
+          .replace("each selected", "each imported"));
 
   public static final BooleanParameter overwrite = new BooleanParameter("Overwrite existing values",
       "If checked, existing metadata values are overwritten. If unchecked, only empty cells are "

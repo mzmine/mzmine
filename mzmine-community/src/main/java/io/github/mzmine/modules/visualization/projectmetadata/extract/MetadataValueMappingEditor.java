@@ -40,11 +40,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -67,7 +65,7 @@ public class MetadataValueMappingEditor extends VBox {
 
   private final ComboBox<ValueHandlingMode> modeCombo;
   private final Label forColumnLabel = FxLabels.newBoldLabel("");
-  private final CheckBox dropUnmappedCheck = new CheckBox("Drop values not listed below");
+  private final ComboBox<DropUnmappedMode> dropUnmappedCombo;
   private final VBox fieldsBox = FxLayout.newVBox(Insets.EMPTY);
   // holds the value-mapping controls; only shown in the VALUE_MAPPINGS mode
   private final VBox valueSection;
@@ -90,11 +88,14 @@ public class MetadataValueMappingEditor extends VBox {
             + "to other values (e.g. media → blank).", List.of(ValueHandlingMode.values()));
     modeCombo.setValue(ValueHandlingMode.EXTRACT_VALUES);
 
-    dropUnmappedCheck.setTooltip(new Tooltip(
-        "If checked, extracted values that are not in the mapping list below are left empty."));
-    dropUnmappedCheck.selectedProperty().addListener((_, _, selected) -> {
+    dropUnmappedCombo = FxComboBox.createComboBox("""
+            Keep unmapped values: extracted values not in the mapping list are passed through unchanged.
+            Drop unmapped values: extracted values not in the mapping list are left empty.""",
+        List.of(DropUnmappedMode.values()));
+    dropUnmappedCombo.setValue(DropUnmappedMode.KEEP_UNMAPPED);
+    dropUnmappedCombo.valueProperty().addListener((_, _, mode) -> {
       if (!loading && target != null) {
-        target.setDropUnmapped(selected);
+        target.setDropUnmapped(mode);
         refreshResults();
         onChange.run();
       }
@@ -105,7 +106,7 @@ public class MetadataValueMappingEditor extends VBox {
         this::autoFillFromFiles);
 
     final HBox options = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fillButton,
-        dropUnmappedCheck);
+        dropUnmappedCombo);
     valueSection = FxLayout.newVBox(Insets.EMPTY, FxLabels.newItalicLabel(
         "Map extracted values (left) to stored values (right), e.g. media → blank "
             + "(case-insensitive)"), options, fieldsBox);
@@ -153,7 +154,7 @@ public class MetadataValueMappingEditor extends VBox {
     modeCombo.setValue(
         useMaps ? ValueHandlingMode.VALUE_MAPPINGS : ValueHandlingMode.EXTRACT_VALUES);
     valueSection.setVisible(useMaps);
-    dropUnmappedCheck.setSelected(row.isDropUnmapped());
+    dropUnmappedCombo.setValue(row.getDropUnmapped());
     for (final MetadataValueMapping vm : row.getValueMappings()) {
       addFieldRow(vm.from(), vm.to());
     }

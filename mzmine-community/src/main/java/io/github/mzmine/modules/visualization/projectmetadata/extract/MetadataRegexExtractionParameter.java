@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
@@ -145,13 +146,15 @@ public class MetadataRegexExtractionParameter implements
     for (int i = 0; i < mappingNodes.getLength(); i++) {
       final Element mappingEl = (Element) mappingNodes.item(i);
 
-      final RegexInputSource source = parseEnum(RegexInputSource.class,
-          mappingEl.getAttribute("source"), RegexInputSource.FILE_NAME);
-      final ExtractColumnType type = parseEnum(ExtractColumnType.class,
-          mappingEl.getAttribute("type"), ExtractColumnType.AUTO);
+      final RegexInputSource source = UniqueIdSupplier.parseOrElse(mappingEl.getAttribute("source"),
+          RegexInputSource.values(), RegexInputSource.FILE_NAME);
+      final ExtractColumnType type = UniqueIdSupplier.parseOrElse(mappingEl.getAttribute("type"),
+          ExtractColumnType.values(), ExtractColumnType.AUTO);
       final String column = mappingEl.getAttribute("column");
       final String defaultValue = mappingEl.getAttribute("default");
-      final boolean dropUnmapped = Boolean.parseBoolean(mappingEl.getAttribute("dropUnmapped"));
+      final DropUnmappedMode dropUnmapped = UniqueIdSupplier.parseOrElse(
+          mappingEl.getAttribute("dropUnmapped"), DropUnmappedMode.values(),
+          DropUnmappedMode.KEEP_UNMAPPED);
 
       String regex = "";
       final NodeList regexNodes = mappingEl.getElementsByTagName(REGEX_ELEMENT);
@@ -178,11 +181,11 @@ public class MetadataRegexExtractionParameter implements
     final Document doc = xmlElement.getOwnerDocument();
     for (final MetadataRegexMapping m : value) {
       final Element mappingEl = doc.createElement(MAPPING_ELEMENT);
-      mappingEl.setAttribute("source", m.inputSource().name());
+      mappingEl.setAttribute("source", m.inputSource().getUniqueID());
       mappingEl.setAttribute("column", m.columnName());
-      mappingEl.setAttribute("type", m.type().name());
+      mappingEl.setAttribute("type", m.type().getUniqueID());
       mappingEl.setAttribute("default", m.defaultValue());
-      mappingEl.setAttribute("dropUnmapped", Boolean.toString(m.dropUnmapped()));
+      mappingEl.setAttribute("dropUnmapped", m.dropUnmapped().getUniqueID());
 
       // regex goes into a child element to avoid attribute-escaping surprises
       final Element regexEl = doc.createElement(REGEX_ELEMENT);
@@ -207,15 +210,4 @@ public class MetadataRegexExtractionParameter implements
     return copy;
   }
 
-  private static <E extends Enum<E>> @NotNull E parseEnum(@NotNull final Class<E> enumClass,
-      @Nullable final String name, @NotNull final E fallback) {
-    if (name == null || name.isBlank()) {
-      return fallback;
-    }
-    try {
-      return Enum.valueOf(enumClass, name);
-    } catch (final IllegalArgumentException ex) {
-      return fallback;
-    }
-  }
 }

@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * Defines which string of a {@link RawDataFile} is used as the regex input for metadata
  * extraction.
  */
-public enum RegexInputSource {
+public enum RegexInputSource implements UniqueIdSupplier {
 
   /**
    * The file name including the extension, e.g. {@code 20210610_blank_01.mzML}.
@@ -68,7 +70,7 @@ public enum RegexInputSource {
   public @NotNull String extract(@NotNull final RawDataFile raw) {
     return switch (this) {
       case FILE_NAME -> raw.getFileName();
-      case FILE_NAME_WITHOUT_EXTENSION -> stripExtension(raw.getFileName());
+      case FILE_NAME_WITHOUT_EXTENSION -> FileAndPathUtil.eraseFormat(raw.getFileName());
       case ABSOLUTE_PATH -> {
         final String path = raw.getAbsolutePath();
         yield path != null ? path : raw.getName();
@@ -84,14 +86,18 @@ public enum RegexInputSource {
     };
   }
 
-  private static @NotNull String stripExtension(@NotNull final String fileName) {
-    final int dot = fileName.lastIndexOf('.');
-    // decision: only strip a real extension, not a leading dot of a hidden file
-    return dot > 0 ? fileName.substring(0, dot) : fileName;
-  }
-
   @Override
   public String toString() {
     return label;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return switch (this) {
+      case FILE_NAME -> "FILE_NAME";
+      case FILE_NAME_WITHOUT_EXTENSION -> "FILE_NAME_WITHOUT_EXTENSION";
+      case ABSOLUTE_PATH -> "ABSOLUTE_PATH";
+      case PARENT_FOLDER -> "PARENT_FOLDER";
+    };
   }
 }
