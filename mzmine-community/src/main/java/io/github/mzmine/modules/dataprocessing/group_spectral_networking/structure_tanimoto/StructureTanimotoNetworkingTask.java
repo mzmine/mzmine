@@ -30,13 +30,15 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
-import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
+import io.github.mzmine.datamodel.features.correlation.R2RStructureSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.FingerprintType;
+import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.StructureFingerprint;
+import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.StructureFingerprintScore;
 import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.TanimotoSimilarity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -99,12 +101,12 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
     description = "Computing molecular fingerprints (" + tanimoto.getFingerprintType() + ")";
     totalItems = allRows.size();
     finishedItems.set(0);
-    final Map<FeatureListRow, List<BitSet>> fingerprintCache = new ConcurrentHashMap<>();
+    final Map<FeatureListRow, List<StructureFingerprint>> fingerprintCache = new ConcurrentHashMap<>();
     allRows.parallelStream().forEach(row -> {
       if (isCanceled()) {
         return;
       }
-      final List<BitSet> fingerprints = computeRowFingerprints(row);
+      final List<StructureFingerprint> fingerprints = computeRowFingerprints(row);
       if (!fingerprints.isEmpty()) {
         fingerprintCache.put(row, fingerprints);
       }
@@ -123,20 +125,22 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
     description = "Comparing structures (Tanimoto similarity)";
     totalItems = Math.max(1, rows.size());
     finishedItems.set(0);
+    final FingerprintType fingerprintType = tanimoto.getFingerprintType();
     final R2RMap<RowsRelationship> edges = new R2RMap<>();
     IntStream.range(0, rows.size()).parallel().forEach(i -> {
       if (isCanceled()) {
         return;
       }
       final FeatureListRow rowA = rows.get(i);
-      final List<BitSet> fingerprintsA = fingerprintCache.get(rowA);
+      final List<StructureFingerprint> fingerprintsA = fingerprintCache.get(rowA);
       for (int j = i + 1; j < rows.size(); j++) {
         final FeatureListRow rowB = rows.get(j);
-        final float similarity = TanimotoSimilarity.maxTanimoto(fingerprintsA,
+        final StructureFingerprintScore score = TanimotoSimilarity.maxTanimoto(fingerprintsA,
             fingerprintCache.get(rowB));
-        if (similarity >= minSimilarity) {
+        if (score != null && score.similarity() >= minSimilarity) {
           edges.add(rowA, rowB,
-              new R2RSimpleSimilarity(rowA, rowB, Type.STRUCTURE_TANIMOTO, similarity));
+              new R2RStructureSimilarity(rowA, rowB, fingerprintType, score.a().inchi(),
+                  score.b().inchi(), score.similarity()));
         }
       }
       incrementFinishedItems();
@@ -153,18 +157,19 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
   }
 
   /**
-   * The top distinct structures of a row turned into fingerprints. Streams the annotations by
-   * descending confidence, keeps distinct structures by InChIKey first block, limits to
-   * {@link #maxStructuresPerRow}, and fingerprints them with the shared {@link #tanimoto}
-   * instance.
+   * The top distinct structures of a row turned into {@link StructureFingerprint}s. Streams the
+   * annotations by descending confidence, keeps distinct structures by InChIKey first block, limits
+   * to {@link #maxStructuresPerRow}, and fingerprints them with the shared {@link #tanimoto}
+   * instance. Each entry also carries the InChI string so the result is traceable.
    */
-  private @NotNull List<BitSet> computeRowFingerprints(@NotNull final FeatureListRow row) {
+  private @NotNull List<StructureFingerprint> computeRowFingerprints(
+      @NotNull final FeatureListRow row) {
     final List<FeatureAnnotation> annotations = row.getAllFeatureAnnotations();
     if (annotations.isEmpty()) {
       return List.of();
     }
     final Set<String> seenKeys = new HashSet<>();
-    final List<BitSet> fingerprints = new ArrayList<>(maxStructuresPerRow);
+    final List<StructureFingerprint> fingerprints = new ArrayList<>(maxStructuresPerRow);
     for (final FeatureAnnotation annotation : annotations) {
       if (fingerprints.size() >= maxStructuresPerRow) {
         break;
@@ -179,7 +184,7 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
       }
       final BitSet fingerprint = tanimoto.getFingerprint(structure.structure());
       if (fingerprint != null) {
-        fingerprints.add(fingerprint);
+        fingerprints.add(new StructureFingerprint(structure.inchi(), fingerprint));
       }
     }
     return fingerprints;

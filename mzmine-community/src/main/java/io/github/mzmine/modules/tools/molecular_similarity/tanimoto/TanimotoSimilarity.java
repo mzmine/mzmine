@@ -65,21 +65,27 @@ public class TanimotoSimilarity {
   }
 
   /**
-   * Maximum Tanimoto similarity between any pair of fingerprints from the two lists. Returns 0 when
-   * either list is empty.
+   * Maximum Tanimoto similarity between any pair of fingerprints from the two lists. Returns null
+   * when either list is empty or no valid pair could be compared.
    *
    * @param a fingerprints of the first row's structures
    * @param b fingerprints of the second row's structures
-   * @return the maximum pairwise Tanimoto similarity (0-1)
+   * @return the best-scoring {@link StructureFingerprintScore}, or null if no comparison succeeded
    */
-  public static float maxTanimoto(@NotNull final List<BitSet> a, @NotNull final List<BitSet> b) {
-    float max = 0f;
-    for (final BitSet fpa : a) {
-      for (final BitSet fpb : b) {
+  @Nullable
+  public static StructureFingerprintScore maxTanimoto(@NotNull final List<StructureFingerprint> a,
+      @NotNull final List<StructureFingerprint> b) {
+    StructureFingerprintScore best = null;
+    for (final StructureFingerprint sfpa : a) {
+      for (final StructureFingerprint sfpb : b) {
         try {
-          final float sim = Tanimoto.calculate(fpa, fpb);
-          if (sim > max) {
-            max = sim;
+          final float sim = Tanimoto.calculate(sfpa.fingerprint(), sfpb.fingerprint());
+          if (best == null || sim > best.similarity()) {
+            best = new StructureFingerprintScore(sfpa, sfpb, sim);
+            // perfect match – no need to check further pairs
+            if (Float.compare(sim, 1f) == 0) {
+              return best;
+            }
           }
         } catch (CDKException e) {
           // fingerprints of different bit length cannot be compared - skip this pair
@@ -87,7 +93,7 @@ public class TanimotoSimilarity {
         }
       }
     }
-    return max;
+    return best;
   }
 
   @NotNull

@@ -23,29 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.modules.tools.molecular_similarity.tanimoto;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class InternalTypedRowsRelationship extends AbstractRowsRelationship permits
-    OnlineReactionMatch, R2RCorrelationData, R2RMS2CosineSimilarityGNPS, R2RSimpleSimilarity,
-    R2RSpectralSimilarity, R2RStructureSimilarity {
-
-  private final Type type;
-
-  public InternalTypedRowsRelationship(FeatureListRow a, FeatureListRow b, final Type type) {
-    super(a, b);
-    this.type = type;
-  }
-
-  @NotNull
-  public String getType() {
-    return type.toString();
-  }
-
-  public Type getInternalType() {
-    return type;
-  }
+/**
+ * Result of a {@link TanimotoSimilarity#maxTanimoto} comparison: the two
+ * {@link StructureFingerprint}s that produced the highest pairwise similarity and the similarity
+ * value itself.
+ *
+ * @param a          fingerprint from the first row
+ * @param b          fingerprint from the second row
+ * @param similarity Tanimoto similarity (0–1)
+ */
+public record StructureFingerprintScore(@NotNull StructureFingerprint a,
+                                        @NotNull StructureFingerprint b, float similarity) {
 
 }
