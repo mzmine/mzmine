@@ -23,29 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.modules.tools.molecular_similarity.tanimoto;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.BitSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract sealed class InternalTypedRowsRelationship extends AbstractRowsRelationship permits
-    OnlineReactionMatch, R2RCorrelationData, R2RMS2CosineSimilarityGNPS, R2RSimpleSimilarity,
-    R2RSpectralSimilarity, R2RStructureSimilarity {
-
-  private final Type type;
-
-  public InternalTypedRowsRelationship(FeatureListRow a, FeatureListRow b, final Type type) {
-    super(a, b);
-    this.type = type;
-  }
-
-  @NotNull
-  public String getType() {
-    return type.toString();
-  }
-
-  public Type getInternalType() {
-    return type;
-  }
+/**
+ * Pairs an InChI string with its precomputed bit fingerprint so that the originating structure can
+ * be traced back after a similarity comparison.
+ *
+ * @param inchi       InChI of the structure (may be null if not available due to error in
+ *                    generation)
+ * @param fingerprint precomputed bit fingerprint
+ */
+public record StructureFingerprint(@Nullable String inchi, @NotNull BitSet fingerprint) {
 
 }
