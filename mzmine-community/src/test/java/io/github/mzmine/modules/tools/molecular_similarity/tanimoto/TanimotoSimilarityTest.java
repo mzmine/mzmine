@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.molecular_similarity.tanimoto;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import java.util.BitSet;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -54,20 +53,22 @@ class TanimotoSimilarityTest {
   @EnumSource(FingerprintType.class)
   void everyFingerprintTypeProducesAFingerprint(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet fp = tanimoto.getFingerprint(parse(CAFFEINE));
-    Assertions.assertNotNull(fp, "fingerprint was null for " + type);
-    Assertions.assertTrue(fp.cardinality() > 0, "no bits set for " + type);
+    final StructureFingerprint sfp = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    Assertions.assertNotNull(sfp, "fingerprint was null for " + type);
+    Assertions.assertTrue(sfp.fingerprint().cardinality() > 0, "no bits set for " + type);
   }
 
   @ParameterizedTest
   @EnumSource(FingerprintType.class)
   void identicalStructuresAreFullySimilar(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet a = tanimoto.getFingerprint(parse(CAFFEINE));
-    final BitSet b = tanimoto.getFingerprint(parse(CAFFEINE));
+    final StructureFingerprint a = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    final StructureFingerprint b = tanimoto.getStructureFingerprint(parse(CAFFEINE));
     Assertions.assertNotNull(a);
     Assertions.assertNotNull(b);
-    Assertions.assertEquals(1.0f, TanimotoSimilarity.maxTanimoto(List.of(a), List.of(b)), 1e-4f,
+    final StructureFingerprintScore score = TanimotoSimilarity.maxTanimoto(List.of(a), List.of(b));
+    Assertions.assertNotNull(score);
+    Assertions.assertEquals(1.0f, score.similarity(), 1e-4f,
         "identical structures should score 1.0 for " + type);
   }
 
@@ -75,47 +76,55 @@ class TanimotoSimilarityTest {
   @EnumSource(FingerprintType.class)
   void differentStructuresScoreBelowOne(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet caffeine = tanimoto.getFingerprint(parse(CAFFEINE));
-    final BitSet ethanol = tanimoto.getFingerprint(parse(ETHANOL));
+    final StructureFingerprint caffeine = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    final StructureFingerprint ethanol = tanimoto.getStructureFingerprint(parse(ETHANOL));
     Assertions.assertNotNull(caffeine);
     Assertions.assertNotNull(ethanol);
-    final float sim = TanimotoSimilarity.maxTanimoto(List.of(caffeine), List.of(ethanol));
-    Assertions.assertTrue(sim >= 0.0f && sim < 1.0f,
-        "expected 0 <= sim < 1 for " + type + " but was " + sim);
+    final StructureFingerprintScore score = TanimotoSimilarity.maxTanimoto(List.of(caffeine),
+        List.of(ethanol));
+    Assertions.assertNotNull(score);
+    Assertions.assertTrue(score.similarity() >= 0.0f && score.similarity() < 1.0f,
+        "expected 0 <= sim < 1 for " + type + " but was " + score.similarity());
   }
 
   @ParameterizedTest
   @EnumSource(FingerprintType.class)
   void similarStructuresScoreHigherThanDissimilar(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet caffeine = tanimoto.getFingerprint(parse(CAFFEINE));
-    final BitSet theobromine = tanimoto.getFingerprint(parse(THEOBROMINE));
-    final BitSet ethanol = tanimoto.getFingerprint(parse(ETHANOL));
-    final float similar = TanimotoSimilarity.maxTanimoto(List.of(caffeine), List.of(theobromine));
-    final float dissimilar = TanimotoSimilarity.maxTanimoto(List.of(caffeine), List.of(ethanol));
-    Assertions.assertTrue(similar > dissimilar,
-        type + ": caffeine~theobromine (" + similar + ") should exceed caffeine~ethanol ("
-            + dissimilar + ")");
+    final StructureFingerprint caffeine = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    final StructureFingerprint theobromine = tanimoto.getStructureFingerprint(parse(THEOBROMINE));
+    final StructureFingerprint ethanol = tanimoto.getStructureFingerprint(parse(ETHANOL));
+    final StructureFingerprintScore similar = TanimotoSimilarity.maxTanimoto(List.of(caffeine),
+        List.of(theobromine));
+    final StructureFingerprintScore dissimilar = TanimotoSimilarity.maxTanimoto(List.of(caffeine),
+        List.of(ethanol));
+    Assertions.assertNotNull(similar);
+    Assertions.assertNotNull(dissimilar);
+    Assertions.assertTrue(similar.similarity() > dissimilar.similarity(),
+        type + ": caffeine~theobromine (" + similar.similarity()
+            + ") should exceed caffeine~ethanol (" + dissimilar.similarity() + ")");
   }
 
   @ParameterizedTest
   @EnumSource(FingerprintType.class)
   void maxTanimotoTakesTheBestPairAcrossLists(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet caffeine = tanimoto.getFingerprint(parse(CAFFEINE));
-    final BitSet ethanol = tanimoto.getFingerprint(parse(ETHANOL));
+    final StructureFingerprint caffeine = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    final StructureFingerprint ethanol = tanimoto.getStructureFingerprint(parse(ETHANOL));
     // list A holds caffeine + ethanol, list B holds only ethanol -> best pair is ethanol vs ethanol
-    final float max = TanimotoSimilarity.maxTanimoto(List.of(caffeine, ethanol), List.of(ethanol));
-    Assertions.assertEquals(1.0f, max, 1e-4f,
+    final StructureFingerprintScore score = TanimotoSimilarity.maxTanimoto(
+        List.of(caffeine, ethanol), List.of(ethanol));
+    Assertions.assertNotNull(score);
+    Assertions.assertEquals(1.0f, score.similarity(), 1e-4f,
         "max should pick the identical ethanol pair for " + type);
   }
 
   @ParameterizedTest
   @EnumSource(FingerprintType.class)
-  void emptyListYieldsZero(final FingerprintType type) {
+  void emptyListYieldsNull(final FingerprintType type) {
     final TanimotoSimilarity tanimoto = new TanimotoSimilarity(type);
-    final BitSet caffeine = tanimoto.getFingerprint(parse(CAFFEINE));
-    Assertions.assertEquals(0.0f, TanimotoSimilarity.maxTanimoto(List.of(caffeine), List.of()),
-        "empty list should yield 0 for " + type);
+    final StructureFingerprint caffeine = tanimoto.getStructureFingerprint(parse(CAFFEINE));
+    Assertions.assertNull(TanimotoSimilarity.maxTanimoto(List.of(caffeine), List.of()),
+        "empty list should yield null for " + type);
   }
 }

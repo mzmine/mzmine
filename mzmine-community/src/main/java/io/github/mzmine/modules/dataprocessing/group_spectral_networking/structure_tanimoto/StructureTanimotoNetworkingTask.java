@@ -45,7 +45,6 @@ import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -182,9 +181,10 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
       if (!seenKeys.add(distinctKey(annotation, structure))) {
         continue;
       }
-      final BitSet fingerprint = tanimoto.getFingerprint(structure.structure());
+      final StructureFingerprint fingerprint = tanimoto.getStructureFingerprint(
+          structure.structure(), structure.inchi());
       if (fingerprint != null) {
-        fingerprints.add(new StructureFingerprint(structure.inchi(), fingerprint));
+        fingerprints.add(fingerprint);
       }
     }
     return fingerprints;

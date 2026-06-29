@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.molecular_similarity.tanimoto;
 
 import io.github.mzmine.datamodel.structures.StructureInputType;
 import io.github.mzmine.datamodel.structures.StructureParser;
+import io.github.mzmine.datamodel.structures.StructureUtils;
 import java.util.BitSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -134,6 +135,33 @@ public class TanimotoSimilarity {
       logger.log(Level.FINE, () -> "Failed to compute fingerprint: " + e.getMessage());
       return null;
     }
+  }
+
+  /**
+   * Computes the bit fingerprint and pairs it with the provided InChI string into a
+   * {@link StructureFingerprint}.
+   *
+   * @param mol   the structure to fingerprint
+   * @param inchi InChI of the structure (may be null)
+   * @return a {@link StructureFingerprint} or null if fingerprinting failed
+   */
+  @Nullable
+  public StructureFingerprint getStructureFingerprint(@NotNull final IAtomContainer mol,
+      @Nullable final String inchi) {
+    final BitSet fp = getFingerprint(mol);
+    return fp != null ? new StructureFingerprint(inchi, fp) : null;
+  }
+
+  /**
+   * Computes the bit fingerprint and calculates the InChI via {@link StructureUtils#getInchi} to
+   * produce a fully traced {@link StructureFingerprint}.
+   *
+   * @param mol the structure to fingerprint
+   * @return a {@link StructureFingerprint} or null if fingerprinting failed
+   */
+  @Nullable
+  public StructureFingerprint getStructureFingerprint(@NotNull final IAtomContainer mol) {
+    return getStructureFingerprint(mol, StructureUtils.getInchi(mol));
   }
 
   @NotNull
