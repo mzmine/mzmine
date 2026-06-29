@@ -70,6 +70,7 @@ import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
 import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -97,6 +98,33 @@ public class FeatureNetworkController {
   public HBox pieGroupingBox;
 
   private FeatureNetworkPane networkPane;
+
+  /**
+   * Creates only the graph data structure – safe to call from a task thread. No JavaFX objects are
+   * created here. Pass the result to {@link #createWithGraphData} on the GUI thread.
+   */
+  public static @NotNull NetworkGraphData createGraphData(@NotNull FeatureList flist) {
+    FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
+    MultiGraph fullGraph = generator.createNewGraph(flist, true, true, false);
+    return new NetworkGraphData(generator, fullGraph);
+  }
+
+  /**
+   * Creates a {@link FeatureNetworkController} using a pre-built graph. Must be called on the GUI
+   * thread.
+   *
+   * @param graphData graph built by {@link #createGraphData} on a task thread
+   */
+  public static @NotNull FeatureNetworkController createWithGraphData(@NotNull FeatureList flist,
+      @NotNull ObservableList<FeatureListRow> focussedRows, @NotNull NetworkGraphData graphData,
+      final NetworkOverviewFlavor flavor) throws IOException {
+    FXMLLoader loader = new FXMLLoader(
+        FeatureNetworkController.class.getResource("FeatureNetworkPane.fxml"));
+    loader.load();
+    FeatureNetworkController controller = loader.getController();
+    controller.initWithGraphData(flist, focussedRows, graphData, flavor);
+    return controller;
+  }
 
   /**
    * Load fxml and create network
@@ -127,15 +155,24 @@ public class FeatureNetworkController {
       final @NotNull ObservableList<FeatureListRow> focussedRows,
       final NetworkOverviewFlavor flavor) {
     // create graph and add to center
-    FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var fullGraph = generator.createNewGraph(flist, true, true, false);
-    networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
+    final NetworkGraphData graphData = createGraphData(flist);
+    initWithGraphData(flist, focussedRows, graphData, flavor);
+  }
+
+  /**
+   * Finishes controller setup using a pre-built graph. Must be called on the GUI thread.
+   */
+  private void initWithGraphData(final @NotNull FeatureList flist,
+      final @NotNull ObservableList<FeatureListRow> focussedRows,
+      final @NotNull NetworkGraphData graphData, final NetworkOverviewFlavor flavor) {
+    networkPane = new FeatureNetworkPane(this, flist, focussedRows, graphData.generator(),
+        graphData.fullGraph());
     mainPane.setCenter(networkPane);
 
     // Filter the legend to the node/edge types actually emitted by the generator. The generator
     // tracks them in observable sets while building the graph, so the legend reflects what's in
     // this particular network instead of every possible enum value.
-    legend.bindToTypes(generator.getNodeTypes(), generator.getEdgeTypes());
+    legend.bindToTypes(graphData.generator().getNodeTypes(), graphData.generator().getEdgeTypes());
 
     addMenuOptions(flavor);
     addAnnotationFilterOptions(flist);
