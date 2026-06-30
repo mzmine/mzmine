@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class IsotopeFinderModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Isotopic peaks finder";
-  public static final String MODULE_DESCRIPTION = "Find isotope signals in the FWHM of all features in the list";
+  public static final String MODULE_DESCRIPTION = "Detects isotope patterns and the most probable charge state for each feature, flagging other highly probable charge states.";
 
   @Override
   public @NotNull String getName() {
