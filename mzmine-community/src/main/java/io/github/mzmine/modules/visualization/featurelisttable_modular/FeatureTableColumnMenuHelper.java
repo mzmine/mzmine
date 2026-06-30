@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -44,6 +44,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.WindowEvent;
 
 /**
  * Helper class to replace default column selection popup for TableView.
@@ -144,6 +145,8 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
     // Search bar inserted at position 0 (before select all / deselect all)
     TextField searchField = new TextField();
     searchField.setPromptText("Filter columns...");
+    searchField.setPrefColumnCount(20);
+    searchField.setMaxWidth(Double.MAX_VALUE);
     CustomMenuItem searchMenuItem = new CustomMenuItem(searchField, false);
     cm.getItems().add(0, searchMenuItem);
 
@@ -162,13 +165,9 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
       for (int i = 0; i < filtered[0].size(); i++) {
         CheckBox cb = filtered[0].get(i).checkBox();
         if (i == selectedIdx[0]) {
-          if (!cb.getStyleClass().contains("column-menu-selected")) {
-            cb.getStyleClass().add("column-menu-selected");
-          }
           cb.setStyle(
               "-fx-background-color: -fx-selection-bar; -fx-background-radius: 3; -fx-padding: 1 3 1 3;");
         } else {
-          cb.getStyleClass().remove("column-menu-selected");
           cb.setStyle("");
         }
       }
@@ -198,48 +197,54 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
       cm.getItems().subList(fixedItemCount, cm.getItems().size()).clear();
       cm.getItems().addAll(filtered[0].stream().map(ColumnEntry::menuItem).toList());
 
-      // Clear styles on hidden entries
+      // Clear styles on entries removed by the filter
       allEntries.forEach(e -> {
         if (!filtered[0].contains(e)) {
-          e.checkBox().getStyleClass().remove("column-menu-selected");
           e.checkBox().setStyle("");
         }
       });
       updateVisualSelection.run();
     };
 
-    // On show: reset search and focus the field
-    cm.setOnShown(e -> {
-      searchField.setText("");
-      applyFilter.run(); // reset filter (handles case where text was already empty)
-      Platform.runLater(searchField::requestFocus);
-    });
-
-    // Filter as the user types
-    searchField.textProperty().addListener((_, _, _) -> applyFilter.run());
-
-    // Arrow key navigation and Enter to toggle from the search field
-    searchField.addEventFilter(KeyEvent.KEY_PRESSED, ke -> {
-      if (ke.getCode() == KeyCode.DOWN) {
+    // Scene-level event filter added on show so we intercept UP/DOWN/ENTER in the capture phase,
+    // before the ContextMenu skin's own handler can steal focus away from the search field.
+    EventHandler<KeyEvent> sceneKeyFilter = ke -> {
+      KeyCode code = ke.getCode();
+      if (code == KeyCode.DOWN) {
         if (!filtered[0].isEmpty()) {
           selectedIdx[0] = Math.min(selectedIdx[0] + 1, filtered[0].size() - 1);
         }
         updateVisualSelection.run();
         ke.consume();
-      } else if (ke.getCode() == KeyCode.UP) {
+      } else if (code == KeyCode.UP) {
         if (!filtered[0].isEmpty()) {
           selectedIdx[0] = Math.max(selectedIdx[0] - 1, 0);
         }
         updateVisualSelection.run();
         ke.consume();
-      } else if (ke.getCode() == KeyCode.ENTER) {
+      } else if (code == KeyCode.ENTER) {
         if (selectedIdx[0] >= 0 && selectedIdx[0] < filtered[0].size()) {
           CheckBox cb = filtered[0].get(selectedIdx[0]).checkBox();
           cb.setSelected(!cb.isSelected());
         }
         ke.consume();
       }
+    };
+
+    // On show: reset search, apply filter, register scene filter, focus the field
+    cm.setOnShown(e -> {
+      searchField.setText("");
+      applyFilter.run();
+      cm.getScene().addEventFilter(KeyEvent.KEY_PRESSED, sceneKeyFilter);
+      searchField.requestFocus();
     });
+
+    // On hide: remove the scene filter
+    cm.addEventHandler(WindowEvent.WINDOW_HIDDEN,
+        e -> cm.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, sceneKeyFilter));
+
+    // Filter as the user types
+    searchField.textProperty().addListener((_, _, _) -> applyFilter.run());
 
     return cm;
   }
