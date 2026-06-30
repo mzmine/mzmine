@@ -153,7 +153,10 @@ public class IsotopeFinderEngine {
       if (spectrum instanceof MobilityScan && !candidates.isEmpty()) {
         candidates = normalizeImsIntensities(candidates, spectrum, featureDp);
       }
-      if (candidates.size() <= 1) { // only the feature peak itself
+      // decision: for charge >= 3 require at least z signals so that only genuinely multi-isotopic
+      // patterns are considered; at lower charges two signals (mono + M+1) are sufficient
+      final int minCandidates = z >= 3 ? 3 : 2;
+      if (candidates.size() < minCandidates) {
         continue;
       }
       final IsotopeEnvelope env = model.buildEnvelope(mz, z, polarity);
