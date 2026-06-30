@@ -62,27 +62,31 @@ public class IsotopeFinderEngine {
   private static final double ALT_THRESHOLD = 0.2;
   // look-ahead window (in offsets) used to bridge gaps during termination
   private static final int HORIZON = 4;
-  // allow observed intensities up to this multiple of the predicted upper bound
-  private static final double UPPER_SLACK = 1.5;
-  private static final double EXCESS_WEIGHT = 1.0;
-  // exponents weighting the sub-scores in the combined raw score
-  private static final double W_ENVELOPE = 1.5;
-  private static final double W_SELF = 2.0;
+  // minimum isolated 13C peaks needed to assess the carbon envelope; below this the carbon fit is
+  // neutral (1.0) and heavy-element coverage carries the detection
+  private static final int MIN_LADDER_PEAKS = 2;
+  // weak tie-breaker so a genuine higher charge (which also explains the intermediate peaks) edges out
+  // a lower charge on otherwise-equal quality, without letting peak count dominate the bounded score
+  private static final double TIE_WEIGHT = 0.1;
+  // relative slack applied to the estimated M+1/M bounds in the optional "require 13C" gate
+  private static final double C13_RATIO_SLACK = 0.3;
 
   private final int maxCharge;
   private final MZTolerance tol;
   private final EnvelopeModel model;
   private final String modeLabel;
+  private final boolean requireC13;
   private final DoubleArrayList[] diffsForCharge;
   private final double[] maxDiff;
 
   public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,
       @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
-      @NotNull final String modeLabel) {
+      @NotNull final String modeLabel, final boolean requireC13) {
     this.maxCharge = maxCharge;
     this.tol = tol;
     this.model = model;
     this.modeLabel = modeLabel;
+    this.requireC13 = requireC13;
     this.diffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(elements, maxCharge);
     this.maxDiff = new double[maxCharge];
     for (int i = 0; i < maxCharge; i++) {
@@ -153,7 +157,8 @@ public class IsotopeFinderEngine {
         continue;
       }
       final IsotopeEnvelope env = model.buildEnvelope(mz, z, polarity);
-      final ChargeEval eval = scoreCharge(z, candidates, env);
+      final double[] m1Bounds = requireC13 ? model.expectedM1RatioBounds(mz, z, polarity) : null;
+      final ChargeEval eval = scoreCharge(z, candidates, env, m1Bounds);
       if (eval != null && eval.raw() > 0) {
         evals.add(eval);
       }
@@ -182,8 +187,7 @@ public class IsotopeFinderEngine {
         patterns.add(
             new SimpleIsotopePattern(e.keptCandidates(), e.charge(), IsotopePatternStatus.DETECTED,
                 desc));
-        scores.add(
-            new ChargeScore(e.charge(), e.spacingFraction(), e.envelopeFit(), e.selfConsistency(),
+        scores.add(new ChargeScore(e.charge(), e.coverage(), e.carbonFit(), e.selfConsistency(),
                 e.raw(), prob));
         if (first) {
           bestCharge = e.charge();
@@ -195,10 +199,12 @@ public class IsotopeFinderEngine {
   }
 
   private @Nullable ChargeEval scoreCharge(final int z, @NotNull final List<DataPoint> candidates,
-      @NotNull final IsotopeEnvelope env) {
+      @NotNull final IsotopeEnvelope env, @Nullable final double[] m1Bounds) {
     final double spacingDa = env.spacingDa();
 
-    // observed base peak
+    // observed base peak (most intense candidate). Used only as the observed grid origin (offset 0);
+    // the predicted envelope is slid over the observed ladder rather than pinning the base to a
+    // predicted offset, so the score does not depend on where in the pattern the search started.
     DataPoint base = candidates.getFirst();
     for (final DataPoint dp : candidates) {
       if (dp.getIntensity() > base.getIntensity()) {
@@ -206,51 +212,65 @@ public class IsotopeFinderEngine {
       }
     }
     final double baseMz = base.getMZ();
-    final int predictedBaseOffset = env.baseOffset();
 
+    // isolated 13C ladder on the RAW signals: per offset, the signal closest to the exact 13C
+    // position, so heavy isotopes (37Cl/81Br/34S) and 15N at the same nominal offset do not
+    // contaminate the carbon ratio. Offsets are relative to the observed base (may be negative).
+    final TreeMap<Integer, Double> carbonLadder = buildCarbonLadder(candidates, baseMz, spacingDa);
+
+    // all-signal per-offset map (summed) for coverage, self-consistency and the inclusive kept pattern
     final TreeMap<Integer, OffsetPeak> observed = FineStructureCollapser.collapse(candidates,
-        baseMz, predictedBaseOffset, spacingDa);
-    double baseIntensity = 0d;
-    for (final OffsetPeak p : observed.values()) {
-      baseIntensity = Math.max(baseIntensity, p.intensity());
-    }
-    if (baseIntensity <= 0 || observed.isEmpty()) {
+        baseMz, 0, spacingDa);
+    if (observed.isEmpty()) {
       return null;
     }
 
-    // spacing fraction: how many expected offsets are observed
+    // primary, position-agnostic carbon score: slide the carbon Poisson envelope over the isolated
+    // 13C ladder. placement = predicted offset that aligns to observed offset 0 (the base).
+    final CarbonFit carbonFit = slideCarbonFit(carbonLadder, env);
+    final int placement = carbonFit.placement();
+
+    // optional "require 13C" gate: the resolved 13C M+1 must be present and its M+1/M ratio within
+    // the estimated min/max carbon bounds, otherwise this charge hypothesis is rejected. Mono and M+1
+    // are read from the isolated 13C ladder at the placement-implied positions.
+    if (requireC13) {
+      final Double monoIntensity = carbonLadder.get(-placement);
+      final Double m1Intensity = carbonLadder.get(-placement + 1);
+      if (monoIntensity == null || monoIntensity <= 0 || m1Intensity == null || m1Intensity <= 0) {
+        return null;
+      }
+      if (m1Bounds != null) {
+        final double ratio = m1Intensity / monoIntensity;
+        if (ratio < m1Bounds[0] * (1d - C13_RATIO_SLACK) || ratio > m1Bounds[1] * (1d
+            + C13_RATIO_SLACK)) {
+          return null;
+        }
+      }
+    }
+
+    // coverage: fraction of expected carbon offsets explained by ANY observed signal (incl. heavy).
+    // predicted offset o aligns to observed offset (o - placement).
     int expectedTotal = 0;
     int expectedPresent = 0;
     for (int o = 0; o <= env.maxOffset(); o++) {
       if (env.expectedAt(o) >= ENGINE_CUTOFF) {
         expectedTotal++;
-        if (observed.containsKey(o)) {
+        if (observed.containsKey(o - placement)) {
           expectedPresent++;
         }
       }
     }
-    final double spacingFraction =
-        expectedTotal == 0 ? 1d : (double) expectedPresent / expectedTotal;
-
-    // one-sided envelope fit: penalize implausibly large observed intensities only
-    double envelopeFit = 1d;
-    for (final OffsetPeak p : observed.values()) {
-      final double rel = p.intensity() / baseIntensity;
-      final double tolerated = Math.max(env.upperBoundAt(p.offset()) * UPPER_SLACK, ENGINE_CUTOFF);
-      if (rel > tolerated) {
-        final double excess = (rel - tolerated) / rel; // 0..1
-        envelopeFit *= Math.max(0d, 1d - excess * EXCESS_WEIGHT);
-      }
-    }
+    final double coverage = expectedTotal == 0 ? 1d : (double) expectedPresent / expectedTotal;
 
     // self consistency: higher charges require their intermediate (e.g. half-spacing) peaks
-    final double selfConsistency = selfConsistency(z, observed, env);
+    final double selfConsistency = selfConsistency(z, observed, env, placement);
 
-    // envelope-shape-aware termination -> keep only the supported, bridgeable run of offsets
-    final Set<Integer> keptOffsets = computeKeptOffsets(observed, env, predictedBaseOffset);
+    // envelope-shape-aware termination -> keep the supported, bridgeable run of offsets (both
+    // directions from the base), so the inclusive pattern keeps heavy isotopes and fine structure.
+    final Set<Integer> keptOffsets = computeKeptOffsets(observed, env, placement);
     final List<DataPoint> kept = new ArrayList<>();
     for (final DataPoint dp : candidates) {
-      final int offset = predictedBaseOffset + (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
+      final int offset = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
       if (keptOffsets.contains(offset)) {
         kept.add(dp);
       }
@@ -259,35 +279,104 @@ public class IsotopeFinderEngine {
       kept.addAll(candidates);
     }
 
-    // coverage: number of explained offsets. This is the tie-breaker that lets a genuine higher
-    // charge (which explains the intermediate peaks too) win over a lower charge that only explains
-    // a subset. It cannot inflate the charge because selfConsistency gates higher charges to 0 when
-    // their required intermediate peaks are absent.
     final int observedCount = keptOffsets.size();
-    double raw =
-        spacingFraction * Math.pow(envelopeFit, W_ENVELOPE) * Math.pow(selfConsistency, W_SELF)
-            * observedCount;
-    if (spacingFraction <= 0 || observedCount < 2 || (z > 1 && selfConsistency <= 0)) {
+    // bounded [0,1] quality (carbon fit x coverage), gated by self-consistency for higher charges so
+    // a higher charge whose intermediate peaks are absent cannot win. observedCount enters only as a
+    // weak multiplicative tie-breaker, letting a genuine higher charge edge out a lower one on ties.
+    double quality = carbonFit.score() * coverage;
+    if (z > 1) {
+      quality *= selfConsistency;
+    }
+    double raw = quality * (1d + TIE_WEIGHT * observedCount);
+    if (coverage <= 0 || observedCount < 2 || (z > 1 && selfConsistency <= 0)) {
       raw = 0d;
     }
 
-    return new ChargeEval(z, raw, spacingFraction, envelopeFit, selfConsistency,
+    return new ChargeEval(z, raw, coverage, carbonFit.score(), selfConsistency,
         kept.toArray(new DataPoint[0]));
   }
 
-  private double selfConsistency(final int z, @NotNull final TreeMap<Integer, OffsetPeak> observed,
+  /**
+   * Per integer offset relative to {@code baseMz}, the intensity of the signal closest to the exact
+   * 13C position within tolerance. Signals off the exact 13C grid (heavy isotopes, 15N) are
+   * excluded, so the carbon envelope is scored on the pure 13C ladder rather than on merged nominal
+   * offsets.
+   */
+  private @NotNull TreeMap<Integer, Double> buildCarbonLadder(
+      @NotNull final List<DataPoint> candidates, final double baseMz, final double spacingDa) {
+    final TreeMap<Integer, Double> bestIntensity = new TreeMap<>();
+    final TreeMap<Integer, Double> bestError = new TreeMap<>();
+    for (final DataPoint dp : candidates) {
+      final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
+      final double exactMz = baseMz + k * spacingDa;
+      if (!tol.checkWithinTolerance(exactMz, dp.getMZ())) {
+        continue; // not on the exact 13C grid -> heavy isotope / different element
+      }
+      final double err = Math.abs(dp.getMZ() - exactMz);
+      final Double prev = bestError.get(k);
+      if (prev == null || err < prev) {
+        bestError.put(k, err);
+        bestIntensity.put(k, dp.getIntensity());
+      }
+    }
+    return bestIntensity;
+  }
+
+  /**
+   * Slide the predicted carbon envelope over the observed 13C ladder and return the best bounded
+   * cosine similarity together with the placement (the predicted offset aligned to observed offset
+   * 0). When the ladder has too few isolated 13C peaks the carbon fit is neutral (1.0) and
+   * heavy-element coverage carries the detection; the placement then defaults to the predicted base
+   * offset.
+   */
+  private @NotNull CarbonFit slideCarbonFit(@NotNull final TreeMap<Integer, Double> ladder,
       @NotNull final IsotopeEnvelope env) {
+    if (ladder.size() < MIN_LADDER_PEAKS) {
+      return new CarbonFit(1d, env.baseOffset());
+    }
+    final int minK = ladder.firstKey();
+    final int maxK = ladder.lastKey();
+    double bestCos = -1d;
+    int bestPlacement = env.baseOffset();
+    // placement p in 0..maxOffset: observed offset 0 (base) aligns to predicted offset p
+    for (int p = 0; p <= env.maxOffset(); p++) {
+      final int from = Math.min(minK, -p);
+      final int to = Math.max(maxK, env.maxOffset() - p);
+      double dot = 0d;
+      double na = 0d;
+      double nb = 0d;
+      for (int k = from; k <= to; k++) {
+        final double obs = ladder.getOrDefault(k, 0d);
+        final double pred = env.expectedAt(k + p);
+        dot += obs * pred;
+        na += obs * obs;
+        nb += pred * pred;
+      }
+      if (na > 0d && nb > 0d) {
+        final double cos = dot / (Math.sqrt(na) * Math.sqrt(nb));
+        if (cos > bestCos) {
+          bestCos = cos;
+          bestPlacement = p;
+        }
+      }
+    }
+    return new CarbonFit(Math.max(0d, bestCos), bestPlacement);
+  }
+
+  private double selfConsistency(final int z, @NotNull final TreeMap<Integer, OffsetPeak> observed,
+      @NotNull final IsotopeEnvelope env, final int placement) {
     if (z == 1) {
       return 1d;
     }
-    final int maxObs = observed.lastKey();
     int reqTotal = 0;
     int reqPresent = 0;
-    for (int o = 1; o <= maxObs; o++) {
-      // intermediate offsets that a charge-1 ladder would not have
+    // examine predicted offsets relative to the monoisotopic (offset 0). Offsets not divisible by z
+    // are the intermediate (e.g. half-spacing) peaks that a lower-charge ladder would not have.
+    // Predicted offset o aligns to observed offset (o - placement).
+    for (int o = 1; o <= env.maxOffset(); o++) {
       if (o % z != 0 && env.expectedAt(o) >= ENGINE_CUTOFF) {
         reqTotal++;
-        if (observed.containsKey(o)) {
+        if (observed.containsKey(o - placement)) {
           reqPresent++;
         }
       }
@@ -302,22 +391,24 @@ public class IsotopeFinderEngine {
   }
 
   private Set<Integer> computeKeptOffsets(@NotNull final TreeMap<Integer, OffsetPeak> observed,
-      @NotNull final IsotopeEnvelope env, final int baseOffset) {
+      @NotNull final IsotopeEnvelope env, final int placement) {
     final Set<Integer> kept = new HashSet<>();
     if (observed.isEmpty()) {
       return kept;
     }
-    kept.add(baseOffset);
+    // observed offsets are relative to the base (offset 0). Predicted offset = observed + placement.
+    kept.add(0);
     final int maxObs = observed.lastKey();
     final int minObs = observed.firstKey();
 
     // extend upward, bridging gaps only when the envelope still supports a peak ahead
-    int current = baseOffset;
+    int current = 0;
     boolean advanced = true;
     while (advanced) {
       advanced = false;
       for (int k = current + 1; k <= current + HORIZON && k <= maxObs; k++) {
-        if (observed.containsKey(k) && (k == current + 1 || env.upperBoundAt(k) >= ENGINE_CUTOFF)) {
+        if (observed.containsKey(k) && (k == current + 1
+            || env.upperBoundAt(k + placement) >= ENGINE_CUTOFF)) {
           kept.add(k);
           current = k;
           advanced = true;
@@ -325,13 +416,14 @@ public class IsotopeFinderEngine {
         }
       }
     }
-    // extend downward
-    current = baseOffset;
+    // extend downward (toward the monoisotopic / lower m/z), symmetric to the upward bridging
+    current = 0;
     advanced = true;
     while (advanced) {
       advanced = false;
       for (int k = current - 1; k >= current - HORIZON && k >= minObs; k--) {
-        if (observed.containsKey(k) && (k == current - 1 || env.upperBoundAt(k) >= ENGINE_CUTOFF)) {
+        if (observed.containsKey(k) && (k == current - 1
+            || env.upperBoundAt(k + placement) >= ENGINE_CUTOFF)) {
           kept.add(k);
           current = k;
           advanced = true;
@@ -364,8 +456,18 @@ public class IsotopeFinderEngine {
     return out;
   }
 
-  private record ChargeEval(int charge, double raw, double spacingFraction, double envelopeFit,
+  private record ChargeEval(int charge, double raw, double coverage, double carbonFit,
                             double selfConsistency, DataPoint[] keptCandidates) {
+
+  }
+
+  /**
+   * Result of sliding the carbon envelope over the observed 13C ladder.
+   *
+   * @param score     bounded cosine similarity in [0,1] (1.0 when too few 13C peaks to assess).
+   * @param placement the predicted offset aligned to observed offset 0 (the base peak).
+   */
+  private record CarbonFit(double score, int placement) {
 
   }
 }

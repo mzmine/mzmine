@@ -29,18 +29,19 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
  * Per-charge scoring breakdown used to select the best charge and flag probable alternates.
  *
  * @param charge          the charge hypothesis (>= 1).
- * @param spacingFraction fraction of expected isotope offsets that were actually observed (0..1).
- * @param envelopeFit     one-sided plausibility of the observed relative intensities against the
- *                        predicted upper bound (1 = all within bounds, lower = implausibly high
- *                        signals present).
+ * @param coverage        fraction of expected carbon offsets explained by any observed signal,
+ *                        including heavy isotopes (0..1).
+ * @param carbonFit       bounded cosine similarity of the isolated 13C ladder against the predicted
+ *                        carbon envelope at its best placement (0..1; 1 = perfect or too few 13C
+ *                        peaks to assess, in which case coverage carries the detection).
  * @param selfConsistency requirement that the intermediate (e.g. half-spacing) peaks of a higher
  *                        charge are present (1 = consistent, lower = missing required peaks). For
  *                        charge 1 this is always 1.
- * @param raw             combined raw score (product of the weighted sub-scores).
- * @param probability     pseudo-probability that this is the major charge (softmax over raw scores
- *                        of all candidate charges).
+ * @param raw             combined raw score (bounded quality x weak peak-count tie-breaker).
+ * @param probability     pseudo-probability that this is the major charge (linear share of the raw
+ *                        scores of all candidate charges).
  */
-public record ChargeScore(int charge, double spacingFraction, double envelopeFit,
+public record ChargeScore(int charge, double coverage, double carbonFit,
                           double selfConsistency, double raw, double probability) {
 
 }

@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 
 import io.github.mzmine.datamodel.PolarityType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Strategy that predicts the isotope intensity envelope for a searched signal at a given charge.
@@ -46,4 +47,19 @@ public interface EnvelopeModel {
    */
   @NotNull IsotopeEnvelope buildEnvelope(double observedMz, int charge,
       @NotNull PolarityType polarity);
+
+  /**
+   * Estimated lower/upper bound of the expected M+1 / M (13C) relative intensity for the searched
+   * neutral mass, used by the optional "require 13C" gate. Models that cannot estimate this (e.g.
+   * formula prediction) return {@code null}, in which case the gate only checks 13C M+1 presence.
+   *
+   * @param observedMz the observed m/z of the searched signal.
+   * @param charge     the hypothesized charge state (>= 1).
+   * @param polarity   ion polarity.
+   * @return {@code {low, high}} bounds of the M+1/M ratio, or {@code null} if not estimable.
+   */
+  default @Nullable double[] expectedM1RatioBounds(double observedMz, int charge,
+      @NotNull PolarityType polarity) {
+    return null;
+  }
 }

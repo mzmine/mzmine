@@ -39,6 +39,11 @@ import java.text.DecimalFormat;
  */
 public class CarbonAveragineEnvelopeParameters extends SimpleParameterSet {
 
+  public static final DoubleParameter carbonPerDaltonMin = new DoubleParameter(
+      "Minimum C per Dalton",
+      "Minimum number of carbons per Dalton used as the lower 13C bound for the optional \"require 13C\" gate (≈ 1/20 for heteroatom-rich molecules).",
+      new DecimalFormat("0.####"), 1d / 20d, 0.001, 1d / 12d);
+
   public static final DoubleParameter carbonPerDaltonTypical = new DoubleParameter(
       "Typical C per Dalton",
       "Typical number of carbons per Dalton used to model the expected 13C envelope (≈ 1/14 for organic molecules).",
@@ -60,7 +65,7 @@ public class CarbonAveragineEnvelopeParameters extends SimpleParameterSet {
       true);
 
   public CarbonAveragineEnvelopeParameters() {
-    super(new Parameter[]{carbonPerDaltonTypical, carbonPerDaltonMax, minRelIntensity,
-        usePoissonNotBinomial});
+    super(new Parameter[]{carbonPerDaltonMin, carbonPerDaltonTypical, carbonPerDaltonMax,
+        minRelIntensity, usePoissonNotBinomial});
   }
 }
