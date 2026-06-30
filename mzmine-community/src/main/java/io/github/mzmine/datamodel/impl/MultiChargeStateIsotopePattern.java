@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,8 +49,13 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
+  /**
+   * Comparator for sorting isotope patterns by their size in descending order, and then by charge
+   * state in ascending order. Charge state -1 is considered as the highest charge state.
+   */
   public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
-      IsotopePattern::getNumberOfDataPoints);
+          IsotopePattern::getNumberOfDataPoints).reversed()
+      .thenComparingInt(ip -> ip.getCharge() == -1 ? Integer.MAX_VALUE : ip.getCharge());
 
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();

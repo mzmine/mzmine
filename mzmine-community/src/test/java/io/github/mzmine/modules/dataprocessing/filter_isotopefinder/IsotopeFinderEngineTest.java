@@ -71,7 +71,12 @@ class IsotopeFinderEngineTest {
   }
 
   private static IsotopeFinderEngine engine(final List<Element> elements, final int maxCharge) {
-    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test");
+    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", false);
+  }
+
+  private static IsotopeFinderEngine engineRequireC13(final List<Element> elements,
+      final int maxCharge) {
+    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", true);
   }
 
   /**
@@ -158,6 +163,65 @@ class IsotopeFinderEngineTest {
       k++;
     }
     return new SimpleMassSpectrum(mz, in);
+  }
+
+  /**
+   * Real CDK isotope distribution merged to ~one peak per nominal isotope offset (fine structure
+   * collapsed), sorted by m/z. {@code minAbundance} prunes the long tail to keep large molecules
+   * fast.
+   */
+  private static SimpleMassSpectrum cdkSpectrum(final String formula, final int charge,
+      final double minAbundance) {
+    final double mergeWidth =
+        0.01 * C13 / charge; // < isotope spacing -> one peak per nominal offset
+    final IsotopePattern p = IsotopePatternCalculator.calculateIsotopePattern(formula, minAbundance,
+        mergeWidth, charge, PolarityType.POSITIVE, false);
+    final TreeMap<Double, Double> map = new TreeMap<>();
+    for (int i = 0; i < p.getNumberOfDataPoints(); i++) {
+      map.merge(p.getMzValue(i), p.getIntensityValue(i), Double::sum);
+    }
+    final double[] mz = new double[map.size()];
+    final double[] in = new double[map.size()];
+    int k = 0;
+    for (final var e : map.entrySet()) {
+      mz[k] = e.getKey();
+      in[k] = e.getValue();
+      k++;
+    }
+    return new SimpleMassSpectrum(mz, in);
+  }
+
+  /**
+   * Index of the most intense peak (the base peak / apex of the envelope).
+   */
+  private static int baseIndex(final MassSpectrum s) {
+    int idx = 0;
+    for (int i = 1; i < s.getNumberOfDataPoints(); i++) {
+      if (s.getIntensityValue(i) > s.getIntensityValue(idx)) {
+        idx = i;
+      }
+    }
+    return idx;
+  }
+
+  /**
+   * Shift every m/z by {@code dmz} (to place an interferent away from the target).
+   */
+  private static SimpleMassSpectrum shift(final SimpleMassSpectrum s, final double dmz) {
+    final double[] mz = new double[s.getNumberOfDataPoints()];
+    final double[] in = new double[mz.length];
+    for (int i = 0; i < mz.length; i++) {
+      mz[i] = s.getMzValue(i) + dmz;
+      in[i] = s.getIntensityValue(i);
+    }
+    return new SimpleMassSpectrum(mz, in);
+  }
+
+  private static IsotopeFinderEngine engineTol(final List<Element> elements, final int maxCharge,
+      final MZTolerance tol) {
+    return new IsotopeFinderEngine(elements, maxCharge, tol,
+        new CarbonAveragineEnvelopeModel(new CarbonAveragineEnvelopeParameters(),
+            new EnvelopeContext(elements, tol)), "test", false);
   }
 
   private static boolean containsMz(final IsotopePattern p, final double mz) {
@@ -279,7 +343,8 @@ class IsotopeFinderEngineTest {
         new Element("O"));
     final EnvelopeModel model = new FormulaEnvelopeModel(new FormulaEnvelopeParameters(),
         new EnvelopeContext(elements, TOL));
-    final IsotopeFinderEngine engine = new IsotopeFinderEngine(elements, 2, TOL, model, "formula");
+    final IsotopeFinderEngine engine = new IsotopeFinderEngine(elements, 2, TOL, model, "formula",
+        false);
     // small molecule mass; formula enumeration is cheap here
     final DetectionResult result = engine.detect(ladder(195.0877, 1, 8, 4), 195.0877, 100d,
         PolarityType.POSITIVE);
@@ -491,6 +556,57 @@ class IsotopeFinderEngineTest {
   }
 
   @Test
+  void detectsChargeInComplexCdkSpectrumFromAnyStartSignal() {
+    // Build real CDK isotope patterns, embed each in a complex MS1 (a co-eluting decoy compound +
+    // off-grid noise), then seed detection from EVERY isotope signal of the target. The correct
+    // charge and the target's monoisotopic must be recovered regardless of the start signal, and
+    // neither the decoy compound nor the noise may leak into the detected pattern.
+    record Case(String formula, int charge, List<Element> elements) {
+
+    }
+    final List<Case> cases = List.of(
+        new Case("C30H50", 1, List.of(new Element("C"), new Element("H"))),
+        new Case("C20H30Cl", 1, List.of(new Element("C"), new Element("H"), new Element("Cl"))),
+        new Case("C25H30Cl2", 1, List.of(new Element("C"), new Element("H"), new Element("Cl"))),
+        new Case("C15H20Br", 1, List.of(new Element("C"), new Element("H"), new Element("Br"))),
+        new Case("C40H60N2O3S", 1,
+            List.of(new Element("C"), new Element("H"), new Element("N"), new Element("O"),
+                new Element("S"))),
+        new Case("C60H100", 2, List.of(new Element("C"), new Element("H"))),
+        new Case("C50H70N15O15", 2,
+            List.of(new Element("C"), new Element("H"), new Element("N"), new Element("O"))),
+        // triply charged peptide-like envelope (consecutive isotopes spaced ~0.334 m/z)
+        new Case("C80H120N20O25", 3,
+            List.of(new Element("C"), new Element("H"), new Element("N"), new Element("O"))));
+
+    for (final Case c : cases) {
+      final SimpleMassSpectrum target = fromFormula(c.formula(), c.charge());
+      final double mono = target.getMzValue(0);
+      final double decoyMono = mono + 2.63; // co-eluting compound, off the target isotope grid
+      final SimpleMassSpectrum decoy = ladder(decoyMono, 1, 28, 4);
+      // fixed, deterministic off-grid noise within the search window (must be ignored)
+      final SimpleMassSpectrum noise = spec(
+          new double[]{mono - 1.53, mono + 0.37, mono + 1.62, mono + 3.49},
+          new double[]{60d, 80d, 45d, 70d});
+      final SimpleMassSpectrum complex = combine(target, decoy, noise);
+
+      for (int i = 0; i < target.getNumberOfDataPoints(); i++) {
+        final double startMz = target.getMzValue(i);
+        final String where =
+            c.formula() + " (z=" + c.charge() + ") seeded at peak " + i + " m/z=" + startMz;
+        final DetectionResult r = engine(c.elements(), 3).detect(complex, startMz,
+            target.getIntensityValue(i), PolarityType.POSITIVE);
+        assertNotNull(r, "no detection: " + where);
+        assertEquals(c.charge(), r.bestCharge(), "wrong charge: " + where);
+        final IsotopePattern p = r.patterns().get(0);
+        assertTrue(containsMz(p, mono), "target monoisotopic missing: " + where);
+        assertTrue(!containsMz(p, decoyMono), "decoy compound leaked into pattern: " + where);
+        assertTrue(!containsMz(p, mono + 0.37), "noise leaked into pattern: " + where);
+      }
+    }
+  }
+
+  @Test
   void keepsCoElutingCompoundsSeparate() {
     // two different compounds co-eluting in the same MS1 scan, monoisotopic masses 2.6 Da apart
     // (a non-integer offset, so B does not sit on A's 13C grid)
@@ -532,5 +648,197 @@ class IsotopeFinderEngineTest {
         PolarityType.POSITIVE);
     assertNotNull(result);
     assertEquals(1, result.bestCharge());
+  }
+
+  @Test
+  void chargeAndScoreAreIndependentOfStartSignal() {
+    // position-agnostic: seeding the search from ANY peak of the pattern must give the same charge
+    // and the same carbon-fit score (scoring anchors on the intensity-max + a sliding template, not
+    // on the seed)
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final SimpleMassSpectrum spectrum = ladder(800.0, 1, 55, 7);
+    Integer charge = null;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      final DetectionResult r = engine(elements, 3).detect(spectrum, spectrum.getMzValue(i),
+          spectrum.getIntensityValue(i), PolarityType.POSITIVE);
+      assertNotNull(r, "no detection seeding from peak " + i);
+      // the charge must be identical no matter which signal seeded the search (the position-agnostic
+      // invariant), and a strong carbon fit must be found from every seed
+      if (charge == null) {
+        charge = r.bestCharge();
+      } else {
+        assertEquals(charge, r.bestCharge(),
+            "charge must not depend on start signal (peak " + i + ")");
+      }
+      assertTrue(r.scores().get(0).carbonFit() > 0.9,
+          "a strong carbon fit must be found from any start signal (peak " + i + ")");
+    }
+    assertEquals(1, charge);
+  }
+
+  @Test
+  void heavyIsotopeDoesNotContaminateCarbonScore() {
+    // a resolved 37Cl at M+2 (1.99705) is distinct from 13C2 (2.00671); it must not change the carbon
+    // fit or the charge, yet must still be retained in the inclusive output pattern
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final double mono = 500.0;
+    final DetectionResult noCl = engine(elements, 2).detect(
+        spec(new double[]{mono, mono + C13, mono + 2 * C13}, new double[]{100d, 38d, 7d}), mono,
+        100d, PolarityType.POSITIVE);
+    // same spectrum + a large resolved 37Cl peak at M+1.99705 (between M+1 and 13C2)
+    final DetectionResult withCl = engine(elements, 2).detect(
+        spec(new double[]{mono, mono + C13, mono + 1.99705, mono + 2 * C13},
+            new double[]{100d, 38d, 30d, 7d}), mono, 100d, PolarityType.POSITIVE);
+    assertNotNull(noCl);
+    assertNotNull(withCl);
+    assertEquals(noCl.bestCharge(), withCl.bestCharge(), "37Cl must not change the charge");
+    assertEquals(noCl.scores().get(0).carbonFit(), withCl.scores().get(0).carbonFit(), 1e-6,
+        "37Cl must not contaminate the carbon fit");
+    assertTrue(containsMz(withCl.patterns().get(0), mono + 1.99705),
+        "37Cl must still be retained in the inclusive output pattern");
+  }
+
+  @Test
+  void detectsProteinLikeHumpWithoutMonoisotopic() {
+    // high-mass envelope whose base peak is well above the monoisotopic; drop the (low) mono so the
+    // pattern is a rising hump, and seed mid-hump -> must still detect charge 1
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final SimpleMassSpectrum full = ladder(2000.0, 1, 140, 12);
+    final double[] mz = new double[full.getNumberOfDataPoints() - 1];
+    final double[] in = new double[mz.length];
+    for (int i = 1; i < full.getNumberOfDataPoints(); i++) {
+      mz[i - 1] = full.getMzValue(i);
+      in[i - 1] = full.getIntensityValue(i);
+    }
+    final SimpleMassSpectrum hump = spec(mz, in);
+    final DetectionResult r = engine(elements, 3).detect(hump, hump.getMzValue(3),
+        hump.getIntensityValue(3), PolarityType.POSITIVE);
+    assertNotNull(r);
+    assertEquals(1, r.bestCharge());
+  }
+
+  @Test
+  void requireC13AcceptsValidCarbonPattern() {
+    // a normal CHNO pattern with an in-bounds 13C M+1 passes the gate
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final DetectionResult r = engineRequireC13(elements, 2).detect(ladder(500.0, 1, 36, 5), 500.0,
+        100d, PolarityType.POSITIVE);
+    assertNotNull(r, "valid 13C pattern should pass the require-13C gate");
+    assertEquals(1, r.bestCharge());
+  }
+
+  @Test
+  void requireC13RejectsMissingM1() {
+    // only mono + a heavy M+2 (81Br), no 13C M+1 at all -> rejected when 13C is required
+    final List<Element> elements = List.of(new Element("C"), new Element("Br"));
+    final double mono = 500.0;
+    final SimpleMassSpectrum spectrum = spec(new double[]{mono, mono + 1.99795},
+        new double[]{100d, 97d});
+    final DetectionResult r = engineRequireC13(elements, 2).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    org.junit.jupiter.api.Assertions.assertNull(r,
+        "pattern without a 13C M+1 must be rejected when 13C is required");
+    // sanity: without the gate the same pattern is still detected (heavy-spacing fallback)
+    assertNotNull(engine(elements, 2).detect(spectrum, mono, 100d, PolarityType.POSITIVE));
+  }
+
+  @Test
+  void requireC13RejectsOutOfBoundsM1() {
+    // mono is clearly the base but its 13C M+1 is far too small for the mass (~36 C at 500 Da would
+    // give M+1/M ≈ 0.39; here it is 0.02) -> below the lower carbon bound -> rejected
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final double mono = 500.0;
+    final SimpleMassSpectrum spectrum = spec(new double[]{mono, mono + C13, mono + 2 * C13},
+        new double[]{100d, 2d, 0.4d});
+    final DetectionResult r = engineRequireC13(elements, 2).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    org.junit.jupiter.api.Assertions.assertNull(r,
+        "M+1/M ratio far below the carbon bounds must be rejected when 13C is required");
+  }
+
+  @Test
+  void detectsHighChargeProteinsFromAnyStartSignal() {
+    // high-res FT tolerance so neighbouring high charge states are distinguishable
+    final MZTolerance tightTol = new MZTolerance(0.0005, 2);
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"), new Element("S"));
+
+    record Protein(String formula, int charge) {
+
+    }
+    final List<Protein> proteins = List.of(new Protein("C257H383N65O77S6", 6), // insulin ~5733 Da
+        new Protein("C378H629N105O118S", 9),     // ubiquitin ~8565 Da
+        new Protein("C436H682N110O125S2", 12),   // ~9.7 kDa
+        new Protein("C600H900N150O180S3", 15));  // ~13 kDa, broad distributed envelope
+
+    for (final Protein prot : proteins) {
+      final SimpleMassSpectrum target = cdkSpectrum(prot.formula(), prot.charge(), 0.02);
+      final int base = baseIndex(target);
+      final double baseMz = target.getMzValue(base);
+      // a co-eluting interferent (different compound + charge) shifted well away in m/z, plus a few
+      // off-grid noise peaks inside the envelope range that must be ignored
+      final SimpleMassSpectrum interferent = shift(
+          cdkSpectrum("C300H450N80O90S2", prot.charge() == 6 ? 5 : prot.charge() - 1, 0.05), 40.0);
+      final SimpleMassSpectrum noise = spec(
+          new double[]{baseMz - 0.37, baseMz + 0.41, baseMz + 0.61},
+          new double[]{baseHeight(target) * 0.7, baseHeight(target) * 0.9,
+              baseHeight(target) * 0.6});
+      final SimpleMassSpectrum complex = combine(target, interferent, noise);
+
+      // seed from several signals of the target: lowest visible, base, highest tail, and mid-rising
+      final int[] seeds = {0, base, target.getNumberOfDataPoints() - 1, base / 2};
+      for (final int s : seeds) {
+        final DetectionResult r = engineTol(elements, 16, tightTol).detect(complex,
+            target.getMzValue(s), target.getIntensityValue(s), PolarityType.POSITIVE);
+        assertNotNull(r, prot.formula() + " z=" + prot.charge() + " seed " + s + ": no detection");
+        assertEquals(prot.charge(), r.bestCharge(),
+            prot.formula() + " z=" + prot.charge() + " seed " + s + ": wrong charge");
+      }
+    }
+  }
+
+  @Test
+  void detectsPolyhalogenatedSmallMoleculesFromAnyStartSignal() {
+    record Halo(String formula, List<Element> elements) {
+
+    }
+    final Element br = new Element("Br");
+    final Element cl = new Element("Cl");
+    final List<Halo> cases = List.of(
+        // Pigment Green 7 (perchloro copper phthalocyanine): mono is tiny, base is far up the envelope
+        new Halo("C32Cl16CuN8",
+            List.of(new Element("C"), br, cl, new Element("Cu"), new Element("N"))),
+        // BDE-209 (decabromodiphenyl ether): 10 Br -> very broad, base near M+10
+        new Halo("C12Br10O", List.of(new Element("C"), br, cl, new Element("O"))),
+        new Halo("C6Cl6", List.of(new Element("C"), br, cl)),
+        new Halo("C10H4Cl2Br2", List.of(new Element("C"), new Element("H"), br, cl, br)));
+
+    for (int expCharge = 1; expCharge < 4; expCharge++) {
+
+      for (final Halo h : cases) {
+        final SimpleMassSpectrum target = cdkSpectrum(h.formula(), expCharge, 0.01);
+        final int base = baseIndex(target);
+        final SimpleMassSpectrum noise = spec(
+            new double[]{target.getMzValue(0) - 0.37, target.getMzValue(base) + 0.41},
+            new double[]{baseHeight(target) * 0.5, baseHeight(target) * 0.6});
+        final SimpleMassSpectrum complex = combine(target, noise);
+
+        final int[] seeds = {0, base, target.getNumberOfDataPoints() - 1};
+        for (final int s : seeds) {
+          final DetectionResult r = engine(h.elements(), 6).detect(complex, target.getMzValue(s),
+              target.getIntensityValue(s), PolarityType.POSITIVE);
+          assertNotNull(r, h.formula() + " seed " + s + ": no detection");
+          assertEquals(expCharge, r.bestCharge(), h.formula() + " seed " + s + ": wrong charge");
+        }
+      }
+    }
+  }
+
+  private static double baseHeight(final MassSpectrum s) {
+    return s.getIntensityValue(baseIndex(s));
   }
 }

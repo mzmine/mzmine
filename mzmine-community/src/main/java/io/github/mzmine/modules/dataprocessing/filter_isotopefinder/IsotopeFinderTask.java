@@ -115,8 +115,9 @@ class IsotopeFinderTask extends AbstractTask {
         IsotopeFinderParameters.mode).getValueWithParameters();
     final EnvelopeContext ctx = new EnvelopeContext(isotopeElements, isoMzTolerance);
     final EnvelopeModel model = IsotopeFinderModeOptions.createModel(modeValue, ctx);
+    final boolean requireC13 = parameters.getValue(IsotopeFinderParameters.requireC13);
     this.engine = new IsotopeFinderEngine(isotopeElements, isotopeMaxCharge, isoMzTolerance, model,
-        modeValue.value().toString());
+        modeValue.value().toString(), requireC13);
 
     // FWHM refinement parameters
     this.fwhmRefineEnabled = parameters.getValue(IsotopeFinderParameters.fwhmRefine);

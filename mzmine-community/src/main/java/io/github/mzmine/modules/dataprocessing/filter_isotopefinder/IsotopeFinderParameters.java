@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -73,9 +74,15 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           + "enumerates candidate formulas and unions their predicted isotope patterns.",
       IsotopeFinderModeOptions.SIGNAL_BASED);
 
+  public static final BooleanParameter requireC13 = new BooleanParameter("Require 13C isotope peak",
+      "If enabled, a charge is only accepted when a resolved 13C M+1 peak is present and its M+1/M "
+          + "relative intensity falls within the estimated minimum/maximum carbon bounds. Features "
+          + "without a valid 13C pattern are skipped (useful to suppress noise / heavy-only artifacts).",
+      false);
+
   public IsotopeFinderParameters() {
     super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, fwhmRefine,
-            mode},
+            mode, requireC13},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 

@@ -36,6 +36,7 @@ import io.github.mzmine.util.IsotopesUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
@@ -55,6 +56,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   private static final int MAX_HEAVY_ATOMS = 8;
   private static final int CAP = 30;
 
+  private final double carbonPerDaltonMin;
   private final double carbonPerDaltonTypical;
   private final double carbonPerDaltonMax;
   private final double minRelIntensity;
@@ -63,12 +65,26 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
 
   public CarbonAveragineEnvelopeModel(@NotNull final ParameterSet params,
       @NotNull final EnvelopeContext ctx) {
+    this.carbonPerDaltonMin = params.getValue(CarbonAveragineEnvelopeParameters.carbonPerDaltonMin);
     this.carbonPerDaltonTypical = params.getValue(
         CarbonAveragineEnvelopeParameters.carbonPerDaltonTypical);
     this.carbonPerDaltonMax = params.getValue(CarbonAveragineEnvelopeParameters.carbonPerDaltonMax);
     this.minRelIntensity = params.getValue(CarbonAveragineEnvelopeParameters.minRelIntensity);
     this.usePoisson = params.getValue(CarbonAveragineEnvelopeParameters.usePoissonNotBinomial);
     this.heavies = extractHeavyContributions(ctx.elements());
+  }
+
+  @Override
+  public @Nullable double[] expectedM1RatioBounds(final double observedMz, final int charge,
+      @NotNull final PolarityType polarity) {
+    double neutralMass = observedMz * charge - charge * PROTON_MASS * polarity.getSign();
+    if (neutralMass <= 0) {
+      neutralMass = observedMz * charge;
+    }
+    // M+1/M ratio for a pure-carbon Poisson envelope is lambda = nC * P_13C
+    final double low = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonMin)) * P_13C;
+    final double high = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonMax)) * P_13C;
+    return new double[]{low, high};
   }
 
   /**
