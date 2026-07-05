@@ -159,7 +159,8 @@ public final class CrossScanRefiner {
       return detected;
     }
     refined.sort(MZ_SORTER);
-    return new SimpleIsotopePattern(refined.toArray(new DataPoint[0]), charge,
+    // preserve the detection score so refined patterns keep their charge ranking
+    return new SimpleIsotopePattern(refined.toArray(new DataPoint[0]), charge, detected.getScore(),
         IsotopePatternStatus.DETECTED, detected.getDescription());
   }
 

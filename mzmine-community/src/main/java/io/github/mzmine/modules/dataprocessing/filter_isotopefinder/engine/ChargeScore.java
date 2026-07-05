@@ -34,14 +34,20 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
  * @param carbonFit       bounded cosine similarity of the isolated 13C ladder against the predicted
  *                        carbon envelope at its best placement (0..1; 1 = perfect or too few 13C
  *                        peaks to assess, in which case coverage carries the detection).
- * @param selfConsistency requirement that the intermediate (e.g. half-spacing) peaks of a higher
- *                        charge are present (1 = consistent, lower = missing required peaks). For
- *                        charge 1 this is always 1.
- * @param raw             combined raw score (bounded quality x weak peak-count tie-breaker).
- * @param probability     pseudo-probability that this is the major charge (linear share of the raw
- *                        scores of all candidate charges).
+ * @param selfConsistency   requirement that the intermediate (e.g. half-spacing) peaks of a higher
+ *                          charge are present (1 = consistent, lower = missing required peaks). For
+ *                          charge 1 this is always 1.
+ * @param intensityAgreement fraction of the observed intensity that stays within the plausible
+ *                          predicted upper bound (1 = all describable, lower = implausibly large
+ *                          signals present).
+ * @param score             bounded [0,1] quality (carbonFit x coverage x intensityAgreement, gated
+ *                          by selfConsistency for higher charges). This is the value stored on the
+ *                          {@link io.github.mzmine.datamodel.IsotopePattern} to rank charges.
+ * @param raw               combined raw score (bounded quality x weak peak-count tie-breaker).
+ * @param probability       pseudo-probability that this is the major charge (linear share of the raw
+ *                          scores of all candidate charges).
  */
-public record ChargeScore(int charge, double coverage, double carbonFit,
-                          double selfConsistency, double raw, double probability) {
+public record ChargeScore(int charge, double coverage, double carbonFit, double selfConsistency,
+                          double intensityAgreement, double score, double raw, double probability) {
 
 }

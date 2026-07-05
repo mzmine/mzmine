@@ -70,6 +70,10 @@ public class IsotopeFinderEngine {
   private static final double TIE_WEIGHT = 0.1;
   // relative slack applied to the estimated M+1/M bounds in the optional "require 13C" gate
   private static final double C13_RATIO_SLACK = 0.3;
+  // a signal reached only by bridging a gap (not directly adjacent to the kept run) must be at least
+  // this fraction of the base peak to be included, so insignificant noise on the tails does not widen
+  // the pattern. Contiguous/adjacent signals are always kept to preserve complete isotope envelopes.
+  private static final double MIN_BRIDGED_REL_INTENSITY = 0.005;
 
   private final int maxCharge;
   private final MZTolerance tol;
@@ -109,20 +113,15 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Assemble the per-charge patterns (ordered best first) into a single {@link IsotopePattern},
-   * forcing the winner to the front so it is the preferred pattern (works around the size-based
-   * re-sort in {@link MultiChargeStateIsotopePattern}).
+   * Assemble the per-charge patterns into a single {@link IsotopePattern}. Each pattern carries its
+   * quality {@link IsotopePattern#getScore() score}, so {@link MultiChargeStateIsotopePattern} orders
+   * them best (highest score) first and exposes the winner as the preferred pattern.
    */
   public static @NotNull IsotopePattern assemble(@NotNull final List<IsotopePattern> bestFirst) {
     if (bestFirst.size() == 1) {
       return bestFirst.getFirst();
     }
-    final MultiChargeStateIsotopePattern multi = new MultiChargeStateIsotopePattern(
-        bestFirst.getLast());
-    for (int i = bestFirst.size() - 2; i >= 0; i--) {
-      multi.addPattern(bestFirst.get(i), true); // insert at front, no re-sort
-    }
-    return multi;
+    return new MultiChargeStateIsotopePattern(bestFirst);
   }
 
   /**
@@ -187,11 +186,13 @@ public class IsotopeFinderEngine {
       if (first || prob >= ALT_THRESHOLD) {
         final String desc = String.format("IsotopeFinder z=%d p=%.2f %s", e.charge(), prob,
             modeLabel);
-        patterns.add(
-            new SimpleIsotopePattern(e.keptCandidates(), e.charge(), IsotopePatternStatus.DETECTED,
-                desc));
+        // pattern score reflects intensity agreement (for display/sorting) without influencing the
+        // charge selection above, which stays on the reliable carbon-fit-based raw score
+        final double patternScore = e.quality() * e.intensityAgreement();
+        patterns.add(new SimpleIsotopePattern(e.keptCandidates(), e.charge(), patternScore,
+            IsotopePatternStatus.DETECTED, desc));
         scores.add(new ChargeScore(e.charge(), e.coverage(), e.carbonFit(), e.selfConsistency(),
-                e.raw(), prob));
+            e.intensityAgreement(), patternScore, e.raw(), prob));
         if (first) {
           bestCharge = e.charge();
         }
@@ -270,7 +271,10 @@ public class IsotopeFinderEngine {
 
     // envelope-shape-aware termination -> keep the supported, bridgeable run of offsets (both
     // directions from the base), so the inclusive pattern keeps heavy isotopes and fine structure.
-    final Set<Integer> keptOffsets = computeKeptOffsets(observed, env, placement);
+    // Insignificant signals reached only by bridging a gap are dropped so the pattern does not span
+    // too wide over noise; contiguous signals are always kept.
+    final double baseIntensity = base.getIntensity();
+    final Set<Integer> keptOffsets = computeKeptOffsets(observed, env, placement, baseIntensity);
     final List<DataPoint> kept = new ArrayList<>();
     for (final DataPoint dp : candidates) {
       final int offset = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
@@ -282,10 +286,29 @@ public class IsotopeFinderEngine {
       kept.addAll(candidates);
     }
 
+    // intensity agreement: fraction of the observed intensity that stays within the plausible upper
+    // bound of the predicted envelope (signals within the bound, incl. heavy isotopes, add no
+    // penalty). This feeds the stored/sorting pattern score only, NOT the charge selection below,
+    // because the averagine upper bound cannot reliably bound heavy-halogen envelopes. Bounded [0,1].
+    double excess = 0d;
+    double totalRel = 0d;
+    for (final int k : keptOffsets) {
+      final OffsetPeak peak = observed.get(k);
+      if (peak == null) {
+        continue;
+      }
+      final double relObs = peak.intensity() / baseIntensity;
+      final double predUpper = env.upperBoundAt(k + placement);
+      excess += Math.max(0d, relObs - predUpper);
+      totalRel += relObs;
+    }
+    final double intensityAgreement = totalRel > 0d ? Math.max(0d, 1d - excess / totalRel) : 1d;
+
     final int observedCount = keptOffsets.size();
     // bounded [0,1] quality (carbon fit x coverage), gated by self-consistency for higher charges so
-    // a higher charge whose intermediate peaks are absent cannot win. observedCount enters only as a
-    // weak multiplicative tie-breaker, letting a genuine higher charge edge out a lower one on ties.
+    // a higher charge whose intermediate peaks are absent cannot win. This drives the charge
+    // selection. observedCount enters only as a weak multiplicative tie-breaker, letting a genuine
+    // higher charge edge out a lower one on ties.
     double quality = carbonFit.score() * coverage;
     if (z > 1) {
       quality *= selfConsistency;
@@ -295,8 +318,8 @@ public class IsotopeFinderEngine {
       raw = 0d;
     }
 
-    return new ChargeEval(z, raw, coverage, carbonFit.score(), selfConsistency,
-        kept.toArray(new DataPoint[0]));
+    return new ChargeEval(z, raw, quality, coverage, carbonFit.score(), selfConsistency,
+        intensityAgreement, kept.toArray(new DataPoint[0]));
   }
 
   /**
@@ -394,7 +417,7 @@ public class IsotopeFinderEngine {
   }
 
   private Set<Integer> computeKeptOffsets(@NotNull final TreeMap<Integer, OffsetPeak> observed,
-      @NotNull final IsotopeEnvelope env, final int placement) {
+      @NotNull final IsotopeEnvelope env, final int placement, final double baseIntensity) {
     final Set<Integer> kept = new HashSet<>();
     if (observed.isEmpty()) {
       return kept;
@@ -404,14 +427,16 @@ public class IsotopeFinderEngine {
     final int maxObs = observed.lastKey();
     final int minObs = observed.firstKey();
 
-    // extend upward, bridging gaps only when the envelope still supports a peak ahead
+    // extend upward, bridging gaps only when the envelope still supports a peak ahead and the
+    // bridged (gap-crossing) signal is significant, so insignificant noise does not widen the pattern
     int current = 0;
     boolean advanced = true;
     while (advanced) {
       advanced = false;
       for (int k = current + 1; k <= current + HORIZON && k <= maxObs; k++) {
-        if (observed.containsKey(k) && (k == current + 1
-            || env.upperBoundAt(k + placement) >= ENGINE_CUTOFF)) {
+        if (observed.containsKey(k) && (k == current + 1 || (
+            env.upperBoundAt(k + placement) >= ENGINE_CUTOFF && significant(observed.get(k),
+                baseIntensity)))) {
           kept.add(k);
           current = k;
           advanced = true;
@@ -425,8 +450,9 @@ public class IsotopeFinderEngine {
     while (advanced) {
       advanced = false;
       for (int k = current - 1; k >= current - HORIZON && k >= minObs; k--) {
-        if (observed.containsKey(k) && (k == current - 1
-            || env.upperBoundAt(k + placement) >= ENGINE_CUTOFF)) {
+        if (observed.containsKey(k) && (k == current - 1 || (
+            env.upperBoundAt(k + placement) >= ENGINE_CUTOFF && significant(observed.get(k),
+                baseIntensity)))) {
           kept.add(k);
           current = k;
           advanced = true;
@@ -435,6 +461,17 @@ public class IsotopeFinderEngine {
       }
     }
     return kept;
+  }
+
+  /**
+   * @return whether the observed peak reaches {@link #MIN_BRIDGED_REL_INTENSITY} relative to the
+   * base peak. Used to reject insignificant signals that would only be reached by bridging a gap.
+   */
+  private boolean significant(@Nullable final OffsetPeak peak, final double baseIntensity) {
+    if (peak == null || baseIntensity <= 0d) {
+      return true;
+    }
+    return peak.intensity() / baseIntensity >= MIN_BRIDGED_REL_INTENSITY;
   }
 
   private List<DataPoint> normalizeImsIntensities(@NotNull final List<DataPoint> candidates,
@@ -459,8 +496,9 @@ public class IsotopeFinderEngine {
     return out;
   }
 
-  private record ChargeEval(int charge, double raw, double coverage, double carbonFit,
-                            double selfConsistency, DataPoint[] keptCandidates) {
+  private record ChargeEval(int charge, double raw, double quality, double coverage,
+                            double carbonFit, double selfConsistency, double intensityAgreement,
+                            DataPoint[] keptCandidates) {
 
   }
 

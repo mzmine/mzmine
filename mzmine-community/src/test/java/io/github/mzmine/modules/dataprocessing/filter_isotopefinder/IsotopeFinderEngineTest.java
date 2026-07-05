@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
@@ -840,5 +841,60 @@ class IsotopeFinderEngineTest {
 
   private static double baseHeight(final MassSpectrum s) {
     return s.getIntensityValue(baseIndex(s));
+  }
+
+  @Test
+  void detectedPatternCarriesFiniteScore() {
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final DetectionResult r = engine(elements, 3).detect(ladder(500.0, 1, 36, 6), 500.0, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(r);
+    final double score = r.patterns().get(0).getScore();
+    assertTrue(!Double.isNaN(score) && score > 0d && score <= 1.0001,
+        "pattern score should be a finite (0,1] value but was " + score);
+    assertEquals(r.scores().get(0).score(), score, 1e-9,
+        "ChargeScore.score should match the stored pattern score");
+  }
+
+  @Test
+  void multiChargePatternSortedByScoreBestFirst() {
+    // [M+H]+ and [2M+2H]2+ overlap at the same monoisotopic m/z -> both charges flagged
+    final List<Element> elements = List.of(new Element("C"), new Element("H"));
+    final SimpleMassSpectrum monomer = ladder(500.0, 1, 40, 5);
+    final SimpleMassSpectrum dimer = ladder(500.0, 2, 80, 9);
+    final DetectionResult r = engine(elements, 2).detect(combine(monomer, dimer), 500.0, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(r);
+    org.junit.jupiter.api.Assumptions.assumeTrue(r.patterns().size() >= 2);
+    final IsotopePattern assembled = IsotopeFinderEngine.assemble(r.patterns());
+    assertTrue(assembled instanceof MultiChargeStateIsotopePattern);
+    final List<IsotopePattern> ordered = ((MultiChargeStateIsotopePattern) assembled).getPatterns();
+    for (int i = 1; i < ordered.size(); i++) {
+      assertTrue(ordered.get(i - 1).getScore() >= ordered.get(i).getScore(),
+          "assembled patterns must be ordered by score, best first");
+    }
+    assertEquals(assembled.getScore(), ordered.get(0).getScore(), 1e-9,
+        "the multi pattern exposes the best (preferred) pattern score");
+  }
+
+  @Test
+  void insignificantBridgedPeakIsTrimmed() {
+    // Br M+2 bridges the (absent) 13C M+1 gap. When significant it is retained; when it is only noise
+    // (0.2 % of the base) it must be trimmed instead of widening the pattern.
+    final List<Element> elements = List.of(new Element("C"), new Element("Br"));
+    final double mono = 500.0;
+    final double m2 = mono + 1.99795;
+
+    final DetectionResult keep = engine(elements, 2).detect(
+        spec(new double[]{mono, m2}, new double[]{100d, 97d}), mono, 100d, PolarityType.POSITIVE);
+    assertNotNull(keep);
+    assertTrue(containsMz(keep.patterns().get(0), m2),
+        "a significant bridged Br M+2 should be retained");
+
+    final DetectionResult drop = engine(elements, 2).detect(
+        spec(new double[]{mono, m2}, new double[]{100d, 0.2d}), mono, 100d, PolarityType.POSITIVE);
+    final boolean present = drop != null && containsMz(drop.patterns().get(0), m2);
+    assertTrue(!present, "an insignificant bridged M+2 should be trimmed out of the pattern");
   }
 }
