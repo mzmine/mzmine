@@ -94,7 +94,7 @@ public final class CompoundRowUtils {
     }
     if (!found) {
       logger.warning(() -> "Row typedId=" + newRepresentativeId + " is not a member of compound id="
-              + compound.getCompoundId() + "; cannot set as representative");
+          + compound.getCompoundId() + "; cannot set as representative");
       return false;
     }
     final CompoundMembers next = new CompoundMembers(newRepresentative, List.copyOf(updated),
@@ -458,6 +458,10 @@ public final class CompoundRowUtils {
    * @param compoundRowFilter keep predicate applied to nested compound members, or {@code null} to
    *                          keep all. The caller applies it to {@code src} itself (top-level
    *                          rows).
+   * @param rowMapping        mapping function applied to each member's feature row, or {@code null}
+   *                          when the row was removed. This means that the original
+   *                          {@link FeatureListRow} are already copied before calling this method
+   *                          to allow copying members of compound rows.
    * @return the copied compound row, or {@code null} if no member survived (the compound is
    * dropped)
    */

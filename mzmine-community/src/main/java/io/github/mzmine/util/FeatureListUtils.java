@@ -774,7 +774,10 @@ public class FeatureListUtils {
    *
    * @param sourceTopRows     top-level compound rows of the source compound list
    * @param target            feature list the new compound list is attached to
-   * @param rowMapping        old member feature row → new feature row, or {@code null} if removed
+   * @param rowMapping        mapping function applied to each member's feature row, or {@code null}
+   *                          when the row was removed. This means that the original
+   *                          {@link FeatureListRow} are already copied before calling this method
+   *                          to allow copying members of compound rows.
    * @param compoundRowFilter keep predicate for top-level compound rows, or {@code null} to keep
    *                          all
    * @param storage           memory map storage for the new compound list schemas

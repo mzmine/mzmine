@@ -69,6 +69,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
@@ -116,19 +117,19 @@ public class RowsFilterParameters extends SimpleParameterSet {
       false);
 
   public static final OptionalParameter<IndexRangesParameter> ROW_ID_FILTER = new OptionalParameter<>(
-      new IndexRangesParameter("Row IDs", """
+      new IndexRangesParameter("Feature row IDs", """
           Filter by feature list row IDs. \
           Provide a list of single indices and ranges, e.g., 1,5-6 or 1,5,6.
-          This is a strong filter overwriting all other exceptions like "%s".""".formatted(
-          KEEP_ALL_ANNOTATED.getName())), false);
+          This is a strong filter that cannot be combined with other filters only with the Compound IDs filter."""),
+      false);
 
   public static final OptionalParameter<IndexRangesParameter> COMPOUND_ID_FILTER = new OptionalParameter<>(
       new IndexRangesParameter("Compound IDs", """
           Filter by compound IDs assigned by the compound grouping step. \
           Only compound rows carry a compound ID. \
           Provide a list of single indices and ranges, e.g., 1,5-6 or 1,5,6.
-          This is a strong filter overwriting all other exceptions like "%s".""".formatted(
-          KEEP_ALL_ANNOTATED.getName())), false);
+          This is a strong filter that cannot be combined with other filters only with the Feature row IDs filter."""),
+      false);
 
   public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
       new MZRangeParameter(), false);
@@ -227,6 +228,44 @@ public class RowsFilterParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    final boolean state = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+
+    if (!(getValue(COMPOUND_ID_FILTER) || getValue(ROW_ID_FILTER))) {
+      return state;
+    }
+
+    // ID filters are strong filters and cannot be combined with other because this would lead to
+    // unclear behavior
+    boolean otherFilterActive = false;
+    for (Parameter<?> parameter : parameters) {
+      if (parameter.getName().equals(COMPOUND_ID_FILTER.getName()) || //
+          parameter.getName().equals(ROW_ID_FILTER.getName())) {
+        continue;
+      }
+
+      try {
+        // covers BooleanParameter, OptionalModuleParameter and OptionalParameter and more
+        final Object value = parameter.getValue();
+        if (value instanceof Boolean b) {
+          otherFilterActive = b;
+        }
+      } catch (Exception e) {
+      }
+
+      if (otherFilterActive) {
+        final String msg = """
+            Cannot combine feature row ID or compound ID filters with other filters, as this leads to unclear behavior. \
+            If you need to run another filter, run this step again and split the filters.""";
+        errorMessages.add(msg);
+        return false;
+      }
+    }
+    return state;
+  }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {

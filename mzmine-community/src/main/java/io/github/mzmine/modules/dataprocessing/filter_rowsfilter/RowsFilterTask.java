@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumSamplesFilter;
@@ -61,9 +62,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -316,7 +319,7 @@ public class RowsFilterTask extends AbstractTask {
 
     // if keep is selected we remove rows on failed criteria
     // otherwise we remove those that match all criteria
-    boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
+    boolean keepMatching = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     // capture the source compound list before any row mutation; the filtered feature list gets a
     // remapped copy at the end so the compound grouping is not lost. oldToNew maps each surviving
@@ -336,12 +339,22 @@ public class RowsFilterTask extends AbstractTask {
       return null;
     }
 
+    final CompoundList compoundList = featureList.getCompoundList();
+    if (compoundIdRanges != null && compoundList == null) {
+      error(
+          "Compound IDs filter is active but compound list is missing. Run %s module first.".formatted(
+              CompoundGrouperModule.NAME));
+      return null;
+    }
+
+    final boolean hasStrongIdFilter = rowIdRanges != null || compoundIdRanges != null;
+
     // Filter rows.
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
     // requires copy of rows as there is no efficient way to remove rows from the list
-    // the use setAll
-    final ArrayList<FeatureListRow> rowsToAdd = new ArrayList<>((int) (totalRows * 0.75));
+    // use set to drop duplicates
+    final Set<FeatureListRow> rowsToAdd = LinkedHashSet.newLinkedHashSet((int) (totalRows * 0.75));
 
     // keep track of index
     int rowIndex = -1;
@@ -350,6 +363,16 @@ public class RowsFilterTask extends AbstractTask {
 
       if (isCanceled()) {
         return null;
+      }
+
+      if (hasStrongIdFilter) {
+        if (rowIdRanges != null && rowIdRanges.contains(row.getID()) == keepMatching) {
+          rowsToAdd.add(row);
+        }
+        // skip other filters, they are disallowed by the check parameters
+        // id filters are strong and combination would be unclear
+        processedRows++;
+        continue;
       }
 
       final boolean allGcEiMS = row.streamFeatures().map(ModularFeature::getAllMS2FragmentScans)
@@ -362,18 +385,10 @@ public class RowsFilterTask extends AbstractTask {
       final boolean rescued =
           (!allGcEiMS && keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated);
 
-      // The row-ID filter is a strong filter: it respects the keep/remove choice (it is a normal
-      // criterion in isFilterRowCriteriaFailed) and additionally overrides the rescue above. In
-      // keep mode a non-matching id, in remove mode a matching id, blocks the rescue so the row is
-      // removed even when it has MS2 or is annotated.
-      final boolean idFilterBlocksRescue =
-          rowIdRanges != null && rowIdRanges.contains(row.getID()) != removeFailed;
-
       // Keep rows matching all criteria (keep mode) or failing any criterion (remove mode); a
-      // rescued row is kept unless the strong row-ID filter blocks the rescue.
+      // rescued row is kept
       boolean keepRow =
-          (rescued && !idFilterBlocksRescue) || (isFilterRowCriteriaFailed(row, rowIndex, hasMS2)
-              != removeFailed);
+          rescued || (isFilterRowCriteriaFailed(row, rowIndex, hasMS2) != keepMatching);
       if (keepRow) {
         rowsToAdd.add(row);
       }
@@ -381,14 +396,22 @@ public class RowsFilterTask extends AbstractTask {
       processedRows++;
     }
 
+    // compound row filter will need to add all rows that are in a compound
+    if (compoundIdRanges != null) {
+      for (ModularCompoundRow comp : compoundList.getRows()) {
+        if (compoundIdRanges.contains(comp.getCompoundId()) == keepMatching) {
+          rowsToAdd.addAll(comp.getMemberRows());
+        }
+      }
+    }
+
     final ModularFeatureList newFeatureList;
     if (processInCurrentList) {
       newFeatureList = (ModularFeatureList) featureList;
-      rowsToAdd.trimToSize();
-      newFeatureList.setRowsApplySort(rowsToAdd);
+      newFeatureList.setRowsApplySort(rowsToAdd.toArray(FeatureListRow[]::new));
       if (renumber) {
-        for (int i = 0; i < rowsToAdd.size(); i++) {
-          rowsToAdd.get(i).set(IDType.class, i + 1);
+        for (int i = 0; i < newFeatureList.getNumberOfRows(); i++) {
+          newFeatureList.getRow(i).set(IDType.class, i + 1);
         }
       }
       if (oldToNew != null) {
@@ -406,15 +429,17 @@ public class RowsFilterTask extends AbstractTask {
       newFeatureList = FeatureListUtils.createCopyWithoutRows(featureList, suffix,
           getMemoryMapStorage(), totalRows, totalFeatures);
       // add rows to new list
-      for (int i = 0; i < rowsToAdd.size(); i++) {
-        var row = rowsToAdd.get(i);
+      int index = 0;
+      for (FeatureListRow row : rowsToAdd) {
+        index++;
         ModularFeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? i + 1 : row.getID(), (ModularFeatureListRow) row, true);
+            renumber ? index : row.getID(), (ModularFeatureListRow) row, true);
         newFeatureList.addRow(resetRow);
         if (oldToNew != null) {
           oldToNew.put(row, resetRow);
         }
       }
+      newFeatureList.setRowsApplySort(rowsToAdd.toArray(FeatureListRow[]::new));
     }
 
     // transfer a remapped copy of the compound list (if any) to the filtered feature list. Members
@@ -423,7 +448,7 @@ public class RowsFilterTask extends AbstractTask {
     // keep/remove choice: keep mode keeps matching compound ids, remove mode keeps non-matching.
     if (srcCompoundList != null && !srcCompoundRows.isEmpty()) {
       final Predicate<ModularCompoundRow> compoundIdFilter = compoundIdRanges == null ? null
-          : cr -> compoundIdRanges.contains(cr.getCompoundId()) == removeFailed;
+          : cr -> compoundIdRanges.contains(cr.getCompoundId()) == keepMatching;
       final CompoundList newCompoundList = FeatureListUtils.copyCompoundList(srcCompoundRows,
           newFeatureList, oldToNew::get, compoundIdFilter, getMemoryMapStorage());
       newFeatureList.setCompoundList(newCompoundList);
