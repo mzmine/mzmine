@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ import java.util.Map.Entry;
  *
  * @author Robin Schmid
  */
-public class R2RFullCorrelationData extends R2RCorrelationData {
+public final class R2RFullCorrelationData extends R2RCorrelationData {
 
   // correlation of all data points in one total correlation
   private CorrelationData corrTotal;
@@ -271,4 +271,7 @@ public class R2RFullCorrelationData extends R2RCorrelationData {
     return hasHeightCorr() ? heightCorr.getPearsonR() : 0;
   }
 
+  public R2RSimpleCorrelationData toSimpleCorrelationData() {
+    return new R2RSimpleCorrelationData(this);
+  }
 }

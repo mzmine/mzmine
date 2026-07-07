@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,18 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import io.github.mzmine.util.color.ColorUtils;
+import java.awt.Color;
 import java.util.ArrayList;
 
 /**
@@ -72,6 +77,25 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     MassDetector massDetector = detector.value().createMassDetector(detector.parameters());
 
     double[][] mzValues = massDetector.getMassValues(previewScan);
+
+    // If the detector preprocessed (e.g. smoothed) the intensities, show that series as a line in a
+    // distinct color so the user can see what maximum and edge detection ran on.
+    if (massDetector instanceof PreprocessedIntensitiesProvider provider) {
+      final double[] preprocessedIntensities = provider.getLastPreprocessedIntensities();
+      if (preprocessedIntensities != null
+          && preprocessedIntensities.length == previewScan.getNumberOfDataPoints()) {
+        final double[] mzs = new double[preprocessedIntensities.length];
+        for (int i = 0; i < mzs.length; i++) {
+          mzs[i] = previewScan.getMzValue(i);
+        }
+        final MzIntensityDataSet preprocessedDataSet = new MzIntensityDataSet("Smoothed", mzs,
+            preprocessedIntensities);
+        final Color preprocessedColor = ColorUtils.getContrastPaletteColorAWT(
+            previewScan.getDataFile().getColorAWT(), ConfigService.getDefaultColorPalette());
+        spectrumPlot.addDataSet(preprocessedDataSet, preprocessedColor, false,
+            new ContinuousRenderer(preprocessedColor, false), false, true);
+      }
+    }
 
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 

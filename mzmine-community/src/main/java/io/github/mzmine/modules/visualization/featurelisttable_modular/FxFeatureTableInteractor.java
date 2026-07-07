@@ -94,7 +94,9 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
     PropertyUtils.onChange(this::updateFilterPrompts, model.rowsMzRangeProperty(),
         model.rowsRetentionTimeRangeProperty());
 
+    // re-apply when either the parsed filter or the "filter children" flag changes
     model.getFilterModel().combinedRowFilterProperty().subscribe(this::applyRowsFilter);
+    model.getFilterModel().filterChildrenProperty().subscribe(this::applyRowsFilter);
 
     // bidirectional bind: toggle in filter menu ↔ compound row selection on the table
     model.getFeatureTable().compoundRowSelectionProperty()
@@ -341,13 +343,16 @@ public class FxFeatureTableInteractor extends FxInteractor<FxFeatureTableModel> 
     }
   }
 
-  private void applyRowsFilter(@Nullable TableFeatureListRowFilter filter) {
+  private void applyRowsFilter() {
+    final FxFeatureTableFilterMenuModel filterModel = model.getFilterModel();
+    final TableFeatureListRowFilter filter = filterModel.getCombinedRowFilter();
+    final boolean filterChildren = filterModel.isFilterChildren();
     // clear selection before changing predicate to avoid stale indices in the
     // TreeTableView selection model (leads to IndexOutOfBoundsException on sort)
     final FeatureListRow row = model.getFeatureTable().getSelectedRow();
     model.getFeatureTable().getSelectionModel().clearSelection();
-    model.getFilteredRowItems()
-        .setPredicate(item -> filter == null || filter.test(item.getValue()));
+    // tree-aware filtering: top-level + member children, RT only on top level
+    model.getFeatureTable().applyTreeRowFilter(filter, filterChildren);
     if (row != null) {
       // try to re-select and scroll if the previously selected row is still in the filtered items.
       FeatureTableFXUtil.selectAndScrollTo(row, model.getFeatureTable());
