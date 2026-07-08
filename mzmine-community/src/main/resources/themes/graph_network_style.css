@@ -28,7 +28,7 @@ edge.FEATURECORR {
 edge.COSINE {
   size-mode: dyn-size;
   fill-mode: dyn-plain;
-  fill-color: #8be4ff, #008eff, #19475d, #0d3549;
+  fill-color: #8be4ff, #008eff, #1748a2, #0b2698;
 }
 edge.DreaMS {
   size-mode: dyn-size;
@@ -40,10 +40,17 @@ edge.MS2Deepscore {
   fill-mode: dyn-plain;
   fill-color: #c58bff, #f700ff, #5b195d, #490d38;
 }
+edge.STRUCTURE_TANIMOTO {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #ffe519, #ffa63e, #da7e0e, #b96a0f;
+  /*stroke-width: 1.5px;*/
+  /*stroke-mode: dots;*/
+}
 edge.OTHER {
   size-mode: dyn-size;
   fill-mode: dyn-plain;
-  fill-color: #ffe519, #ffa63e, #da7e0e, #885313, #492d0d;
+  fill-color: #b6e3c6, #57c785, #2a9d5c, #14532d;
 }
 
 edge.ANALOG_MS2Deepscore {

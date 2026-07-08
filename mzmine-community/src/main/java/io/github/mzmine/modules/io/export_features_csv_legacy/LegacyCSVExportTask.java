@@ -511,11 +511,6 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           }
           line.append(numDetected).append(fieldSeparator);
           break;
-        case ROW_CORR_GROUP_ID:
-          int gid = featureListRow.getGroupID();
-          line.append(gid == -1 ? "" : gid).append(fieldSeparator);
-
-          break;
         case ROW_MOL_NETWORK_ID:
           IonIdentity ion = featureListRow.getBestIonIdentity();
           line.append(ion == null ? "" : ion.getNetID()).append(fieldSeparator);

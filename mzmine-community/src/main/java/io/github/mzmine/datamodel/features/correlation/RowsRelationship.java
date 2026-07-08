@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto.StructureTanimotoNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityTask;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
@@ -86,32 +87,28 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
    *
    * @return the type of this relationship
    */
-  @NotNull
-  String getType();
+  @NotNull String getType();
 
   /**
    * The annotation of this row-2-row relationship
    *
    * @return a string representation of this ralationship
    */
-  @NotNull
-  String getAnnotation();
+  @NotNull String getAnnotation();
 
   /**
    * Row a
    *
    * @return the first row
    */
-  @NotNull
-  FeatureListRow getRowA();
+  @NotNull FeatureListRow getRowA();
 
   /**
    * Row b
    *
    * @return the second row
    */
-  @NotNull
-  FeatureListRow getRowB();
+  @NotNull FeatureListRow getRowB();
 
   default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
     if (getRowA().equals(correlatedRow)) {
@@ -158,15 +155,17 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
     /**
      *
      */
-    MS2Deepscore,
-    DREAMS,
+    MS2Deepscore, DREAMS,
     /**
-     * {@link
-     * AnalogSpectralLibrarySearchModule}
-     * Not R2R relationships constructed currently, but we need the enum values for the network
-     * visualizer
+     * {@link AnalogSpectralLibrarySearchModule} Not R2R relationships constructed currently, but we
+     * need the enum values for the network visualizer
      */
     ANALOG_COSINE, ANALOG_DREAMS, ANALOG_MS2DEEPSCORE,
+    /**
+     * Structural (Tanimoto) similarity between the molecular structures of the rows' annotations.
+     * see {@link StructureTanimotoNetworkingTask}
+     */
+    STRUCTURE_TANIMOTO,
     /**
      * External or other undefined
      */
@@ -202,6 +201,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
         case ANALOG_COSINE -> "Analog (Cosine)";
         case ANALOG_DREAMS -> "Analog (DreaMS)";
         case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
+        case STRUCTURE_TANIMOTO -> "Structure (Tanimoto)";
         case OTHER -> "Other";
       };
     }
@@ -221,6 +221,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
         case ANALOG_COSINE -> "analog_cosine";
         case ANALOG_DREAMS -> "analog_dreams";
         case ANALOG_MS2DEEPSCORE -> "analog_ms2_deepscore";
+        case STRUCTURE_TANIMOTO -> "structure_tanimoto";
         case OTHER -> "other";
       };
     }

@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract sealed class InternalTypedRowsRelationship extends AbstractRowsRelationship permits
     OnlineReactionMatch, R2RCorrelationData, R2RMS2CosineSimilarityGNPS, R2RSimpleSimilarity,
-    R2RSpectralSimilarity {
+    R2RSpectralSimilarity, R2RStructureSimilarity {
 
   private final Type type;
 

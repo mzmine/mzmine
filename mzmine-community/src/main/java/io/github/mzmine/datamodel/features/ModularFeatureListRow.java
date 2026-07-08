@@ -41,11 +41,9 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
@@ -370,16 +368,6 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
   @Override
   public @NotNull ModularFeatureList getFeatureList() {
     return flist;
-  }
-
-  @Override
-  public RowGroup getGroup() {
-    return get(FeatureGroupType.class);
-  }
-
-  @Override
-  public void setGroup(RowGroup group) {
-    set(FeatureGroupType.class, group);
   }
 
   /**
