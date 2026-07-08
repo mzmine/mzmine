@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -282,7 +282,6 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         LegacyExportRowCommonElement.ROW_ION_MOBILITY,
         LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT, LegacyExportRowCommonElement.ROW_CCS,
         // extra for ion identity networking
-        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
         LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
         LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
         LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
