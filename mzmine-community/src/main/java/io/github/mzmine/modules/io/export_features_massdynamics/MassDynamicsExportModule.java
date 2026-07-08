@@ -39,9 +39,9 @@ import org.jetbrains.annotations.Nullable;
 public class MassDynamicsExportModule extends TaskPerFeatureListModule {
 
   public MassDynamicsExportModule() {
-    super("Export for MassDynamics", MassDynamicsExportParameters.class,
+    super("Export for Mass Dynamics", MassDynamicsExportParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false,
-        "Export a feature list MassDynamics metabolites format file (long table) and sample metadata files for MassDynamics.");
+        "Export a feature list Mass Dynamics metabolites format file (long table) and sample metadata files for Mass Dynamics.");
   }
 
   @Override

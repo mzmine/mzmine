@@ -48,7 +48,7 @@ public class MassDynamicsExportParameters extends SimpleParameterSet {
 
   public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
       "Filename",
-      "Base filename for MassDynamics files: metabolite TSV file and experiment metadata file. Use '{}' in the file name to insert the feature list name.");
+      "Base filename for Mass Dynamics files: metabolite TSV file and experiment metadata file. Use '{}' in the file name to insert the feature list name.");
 
   public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter(
       "Abundance measure", "Feature abundance written to the MetaboliteIntensity column.",
@@ -57,7 +57,7 @@ public class MassDynamicsExportParameters extends SimpleParameterSet {
   public static final MissingValueImputationParameter missingValueImputation = new MissingValueImputationParameter();
 
   public static final MetadataGroupingParameter conditionColumn = new MetadataGroupingParameter(
-      "Condition metadata column", "Metadata column mapped to the MassDynamics condition column.",
+      "Condition metadata column", "Metadata column mapped to the Mass Dynamics condition column.",
       MetadataColumn.SAMPLE_TYPE_HEADER);
 
   public static final OptionalParameter<StringParameter> defaultCondition = new OptionalParameter<>(
