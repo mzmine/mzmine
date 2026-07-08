@@ -23,29 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.correlation;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 
-public abstract sealed class InternalTypedRowsRelationship extends AbstractRowsRelationship permits
-    OnlineReactionMatch, R2RCorrelationData, R2RMS2CosineSimilarityGNPS, R2RSimpleSimilarity,
-    R2RSpectralSimilarity, R2RStructureSimilarity {
+public class StructureTanimotoNetworkingModule implements MZmineModule {
 
-  private final Type type;
+  public static final String NAME = "Structure similarity (Tanimoto)";
 
-  public InternalTypedRowsRelationship(FeatureListRow a, FeatureListRow b, final Type type) {
-    super(a, b);
-    this.type = type;
+  @Override
+  public @NotNull String getName() {
+    return NAME;
   }
 
-  @NotNull
-  public String getType() {
-    return type.toString();
-  }
-
-  public Type getInternalType() {
-    return type;
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return StructureTanimotoNetworkingParameters.class;
   }
 
 }
