@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 public enum LegacyExportRowCommonElement {
 
   ROW_ID("Export row ID"), //
+  ROW_COMPOUND_ID("Export compound ID"), //
   ROW_MZ("Export row m/z"), //
   ROW_RT("Export row retention time"), //
   ROW_ION_MOBILITY("Export row ion mobility"), //
@@ -38,7 +39,6 @@ public enum LegacyExportRowCommonElement {
   ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
   ROW_COMMENT("Export row comment"), //
   ROW_FEATURE_NUMBER("Export row number of detected features"), //
-  ROW_CORR_GROUP_ID("Export correlation group ID"), //
   ROW_MOL_NETWORK_ID("Export annotation network number"), //
   ROW_BEST_ANNOTATION("Export best ion annotation"), //
   ROW_BEST_ANNOTATION_AND_SUPPORT("Export best ion annotation (+support)"), //

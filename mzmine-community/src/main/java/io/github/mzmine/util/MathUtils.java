@@ -506,6 +506,20 @@ public class MathUtils {
     return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;
   }
 
+  /**
+   * fast euclidean algorithm for GCD
+   *
+   * @return the GCD as in gcd(2,6)=2, gcd(2, 5)=1
+   */
+  public static int greatestCommonDivisor(int a, int b) {
+    while (b != 0) {
+      int temp = b;
+      b = a % b;
+      a = temp;
+    }
+    return a;
+  }
+
   @Nullable
   public static Float max(@Nullable Float a, @Nullable Float b) {
     if (a == null && b == null) {

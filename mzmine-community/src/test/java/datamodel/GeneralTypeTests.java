@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,11 +37,12 @@ import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RIRecordType;
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.PeakShapeClassificationType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -49,7 +50,6 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorPurityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CvType;
-import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -138,8 +138,6 @@ public class GeneralTypeTests {
     simpleDataTypeSaveLoadTest(type, stats);
     simpleDataTypeSaveLoadTest(type, null);
   }
-
-  // todo FeatureGroupType
 
   @Test
   void featureInformationTypeTest() {

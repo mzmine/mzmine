@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,28 +108,4 @@ public class TDFPasefFrameMsMsInfoTable extends TDFDataTable<Long> {
         precursorIdColumn
     ));
   }
-
-  /**
-   *
-   * @param frame
-   * @param brukerScanNum Bruker layout!
-   * @return the precursor id or -1;
-   */
-  public int getPrecursorIdAtScan(long frame, long brukerScanNum) {
-    int index = 0;
-    for (; index < getColumn(FRAME_ID).size(); index++) {
-      if (frameIdColumn.get(index) == frame
-          && scanNumBeginColumn.get(index) <= brukerScanNum
-          && scanNumEndColumn.get(index) > brukerScanNum) {
-        return precursorIdColumn.get(index).intValue();
-      } else if (frameIdColumn.get(index) > frame) {
-        break;
-      }
-    }
-    return -1;
-  }
-
-
-
-
 }

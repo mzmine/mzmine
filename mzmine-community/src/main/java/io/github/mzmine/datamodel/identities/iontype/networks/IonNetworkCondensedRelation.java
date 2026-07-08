@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,8 @@
 package io.github.mzmine.datamodel.identities.iontype.networks;
 
 
-import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import java.util.List;
 
 /**
  * Relationship between two IonNetworks: 2a --> b - H2O (condensation reaction)
@@ -40,20 +38,10 @@ public class IonNetworkCondensedRelation extends AbstractIonNetworkRelation {
   private final IonNetwork monomer;
   private final IonNetwork condensedMultimer;
   // marker if one network is condensed of the other
-  private final IonModification multimerModification;
+  private final IonType multimerModification;
 
   public IonNetworkCondensedRelation(IonNetwork monomer, IonNetwork condensedMultimer,
-      List<IonModification> mods) {
-    this(monomer, condensedMultimer, CombinedIonModification.create(mods));
-  }
-
-  public IonNetworkCondensedRelation(IonNetwork monomer, IonNetwork condensedMultimer,
-      IonModification[] mods) {
-    this(monomer, condensedMultimer, CombinedIonModification.create(mods));
-  }
-
-  public IonNetworkCondensedRelation(IonNetwork monomer, IonNetwork condensedMultimer,
-      IonModification mod) {
+      IonType mod) {
     if (monomer.getNeutralMass() < condensedMultimer.getNeutralMass()) {
       this.monomer = monomer;
       this.condensedMultimer = condensedMultimer;
@@ -65,7 +53,7 @@ public class IonNetworkCondensedRelation extends AbstractIonNetworkRelation {
     multimerModification = mod;
   }
 
-  public IonModification getMods() {
+  public IonType getMods() {
     return multimerModification;
   }
 
@@ -89,7 +77,7 @@ public class IonNetworkCondensedRelation extends AbstractIonNetworkRelation {
   @Override
   public String getDescription() {
     return "condensation (2X→XX+H₂O) " + (multimerModification != null
-        ? multimerModification.parseName() : "");
+        ? multimerModification.toString() : "");
   }
 
   @Override

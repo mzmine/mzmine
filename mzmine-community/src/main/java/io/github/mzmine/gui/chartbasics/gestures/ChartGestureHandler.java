@@ -163,7 +163,8 @@ public class ChartGestureHandler {
       for (int i = 0; i < consumer.length; i++) {
         consumer[i] = createDragDiffConsumer(handler[i], param);
       }
-      return new ChartGestureDragDiffHandler(entity, button, key, consumer);
+      final Orientation defaultOrientation = orient == null ? Orientation.HORIZONTAL : orient;
+      return new ChartGestureDragDiffHandler(entity, button, key, consumer, defaultOrientation);
     } catch (Exception e) {
       e.printStackTrace();
       return null;

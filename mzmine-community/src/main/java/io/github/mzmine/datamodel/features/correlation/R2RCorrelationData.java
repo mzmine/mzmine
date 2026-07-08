@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,8 @@ import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
  *
  * @author Robin Schmid
  */
-public abstract class R2RCorrelationData extends InternalTypedRowsRelationship {
+public abstract sealed class R2RCorrelationData extends InternalTypedRowsRelationship permits
+    R2RFullCorrelationData, R2RSimpleCorrelationData {
 
   public R2RCorrelationData(FeatureListRow a, FeatureListRow b) {
     super(a, b, Type.MS1_FEATURE_CORR);

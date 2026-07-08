@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
@@ -48,11 +49,14 @@ import java.time.Instant;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import org.jetbrains.annotations.NotNull;
@@ -139,6 +143,22 @@ public class ProjectSavingTask extends AbstractTask {
     try {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
+
+      if (Boolean.TRUE.equals(savedProject.isStandalone())
+          && projectType == ProjectSaveOption.REFERENCING) {
+        Optional<ButtonType> result = DialogLoggerUtil.showDialog(AlertType.WARNING,
+            "Project warning",
+            "The project was loaded from a standalone project. Saving as referencing will result in a project that cannot be opened. "
+                + "Do you want to save as referencing project anyway?", ButtonType.YES,
+            ButtonType.NO);
+        // in batch the return is Optional.empty
+        final boolean continueSaving = result.map(ButtonType.YES::equals).orElse(false);
+        if (!continueSaving) {
+          error(
+              "The project was loaded from a standalone project. Saving as referencing will result in a project that cannot be opened. Save as standalone or update the imported project to referencing.");
+          return;
+        }
+      }
 
       switch (projectType) {
         case STANDALONE -> savedProject.setStandalone(true);

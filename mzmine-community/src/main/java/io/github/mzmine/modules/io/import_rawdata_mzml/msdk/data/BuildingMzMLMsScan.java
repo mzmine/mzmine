@@ -296,9 +296,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       Optional<String> cvv1 = getCVValue(MzMLCV.cvHighestMz);
       if (cvv.isEmpty() || cvv1.isEmpty()) {
         // mz values is null if data was not loaded yet
+        // note: mzBinaryDataInfo is cleared after loading (see clearUnusedData()), so use the
+        // decoded array's own length instead
         if (mzValues != null) {
-          mzRange = MsSpectrumUtil.getMzRange(DataPointUtils.getDoubleBufferAsArray(mzValues),
-              getMzBinaryDataInfo().getArrayLength());
+          double[] mzArr = DataPointUtils.getDoubleBufferAsArray(mzValues);
+          mzRange = MsSpectrumUtil.getMzRange(mzArr, mzArr.length);
         }
       } else {
         try {

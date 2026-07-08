@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,9 +32,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.compoundlist.MissingCompoundListException;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -219,6 +221,46 @@ public interface FeatureList {
    */
   default List<FeatureListRow> getRowsCopy() {
     return new ArrayList<>(getRows());
+  }
+
+  /**
+   * Get list of rows depending on which level: Compounds, all major ions (first level), all
+   * isotopes (second level)
+   *
+   * @return unmodifiable view of compound rows.
+   */
+  default @NotNull List<? extends FeatureListRow> getRowsCopy(
+      @NotNull CompoundRowSelection selection) throws MissingCompoundListException {
+    final CompoundList cl = getCompoundList();
+    if (cl != null) {
+      return cl.getRowsCopy(selection);
+    }
+    if (selection == CompoundRowSelection.COMPOUNDS) {
+      throw new MissingCompoundListException(this);
+    }
+
+    // this is used in export modules where we export either all rows or all compounds or just one level
+    return getRowsCopy();
+  }
+
+  /**
+   * Number of rows Get list of rows depending on which level: Compounds, all major ions (first
+   * level), all feature list rows
+   *
+   * @return number of rows (either compound rows
+   */
+  default int getNumberOfCompoundSelectionRows(@NotNull CompoundRowSelection selection)
+      throws MissingCompoundListException {
+    final CompoundList cl = getCompoundList();
+    if (cl != null) {
+      return cl.getNumberOfCompoundRows(selection);
+    }
+    if (selection == CompoundRowSelection.COMPOUNDS) {
+      throw new MissingCompoundListException(this);
+    }
+
+    // this is used in export modules where we export either all rows or all compounds or just one level
+    return getNumberOfRows();
   }
 
   /**
@@ -427,19 +469,6 @@ public interface FeatureList {
   }
 
   /**
-   * List of RowGroups group features based on different methods
-   *
-   * @return
-   */
-  List<RowGroup> getGroups();
-
-  /**
-   * List of RowGroups group features based on different methods
-   */
-  void setGroups(List<RowGroup> groups);
-
-
-  /**
    * Short cut to get the MS1 correlation map of grouped features
    *
    * @return the map for {@link Type#MS1_FEATURE_CORR}
@@ -594,6 +623,22 @@ public interface FeatureList {
    * has changed.
    */
   void setAnnotationSortConfig(@NotNull AnnotationSummarySortConfig annotationSortConfig);
+
+  // --- Structural versioning for compound list invalidation ---
+
+  /**
+   * Incremented on every structural change (add / remove / replace rows).
+   */
+  long getStructuralVersion();
+
+  @Nullable CompoundList getCompoundList();
+
+  void setCompoundList(@Nullable CompoundList cl);
+
+  default boolean hasCompoundList() {
+    final CompoundList cl = getCompoundList();
+    return cl != null && !cl.isStale();
+  }
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

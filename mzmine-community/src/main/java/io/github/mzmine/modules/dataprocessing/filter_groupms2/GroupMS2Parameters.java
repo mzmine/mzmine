@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
@@ -107,11 +106,12 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       new GroupMs2AdvancedParameters(), false);
 
   public GroupMS2Parameters() {
-    super(new Parameter[]{PEAK_LISTS, mzTol, rtFilter, minimumRelativeFeatureHeight,
-            minRequiredSignals, limitMobilityByFeature,
-            // TIMS specific
-            minImsRawSignals, combineTimsMsMs, advancedParameters},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html",
+        PEAK_LISTS, mzTol, rtFilter, minimumRelativeFeatureHeight, minRequiredSignals,
+        limitMobilityByFeature,
+        // TIMS specific
+        minImsRawSignals, combineTimsMsMs, advancedParameters);
   }
 
   @Override

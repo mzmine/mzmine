@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -60,7 +59,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
@@ -85,7 +84,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddGapFillStep(q, null, minRtDataPoints);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, null);
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
@@ -97,9 +96,15 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
 
+    // compound grouping (requires meta correlation + IIN)
+    // for now disabled, might need a different algorithm for DIA and flow injection
+    // maybe only rely on ion identities then
+//    makeAndAddCompoundGrouperStep(q, null);
+
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);
     makeAndAddBatchExportStep(q, isExportActive, exportPath);
+
     return q;
   }
 

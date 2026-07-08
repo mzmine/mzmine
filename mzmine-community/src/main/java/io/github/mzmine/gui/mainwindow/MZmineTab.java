@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -157,11 +157,15 @@ public abstract class MZmineTab extends Tab {
   }
 
   public void setTitle(String title) {
-    titleText.setText(null);
+    titleText.setText(title);
   }
 
   public void setSubTitle(String subTitle) {
     subTitleText.setText(subTitle);
+  }
+
+  public StringProperty titleProperty() {
+    return titleText.textProperty();
   }
 
   public StringProperty subTitleProperty() {

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -37,8 +38,10 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -113,7 +116,7 @@ public interface SpectralLibraryEntry extends MassList {
           yield (T) ion;
         }
         try {
-          final IonType ion = IonTypeParser.parse(v.toString());
+          final IonType ion = IonTypeParser.parseOptional(v.toString()).orElse(null);
           yield (T) ion;
         } catch (Exception e) {
           yield null;
@@ -124,7 +127,8 @@ public interface SpectralLibraryEntry extends MassList {
       case MolecularStructureType _ -> (T) getStructure();
       default -> null;
     };
-    if (value != null) {
+    if (value != null || type instanceof IonTypeType || type instanceof IonAdductType) {
+      // If parsing failed for IonTypeType we must not fall back to the raw field value (often a String).
       return value;
     }
 
@@ -269,10 +273,61 @@ public interface SpectralLibraryEntry extends MassList {
   MolecularStructure getStructure();
 
   /**
+   * @return true if {@link #setStructure(MolecularStructure)} has been called with a parsed
+   * structure since the last edit to SMILES / InChI / InChIKey / IsomericSmiles. When false,
+   * {@link #getFormula()} triggers a best-effort harmonization via {@link #getStructure()} before
+   * returning the mapped value.
+   */
+  boolean isStructureHarmonized();
+
+  /**
    * Isotope pattern is cached and only calculated once on demand. Modules may already calculate the
    * isotope pattern to speed up later use in tables.
    *
    * @return the isotope pattern of the ion formula
    */
   @Nullable IsotopePattern getIsotopePattern();
+
+
+  /**
+   * Sets the structure's internal representations like smiles, inchi, inchikey, formula will be
+   * canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   * <p>
+   * The CDK structure is not kept as it is too memory heavy
+   *
+   * @param structure the structure to set
+   */
+  void setStructure(@Nullable MolecularStructure structure);
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  void clearStructure();
+
+  /**
+   * convenience method to derive additional fields from fields that are present. Recommended to
+   * call this method after retrieving the annotation from an external source.
+   */
+  @Nullable
+  default MolecularStructure enrichMetadata() {
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+
+    try {
+      MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+      if (struc != null) {
+        setStructure(struc);
+      }
+      return struc;
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
+          smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
+    }
+    return null;
+  }
+
 }

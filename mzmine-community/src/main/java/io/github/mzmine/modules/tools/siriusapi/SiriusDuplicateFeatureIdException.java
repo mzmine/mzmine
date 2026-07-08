@@ -26,7 +26,9 @@ package io.github.mzmine.modules.tools.siriusapi;
 
 public class SiriusDuplicateFeatureIdException extends RuntimeException {
 
-  public SiriusDuplicateFeatureIdException(String a) {
-    super("Error while importing feature from Sirius. The external ID %s exists twice. Cannot import.".formatted(a));
+  public SiriusDuplicateFeatureIdException(String a, String b) {
+    super(
+        "Error while importing feature from Sirius. The SIRIUS IDs %s and %s have the same external ID (=mzmine ID). Cannot import.".formatted(
+            a, b));
   }
 }

@@ -29,6 +29,10 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
+import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -36,6 +40,8 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.users.user.CurrentUserService;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +50,7 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
 
   private final ModularFeatureList flist;
   private final String rowIdStr;
+  private final String compoundIdStr;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -58,13 +65,43 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     flist = parameters.getValue(DeleteRowsParameters.flist).getMatchingFeatureLists()[0];
     rowIdStr = parameters.getValue(DeleteRowsParameters.rowIds);
+    compoundIdStr = parameters.getValue(DeleteRowsParameters.compoundIds);
   }
 
   @Override
   protected void process() {
-    final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
-    // batch remove rows
-    flist.removeRows(rows);
+    if (!rowIdStr.isBlank()) {
+      final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
+      // batch remove rows
+      flist.removeRows(rows);
+    }
+
+    if (!compoundIdStr.isBlank()) {
+      final CompoundList cl = flist.getCompoundList();
+      if (cl == null) {
+        throw new IllegalStateException(
+            "Feature list '%s' has no compound list — cannot delete compound rows.".formatted(
+                flist.getName()));
+      }
+      final List<ModularCompoundRow> resolved = new ArrayList<>();
+      for (final String token : Arrays.stream(compoundIdStr.split(",")).map(String::strip)
+          .filter(s -> !s.isEmpty()).toList()) {
+        final int id;
+        try {
+          id = Integer.parseInt(token);
+        } catch (NumberFormatException e) {
+          throw new IllegalStateException(
+              "Invalid compound id '%s' in 'Compound IDs'.".formatted(token));
+        }
+        final ModularCompoundRow cr = cl.findRowByCompoundId(id);
+        if (cr == null) {
+          throw new IllegalStateException(
+              "No compound with id %d in feature list '%s'.".formatted(id, flist.getName()));
+        }
+        resolved.add(cr);
+      }
+      FxThread.runOnFxThreadAndWait(() -> CompoundRowUtils.removeCompoundRows(cl, resolved));
+    }
   }
 
   @Override
@@ -74,12 +111,20 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
+    if (!rowIdStr.isBlank() && !compoundIdStr.isBlank()) {
+      return "Deleting rows %s and compound rows %s from feature list %s.".formatted(rowIdStr,
+          compoundIdStr, flist.getName());
+    }
+    if (!compoundIdStr.isBlank()) {
+      return "Deleting compound rows %s from feature list %s.".formatted(compoundIdStr,
+          flist.getName());
+    }
     return "Deleting rows %s from feature list %s.".formatted(rowIdStr, flist.getName());
   }
 
   @Override
   protected void addAppliedMethod() {
-    SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
+    final SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
         "Manually deleted by user %s".formatted(
             CurrentUserService.getUserName().orElse("NOT LOGGED IN")), getModuleClass(),
         getParameters(), moduleCallDate);

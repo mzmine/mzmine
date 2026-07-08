@@ -25,6 +25,18 @@
 
 package io.github.mzmine.gui.chartbasics.gui.swing;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.DragHandler;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -34,21 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
-
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.DragHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 
 /**
  * Handles all MouseEvents (like a MouseAdapter) and transforms them into {@link ChartGestureEvent}s
@@ -175,17 +173,11 @@ public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMou
 
     if (lastEntity != null && x == lastEntityX && y == lastEntityY)
       return lastEntity;
-    else {
-      ChartRenderingInfo info = chartPanel.getChartRenderingInfo();
-      ChartEntity entity = null;
-      if (info != null) {
-        EntityCollection entities = info.getEntityCollection();
-        if (entities != null) {
-          entity = entities.getEntity(x, y);
-        }
-      }
-      return entity;
-    }
+    final ChartEntity entity = ChartLogics.findChartEntity(chartPanel, e.getX(), e.getY());
+    lastEntity = entity;
+    lastEntityX = x;
+    lastEntityY = y;
+    return entity;
   }
 
   @Override

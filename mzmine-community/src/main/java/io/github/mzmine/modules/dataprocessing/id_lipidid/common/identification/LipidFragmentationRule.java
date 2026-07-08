@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
@@ -32,7 +34,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidParsingUtil
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
-import static io.github.mzmine.util.StringUtils.inQuotes;
 import io.mzio.general.Result;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -49,6 +50,7 @@ public class LipidFragmentationRule {
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_LIPID_FORMULA = "molecularformula";
   private static final String XML_LIPID_FRAGMENTATION_RULE_RATING = "lipidFragmentationRuleRating";
+  private static final String XML_RELATIVE_INTENSITY_WEIGHT = "relativeIntensityWeight";
 
   private final PolarityType polarityType;
   private final IonizationType ionizationType;
@@ -56,12 +58,14 @@ public class LipidFragmentationRule {
   private LipidAnnotationLevel lipidFragmentInformationLevelType;
   private String molecularFormula;
   private LipidFragmentationRuleRating lipidFragmentationRuleRating;
+  private int relativeIntensityWeight;
 
 
   public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType) {
     this.polarityType = polarityType;
     this.ionizationType = ionizationType;
     this.molecularFormula = "";
+    this.relativeIntensityWeight = 0;
   }
 
   public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
@@ -84,6 +88,15 @@ public class LipidFragmentationRule {
 
   public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
       LipidFragmentationRuleType lipidFragmentationRuleType,
+      LipidAnnotationLevel lipidFragmentInformationLevelType, String molecularFormula,
+      int relativeIntensityWeight) {
+    this(polarityType, ionizationType, lipidFragmentationRuleType,
+        lipidFragmentInformationLevelType, molecularFormula);
+    this.relativeIntensityWeight = validateRelativeIntensityWeight(relativeIntensityWeight);
+  }
+
+  public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
+      LipidFragmentationRuleType lipidFragmentationRuleType,
       LipidAnnotationLevel lipidFragmentInformationLevelType,
       LipidFragmentationRuleRating lipidFragmentationRuleRating) {
     this(polarityType, ionizationType, lipidFragmentationRuleType,
@@ -99,6 +112,15 @@ public class LipidFragmentationRule {
         lipidFragmentInformationLevelType);
     this.molecularFormula = molecularFormula;
     this.lipidFragmentationRuleRating = lipidFragmentationRuleRating;
+  }
+
+  public LipidFragmentationRule(PolarityType polarityType, IonizationType ionizationType,
+      LipidFragmentationRuleType lipidFragmentationRuleType,
+      LipidAnnotationLevel lipidFragmentInformationLevelType, String molecularFormula,
+      LipidFragmentationRuleRating lipidFragmentationRuleRating, int relativeIntensityWeight) {
+    this(polarityType, ionizationType, lipidFragmentationRuleType,
+        lipidFragmentInformationLevelType, molecularFormula, lipidFragmentationRuleRating);
+    this.relativeIntensityWeight = validateRelativeIntensityWeight(relativeIntensityWeight);
   }
 
   public PolarityType getPolarityType() {
@@ -123,6 +145,10 @@ public class LipidFragmentationRule {
 
   public LipidFragmentationRuleRating getLipidFragmentationRuleRating() {
     return lipidFragmentationRuleRating;
+  }
+
+  public int getRelativeIntensityWeight() {
+    return relativeIntensityWeight;
   }
 
   @Override
@@ -152,6 +178,9 @@ public class LipidFragmentationRule {
     writer.writeStartElement(XML_LIPID_ANNOTAION_LEVEL);
     writer.writeCharacters(lipidFragmentInformationLevelType.name());
     writer.writeEndElement();
+    writer.writeStartElement(XML_RELATIVE_INTENSITY_WEIGHT);
+    writer.writeCharacters(String.valueOf(relativeIntensityWeight));
+    writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_FORMULA);
     if (molecularFormula != null) {
       writer.writeCharacters(molecularFormula);
@@ -176,6 +205,7 @@ public class LipidFragmentationRule {
     LipidFragmentationRuleRating lipidFragmentationRuleRating = null;
     LipidAnnotationLevel lipidFragmentInformationLevelType = null;
     String molecularFormula = null;
+    int relativeIntensityWeight = 0;
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(XML_ELEMENT))) {
       reader.next();
@@ -205,33 +235,47 @@ public class LipidFragmentationRule {
         case XML_LIPID_FORMULA:
           molecularFormula = reader.getElementText();
           break;
+        case XML_RELATIVE_INTENSITY_WEIGHT:
+          relativeIntensityWeight = Integer.parseInt(reader.getElementText());
+          break;
         default:
           break;
       }
     }
 
+    final int validatedRelativeIntensityWeight = validateRelativeIntensityWeight(
+        relativeIntensityWeight);
+    final LipidFragmentationRule loadedRule;
     if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
         && lipidFragmentInformationLevelType != null && molecularFormula != null
         && lipidFragmentationRuleRating != null) {
-      return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
+      loadedRule = new LipidFragmentationRule(polarityType, ionizationType,
+          lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, molecularFormula, lipidFragmentationRuleRating);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
         && lipidFragmentInformationLevelType != null && molecularFormula != null) {
-      return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
+      loadedRule = new LipidFragmentationRule(polarityType, ionizationType,
+          lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, molecularFormula);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
         && lipidFragmentInformationLevelType != null && lipidFragmentationRuleRating != null) {
-      return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
+      loadedRule = new LipidFragmentationRule(polarityType, ionizationType,
+          lipidFragmentationRuleType,
           lipidFragmentInformationLevelType, lipidFragmentationRuleRating);
     } else if (polarityType != null && ionizationType != null && lipidFragmentationRuleType != null
         && lipidFragmentInformationLevelType != null) {
-      return new LipidFragmentationRule(polarityType, ionizationType, lipidFragmentationRuleType,
+      loadedRule = new LipidFragmentationRule(polarityType, ionizationType,
+          lipidFragmentationRuleType,
           lipidFragmentInformationLevelType);
     } else if (polarityType != null && ionizationType != null) {
-      return new LipidFragmentationRule(polarityType, ionizationType);
+      loadedRule = new LipidFragmentationRule(polarityType, ionizationType);
     } else {
-      return null;
+      loadedRule = null;
     }
+    if (loadedRule != null) {
+      loadedRule.relativeIntensityWeight = validatedRelativeIntensityWeight;
+    }
+    return loadedRule;
   }
 
   public static Result validate(@Nullable LipidFragmentationRule rule) {
@@ -258,7 +302,8 @@ public class LipidFragmentationRule {
             .append(inQuotes(ruleType.toString()));
       } else {
         try {
-          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+          final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+              formula);
           if (molFormula == null) {
             errors.append("Invalid custom lipid fragment rule formula: ").append(formula)
                 .append(" -> ").append(" could not parse.\n");
@@ -270,5 +315,12 @@ public class LipidFragmentationRule {
       }
     }
     return !errors.isEmpty() ? Result.error(errors.toString()) : Result.ok();
+  }
+
+  private static int validateRelativeIntensityWeight(final int relativeIntensityWeight) {
+    if (relativeIntensityWeight < 0 || relativeIntensityWeight > 100) {
+      throw new IllegalArgumentException("Relative intensity weight must be in range 0-100.");
+    }
+    return relativeIntensityWeight;
   }
 }

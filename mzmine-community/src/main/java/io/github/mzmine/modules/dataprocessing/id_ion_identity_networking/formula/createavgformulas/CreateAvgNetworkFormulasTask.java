@@ -25,7 +25,6 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas;
 
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -40,7 +39,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -148,8 +146,8 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
   public List<ResultFormula> combineFormulasOfNetwork(IonNetwork net) {
     // find all formula lists of ions in network
     List<List<ResultFormula>> allLists = new ArrayList<>();
-    for (Map.Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-      IonIdentity ion = e.getValue();
+    for (var e : net.getNodes()) {
+      IonIdentity ion = e.ion();
       if (!ion.getIonType().isUndefinedAdduct()) {
         List<ResultFormula> list = ion.getMolFormulas();
         if (list != null && !list.isEmpty()) {

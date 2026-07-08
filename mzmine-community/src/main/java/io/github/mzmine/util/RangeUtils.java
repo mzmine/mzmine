@@ -27,6 +27,7 @@ package io.github.mzmine.util;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.math.BigDecimal;
@@ -164,6 +165,10 @@ public class RangeUtils {
    */
   public static <N extends Number & Comparable<?>> N rangeLength(Range<N> range) {
     return ArithmeticUtils.subtract(range.upperEndpoint(), range.lowerEndpoint());
+  }
+
+  public static <N extends Number & Comparable<?>> N rangeLength(SimpleRange<N> range) {
+    return ArithmeticUtils.subtract(range.upperBound(), range.lowerBound());
   }
 
   /**

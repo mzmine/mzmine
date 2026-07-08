@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -39,16 +38,17 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.LipidSpectrumProvider;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationMSMSParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCategories;
@@ -59,6 +59,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.custom_c
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidLabelGenerator;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.StyledLipidSpectrumBarRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -86,7 +87,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
 
@@ -223,7 +223,7 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
       if (lipidChainTypes.length != numberOfCAtomsList.size()) {
         adjustExampleCarbonAndDbeNumbers(lipidChainTypes);
       }
-      if(parameterSet.checkParameterValues(new ArrayList<>(), true)) {
+      if (parameterSet.checkParameterValues(new ArrayList<>(), true)) {
         updateExampleLipid();
       }
     } finally {
@@ -356,12 +356,12 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
       Label formula = new Label("Molecular formula: ");
       lipidGridPane.add(formula, 0, 3);
       Label formulaLabel = new Label(
-          MolecularFormulaManipulator.getString(speciesLevelAnnotation.getMolecularFormula()));
+          FormulaUtils.getFormulaString(speciesLevelAnnotation.getMolecularFormula()));
       lipidGridPane.add(formulaLabel, 1, 3);
 
       Label mass = new Label("Neutral mass: ");
       lipidGridPane.add(mass, 0, 4);
-      Label massLabel = new Label(MZmineCore.getConfiguration().getMZFormat()
+      Label massLabel = new Label(ConfigService.getConfiguration().getMZFormat()
           .format(FormulaUtils.calculateMzRatio(speciesLevelAnnotation.getMolecularFormula())));
       lipidGridPane.add(massLabel, 1, 4);
 
@@ -384,10 +384,9 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
         for (IonizationType ionNotation : ionizationTypeList) {
           lipidGridPane.add(new Label(ionNotation.getAdductName()), 1, ionNotationStartColumn);
           lipidGridPane.add(new Label(MZmineCore.getConfiguration().getMZFormat().format(
-                  FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
-                      MolecularFormulaManipulator.getString(
-                          speciesLevelAnnotation.getMolecularFormula()), ionNotation)))), 2,
-              ionNotationStartColumn);
+              FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
+                  FormulaUtils.getFormulaString(speciesLevelAnnotation.getMolecularFormula()),
+                  ionNotation)))), 2, ionNotationStartColumn);
           ionNotationStartColumn++;
         }
       } else {
@@ -456,21 +455,22 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
               lipidFragment -> new SimpleDataPoint(lipidFragment.getMzExact(), random.nextInt(81) + 20))
           .collect(Collectors.toList());
       if (!fragmentScanDps.isEmpty()) {
+        final Color positiveColor = ConfigService.getConfiguration().getDefaultColorPalette()
+            .getPositiveColorAWT();
         PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(lipidFragments,
             fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
             fragmentScanDps.stream().mapToDouble(DataPoint::getIntensity).toArray(),
-            "In-silico fragments",
-            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
+            "In-silico fragments", positiveColor);
         ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider,
             RunOption.NEW_THREAD);
         MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
             spectraPlot, lipidFragments);
-        spectraPlot.getXYPlot().getRenderer().setDefaultItemLabelsVisible(true);
-        spectraPlot.getXYPlot().getRenderer()
-            .setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
-        spectraPlot.addDataSet(fragmentDataSet,
-            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
-            matchedLipidLabelGenerator, true);
+        final StyledLipidSpectrumBarRenderer renderer = new StyledLipidSpectrumBarRenderer(true,
+            positiveColor);
+        renderer.setDefaultItemLabelsVisible(true);
+        renderer.setDefaultItemLabelGenerator(matchedLipidLabelGenerator);
+        spectraPlot.addDataSet(fragmentDataSet, positiveColor, true, renderer,
+            matchedLipidLabelGenerator, true, true);
         spectraPlot.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
         spectraPlot.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
         spectraPlot.setTitle(ionizationType.getAdductName(), ionizationType.getAdductName());
@@ -521,7 +521,7 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
 
   private ParameterSet makeLipidAnnotationParameterSet(
       SpeciesLevelAnnotation speciesLevelAnnotation, int numberOfCarbons, int numberofDbes) {
-    var param = MZmineCore.getConfiguration().getModuleParameters(LipidAnnotationModule.class)
+    var param = ConfigService.getConfiguration().getModuleParameters(LipidAnnotationModule.class)
         .cloneParameterSet();
     var chainParam = new LipidAnnotationChainParameters().cloneParameterSet();
     chainParam.setParameter(LipidAnnotationChainParameters.maxChainLength, numberOfCarbons);
@@ -534,11 +534,10 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
     param.setParameter(LipidAnnotationParameters.lipidChainParameters,
         (LipidAnnotationChainParameters) chainParam);
     param.setParameter(LipidAnnotationParameters.mzTolerance, new MZTolerance(1000, 1));
+    param.setParameter(LipidAnnotationParameters.minimumOverallQualityScore, 40.0);
     param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, true);
     param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
         .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, false);
-    param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-        .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 0.0);
     param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
         .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, new MZTolerance(1000, 1));
     return param;

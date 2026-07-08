@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.XMLUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -83,8 +83,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler implements
     charBuffer = new StringBuffer();
 
     // Parse the XML file
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    SAXParser saxParser = factory.newSAXParser();
+    final SAXParser saxParser = XMLUtils.newSAXParser();
     saxParser.parse(inputStream, this);
 
   }

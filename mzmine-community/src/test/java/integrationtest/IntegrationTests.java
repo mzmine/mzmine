@@ -70,7 +70,14 @@ public class IntegrationTests {
 
   @Test
   void testSmallLcMsBatchInPlace(@TempDir File tempDir) {
-    testSmallLcMsBatch(tempDir, "workshop_dataset_integration_test_process_in_place.mzbatch");
+    // also check one directly, this method can trigger creation of the new results file
+    Assertions.assertEquals(0,
+        IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
+                "workshop_dataset_integration_test_process_in_place.mzbatch").tempDir(tempDir)
+            .rawFiles("171103_PMA_TK_QC_04-4to5min.mzML", "171103_PMA_TK_QC_05-4to5min.mzML")
+            .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
+                "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json").build().runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv").size());
   }
 
 
@@ -86,8 +93,8 @@ public class IntegrationTests {
             "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv", results, batchFile)
         .isEmpty());
 
-    logger.info("Checking file with 42 known differences. Table below is expected:");
-    Assertions.assertEquals(42, IntegrationTestUtils.getCsvComparisonResults(
+    logger.info("Checking file with 55 known differences. Table below is expected:");
+    Assertions.assertEquals(55, IntegrationTestUtils.getCsvComparisonResults(
         "rawdatafiles/integration_tests/workshop_dataset/expected_results_error.csv", results,
         batchFile).size());
   }

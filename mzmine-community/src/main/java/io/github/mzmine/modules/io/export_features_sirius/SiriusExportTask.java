@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -250,7 +251,7 @@ public class SiriusExportTask extends AbstractTask {
       // maybe no MS1 data?
       logger.warning(
           "Cannot export MS1 data for this feature list. This maybe due to missing MS1 data or unsupported workflow. mzmine will skip MS1 scan of row "
-          + FeatureUtils.rowToString(row));
+              + FeatureUtils.rowToString(row));
       return null;
     }
 
@@ -299,7 +300,7 @@ public class SiriusExportTask extends AbstractTask {
       return false;
     }
 
-    return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
+    return !excludeMultimers || adduct == null || adduct.getIonType().molecules() <= 1;
   }
 
   @Nullable
@@ -382,23 +383,35 @@ public class SiriusExportTask extends AbstractTask {
       return null;
     }
 
-    final RowGroup group = row.getGroup();
     final IonIdentity identity = row.getBestIonIdentity();
     final IsotopePattern ip = feature.getIsotopePattern();
 
-    if (group == null && identity != null) {
-      throw new IllegalStateException("Cannot have an ion identity without a row group.");
+    // the rows directly correlated to this row (edges in the MS1 correlation map) take the place of
+    // the former row group. Transitively correlated rows were never exported either, so only direct
+    // neighbors are relevant here.
+    final FeatureList flist = row.getFeatureList();
+    final R2RMap<RowsRelationship> ms1Map =
+        flist == null ? null : flist.getMs1CorrelationMap().orElse(null);
+    final List<FeatureListRow> correlatedRows = ms1Map == null ? List.of()
+        : ms1Map.streamAllCorrelatedRows(row, flist.getRows()).map(rel -> rel.getOtherRow(row))
+            .distinct().toList();
+    final boolean hasGroup = !correlatedRows.isEmpty();
+
+    if (!hasGroup && identity != null) {
+      throw new IllegalStateException("Cannot have an ion identity without correlated rows.");
     }
 
-    if (group == null) {
-      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
-      // pattern is exported below.
+    if (!hasGroup) {
+      // add isotope pattern of this feature only if it is not correlated to any other row,
+      // otherwise the isotope pattern is exported below.
       addIsotopePattern(feature, dps, ip);
-    }
-
-    if (group != null) {
+    } else {
       final IonNetwork network = identity != null ? identity.getNetwork() : null;
-      for (final FeatureListRow groupedRow : group.getRows()) {
+      // export the row itself and all directly correlated rows
+      final List<FeatureListRow> groupedRows = new ArrayList<>(correlatedRows.size() + 1);
+      groupedRows.add(row);
+      groupedRows.addAll(correlatedRows);
+      for (final FeatureListRow groupedRow : groupedRows) {
         // only write intensities of the same file, otherwise intensities will be distorted
         final Feature sameFileFeature = groupedRow.getFeature(file);
         if (sameFileFeature == null
@@ -406,19 +419,18 @@ public class SiriusExportTask extends AbstractTask {
           continue;
         }
 
-        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
-        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
-          // if we have an annotation, export the annotation
-          if (network != null && network.get(groupedRow) != null) {
-            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-                network.get(groupedRow).getAdduct()));
-          } else {
-            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
-          }
-
-          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
-          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
+        // this writes the data points of the row we want to export and all correlated rows + their isotope patterns.
+        // if we have an annotation, export the annotation
+        IonIdentity otherIon = null;
+        if (network != null && (otherIon = network.get(groupedRow)) != null) {
+          dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
+              otherIon.toString()));
+        } else {
+          dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
         }
+
+        // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
+        addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
       }
     }
 

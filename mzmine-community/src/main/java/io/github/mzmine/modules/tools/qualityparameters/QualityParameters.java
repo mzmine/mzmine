@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
@@ -56,8 +57,8 @@ public class QualityParameters {
       List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
-      if (height == null || rt == null || dataFile == null
-          || scanNumbers.isEmpty() || dps.getNumberOfValues() < 3) {
+      if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
+          || dps.getNumberOfValues() < 3) {
         return;
       }
 
@@ -75,9 +76,8 @@ public class QualityParameters {
       double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValueBuffer());
 
       // FWHM
-      double[] rtValues =
-          peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile,
-              rtRange);
+      double[] rtValues = peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile,
+          rtRange);
       Double fwhm = rtValues[1] - rtValues[0];
       if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
         fwhm = null;
@@ -87,9 +87,8 @@ public class QualityParameters {
       }
 
       // Tailing Factor - TF
-      double[] rtValues2 =
-          peakFindRTs(height * 0.05, rt, scanNumbers, intensities,
-              dataFile, rtRange);
+      double[] rtValues2 = peakFindRTs(height * 0.05, rt, scanNumbers, intensities, dataFile,
+          rtRange);
       Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
       if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
         tf = null;
@@ -99,9 +98,8 @@ public class QualityParameters {
       }
 
       // Asymmetry factor - AF
-      double[] rtValues3 =
-          peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile,
-              rtRange);
+      double[] rtValues3 = peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile,
+          rtRange);
       Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
       if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
         af = null;
@@ -121,10 +119,10 @@ public class QualityParameters {
 
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
-    if (height == null || rt == null || dataFile == null
-        || scanNumbers.isEmpty() || intensities.length == 0) {
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
+        feature.getFeatureData().getIntensityValueBuffer());
+    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
+        || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
@@ -141,8 +139,7 @@ public class QualityParameters {
     rt = feature.getRT();
 
     // FWHM
-    double[] rtValues =
-        peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
+    double[] rtValues = peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
     if (rtValues.length < 2) {
       return Float.NaN;
     }
@@ -163,11 +160,11 @@ public class QualityParameters {
 
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
+        feature.getFeatureData().getIntensityValueBuffer());
 
-    if (height == null || rt == null || dataFile == null
-        || scanNumbers.isEmpty() || intensities.length == 0) {
+    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
+        || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
@@ -184,8 +181,7 @@ public class QualityParameters {
     rt = feature.getRT();
 
     // Tailing Factor - TF
-    double[] rtValues =
-        peakFindRTs(height * 0.05, rt, scanNumbers, intensities, dataFile, rtRange);
+    double[] rtValues = peakFindRTs(height * 0.05, rt, scanNumbers, intensities, dataFile, rtRange);
     double tf = (rtValues[1] - rtValues[0]) / (2 * (rt - rtValues[0]));
     if (tf <= 0 || Double.isInfinite(tf)) {
       return Float.NaN;
@@ -203,10 +199,10 @@ public class QualityParameters {
 
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
-    if (height == null || rt == null || dataFile == null
-        || scanNumbers.isEmpty() || intensities.length == 0) {
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
+        feature.getFeatureData().getIntensityValueBuffer());
+    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
+        || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
     if (intensities.length < 3) {
@@ -222,8 +218,7 @@ public class QualityParameters {
     rt = feature.getRT();
 
     // Asymmetry factor - AF
-    double[] rtValues =
-        peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile, rtRange);
+    double[] rtValues = peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile, rtRange);
     double af = (rtValues[1] - rt) / (rt - rtValues[0]);
     if (af <= 0 || Double.isInfinite(af)) {
       af = Double.NaN;
@@ -234,8 +229,7 @@ public class QualityParameters {
 
   private static double[] peakFindRTs(double intensity, float featureRT, List<Scan> scanNumbers,
       List<DataPoint> dps, RawDataFile dataFile, Range<Float> rtRange) {
-    return peakFindRTs(intensity, featureRT,
-        scanNumbers, dps.toArray(DataPoint[]::new), //
+    return peakFindRTs(intensity, featureRT, scanNumbers, dps.toArray(DataPoint[]::new), //
         dataFile, //
         Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()));
   }
@@ -275,7 +269,7 @@ public class QualityParameters {
           y2 = nextDP.getIntensity();
           lastDiff1 = currentDiff;
         } else if (currentDiff < lastDiff2 && currentDiff > 0 && currentRT >= featureRT
-                   && lastDP != null) {
+            && lastDP != null) {
           x3 = lastRT;
           y3 = lastDP.getIntensity();
           x4 = rt;
@@ -396,5 +390,126 @@ public class QualityParameters {
     }
 
     return new double[]{rt1, rt2};
+  }
+
+  /**
+   * Returns the number of sign changes (positive/negative) in the slope between the start and end
+   * of a peak. 1 is subtracted from the sign changes because one change is expected at the top of
+   * the peak. If there is no sign change, 0 is returned.
+   *
+   * @param startIndex        search start
+   * @param endIndexExclusive search end
+   * @param y                 intensities (or similar)
+   * @return The number of sign changes in the slope of the signal. (n-1 as one is expected)
+   */
+  public static int getSignChanges(int startIndex, int endIndexExclusive, double[] y) {
+    int lastSign = 1;
+    int changes = 0;
+//    final double tenPercentHeight = 0.1 * height; // tested with only changes above 10% height, but was not that useful
+
+    for (int i = startIndex; i < endIndexExclusive - 1; i++) {
+//      if(y[i] < tenPercentHeight) {
+//        continue;
+//      }
+      if (y[i] < y[i + 1] && lastSign < 0) {
+        changes++;
+        lastSign = 1;
+      } else if (y[i] > y[i + 1] && lastSign > 0) {
+        changes++;
+        lastSign = -1;
+      }
+    }
+
+    return Math.max(0, changes - 1);
+  }
+
+  /**
+   * The number of observed sign changes (-1, see {@link #getSignChanges(int, int, double[])} per
+   * nPoints. Can be used as a quality parameter for peak jaggedness.
+   * <br>
+   * e.g. if a sign change is allowed every 5 points and the peak changes slope more often, the
+   * value will be greater than 1 and could thus fail the quality check. In general, allowing a sign
+   * change every 2 points already filters out a lot of noise without being too strict.
+   *
+   * @param startIndex        start search
+   * @param endIndexExclusive end search
+   * @param y                 intensity values
+   * @param nPoints           the number of allowed points between every sign change
+   * @return Fraction of the absolute sign changes divided by the points on the peak divided by the
+   * sign changes.
+   */
+  public static double signChangesPerNPoints(int startIndex, int endIndexExclusive, double[] y,
+      final double nPoints) {
+    final int changes = getSignChanges(startIndex, endIndexExclusive, y);
+    return (double) changes / ((endIndexExclusive - startIndex) / (double) nPoints);
+  }
+
+  public static float calculateFWHM(SummedIntensityMobilitySeries series) {
+    if (series == null) {
+      return Float.NaN;
+    }
+
+    if (series.getNumberOfValues() < 3) {
+      return Float.NaN;
+    }
+
+    // Extract intensity and mobility values
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(series.getIntensityValueBuffer());
+    double[] mobilities = DataPointUtils.getDoubleBufferAsArray(series.getMobilityValues());
+
+    if (intensities.length < 3 || mobilities.length < 3) {
+      return Float.NaN;
+    }
+
+    // Find the peak maximum
+    double maxIntensity = 0;
+    int maxIndex = 0;
+    for (int i = 0; i < intensities.length; i++) {
+      if (intensities[i] > maxIntensity) {
+        maxIntensity = intensities[i];
+        maxIndex = i;
+      }
+    }
+
+    double halfMaxIntensity = maxIntensity / 2.0;
+    double peakMobility = mobilities[maxIndex];
+
+    // Find mobility values at half maximum intensity
+    double mob1 = mobilities[0];
+    double mob2 = mobilities[mobilities.length - 1];
+
+    double lastDiff1 = halfMaxIntensity;
+    double lastDiff2 = halfMaxIntensity;
+
+    // Find left side (before peak)
+    for (int i = 0; i < maxIndex - 1; i++) {
+      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
+      if (currentDiff < lastDiff1 && mobilities[i] <= peakMobility) {
+        // Linear interpolation between i and i+1
+        double slope = (intensities[i + 1] - intensities[i]) / (mobilities[i + 1] - mobilities[i]);
+        double intercept = intensities[i] - (slope * mobilities[i]);
+        mob1 = (halfMaxIntensity - intercept) / slope;
+        lastDiff1 = currentDiff;
+      }
+    }
+
+    // Find right side (after peak)
+    for (int i = maxIndex + 1; i < intensities.length - 1; i++) {
+      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
+      if (currentDiff < lastDiff2 && mobilities[i] >= peakMobility) {
+        // Linear interpolation between i-1 and i
+        double slope = (intensities[i] - intensities[i - 1]) / (mobilities[i] - mobilities[i - 1]);
+        double intercept = intensities[i - 1] - (slope * mobilities[i - 1]);
+        mob2 = (halfMaxIntensity - intercept) / slope;
+        lastDiff2 = currentDiff;
+      }
+    }
+
+    double fwhm = mob2 - mob1;
+    if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
+      return Float.NaN;
+    }
+
+    return (float) fwhm;
   }
 }

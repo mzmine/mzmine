@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,11 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoGrowTextField;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.components.factories.FxCheckBox;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxPopOvers;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -43,17 +47,26 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.validation.ValidationSupport;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,12 +77,16 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   private final FxFeatureTableFilterMenuModel model;
   @NotNull
   private final FxFeatureTableModel parentModel;
+  @NotNull
+  private final FxFeatureTableController parentController;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;
 
-  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel) {
+  public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel,
+      @NotNull FxFeatureTableController parentController) {
     this.model = parentModel.getFilterModel();
     this.parentModel = parentModel;
+    this.parentController = parentController;
     filterFlow = createFilters();
     rightButtonMenu = createRightButtonMenu();
 
@@ -77,22 +94,25 @@ public class FxFeatureTableFilterMenu extends BorderPane {
     setRight(rightButtonMenu);
 
     PropertyUtils.onChangeDelayedSubscription(this::updateFilter, Duration.millis(150),
-        model.idFilterProperty(), model.mzFilterProperty(), model.rtFilterProperty(),
-        model.specialRowTypeFilterProperty());
+        model.idFilterProperty(), model.cidFilterProperty(), model.mzFilterProperty(),
+        model.rtFilterProperty(), model.specialRowTypeFilterProperty());
   }
 
   private void updateFilter() {
     final String id = model.idFilterProperty().get();
+    final String cid = model.cidFilterProperty().get();
     final String mz = model.mzFilterProperty().get();
     final String rt = model.rtFilterProperty().get();
     final RowTypeFilter rowTypeFilter = model.getSpecialRowTypeFilter();
 
     try {
       final List<IndexRange> idRanges = parseIndexRanges(id);
+      final List<IndexRange> compoundIdRanges = parseIndexRanges(cid);
       final Range<Double> mzRange = parseDoubleRange(mz);
       final Range<Double> rtRange = parseDoubleRange(rt);
 
-      final var filter = new TableFeatureListRowFilter(idRanges, mzRange, rtRange, rowTypeFilter);
+      final var filter = new TableFeatureListRowFilter(idRanges, compoundIdRanges, mzRange, rtRange,
+          rowTypeFilter);
       model.combinedRowFilter.set(filter);
 
     } catch (Exception e) {
@@ -118,26 +138,67 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         "Filter for feature row IDs by index ranges defined as a list of single indices and ranges,e.g, 1,5-6 or 1,5,6",
         4, 10);
 
+    final TextField cidField = newAutoGrowTextField(model.cidFilterProperty(), "1,5-6",
+        "Filter for compound IDs assigned by the compound grouping step, by index ranges defined as a list of single indices and ranges, e.g, 1,5-6 or 1,5,6",
+        4, 10);
+
     final TextField mzField = newAutoGrowTextField(model.mzFilterProperty(),
         model.mzFilterPromptProperty(), "Filter for feature row m/z", 5, 10);
     final TextField rtField = newAutoGrowTextField(model.rtFilterProperty(),
         model.rtFilterPromptProperty(), "Filter for feature row RT", 4, 10);
 
-    initValidation(idField, mzField, rtField);
+    initValidation(idField, cidField, mzField, rtField);
+
+    // toggle between compound list rows and flat feature list rows; the items list is maintained
+    // by the interactor so ALL_ISOTOPES is hidden when no compound row has isotope sub-rows.
+    final var rowSelection = FxComboBox.createComboBox(
+        "Toggle between compound-grouped rows and flat feature list rows",
+        model.getAvailableCompoundRowSelections(), model.compoundRowSelectionProperty());
+    rowSelection.disableProperty().bind(model.compoundListAvailableProperty().not());
+    rowSelection.visibleProperty().bind(model.compoundListAvailableProperty());
+    rowSelection.managedProperty().bind(model.compoundListAvailableProperty());
+
+    // when checked, member rows (tree children) are filtered too; only relevant with a compound
+    // tree, so hide it when no compound list is present. default off.
+    final CheckBox filterChildrenBox = FxCheckBox.newCheckBox("Filter children",
+        model.filterChildrenProperty());
+    filterChildrenBox.setTooltip(new Tooltip(
+        "When checked, member rows of a compound are filtered too; otherwise all members of a matching compound stay visible. RT always only filters the top-level compound rows."));
+    FxLayout.bindVisibleManaged(filterChildrenBox, model.compoundListAvailableProperty());
+
+    // compound id filter; only meaningful and only shown when a compound list is present
+    final Label cidLabel = newBoldLabel("CID=");
+    FxLayout.bindVisibleManaged(cidLabel, model.compoundListAvailableProperty());
+    FxLayout.bindVisibleManaged(cidField, model.compoundListAvailableProperty());
+
+    // collapse / expand all compound rows; only relevant with a compound tree
+    final ButtonBase collapseBtn = FxIconUtil.newIconButton(FxIcons.COLLAPSE,
+        "Collapse all compound rows", () -> parentModel.getFeatureTable().collapseAllRows());
+    FxLayout.bindVisibleManaged(collapseBtn, model.compoundListAvailableProperty());
+    final ButtonBase expandBtn = FxIconUtil.newIconButton(FxIcons.EXPAND,
+        "Expand all compound rows", () -> parentModel.getFeatureTable().expandAllRows());
+    FxLayout.bindVisibleManaged(expandBtn, model.compoundListAvailableProperty());
 
     // layout
     return FxLayout.newFlowPane( //
-        FxIconUtil.getFontIcon(FxIcons.SEARCH), //
+        rowSelection, //
+        collapseBtn, expandBtn, //
+        FxIconUtil.getFontIcon(FxIcons.SEARCH), filterChildrenBox, //
+        cidLabel, cidField, //
         newBoldLabel("ID="), idField, //
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
         rowTypeFilter);
   }
 
-  private void initValidation(TextField idField, TextField mzField, TextField rtField) {
+  private void initValidation(TextField idField, TextField cidField, TextField mzField,
+      TextField rtField) {
     final ValidationSupport support = FxValidation.newValidationSupport();
     // blank value is also ok
     FxValidation.registerOnException(support, idField,
+        s -> StringUtils.isBlank(s) || !parseIndexRanges(s).isEmpty(),
+        s -> "Cannot parse index ranges from " + s);
+    FxValidation.registerOnException(support, cidField,
         s -> StringUtils.isBlank(s) || !parseIndexRanges(s).isEmpty(),
         s -> "Cannot parse index ranges from " + s);
 
@@ -159,14 +220,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         "Configure the look & feel of the feature table", onOpenParametersDialog);
     final ButtonBase quick = FxIconUtil.newIconButton(FxIcons.COLUMNS_DOTS,
         "Quick configuration of table columns", parentModel.getOnQuickColumnSelectionAction());
+    final ButtonBase links = createLinksButton();
     final ButtonBase docu = FxIconUtil.newIconButton(FxIcons.QUESTION_CIRCLE,
         "Open the documentation of the feature table", () -> DesktopService.getDesktop()
             .openWebPage(
                 "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_results/featdet_results.html"));
 
     return FxLayout.newHBox( //
-        docu, quick, config //
+        docu, links, quick, config //
     );
+  }
+
+  /**
+   * Button with links to other feature tables
+   */
+  private ButtonBase createLinksButton() {
+    final ButtonBase btn = FxIconUtil.newIconButton(FxIcons.LINK,
+        "Linked feature tables — sync selection across dashboards", null);
+    final FeatureTableLinksPopoverContent content = new FeatureTableLinksPopoverContent(
+        parentController);
+    final PopOver popover = FxPopOvers.newPopOver(content, ArrowLocation.BOTTOM_RIGHT);
+    // Prune stale weak refs each time the popover opens so closed dashboards drop from the list.
+    popover.setOnShowing(_ -> content.refresh());
+    FxPopOvers.install(btn, popover);
+    return btn;
   }
 
   public FlowPane getFilterFlow() {
@@ -188,12 +265,28 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   public static class FxFeatureTableFilterMenuModel {
 
     private final StringProperty idFilter = new SimpleStringProperty("");
+    // compound id assigned by the compound grouping step; only meaningful with a compound list
+    private final StringProperty cidFilter = new SimpleStringProperty("");
     private final StringProperty mzFilter = new SimpleStringProperty("");
     private final StringProperty rtFilter = new SimpleStringProperty("");
     private final StringProperty mzFilterPrompt = new SimpleStringProperty("");
     private final StringProperty rtFilterPrompt = new SimpleStringProperty("");
+    // when true, member rows (tree children) are filtered too; otherwise all members of a matching
+    // compound stay visible. default off.
+    private final BooleanProperty filterChildren = new SimpleBooleanProperty(false);
     // specific
     private final ObjectProperty<RowTypeFilter> specialRowTypeFilter = new SimpleObjectProperty<>();
+
+    // null = feature list rows; non-null = compound list with that selection level
+    private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+        null);
+    // true when the current feature list has a valid compound list
+    private final BooleanProperty compoundListAvailable = new SimpleBooleanProperty(false);
+    // Items shown in the compound row selection ComboBox. Defaults to all values; the interactor
+    // narrows this to {COMPOUNDS, ALL_MAJOR_IONS} when the current compound list has no nested
+    // isotope rows, so ALL_ISOTOPES is hidden in that case.
+    private final ObservableList<CompoundRowSelection> availableCompoundRowSelections = FXCollections.observableArrayList(
+        CompoundRowSelection.values());
 
     // the actual filter
     private final ReadOnlyObjectWrapper<@Nullable TableFeatureListRowFilter> combinedRowFilter = new ReadOnlyObjectWrapper<>();
@@ -208,6 +301,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     public void setIdFilter(String idFilter) {
       this.idFilter.set(idFilter);
+    }
+
+    public String getCidFilter() {
+      return cidFilter.get();
+    }
+
+    public StringProperty cidFilterProperty() {
+      return cidFilter;
+    }
+
+    public void setCidFilter(String cidFilter) {
+      this.cidFilter.set(cidFilter);
+    }
+
+    public boolean isFilterChildren() {
+      return filterChildren.get();
+    }
+
+    public BooleanProperty filterChildrenProperty() {
+      return filterChildren;
+    }
+
+    public void setFilterChildren(boolean filterChildren) {
+      this.filterChildren.set(filterChildren);
     }
 
     public String getMzFilter() {
@@ -264,6 +381,30 @@ public class FxFeatureTableFilterMenu extends BorderPane {
 
     public ObjectProperty<RowTypeFilter> specialRowTypeFilterProperty() {
       return specialRowTypeFilter;
+    }
+
+    public @Nullable CompoundRowSelection getCompoundRowSelection() {
+      return compoundRowSelection.get();
+    }
+
+    public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+      return compoundRowSelection;
+    }
+
+    public void setCompoundRowSelection(@Nullable CompoundRowSelection selection) {
+      compoundRowSelection.set(selection);
+    }
+
+    public boolean isCompoundListAvailable() {
+      return compoundListAvailable.get();
+    }
+
+    public BooleanProperty compoundListAvailableProperty() {
+      return compoundListAvailable;
+    }
+
+    public @NotNull ObservableList<CompoundRowSelection> getAvailableCompoundRowSelections() {
+      return availableCompoundRowSelections;
     }
   }
 }

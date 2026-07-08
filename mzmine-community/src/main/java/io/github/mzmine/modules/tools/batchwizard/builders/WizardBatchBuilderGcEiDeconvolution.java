@@ -143,7 +143,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   }
 
   @Override
-  public BatchQueue createQueue() {
+  protected BatchQueue createQueueInternal() {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
@@ -183,6 +183,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       }
       makeAndAddBatchExportStep(q, isExportActive, exportPath);
     }
+
     return q;
   }
 
