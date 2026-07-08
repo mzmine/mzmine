@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,12 +32,14 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractSimpleToolTask;
 import java.io.File;
 import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class ProjectMetadataExportTask extends AbstractSimpleToolTask {
 
   private final File file;
   private final MetadataFileFormat format;
+  private final List<ProjectMetadataColumnMapping> columnMappings;
 
   /**
    * @param moduleCallDate the call date of module to order execution order
@@ -47,12 +49,15 @@ public class ProjectMetadataExportTask extends AbstractSimpleToolTask {
     super(moduleCallDate, parameters);
     file = parameters.getValue(ProjectMetadataExportParameters.fileName);
     format = parameters.getValue(ProjectMetadataExportParameters.format);
+
+    columnMappings = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
+        ProjectMetadataExportParameters.columnMappings, List::of);
   }
 
   @Override
   protected void process() {
     MetadataTable metadata = ProjectService.getProject().getProjectMetadata();
-    ProjectMetadataWriter writer = new ProjectMetadataWriter(metadata, format);
+    ProjectMetadataWriter writer = new ProjectMetadataWriter(metadata, format, columnMappings);
     if (!writer.exportTo(file)) {
       error("Error during metadata file export");
       return;
