@@ -71,10 +71,6 @@ import testutils.MZmineTestUtil;
 
 class MassDynamicsExportTaskTest {
 
-  private static final String[] HEADER = {"MetaboliteId", "MetaboliteName", "Smiles",
-      "IsomericSmiles", "InChI", "InChIKey", "HMDB", "KEGG", "mz", "RetentionTime", "SampleName",
-      "MetaboliteIntensity", "Imputed"};
-
   @BeforeAll
   static void startMzmine() {
     MZmineTestUtil.startMzmineCore();
@@ -135,17 +131,18 @@ class MassDynamicsExportTaskTest {
     assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
     final List<String[]> metaboliteRows = CSVParsingUtils.readData(metaboliteFile, "\t");
     assertEquals(5, metaboliteRows.size());
-    assertArrayEquals(HEADER, metaboliteRows.getFirst());
+    assertArrayEquals(MassDynamicsExportTask.HEADER, metaboliteRows.getFirst());
 
     assertArrayEquals(
         new String[]{"row_1", "Glucose", annotation.getSmiles(), annotation.getIsomericSmiles(),
-            annotation.getInChI(), annotation.getInChIKey(), "", "", "101.1234", "5.5", "sample_A",
+            annotation.getInChI(), annotation.getInChIKey(), "", "", "101.1234", "5.5", "", "",
+            "sample_A",
             "11.0", "0"}, metaboliteRows.get(1));
-    assertEquals("22.0", metaboliteRows.get(2)[11]);
-    assertEquals("0", metaboliteRows.get(2)[12]);
-    assertEquals("sample_B", metaboliteRows.get(4)[10]);
-    assertEquals("11.0", metaboliteRows.get(4)[11]);
-    assertEquals("1", metaboliteRows.get(4)[12]);
+    assertEquals("22.0", metaboliteRows.get(2)[13]);
+    assertEquals("0", metaboliteRows.get(2)[14]);
+    assertEquals("sample_B", metaboliteRows.get(4)[12]);
+    assertEquals("11.0", metaboliteRows.get(4)[13]);
+    assertEquals("1", metaboliteRows.get(4)[14]);
 
     assertMetadataCsv(metadataFile);
   }

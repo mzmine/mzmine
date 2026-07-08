@@ -73,8 +73,9 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   private static final String METABOLITE_EXTENSION = "tsv";
   private static final String METABOLITE_SUFFIX = "_massdynamics_metabolite";
   private static final String EXPERIMENT_METADATA_SUFFIX = "_massdynamics_experiment_metadata";
-  private static final String[] HEADER = {"MetaboliteId", "MetaboliteName", "Smiles",
-      "IsomericSmiles", "InChI", "InChIKey", "HMDB", "KEGG", "mz", "RetentionTime", "SampleName",
+  public static final String[] HEADER = {"MetaboliteId", "MetaboliteName", "Smiles",
+      "IsomericSmiles", "InChI", "InChIKey", "HMDB", "KEGG", "mz", "RetentionTime", "CCS",
+      "IonMobility", "SampleName",
       "MetaboliteIntensity", "Imputed"};
 
   private final FeatureList featureList;
@@ -225,7 +226,11 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
         text(annotation == null ? null : annotation.getIsomericSmiles()),
         text(annotation == null ? null : annotation.getInChI()),
         text(annotation == null ? null : annotation.getInChIKey()), "", "",
-        text(row.getAverageMZ()), text(row.getAverageRT()), sampleName.toString(),
+        text(row.getAverageMZ()), //
+        text(row.getAverageRT()),  //
+        text(row.getAverageCCS()),  //
+        text(row.getAverageMobility()),  //
+        sampleName.toString(), //
         imputed ? Double.toString(actualAbundance) : rawAbundance.toString(), imputed ? "1" : "0"};
   }
 
