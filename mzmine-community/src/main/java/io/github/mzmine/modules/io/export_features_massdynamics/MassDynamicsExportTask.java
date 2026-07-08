@@ -33,14 +33,22 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataColumnMapping;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
-import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataWriter;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportTask;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -49,11 +57,14 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public class MassDynamicsExportTask extends AbstractFeatureListTask {
 
@@ -69,6 +80,14 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   private final FeatureList featureList;
   private final File baseFileName;
   private final AbundanceMeasure abundanceMeasure;
+  private final ImputationFunctions missingValueImputation;
+  private final String conditionColumn;
+  private final String defaultCondition;
+  private final List<RawDataFile> rawDataFiles;
+  private FeaturesDataTable dataTable;
+  private @NotNull MetadataTable metadata;
+  private @NotNull MetadataColumn<String> sampleNameColumn;
+  private @Nullable Map<RawDataFile, Object> sampleNamesMap;
 
   protected MassDynamicsExportTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull final ParameterSet parameters,
@@ -78,7 +97,14 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
     this.featureList = featureList;
     this.baseFileName = parameters.getValue(MassDynamicsExportParameters.filename);
     this.abundanceMeasure = parameters.getValue(MassDynamicsExportParameters.abundanceMeasure);
-    totalItems = (long) featureList.getNumberOfRows() * featureList.getRawDataFiles().size() + 2;
+    this.missingValueImputation = parameters.getValue(
+        MassDynamicsExportParameters.missingValueImputation);
+    this.conditionColumn = parameters.getValue(MassDynamicsExportParameters.conditionColumn);
+    this.defaultCondition = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
+        MassDynamicsExportParameters.defaultCondition, () -> "");
+
+    rawDataFiles = featureList.getRawDataFiles();
+    totalItems = (long) featureList.getNumberOfRows() * rawDataFiles.size() + 1;
   }
 
   @Override
@@ -94,8 +120,12 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
       return;
     }
 
+    metadata = ProjectService.getMetadata();
+    sampleNameColumn = metadata.getSampleNameColumn();
+    sampleNamesMap = metadata.getColumnData(sampleNameColumn);
+
     final File metaboliteFile = FileAndPathUtil.getRealFilePathWithSuffix(flistFilename,
-        METABOLITE_SUFFIX + ".tsv");
+        METABOLITE_SUFFIX + "." + METABOLITE_EXTENSION);
 
     try (final ICSVWriter writer = CSVParsingUtils.createDefaultWriter(metaboliteFile, '\t',
         WriterOptions.REPLACE)) {
@@ -108,10 +138,11 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
       return;
     }
 
-    final ProjectMetadataWriter metadataWriter = new ProjectMetadataWriter(
-        ProjectService.getProject().getProjectMetadata(), MetadataFileFormat.MASS_DYNAMICS,
-        ProjectMetadataExportParameters.MASS_DYNAMICS_DEFAULT_MAPPINGS);
-    if (!exportMetadata(metadataWriter, getExperimentMetadataFile(flistFilename))) {
+    if (isCanceled()) {
+      return;
+    }
+
+    if (!exportMetadata(getExperimentMetadataFile(flistFilename))) {
       return;
     }
 
@@ -120,54 +151,117 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
             + flistFilename.getParent());
   }
 
-  private boolean exportMetadata(@NotNull final ProjectMetadataWriter metadataWriter,
-      @NotNull final File file) {
-    if (!metadataWriter.exportTo(file, featureList.getRawDataFiles())) {
+  private boolean exportMetadata(@NotNull final File file) {
+    final ParameterSet metadataParameters = ProjectMetadataExportParameters.create(file, false,
+        MetadataFileFormat.MASS_DYNAMICS);
+    metadataParameters.setParameter(ProjectMetadataExportParameters.columnMappings, true,
+        List.of(new ProjectMetadataColumnMapping(conditionColumn, "condition", defaultCondition)));
+
+    final ProjectMetadataExportTask metadataTask = new ProjectMetadataExportTask(moduleCallDate,
+        metadataParameters, featureList.getRawDataFiles());
+    metadataTask.run();
+
+    if (metadataTask.getStatus() == TaskStatus.ERROR) {
+      error("Could not export MassDynamics metadata CSV to " + file.getAbsolutePath() + ": "
+          + Objects.toString(metadataTask.getErrorMessage(), ""));
+      return false;
+    }
+    if (metadataTask.getStatus() == TaskStatus.CANCELED) {
+      cancel();
+      return false;
+    }
+    if (metadataTask.getStatus() != TaskStatus.FINISHED) {
       error("Could not export MassDynamics metadata CSV to " + file.getAbsolutePath());
       return false;
     }
+
     incrementFinishedItems();
     return true;
   }
 
   private void exportFeatureList(@NotNull final ICSVWriter writer) {
     writer.writeNext(HEADER);
-    final List<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
+
+    prepareImputedIntensities();
     for (final FeatureListRow row : featureList.getRows()) {
       for (final RawDataFile rawDataFile : rawDataFiles) {
+        final @NotNull String[] line = createLine(row, rawDataFile);
         if (isCanceled()) {
           return;
         }
 
-        writer.writeNext(createLine(row, rawDataFile));
+        writer.writeNext(line);
         incrementFinishedItems();
       }
     }
   }
 
-  private @NotNull String[] createLine(@NotNull final FeatureListRow row,
+  private @Nullable String[] createLine(@NotNull final FeatureListRow row,
       @NotNull final RawDataFile rawDataFile) {
+
+    final Object sampleName = sampleNamesMap.get(rawDataFile);
+    if (sampleName == null) {
+      final String missingNames = rawDataFiles.stream()
+          .filter(raw -> sampleNamesMap.get(raw) == null).map(RawDataFile::getName).sorted()
+          .collect(Collectors.joining("\n"));
+      error("""
+          %s metadata column has sample name for data files:
+          %s""".formatted(sampleNameColumn.getTitle(), missingNames));
+      return null;
+    }
+
+
     final FeatureAnnotation annotation = row.getPreferredAnnotation();
     final Feature feature = row.getFeature(rawDataFile);
-    final Float abundance = getAbundance(feature);
-    final boolean imputed = abundance == null || !Float.isFinite(abundance) || abundance <= 0f;
+    final Float rawAbundance = getAbundance(feature);
+    final boolean imputed = isMissingAbundance(rawAbundance);
     final String metaboliteId = getMetaboliteId(row);
 
+    // maybe missing value imputed
+    final double actualAbundance = getActualImputedAbundance(row, rawDataFile);
     return new String[]{metaboliteId,
         firstNotBlank(annotation == null ? null : annotation.getCompoundName(), metaboliteId),
         text(annotation == null ? null : annotation.getSmiles()),
         text(annotation == null ? null : annotation.getIsomericSmiles()),
         text(annotation == null ? null : annotation.getInChI()),
         text(annotation == null ? null : annotation.getInChIKey()), "", "",
-        text(row.getAverageMZ()), text(row.getAverageRT()), rawDataFile.getName(),
-        imputed ? "0.0" : abundance.toString(), imputed ? "1" : "0"};
+        text(row.getAverageMZ()), text(row.getAverageRT()), sampleName.toString(),
+        imputed ? Double.toString(actualAbundance) : rawAbundance.toString(), imputed ? "1" : "0"};
+  }
+
+  /**
+   * Always a finite value, never NaN
+   */
+  private double getActualImputedAbundance(@NonNull FeatureListRow row,
+      @NonNull RawDataFile rawDataFile) {
+    final double value = dataTable.getValue(row, rawDataFile);
+    if (Double.compare(value, 0d) <= 0 || !Double.isFinite(value)) {
+      return 0d;
+    }
+    return value;
   }
 
   private @Nullable Float getAbundance(@Nullable final Feature feature) {
     if (feature == null) {
       return null;
     }
-    return abundanceMeasure.get((ModularDataModel) feature);
+    return switch (abundanceMeasure) {
+      case Area -> feature.getArea();
+      case Height -> feature.getHeight();
+      case NORMALIZED_AREA, NORMALIZED_HEIGHT ->
+          feature instanceof ModularDataModel dataModel ? abundanceMeasure.get(dataModel) : null;
+    };
+  }
+
+  private void prepareImputedIntensities() {
+    final var config = new AbundanceDataTablePreparationConfig(abundanceMeasure,
+        missingValueImputation);
+    dataTable = StatisticUtils.extractAbundancesPrepareData(featureList.getRows(),
+        featureList.getRawDataFiles(), config);
+  }
+
+  private static boolean isMissingAbundance(@Nullable final Float abundance) {
+    return abundance == null || !Float.isFinite(abundance) || abundance <= 0f;
   }
 
   private static @NotNull String getMetaboliteId(@NotNull final FeatureListRow row) {

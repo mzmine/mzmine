@@ -29,11 +29,16 @@ import static io.github.mzmine.util.StringUtils.inQuotes;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.statistics.MissingValueImputationParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,8 +54,19 @@ public class MassDynamicsExportParameters extends SimpleParameterSet {
       "Abundance measure", "Feature abundance written to the MetaboliteIntensity column.",
       AbundanceMeasure.values(), AbundanceMeasure.Area);
 
+  public static final MissingValueImputationParameter missingValueImputation = new MissingValueImputationParameter();
+
+  public static final MetadataGroupingParameter conditionColumn = new MetadataGroupingParameter(
+      "Condition metadata column", "Metadata column mapped to the MassDynamics condition column.",
+      MetadataColumn.SAMPLE_TYPE_HEADER);
+
+  public static final OptionalParameter<StringParameter> defaultCondition = new OptionalParameter<>(
+      new StringParameter("Default condition",
+          "Condition value used when the selected metadata column is empty.", ""), false);
+
   public MassDynamicsExportParameters() {
-    super(featureLists, filename, abundanceMeasure);
+    super(featureLists, filename, abundanceMeasure, missingValueImputation, conditionColumn,
+        defaultCondition);
   }
 
   @Override

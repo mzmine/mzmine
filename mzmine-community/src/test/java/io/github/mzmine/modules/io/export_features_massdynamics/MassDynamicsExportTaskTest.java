@@ -45,8 +45,10 @@ import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.project.ProjectService;
@@ -54,6 +56,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListTestUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -68,8 +71,8 @@ import testutils.MZmineTestUtil;
 
 class MassDynamicsExportTaskTest {
 
-  private static final String[] HEADER = {"MetaboliteId", "MetaboliteName", "InChIKey", "HMDB",
-      "KEGG", "mz", "RetentionTime", "smiles", "isomeric_smiles", "inchi", "SampleName",
+  private static final String[] HEADER = {"MetaboliteId", "MetaboliteName", "Smiles",
+      "IsomericSmiles", "InChI", "InChIKey", "HMDB", "KEGG", "mz", "RetentionTime", "SampleName",
       "MetaboliteIntensity", "Imputed"};
 
   @BeforeAll
@@ -92,9 +95,8 @@ class MassDynamicsExportTaskTest {
     project.addFile(fileB);
 
     final MetadataTable metadata = project.getProjectMetadata();
-    final MetadataColumn<String> sampleType = metadata.getSampleTypeColumn();
-    metadata.setValue(sampleType, fileA, "Tumor");
-    metadata.setValue(sampleType, fileB, "Normal");
+    final MetadataColumn<String> treatment = new StringMetadataColumn("treatment");
+    metadata.setValue(treatment, fileA, "Tumor");
 
     final ModularFeatureList featureList = new ModularFeatureList("Feature/List 1", null, fileA,
         fileB);
@@ -103,19 +105,28 @@ class MassDynamicsExportTaskTest {
         List.of(10f, 20f), 101.1234, 5.5f);
     setNormalizedArea(annotatedRow, fileA, 11f);
     setNormalizedArea(annotatedRow, fileB, 22f);
-    annotatedRow.set(PreferredAnnotationType.class, createAnnotation());
+    final CompoundDBAnnotation annotation = createAnnotation();
+    annotatedRow.set(PreferredAnnotationType.class, annotation);
 
     final ModularFeatureListRow missingRow = FeatureListTestUtils.addRow(featureList, 2, files,
         Arrays.asList(5f, null), 202.2, 6.5f);
     setNormalizedArea(missingRow, fileA, 55f);
 
-    final File metaboliteFile = tempDir.resolve("massdynamics_metabolite.tsv").toFile();
+    final File baseFile = tempDir.resolve("massdynamics.tsv").toFile();
+    final File metaboliteFile = FileAndPathUtil.getRealFilePathWithSuffix(baseFile,
+        "_massdynamics_metabolite.tsv");
+    final File metadataFile = MassDynamicsExportTask.getExperimentMetadataFile(baseFile);
+
     final ParameterSet parameters = new MassDynamicsExportParameters().cloneParameterSet();
     parameters.setParameter(MassDynamicsExportParameters.featureLists,
         new FeatureListsSelection(featureList));
-    parameters.setParameter(MassDynamicsExportParameters.filename, metaboliteFile);
+    parameters.setParameter(MassDynamicsExportParameters.filename, baseFile);
     parameters.setParameter(MassDynamicsExportParameters.abundanceMeasure,
         AbundanceMeasure.NORMALIZED_AREA);
+    parameters.setParameter(MassDynamicsExportParameters.missingValueImputation,
+        ImputationFunctions.OneFifthOfMinimum);
+    parameters.setParameter(MassDynamicsExportParameters.conditionColumn, "treatment");
+    parameters.setParameter(MassDynamicsExportParameters.defaultCondition, true, "Unknown");
 
     final MassDynamicsExportTask task = new MassDynamicsExportTask(null, Instant.now(), parameters,
         MassDynamicsExportModule.class, featureList);
@@ -127,18 +138,16 @@ class MassDynamicsExportTaskTest {
     assertArrayEquals(HEADER, metaboliteRows.getFirst());
 
     assertArrayEquals(
-        new String[]{"row_1", "Glucose", "WQZGKKKJIJFFOK-UHFFFAOYSA-N", "", "", "101.1234", "5.5",
-            "C(C1C(C(C(C(O)O1)O)O)O)O", "C(C1C(C(C(C(O)O1)O)O)O)O",
-            "InChI=1S/C6H12O6/c7-1-2-3(8)4(9)5(10)6(11)12-2/h2-11H,1H2", "sample_A.mzML", "11.0",
-            "0"}, metaboliteRows.get(1));
+        new String[]{"row_1", "Glucose", annotation.getSmiles(), annotation.getIsomericSmiles(),
+            annotation.getInChI(), annotation.getInChIKey(), "", "", "101.1234", "5.5", "sample_A",
+            "11.0", "0"}, metaboliteRows.get(1));
     assertEquals("22.0", metaboliteRows.get(2)[11]);
     assertEquals("0", metaboliteRows.get(2)[12]);
-    assertEquals("sample_B.mzML", metaboliteRows.get(4)[10]);
-    assertEquals("0.0", metaboliteRows.get(4)[11]);
+    assertEquals("sample_B", metaboliteRows.get(4)[10]);
+    assertEquals("11.0", metaboliteRows.get(4)[11]);
     assertEquals("1", metaboliteRows.get(4)[12]);
 
-    assertMetadataCsv(tempDir.resolve("experiment_design.csv").toFile());
-    assertMetadataCsv(tempDir.resolve("sample_metadata.csv").toFile());
+    assertMetadataCsv(metadataFile);
   }
 
   private static void setNormalizedArea(@NotNull final ModularFeatureListRow row,
@@ -171,10 +180,10 @@ class MassDynamicsExportTaskTest {
     assertTrue(conditionIndex >= 0, header::toString);
 
     assertEquals("sample_A.mzML", rows.get(1)[filenameIndex]);
-    assertEquals("sample_A.mzML", rows.get(1)[sampleNameIndex]);
+    assertEquals("sample_A", rows.get(1)[sampleNameIndex]);
     assertEquals("Tumor", rows.get(1)[conditionIndex]);
     assertEquals("sample_B.mzML", rows.get(2)[filenameIndex]);
-    assertEquals("sample_B.mzML", rows.get(2)[sampleNameIndex]);
-    assertEquals("Normal", rows.get(2)[conditionIndex]);
+    assertEquals("sample_B", rows.get(2)[sampleNameIndex]);
+    assertEquals("Unknown", rows.get(2)[conditionIndex]);
   }
 }
