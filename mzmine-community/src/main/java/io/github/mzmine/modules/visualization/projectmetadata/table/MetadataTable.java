@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.table;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.DATE_HEADER;
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
+import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_NAME_HEADER;
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,6 +39,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -130,7 +132,7 @@ public class MetadataTable {
    *
    * @param newFile file to be added
    */
-  public void addFile(RawDataFile newFile) {
+  public void addFile(@NotNull final RawDataFile newFile) {
     // try to set a value of a start time stamp parameter for a sample
     try {
       if (enableAutoDetection) {
@@ -142,18 +144,24 @@ public class MetadataTable {
         setValue(dateCol, newFile, newFile.getStartTimeStamp());
 
         assignSampleType(newFile);
+        assignSampleName(newFile);
       }
     } catch (Exception ignored) {
-      logger.warning("Cannot set date " + newFile.getStartTimeStamp());
+      logger.warning("Cannot auto-detect metadata for " + newFile.getName());
     }
   }
 
-  private void assignSampleType(RawDataFile newFile) {
+  private void assignSampleType(@NotNull final RawDataFile newFile) {
     final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
   }
 
-  public MetadataColumn<String> getSampleTypeColumn() {
+  private void assignSampleName(@NotNull final RawDataFile newFile) {
+    final MetadataColumn<String> sampleNameColumn = getSampleNameColumn();
+    setValue(sampleNameColumn, newFile, FileAndPathUtil.eraseFormat(newFile.getName()));
+  }
+
+  public @NotNull MetadataColumn<String> getSampleTypeColumn() {
     final MetadataColumn<?> col = getColumnByName(SAMPLE_TYPE_HEADER);
     if (col == null) {
       final StringMetadataColumn sampleType = new StringMetadataColumn(SAMPLE_TYPE_HEADER,
@@ -163,6 +171,19 @@ public class MetadataTable {
       data.values().stream().flatMap(m -> m.keySet().stream()).distinct()
           .forEach(this::assignSampleType);
       return sampleType;
+    }
+    return (MetadataColumn<String>) col;
+  }
+
+  public @NotNull MetadataColumn<String> getSampleNameColumn() {
+    final MetadataColumn<?> col = getColumnByName(SAMPLE_NAME_HEADER);
+    if (col == null) {
+      final StringMetadataColumn sampleName = new StringMetadataColumn(SAMPLE_NAME_HEADER,
+          "Sample name without raw data file extension");
+      addColumn(sampleName);
+      data.values().stream().flatMap(m -> m.keySet().stream()).distinct()
+          .forEach(this::assignSampleName);
+      return sampleName;
     }
     return (MetadataColumn<String>) col;
   }
