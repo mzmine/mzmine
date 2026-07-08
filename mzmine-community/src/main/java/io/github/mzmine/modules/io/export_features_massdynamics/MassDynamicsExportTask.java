@@ -116,7 +116,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   protected void process() {
     final File flistFilename = getFileForFeatureList(featureList, this.baseFileName);
     if (flistFilename == null) {
-      error("Could not create directories for MassDynamics export file " + this.baseFileName);
+      error("Could not create directories for Mass Dynamics export file " + this.baseFileName);
       return;
     }
 
@@ -132,8 +132,8 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
       exportFeatureList(writer);
     } catch (IOException e) {
       logger.log(Level.WARNING,
-          "Error during MassDynamics metabolite export to " + flistFilename.getAbsolutePath(), e);
-      error("Could not export MassDynamics metabolite TSV to " + flistFilename.getAbsolutePath(),
+          "Error during Mass Dynamics metabolite export to " + flistFilename.getAbsolutePath(), e);
+      error("Could not export Mass Dynamics metabolite TSV to " + flistFilename.getAbsolutePath(),
           e);
       return;
     }
@@ -147,7 +147,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
     }
 
     logger.info(
-        () -> "Exported MassDynamics files for feature list " + featureList.getName() + " to "
+        () -> "Exported Mass Dynamics files for feature list " + featureList.getName() + " to "
             + flistFilename.getParent());
   }
 
@@ -162,7 +162,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
     metadataTask.run();
 
     if (metadataTask.getStatus() == TaskStatus.ERROR) {
-      error("Could not export MassDynamics metadata CSV to " + file.getAbsolutePath() + ": "
+      error("Could not export Mass Dynamics metadata CSV to " + file.getAbsolutePath() + ": "
           + Objects.toString(metadataTask.getErrorMessage(), ""));
       return false;
     }
@@ -171,7 +171,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
       return false;
     }
     if (metadataTask.getStatus() != TaskStatus.FINISHED) {
-      error("Could not export MassDynamics metadata CSV to " + file.getAbsolutePath());
+      error("Could not export Mass Dynamics metadata CSV to " + file.getAbsolutePath());
       return false;
     }
 
@@ -290,6 +290,6 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
 
   @Override
   public @NotNull String getTaskDescription() {
-    return "Exporting feature list " + featureList.getName() + " for MassDynamics";
+    return "Exporting feature list " + featureList.getName() + " for Mass Dynamics";
   }
 }

@@ -40,7 +40,7 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
     StringMetadataColumn, DoubleMetadataColumn, DateMetadataColumn {
 
   public static final String FILENAME_HEADER = "filename";
-  /// sample_name is used by MassDynamics export and may be also used by other workflows default is
+  /// sample_name is used by Mass Dynamics export and may be also used by other workflows default is
   /// the filename without extension
   public static final String SAMPLE_NAME_HEADER = "sample_name";
   public static final String DATE_HEADER = "run_date";

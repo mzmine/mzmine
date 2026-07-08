@@ -56,7 +56,7 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
      */
     GNPS,
     /**
-     * MassDynamics export
+     * Mass Dynamics export
      */
     MASS_DYNAMICS;
 
@@ -66,7 +66,7 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
         case DEFAULT -> "Default";
         case MZMINE_INTERNAL -> "mzmine internal";
         case GNPS -> "GNPS";
-        case MASS_DYNAMICS -> "MassDynamics";
+        case MASS_DYNAMICS -> "Mass Dynamics";
       };
     }
   }
@@ -111,7 +111,7 @@ public class ProjectMetadataExportParameters extends SimpleParameterSet {
   }
 
   /**
-   * MassDynamics export needs condition column
+   * Mass Dynamics export needs condition column
    */
   private void applyMassDynamicsDefaults(@Nullable final MetadataFileFormat selectedFormat,
       @NotNull final OptionalParameterComponent<?> mappingsOptionalComponent) {
