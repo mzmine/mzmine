@@ -30,8 +30,12 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import java.io.File;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Clone of {@link SampleMetadataExtractionParameters} without the raw data file selection. Used as
@@ -54,6 +58,11 @@ public class SampleMetadataExtractionEmbeddedParameters extends SimpleParameterS
     super(overwrite, mappings);
   }
 
+  /// files selected by drag and drop or in the data import or wizard
+  public void setSelectedFiles(@Nullable final File[] files) {
+    getParameter(mappings).setSelectedFiles(files != null ? Arrays.asList(files) : List.of());
+  }
+
   /**
    * Creates an extraction task from these parameters for the externally provided files.
    *
@@ -68,5 +77,10 @@ public class SampleMetadataExtractionEmbeddedParameters extends SimpleParameterS
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
     return new SampleMetadataExtractionTask(moduleCallDate, parameters, moduleClass, raws,
         parameters.getValue(mappings), parameters.getValue(overwrite));
+  }
+
+  public void resetDefaults() {
+    overwrite.setValue(true);
+    mappings.setValue(List.of());
   }
 }

@@ -28,11 +28,16 @@ package io.github.mzmine.modules.visualization.projectmetadata.extract;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.UserParameter;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +58,8 @@ public class MetadataRegexExtractionParameter implements
 
   private final String name;
   private final String description;
+  /// files selected by drag and drop or in the data import or wizard
+  private final ObservableList<File> selectedFiles = FXCollections.observableArrayList();
   private @NotNull List<MetadataRegexMapping> value;
 
   public MetadataRegexExtractionParameter(final String name, final String description) {
@@ -72,8 +79,8 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public MetadataRegexExtractionComponent createEditingComponent() {
-    return new MetadataRegexExtractionComponent();
+  public @NotNull MetadataRegexExtractionComponent createEditingComponent() {
+    return new MetadataRegexExtractionComponent(selectedFiles);
   }
 
   @Override
@@ -203,11 +210,36 @@ public class MetadataRegexExtractionParameter implements
   }
 
   @Override
-  public MetadataRegexExtractionParameter cloneParameter() {
+  public @NotNull MetadataRegexExtractionParameter cloneParameter() {
     final MetadataRegexExtractionParameter copy = new MetadataRegexExtractionParameter(name,
         description);
     copy.value = new ArrayList<>(value);
     return copy;
+  }
+
+  /// files selected by drag and drop or in the data import or wizard
+  public @NotNull ObservableList<File> getSelectedFiles() {
+    return selectedFiles;
+  }
+
+  /// files selected by drag and drop or in the data import or wizard
+  public void setSelectedFiles(@Nullable final File[] files) {
+    setSelectedFiles(files != null ? Arrays.asList(files) : List.of());
+  }
+
+  /// files selected by drag and drop or in the data import or wizard
+  public void setSelectedFiles(@NotNull final Collection<File> files) {
+    final LinkedHashMap<String, File> uniqueFiles = new LinkedHashMap<>();
+    for (final File file : files) {
+      if (file != null) {
+        uniqueFiles.putIfAbsent(fileKey(file), file);
+      }
+    }
+    selectedFiles.setAll(uniqueFiles.values());
+  }
+
+  private static @NotNull String fileKey(@NotNull final File file) {
+    return file.getAbsoluteFile().toPath().normalize().toString().toLowerCase();
   }
 
 }

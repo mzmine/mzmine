@@ -36,14 +36,17 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
@@ -54,6 +57,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.application.Platform;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,6 +115,36 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
         "https://mzmine.github.io/mzmine_documentation/module_docs/io/data-import.html");
   }
 
+  @Override
+  public @NotNull ExitCode showSetupDialog(final boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+
+    final ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
+        this.getMessage());
+    final FileNamesComponent fileNamesComponent = dialog.getComponentForParameter(fileNames);
+    final SampleMetadataExtractionEmbeddedParameters metadataParameters = getParameter(
+        extractMetadata).getEmbeddedParameters();
+
+    final Subscription fileNameSubscription = fileNamesComponent.textProperty()
+        .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent));
+    try {
+      dialog.showAndWait();
+    } finally {
+      fileNameSubscription.unsubscribe();
+    }
+    return dialog.getExitCode();
+  }
+
+  private static void updateMetadataSelectedFiles(
+      @NotNull final SampleMetadataExtractionEmbeddedParameters metadataParameters,
+      @NotNull final FileNamesComponent fileNamesComponent) {
+    metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
+  }
+
 
   public static ParameterSet create(final VendorImportParameters importParam,
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
@@ -121,6 +156,14 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
       @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
+    return create(importParam, allDataFiles, metadata, null, allLibraryFiles, advanced);
+  }
+
+  public static ParameterSet create(final VendorImportParameters importParam,
+      @NotNull final File[] allDataFiles, @Nullable final File metadata,
+      @Nullable final SampleMetadataExtractionEmbeddedParameters metaExtraction,
+      @Nullable final File[] allLibraryFiles,
+      @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();
     params.getParameter(vendorOptions).setEmbeddedParameters(importParam);
     params.setParameter(fileNames, allDataFiles);
@@ -129,6 +172,13 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     params.setParameter(advancedImport, advanced != null);
     if (advanced != null) {
       params.getParameter(advancedImport).setEmbeddedParameters(advanced);
+    }
+    if (metaExtraction != null) {
+      params.setParameter(extractMetadata, true);
+      params.getParameter(extractMetadata).setEmbeddedParameters(metaExtraction);
+    } else {
+      params.setParameter(extractMetadata, false);
+      params.getParameter(extractMetadata).getEmbeddedParameters().resetDefaults();
     }
     return params;
   }
@@ -223,6 +273,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
+    if (!loadedParams.containsKey(extractMetadata.getName())) {
+      setParameter(extractMetadata, false);
+      getParameter(extractMetadata).getEmbeddedParameters().resetDefaults();
+    }
     if (loadedParams.containsKey(applyVendorCentroidingOld.getName())) {
       final BooleanParameter oldCentroiding = (BooleanParameter) loadedParams.get(
           applyVendorCentroidingOld.getName());

@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -36,6 +35,7 @@ import io.github.mzmine.main.ConfigService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -105,7 +105,7 @@ public class MetadataRegexMappingRow {
   private final ButtonBase removeButton;
   // generate + remove icon buttons grouped in one cell with icon-button spacing
   private final FlowPane buttonBox;
-  private final List<RawDataFile> rawFiles;
+  private final Function<RegexInputSource, List<String>> inputExamples;
 
   // value mapping data lives here; it is edited via the shared MetadataValueMappingEditor
   private final List<MetadataValueMapping> valueMappings = new ArrayList<>();
@@ -118,8 +118,9 @@ public class MetadataRegexMappingRow {
   private @Nullable Consumer<MetadataRegexMappingRow> onRemove;
 
   public MetadataRegexMappingRow(@NotNull final MetadataRegexMapping mapping,
-      @NotNull final List<String> columnSuggestions, @NotNull final List<RawDataFile> rawFiles) {
-    this.rawFiles = rawFiles;
+      @NotNull final List<String> columnSuggestions,
+      @NotNull final Function<RegexInputSource, List<String>> inputExamples) {
+    this.inputExamples = inputExamples;
 
     selectIcon.setMinWidth(24);
     selectIcon.setStyle("-fx-cursor: hand;");
@@ -218,8 +219,8 @@ public class MetadataRegexMappingRow {
     final StringBuilder query = new StringBuilder("Values:\n");
     query.append(values.isBlank() ? "<your target values, space separated>" : values);
     query.append("\n\nExamples:\n");
-    for (final RawDataFile raw : rawFiles) {
-      query.append(mapping.inputSource().extract(raw)).append('\n');
+    for (final String input : inputExamples.apply(mapping.inputSource())) {
+      query.append(input).append('\n');
     }
     query.append('\n').append(REGEX_PROMPT_INSTRUCTIONS);
 

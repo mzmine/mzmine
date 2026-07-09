@@ -86,6 +86,24 @@ public enum RegexInputSource implements UniqueIdSupplier {
     };
   }
 
+  /**
+   * Extracts the input string from a file that has not been imported yet.
+   *
+   * @param file the selected source file
+   * @return the input string used for regex matching
+   */
+  public @NotNull String extract(@NotNull final File file) {
+    return switch (this) {
+      case FILE_NAME -> file.getName();
+      case FILE_NAME_WITHOUT_EXTENSION -> FileAndPathUtil.eraseFormat(file.getName());
+      case ABSOLUTE_PATH -> file.getAbsolutePath();
+      case PARENT_FOLDER -> {
+        final File parent = file.getParentFile();
+        yield parent != null ? parent.getName() : "";
+      }
+    };
+  }
+
   @Override
   public String toString() {
     return label;

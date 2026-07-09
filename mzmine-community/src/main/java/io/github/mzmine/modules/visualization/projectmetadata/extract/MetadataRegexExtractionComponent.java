@@ -32,13 +32,23 @@ import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionUtils.GroupMatch;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterComponent;
 import io.github.mzmine.project.ProjectService;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -49,9 +59,11 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -62,14 +74,15 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Editor component for {@link MetadataRegexExtractionParameter}. Shows the mappings as rows of a
  * grid (one bold header row to save space), a single shared {@link MetadataValueMappingEditor} bound
- * to the selected row, and a live preview that lists all loaded raw data files with the selected
- * mapping's matched group highlighted. The first grid column marks the selected row.
+ * to the selected row, and a live preview that lists selected files and loaded raw data files with
+ * the selected mapping's matched group highlighted. The first grid column marks the selected row.
  */
 public class MetadataRegexExtractionComponent extends VBox implements
     ParameterComponent<List<MetadataRegexMapping>> {
 
   // limit how many files are rendered in the preview to keep the dialog responsive
   private static final int MAX_PREVIEW_FILES = 1000;
+  private static final int PREVIEW_VIEWPORT_HEIGHT = 340;
   private static final Color HIGHLIGHT_COLOR = Color.web("#E8590C");
   private static final String[] HEADERS = {"", "Source", "Target column", "Type", "Regex",
       "Default", ""};
@@ -83,18 +96,26 @@ public class MetadataRegexExtractionComponent extends VBox implements
   private final List<MetadataRegexMappingRow> rows = new ArrayList<>();
   private final GridPane grid = new GridPane();
   private final VBox previewBox = FxLayout.newVBox(Insets.EMPTY);
-  private final List<RawDataFile> previewFiles;
+  /// files already loaded into mzmine
+  private final List<RawDataFile> loadedPreviewFiles;
+  /// files selected by drag and drop or in the data import or wizard
+  private final ObservableList<File> selectedFiles;
   private final List<String> columnSuggestions;
   private final MetadataValueMappingEditor valueEditor;
 
   private @Nullable MetadataRegexMappingRow selected;
 
   public MetadataRegexExtractionComponent() {
+    this(FXCollections.observableArrayList());
+  }
+
+  public MetadataRegexExtractionComponent(@NotNull final ObservableList<File> selectedFiles) {
     super(FxLayout.DEFAULT_SPACE);
     setPadding(new Insets(FxLayout.DEFAULT_SPACE));
     setMaxWidth(Double.MAX_VALUE);
+    this.selectedFiles = selectedFiles;
 
-    previewFiles =
+    loadedPreviewFiles =
         ProjectService.getProject() != null ? ProjectService.getProject().getCurrentRawDataFiles()
             : List.of();
     columnSuggestions = buildColumnSuggestions();
@@ -104,7 +125,8 @@ public class MetadataRegexExtractionComponent extends VBox implements
     grid.setMaxWidth(Double.MAX_VALUE);
     setupGridColumns();
 
-    valueEditor = new MetadataValueMappingEditor(previewFiles, this::refreshPreview);
+    valueEditor = new MetadataValueMappingEditor(this::previewInputStrings, this::refreshPreview);
+    this.selectedFiles.addListener((ListChangeListener<File>) _ -> refreshFileDependentPreview());
 
     final var addButton = FxButtons.createButton("Add mapping", "Add another column mapping",
         () -> addRow(MetadataRegexMapping.createDefault()));
@@ -117,9 +139,16 @@ public class MetadataRegexExtractionComponent extends VBox implements
     previewScroll.setFitToHeight(true);
     previewScroll.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     previewScroll.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    previewScroll.setPrefViewportHeight(220);
+    previewScroll.setMinViewportHeight(PREVIEW_VIEWPORT_HEIGHT);
+    previewScroll.setPrefViewportHeight(PREVIEW_VIEWPORT_HEIGHT);
+    final BooleanExpression dragMessageVisible = Bindings.createBooleanBinding(
+        () -> loadedPreviewFiles.isEmpty() && this.selectedFiles.isEmpty(), this.selectedFiles);
+    final StackPane previewWrapper = FxIconUtil.createDragAndDropWrapper(previewScroll,
+        dragMessageVisible, "Drop files here to preview the metadata extraction.");
+    previewWrapper.setMinHeight(PREVIEW_VIEWPORT_HEIGHT);
+    initPreviewDragAndDrop(previewWrapper);
     final TitledPane previewPane = FxLayout.newTitledPane(
-        "Preview – matched group highlighted in loaded files", previewScroll);
+        "Preview - matched group highlighted in selected and loaded files", previewWrapper);
     final Accordion previewAccordion = FxLayout.newAccordion(true, previewPane);
     VBox.setVgrow(previewAccordion, Priority.ALWAYS);
 
@@ -178,7 +207,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
 
   private @NotNull MetadataRegexMappingRow createRow(@NotNull final MetadataRegexMapping mapping) {
     final MetadataRegexMappingRow row = new MetadataRegexMappingRow(mapping, columnSuggestions,
-        previewFiles);
+        this::previewInputStrings);
     row.setOnActivate(this::selectRow);
     row.setOnChange(() -> {
       if (selected == row) {
@@ -223,18 +252,92 @@ public class MetadataRegexExtractionComponent extends VBox implements
 
   // ----------------------------------------------------------------------------------------- preview
 
+  public @NotNull ObservableList<File> getSelectedFiles() {
+    return selectedFiles;
+  }
+
+  private @NotNull List<String> previewInputStrings(@NotNull final MetadataRegexMapping mapping) {
+    return previewInputStrings(mapping.inputSource());
+  }
+
+  private @NotNull List<String> previewInputStrings(@NotNull final RegexInputSource source) {
+    final LinkedHashMap<String, String> inputs = new LinkedHashMap<>();
+    for (final File file : selectedFiles) {
+      if (file != null) {
+        inputs.putIfAbsent(fileKey(file), source.extract(file));
+      }
+    }
+    for (final RawDataFile raw : loadedPreviewFiles) {
+      inputs.putIfAbsent(fileKey(raw.getAbsoluteFilePath()), source.extract(raw));
+    }
+    return List.copyOf(inputs.values());
+  }
+
+  private void initPreviewDragAndDrop(@NotNull final StackPane previewWrapper) {
+    previewWrapper.setOnDragOver(event -> {
+      if (event.getGestureSource() != this && event.getDragboard().hasFiles()) {
+        event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+      }
+      event.consume();
+    });
+
+    previewWrapper.setOnDragDropped(event -> {
+      if (event.getDragboard().hasFiles()) {
+        addSelectedFilesSkipDuplicates(event.getDragboard().getFiles());
+        event.setDropCompleted(true);
+      }
+      event.consume();
+    });
+  }
+
+  private void addSelectedFilesSkipDuplicates(@NotNull final Collection<File> files) {
+    final LinkedHashMap<String, File> uniqueFiles = new LinkedHashMap<>();
+    for (final File file : selectedFiles) {
+      if (file != null) {
+        uniqueFiles.putIfAbsent(fileKey(file), file);
+      }
+    }
+
+    final LinkedHashSet<String> loadedFileKeys = new LinkedHashSet<>();
+    for (final RawDataFile raw : loadedPreviewFiles) {
+      loadedFileKeys.add(fileKey(raw.getAbsoluteFilePath()));
+    }
+
+    for (final File file : files) {
+      if (file == null) {
+        continue;
+      }
+      final String key = fileKey(file);
+      if (!loadedFileKeys.contains(key)) {
+        uniqueFiles.putIfAbsent(key, file);
+      }
+    }
+    selectedFiles.setAll(uniqueFiles.values());
+  }
+
+  private static @NotNull String fileKey(@NotNull final File file) {
+    return file.getAbsoluteFile().toPath().normalize().toString().toLowerCase(Locale.ROOT);
+  }
+
+  private void refreshFileDependentPreview() {
+    refreshPreview();
+    valueEditor.refreshResults();
+  }
+
   private void refreshPreview() {
     previewBox.getChildren().clear();
-
-    if (previewFiles.isEmpty()) {
-      previewBox.getChildren().add(FxLabels.newItalicLabel(
-          "No raw data files are loaded. Import data files to preview the matches."));
-      return;
-    }
 
     final MetadataRegexMapping mapping = selected != null ? selected.toMapping() : null;
     final RegexInputSource source =
         mapping != null ? mapping.inputSource() : RegexInputSource.FILE_NAME;
+    final List<String> previewInputs = previewInputStrings(source);
+
+    if (previewInputs.isEmpty()) {
+      previewBox.getChildren().add(FxLabels.newItalicLabel(
+          "No raw data files are loaded or selected. Drop files here to preview the matches."));
+      return;
+    }
+
     final boolean hasRegex = mapping != null && !mapping.regex().isBlank();
 
     final String headerText = mapping == null ? "Select a mapping to highlight its matches."
@@ -243,22 +346,18 @@ public class MetadataRegexExtractionComponent extends VBox implements
             mapping.columnName().isBlank() ? "?" : mapping.columnName(), source.toString());
     previewBox.getChildren().add(FxLabels.newItalicLabel(headerText));
 
-    final int shown = Math.min(previewFiles.size(), MAX_PREVIEW_FILES);
+    final int shown = Math.min(previewInputs.size(), MAX_PREVIEW_FILES);
     for (int i = 0; i < shown; i++) {
-      previewBox.getChildren()
-          .add(buildPreviewLine(previewFiles.get(i), mapping, source, hasRegex));
+      previewBox.getChildren().add(buildPreviewLine(previewInputs.get(i), mapping, hasRegex));
     }
-    if (previewFiles.size() > shown) {
+    if (previewInputs.size() > shown) {
       previewBox.getChildren().add(
-          FxLabels.newItalicLabel("… and %d more files".formatted(previewFiles.size() - shown)));
+          FxLabels.newItalicLabel("... and %d more files".formatted(previewInputs.size() - shown)));
     }
   }
 
-  private @NotNull TextFlow buildPreviewLine(@NotNull final RawDataFile raw,
-      @Nullable final MetadataRegexMapping mapping, @NotNull final RegexInputSource source,
-      final boolean hasRegex) {
-    final String input = source.extract(raw);
-
+  private @NotNull TextFlow buildPreviewLine(@NotNull final String input,
+      @Nullable final MetadataRegexMapping mapping, final boolean hasRegex) {
     final GroupMatch match =
         hasRegex ? SampleMetadataExtractionUtils.firstGroupMatch(mapping, input) : null;
 

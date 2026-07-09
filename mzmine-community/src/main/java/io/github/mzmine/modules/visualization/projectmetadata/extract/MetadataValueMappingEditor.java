@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -36,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MetadataValueMappingEditor extends VBox {
 
-  private final List<RawDataFile> rawFiles;
+  private final Function<MetadataRegexMapping, List<String>> inputSupplier;
   private final Runnable onChange;
 
   private final ComboBox<ValueHandlingMode> modeCombo;
@@ -69,18 +69,19 @@ public class MetadataValueMappingEditor extends VBox {
   private final VBox fieldsBox = FxLayout.newVBox(Insets.EMPTY);
   // holds the value-mapping controls; only shown in the VALUE_MAPPINGS mode
   private final VBox valueSection;
-  // distinct resulting metadata groups across all loaded files (mapping/default/drop applied)
+  // distinct resulting metadata groups across previewed files (mapping/default/drop applied)
   private final FlowPane resultsFlow = FxLayout.newFlowPane();
 
   private @Nullable MetadataRegexMappingRow target;
   // guards against writing back into the target while the controls are being (re)populated
   private boolean loading;
 
-  public MetadataValueMappingEditor(@NotNull final List<RawDataFile> rawFiles,
+  public MetadataValueMappingEditor(
+      @NotNull final Function<MetadataRegexMapping, List<String>> inputSupplier,
       @NotNull final Runnable onChange) {
     super(FxLayout.DEFAULT_SPACE);
     setPadding(new Insets(FxLayout.DEFAULT_SPACE));
-    this.rawFiles = rawFiles;
+    this.inputSupplier = inputSupplier;
     this.onChange = onChange;
 
     modeCombo = FxComboBox.createComboBox(
@@ -102,7 +103,7 @@ public class MetadataValueMappingEditor extends VBox {
     });
 
     final Button fillButton = FxButtons.createButton("Fill values from files",
-        "Add all values matched in the loaded raw data files to the list below.",
+        "Add all values matched in the previewed files to the list below.",
         this::autoFillFromFiles);
 
     final HBox options = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fillButton,
@@ -176,22 +177,21 @@ public class MetadataValueMappingEditor extends VBox {
     refreshResults();
   }
 
-  // shows the distinct resulting metadata groups across all loaded files, with the row's mapping,
+  // shows the distinct resulting metadata groups across all previewed files, with the row's mapping,
   // default value and drop-unmapped option applied; alternating regular and positive text color
-  private void refreshResults() {
-    resultsFlow.getChildren().setAll(FxLabels.newBoldLabel("Results for all loaded samples:"));
+  public void refreshResults() {
+    resultsFlow.getChildren().setAll(FxLabels.newBoldLabel("Results for previewed samples:"));
     if (target == null) {
       return;
     }
     final MetadataRegexMapping mapping = target.toMapping();
-    final List<String> groups = rawFiles.stream().map(
-            raw -> SampleMetadataExtractionUtils.extractValue(mapping,
-                SampleMetadataExtractionUtils.inputString(raw, mapping)))
+    final List<String> groups = inputSupplier.apply(mapping).stream()
+        .map(input -> SampleMetadataExtractionUtils.extractValue(mapping, input))
         .map(value -> value == null ? "(empty)" : value).distinct()
         .sorted(String.CASE_INSENSITIVE_ORDER).toList();
 
     if (groups.isEmpty()) {
-      resultsFlow.getChildren().add(FxLabels.newItalicLabel("(no samples loaded)"));
+      resultsFlow.getChildren().add(FxLabels.newItalicLabel("(no files loaded or selected)"));
       return;
     }
     final Color positive = ConfigService.getDefaultColorPalette().getPositiveColor();
@@ -256,13 +256,14 @@ public class MetadataValueMappingEditor extends VBox {
     }
   }
 
-  // pre-fill the left (extracted value) side with all values matched across the loaded files
+  // pre-fill the left (extracted value) side with all values matched across the previewed files
   private void autoFillFromFiles() {
     if (target == null) {
       return;
     }
-    final List<String> values = SampleMetadataExtractionUtils.distinctMatchedValues(
-        target.toMapping(), rawFiles);
+    final MetadataRegexMapping mapping = target.toMapping();
+    final List<String> values = SampleMetadataExtractionUtils.distinctMatchedValuesFromInputs(
+        mapping, inputSupplier.apply(mapping));
     final Set<String> existing = new HashSet<>();
     for (final Node node : fieldsBox.getChildren()) {
       final String from = fromField((HBox) node).getText();

@@ -102,9 +102,24 @@ public class SampleMetadataExtractionUtils {
    */
   public static @NotNull List<String> distinctMatchedValues(
       @NotNull final MetadataRegexMapping mapping, @NotNull final List<RawDataFile> raws) {
+    return distinctMatchedValuesFromInputs(mapping,
+        raws.stream().map(raw -> inputString(raw, mapping)).toList());
+  }
+
+  /**
+   * Collects all distinct group values matched across the given input strings, preserving the
+   * first-seen casing and order. Used to pre-fill the value mapping list from loaded and selected
+   * files.
+   *
+   * @param mapping the mapping with the regex and input source
+   * @param inputs  the input strings to scan
+   * @return distinct matched values (case-insensitive distinction)
+   */
+  public static @NotNull List<String> distinctMatchedValuesFromInputs(
+      @NotNull final MetadataRegexMapping mapping, @NotNull final List<String> inputs) {
     final LinkedHashMap<String, String> seen = new LinkedHashMap<>();
-    for (final RawDataFile raw : raws) {
-      final GroupMatch match = firstGroupMatch(mapping, inputString(raw, mapping));
+    for (final String input : inputs) {
+      final GroupMatch match = firstGroupMatch(mapping, input);
       if (match != null) {
         seen.putIfAbsent(match.value().toLowerCase(), match.value());
       }
