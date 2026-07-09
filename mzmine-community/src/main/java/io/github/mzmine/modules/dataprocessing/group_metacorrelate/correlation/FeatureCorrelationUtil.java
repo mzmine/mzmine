@@ -592,10 +592,14 @@ public class FeatureCorrelationUtil {
         // 2026 Steffen: This may get triggered if one shape is longer than the other and its
         // maximum lies outside the bounds of the shorter trace.
         // in that case, search the other way round and only return null if we also don't find
-        // anything in that direction
+        // anything in that direction. The shape may still be correlated around the maximum of the
+        // smaller feature.
         maxIndexInB = indexOfMax(intensities2);
-//        maxIndexOfA = BinarySearch.binarySearch()
-        return null;
+        maxIndexOfA = BinarySearch.binarySearch(f1[0], f2[0][maxIndexInB],
+            DefaultTo.MINUS_INSERTION_POINT);
+        if (maxIndexOfA <= -1) {
+          return null;
+        }
       }
 
       // save max and min of intensity of val1(x)
