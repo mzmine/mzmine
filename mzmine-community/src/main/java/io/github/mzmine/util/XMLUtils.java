@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -55,6 +56,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -434,6 +436,23 @@ public class XMLUtils {
       return storable;
     } catch (XMLStreamException | IOException e) {
       throw new RuntimeException("Failed to load object from XML DOM", e);
+    }
+  }
+
+  /**
+   * IMPORTANT: This method is for debugging purposes only and should not be used in production
+   * code. It advances the reader.
+   */
+  @Deprecated
+  public static String streamToStringDebugging(XMLStreamReader reader) {
+    try {
+      StringWriter sw = new StringWriter();
+      TransformerFactory.newInstance().newTransformer()
+          .transform(new StAXSource(reader), new StreamResult(sw));
+      String xml = sw.toString();
+      return xml;
+    } catch (TransformerException e) {
+      throw new RuntimeException("Failed to reader to string", e);
     }
   }
 }

@@ -30,8 +30,8 @@ import static java.util.function.Predicate.not;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.parametertypes.ionidentity.LegacyIonTypeXMLReader;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -206,41 +206,8 @@ public final class IonType implements Comparable<IonType> {
   }
 
   public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Current element is not an iontype");
-    }
-
-    final Integer molecules = ParsingUtils.stringToInteger(
-        reader.getAttributeValue(null, "molecules"));
-    Objects.requireNonNull(molecules);
-    // charge and mass is calculated from rest
-//    final Integer charge = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "charge"));
-//    Objects.requireNonNull(charge);
-//    final Integer mass = ParsingUtils.stringToInteger(reader.getAttributeValue(null, "mass"));
-//    Objects.requireNonNull(mass);
-
-    final List<@NotNull IonPart> parts = new ArrayList<>();
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-
-      if (reader.getLocalName().equals(IonParts.XML_ELEMENT)) {
-//        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
-//            CONST.XML_DATA_TYPE_ELEMENT)) {
-        var part = IonParts.loadFromXML(reader);
-        Objects.requireNonNull(part);
-        parts.add(part);
-      }
-    }
-    if (parts.isEmpty()) {
-      throw new IllegalStateException("No ion parts found in xml");
-    }
-
-    return IonType.create(parts, molecules);
+    // need to try read legacy and new format
+    return LegacyIonTypeXMLReader.loadFromXML(reader);
   }
 
   /**
