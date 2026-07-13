@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -39,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,13 +58,15 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   public static final ModuleOptionsEnumComboParameter<BaselineCorrectors> correctionAlgorithm = new ModuleOptionsEnumComboParameter<>(
       "Baseline corrector", "Select the baseline correction algorithm.",
       new BaselineCorrectors[]{BaselineCorrectors.LOESS, BaselineCorrectors.POLYNOMIAL,
-          BaselineCorrectors.SPLINE}, BaselineCorrectors.LOESS);
+          BaselineCorrectors.SPLINE, BaselineCorrectors.ARPLS}, BaselineCorrectors.ARPLS);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       false);
 
   public BaselineCorrectionParameters() {
-    super(flists, suffix, correctionAlgorithm, handleOriginal);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/uv/uv_baseline_correction/uv_baseline_correction.html",
+        flists, suffix, correctionAlgorithm, handleOriginal);
   }
 
   @Override
@@ -90,7 +98,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired, this,
-        BaselineCorrectionPreview::new);
+        getMessage(), BaselineCorrectionPreview::new, true);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -113,4 +121,12 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlowInAccordion("Citation", text("When using the "),
+        boldText(BaselineCorrectors.ARPLS.toString()), text(" baseline corrector, please cite "),
+        hyperlinkText("Baek et al.", " https://doi.org/10.1039/c4an01061b"));
+  }
+
 }
