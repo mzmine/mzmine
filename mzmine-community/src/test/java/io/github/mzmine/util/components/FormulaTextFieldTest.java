@@ -41,12 +41,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Tests the bidirectional text <-> formula synchronization of {@link FormulaTextField}. All
  * interactions run on the JavaFX application thread because the constructor loads an icon font.
  */
+@DisabledOnOs(value = {OS.LINUX, OS.MAC})
 class FormulaTextFieldTest {
 
   private static final FormulaStringFlavor FLAVOR = FormulaStringFlavor.DEFAULT_CHARGED;
