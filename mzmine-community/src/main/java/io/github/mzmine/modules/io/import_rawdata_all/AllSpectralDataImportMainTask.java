@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -47,6 +48,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private final ThreadPoolTask mainImportTask;
   private final File metadataFile;
   private final ParameterSet parameters;
+  // embedded extraction parameters if the option is selected, otherwise null
+  private final ParameterSet extractMetadataParameters;
   private final boolean sortAndRecolor;
 
   public AllSpectralDataImportMainTask(final List<? extends Task> tasks,
@@ -55,6 +58,8 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     mainImportTask = ThreadPoolTask.createDefaultTaskManagerPool("Importing data", tasks);
     metadataFile = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         AllSpectralDataImportParameters.metadataFile, null);
+    extractMetadataParameters = parameters.getEmbeddedParametersIfSelectedOrElse(
+        AllSpectralDataImportParameters.extractMetadata, null);
     sortAndRecolor = parameters.getValue(AllSpectralDataImportParameters.sortAndRecolor);
     this.parameters = parameters;
   }
@@ -93,6 +98,16 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
       }
     }
 
+    // extract metadata from file names after the metadata file was imported
+    if (extractMetadataParameters != null) {
+      Task extractTask = extractMetadata();
+      if (extractTask.isCanceled()) {
+        setStatus(extractTask.getStatus());
+        setErrorMessage(extractTask.getErrorMessage());
+        return;
+      }
+    }
+
     // recolor by default without any metadata
     if (sortAndRecolor) {
       ColorByMetadataTask colorTask = recolorBlanksAndQcs();
@@ -121,6 +136,16 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     var metadataTask = new ProjectMetadataImportTask(metaParams, moduleCallDate);
     metadataTask.run();
     return metadataTask;
+  }
+
+  private Task extractMetadata() {
+    final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
+        ProjectService.getProject(), parameters);
+    final Task extractTask = SampleMetadataExtractionEmbeddedParameters.createTask(
+        extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class,
+        loaded.toArray(RawDataFile[]::new));
+    extractTask.run();
+    return extractTask;
   }
 
   @Override

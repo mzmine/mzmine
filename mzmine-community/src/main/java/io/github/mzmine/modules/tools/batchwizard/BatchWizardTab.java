@@ -42,6 +42,7 @@ import io.github.mzmine.modules.tools.batchwizard.io.LocalWizardSequenceFile;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceSaveModule;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.CustomizationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -49,8 +50,10 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
 import io.mzio.links.MzioMZmineLinks;
@@ -93,6 +96,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Subscription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,6 +115,7 @@ public class BatchWizardTab extends SimpleTab {
    */
   private final Map<File, LocalWizardSequenceFile> localPresets = new HashMap<>();
   private final Map<WizardStepParameters, @NotNull ParameterSetupPane> paramPaneMap = new HashMap<>();
+  private final List<Subscription> paramPaneSubscriptions = new ArrayList<>();
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
   private final LastFilesButton localPresetsButton;
   private final SimpleBooleanProperty advancedMode = new SimpleBooleanProperty(false);
@@ -156,6 +161,8 @@ public class BatchWizardTab extends SimpleTab {
    */
   private synchronized void createParameterPanes() {
     schemaPane.getChildren().clear();
+    paramPaneSubscriptions.forEach(Subscription::unsubscribe);
+    paramPaneSubscriptions.clear();
     paramPaneMap.clear();
     int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
     // evaluate workflow and limit choices
@@ -277,6 +284,9 @@ public class BatchWizardTab extends SimpleTab {
   private Tab createParameterTab(final WizardStepParameters step) {
     ParameterSetupPane paramPane = new ParameterSetupPane(true, false, step);
     paramPaneMap.put(step, paramPane);
+    if (step instanceof DataImportWizardParameters dataImportParameters) {
+      subscribeMetadataExtractionToImportFiles(dataImportParameters, paramPane);
+    }
     // add to schema
     addToSchema(step);
     // NOT add tabs without user parameters (components to set)
@@ -292,6 +302,27 @@ public class BatchWizardTab extends SimpleTab {
     } else {
       return null;
     }
+  }
+
+  private void subscribeMetadataExtractionToImportFiles(
+      @NotNull final DataImportWizardParameters dataImportParameters,
+      @NotNull final ParameterSetupPane paramPane) {
+    final FileNamesComponent fileNamesComponent = paramPane.getComponentForParameter(
+        DataImportWizardParameters.fileNames);
+    if (fileNamesComponent == null) {
+      return;
+    }
+
+    final SampleMetadataExtractionEmbeddedParameters metadataParameters = dataImportParameters.getParameter(
+        DataImportWizardParameters.extractMetadata).getEmbeddedParameters();
+    paramPaneSubscriptions.add(fileNamesComponent.textProperty()
+        .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent)));
+  }
+
+  private static void updateMetadataSelectedFiles(
+      @NotNull final SampleMetadataExtractionEmbeddedParameters metadataParameters,
+      @NotNull final FileNamesComponent fileNamesComponent) {
+    metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
   }
 
   private static void addCheckboxToCustomizationTabHeader(
