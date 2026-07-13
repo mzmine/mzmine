@@ -198,7 +198,6 @@ public class BaselineDataBuffer {
     // spacing stays regular -> only the first and last point are needed as sampling landmarks
     indicesOfInterest.clear();
     indicesOfInterest.add(0);
-    indicesOfInterest.add(numValues - 1);
 
     remaining = numValues;
     rangesInterpolated = !indices.isEmpty();
@@ -206,6 +205,8 @@ public class BaselineDataBuffer {
     for (final IndexRange range : indices) {
       interpolateSingleRange(range);
     }
+
+    indicesOfInterest.add(numValues - 1);
     return numValues;
   }
 
