@@ -139,6 +139,7 @@ import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportMod
 import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
+import io.github.mzmine.modules.io.export_features_massdynamics.MassDynamicsExportModule;
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
@@ -418,6 +419,7 @@ public class BatchModeModulesList {
           ImportFeatureNetworksSimpleModule.class, //
           NetworkGraphMlExportModule.class, //
           MetaboAnalystExportModule.class, //
+          MassDynamicsExportModule.class, //
           AdapMgfExportModule.class, //
           GNPSResultsImportModule.class, //
           AdapMspExportModule.class, //
