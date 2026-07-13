@@ -64,7 +64,9 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       false);
 
   public BaselineCorrectionParameters() {
-    super(flists, suffix, correctionAlgorithm, handleOriginal);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/uv/uv_baseline_correction/uv_baseline_correction.html",
+        flists, suffix, correctionAlgorithm, handleOriginal);
   }
 
   @Override
