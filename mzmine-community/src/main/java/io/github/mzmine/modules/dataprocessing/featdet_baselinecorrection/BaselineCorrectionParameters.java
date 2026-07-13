@@ -96,7 +96,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired, this,
-        BaselineCorrectionPreview::new);
+        getMessage(), BaselineCorrectionPreview::new, true);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
