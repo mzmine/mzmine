@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,6 +48,8 @@ public class BaselineDataBuffer {
   private double[] xBufferRemovedPeaks = new double[0];
   private double[] yBufferRemovedPeaks = new double[0];
   private int remaining;
+  // true if peak ranges were bridged by interpolation into the removed-peaks buffers
+  private boolean rangesInterpolated = false;
 
   public void ensureCapacity(final int capacity) {
     if (xBuffer.length < capacity) {
@@ -67,6 +69,7 @@ public class BaselineDataBuffer {
   public <T extends IntensityTimeSeries> void extractDataIntoBuffer(final T timeSeries) {
     numValues = timeSeries.getNumberOfValues();
     remaining = numValues;
+    rangesInterpolated = false;
 
     boolean yAlreadySet = false;
     if (timeSeries instanceof FeatureDataAccess access) {
@@ -143,11 +146,12 @@ public class BaselineDataBuffer {
   }
 
   /**
-   * @return true if ranges were removed and the xBufferRemovedPeaks and yBufferRemovedPeaks should
-   * be used
+   * @return true if peak ranges were bridged by interpolation (see
+   * {@link #interpolateRangesInArrays(List)}) and the {@link #xBufferRemovedPeaks()} /
+   * {@link #yBufferRemovedPeaks()} should be used for the baseline fit
    */
-  public boolean hasRemovedRanges() {
-    return numValues != remaining;
+  public boolean hasInterpolatedRanges() {
+    return rangesInterpolated;
   }
 
   /**
@@ -159,92 +163,89 @@ public class BaselineDataBuffer {
     return remaining;
   }
 
-  public int removeRangesFromArrays(final List<Range<Double>> rtRanges) {
+  /**
+   * Bridges the given retention time ranges (detected peaks) by linear interpolation instead of
+   * removing them. See {@link #interpolateRanges(List)}.
+   *
+   * @param rtRanges detected peak ranges in retention time. May be empty.
+   * @return the number of values written (always the full {@link #numValues()}).
+   */
+  public int interpolateRangesInArrays(final List<Range<Double>> rtRanges) {
     final List<IndexRange> indices = rtRanges.stream()
         .map(range -> BinarySearch.indexRange(xBuffer, range, 0, numValues)).toList();
 
-    return removeRangesFromArray(indices);
+    return interpolateRanges(indices);
   }
 
   /**
-   * Removes the given list of index ranges from the array, always keeping the first and last value
-   * even if they are contained in one of the ranges. This may be needed for
-   * {@link org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction}, because it will
-   * not extrapolate beyond the sides.
+   * Bridges the given index ranges (detected peaks) by linear interpolation instead of removing
+   * them. The full resolution, regularly spaced grid is preserved: the original signal is copied
+   * into {@link #xBufferRemovedPeaks()} / {@link #yBufferRemovedPeaks()} and only the intensities
+   * inside each range are overwritten with a straight line between the retained points on both
+   * sides. Keeping the regular spacing gives the downstream LOESS/spline fit a consistent sample
+   * distance and constrains the baseline estimate underneath peaks, which sub sampling across gaps
+   * could not. Only used for the baseline fit - the original signal in {@link #xBuffer()} /
+   * {@link #yBuffer()} stays untouched.
    *
-   * @param indices The list of index ranges. May be empty.
-   * @return The number of values written to the array.
+   * @param indices sorted, non-overlapping index ranges of detected peaks. May be empty.
+   * @return the number of values written (always the full {@link #numValues()}).
    */
-  public int removeRangesFromArray(List<IndexRange> indices) {
-    int startInRemovedArray = 0;
-    int lastEndPointInOriginalArray = 0;
+  public int interpolateRanges(final List<IndexRange> indices) {
+    // keep the full grid: copy the original signal, then bridge peak interiors in place
+    System.arraycopy(xBuffer, 0, xBufferRemovedPeaks, 0, numValues);
+    System.arraycopy(yBuffer, 0, yBufferRemovedPeaks, 0, numValues);
 
-    // keep track of indices right next to the removed areas + first and last point
+    // spacing stays regular -> only the first and last point are needed as sampling landmarks
     indicesOfInterest.clear();
     indicesOfInterest.add(0);
+    indicesOfInterest.add(numValues - 1);
 
-    if (indices.isEmpty()) {
-      // copy full array, don't change pointers. Otherwise the removal writes into the original arrays.
-      System.arraycopy(xBuffer, 0, xBufferRemovedPeaks, 0, numValues);
-      System.arraycopy(yBuffer, 0, yBufferRemovedPeaks, 0, numValues);
+    remaining = numValues;
+    rangesInterpolated = !indices.isEmpty();
 
-      // only first and last index
-      indicesOfInterest.add(numValues - 1);
-
-      remaining = numValues;
-      return numValues;
-    } else {
-      if (indices.getFirst().min() == 0) {
-        xBufferRemovedPeaks[0] = xBuffer[0];
-        yBufferRemovedPeaks[0] = yBuffer[0];
-        startInRemovedArray++;
-        lastEndPointInOriginalArray++;
-        // add right bound of first range (peak) that was removed
-        indicesOfInterest.add(1);
-      }
-
-      for (final IndexRange range : indices) {
-        final int numPoints = range.min() - lastEndPointInOriginalArray;
-
-        // in case the first range starts at 0 and the first point was copied manually, this condition is not met.
-        if (numPoints > 0) {
-          System.arraycopy(xBuffer, lastEndPointInOriginalArray, xBufferRemovedPeaks,
-              startInRemovedArray, numPoints);
-          System.arraycopy(yBuffer, lastEndPointInOriginalArray, yBufferRemovedPeaks,
-              startInRemovedArray, numPoints);
-          startInRemovedArray += numPoints;
-          // add left bound of removed range (peak)
-          if (numPoints > 1) {
-            indicesOfInterest.add(startInRemovedArray - 1);
-          }
-          // add right bound of removed range (peak) - which is now just the next point
-          indicesOfInterest.add(startInRemovedArray); // this might be the last data point
-        }
-        lastEndPointInOriginalArray = range.maxExclusive();
-      }
+    for (final IndexRange range : indices) {
+      interpolateSingleRange(range);
     }
-
-    // last range removed the last value -> add last value back
-    if (lastEndPointInOriginalArray >= numValues) {
-      // indicesOfInterest already include this data point
-      xBufferRemovedPeaks[startInRemovedArray] = xBuffer[numValues - 1];
-      yBufferRemovedPeaks[startInRemovedArray] = yBuffer[numValues - 1];
-      startInRemovedArray++;
-    } else {
-      // add values until the end
-      int numPoints = numValues - lastEndPointInOriginalArray;
-      System.arraycopy(xBuffer, lastEndPointInOriginalArray, xBufferRemovedPeaks,
-          startInRemovedArray, numPoints);
-      System.arraycopy(yBuffer, lastEndPointInOriginalArray, yBufferRemovedPeaks,
-          startInRemovedArray, numPoints);
-      startInRemovedArray += numPoints;
-      // add last data point to index of interest
-      indicesOfInterest.add(startInRemovedArray - 1);
-    }
-    remaining = startInRemovedArray;
-    return startInRemovedArray;
+    return numValues;
   }
 
+  /**
+   * Linearly interpolates the intensities inside a single peak range in the
+   * {@link #yBufferRemovedPeaks()}, using the retained points just outside the range as anchors.
+   * Ranges touching the array bounds are filled flat from the single available anchor, because
+   * there is no baseline information on the missing side.
+   */
+  private void interpolateSingleRange(final IndexRange range) {
+    // last retained point before the peak and first retained point after the peak
+    final int left = range.min() - 1;
+    final int right = range.maxExclusive(); // first index after the peak, may be == numValues
+
+    final boolean hasLeft = left >= 0;
+    final boolean hasRight = right <= numValues - 1;
+
+    if (hasLeft && hasRight) {
+      // linear bridge between both anchors
+      final double x0 = xBuffer[left];
+      final double y0 = yBuffer[left];
+      final double slope = (yBuffer[right] - y0) / (xBuffer[right] - x0);
+      for (int i = left + 1; i < right; i++) {
+        yBufferRemovedPeaks[i] = y0 + slope * (xBuffer[i] - x0);
+      }
+    } else if (hasRight) {
+      // peak at the start: no left anchor -> flat fill with the right anchor intensity
+      final double y1 = yBuffer[right];
+      for (int i = 0; i < right; i++) {
+        yBufferRemovedPeaks[i] = y1;
+      }
+    } else if (hasLeft) {
+      // peak at the end: no right anchor -> flat fill with the left anchor intensity
+      final double y0 = yBuffer[left];
+      for (int i = left + 1; i < numValues; i++) {
+        yBufferRemovedPeaks[i] = y0;
+      }
+    }
+    // decision: if neither anchor exists (whole trace flagged as one peak) keep the original signal
+  }
 
   /**
    * Create list of indices from landmark indices of interest. step size is used to fill in
