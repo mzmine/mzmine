@@ -26,33 +26,34 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.text.NumberFormat;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A resolved <b>view</b> of one MS-feature-to-other-detector correlation, built on demand from
- * {@link MsOtherCorrelationMaps}. It is no longer stored or serialized (persistence lives in the
- * maps, keyed by ID); it exists so table columns and consumers can read the correlated
- * {@link OtherFeature} together with the correlation origin and score.
+ * Row-level correlation of one MS feature row to one aligned other-detector row
+ * ({@link OtherFeatureListRow}). It carries the individual per-file {@link MsOtherCorrelationResult}s
+ * (one per raw file where the trace correlated). This is the element type of the row-level
+ * "correlated traces" column; the per-file result is used at the feature level.
+ * <p>
+ * There is intentionally no aggregate correlation <i>type</i> here: individual files may differ
+ * (calculated / manual / aligned). {@code bestCorrelation} is the best (highest) Pearson score across
+ * the per-file results, or null if none has a score.
  *
- * This is a single <b>per-file</b> result. For the row-level grouping of per-file results across an
- * aligned other-row, see {@link MsOtherCorrelationRowResult}.
- *
- * @param otherFeature the correlated other-detector feature in one raw data file
- * @param type         whether the correlation was calculated, set manually, or only aligned
- * @param correlation  the per-file Pearson score, or null when unavailable
+ * @param otherRowId      the {@link OtherFeatureListRow#getID()} of the correlated aligned other-row
+ * @param otherRow        the correlated aligned other-row (trace identity via its {@link TraceKey})
+ * @param bestCorrelation the highest per-file Pearson score, or null
+ * @param perFileResults  the per-file correlation results
  */
-public record MsOtherCorrelationResult(@NotNull OtherFeature otherFeature,
-                                       @NotNull MsOtherCorrelationType type,
-                                       @Nullable Float correlation) {
+public record MsOtherCorrelationRowResult(int otherRowId, @NotNull OtherFeatureListRow otherRow,
+                                          @Nullable Float bestCorrelation,
+                                          @NotNull List<MsOtherCorrelationResult> perFileResults) {
 
   @Override
   public String toString() {
     final NumberFormat score = ConfigService.getGuiFormats().scoreFormat();
-
-    return "%s, %s (%s)".formatted(otherFeature.toString(), type.toString(),
-        correlation != null ? score.format(correlation) : "?");
+    return "%s (%s)".formatted(otherRow.getTraceKey().toString(),
+        bestCorrelation != null ? score.format(bestCorrelation) : "?");
   }
 }

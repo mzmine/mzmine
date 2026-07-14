@@ -41,7 +41,7 @@ import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.CorrelatedOtherFeatureType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
@@ -400,13 +400,9 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             case FEATURE_MZMIN -> nullToEmpty(feature.getRawDataPointsMZRange().lowerEndpoint());
             case FEATURE_MZMAX -> nullToEmpty(feature.getRawDataPointsMZRange().upperEndpoint());
             case FEATURE_UV_AREA -> {
-              List<MsOtherCorrelationResult> corr = feature.get(MsOtherCorrelationResultType.class);
-              if (corr == null || corr.isEmpty()) {
-                yield "";
-              } else {
-                MsOtherCorrelationResult first = corr.getFirst();
-                yield nullToEmpty(first.otherFeature().get(AreaType.class));
-              }
+              // the preferred correlated other-detector trace for this file (derived from the maps)
+              final MsOtherCorrelationResult corr = feature.get(CorrelatedOtherFeatureType.class);
+              yield corr == null ? "" : nullToEmpty(corr.otherFeature().get(AreaType.class));
             }
           };
 

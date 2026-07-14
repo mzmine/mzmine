@@ -43,7 +43,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.CorrelatedOtherFeatureType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
@@ -580,9 +580,8 @@ public class ReportUtils {
 
   private boolean updateUvMsChart(@NotNull FeatureListRow row) {
 
-    final ModularFeature bestFeature = row.streamFeatures().filter(
-            f -> f.get(MsOtherCorrelationResultType.class) != null && !f.get(
-                MsOtherCorrelationResultType.class).isEmpty())
+    final ModularFeature bestFeature = row.streamFeatures()
+        .filter(f -> f.get(CorrelatedOtherFeatureType.class) != null)
         .sorted(Comparator.comparingDouble(Feature::getHeight).reversed()).findFirst().orElse(null);
 
     if (bestFeature == null) {
@@ -594,14 +593,12 @@ public class ReportUtils {
       return false;
     }
 
-    final List<MsOtherCorrelationResult> results = bestFeature.get(
-        MsOtherCorrelationResultType.class);
-    if (results == null || results.isEmpty()) {
+    // the preferred correlated other-detector trace for the best MS feature's file
+    final MsOtherCorrelationResult correlation = bestFeature.get(CorrelatedOtherFeatureType.class);
+    if (correlation == null) {
       uvMsOverlay.removeAllDatasets();
       return false;
     }
-
-    final MsOtherCorrelationResult correlation = results.getFirst();
     final OtherFeature correlatedFeature = correlation.otherFeature();
     final OtherFeature rawTrace = correlatedFeature.get(RawTraceType.class);
     final OtherFeature fullPreProcessed = rawTrace.getOtherDataFile().getOtherTimeSeriesData()

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -76,12 +77,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionUtils {
 
   private static final Logger logger = Logger.getLogger(ConversionUtils.class.getName());
+  private static final Pattern wavelengthPattern = Pattern.compile("Sig=([0-9]+[,\\.]?[0-9]+)");
 
   public static double[] convertFloatsToDoubles(float[] input, int length) {
     if (input == null) {
@@ -447,6 +451,7 @@ public class ConversionUtils {
           timeSeriesData.addRawTrace(otherFeature);
 
           extractAndSetMsMsInfoToOtherFeature(chrom, chromType, otherFeature);
+          setWavelength(wavelengthPattern, chrom.getId(), otherFeature);
 
           if (chromType.isMsType()) {
             final PolarityType polarity = chrom.getPolarity();
@@ -549,4 +554,20 @@ public class ConversionUtils {
    * MzMLMobility(Double.parseDouble(param.getValue().get()), MobilityType.TIMS); } } } } } return
    * null; }
    */
+
+  private static void setWavelength(@NotNull Pattern wavelengthPattern,
+      @NotNull String channelDescription, @NotNull OtherFeatureImpl feature) {
+    Matcher matcher = wavelengthPattern.matcher(channelDescription);
+    if (!matcher.find()) {
+      return;
+    }
+
+    final String strWavelength = matcher.group(1).replace(',', '.');
+    try {
+      final double v = Double.parseDouble(strWavelength);
+      feature.set(WavelengthType.class, v);
+    } catch (NumberFormatException e) {
+      // silent
+    }
+  }
 }

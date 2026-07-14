@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
@@ -280,6 +281,18 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
   @Override
   public Set<DataType> getTypes() {
     return flist.getFeatureTypes();
+  }
+
+  @Override
+  public <T> @Nullable T get(DataType<T> key) {
+    // mirror ModularFeatureListRow#get so MappingType columns (e.g. the derived correlated-traces
+    // feature column) are computed on demand for features too. The base get(...) remains the
+    // recursion-safe bypass that MappingType#getValue must use.
+    if (key instanceof MappingType<?> mt) {
+      //noinspection unchecked
+      return (T) mt.getValue(this);
+    }
+    return super.get(key);
   }
 
   /**

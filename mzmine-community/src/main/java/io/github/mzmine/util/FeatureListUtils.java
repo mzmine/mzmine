@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
+import io.github.mzmine.datamodel.otherdetectors.OtherCorrelationLink;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
@@ -812,6 +815,38 @@ public class FeatureListUtils {
   }
 
   /**
+   * Copies the aligned other-detector features and the MS-to-other correlations
+   * ({@link ModularFeatureList#getMsOtherCorrelationMaps()}) from {@code source} to {@code target}.
+   * <p>
+   * The correlation maps are keyed by MS row ID, so this is only valid when {@code target} preserves
+   * the source row IDs — callers must not use it after renumbering. The aligned
+   * {@link OtherFeatureList} is <b>shared</b> (not deep-copied): it is independent of the MS rows and
+   * its other-row IDs + UUID stay valid. No-op if the source has no alignment or {@code source ==
+   * target}. Only correlations for rows present in {@code target} are copied (so it works for filtered
+   * copies).
+   */
+  public static void copyMsOtherCorrelations(@NotNull final ModularFeatureList source,
+      @NotNull final ModularFeatureList target) {
+    if (source == target) {
+      return;
+    }
+    final OtherFeatureList ofl = source.getAlignedOtherFeatures();
+    if (ofl == null) {
+      return;
+    }
+    // share the aligned other-feature list; also clears the target maps and stamps the UUID
+    target.setAlignedOtherFeatures(ofl);
+    final MsOtherCorrelationMaps srcMaps = source.getMsOtherCorrelationMaps();
+    final MsOtherCorrelationMaps dstMaps = target.getMsOtherCorrelationMaps();
+    for (final FeatureListRow row : target.getRows()) {
+      final List<OtherCorrelationLink> links = srcMaps.getCorrelations(row.getID());
+      if (!links.isEmpty()) {
+        dstMaps.setCorrelations(row.getID(), links);
+      }
+    }
+  }
+
+  /**
    * Does not copy rows
    */
   public static ModularFeatureList createCopyWithoutRows(final FeatureList featureList,
@@ -886,6 +921,10 @@ public class FeatureListUtils {
 
     if (copyRows) {
       copyRows(featureList, newFlist, renumberIDs);
+      // correlations are keyed by MS row ID, so only copy them when IDs are preserved
+      if (!renumberIDs && featureList instanceof ModularFeatureList sourceMfl) {
+        copyMsOtherCorrelations(sourceMfl, newFlist);
+      }
     }
 
     return newFlist;
