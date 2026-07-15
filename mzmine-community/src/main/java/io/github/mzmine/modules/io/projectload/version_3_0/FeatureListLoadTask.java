@@ -27,6 +27,15 @@ package io.github.mzmine.modules.io.projectload.version_3_0;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
+import io.github.mzmine.datamodel.otherdetectors.OtherCorrelationLink;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureListRow;
+import io.github.mzmine.datamodel.otherdetectors.PerFileCorrelation;
+import io.github.mzmine.datamodel.otherdetectors.TraceKey;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -63,6 +72,9 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.UUID;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -205,6 +217,10 @@ public class FeatureListLoadTask extends AbstractTask {
 
         loadR2RNetworkingMaps(flist, flistFile);
 
+        // aligned other-detector features + MS-to-other correlations (after all rows exist so IDs
+        // resolve); the aligned list must be restored before the maps that reference its row IDs
+        loadOtherDetectorData(project, storage, flist, flistFile);
+
         // TODO maybe remove so that ModularFeatureList.getFeatureList can be unmodifiable
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
@@ -250,6 +266,229 @@ public class FeatureListLoadTask extends AbstractTask {
       logger.log(Level.WARNING,
           "Failed to load R2R networking maps for feature list " + flist.getName(), e);
     }
+  }
+
+  private void loadOtherDetectorData(MZmineProject project, MemoryMapStorage storage,
+      ModularFeatureList flist, File flistFile) {
+    final File file = new File(flistFile.toString().replace(FeatureListSaveTask.DATA_FILE_SUFFIX,
+        FeatureListSaveTask.OTHER_DETECTOR_FILE_SUFFIX));
+    if (!file.exists()) {
+      return; // older projects / feature list without other detector data
+    }
+    try (InputStream in = new FileInputStream(file)) {
+      final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
+      while (reader.hasNext()) {
+        if (reader.next() != XMLEvent.START_ELEMENT) {
+          continue;
+        }
+        final String name = reader.getLocalName();
+        if (CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT.equals(name)) {
+          parseAlignedOtherFeatures(reader, project, storage, flist);
+        } else if (CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT.equals(name)) {
+          parseMsOtherCorrelationMaps(reader, project, flist);
+        }
+      }
+      reader.close();
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          "Failed to load other detector data for feature list " + flist.getName(), e);
+    }
+  }
+
+  private void parseAlignedOtherFeatures(XMLStreamReader reader, MZmineProject project,
+      MemoryMapStorage storage, ModularFeatureList flist) throws XMLStreamException {
+    final String uuidStr = reader.getAttributeValue(null, CONST.XML_OTHER_UUID_ATTR);
+    final UUID uuid = uuidStr != null ? UUID.fromString(uuidStr) : UUID.randomUUID();
+    final String name = reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR);
+    final String date = reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR);
+
+    final OtherFeatureList ofl = new OtherFeatureList(
+        name != null ? name : flist.getName() + " other features", storage,
+        flist.getRawDataFiles(), uuid);
+    if (date != null) {
+      ofl.setDateCreated(date);
+    }
+
+    // data type loadFromXML signatures require a non-null (but content-irrelevant) row placeholder
+    final ModularFeatureListRow contextRow = flist.getRows().isEmpty() ? new ModularFeatureListRow(
+        flist, -1) : (ModularFeatureListRow) flist.getRows().getFirst();
+
+    while (reader.hasNext()) {
+      final int t = reader.next();
+      if (t == XMLEvent.END_ELEMENT && CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (t == XMLEvent.START_ELEMENT && CONST.XML_OTHER_ROW_ELEMENT.equals(reader.getLocalName())) {
+        final OtherFeatureListRow row = parseOtherRow(reader, project, flist, ofl, contextRow);
+        if (row != null) {
+          ofl.addRow(row);
+        }
+      }
+    }
+
+    // rebuild the per-feature type index from the actual features (mirrors the alignment task)
+    final Set<DataType> presentTypes = new LinkedHashSet<>();
+    for (final OtherFeatureListRow row : ofl.getRows()) {
+      for (final OtherFeature feature : row.getFeatures()) {
+        presentTypes.addAll(feature.getTypes());
+      }
+    }
+    ofl.addFeatureType(presentTypes.toArray(DataType[]::new));
+
+    // setter clears the correlation maps and re-stamps the UUID; must run before loading the maps
+    flist.setAlignedOtherFeatures(ofl);
+  }
+
+  private OtherFeatureListRow parseOtherRow(XMLStreamReader reader, MZmineProject project,
+      ModularFeatureList flist, OtherFeatureList ofl, ModularFeatureListRow contextRow)
+      throws XMLStreamException {
+    final int id = Integer.parseInt(
+        reader.getAttributeValue(null, new IDType().getUniqueID()));
+    TraceKey key = null;
+    final List<OtherFeature> features = new ArrayList<>();
+
+    while (reader.hasNext()) {
+      final int t = reader.next();
+      if (t == XMLEvent.END_ELEMENT && CONST.XML_OTHER_ROW_ELEMENT.equals(reader.getLocalName())) {
+        break;
+      }
+      if (t != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      final String name = reader.getLocalName();
+      if (TraceKey.XML_ELEMENT.equals(name)) {
+        key = TraceKey.loadFromXML(reader);
+      } else if (CONST.XML_OTHER_FEATURE_ELEMENT.equals(name)) {
+        final OtherFeature feature = parseOtherFeature(reader, project, flist, contextRow);
+        if (feature != null) {
+          features.add(feature);
+        }
+      }
+    }
+
+    if (key == null) {
+      return null;
+    }
+    final OtherFeatureListRow row = new OtherFeatureListRow(id, key);
+    for (final OtherFeature feature : features) {
+      try {
+        row.addFeature(feature);
+      } catch (IllegalArgumentException e) {
+        logger.log(Level.WARNING, "Skipping other feature with mismatching trace key on load", e);
+      }
+    }
+    ofl.applyRowBindings(row); // recompute row RT / RT range from the loaded features
+    return row;
+  }
+
+  private OtherFeature parseOtherFeature(XMLStreamReader reader, MZmineProject project,
+      ModularFeatureList flist, ModularFeatureListRow contextRow) throws XMLStreamException {
+    final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+    final RawDataFile resolved = project.getCurrentRawDataFiles().stream()
+        .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
+    final RawDataFile file =
+        resolved instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : resolved;
+
+    final OtherFeature feature = new OtherFeatureImpl();
+    while (reader.hasNext()) {
+      final int t = reader.next();
+      if (t == XMLEvent.END_ELEMENT && CONST.XML_OTHER_FEATURE_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (t != XMLEvent.START_ELEMENT || !CONST.XML_DATA_TYPE_ELEMENT.equals(reader.getLocalName())) {
+        continue;
+      }
+      final DataType type = DataTypes.getTypeForId(
+          reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      if (type == null || file == null) {
+        continue;
+      }
+      try {
+        // other-feature data types are row-independent; only the file matters. contextRow is a
+        // non-null placeholder required by the loadFromXML signatures.
+        final Object value = type.loadFromXML(reader, project, flist, contextRow, null, file);
+        if (value != null) {
+          feature.set(type, value);
+        }
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot load other feature data type " + type.getUniqueID(), e);
+      }
+    }
+    return file == null ? null : feature;
+  }
+
+  private void parseMsOtherCorrelationMaps(XMLStreamReader reader, MZmineProject project,
+      ModularFeatureList flist) throws XMLStreamException {
+    final MsOtherCorrelationMaps maps = flist.getMsOtherCorrelationMaps();
+    final String uuidStr = reader.getAttributeValue(null, CONST.XML_OTHER_UUID_ATTR);
+    if (uuidStr != null) {
+      maps.setAlignmentUuid(UUID.fromString(uuidStr));
+    }
+
+    while (reader.hasNext()) {
+      final int t = reader.next();
+      if (t == XMLEvent.END_ELEMENT && CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (t == XMLEvent.START_ELEMENT && CONST.XML_MS_OTHER_CORRELATION_ELEMENT.equals(
+          reader.getLocalName())) {
+        final int msRowId = Integer.parseInt(reader.getAttributeValue(null, CONST.XML_MS_ROW_ID_ATTR));
+        final List<OtherCorrelationLink> links = parseOtherCorrelationLinks(reader, project);
+        if (!links.isEmpty()) {
+          maps.setCorrelations(msRowId, links);
+        }
+      }
+    }
+  }
+
+  private List<OtherCorrelationLink> parseOtherCorrelationLinks(XMLStreamReader reader,
+      MZmineProject project) throws XMLStreamException {
+    final List<OtherCorrelationLink> links = new ArrayList<>();
+    while (reader.hasNext()) {
+      final int t = reader.next();
+      if (t == XMLEvent.END_ELEMENT && CONST.XML_MS_OTHER_CORRELATION_ELEMENT.equals(
+          reader.getLocalName())) {
+        break;
+      }
+      if (t != XMLEvent.START_ELEMENT || !CONST.XML_OTHER_CORRELATION_LINK_ELEMENT.equals(
+          reader.getLocalName())) {
+        continue;
+      }
+      final int otherRowId = Integer.parseInt(
+          reader.getAttributeValue(null, CONST.XML_OTHER_ROW_ID_ATTR));
+      final Map<RawDataFile, PerFileCorrelation> perFile = new LinkedHashMap<>();
+      while (reader.hasNext()) {
+        final int t2 = reader.next();
+        if (t2 == XMLEvent.END_ELEMENT && CONST.XML_OTHER_CORRELATION_LINK_ELEMENT.equals(
+            reader.getLocalName())) {
+          break;
+        }
+        if (t2 != XMLEvent.START_ELEMENT || !CONST.XML_PER_FILE_CORRELATION_ELEMENT.equals(
+            reader.getLocalName())) {
+          continue;
+        }
+        final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+        final RawDataFile resolved = project.getCurrentRawDataFiles().stream()
+            .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
+        if (resolved == null) {
+          continue;
+        }
+        final RawDataFile rawFile =
+            resolved instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : resolved;
+        final MsOtherCorrelationType origin = MsOtherCorrelationType.valueOf(
+            reader.getAttributeValue(null, CONST.XML_CORRELATION_ORIGIN_ATTR));
+        final String pearsonStr = reader.getAttributeValue(null, CONST.XML_CORRELATION_PEARSON_ATTR);
+        final Float pearson = pearsonStr != null ? Float.valueOf(pearsonStr) : null;
+        perFile.put(rawFile, new PerFileCorrelation(origin, pearson));
+      }
+      if (!perFile.isEmpty()) {
+        links.add(new OtherCorrelationLink(otherRowId, perFile));
+      }
+    }
+    return links;
   }
 
   private void parseFeatureList(MemoryMapStorage storage, MZmineProject project,

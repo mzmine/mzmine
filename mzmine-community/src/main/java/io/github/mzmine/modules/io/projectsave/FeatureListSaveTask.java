@@ -35,6 +35,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
+import io.github.mzmine.datamodel.otherdetectors.OtherCorrelationLink;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureListRow;
+import io.github.mzmine.datamodel.otherdetectors.PerFileCorrelation;
 import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsSaver;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
@@ -80,6 +86,7 @@ public class FeatureListSaveTask extends AbstractTask {
   public static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   public static final String DATA_FILE_SUFFIX = "_data.xml";
   public static final String R2R_FILE_SUFFIX = "_r2r.json";
+  public static final String OTHER_DETECTOR_FILE_SUFFIX = "_otherdetectors.xml";
   public static final String FLIST_FOLDER = "featurelists/";
   private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
@@ -110,6 +117,11 @@ public class FeatureListSaveTask extends AbstractTask {
     return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + R2R_FILE_SUFFIX;
   }
 
+  public static String getOtherDetectorFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname
+        + OTHER_DETECTOR_FILE_SUFFIX;
+  }
+
   @Override
   public String getTaskDescription() {
     return "Saving feature list " + flist.getName();
@@ -132,6 +144,10 @@ public class FeatureListSaveTask extends AbstractTask {
 
     saveR2RNetworkingMaps();
 
+    if (!saveOtherDetectorData()) {
+      return;
+    }
+
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -150,6 +166,145 @@ public class FeatureListSaveTask extends AbstractTask {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Saves the aligned other-detector features and the MS-to-other correlation maps into a per-feature
+   * list side-car file. Skipped when neither is present.
+   */
+  private boolean saveOtherDetectorData() {
+    final OtherFeatureList ofl = flist.getAlignedOtherFeatures();
+    final MsOtherCorrelationMaps corrMaps = flist.getMsOtherCorrelationMaps();
+    if (ofl == null && corrMaps.isEmpty()) {
+      return true; // nothing to persist
+    }
+
+    final File tempFile;
+    try {
+      tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_otherdetectors", ".tmp");
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Cannot create temporary file.", e);
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
+
+    try (OutputStream os = new FileOutputStream(tempFile)) {
+      final XMLStreamWriter writer = new IndentingXMLStreamWriter(
+          XMLOutputFactory.newInstance().createXMLStreamWriter(os));
+      writer.writeStartDocument("UTF-8", "1.0");
+      writer.writeStartElement(CONST.XML_OTHER_DETECTOR_DATA_ELEMENT);
+      if (ofl != null) {
+        writeAlignedOtherFeatures(writer, ofl);
+      }
+      if (!corrMaps.isEmpty()) {
+        writeMsOtherCorrelationMaps(writer, corrMaps);
+      }
+      writer.writeEndElement();
+      writer.writeEndDocument();
+      writer.flush();
+      writer.close();
+    } catch (IOException | XMLStreamException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
+
+    if (isCanceled()) {
+      tempFile.delete();
+      return false;
+    }
+
+    try (FileInputStream is = new FileInputStream(tempFile)) {
+      zos.putNextEntry(new ZipEntry(getOtherDetectorFileName(flist.getName())));
+      copy.copy(is, zos);
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
+    return true;
+  }
+
+  private void writeAlignedOtherFeatures(XMLStreamWriter writer, OtherFeatureList ofl)
+      throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT);
+    writer.writeAttribute(CONST.XML_OTHER_UUID_ATTR, ofl.getUuid().toString());
+    writer.writeAttribute(CONST.XML_FLIST_NAME_ATTR, ofl.getName());
+    writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, ofl.getDateCreated());
+
+    // the data type saveToXML signatures require a non-null (but content-irrelevant) row for
+    // other-feature types; reuse an MS row as placeholder
+    final ModularFeatureListRow contextRow = placeholderRow();
+    for (final OtherFeatureListRow row : ofl.getRows()) {
+      writer.writeStartElement(CONST.XML_OTHER_ROW_ELEMENT);
+      writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
+      row.getTraceKey().saveToXML(writer);
+      for (final OtherFeature feature : row.getFeatures()) {
+        writeOtherFeature(writer, feature, contextRow);
+      }
+      writer.writeEndElement();
+    }
+    writer.writeEndElement();
+  }
+
+  /**
+   * @return an MS feature-list row used only as a non-null placeholder for other-feature data type
+   * serialization (its content is never read); a throwaway row is created if the list has none.
+   */
+  private ModularFeatureListRow placeholderRow() {
+    final List<FeatureListRow> rows = flist.getRows();
+    return rows.isEmpty() ? new ModularFeatureListRow(flist, -1)
+        : (ModularFeatureListRow) rows.getFirst();
+  }
+
+  private void writeOtherFeature(XMLStreamWriter writer, OtherFeature feature,
+      ModularFeatureListRow contextRow) throws XMLStreamException {
+    final RawDataFile file = feature.getRawDataFile();
+    writer.writeStartElement(CONST.XML_OTHER_FEATURE_ELEMENT);
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, file.getName());
+    // other-feature data types are row-independent; only the file matters (series / raw-trace load)
+    for (final Entry<DataType, Object> entry : feature.stream().toList()) {
+      final DataType type = entry.getKey();
+      writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+      writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, type.getUniqueID());
+      try {
+        type.saveToXML(writer, entry.getValue(), flist, contextRow, null, file);
+      } catch (XMLStreamException e) {
+        logger.log(Level.WARNING, "Cannot save other feature data type " + type.getUniqueID(), e);
+      }
+      writer.writeEndElement();
+    }
+    writer.writeEndElement();
+  }
+
+  private void writeMsOtherCorrelationMaps(XMLStreamWriter writer, MsOtherCorrelationMaps maps)
+      throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT);
+    if (maps.getAlignmentUuid() != null) {
+      writer.writeAttribute(CONST.XML_OTHER_UUID_ATTR, maps.getAlignmentUuid().toString());
+    }
+    for (final Entry<Integer, List<OtherCorrelationLink>> msEntry : maps.getAllCorrelations()
+        .entrySet()) {
+      writer.writeStartElement(CONST.XML_MS_OTHER_CORRELATION_ELEMENT);
+      writer.writeAttribute(CONST.XML_MS_ROW_ID_ATTR, String.valueOf(msEntry.getKey()));
+      for (final OtherCorrelationLink link : msEntry.getValue()) {
+        writer.writeStartElement(CONST.XML_OTHER_CORRELATION_LINK_ELEMENT);
+        writer.writeAttribute(CONST.XML_OTHER_ROW_ID_ATTR, String.valueOf(link.otherRowId()));
+        for (final Entry<RawDataFile, PerFileCorrelation> pf : link.perFile().entrySet()) {
+          writer.writeStartElement(CONST.XML_PER_FILE_CORRELATION_ELEMENT);
+          writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, pf.getKey().getName());
+          writer.writeAttribute(CONST.XML_CORRELATION_ORIGIN_ATTR, pf.getValue().origin().name());
+          if (pf.getValue().pearson() != null) {
+            writer.writeAttribute(CONST.XML_CORRELATION_PEARSON_ATTR,
+                String.valueOf(pf.getValue().pearson()));
+          }
+          writer.writeEndElement();
+        }
+        writer.writeEndElement();
+      }
+      writer.writeEndElement();
+    }
+    writer.writeEndElement();
   }
 
   private boolean saveAppliedMethods() {

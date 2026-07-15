@@ -80,6 +80,14 @@ public class MsOtherCorrelationMaps {
   }
 
   /**
+   * @return an unmodifiable view of all correlations keyed by MS row ID (for persistence / export).
+   */
+  @NotNull
+  public Map<Integer, List<OtherCorrelationLink>> getAllCorrelations() {
+    return java.util.Collections.unmodifiableMap(byMsRow);
+  }
+
+  /**
    * Replaces the correlations for one MS row. Passing an empty list clears the entry.
    */
   public void setCorrelations(final int msRowId, final @NotNull List<OtherCorrelationLink> links) {
