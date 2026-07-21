@@ -29,8 +29,10 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
  * Per-charge scoring breakdown used to select the best charge and flag probable alternates.
  *
  * @param charge             the charge hypothesis (>= 1).
- * @param coverage           fraction of expected carbon offsets explained by any observed signal,
- *                           including heavy isotopes (0..1).
+ * @param coverage           predicted-intensity-weighted fraction of the expected carbon envelope
+ *                           explained by any observed signal, including heavy isotopes (0..1). Each
+ *                           expected offset contributes its predicted relative intensity, so missing
+ *                           a small tail peak costs far less than missing the apex.
  * @param carbonFit          bounded cosine similarity of the isolated 13C ladder against the
  *                           predicted carbon envelope at its best placement (0..1; 1 = perfect or
  *                           too few 13C peaks to assess, in which case coverage carries the

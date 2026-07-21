@@ -395,19 +395,26 @@ public class IsotopeFinderEngine {
       }
     }
 
-    // coverage: fraction of expected carbon offsets explained by ANY observed signal (incl. heavy).
-    // predicted offset o aligns to observed offset (o - placement).
-    int expectedTotal = 0;
-    int expectedPresent = 0;
+    // coverage: predicted-intensity-weighted fraction of the expected carbon envelope explained by
+    // ANY observed signal (incl. heavy). decision: weight each expected offset by its predicted
+    // relative intensity rather than counting offsets equally, so missing a small tail peak (e.g. a
+    // predicted M+3/M+4 at a few percent) costs far less than missing the apex. An unweighted count
+    // systematically under-scored low-m/z multiply-charged ions, whose broad high-carbon envelope
+    // predicts many small tail offsets that fall below the noise floor of a real spectrum, while the
+    // few resolved peaks already match the model well. predicted offset o aligns to observed offset
+    // (o - placement).
+    double expectedWeight = 0d;
+    double presentWeight = 0d;
     for (int o = 0; o <= env.maxOffset(); o++) {
-      if (env.expectedAt(o) >= ENGINE_CUTOFF) {
-        expectedTotal++;
+      final double w = env.expectedAt(o);
+      if (w >= ENGINE_CUTOFF) {
+        expectedWeight += w;
         if (observed.containsKey(o - placement)) {
-          expectedPresent++;
+          presentWeight += w;
         }
       }
     }
-    final double coverage = expectedTotal == 0 ? 1d : (double) expectedPresent / expectedTotal;
+    final double coverage = expectedWeight <= 0d ? 1d : presentWeight / expectedWeight;
 
     // self consistency: higher charges require their intermediate (e.g. half-spacing) peaks
     final double selfConsistency = selfConsistency(z, observed, env, placement);
