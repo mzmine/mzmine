@@ -73,7 +73,8 @@ public class FormulaEnvelopeModel implements EnvelopeModel {
     this.maxCandidateFormulas = params.getValue(FormulaEnvelopeParameters.maxCandidateFormulas);
     this.minRelIntensity = params.getValue(FormulaEnvelopeParameters.minRelIntensity);
     // composition (not inheritance): reuse the averagine model as a guardrail fallback
-    this.fallback = new CarbonAveragineEnvelopeModel(new CarbonAveragineEnvelopeParameters(), ctx);
+    this.fallback = new CarbonAveragineEnvelopeModel(
+        CarbonAveragineEnvelopeParameters.createDefault(), ctx);
   }
 
   @Override

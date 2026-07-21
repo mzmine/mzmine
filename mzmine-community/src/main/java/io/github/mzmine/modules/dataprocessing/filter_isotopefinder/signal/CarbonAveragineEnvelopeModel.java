@@ -33,8 +33,9 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.Isotope;
 import io.github.mzmine.util.IsotopesUtils;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -61,7 +62,8 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   private final double carbonPerDaltonMax;
   private final double minRelIntensity;
   private final boolean usePoisson;
-  private final List<HeavyContribution> heavies;
+  // user-configured heavy elements keyed by element symbol, used for the crude upper-bound estimate
+  private final LinkedHashMap<String, HeavyContribution> userHeavies;
 
   public CarbonAveragineEnvelopeModel(@NotNull final ParameterSet params,
       @NotNull final EnvelopeContext ctx) {
@@ -71,7 +73,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     this.carbonPerDaltonMax = params.getValue(CarbonAveragineEnvelopeParameters.carbonPerDaltonMax);
     this.minRelIntensity = params.getValue(CarbonAveragineEnvelopeParameters.minRelIntensity);
     this.usePoisson = params.getValue(CarbonAveragineEnvelopeParameters.usePoissonNotBinomial);
-    this.heavies = extractHeavyContributions(ctx.elements());
+    this.userHeavies = extractHeavyContributions(ctx.elements());
   }
 
   @Override
@@ -90,41 +92,72 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   /**
    * @param elements the allowed elements
    * @return the dominant heavy isotope (offset step in Da + fractional abundance) of every element
-   * except C and H, used to widen the upper bound.
+   * except C and H, keyed by element symbol, used to widen the upper bound.
    */
-  private static List<HeavyContribution> extractHeavyContributions(
+  private static LinkedHashMap<String, HeavyContribution> extractHeavyContributions(
       @NotNull final List<Element> elements) {
-    final List<HeavyContribution> result = new ArrayList<>();
+    final LinkedHashMap<String, HeavyContribution> result = new LinkedHashMap<>();
     for (final Element element : elements) {
       final String symbol = element.getSymbol();
-      // decision: 13C is modeled by the carbon envelope, 2H is negligible
-      if ("C".equals(symbol) || "H".equals(symbol)) {
-        continue;
-      }
-      Isotope dominant = null;
-      for (final Isotope iso : IsotopesUtils.getIsotopeRecord(symbol)) {
-        final int step = (int) Math.round(iso.deltaMass());
-        if (step < 1) {
-          continue;
-        }
-        if (dominant == null || iso.relativeIntensity() > dominant.relativeIntensity()) {
-          dominant = iso;
-        }
-      }
-      if (dominant != null) {
-        final int step = (int) Math.round(dominant.deltaMass());
-        final double rel = dominant.relativeIntensity();
-        // relativeIntensity is the ratio to the main isotope -> convert to a fractional abundance
-        final double abundance = rel / (1d + rel);
-        result.add(new HeavyContribution(step, abundance));
+      final HeavyContribution hc = heavyContributionFor(symbol);
+      if (hc != null) {
+        result.put(symbol, hc);
       }
     }
     return result;
   }
 
+  /**
+   * @param symbol the element symbol
+   * @return the dominant heavy isotope (offset step in Da + fractional abundance) of the element,
+   * or null for C/H (13C is modeled by the carbon envelope, 2H is negligible) or when the element
+   * has no heavy isotope with a step &gt;= 1.
+   */
+  private static @Nullable HeavyContribution heavyContributionFor(@NotNull final String symbol) {
+    // decision: 13C is modeled by the carbon envelope, 2H is negligible
+    if ("C".equals(symbol) || "H".equals(symbol)) {
+      return null;
+    }
+    Isotope dominant = null;
+    for (final Isotope iso : IsotopesUtils.getIsotopeRecord(symbol)) {
+      final int step = (int) Math.round(iso.deltaMass());
+      if (step < 1) {
+        continue;
+      }
+      if (dominant == null || iso.relativeIntensity() > dominant.relativeIntensity()) {
+        dominant = iso;
+      }
+    }
+    if (dominant == null) {
+      return null;
+    }
+    final int step = (int) Math.round(dominant.deltaMass());
+    final double rel = dominant.relativeIntensity();
+    // relativeIntensity is the ratio to the main isotope -> convert to a fractional abundance
+    final double abundance = rel / (1d + rel);
+    return new HeavyContribution(step, abundance);
+  }
+
+  /**
+   * @param neutralMass the searched neutral mass
+   * @return the crude, mass-proportional estimate of the number of heavy atoms per element
+   * (capped), used when a detected atom count is not available.
+   */
+  private int crudeHeavyAtomCount(final double neutralMass) {
+    return Math.min(MAX_HEAVY_ATOMS,
+        Math.max(1, (int) Math.round(neutralMass / HEAVY_MASS_PER_ATOM)));
+  }
+
   @Override
   public @NotNull IsotopeEnvelope buildEnvelope(final double observedMz, final int charge,
       @NotNull final PolarityType polarity) {
+    return buildEnvelope(observedMz, charge, polarity, null, true);
+  }
+
+  @Override
+  public @NotNull IsotopeEnvelope buildEnvelope(final double observedMz, final int charge,
+      @NotNull final PolarityType polarity,
+      @Nullable final Map<String, Integer> detectedHeavyCounts, final boolean includeUserHeavies) {
     double neutralMass = observedMz * charge - charge * PROTON_MASS * polarity.getSign();
     if (neutralMass <= 0) {
       neutralMass = observedMz * charge;
@@ -136,12 +169,37 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     final double[] carbonExpected = carbonDistribution(nCtypical);
     final double[] carbonUpper = carbonDistribution(nCmax);
 
+    // assemble per-element heavy atom counts: user heavies at the crude estimate, then detected
+    // counts override/extend them.
+    final LinkedHashMap<String, Integer> heavyCounts = new LinkedHashMap<>();
+    if (includeUserHeavies) {
+      final int crude = crudeHeavyAtomCount(neutralMass);
+      for (final String sym : userHeavies.keySet()) {
+        heavyCounts.put(sym, crude);
+      }
+    }
+    if (detectedHeavyCounts != null) {
+      for (final Map.Entry<String, Integer> entry : detectedHeavyCounts.entrySet()) {
+        final Integer count = entry.getValue();
+        if (count != null && count > 0) {
+          heavyCounts.put(entry.getKey(), count);
+        }
+      }
+    }
+
     // convolve heavy-isotope contributions into the upper bound only
     double[] heavyDist = new double[]{1d};
-    final int nHeavyAtoms = Math.min(MAX_HEAVY_ATOMS,
-        Math.max(1, (int) Math.round(neutralMass / HEAVY_MASS_PER_ATOM)));
-    for (final HeavyContribution heavy : heavies) {
-      final double[] elemDist = steppedBinomial(nHeavyAtoms, heavy.abundance(), heavy.step());
+    for (final Map.Entry<String, Integer> entry : heavyCounts.entrySet()) {
+      final String sym = entry.getKey();
+      // prefer the cached user contribution, else resolve on the fly for a detected-only element
+      HeavyContribution hc = userHeavies.get(sym);
+      if (hc == null) {
+        hc = heavyContributionFor(sym);
+      }
+      if (hc == null) {
+        continue;
+      }
+      final double[] elemDist = steppedBinomial(entry.getValue(), hc.abundance(), hc.step());
       heavyDist = convolve(heavyDist, elemDist);
     }
     final double[] upperRaw = convolve(carbonUpper, heavyDist);

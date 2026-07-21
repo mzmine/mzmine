@@ -28,26 +28,39 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 /**
  * Per-charge scoring breakdown used to select the best charge and flag probable alternates.
  *
- * @param charge          the charge hypothesis (>= 1).
- * @param coverage        fraction of expected carbon offsets explained by any observed signal,
- *                        including heavy isotopes (0..1).
- * @param carbonFit       bounded cosine similarity of the isolated 13C ladder against the predicted
- *                        carbon envelope at its best placement (0..1; 1 = perfect or too few 13C
- *                        peaks to assess, in which case coverage carries the detection).
- * @param selfConsistency   requirement that the intermediate (e.g. half-spacing) peaks of a higher
- *                          charge are present (1 = consistent, lower = missing required peaks). For
- *                          charge 1 this is always 1.
+ * @param charge             the charge hypothesis (>= 1).
+ * @param coverage           fraction of expected carbon offsets explained by any observed signal,
+ *                           including heavy isotopes (0..1).
+ * @param carbonFit          bounded cosine similarity of the isolated 13C ladder against the
+ *                           predicted carbon envelope at its best placement (0..1; 1 = perfect or
+ *                           too few 13C peaks to assess, in which case coverage carries the
+ *                           detection).
+ * @param selfConsistency    requirement that the intermediate (e.g. half-spacing) peaks of a higher
+ *                           charge are present (1 = consistent, lower = missing required peaks).
+ *                           For charge 1 this is always 1.
+ * @param spacingConsistency how consistently a single m/z spacing explains the on-grid ladder
+ *                           positions (1 = one clean spacing, lower = residual m/z drift that a
+ *                           neighbouring charge would accumulate). Diagnostic only: exposed for
+ *                           analysis but not folded into {@code score}/charge selection (a naive
+ *                           fold regressed polyhalogen combs).
  * @param intensityAgreement fraction of the observed intensity that stays within the plausible
- *                          predicted upper bound (1 = all describable, lower = implausibly large
- *                          signals present).
- * @param score             bounded [0,1] quality (carbonFit x coverage x intensityAgreement, gated
- *                          by selfConsistency for higher charges). This is the value stored on the
- *                          {@link io.github.mzmine.datamodel.IsotopePattern} to rank charges.
- * @param raw               combined raw score (bounded quality x weak peak-count tie-breaker).
- * @param probability       pseudo-probability that this is the major charge (linear share of the raw
- *                          scores of all candidate charges).
+ *                           predicted upper bound (1 = all describable, lower = implausibly large
+ *                           signals present).
+ * @param score              bounded [0,1] quality (carbonFit x coverage x intensityAgreement, gated
+ *                           by selfConsistency for higher charges and by a fallback weight when no
+ *                           real 13C ladder was assessable). This is the value stored on the
+ *                           {@link io.github.mzmine.datamodel.IsotopePattern} to rank charges.
+ * @param raw                the winner-selection score: bounded quality x a peak-count reward
+ *                           ({@code quality * (1 + w * observedCount)}). The winner is the highest
+ *                           raw, so a genuine higher charge (which explains more real isotope
+ *                           peaks) wins over a lower charge that only fits a subsample of the
+ *                           ladder.
+ * @param probability        display-only quality share of this charge among all candidate charges
+ *                           (bounded [0,1]). Alternates are flagged by an absolute margin on the
+ *                           bounded quality, not by this value.
  */
 public record ChargeScore(int charge, double coverage, double carbonFit, double selfConsistency,
-                          double intensityAgreement, double score, double raw, double probability) {
+                          double spacingConsistency, double intensityAgreement, double score,
+                          double raw, double probability) {
 
 }

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 
 import io.github.mzmine.datamodel.PolarityType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,25 @@ public interface EnvelopeModel {
       @NotNull PolarityType polarity);
 
   /**
+   * Build the envelope using per-element detected heavy-atom counts (Part D2). The default
+   * implementation ignores the extra information and falls back to
+   * {@link #buildEnvelope(double, int, PolarityType)}, so models that cannot use it (e.g. formula
+   * prediction) are unaffected.
+   *
+   * @param detectedHeavyCounts element symbol -> atom count to model for the heavy upper bound, or
+   *                            null to use the model's own default. Overrides/extends the
+   *                            user-configured heavy elements.
+   * @param includeUserHeavies  whether to also model the user-configured heavy elements (at the
+   *                            model's default estimated count) in addition to
+   *                            {@code detectedHeavyCounts}.
+   */
+  default @NotNull IsotopeEnvelope buildEnvelope(final double observedMz, final int charge,
+      @NotNull final PolarityType polarity,
+      @Nullable final Map<String, Integer> detectedHeavyCounts, final boolean includeUserHeavies) {
+    return buildEnvelope(observedMz, charge, polarity);
+  }
+
+  /**
    * Estimated lower/upper bound of the expected M+1 / M (13C) relative intensity for the searched
    * neutral mass, used by the optional "require 13C" gate. Models that cannot estimate this (e.g.
    * formula prediction) return {@code null}, in which case the gate only checks 13C M+1 presence.
@@ -58,7 +78,7 @@ public interface EnvelopeModel {
    * @param polarity   ion polarity.
    * @return {@code {low, high}} bounds of the M+1/M ratio, or {@code null} if not estimable.
    */
-  default @Nullable double[] expectedM1RatioBounds(double observedMz, int charge,
+  default double @Nullable [] expectedM1RatioBounds(double observedMz, int charge,
       @NotNull PolarityType polarity) {
     return null;
   }

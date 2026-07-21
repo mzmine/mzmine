@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ElementAutoDetector;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
@@ -116,8 +117,26 @@ class IsotopeFinderTask extends AbstractTask {
     final EnvelopeContext ctx = new EnvelopeContext(isotopeElements, isoMzTolerance);
     final EnvelopeModel model = IsotopeFinderModeOptions.createModel(modeValue, ctx);
     final boolean requireC13 = parameters.getValue(IsotopeFinderParameters.requireC13);
+    final ElementDetectionMode elementDetectionMode = parameters.getValue(
+        IsotopeFinderParameters.elementDetectionMode);
+    // candidate heavy elements the auto-detector may infer, depending on the selected mode
+    final List<String> autoCandidates = switch (elementDetectionMode) {
+      case USER_DEFINED -> java.util.List.of();
+      case AUTO_DETECT -> ElementAutoDetector.DEFAULT_CANDIDATES;
+      case USER_PLUS_AUTO -> {
+        final java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>();
+        for (final Element el : isotopeElements) {
+          final String s = el.getSymbol();
+          if (!"C".equals(s) && !"H".equals(s)) {
+            set.add(s);
+          }
+        }
+        set.addAll(ElementAutoDetector.DEFAULT_CANDIDATES);
+        yield java.util.List.copyOf(set);
+      }
+    };
     this.engine = new IsotopeFinderEngine(isotopeElements, isotopeMaxCharge, isoMzTolerance, model,
-        modeValue.value().toString(), requireC13);
+        modeValue.value().toString(), requireC13, elementDetectionMode, autoCandidates);
 
     // FWHM refinement parameters
     this.fwhmRefineEnabled = parameters.getValue(IsotopeFinderParameters.fwhmRefine);

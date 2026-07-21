@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 import io.github.mzmine.datamodel.IsotopePattern;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Result of isotope pattern detection on a single spectrum.
@@ -38,8 +39,11 @@ import org.jetbrains.annotations.NotNull;
  * @param patterns   one detected {@link IsotopePattern} per kept charge, ordered best first (index
  *                   0 = winner). Each pattern encodes its charge and a per-charge probability in
  *                   its description.
+ * @param detectedComposition auto-detected heavy elements when element detection is enabled, else
+ *                            null.
  */
 public record DetectionResult(int bestCharge, @NotNull List<ChargeScore> scores,
-                              @NotNull List<IsotopePattern> patterns) {
+                              @NotNull List<IsotopePattern> patterns,
+                              @Nullable DetectedComposition detectedComposition) {
 
 }

@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -52,6 +53,14 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
       "Chemical elements whose major stable isotopes are considered. Heavy isotopes (e.g. S, Cl, Br) "
           + "also widen the expected intensity bounds in the signal-based mode.");
+
+  public static final ComboParameter<ElementDetectionMode> elementDetectionMode = new ComboParameter<>(
+      "Element auto-detection",
+      "Signal-based mode only. USER_DEFINED (default) keeps the current behavior: heavy-isotope "
+          + "bounds come from the chosen elements with a crude atom-count estimate. AUTO_DETECT infers "
+          + "popular heavy elements (Cl, Br, S, Si) from the pattern and uses the detected atom counts. "
+          + "USER_PLUS_AUTO combines both. Off by default.", ElementDetectionMode.values(),
+      ElementDetectionMode.USER_DEFINED);
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
       ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
@@ -81,8 +90,8 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
       false);
 
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, fwhmRefine,
-            mode, requireC13},
+    super(new UserParameter[]{featureLists, elements, elementDetectionMode, isotopeMzTolerance,
+            maxCharge, fwhmRefine, mode, requireC13},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 

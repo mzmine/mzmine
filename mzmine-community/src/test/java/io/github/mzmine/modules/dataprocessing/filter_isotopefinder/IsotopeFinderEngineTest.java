@@ -39,7 +39,9 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectedComposition;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ElementAutoDetector;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeEnvelope;
@@ -53,6 +55,7 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.Element;
 
@@ -67,7 +70,7 @@ class IsotopeFinderEngineTest {
   private static final MZTolerance TOL = new MZTolerance(0.005, 10);
 
   private static EnvelopeModel signalModel(final List<Element> elements) {
-    return new CarbonAveragineEnvelopeModel(new CarbonAveragineEnvelopeParameters(),
+    return new CarbonAveragineEnvelopeModel(CarbonAveragineEnvelopeParameters.createDefault(),
         new EnvelopeContext(elements, TOL));
   }
 
@@ -78,6 +81,17 @@ class IsotopeFinderEngineTest {
   private static IsotopeFinderEngine engineRequireC13(final List<Element> elements,
       final int maxCharge) {
     return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", true);
+  }
+
+  /**
+   * Same engine as {@link #engine} but with opt-in heavy-element auto-detection enabled over the
+   * default candidate set. Charge selection is unchanged; detection only annotates the result.
+   */
+  @NotNull
+  private static IsotopeFinderEngine engineAutoDetect(@NotNull final List<Element> elements,
+      final int maxCharge) {
+    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", false,
+        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
   }
 
   /**
@@ -221,7 +235,7 @@ class IsotopeFinderEngineTest {
   private static IsotopeFinderEngine engineTol(final List<Element> elements, final int maxCharge,
       final MZTolerance tol) {
     return new IsotopeFinderEngine(elements, maxCharge, tol,
-        new CarbonAveragineEnvelopeModel(new CarbonAveragineEnvelopeParameters(),
+        new CarbonAveragineEnvelopeModel(CarbonAveragineEnvelopeParameters.createDefault(),
             new EnvelopeContext(elements, tol)), "test", false);
   }
 
@@ -803,6 +817,202 @@ class IsotopeFinderEngineTest {
   }
 
   @Test
+  void ftRingingAroundSinglyChargedSignalIsNotReadAsHighCharge() {
+    // real measured spectrum: m/z 734.4683 (1.17e9) is the monoisotopic of a singly charged compound
+    // with a clean 13C ladder (735.47/736.47/737.48/738.48). FT ringing around the strong base peak
+    // (734.27/734.32/734.35/734.59/734.62/734.67/735.32/735.63, all <1% of the base) previously fit a
+    // z=5 grid and won. The ringing "M+1" is orders of magnitude too small to be a real 13C peak at the
+    // ~3670 Da a z=5 ion implies -> must be detected as charge 1 with the 5-peak 13C ladder.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final double[] mz = {150.0245667, 158.1175232, 158.9615631, 177.5477142, 178.049408,
+        179.5753632, 183.6121521, 183.6225281, 183.8628387, 183.8734283, 205.0708313, 211.1441345,
+        223.0636597, 224.0640106, 233.1644897, 245.1287231, 261.1272583, 261.159668, 262.1632996,
+        263.1661987, 268.1082458, 330.1274414, 331.1536255, 340.1652222, 341.1695862, 354.0880127,
+        355.0910645, 356.0828247, 361.0848694, 521.3115845, 540.3512573, 558.3635864, 559.3671875,
+        560.3695679, 576.3742065, 577.378418, 716.4584351, 717.4613647, 718.4633179, 734.2695313,
+        734.3152466, 734.3459473, 734.4682617, 734.5924683, 734.6229248, 734.6674194, 735.3190918,
+        735.4714355, 735.6273804, 736.4740601, 737.4765625, 738.4807739, 748.4472656, 749.4506226,
+        750.4542847, 756.4498901, 757.4528809, 1467.943481, 1468.922852, 1489.913452, 1490.917725,
+        1491.917969, 1492.924316};
+    final double[] intensity = {4864261.5, 2966466, 1955386.5, 1.59E7, 3244166.75, 1718261, 1.12E7,
+        5980043, 4433066, 2226075.25, 1.80E7, 3160431.75, 1.34E7, 2583190.25, 1818151.625,
+        1857023.75, 1554571.5, 2.08E8, 3.35E7, 3306679, 1480045.5, 1502891, 5644717.5, 9033896,
+        1379463.375, 5.64E7, 1.11E7, 2232489, 1603300.25, 3203032, 1951881.625, 4.73E7, 1.38E7,
+        3788569.75, 1.07E7, 3681628.25, 1.67E7, 7785902.5, 1838674, 2712168.25, 8430638, 7931655.5,
+        1.17E9, 3966412, 8360896.5, 2754215.25, 3145022.5, 4.77E8, 3413058.25, 1.27E8, 2.50E7,
+        4797151, 2.96E7, 1.25E7, 3256954.75, 1.16E7, 4922072.5, 2117249.25, 1911482.75, 1.06E7,
+        9150988, 4641724.5, 1766348.125};
+    final SimpleMassSpectrum spectrum = spec(mz, intensity);
+    final DetectionResult r = engine(elements, 6).detect(spectrum, 734.4682617, 1.17E9,
+        PolarityType.POSITIVE);
+    assertNotNull(r, "the singly charged pattern must be detected");
+    assertEquals(1, r.bestCharge(), "FT ringing must not be read as a high charge state");
+    final IsotopePattern p = r.patterns().get(0);
+    // the charge-1 13C ladder: mono + M+1..M+4
+    for (final double peak : new double[]{734.4682617, 735.4714355, 736.4740601, 737.4765625,
+        738.4807739}) {
+      assertTrue(containsMz(p, peak), "charge-1 13C ladder peak missing: " + peak);
+    }
+    // the FT ringing peaks must not leak into the pattern
+    assertTrue(!containsMz(p, 734.6674194), "FT ringing peak must not be kept");
+  }
+
+  @NotNull
+  private static SimpleMassSpectrum spec271() {
+    final double[] mz = {156.011322, 157.0148926, 158.0019379, 158.9614105, 185.1151581,
+        186.9558868, 197.128067, 211.1442566, 223.0638275, 224.0632782, 270.9491577, 270.9867249,
+        270.9968872, 271.0317383, 271.0447388, 271.05896, 271.0658569, 271.0754395, 271.0856323,
+        271.0945129, 272.0345764, 273.0270081, 274.0304565, 275.0219727, 279.091095, 280.0950012,
+        281.0850525, 292.9992981, 293.0137024, 294.0164795, 295.0093384, 297.081604, 301.0736389,
+        308.9878235, 310.1071167, 310.9842224, 312.1229553, 314.9947815, 316.0888977, 344.1204834,
+        351.0692139, 541.0565796, 542.0587769, 543.0533447, 544.0545654, 545.0509033, 560.0308838,
+        563.0385132, 564.0407104, 565.0351563, 566.0376587, 567.031311, 571.0975952, 572.1005249,
+        573.0957642, 579.0115967, 580.0142822, 581.006958, 585.0205688, 833.0628662, 834.0648193,
+        835.059082, 836.0587769, 855.0447388, 864.9968262, 866.9995728};
+    final double[] intensity = {1.48E7, 789644.4375, 1156482.25, 3.42E6, 866317.25, 657250.0625,
+        6.53E5, 1734776.875, 5057024, 944177.75, 8.42E5, 1039276.875, 2.41E6, 5.67E8, 9487441,
+        3945793.5, 5804221.5, 1.71E6, 1.01E6, 681984.25, 6.08E7, 4.91E7, 5070476.5, 1179668.625,
+        1.51E7, 2.14E6, 7.86E5, 666107, 3.60E7, 3266284.75, 2527421, 1.10E6, 1.29E6, 6230270.5,
+        6.62E5, 895285.8125, 1.15E6, 992463.375, 928929.5625, 624650.6875, 2201560.5, 4.77E7,
+        1.13E7, 8947802, 2136723.25, 787367.3125, 842144.0625, 7.37E7, 1.84E7, 1.51E7, 3.60E6,
+        1274502.125, 4.55E6, 1.30E6, 784020.0625, 3.77E6, 855760.125, 986559.375, 951464.1875,
+        6.30E6, 2624961.25, 2350929, 779325.3125, 1055457.125, 865979.8125, 716015.625};
+    return spec(mz, intensity);
+  }
+
+  @NotNull
+  private static SimpleMassSpectrum spec330() {
+    final double[] mz = {150.0912628, 151.0850067, 151.0876312, 151.0991211, 151.1042938,
+        151.1136475, 152.102356, 153.105957, 165.011673, 165.5671234, 166.068924, 166.5649261,
+        180.0167847, 180.0201569, 180.0350494, 180.049408, 180.0540009, 180.0590973, 181.0387421,
+        182.0308533, 182.0400391, 182.0631561, 183.0344696, 213.1603241, 223.0637054, 245.1288757,
+        279.1156311, 311.1386414, 312.1430359, 330.0666199, 330.0810242, 330.0899963, 330.1266785,
+        330.1740112, 330.1868286, 331.1296692, 332.1206665, 333.1244507, 334.12854, 352.1084595,
+        353.1124878, 681.2282104, 682.2317505, 683.2293091};
+    final double[] intensity = {6.82E7, 9021375, 9275947, 1.51E9, 3.05E7, 1.07E7, 1.49E8, 8824702,
+        9.86E7, 1.20E8, 1.95E7, 6707682.5, 1.49E7, 2.02E7, 2.59E9, 1.12E7, 1.82E7, 7.66E6, 2.07E8,
+        1.15E8, 1.06E7, 2.97E7, 1.06E7, 8809208, 9.88E6, 1.88E7, 6.57E6, 4.37E7, 8.20E6, 9360763,
+        3.08E7, 3.46E7, 4.82E9, 2.85E7, 1.35E7, 9.47E8, 1.98E8, 3.81E7, 6522436.5, 4.08E7, 7454330,
+        1.26E8, 5.08E7, 1.94E7};
+    return spec(mz, intensity);
+  }
+
+  /**
+   * Build an engine matching the user's reported settings: elements H,C,N,O,S (no Cl), m/z
+   * tolerance 0.009 Da / 25 ppm, max charge 10, signal (carbon-averagine) mode with default carbon
+   * params, element auto-detection on. {@code requireC13} toggles the "require 13C isotope peak"
+   * option.
+   */
+  @NotNull
+  private static IsotopeFinderEngine userConfigEngine(final boolean requireC13) {
+    final List<Element> els = List.of(new Element("H"), new Element("C"), new Element("N"),
+        new Element("O"), new Element("S"));
+    final MZTolerance tol = new MZTolerance(0.009, 25);
+    final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
+        CarbonAveragineEnvelopeParameters.createDefault(), new EnvelopeContext(els, tol));
+    return new IsotopeFinderEngine(els, 10, tol, model, "test", requireC13,
+        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+  }
+
+  @Test
+  void userConfigDetectsChargeOneForMolecule271() {
+    // exact user config (elements H,C,N,O,S; tol 0.009/25ppm; maxCharge 10; auto-detect on): the
+    // singly charged m/z 271.0317 must be charge 1 both with and without "require 13C".
+    assertEquals(1,
+        userConfigEngine(false).detect(spec271(), 271.0317383, 5.67E8, PolarityType.POSITIVE)
+            .bestCharge(), "271 without require-13C");
+    final DetectionResult withGate = userConfigEngine(true).detect(spec271(), 271.0317383, 5.67E8,
+        PolarityType.POSITIVE);
+    assertNotNull(withGate, "271 must still be detected with require-13C");
+    assertEquals(1, withGate.bestCharge(), "271 with require-13C");
+  }
+
+  @Test
+  void userConfigDetectsChargeOneForMolecule330() {
+    assertEquals(1,
+        userConfigEngine(false).detect(spec330(), 330.1266785, 4.82E9, PolarityType.POSITIVE)
+            .bestCharge(), "330 without require-13C");
+    final DetectionResult withGate = userConfigEngine(true).detect(spec330(), 330.1266785, 4.82E9,
+        PolarityType.POSITIVE);
+    assertNotNull(withGate, "330 must still be detected with require-13C");
+    assertEquals(1, withGate.bestCharge(), "330 with require-13C");
+  }
+
+  @Test
+  void requireC13AcceptsCarbonPoorHeteroatomRichPattern() {
+    // a carbon-poor, heteroatom-rich molecule (~11 C at 400 Da = 1 C per ~36 Da, below the 1/20-per-Da
+    // averagine floor): mono 400, 13C M+1 at 401.003 with ratio ~0.13, and a 37Cl M+2 at 401.997. The
+    // "require 13C" gate must NOT reject it just because its M+1 is below the (too high) carbon-min
+    // prediction - the 13C M+1 is clearly present and plausible.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final double mono = 400.0;
+    final SimpleMassSpectrum spectrum = spec(
+        new double[]{mono, mono + C13, mono + 1.99705, mono + 2 * C13},
+        new double[]{100d, 13d, 32d, 1.5d});
+    final DetectionResult r = engineRequireC13(elements, 3).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(r, "require-13C must accept a carbon-poor but valid 13C pattern");
+    assertEquals(1, r.bestCharge(), "should be charge 1");
+  }
+
+  @Test
+  void requireC13DetectsChargeOneForHeteroatomRichMolecule271() {
+    // real measured spectrum: m/z 271.0317 (5.67e8) is the monoisotopic of a singly charged,
+    // heteroatom-rich (Cl/S) compound: 13C M+1 at 272.0346, heavy M+2 at 273.027. With "require 13C"
+    // enabled this must still be detected as charge 1 (the 13C M+1 is present and plausible).
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"), new Element("S"), new Element("Cl"));
+    final DetectionResult r = engineRequireC13(elements, 6).detect(spec271(), 271.0317383, 5.67E8,
+        PolarityType.POSITIVE);
+    assertNotNull(r, "require-13C must not reject this valid singly charged 13C pattern");
+    assertEquals(1, r.bestCharge(), "should be charge 1");
+  }
+
+  @Test
+  void requireC13DetectsChargeOneForHeteroatomRichMolecule330() {
+    // real measured spectrum: m/z 330.1267 (4.82e9) monoisotopic of a singly charged compound with a
+    // clean 13C M+1 at 331.1297 (ratio ~0.20) and heavy M+2 at 332.1207. Must be charge 1 with
+    // "require 13C" enabled.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"), new Element("S"), new Element("Cl"));
+    final DetectionResult r = engineRequireC13(elements, 6).detect(spec330(), 330.1266785, 4.82E9,
+        PolarityType.POSITIVE);
+    assertNotNull(r, "require-13C must not reject this valid singly charged 13C pattern");
+    assertEquals(1, r.bestCharge(), "should be charge 1");
+  }
+
+  @Test
+  void rejectsHighChargeStateWithoutEnoughSignals() {
+    // misdetection guard: a high charge is only accepted with a charge-scaled minimum number of
+    // distinct 13C-grid signals (z>=10 requires 5), so a couple of noise peaks that happen to fall on
+    // the fine 1.00336/z grid are not read as a high charge state. Tight FT tolerance so neighbouring
+    // high charges are otherwise distinguishable.
+    final MZTolerance tightTol = new MZTolerance(0.0005, 2);
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+
+    // a full, clean z=10 envelope has plenty of signals -> still detected as charge 10
+    final SimpleMassSpectrum full = ladder(500.0, 10, 450, 8);
+    final DetectionResult ok = engineTol(elements, 12, tightTol).detect(full, 500.0,
+        full.getIntensityValue(0), PolarityType.POSITIVE);
+    assertNotNull(ok, "a full high-charge envelope should still be detected");
+    assertEquals(10, ok.bestCharge(), "a full 8-peak z=10 envelope must still be detected as z=10");
+
+    // only the first 3 peaks of that same envelope -> below the z>=10 minimum of 5 -> not z=10
+    final double[] mz = new double[3];
+    final double[] in = new double[3];
+    for (int i = 0; i < 3; i++) {
+      mz[i] = full.getMzValue(i);
+      in[i] = full.getIntensityValue(i);
+    }
+    final DetectionResult few = engineTol(elements, 12, tightTol).detect(spec(mz, in), 500.0, in[0],
+        PolarityType.POSITIVE);
+    assertTrue(few == null || few.bestCharge() != 10,
+        "3 signals must not be reported as charge 10 (evidence floor guards against noise)");
+  }
+
+  @Test
   void detectsPolyhalogenatedSmallMoleculesFromAnyStartSignal() {
     record Halo(String formula, List<Element> elements) {
 
@@ -896,5 +1106,58 @@ class IsotopeFinderEngineTest {
         spec(new double[]{mono, m2}, new double[]{100d, 0.2d}), mono, 100d, PolarityType.POSITIVE);
     final boolean present = drop != null && containsMz(drop.patterns().get(0), m2);
     assertTrue(!present, "an insignificant bridged M+2 should be trimmed out of the pattern");
+  }
+
+  /**
+   * A real CDK tetrachloro pattern: a clear 37Cl M+2/M+4/M+6/M+8 comb (~1.997 Da spacing) that the
+   * auto-detector should fire on.
+   */
+  @NotNull
+  private static SimpleMassSpectrum chlorineComb() {
+    return fromFormula("C10H6Cl4", 1);
+  }
+
+  @Test
+  void autoDetectPopulatesChlorineComposition() {
+    // opt-in auto-detection on a chlorinated pattern must report Cl in the detected composition
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final SimpleMassSpectrum spectrum = chlorineComb();
+    final double mono = spectrum.getMzValue(0);
+    final DetectionResult r = engineAutoDetect(elements, 2).detect(spectrum, mono,
+        spectrum.getIntensityValue(0), PolarityType.POSITIVE);
+    assertNotNull(r);
+    final DetectedComposition composition = r.detectedComposition();
+    assertNotNull(composition, "auto-detect must populate the detected composition");
+    assertTrue(composition.elements().contains("Cl"),
+        "the 37Cl M+2 comb must be detected as chlorine but was " + composition.elements());
+  }
+
+  @Test
+  void autoDetectDoesNotChangeCharge() {
+    // enabling auto-detection must not alter charge selection (the heavy bound does not feed it)
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final SimpleMassSpectrum spectrum = chlorineComb();
+    final double mono = spectrum.getMzValue(0);
+    final DetectionResult userDefined = engine(elements, 2).detect(spectrum, mono,
+        spectrum.getIntensityValue(0), PolarityType.POSITIVE);
+    final DetectionResult autoDetect = engineAutoDetect(elements, 2).detect(spectrum, mono,
+        spectrum.getIntensityValue(0), PolarityType.POSITIVE);
+    assertNotNull(userDefined);
+    assertNotNull(autoDetect);
+    assertEquals(userDefined.bestCharge(), autoDetect.bestCharge(),
+        "auto-detection must not change the winning charge");
+  }
+
+  @Test
+  void elementDetectionIsOffByDefault() {
+    // the default (USER_DEFINED) engine leaves the detected composition null
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final SimpleMassSpectrum spectrum = chlorineComb();
+    final double mono = spectrum.getMzValue(0);
+    final DetectionResult r = engine(elements, 2).detect(spectrum, mono,
+        spectrum.getIntensityValue(0), PolarityType.POSITIVE);
+    assertNotNull(r);
+    org.junit.jupiter.api.Assertions.assertNull(r.detectedComposition(),
+        "element detection must be off by default (USER_DEFINED)");
   }
 }

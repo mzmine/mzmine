@@ -812,7 +812,10 @@ jar {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // benchmark-tagged tests run in the dedicated 'benchmark' task, not the default CI test run
+        excludeTags 'benchmark'
+    }
     testLogging {
         events "passed", "skipped", "failed"
     }
@@ -822,11 +825,49 @@ test {
     ]
 }
 
+// Dedicated tier for slow/heavy isotope-finder benchmark tests (@Tag("benchmark")).
+// Inherits --enable-preview and the logging config from the tasks.withType(Test) block above.
+tasks.register('benchmark', Test) {
+    group = "verification"
+    description = "Runs the benchmark-tagged tests (excluded from the default 'test' task)."
+    // a manually-registered Test task is not auto-wired like the built-in 'test' task
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'benchmark'
+    }
+    maxHeapSize = '8g'
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
+
 var copyTestResources = tasks.register("copyTestResources", Copy) {
     from layout.projectDirectory.dir("src/test/resources")
     into layout.buildDirectory.dir("classes/test")
 }
 processTestResources.dependsOn(copyTestResources)
+
+// Generates the isotope finder benchmark pattern corpus (JSONL) from the synthetic pattern generator.
+// The --enable-preview jvmArg is added by the tasks.withType(JavaExec) block above.
+tasks.register("generateBenchmarkCorpus", JavaExec) {
+    group = "benchmark"
+    description = "Generates the isotope finder benchmark pattern corpus (src/test/resources/isotopefinder/corpus/patterns.jsonl)."
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.BenchmarkPatternGenerator"
+    args = [layout.projectDirectory.file("src/test/resources/isotopefinder/corpus/patterns.jsonl").asFile.absolutePath]
+}
+
+// Regenerates the committed isotope finder accuracy baseline by running the CURRENT engine over the
+// whole corpus. The --enable-preview jvmArg is added by the tasks.withType(JavaExec) block above.
+tasks.register("isotopeBenchmark", JavaExec) {
+    group = "benchmark"
+    description = "Runs the isotope finder over the benchmark corpus and writes the accuracy baseline (src/test/resources/isotopefinder/baseline/metrics_baseline.csv)."
+    dependsOn(processTestResources)
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = "io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.IsotopeBenchmarkMain"
+    args = [layout.projectDirectory.file("src/test/resources/isotopefinder/baseline/metrics_baseline.csv").asFile.absolutePath]
+}
 
 licenseReport {
     // By default this plugin will collect the union of all licenses from
