@@ -1,9 +1,37 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
@@ -52,6 +80,9 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.setSelectedMs2Row(null);
       model.getAvailableMs2Scans().clear();
       model.setSelectedMs2Scan(null);
+      model.getIsotopeChargeStates().clear();
+      model.setSelectedIsotopePattern(null);
+      model.setIsotopeRepresentativeScan(null);
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMobilogramDatasets().clear();
@@ -164,6 +195,66 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     // Always reset to the first (merged) entry when the row changes — the previous selection
     // refers to a different row and doesn't make sense here anymore.
     model.setSelectedMs2Scan(result.isEmpty() ? null : result.iterator().next());
+  }
+
+  /**
+   * Recompute the isotope mirror inputs for the currently selected adduct row. The top spectrum of
+   * the mirror is the detected isotope pattern of that row; when the row carries a
+   * {@link MultiChargeStateIsotopePattern} each charge-state hypothesis becomes a selectable entry
+   * in {@link CompoundDashboardModel#getIsotopeChargeStates()} (best score first), otherwise the
+   * single detected pattern is the only entry. The bottom spectrum is the row's representative MS1
+   * scan (same picking rule as the MS1 background scan).
+   * <p>
+   * decision: the source is strictly the selected adduct row — no fallback to the compound's
+   * preferred row. When the selected row has no detected isotope pattern the charge list stays
+   * empty; the view then shows the plain representative MS1 spectrum instead of the mirror.
+   * <p>
+   * The current charge-state selection is preserved when it still exists in the refreshed list (so
+   * a raw-file change does not reset the user's charge pick); otherwise the preferred (first)
+   * pattern is selected.
+   */
+  public void recomputeIsotopePattern() {
+    final FeatureListRow source = model.getSelectedAdductRow();
+    if (source == null) {
+      model.getIsotopeChargeStates().clear();
+      model.setSelectedIsotopePattern(null);
+      model.setIsotopeRepresentativeScan(null);
+      return;
+    }
+    final IsotopePattern best = source.getBestIsotopePattern();
+    final List<IsotopePattern> patterns;
+    if (best instanceof MultiChargeStateIsotopePattern multi) {
+      patterns = List.copyOf(multi.getPatterns());
+    } else if (best != null) {
+      patterns = List.of(best);
+    } else {
+      patterns = List.of();
+    }
+    model.getIsotopeChargeStates().setAll(patterns);
+    final IsotopePattern current = model.getSelectedIsotopePattern();
+    model.setSelectedIsotopePattern(current != null && patterns.contains(current) ? current
+        : (patterns.isEmpty() ? null : patterns.getFirst()));
+    // Representative scan is always resolved for the selected row so the view can show a plain
+    // full MS1 spectrum when no isotope pattern is available.
+    model.setIsotopeRepresentativeScan(
+        pickRepresentativeScan(source, model.getCurrentRawDataFile()));
+  }
+
+  /**
+   * Pick the representative MS1 scan for {@code row}: the feature in {@code file} if present,
+   * otherwise the row's best feature. Mirrors {@code CompoundDashboardSpectraTask} so the mirror's
+   * bottom spectrum matches the MS1 background scan.
+   */
+  private static @Nullable Scan pickRepresentativeScan(@NotNull final FeatureListRow row,
+      @Nullable final RawDataFile file) {
+    if (file != null) {
+      final Feature f = row.getFeature(file);
+      if (f != null && f.getRepresentativeScan() != null) {
+        return f.getRepresentativeScan();
+      }
+    }
+    final Feature best = row.getBestFeature();
+    return best == null ? null : best.getRepresentativeScan();
   }
 
   /**
