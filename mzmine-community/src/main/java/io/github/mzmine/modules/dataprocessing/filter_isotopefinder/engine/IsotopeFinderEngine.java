@@ -136,7 +136,7 @@ public class IsotopeFinderEngine {
       @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
       @NotNull final String modeLabel, final boolean requireC13) {
     this(elements, maxCharge, tol, model, modeLabel, requireC13, ElementDetectionMode.USER_DEFINED,
-        java.util.List.of());
+        List.of());
   }
 
   public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,

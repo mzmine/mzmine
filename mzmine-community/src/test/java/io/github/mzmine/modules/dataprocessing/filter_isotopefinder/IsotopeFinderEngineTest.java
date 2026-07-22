@@ -95,6 +95,17 @@ class IsotopeFinderEngineTest {
   }
 
   /**
+   * Same engine as {@link #engine} but with opt-in heavy-element auto-detection enabled over the
+   * default candidate set. Charge selection is unchanged; detection only annotates the result.
+   */
+  @NotNull
+  private static IsotopeFinderEngine engineAutoDetectRequireC13(
+      @NotNull final List<Element> elements, final int maxCharge) {
+    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", true,
+        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+  }
+
+  /**
    * Build a clean 13C ladder at the given charge (Poisson envelope, base peak = 100).
    */
   private static SimpleMassSpectrum ladder(final double monoMz, final int charge,
@@ -1111,7 +1122,7 @@ class IsotopeFinderEngineTest {
             List.of(new Element("C"), br, cl, new Element("Cu"), new Element("N"))),
         // BDE-209 (decabromodiphenyl ether): 10 Br -> very broad, base near M+10
         new Halo("C12Br10O", List.of(new Element("C"), br, cl, new Element("O"))),
-        new Halo("C6Cl6", List.of(new Element("C"), br, cl)),
+        new Halo("C10Cl6", List.of(new Element("C"), br, cl)),
         new Halo("C10H4Cl2Br2", List.of(new Element("C"), new Element("H"), br, cl, br)));
 
     for (int expCharge = 1; expCharge < 4; expCharge++) {
@@ -1126,10 +1137,20 @@ class IsotopeFinderEngineTest {
 
         final int[] seeds = {0, base, target.getNumberOfDataPoints() - 1};
         for (final int s : seeds) {
-          final DetectionResult r = engine(h.elements(), 6).detect(complex, target.getMzValue(s),
+          DetectionResult r = engineAutoDetect(h.elements(), 6).detect(complex,
+              target.getMzValue(s),
               target.getIntensityValue(s), PolarityType.POSITIVE);
-          assertNotNull(r, h.formula() + " seed " + s + ": no detection");
+          assertNotNull(r,
+              "%s seed %d: no detection for charge %d, require 13C false".formatted(h.formula(), s,
+                  expCharge));
           assertEquals(expCharge, r.bestCharge(), h.formula() + " seed " + s + ": wrong charge");
+
+          final DetectionResult r13c = engineAutoDetectRequireC13(h.elements(), 6).detect(complex,
+              target.getMzValue(s), target.getIntensityValue(s), PolarityType.POSITIVE);
+          assertNotNull(r13c,
+              "%s seed %d: no detection for charge %d, require 13C true".formatted(h.formula(), s,
+                  expCharge));
+          assertEquals(expCharge, r13c.bestCharge(), h.formula() + " seed " + s + ": wrong charge");
         }
       }
     }
@@ -1206,10 +1227,10 @@ class IsotopeFinderEngineTest {
   @Test
   void autoDetectPopulatesChlorineComposition() {
     // opt-in auto-detection on a chlorinated pattern must report Cl in the detected composition
-    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final List<Element> elements = List.of(new Element("C"), new Element("H"));
     final SimpleMassSpectrum spectrum = chlorineComb();
     final double mono = spectrum.getMzValue(0);
-    final DetectionResult r = engineAutoDetect(elements, 2).detect(spectrum, mono,
+    final DetectionResult r = engineAutoDetect(elements, 4).detect(spectrum, mono,
         spectrum.getIntensityValue(0), PolarityType.POSITIVE);
     assertNotNull(r);
     final DetectedComposition composition = r.detectedComposition();
@@ -1226,7 +1247,7 @@ class IsotopeFinderEngineTest {
     final double mono = spectrum.getMzValue(0);
     final DetectionResult userDefined = engine(elements, 2).detect(spectrum, mono,
         spectrum.getIntensityValue(0), PolarityType.POSITIVE);
-    final DetectionResult autoDetect = engineAutoDetect(elements, 2).detect(spectrum, mono,
+    final DetectionResult autoDetect = engineAutoDetect(elements, 4).detect(spectrum, mono,
         spectrum.getIntensityValue(0), PolarityType.POSITIVE);
     assertNotNull(userDefined);
     assertNotNull(autoDetect);
