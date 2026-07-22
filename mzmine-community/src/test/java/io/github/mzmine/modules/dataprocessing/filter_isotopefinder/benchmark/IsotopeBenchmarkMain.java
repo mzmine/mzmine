@@ -46,7 +46,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * Run via the {@code isotopeBenchmark} Gradle task (which supplies the output path and the test
  * runtime classpath with {@code --enable-preview}). The first program argument overrides the output
- * CSV path; without it {@link BenchmarkReport#DEFAULT_BASELINE} is used.
+ * CSV path; without it {@link BenchmarkReport#DEFAULT_BASELINE} is used. An optional second argument
+ * {@code "requireC13"} enables the require-13C gate (and its gap-truncation) so a companion baseline
+ * can be produced and diffed against the default one.
  */
 public final class IsotopeBenchmarkMain {
 
@@ -57,19 +59,22 @@ public final class IsotopeBenchmarkMain {
 
   public static void main(@NotNull final String[] args) {
     final Path out = args.length > 0 ? Path.of(args[0]) : BenchmarkReport.DEFAULT_BASELINE;
+    final boolean requireC13 = args.length > 1 && "requireC13".equalsIgnoreCase(args[1]);
 
     final List<GroundTruthCase> cases = IsotopeCorpus.all();
-    LOGGER.info("Loaded " + cases.size() + " benchmark cases; running the current engine.");
+    LOGGER.info(
+        "Loaded " + cases.size() + " benchmark cases; running the current engine" + (requireC13
+            ? " with requireC13=true." : "."));
 
     // JIT warmup: run the whole corpus once untimed so the timed pass reflects steady-state cost
     for (final GroundTruthCase c : cases) {
-      buildEngine(c).detect(c.spectrum(), c.seedMz(), c.seedHeight(), c.polarity());
+      buildEngine(c, requireC13).detect(c.spectrum(), c.seedMz(), c.seedHeight(), c.polarity());
     }
 
     final List<CaseMetrics> metrics = new ArrayList<>(cases.size());
     final ChargeConfusionMatrix confusion = new ChargeConfusionMatrix();
     for (final GroundTruthCase c : cases) {
-      final IsotopeFinderEngine engine = buildEngine(c);
+      final IsotopeFinderEngine engine = buildEngine(c, requireC13);
       final long t0 = System.nanoTime();
       final DetectionResult result = engine.detect(c.spectrum(), c.seedMz(), c.seedHeight(),
           c.polarity());
@@ -102,14 +107,18 @@ public final class IsotopeBenchmarkMain {
   }
 
   /**
-   * Build a fresh engine for one case in signal / carbon-averagine mode ({@code requireC13=false}),
-   * exactly as {@code IsotopeFinderEngineTest} does (standalone, no MZmineCore).
+   * Build a fresh engine for one case in signal / carbon-averagine mode, exactly as
+   * {@code IsotopeFinderEngineTest} does (standalone, no MZmineCore).
+   *
+   * @param requireC13 whether to enable the require-13C gate (and its gap-truncation).
    */
   @NotNull
-  private static IsotopeFinderEngine buildEngine(@NotNull final GroundTruthCase c) {
+  private static IsotopeFinderEngine buildEngine(@NotNull final GroundTruthCase c,
+      final boolean requireC13) {
     final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
         CarbonAveragineEnvelopeParameters.createDefault(),
         new EnvelopeContext(c.elements(), c.tol()));
-    return new IsotopeFinderEngine(c.elements(), c.maxCharge(), c.tol(), model, "benchmark", false);
+    return new IsotopeFinderEngine(c.elements(), c.maxCharge(), c.tol(), model, "benchmark",
+        requireC13);
   }
 }

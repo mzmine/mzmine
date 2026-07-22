@@ -776,6 +776,92 @@ class IsotopeFinderEngineTest {
   }
 
   @Test
+  void requireC13TruncatesPatternAtHole() {
+    // mono + 13C M+1, then a genuine hole at M+2 (no signal), then on-grid peaks at M+3/M+4 that the
+    // model still supports (~72 C at m/z 1000). Without the gate the base engine bridges the gap and
+    // keeps M+3/M+4; with require-13C the pattern must terminate at the hole and drop everything past it.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final double mono = 1000.0;
+    final SimpleMassSpectrum spectrum = spec(
+        new double[]{mono, mono + C13, mono + 3 * C13, mono + 4 * C13},
+        new double[]{100d, 78d, 8d, 2d});
+
+    // control: without the gate, M+3 is bridged across the M+2 gap and retained
+    final DetectionResult open = engine(elements, 2).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(open);
+    assertTrue(containsMz(open.patterns().get(0), mono + 3 * C13),
+        "without require-13C the M+3 is bridged across the gap");
+
+    final DetectionResult gated = engineRequireC13(elements, 2).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(gated, "the contiguous mono + M+1 part must still be detected");
+    assertEquals(1, gated.bestCharge());
+    final IsotopePattern gp = gated.patterns().get(0);
+    assertEquals(2, gp.getNumberOfDataPoints(), "pattern must be truncated at the M+2 hole");
+    assertTrue(!containsMz(gp, mono + 3 * C13), "peaks beyond the hole must be dropped");
+  }
+
+  @Test
+  void requireC13ToleratesMergedHeavyIsotopeShiftedPeak() {
+    // the M+2 signal is a 13C2/37Cl merge whose centroid is pulled ~11 mDa below the exact 13C grid
+    // (beyond the 1x tolerance of 5 mDa, within the 3x gap tolerance of 15 mDa). It must NOT be read
+    // as a hole, so the pattern stays contiguous and the merged peak is retained rather than dropped.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("Cl"));
+    final double mono = 500.0;
+    final double mergedM2 = 501.996; // exact 13C grid at offset 2 is 502.00671 -> ~10.7 mDa off
+    final SimpleMassSpectrum spectrum = spec(new double[]{mono, mono + C13, mergedM2},
+        new double[]{100d, 38d, 33d});
+    final DetectionResult r = engineRequireC13(elements, 2).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(r);
+    assertEquals(1, r.bestCharge());
+    // without the 3x relaxation the shifted peak would be read as a hole at M+2 and dropped
+    assertTrue(containsMz(r.patterns().get(0), mergedM2),
+        "the merged/shifted M+2 must count as present, not a hole");
+  }
+
+  @Test
+  void requireC13AcceptsProteinHumpWithoutMonoisotopic() {
+    // a mono-less protein-like hump (base is mid-envelope): require-13C must NOT reject it, because
+    // the 13C ladder is gap-free through the hump even though there is no visible monoisotopic.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final SimpleMassSpectrum full = ladder(2000.0, 1, 140, 12);
+    final double[] mz = new double[full.getNumberOfDataPoints() - 1];
+    final double[] in = new double[mz.length];
+    for (int i = 1; i < full.getNumberOfDataPoints(); i++) {
+      mz[i - 1] = full.getMzValue(i);
+      in[i - 1] = full.getIntensityValue(i);
+    }
+    final SimpleMassSpectrum hump = spec(mz, in);
+    final DetectionResult r = engineRequireC13(elements, 3).detect(hump, hump.getMzValue(3),
+        hump.getIntensityValue(3), PolarityType.POSITIVE);
+    assertNotNull(r, "a mono-less hump must still pass require-13C via its gap-free 13C ladder");
+    assertEquals(1, r.bestCharge());
+  }
+
+  @Test
+  void requireC13AcceptsEverySecond13CLadder() {
+    // pattern present only on every second 13C position (base + 13C2 + 13C4), the odd positions
+    // swallowed - as for a molecule dominated by an intense +2 heavy comb. The every-13C (step 1)
+    // ladder has an immediate hole at +1/-1, so require-13C must fall back to the every-second
+    // (step 2) ladder and still accept the pattern rather than truncating it to a single peak.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("O"));
+    final double mono = 500.0;
+    final SimpleMassSpectrum spectrum = spec(new double[]{mono, mono + 2 * C13, mono + 4 * C13},
+        new double[]{40d, 100d, 60d});
+    final DetectionResult r = engineRequireC13(elements, 2).detect(spectrum, mono + 2 * C13, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(r, "an every-second 13C ladder must be accepted via the step-2 fallback");
+    assertEquals(1, r.bestCharge());
+    final IsotopePattern p = r.patterns().get(0);
+    assertTrue(containsMz(p, mono) && containsMz(p, mono + 4 * C13),
+        "the full every-second ladder must be retained");
+  }
+
+  @Test
   void detectsHighChargeProteinsFromAnyStartSignal() {
     // high-res FT tolerance so neighbouring high charge states are distinguishable
     final MZTolerance tightTol = new MZTolerance(0.0005, 2);

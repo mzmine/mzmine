@@ -115,6 +115,11 @@ public class IsotopeFinderEngine {
   // this fraction of the base peak to be included, so insignificant noise on the tails does not widen
   // the pattern. Contiguous/adjacent signals are always kept to preserve complete isotope envelopes.
   private static final double MIN_BRIDGED_REL_INTENSITY = 0.005;
+  // require-13C gap-truncation: the m/z tolerance is widened by this factor when testing whether a
+  // 13C-grid position is occupied, so a heavy isotope (37Cl/81Br) merged with the expected 13C signal -
+  // which pulls the observed centroid a few mDa off the exact grid - still counts as present and does
+  // not open a false hole that would truncate the pattern early.
+  private static final double REQUIRE_C13_GAP_TOL_FACTOR = 3d;
 
   private final int maxCharge;
   private final MZTolerance tol;
@@ -356,13 +361,44 @@ public class IsotopeFinderEngine {
     }
     final double baseMz = base.getMZ();
 
+    // require-13C ladder validation + gap-truncation. Anchored on the observed base (offset 0), walk
+    // the 13C grid outward in BOTH directions and require a gap-free ladder: the pattern is truncated
+    // at the first missing grid position even if signals exist beyond it (a strong discriminator
+    // against fake high-charge ladders from noise/FT ringing). The monoisotopic is NOT required, so a
+    // mid-envelope hump without a visible mono (e.g. a protein) is still accepted. Presence uses a
+    // widened tolerance (REQUIRE_C13_GAP_TOL_FACTOR) so a heavy isotope merged with the expected 13C
+    // signal does not open a false hole. If the every-13C (step 1) ladder does not reach at least two
+    // signals, fall back to an every-second (step 2) ladder: molecules dominated by an intense +2
+    // heavy comb (Cl/Br/Cu, e.g. pigment green 7 C32HCl15CuN8) show a clean ladder only on every
+    // second 13C position while the intervening pure-13C peaks are swallowed by the noise floor.
+    final List<DataPoint> cands;
+    final int ladderStep;
+    if (requireC13) {
+      final int[] span = requireC13LadderSpan(candidates, baseMz, spacingDa);
+      if (span == null) {
+        return null; // no gap-free 13C (or every-second) ladder through the seed
+      }
+      ladderStep = span[2];
+      final List<DataPoint> truncated = new ArrayList<>(candidates.size());
+      for (final DataPoint dp : candidates) {
+        final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
+        if (k >= span[0] && k <= span[1]) {
+          truncated.add(dp);
+        }
+      }
+      cands = truncated;
+    } else {
+      cands = candidates;
+      ladderStep = 1;
+    }
+
     // isolated 13C ladder on the RAW signals: per offset, the signal closest to the exact 13C
     // position, so heavy isotopes (37Cl/81Br/34S) and 15N at the same nominal offset do not
     // contaminate the carbon ratio. Offsets are relative to the observed base (may be negative).
-    final TreeMap<Integer, Double> carbonLadder = buildCarbonLadder(candidates, baseMz, spacingDa);
+    final TreeMap<Integer, Double> carbonLadder = buildCarbonLadder(cands, baseMz, spacingDa);
 
     // all-signal per-offset map (summed) for coverage, self-consistency and the inclusive kept pattern
-    final TreeMap<Integer, OffsetPeak> observed = FineStructureCollapser.collapse(candidates,
+    final TreeMap<Integer, OffsetPeak> observed = FineStructureCollapser.collapse(cands,
         baseMz, 0, spacingDa);
     if (observed.isEmpty()) {
       return null;
@@ -373,24 +409,32 @@ public class IsotopeFinderEngine {
     final CarbonFit carbonFit = slideCarbonFit(carbonLadder, env);
     final int placement = carbonFit.placement();
 
-    // optional "require 13C" gate: the resolved 13C M+1 must be present and its M+1/M ratio within
-    // the estimated min/max carbon bounds, otherwise this charge hypothesis is rejected. Mono and M+1
-    // are read from the isolated 13C ladder at the placement-implied positions.
-    if (requireC13) {
-      final Double monoIntensity = carbonLadder.get(-placement);
-      final Double m1Intensity = carbonLadder.get(-placement + 1);
-      if (monoIntensity == null || monoIntensity <= 0 || m1Intensity == null || m1Intensity <= 0) {
-        return null;
-      }
-      if (m1Bounds != null) {
-        final double ratio = m1Intensity / monoIntensity;
-        // lower bound uses REQUIRE_C13_LOWER_FACTOR (not the symmetric slack) so heteroatom-rich,
-        // carbon-poor molecules - whose real 13C M+1/M is legitimately below the averagine carbon
-        // minimum - are not wrongly rejected; the upper bound still uses the slack to catch an "M+1"
-        // too large to be 13C (a co-eluting mono).
-        if (ratio < m1Bounds[0] * REQUIRE_C13_LOWER_FACTOR || ratio > m1Bounds[1] * (1d
-            + C13_RATIO_SLACK)) {
-          return null;
+    // require-13C loose shape gate: only when the observed base is itself the monoisotopic (no
+    // significant 13C-ladder peak below it) and the every-13C (step 1) ladder was used. In that case
+    // the base->M+1 ratio must fall within the loose carbon M+1/M bounds; an "M+1" far too small
+    // (FT ringing / not a real 13C peak) or far too large (a co-eluting mono) rejects the hypothesis.
+    // Skipped for mid-envelope humps (proteins) and for the every-second ladder, where no dominant
+    // monoisotopic exists to anchor the ratio. The M+1 is read from the isolated exact-13C ladder; a
+    // shifted/merged M+1 (absent from the strict ladder) is left to the soft penalties below.
+    if (requireC13 && ladderStep == 1 && m1Bounds != null) {
+      final Double baseIntensity = carbonLadder.get(0);
+      if (baseIntensity != null && baseIntensity > 0d) {
+        double maxBelow = 0d;
+        for (final double below : carbonLadder.headMap(0).values()) {
+          maxBelow = Math.max(maxBelow, below);
+        }
+        final boolean baseIsMono = maxBelow < MONO_DOMINANCE_FRACTION * baseIntensity;
+        final Double m1Intensity = carbonLadder.get(1);
+        if (baseIsMono && m1Intensity != null && m1Intensity > 0d) {
+          final double ratio = m1Intensity / baseIntensity;
+          // lower bound uses REQUIRE_C13_LOWER_FACTOR (not the symmetric slack) so heteroatom-rich,
+          // carbon-poor molecules - whose real 13C M+1/M is legitimately below the averagine carbon
+          // minimum - are not wrongly rejected; the upper bound still uses the slack to catch an "M+1"
+          // too large to be 13C (a co-eluting mono).
+          if (ratio < m1Bounds[0] * REQUIRE_C13_LOWER_FACTOR || ratio > m1Bounds[1] * (1d
+              + C13_RATIO_SLACK)) {
+            return null;
+          }
         }
       }
     }
@@ -422,18 +466,21 @@ public class IsotopeFinderEngine {
     // envelope-shape-aware termination -> keep the supported, bridgeable run of offsets (both
     // directions from the base), so the inclusive pattern keeps heavy isotopes and fine structure.
     // Insignificant signals reached only by bridging a gap are dropped so the pattern does not span
-    // too wide over noise; contiguous signals are always kept.
+    // too wide over noise; contiguous signals are always kept. In require-13C mode the accepted
+    // ladder span already defines a validated gap-free pattern, so keep all of it (the every-second
+    // ladder has intentional single-offset gaps the shape-aware termination would otherwise prune).
     final double baseIntensity = base.getIntensity();
-    final Set<Integer> keptOffsets = computeKeptOffsets(observed, env, placement, baseIntensity);
+    final Set<Integer> keptOffsets = requireC13 ? new HashSet<>(observed.keySet())
+        : computeKeptOffsets(observed, env, placement, baseIntensity);
     final List<DataPoint> kept = new ArrayList<>();
-    for (final DataPoint dp : candidates) {
+    for (final DataPoint dp : cands) {
       final int offset = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
       if (keptOffsets.contains(offset)) {
         kept.add(dp);
       }
     }
     if (kept.isEmpty()) {
-      kept.addAll(candidates);
+      kept.addAll(cands);
     }
 
     // intensity agreement: fraction of the observed intensity that stays within the plausible upper
@@ -462,7 +509,7 @@ public class IsotopeFinderEngine {
     // has ~1 Da m/z steps that nearly align to the z=1 13C grid, which wrongly boosted z=1. The
     // principled harmonic discriminator is a carbon M+1/M upper-bound check (kept for a follow-up), not
     // this position-only term.
-    final double spacingConsistency = spacingConsistency(candidates, baseMz, spacingDa);
+    final double spacingConsistency = spacingConsistency(cands, baseMz, spacingDa);
 
     // bounded [0,1] quality (carbon fit x coverage), gated by self-consistency for higher charges so a
     // higher charge whose intermediate peaks are absent cannot win. This, times the peak-count reward
@@ -598,6 +645,74 @@ public class IsotopeFinderEngine {
       }
     }
     return bestIntensity;
+  }
+
+  /**
+   * Select the gap-free 13C ladder through the observed base for the require-13C gate. Prefers the
+   * every-13C (step 1) ladder; when that reaches fewer than two signals it falls back to an
+   * every-second (step 2) ladder for molecules whose pattern shows only on every second 13C
+   * position (an intense +2 heavy comb: Cl/Br/Cu). The step-2 ladder must reach at least three
+   * signals (base plus two more on the step-2 grid) so a lone monoisotopic + single heavy M+2 does
+   * not qualify as a 13C pattern.
+   *
+   * @param candidates the detected signals.
+   * @param baseMz     the observed base (offset 0) m/z.
+   * @param spacingDa  the 13C distance divided by the charge.
+   * @return inclusive {@code [minOffset, maxOffset, step]}, or {@code null} if no ladder qualifies.
+   */
+  private int @Nullable [] requireC13LadderSpan(@NotNull final List<DataPoint> candidates,
+      final double baseMz, final double spacingDa) {
+    final int[] s1 = gapFreeSpan(candidates, baseMz, spacingDa, 1);
+    if (s1[1] - s1[0] >= 1) { // >= 2 signals on the every-13C grid
+      return new int[]{s1[0], s1[1], 1};
+    }
+    final int[] s2 = gapFreeSpan(candidates, baseMz, spacingDa, 2);
+    if (s2[1] - s2[0] >= 4) { // >= 3 signals on the every-second grid
+      return new int[]{s2[0], s2[1], 2};
+    }
+    return null;
+  }
+
+  /**
+   * Contiguous, gap-free span of grid offsets around the observed base (offset 0), stepping by
+   * {@code step} offsets. Walks outward in both directions and stops at the first stepped position
+   * with no signal, so a hole where a peak is expected truncates the span even if signals exist
+   * further out. The presence test uses a widened tolerance ({@link #REQUIRE_C13_GAP_TOL_FACTOR})
+   * so a heavy isotope merged with the expected 13C peak (shifting it a few mDa off grid) still
+   * counts.
+   *
+   * @param candidates the detected signals.
+   * @param baseMz     the observed base (offset 0) m/z.
+   * @param spacingDa  the 13C distance divided by the charge.
+   * @param step       the offset step (1 = every 13C, 2 = every second 13C).
+   * @return inclusive {@code [minOffset, maxOffset]} span containing offset 0.
+   */
+  private int @NotNull [] gapFreeSpan(@NotNull final List<DataPoint> candidates,
+      final double baseMz, final double spacingDa, final int step) {
+    int hi = 0;
+    while (hasSignalOnGrid(candidates, baseMz, spacingDa, hi + step)) {
+      hi += step;
+    }
+    int lo = 0;
+    while (hasSignalOnGrid(candidates, baseMz, spacingDa, lo - step)) {
+      lo -= step;
+    }
+    return new int[]{lo, hi};
+  }
+
+  /**
+   * @return whether any candidate lies within the widened tolerance of the exact 13C position for
+   * integer offset {@code k} relative to {@code baseMz}.
+   */
+  private boolean hasSignalOnGrid(@NotNull final List<DataPoint> candidates, final double baseMz,
+      final double spacingDa, final int k) {
+    final double exactMz = baseMz + k * spacingDa;
+    for (final DataPoint dp : candidates) {
+      if (tol.checkWithinTolerance(exactMz, dp.getMZ(), REQUIRE_C13_GAP_TOL_FACTOR)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
