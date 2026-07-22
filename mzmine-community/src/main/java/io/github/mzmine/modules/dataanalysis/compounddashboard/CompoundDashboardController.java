@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -106,6 +107,9 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   private final ChromatogramPlotController mobilogramPlot = new ChromatogramPlotController(true);
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
   private final SimpleSpectraChartController ms2Chart = new SimpleSpectraChartController();
+  // Shown in place of the isotope mirror when the selected row has no detected isotope pattern:
+  // a plain full MS1 spectrum of the row's representative scan.
+  private final SimpleSpectraChartController isotopeSpectrumChart = new SimpleSpectraChartController();
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();
   private final FxFeatureTableController tableCtrl = new FxFeatureTableController(
       FeatureTableOwner.COMPOUND_DASHBOARD);
@@ -123,7 +127,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     super(new CompoundDashboardModel());
     this.interactor = new CompoundDashboardInteractor(model);
     this.builder = new CompoundDashboardViewBuilder(model, this, eicPlot, mobilogramPlot, ms1Chart,
-        ms2Chart, qualityCtrl, tableCtrl, featurePlot4D);
+        ms2Chart, isotopeSpectrumChart, qualityCtrl, tableCtrl, featurePlot4D);
 
     model.setColorPalette(CompoundDashboardInteractor.snapshotPalette());
 
@@ -202,6 +206,11 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // individual fragment scans) and reset selectedMs2Scan to the merged scan. The scan change in
     // turn triggers the spectra task above.
     model.selectedMs2RowProperty().subscribe(_ -> interactor.recomputeAvailableMs2Scans());
+    // Isotope mirror: recompute the charge-state list + representative MS1 scan whenever the ion
+    // selection or the current raw file changes. Cheap (patterns are already in memory), so no
+    // background task is needed. Runs on the FX thread.
+    PropertyUtils.onChange(interactor::recomputeIsotopePattern, model.selectedAdductRowProperty(),
+        model.currentRawDataFileProperty());
     // Heavy debounced recompute of EICs.
     PropertyUtils.onChangeDelayedSubscription(this::scheduleEic, DEBOUNCE,
         model.selectedCompoundRowProperty(), model.currentRawDataFileProperty(),
@@ -283,6 +292,10 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     mobilogramPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
     ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
+    // Fallback full-MS1 spectrum shown when the selected row has no isotope pattern.
+    isotopeSpectrumChart.rangeAxisLabelProperty().set("Intensity (MS1)");
+    isotopeSpectrumChart.domainAxisLabelProperty().set("m/z");
+    isotopeSpectrumChart.setLegendItemsVisible(false);
   }
 
   // --- FxController overrides -----------------------------------------------
@@ -303,6 +316,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     qualityCtrl.close();
     tableCtrl.close();
     featurePlot4D.close();
+    isotopeSpectrumChart.close();
   }
 
   // --- public API ------------------------------------------------------------
@@ -345,6 +359,22 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
    */
   public void previousMs2Scan() {
     cycleMs2Scan(-1);
+  }
+
+  /**
+   * Cycle to the next charge-state pattern in
+   * {@link CompoundDashboardModel#getIsotopeChargeStates()}.
+   */
+  public void nextChargeState() {
+    cycleChargeState(+1);
+  }
+
+  /**
+   * Cycle to the previous charge-state pattern in
+   * {@link CompoundDashboardModel#getIsotopeChargeStates()}.
+   */
+  public void previousChargeState() {
+    cycleChargeState(-1);
   }
 
   // --- bindings --------------------------------------------------------------
@@ -492,6 +522,18 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     // for both directions
     final int next = ((idx + delta) % scans.size() + scans.size()) % scans.size();
     model.setSelectedMs2Scan(scans.get(next));
+  }
+
+  private void cycleChargeState(final int delta) {
+    final ObservableList<IsotopePattern> patterns = model.getIsotopeChargeStates();
+    if (patterns.isEmpty()) {
+      return;
+    }
+    final IsotopePattern current = model.getSelectedIsotopePattern();
+    final int idx = current == null ? -1 : patterns.indexOf(current);
+    // wrap in both directions
+    final int next = ((idx + delta) % patterns.size() + patterns.size()) % patterns.size();
+    model.setSelectedIsotopePattern(patterns.get(next));
   }
 
   private void scheduleSpectra() {

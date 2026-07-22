@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -432,6 +433,7 @@ public class SpectraVisualizerTab extends MZmineTab {
           } else {
             newColor = predictedIsotopesColor;
           }
+          newColor = palette.getNextColorAWT();
 
           IsotopePattern pattern = patterns.get(i);
           final IsotopePattern normalizedPattern = normalizeIsotopePattern(pattern);
@@ -440,8 +442,8 @@ public class SpectraVisualizerTab extends MZmineTab {
           }
 
           final IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern,
-              (i == 0 ? "Isotopes (%d, preferred)" : "Isotopes (%d)").formatted(
-                  pattern.getNumberOfDataPoints()));
+              (i == 0 ? "Isotopes (n=%d, c=%d, preferred)" : "Isotopes (%d, c=%d)").formatted(
+                  pattern.getNumberOfDataPoints(), pattern.getCharge()));
           spectrumPlot.addDataSet(newDataSet, newColor, true, false);
         }
       } else {

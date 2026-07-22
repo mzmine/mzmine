@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,8 +49,38 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
+  /**
+   * Comparator for sorting isotope patterns by their size in descending order, and then by charge
+   * state in ascending order. Charge state -1 is considered as the highest charge state.
+   */
   public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
-      IsotopePattern::getNumberOfDataPoints);
+          IsotopePattern::getNumberOfDataPoints).reversed()
+      .thenComparingInt(ip -> ip.getCharge() == -1 ? Integer.MAX_VALUE : ip.getCharge());
+
+  /**
+   * Comparator for sorting isotope patterns by their quality
+   * {@link IsotopePattern#getScore() score} in descending order (best first). Unscored patterns
+   * ({@link Double#NaN}, e.g. predicted patterns) sort after scored ones and then fall back to
+   * {@link #patternSizeComparator} (size descending, charge ascending), preserving the legacy
+   * ordering when no scores are present.
+   */
+  public static final Comparator<IsotopePattern> patternScoreComparator = (a, b) -> {
+    final double sa = a.getScore();
+    final double sb = b.getScore();
+    final boolean na = Double.isNaN(sa);
+    final boolean nb = Double.isNaN(sb);
+    // decision: a scored pattern always outranks an unscored one
+    if (na != nb) {
+      return na ? 1 : -1;
+    }
+    if (!na) {
+      final int byScore = Double.compare(sb, sa); // higher score first
+      if (byScore != 0) {
+        return byScore;
+      }
+    }
+    return patternSizeComparator.compare(a, b);
+  };
 
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
@@ -155,6 +185,11 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   @Override
+  public double getScore() {
+    return getPreferredIsotopePattern().getScore();
+  }
+
+  @Override
   public @NotNull IsotopePatternStatus getStatus() {
     return getPreferredIsotopePattern().getStatus();
   }
@@ -256,9 +291,10 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   /**
-   * Sorts the isotope patterns by pattern size.
+   * Sorts the isotope patterns by quality score (best first), falling back to pattern size when no
+   * scores are present.
    */
   private void evaluateIsotopePatterns() {
-    patterns.sort(patternSizeComparator);
+    patterns.sort(patternScoreComparator);
   }
 }
