@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -89,6 +90,14 @@ public class CompoundDashboardModel {
   // The representative MS1 scan rendered on the bottom of the isotope mirror plot. Same picking
   // rule as the MS1 background scan, but resolved for the ion that supplies the isotope pattern.
   private final ObjectProperty<@Nullable Scan> isotopeRepresentativeScan = new SimpleObjectProperty<>();
+
+  // Developer-only (see IsotopeDiagnosticsSupport): the isotope finder scoring diagnostics
+  // recomputed on demand for the selected adduct row, or null when disabled / unavailable. Drives
+  // the diagnostics mirror (element labels, plausibility colouring, gate band) and the score panel.
+  private final ObjectProperty<@Nullable DetectionResult> isotopeDiagnostics = new SimpleObjectProperty<>();
+  // Developer-only: when true the diagnostics mirror shows the recomputed averagine envelope model
+  // on the bottom instead of the representative MS1 scan.
+  private final BooleanProperty envelopeOverlayVisible = new SimpleBooleanProperty(false);
 
   // --- derived ---------------------------------------------------------------
   private final ObservableList<RawDataFile> availableRawDataFiles = FXCollections.observableArrayList();
@@ -260,6 +269,30 @@ public class CompoundDashboardModel {
 
   public ObjectProperty<@Nullable Scan> isotopeRepresentativeScanProperty() {
     return isotopeRepresentativeScan;
+  }
+
+  public @Nullable DetectionResult getIsotopeDiagnostics() {
+    return isotopeDiagnostics.get();
+  }
+
+  public void setIsotopeDiagnostics(@Nullable DetectionResult diagnostics) {
+    isotopeDiagnostics.set(diagnostics);
+  }
+
+  public ObjectProperty<@Nullable DetectionResult> isotopeDiagnosticsProperty() {
+    return isotopeDiagnostics;
+  }
+
+  public boolean isEnvelopeOverlayVisible() {
+    return envelopeOverlayVisible.get();
+  }
+
+  public void setEnvelopeOverlayVisible(boolean value) {
+    envelopeOverlayVisible.set(value);
+  }
+
+  public BooleanProperty envelopeOverlayVisibleProperty() {
+    return envelopeOverlayVisible;
   }
 
   public @NotNull ObservableList<CompoundDashboardLegendEntry> getLegendEntries() {

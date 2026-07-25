@@ -48,6 +48,9 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeDiagnostics;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeScore;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotIcon;
@@ -59,6 +62,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -67,10 +71,15 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -330,6 +339,17 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, chargeLabel, prevCharge, chargeCombo,
         nextCharge);
 
+    // developer-only (see IsotopeDiagnosticsSupport): toggle the bottom spectrum between the
+    // representative MS1 and the recomputed averagine envelope model used to score.
+    final boolean diagnosticsEnabled = IsotopeDiagnosticsSupport.isEnabled();
+    if (diagnosticsEnabled) {
+      final CheckBox envelopeToggle = new CheckBox("Averagine model");
+      envelopeToggle.setTooltip(new Tooltip(
+          "Bottom spectrum: show the recomputed averagine envelope model instead of the MS1 scan"));
+      envelopeToggle.selectedProperty().bindBidirectional(model.envelopeOverlayVisibleProperty());
+      toolbar.getChildren().add(envelopeToggle);
+    }
+
     // Stack of three mutually-exclusive layers toggled by visibility: the mirror chart holder, the
     // fallback full-MS1 spectrum chart, and the "no data" message.
     final BorderPane mirrorHolder = new BorderPane();
@@ -343,11 +363,103 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final Runnable rebuild = () -> rebuildIsotopeMirror(mirrorHolder, spectrumView, noDataLabel);
     model.selectedIsotopePatternProperty().subscribe(_ -> rebuild.run());
     model.isotopeRepresentativeScanProperty().subscribe(_ -> rebuild.run());
+    if (diagnosticsEnabled) {
+      model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
+      model.envelopeOverlayVisibleProperty().subscribe(_ -> rebuild.run());
+    }
     rebuild.run();
 
     final BorderPane main = new BorderPane(stack);
     main.setTop(toolbar);
-    return main;
+    if (!diagnosticsEnabled) {
+      return main;
+    }
+    // dev-only diagnostics review pane (per-charge scores + per-peak dump) below the mirror
+    VBox.setVgrow(main, Priority.ALWAYS);
+    return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, main, buildDiagnosticsPane());
+  }
+
+  /**
+   * Developer-only diagnostics review pane: a per-charge {@link ChargeScore} table (why a charge
+   * won) plus a copyable per-peak / gate / composition dump for the selected charge. Collapsed by
+   * default; rebuilds when the recomputed diagnostics or the selected charge change.
+   */
+  private @NotNull TitledPane buildDiagnosticsPane() {
+    final TableView<ChargeScore> scoreTable = buildScoreTable();
+    final Label caption = FxLabels.newLabel("");
+    caption.setWrapText(true);
+    final TextArea dump = new TextArea();
+    dump.setEditable(false);
+    dump.setPrefRowCount(8);
+    dump.setStyle("-fx-font-family: monospace;");
+    final VBox content = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE), false,
+        caption, scoreTable, FxLabels.newBoldLabel("Per-peak / gate detail"), dump);
+    final TitledPane pane = new TitledPane("Isotope finder diagnostics (dev)", content);
+    pane.setExpanded(false);
+
+    final Runnable rebuild = () -> rebuildDiagnosticsPane(scoreTable, caption, dump);
+    model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
+    model.selectedIsotopePatternProperty().subscribe(_ -> rebuild.run());
+    rebuild.run();
+    return pane;
+  }
+
+  private @NotNull TableView<ChargeScore> buildScoreTable() {
+    final TableView<ChargeScore> table = new TableView<>();
+    table.setPrefHeight(140);
+    table.getColumns().add(scoreColumn("z", s -> Integer.toString(s.charge())));
+    table.getColumns().add(scoreColumn("score", s -> fmtScore(s.score())));
+    table.getColumns().add(scoreColumn("raw", s -> fmtScore(s.raw())));
+    table.getColumns().add(scoreColumn("coverage", s -> fmtScore(s.coverage())));
+    table.getColumns().add(scoreColumn("carbonFit", s -> fmtScore(s.carbonFit())));
+    table.getColumns().add(scoreColumn("selfCons", s -> fmtScore(s.selfConsistency())));
+    table.getColumns().add(scoreColumn("spacing", s -> fmtScore(s.spacingConsistency())));
+    table.getColumns().add(scoreColumn("intAgree", s -> fmtScore(s.intensityAgreement())));
+    return table;
+  }
+
+  private static @NotNull TableColumn<ChargeScore, String> scoreColumn(@NotNull final String title,
+      @NotNull final java.util.function.Function<ChargeScore, String> value) {
+    final TableColumn<ChargeScore, String> col = new TableColumn<>(title);
+    col.setCellValueFactory(cd -> new ReadOnlyStringWrapper(value.apply(cd.getValue())));
+    return col;
+  }
+
+  private static @NotNull String fmtScore(final double v) {
+    return Double.isNaN(v) ? "-" : String.format("%.3f", v);
+  }
+
+  private void rebuildDiagnosticsPane(@NotNull final TableView<ChargeScore> scoreTable,
+      @NotNull final Label caption, @NotNull final TextArea dump) {
+    final DetectionResult result = model.getIsotopeDiagnostics();
+    if (result == null || result.diagnostics() == null) {
+      scoreTable.getItems().clear();
+      caption.setText(
+          "No diagnostics — the row was not processed by the isotope finder, or nothing was detected.");
+      dump.clear();
+      return;
+    }
+    scoreTable.getItems().setAll(result.scores());
+    final ChargeDiagnostics diag = IsotopeDiagnosticsSupport.matchDiagnostics(result,
+        model.getSelectedIsotopePattern());
+    final StringBuilder cap = new StringBuilder(
+        "Recomputed on the representative scan (single scan; no FWHM refinement). Best charge z=").append(
+        result.bestCharge()).append('.');
+    final String comp = IsotopeDiagnosticsSupport.formatComposition(diag);
+    if (comp != null) {
+      cap.append(' ').append(comp);
+    }
+    caption.setText(cap.toString());
+    dump.setText(IsotopeDiagnosticsSupport.formatDump(diag));
+    // select the row for the currently shown charge so the table tracks the mirror
+    if (diag != null) {
+      for (final ChargeScore s : scoreTable.getItems()) {
+        if (s.charge() == diag.charge()) {
+          scoreTable.getSelectionModel().select(s);
+          break;
+        }
+      }
+    }
   }
 
   /**
@@ -360,6 +472,23 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
       @NotNull final Region spectrumView, @NotNull final Label noDataLabel) {
     final IsotopePattern pattern = model.getSelectedIsotopePattern();
     final Scan representative = model.getIsotopeRepresentativeScan();
+
+    // developer-only: when diagnostics were recomputed for this row, draw the richer diagnostics
+    // mirror (element labels, plausibility colouring, ghost expected sticks, gate band, envelope
+    // overlay toggle) instead of the plain detected-vs-MS1 mirror.
+    if (IsotopeDiagnosticsSupport.isEnabled() && representative != null) {
+      final ChargeDiagnostics diag = IsotopeDiagnosticsSupport.matchDiagnostics(
+          model.getIsotopeDiagnostics(), pattern);
+      if (diag != null) {
+        final EChartViewer viewer = IsotopeDiagnosticsMirrorChart.create(diag, representative,
+            model.isEnvelopeOverlayVisible());
+        mirrorHolder.setCenter(viewer);
+        setLayerVisible(mirrorHolder, true);
+        setLayerVisible(spectrumView, false);
+        noDataLabel.setVisible(false);
+        return;
+      }
+    }
 
     if (pattern != null && representative != null) {
       final int charge = pattern.getCharge();

@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderDiagnostics;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -44,6 +46,8 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +58,9 @@ import org.jetbrains.annotations.Nullable;
  * the FX thread; the tasks themselves do their work on a background thread.
  */
 public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardModel> {
+
+  private static final Logger logger = Logger.getLogger(
+      CompoundDashboardInteractor.class.getName());
 
   public CompoundDashboardInteractor(@NotNull final CompoundDashboardModel model) {
     super(model);
@@ -219,6 +226,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.getIsotopeChargeStates().clear();
       model.setSelectedIsotopePattern(null);
       model.setIsotopeRepresentativeScan(null);
+      model.setIsotopeDiagnostics(null);
       return;
     }
     final IsotopePattern best = source.getBestIsotopePattern();
@@ -236,8 +244,31 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
         : (patterns.isEmpty() ? null : patterns.getFirst()));
     // Representative scan is always resolved for the selected row so the view can show a plain
     // full MS1 spectrum when no isotope pattern is available.
-    model.setIsotopeRepresentativeScan(
-        pickRepresentativeScan(source, model.getCurrentRawDataFile()));
+    final Scan representative = pickRepresentativeScan(source, model.getCurrentRawDataFile());
+    model.setIsotopeRepresentativeScan(representative);
+    recomputeDiagnostics(source, representative);
+  }
+
+  /**
+   * Developer-only: recompute the isotope finder scoring diagnostics for the selected row on demand
+   * (see {@link IsotopeDiagnosticsSupport}). No-op (clears the model) when the diagnostics UI is
+   * disabled or the prerequisites are missing. Runs synchronously on the FX thread; the single-scan
+   * re-run is cheap for the default signal-based mode.
+   */
+  private void recomputeDiagnostics(@NotNull final FeatureListRow source,
+      @Nullable final Scan representative) {
+    if (!IsotopeDiagnosticsSupport.isEnabled() || representative == null) {
+      model.setIsotopeDiagnostics(null);
+      return;
+    }
+    DetectionResult diagnostics = null;
+    try {
+      diagnostics = IsotopeFinderDiagnostics.recompute(source, representative);
+    } catch (final Exception ex) {
+      logger.log(Level.WARNING,
+          "Failed to recompute isotope finder diagnostics: " + ex.getMessage(), ex);
+    }
+    model.setIsotopeDiagnostics(diagnostics);
   }
 
   /**

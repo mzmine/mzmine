@@ -41,9 +41,13 @@ import org.jetbrains.annotations.Nullable;
  *                   its description.
  * @param detectedComposition auto-detected heavy elements when element detection is enabled, else
  *                            null.
+ * @param diagnostics rich per-charge scoring diagnostics (one per emitted charge, aligned with
+ *                    {@code scores}/{@code patterns} by index), or null when the engine ran without
+ *                    {@code keepDiagnostics}. Not persisted; recomputed on demand for review.
  */
 public record DetectionResult(int bestCharge, @NotNull List<ChargeScore> scores,
                               @NotNull List<IsotopePattern> patterns,
-                              @Nullable DetectedComposition detectedComposition) {
+                              @Nullable DetectedComposition detectedComposition,
+                              @Nullable List<ChargeDiagnostics> diagnostics) {
 
 }

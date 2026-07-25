@@ -48,14 +48,10 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ElementAutoDetector;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.RatioAggregation;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -111,32 +107,9 @@ class IsotopeFinderTask extends AbstractTask {
     isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
 
-    // build the envelope model for the selected mode and the detection engine
-    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
-        IsotopeFinderParameters.mode).getValueWithParameters();
-    final EnvelopeContext ctx = new EnvelopeContext(isotopeElements, isoMzTolerance);
-    final EnvelopeModel model = IsotopeFinderModeOptions.createModel(modeValue, ctx);
-    final boolean requireC13 = parameters.getValue(IsotopeFinderParameters.requireC13);
-    final ElementDetectionMode elementDetectionMode = parameters.getValue(
-        IsotopeFinderParameters.elementDetectionMode);
-    // candidate heavy elements the auto-detector may infer, depending on the selected mode
-    final List<String> autoCandidates = switch (elementDetectionMode) {
-      case USER_DEFINED -> java.util.List.of();
-      case AUTO_DETECT -> ElementAutoDetector.DEFAULT_CANDIDATES;
-      case USER_PLUS_AUTO -> {
-        final java.util.LinkedHashSet<String> set = new java.util.LinkedHashSet<>();
-        for (final Element el : isotopeElements) {
-          final String s = el.getSymbol();
-          if (!"C".equals(s) && !"H".equals(s)) {
-            set.add(s);
-          }
-        }
-        set.addAll(ElementAutoDetector.DEFAULT_CANDIDATES);
-        yield java.util.List.copyOf(set);
-      }
-    };
-    this.engine = new IsotopeFinderEngine(isotopeElements, isotopeMaxCharge, isoMzTolerance, model,
-        modeValue.value().toString(), requireC13, elementDetectionMode, autoCandidates);
+    // build the detection engine (envelope model, charge scoring, element auto-detection) from the
+    // parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
+    this.engine = IsotopeFinderEngineFactory.create(parameters, false);
 
     // FWHM refinement parameters
     this.fwhmRefineEnabled = parameters.getValue(IsotopeFinderParameters.fwhmRefine);
