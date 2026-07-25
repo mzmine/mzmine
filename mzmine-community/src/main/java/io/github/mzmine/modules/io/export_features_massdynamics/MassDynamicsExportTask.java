@@ -33,6 +33,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.compoundlist.MissingCompoundListException;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
@@ -84,7 +87,9 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   private final ImputationFunctions missingValueImputation;
   private final String conditionColumn;
   private final String defaultCondition;
+  private final CompoundRowSelection rowSelection;
   private final List<RawDataFile> rawDataFiles;
+  private @NotNull List<FeatureListRow> exportedRows = List.of();
   private FeaturesDataTable dataTable;
   private @NotNull MetadataTable metadata;
   private @NotNull MetadataColumn<String> sampleNameColumn;
@@ -103,8 +108,10 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
     this.conditionColumn = parameters.getValue(MassDynamicsExportParameters.conditionColumn);
     this.defaultCondition = parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
         MassDynamicsExportParameters.defaultCondition, () -> "");
+    this.rowSelection = parameters.getValue(MassDynamicsExportParameters.compoundRowSelection);
 
     rawDataFiles = featureList.getRawDataFiles();
+    // rows are resolved in process() where a missing compound list is reported as a task error
     totalItems = (long) featureList.getNumberOfRows() * rawDataFiles.size() + 1;
   }
 
@@ -120,6 +127,15 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
       error("Could not create directories for Mass Dynamics export file " + this.baseFileName);
       return;
     }
+
+    try {
+      // resolve compound / major ion / all rows depending on the selected level
+      exportedRows = List.copyOf(featureList.getRowsCopy(rowSelection));
+    } catch (MissingCompoundListException e) {
+      error(e.getMessage(), e);
+      return;
+    }
+    totalItems = (long) exportedRows.size() * rawDataFiles.size() + 1;
 
     metadata = ProjectService.getMetadata();
     sampleNameColumn = metadata.getSampleNameColumn();
@@ -184,7 +200,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
     writer.writeNext(HEADER);
 
     prepareImputedIntensities();
-    for (final FeatureListRow row : featureList.getRows()) {
+    for (final FeatureListRow row : exportedRows) {
       for (final RawDataFile rawDataFile : rawDataFiles) {
         final @NotNull String[] line = createLine(row, rawDataFile);
         if (isCanceled()) {
@@ -261,7 +277,7 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   private void prepareImputedIntensities() {
     final var config = new AbundanceDataTablePreparationConfig(abundanceMeasure,
         missingValueImputation);
-    dataTable = StatisticUtils.extractAbundancesPrepareData(featureList.getRows(),
+    dataTable = StatisticUtils.extractAbundancesPrepareData(exportedRows,
         featureList.getRawDataFiles(), config);
   }
 
@@ -270,6 +286,9 @@ public class MassDynamicsExportTask extends AbstractFeatureListTask {
   }
 
   private static @NotNull String getMetaboliteId(@NotNull final FeatureListRow row) {
+    if (row instanceof CompoundRow crow) {
+      return "compound_" + crow.getCompoundId();
+    }
     return "row_" + row.getID();
   }
 

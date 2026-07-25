@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
+import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
@@ -50,6 +51,7 @@ public class MassDynamicsExportParameters extends SimpleParameterSet {
       "Filename",
       "Base filename for Mass Dynamics files: metabolite TSV file and experiment metadata file. Use '{}' in the file name to insert the feature list name.");
 
+  public static final CompoundFeatureRowSelectionParameter compoundRowSelection = CompoundFeatureRowSelectionParameter.createDefault();
   public static final AbundanceMeasureParameter abundanceMeasure = new AbundanceMeasureParameter(
       "Abundance measure", "Feature abundance written to the MetaboliteIntensity column.",
       AbundanceMeasure.values(), AbundanceMeasure.Area);
@@ -65,7 +67,8 @@ public class MassDynamicsExportParameters extends SimpleParameterSet {
           "Condition value used when the selected metadata column is empty.", ""), false);
 
   public MassDynamicsExportParameters() {
-    super(featureLists, filename, abundanceMeasure, missingValueImputation, conditionColumn,
+    super(featureLists, compoundRowSelection, filename, abundanceMeasure, missingValueImputation,
+        conditionColumn,
         defaultCondition);
   }
 
