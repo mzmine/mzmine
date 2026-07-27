@@ -31,17 +31,24 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.arpls.ArplsBaselineCorrectorParameters;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.scene.layout.Region;
@@ -129,4 +136,37 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
         hyperlinkText("Baek et al.", " https://doi.org/10.1039/c4an01061b"));
   }
 
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+    return List.of(
+        new ModulePreset("arPLS - default (batch)", new BaselineCorrectionModule().getUniqueID(),
+            createDefaultArpls(
+                new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                OriginalFeatureListOption.REMOVE, "bl")),
+        new ModulePreset("arPLS - default (selected in GUI)",
+            new BaselineCorrectionModule().getUniqueID(), createDefaultArpls(
+            new FeatureListsSelection(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS),
+            OriginalFeatureListOption.REMOVE, "bl")));
+  }
+
+  public static ParameterSet create(@NotNull FeatureListsSelection selection,
+      @NotNull OriginalFeatureListOption original, @NotNull String nameSuffix,
+      @NotNull BaselineCorrectors corrector, @NotNull ParameterSet correctorParam) {
+    BaselineCorrectionParameters param = (BaselineCorrectionParameters) new BaselineCorrectionParameters().cloneParameterSet();
+    param.setParameter(BaselineCorrectionParameters.flists, selection);
+    param.setParameter(BaselineCorrectionParameters.handleOriginal, original);
+    param.setParameter(BaselineCorrectionParameters.suffix, nameSuffix);
+    param.setParameter(BaselineCorrectionParameters.correctionAlgorithm, corrector);
+    param.getParameter(BaselineCorrectionParameters.correctionAlgorithm)
+        .setEmbeddedParameters(correctorParam);
+    return param;
+  }
+
+  public static ParameterSet createDefaultArpls(@NotNull FeatureListsSelection selection,
+      @NotNull OriginalFeatureListOption original, @NotNull String nameSuffix) {
+    ArplsBaselineCorrectorParameters arpls = ArplsBaselineCorrectorParameters.create(false,
+        ArplsBaselineCorrectorParameters.DEFAULT_LAMBDA,
+        ArplsBaselineCorrectorParameters.DEFAULT_MAX_ITERATIONS);
+    return create(selection, original, nameSuffix, BaselineCorrectors.ARPLS, arpls);
+  }
 }

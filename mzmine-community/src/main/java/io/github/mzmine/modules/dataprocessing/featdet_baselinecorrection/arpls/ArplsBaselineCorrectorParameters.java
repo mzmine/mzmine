@@ -26,9 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.arpls;
 
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.AbstractBaselineCorrectorParameters;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import java.text.DecimalFormat;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ArplsBaselineCorrectorParameters extends AbstractBaselineCorrectorParameters {
 
@@ -50,5 +54,14 @@ public class ArplsBaselineCorrectorParameters extends AbstractBaselineCorrectorP
 
   public ArplsBaselineCorrectorParameters() {
     super(applyPeakRemoval.cloneParameter(), lambda, maxIterations);
+  }
+
+  public static ArplsBaselineCorrectorParameters create(boolean peakRemoval, double lambda,
+      int maxIterations) {
+    ParameterSet param = new ArplsBaselineCorrectorParameters().cloneParameterSet();
+    param.setParameter(applyPeakRemoval, peakRemoval);
+    param.setParameter(ArplsBaselineCorrectorParameters.lambda, lambda);
+    param.setParameter(ArplsBaselineCorrectorParameters.maxIterations, maxIterations);
+    return (ArplsBaselineCorrectorParameters) param;
   }
 }
