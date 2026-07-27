@@ -58,6 +58,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
 public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotModel> {
@@ -97,15 +98,6 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     return luminance > 0.5 ? Color.BLACK : Color.WHITE;
   }
 
-  private void updateTitle(final Label titleLabel) {
-    final boolean show = model.isShowTitle();
-    final String title = model.getTitle();
-    final boolean hasTitle = title != null && !title.isBlank();
-    titleLabel.setText(hasTitle ? title : "");
-    titleLabel.setVisible(show);
-    titleLabel.setManaged(show);
-  }
-
   @Override
   public Region build() {
     BorderPane pane = new BorderPane();
@@ -122,11 +114,10 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     final Label titleLabel = new Label("-");
     titleLabel.getStyleClass().add("integration-dashboard-plot-title");
     titleLabel.setMaxWidth(Double.MAX_VALUE);
-    titleLabel.setVisible(model.isShowTitle());
-    titleLabel.setManaged(model.isShowTitle());
+    titleLabel.visibleProperty().bind(model.showTitleProperty());
+    titleLabel.textProperty().bind(model.titleProperty());
+    titleLabel.managedProperty().bind(model.showTitleProperty());
     pane.setTop(titleLabel);
-
-    PropertyUtils.onChange(() -> this.updateTitle(titleLabel), model.titleProperty(), model.showTitleProperty());
 
     model.currentTimeSeriesProperty().addListener((_, _, series) -> {
       updateChromatogram(titleLabel, plotView, chromPlot, series);
@@ -151,7 +142,15 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     model.additionalTimeSeriesDatasetsProperty().subscribe(this::updateAdditionalDatasets);
 
     chromPlot.cursorPositionProperty().addListener((_, _, pos) -> {
-      if (pos == null) {
+      if (pos == null || pos.getMouseEvent() == null) {
+        return;
+      }
+
+      // check if click was on this chart - may be used in dashboards with bound cursor positions
+      final var mouseEvent = pos.getMouseEvent();
+      final var canvas = chromPlot.getChart().getCanvas();
+      final var local = canvas.screenToLocal(mouseEvent.getXOnScreen(), mouseEvent.getYOnScreen());
+      if (local == null || !canvas.contains(local.getX(), local.getY())) {
         return;
       }
 
@@ -348,7 +347,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     });
   }
 
-  private void updateChromatogram(Label titleLabel, Region plotView,
+  private void updateChromatogram(@NotNull Label titleLabel, Region plotView,
       ChromatogramPlotController chromPlot, IntensityTimeSeries series) {
     chromPlot.clearDatasets();
 
@@ -364,11 +363,9 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       // Use inline style (highest CSS priority) so the sample color is never overridden by
       // the application stylesheet.
       titleLabel.getStyleClass().clear();
-      titleLabel.getStyleClass().add("integration-dashboard-plot-title");
       titleLabel.setStyle(
           "-fx-background-color: " + toStyleColor(sampleColor) + "; -fx-text-fill: " + toStyleColor(
               sampleNameColor) + ";");
-      updateTitle(titleLabel);
 
       var formats = ConfigService.getGuiFormats();
       chromPlot.setDomainAxisLabel(getSeriesDomainLabel(series));
@@ -390,7 +387,7 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     } else {
       // Clear sample-color background so a stale color from the previous series doesn't persist.
       titleLabel.setStyle(null);
-      updateTitle(titleLabel);
+      titleLabel.getStyleClass().add("integration-dashboard-plot-title");
     }
   }
 }
