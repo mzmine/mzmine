@@ -32,12 +32,30 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto.StructureTanimotoNetworkingModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
-public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupplier {
+public enum SpectralNetworkingOptions implements ModuleOptionsEnum<MZmineModule>, UniqueIdSupplier {
 
-  MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS;
+  // spectral similarities for networking or analog
+  MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS,
+
+  // structural similarity in here to use the same module for any networking
+  STRUCTURE_TANIMOTO;
+
+  public static SpectralNetworkingOptions[] getSpectralSimAlgorithms() {
+    return Arrays.stream(values()).filter(SpectralNetworkingOptions::isSpectralSimilarity)
+        .toArray(SpectralNetworkingOptions[]::new);
+  }
+
+  private boolean isSpectralSimilarity() {
+    return switch (this) {
+      case STRUCTURE_TANIMOTO -> false;
+      case MODIFIED_COSINE, MS2_DEEPSCORE, COSINE_NO_PRECURSOR, DREAMS -> true;
+    };
+  }
 
   @Override
   public String getStableId() {
@@ -46,6 +64,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupp
       case MODIFIED_COSINE -> ModifiedCosineSpectralNetworkingModule.NAME;
       case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.NAME;
       case DREAMS -> DreaMSNetworkingModule.NAME;
+      case STRUCTURE_TANIMOTO -> StructureTanimotoNetworkingModule.NAME;
     };
   }
 
@@ -57,6 +76,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupp
       case MS2_DEEPSCORE -> MS2DeepscoreNetworkingModule.class;
       case COSINE_NO_PRECURSOR -> NoPrecursorCosineSpectralNetworkingModule.class;
       case DREAMS -> DreaMSNetworkingModule.class;
+      case STRUCTURE_TANIMOTO -> StructureTanimotoNetworkingModule.class;
     };
   }
 
@@ -67,6 +87,7 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupp
       case MS2_DEEPSCORE -> MLModelId.MS2_DEEPSCORE_2_0.getUniqueID();
       case COSINE_NO_PRECURSOR -> "cosine_no_precursor";
       case MODIFIED_COSINE -> "modified_cosine";
+      case STRUCTURE_TANIMOTO -> "structure_tanimoto";
     };
   }
 
@@ -76,7 +97,8 @@ public enum SpectralNetworkingOptions implements ModuleOptionsEnum, UniqueIdSupp
       case DREAMS -> "DreaMS";
       case MODIFIED_COSINE -> "Modified cosine";
       case COSINE_NO_PRECURSOR -> "Cosine (no precursor)";
-      default -> "MS2 Deepscore";
+      case STRUCTURE_TANIMOTO -> "Structure similarity (Tanimoto)";
+      case MS2_DEEPSCORE -> "MS2 Deepscore";
     };
   }
 }

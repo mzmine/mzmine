@@ -39,9 +39,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
+import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -60,6 +61,8 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapSnapshot;
+import io.github.mzmine.util.MemoryMapStorageStats;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CsvWriter;
@@ -92,6 +95,8 @@ public class BatchTask extends AbstractTask {
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  // collected in parallel to stepTimes - temp file (MemoryMapStorage) statistics per step
+  private final List<StepStorageMeasurement> stepStorageStats = new ArrayList<>();
   private final boolean runGCafterBatchStep;
   private int processedSteps;
   private @Nullable List<File> subDirectories;
@@ -221,7 +226,7 @@ public class BatchTask extends AbstractTask {
       System.gc();
     }
     stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
-    printBatchTimes();
+    printBatchMeasurements();
   }
 
   private void runBatchQueue() {
@@ -236,10 +241,11 @@ public class BatchTask extends AbstractTask {
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
 
-        // print step times
-        if (!stepTimes.isEmpty()) {
-          printBatchTimes();
+        // print and reset per-dataset step measurements (timing + temp file usage)
+        if (!stepStorageStats.isEmpty()) {
+          printBatchMeasurements();
           stepTimes.clear();
+          stepStorageStats.clear();
         }
 
         // change files
@@ -287,6 +293,7 @@ public class BatchTask extends AbstractTask {
       // run step
       final int stepNumber = i % stepsPerDataset;
       Instant start = Instant.now();
+      final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
 
       // the heavy lifting
       processQueueStep(stepNumber);
@@ -296,9 +303,13 @@ public class BatchTask extends AbstractTask {
       if (runGCafterBatchStep) {
         System.gc();
       }
+      final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       stepTimes.add(
           new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
               duration, runGCafterBatchStep));
+      stepStorageStats.add(
+          new StepStorageMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
+              storageBefore, storageAfter));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
@@ -319,18 +330,46 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void printBatchTimes() {
-    String csv = CsvWriter.writeToString(stepTimes, StepTimeMeasurement.class, '\t', true);
-    logger.info("""
-        Timing: Whole batch took %.3f seconds to finish
-        %s""".formatted(stepTimes.getLast().secondsToFinish(), csv));
+  /**
+   * Logs timing and temp file usage of all collected steps as a single CSV, followed by a TOTAL row
+   * that sums the per-step values (live values are the latest snapshot). Pairs {@link #stepTimes}
+   * and {@link #stepStorageStats} by index; a trailing "WHOLE BATCH" timing entry (if present) is
+   * ignored in favor of the computed TOTAL row.
+   */
+  private void printBatchMeasurements() {
+    final int steps = stepStorageStats.size();
+    if (steps == 0) {
+      return;
+    }
+    final List<StepMeasurement> measurements = new ArrayList<>(steps + 1);
+    for (int i = 0; i < steps; i++) {
+      measurements.add(new StepMeasurement(stepTimes.get(i), stepStorageStats.get(i)));
+    }
 
-//    CsvWriter.writeToFile();
-//    logger.info(csv);
-//    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
-//    logger.info(STR."""
-//    Timing: Whole batch took \{duration} to finish
-//    \{times}""");
+    // TOTAL row: sum per-step values, round to 3 decimals to keep the CSV clean; live values are
+    // the latest snapshot, not a sum
+    final double totalSeconds = round3(
+        stepTimes.stream().limit(steps).mapToDouble(StepTimeMeasurement::secondsToFinish).sum());
+    final long totalFiles = stepStorageStats.stream()
+        .mapToLong(StepStorageMeasurement::filesCreatedInStep).sum();
+    final double totalReservedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::reservedGBInStep).sum());
+    final double totalUsedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::usedGBInStep).sum());
+
+    final StepStorageMeasurement last = stepStorageStats.getLast();
+    measurements.add(new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, "TOTAL", null),
+        new StepStorageMeasurement(0, "TOTAL", totalFiles, totalReservedGB, totalUsedGB,
+            last.liveFiles(), last.liveUsedGB())));
+
+    final String csv = CsvWriter.writeToString(measurements, StepMeasurement.class, '\t', true);
+    logger.info("""
+        Batch step measurements (timing + temp file usage)
+        %s""".formatted(csv));
+  }
+
+  private static double round3(final double value) {
+    return Math.round(value * 1e3) / 1e3;
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,

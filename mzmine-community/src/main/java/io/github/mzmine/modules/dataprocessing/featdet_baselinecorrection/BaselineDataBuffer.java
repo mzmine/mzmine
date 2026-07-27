@@ -35,7 +35,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class BaselineDataBuffer {
@@ -185,9 +184,9 @@ public class BaselineDataBuffer {
     indicesOfInterest.add(0);
 
     if (indices.isEmpty()) {
-      // no need to copy data if none is removed
-      xBufferRemovedPeaks = xBuffer;
-      yBufferRemovedPeaks = yBuffer;
+      // copy full array, don't change pointers. Otherwise the removal writes into the original arrays.
+      System.arraycopy(xBuffer, 0, xBufferRemovedPeaks, 0, numValues);
+      System.arraycopy(yBuffer, 0, yBufferRemovedPeaks, 0, numValues);
 
       // only first and last index
       indicesOfInterest.add(numValues - 1);

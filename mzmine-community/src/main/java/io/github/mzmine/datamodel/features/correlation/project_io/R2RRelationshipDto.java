@@ -29,9 +29,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
+import io.github.mzmine.datamodel.features.correlation.R2RStructureSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction;
+import io.github.mzmine.modules.tools.molecular_similarity.tanimoto.FingerprintType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Sealed JSON DTO for a single row-to-row relationship inside a saved
@@ -49,7 +52,9 @@ import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReacti
     @JsonSubTypes.Type(value = R2RRelationshipDto.Ms2GnpsCosineDto.class, name = "ms2GnpsCos"), //
     @JsonSubTypes.Type(value = R2RRelationshipDto.OnlineReactionMatchDto.class, name = "onlineReaction"),
     //
-    @JsonSubTypes.Type(value = R2RRelationshipDto.SimpleCorrelationDto.class, name = "correlation")
+    @JsonSubTypes.Type(value = R2RRelationshipDto.SimpleCorrelationDto.class, name = "correlation"),
+    //
+    @JsonSubTypes.Type(value = R2RRelationshipDto.StructureSimilarityDto.class, name = "structureSim")
     //
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -60,7 +65,8 @@ sealed interface R2RRelationshipDto permits //
     R2RRelationshipDto.SpectralSimilarityDto, //
     R2RRelationshipDto.Ms2GnpsCosineDto, //
     R2RRelationshipDto.OnlineReactionMatchDto, //
-    R2RRelationshipDto.SimpleCorrelationDto {
+    R2RRelationshipDto.SimpleCorrelationDto, //
+    R2RRelationshipDto.StructureSimilarityDto {
 
   int idA();
 
@@ -133,6 +139,20 @@ sealed interface R2RRelationshipDto permits //
   @JsonIgnoreProperties(ignoreUnknown = true)
   record SpectralSimilarityDto(int idA, int idB, Type type,
                                SpectralSimilarity similarity) implements R2RRelationshipDto {
+
+  }
+
+  /**
+   * DTO for {@link R2RStructureSimilarity}. Stores the fingerprint algorithm and the two InChI
+   * strings that produced the best pairwise Tanimoto score, so the result is fully traceable after
+   * a project round-trip.
+   * <p>
+   * inchi are nullable because creating them may fail for some structures.
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  record StructureSimilarityDto(int idA, int idB, FingerprintType fingerprintType,
+                                @Nullable String inchiA, @Nullable String inchiB,
+                                float similarity) implements R2RRelationshipDto {
 
   }
 }

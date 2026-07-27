@@ -582,14 +582,24 @@ public class FeatureCorrelationUtil {
       final double[] intensities2 = f2[1];
 
       // find array index of max intensity for feature1 sn1
-      final int maxIndexOfA = indexOfMax(intensities1);
+      int maxIndexOfA = indexOfMax(intensities1);
 
       // index offset between f1 and f2 data arrays (not all features are based on the same scans) ~2021 Steffen
       // 2024 ~Steffen: this method is mostly called after DIA.getInterpolatedShape for bot series, so all indices are the same
-      final int maxIndexInB = BinarySearch.binarySearch(f2[0], f1[0][maxIndexOfA],
+      int maxIndexInB = BinarySearch.binarySearch(f2[0], f1[0][maxIndexOfA],
           DefaultTo.MINUS_INSERTION_POINT);
       if (maxIndexInB <= -1) {
-        throw new IllegalStateException("Could not find original x value in interpolated shape.");
+        // 2026 Steffen: This may get triggered if one shape is longer than the other and its
+        // maximum lies outside the bounds of the shorter trace.
+        // in that case, search the other way round and only return null if we also don't find
+        // anything in that direction. The shape may still be correlated around the maximum of the
+        // smaller feature.
+        maxIndexInB = indexOfMax(intensities2);
+        maxIndexOfA = BinarySearch.binarySearch(f1[0], f2[0][maxIndexInB],
+            DefaultTo.MINUS_INSERTION_POINT);
+        if (maxIndexOfA <= -1) {
+          return null;
+        }
       }
 
       // save max and min of intensity of val1(x)
