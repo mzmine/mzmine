@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Row-level correlation of one MS feature row to one aligned other-detector row
- * ({@link OtherFeatureListRow}). It carries the individual per-file {@link MsOtherCorrelationResult}s
+ * ({@link OtherFeatureListRow}). It carries the individual per-file {@link CorrelatedOtherFeature}s
  * (one per raw file where the trace correlated). This is the element type of the row-level
  * "correlated traces" column; the per-file result is used at the feature level.
  * <p>
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public record MsOtherCorrelationRowResult(int otherRowId, @NotNull OtherFeatureListRow otherRow,
                                           @Nullable Float bestCorrelation,
-                                          @NotNull List<MsOtherCorrelationResult> perFileResults) {
+                                          @NotNull List<CorrelatedOtherFeature> perFileResults) {
 
   @Override
   public String toString() {

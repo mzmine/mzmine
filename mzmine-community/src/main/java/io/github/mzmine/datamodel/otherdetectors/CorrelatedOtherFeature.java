@@ -26,7 +26,6 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +43,9 @@ import org.jetbrains.annotations.Nullable;
  * @param type         whether the correlation was calculated, set manually, or only aligned
  * @param correlation  the per-file Pearson score, or null when unavailable
  */
-public record MsOtherCorrelationResult(@NotNull OtherFeature otherFeature,
-                                       @NotNull MsOtherCorrelationType type,
-                                       @Nullable Float correlation) {
+public record CorrelatedOtherFeature(@NotNull OtherFeature otherFeature,
+                                     @NotNull MsOtherCorrelationType type,
+                                     @Nullable Float correlation) {
 
   @Override
   public String toString() {

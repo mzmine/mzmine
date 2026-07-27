@@ -44,7 +44,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.CorrelatedOtherFeatureType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import io.github.mzmine.datamodel.otherdetectors.CorrelatedOtherFeature;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -401,7 +401,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             case FEATURE_MZMAX -> nullToEmpty(feature.getRawDataPointsMZRange().upperEndpoint());
             case FEATURE_UV_AREA -> {
               // the preferred correlated other-detector trace for this file (derived from the maps)
-              final MsOtherCorrelationResult corr = feature.get(CorrelatedOtherFeatureType.class);
+              final CorrelatedOtherFeature corr = feature.get(CorrelatedOtherFeatureType.class);
               yield corr == null ? "" : nullToEmpty(corr.otherFeature().get(AreaType.class));
             }
           };

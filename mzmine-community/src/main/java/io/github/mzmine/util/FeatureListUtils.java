@@ -815,29 +815,35 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies the aligned other-detector features and the MS-to-other correlations
-   * ({@link ModularFeatureList#getMsOtherCorrelationMaps()}) from {@code source} to {@code target}.
+   * Copies the aligned other-detector features and their MS-to-other correlations
+   * ({@link OtherFeatureList#getMsOtherCorrelationMaps()}) from {@code source} to {@code target}.
    * <p>
-   * The correlation maps are keyed by MS row ID, so this is only valid when {@code target} preserves
-   * the source row IDs — callers must not use it after renumbering. The aligned
-   * {@link OtherFeatureList} is <b>shared</b> (not deep-copied): it is independent of the MS rows and
-   * its other-row IDs + UUID stay valid. No-op if the source has no alignment or {@code source ==
-   * target}. Only correlations for rows present in {@code target} are copied (so it works for filtered
-   * copies).
+   * The correlations are keyed by MS row ID, so this is only valid when {@code target} preserves the
+   * source row IDs — callers must not use it after renumbering. A <b>new</b> {@link OtherFeatureList}
+   * is built that shares the source's (immutable) row objects but gets its <b>own</b> correlation maps
+   * — so editing the copy's correlations does not mutate the source. No-op if the source has no
+   * alignment or {@code source == target}. Only correlations for rows present in {@code target} are
+   * copied (so it works for filtered copies).
    */
   public static void copyMsOtherCorrelations(@NotNull final ModularFeatureList source,
       @NotNull final ModularFeatureList target) {
     if (source == target) {
       return;
     }
-    final OtherFeatureList ofl = source.getAlignedOtherFeatures();
-    if (ofl == null) {
+    final OtherFeatureList srcOfl = source.getAlignedOtherFeatures();
+    if (srcOfl == null) {
       return;
     }
-    // share the aligned other-feature list; also clears the target maps and stamps the UUID
-    target.setAlignedOtherFeatures(ofl);
-    final MsOtherCorrelationMaps srcMaps = source.getMsOtherCorrelationMaps();
-    final MsOtherCorrelationMaps dstMaps = target.getMsOtherCorrelationMaps();
+    final OtherFeatureList copyOfl = new OtherFeatureList(srcOfl.getName(),
+        srcOfl.getMemoryMapStorage(), srcOfl.getRawDataFiles());
+    srcOfl.getRows().forEach(copyOfl::addRow); // share the immutable row objects
+    // carry over both schemas (row types incl. any beyond the default binding-registered ones)
+    copyOfl.addRowType(srcOfl.getRowTypes().toArray(new DataType[0]));
+    copyOfl.addFeatureType(srcOfl.getFeatureTypes().toArray(new DataType[0]));
+    target.setAlignedOtherFeatures(copyOfl);
+
+    final MsOtherCorrelationMaps srcMaps = srcOfl.getMsOtherCorrelationMaps();
+    final MsOtherCorrelationMaps dstMaps = copyOfl.getMsOtherCorrelationMaps();
     for (final FeatureListRow row : target.getRows()) {
       final List<OtherCorrelationLink> links = srcMaps.getCorrelations(row.getID());
       if (!links.isEmpty()) {

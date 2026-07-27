@@ -27,7 +27,7 @@ package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
+import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationRowResultType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationRowResult;
 import java.util.List;
@@ -43,7 +43,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 /**
- * ComboBox cell factory for the main column of {@link MsOtherCorrelationResultType}: lets the user
+ * ComboBox cell factory for the main column of {@link MsOtherCorrelationRowResultType}: lets the user
  * pick which correlated other-detector trace is preferred for an MS row. Selecting a trace moves it to
  * the front of the row's correlation list in the maps (first = preferred), which drives the derived
  * feature-level {@link io.github.mzmine.datamodel.features.types.otherdectectors.CorrelatedOtherFeatureType}
@@ -79,7 +79,7 @@ public class CorrelatedTraceEditComboCellFactory implements
           return;
         }
         final List<MsOtherCorrelationRowResult> correlated = row.get(
-            MsOtherCorrelationResultType.class);
+            MsOtherCorrelationRowResultType.class);
         if (correlated == null || correlated.isEmpty()) {
           return;
         }
@@ -97,11 +97,12 @@ public class CorrelatedTraceEditComboCellFactory implements
         super.commitEdit(newValue);
         if (newValue instanceof MsOtherCorrelationRowResult selected) {
           final ModularFeatureListRow row = getTableRow().getItem();
-          if (row.getFeatureList() instanceof ModularFeatureList flist) {
+          if (row.getFeatureList() instanceof ModularFeatureList flist
+              && flist.getAlignedOtherFeatures() != null) {
             logger.finest(() -> "Setting preferred correlated trace for row id %d to other-row %d"
                 .formatted(row.getID(), selected.otherRowId()));
             // move the picked trace to the front of the row's correlation list (first = preferred)
-            flist.getMsOtherCorrelationMaps()
+            flist.getAlignedOtherFeatures().getMsOtherCorrelationMaps()
                 .setPreferredCorrelation(row.getID(), selected.otherRowId());
             getTreeTableView().refresh();
           }

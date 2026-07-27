@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Builds resolved {@link MsOtherCorrelationResult} views on demand from the ID-only
+ * Builds resolved {@link CorrelatedOtherFeature} views on demand from the ID-only
  * {@link MsOtherCorrelationMaps} and the attached {@link OtherFeatureList}. Central place used by the
  * derived "correlated traces" columns and by consumers that need the correlated {@link OtherFeature}.
  */
@@ -45,7 +45,7 @@ public final class MsOtherCorrelationResolver {
 
   /**
    * Resolves a single {@link OtherCorrelationLink} to a row-level result: the aligned other-row, the
-   * individual per-file {@link MsOtherCorrelationResult}s, and the best per-file score. Shared by the
+   * individual per-file {@link CorrelatedOtherFeature}s, and the best per-file score. Shared by the
    * row- and feature-level resolvers.
    *
    * @return the resolved row result, or null if the linked other-row no longer exists
@@ -57,14 +57,14 @@ public final class MsOtherCorrelationResolver {
     if (otherRow == null) {
       return null;
     }
-    final List<MsOtherCorrelationResult> perFileResults = new ArrayList<>(link.perFile().size());
+    final List<CorrelatedOtherFeature> perFileResults = new ArrayList<>(link.perFile().size());
     for (final var entry : link.perFile().entrySet()) {
       final OtherFeature feature = otherRow.getFeature(entry.getKey());
       if (feature == null) {
         continue;
       }
       final PerFileCorrelation pfc = entry.getValue();
-      perFileResults.add(new MsOtherCorrelationResult(feature, pfc.origin(), pfc.pearson()));
+      perFileResults.add(new CorrelatedOtherFeature(feature, pfc.origin(), pfc.pearson()));
     }
     return new MsOtherCorrelationRowResult(link.otherRowId(), otherRow, bestCorrelation(link),
         perFileResults);
@@ -74,7 +74,7 @@ public final class MsOtherCorrelationResolver {
    * Row-level view: one {@link MsOtherCorrelationRowResult} per correlated aligned other-row, in the
    * stored order (the first entry is the preferred trace). Order is set by the correlation task
    * (highest score first) and can be changed by the user via the feature-table combo. Each row result
-   * carries the individual per-file {@link MsOtherCorrelationResult}s and the best per-file score.
+   * carries the individual per-file {@link CorrelatedOtherFeature}s and the best per-file score.
    */
   @NotNull
   public static List<MsOtherCorrelationRowResult> resolveRowCorrelations(
@@ -83,7 +83,7 @@ public final class MsOtherCorrelationResolver {
     if (ofl == null) {
       return List.of();
     }
-    final List<OtherCorrelationLink> links = flist.getMsOtherCorrelationMaps()
+    final List<OtherCorrelationLink> links = ofl.getMsOtherCorrelationMaps()
         .getCorrelations(msRow.getID());
     final List<MsOtherCorrelationRowResult> out = new ArrayList<>(links.size());
     for (final OtherCorrelationLink link : links) {
@@ -107,14 +107,14 @@ public final class MsOtherCorrelationResolver {
    * no aligned peak in this file at all.
    */
   @Nullable
-  public static MsOtherCorrelationResult resolvePreferredCorrelation(
+  public static CorrelatedOtherFeature resolvePreferredCorrelation(
       final @NotNull ModularFeatureList flist, final @NotNull FeatureListRow msRow,
       final @NotNull RawDataFile file) {
     final OtherFeatureList ofl = flist.getAlignedOtherFeatures();
     if (ofl == null) {
       return null;
     }
-    final List<OtherCorrelationLink> links = flist.getMsOtherCorrelationMaps()
+    final List<OtherCorrelationLink> links = ofl.getMsOtherCorrelationMaps()
         .getCorrelations(msRow.getID());
     if (links.isEmpty()) {
       return null;
@@ -124,7 +124,7 @@ public final class MsOtherCorrelationResolver {
       return null;
     }
     // per-file correlated result for this file, if the preferred trace correlated here
-    for (final MsOtherCorrelationResult result : preferred.perFileResults()) {
+    for (final CorrelatedOtherFeature result : preferred.perFileResults()) {
       if (result.otherFeature().getRawDataFile().equals(file)) {
         return result;
       }
@@ -132,7 +132,7 @@ public final class MsOtherCorrelationResolver {
     // aligned into this file but not correlated here - derived ALIGNED status, not stored
     final OtherFeature feature = preferred.otherRow().getFeature(file);
     return feature == null ? null
-        : new MsOtherCorrelationResult(feature, MsOtherCorrelationType.ALIGNED, null);
+        : new CorrelatedOtherFeature(feature, MsOtherCorrelationType.ALIGNED, null);
   }
 
   /**

@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
@@ -67,11 +66,11 @@ public class OtherFeatureList {
   private final List<RawDataFile> rawDataFiles;
 
   /**
-   * Generation stamp of this alignment. Correlation links in {@link MsOtherCorrelationMaps} record
-   * the UUID they were computed against so that re-running the alignment (which mints a new UUID)
-   * makes stale links detectable instead of silently redirecting them to different rows.
+   * MS-feature-to-other-detector correlations for this alignment. Owned by the aligned list so that
+   * they cannot outlive or reference a different alignment: re-running the alignment produces a new
+   * {@link OtherFeatureList} with its own (empty) maps.
    */
-  private final @NotNull UUID uuid;
+  private final MsOtherCorrelationMaps msOtherCorrelationMaps = new MsOtherCorrelationMaps();
 
   private final ObservableList<OtherFeatureListRow> rows = FXCollections.observableArrayList();
   private final ObservableList<OtherFeatureListRow> rowsUnmodifiableView = FXCollections.unmodifiableObservableList(
@@ -86,8 +85,6 @@ public class OtherFeatureList {
   // list row bindings.
   private final List<OtherRowBinding> rowBindings = new ArrayList<>();
 
-  private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks = FXCollections.observableArrayList();
-
   private final AtomicInteger rowIdCounter = new AtomicInteger(0);
 
   private @NotNull String name;
@@ -95,15 +92,6 @@ public class OtherFeatureList {
 
   public OtherFeatureList(final @NotNull String name, final @Nullable MemoryMapStorage storage,
       final @NotNull List<RawDataFile> rawDataFiles) {
-    this(name, storage, rawDataFiles, UUID.randomUUID());
-  }
-
-  /**
-   * Constructor used when loading a persisted alignment, to restore its original {@link #getUuid()}
-   * so existing correlation links stay valid.
-   */
-  public OtherFeatureList(final @NotNull String name, final @Nullable MemoryMapStorage storage,
-      final @NotNull List<RawDataFile> rawDataFiles, final @NotNull UUID uuid) {
     this.name = name;
     this.memoryMapStorage = storage;
     // sort data files by name for stable order in export and GUI, matching ModularFeatureList
@@ -111,14 +99,16 @@ public class OtherFeatureList {
     sorted.sort(Comparator.comparing(RawDataFile::getName));
     this.rawDataFiles = Collections.unmodifiableList(sorted);
     this.dateCreated = DATE_FORMAT.format(new Date());
-    this.uuid = uuid;
     // default row bindings (average RT, RT range); each registers its produced row type
     OtherRowBinding.createDefault().forEach(this::addRowBinding);
   }
 
+  /**
+   * @return the MS-feature-to-other-detector correlations for this alignment (keyed by MS row ID).
+   */
   @NotNull
-  public UUID getUuid() {
-    return uuid;
+  public MsOtherCorrelationMaps getMsOtherCorrelationMaps() {
+    return msOtherCorrelationMaps;
   }
 
   @NotNull
@@ -229,15 +219,6 @@ public class OtherFeatureList {
 
   public boolean hasFeatureType(final @NotNull Class<? extends DataType> type) {
     return featureTypes.stream().anyMatch(type::isInstance);
-  }
-
-  @NotNull
-  public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
-    return descriptionOfAppliedTasks;
-  }
-
-  public void addDescriptionOfAppliedTask(final @NotNull FeatureListAppliedMethod appliedMethod) {
-    descriptionOfAppliedTasks.add(appliedMethod);
   }
 
   @NotNull

@@ -45,7 +45,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.CorrelatedOtherFeatureType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.RawTraceType;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import io.github.mzmine.datamodel.otherdetectors.CorrelatedOtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
@@ -594,7 +594,7 @@ public class ReportUtils {
     }
 
     // the preferred correlated other-detector trace for the best MS feature's file
-    final MsOtherCorrelationResult correlation = bestFeature.get(CorrelatedOtherFeatureType.class);
+    final CorrelatedOtherFeature correlation = bestFeature.get(CorrelatedOtherFeatureType.class);
     if (correlation == null) {
       uvMsOverlay.removeAllDatasets();
       return false;

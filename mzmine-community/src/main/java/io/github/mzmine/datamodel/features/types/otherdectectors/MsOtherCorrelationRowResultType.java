@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
  * The per-file values of the currently selected trace are shown by the separate feature-level
  * {@link CorrelatedOtherFeatureType}.
  */
-public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrelationRowResult>
+public class MsOtherCorrelationRowResultType extends ListWithSubsType<MsOtherCorrelationRowResult>
     implements MappingType<List<MsOtherCorrelationRowResult>> {
 
   @Override
@@ -105,7 +105,7 @@ public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrel
 
   @Override
   public @NotNull List<DataType> getSubDataTypes() {
-    return List.of(new MsOtherCorrelationResultType(), new ChromatogramTypeType(),
+    return List.of(new MsOtherCorrelationRowResultType(), new ChromatogramTypeType(),
         new WavelengthType());
   }
 
@@ -126,7 +126,7 @@ public class MsOtherCorrelationResultType extends ListWithSubsType<MsOtherCorrel
         mainCol.setCellFactory(new CorrelatedTraceEditComboCellFactory());
         mainCol.setCellValueFactory(cdf -> {
           final List<MsOtherCorrelationRowResult> list = cdf.getValue().getValue()
-              .get(MsOtherCorrelationResultType.class);
+              .get(MsOtherCorrelationRowResultType.class);
           // resolveRowCorrelations orders the selected trace first
           return new ReadOnlyObjectWrapper<>(
               list == null || list.isEmpty() ? null : list.getFirst());

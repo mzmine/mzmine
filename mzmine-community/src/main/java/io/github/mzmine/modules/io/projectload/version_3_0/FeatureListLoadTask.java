@@ -74,7 +74,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.UUID;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -297,14 +296,12 @@ public class FeatureListLoadTask extends AbstractTask {
 
   private void parseAlignedOtherFeatures(XMLStreamReader reader, MZmineProject project,
       MemoryMapStorage storage, ModularFeatureList flist) throws XMLStreamException {
-    final String uuidStr = reader.getAttributeValue(null, CONST.XML_OTHER_UUID_ATTR);
-    final UUID uuid = uuidStr != null ? UUID.fromString(uuidStr) : UUID.randomUUID();
     final String name = reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR);
     final String date = reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR);
 
     final OtherFeatureList ofl = new OtherFeatureList(
         name != null ? name : flist.getName() + " other features", storage,
-        flist.getRawDataFiles(), uuid);
+        flist.getRawDataFiles());
     if (date != null) {
       ofl.setDateCreated(date);
     }
@@ -336,7 +333,7 @@ public class FeatureListLoadTask extends AbstractTask {
     }
     ofl.addFeatureType(presentTypes.toArray(DataType[]::new));
 
-    // setter clears the correlation maps and re-stamps the UUID; must run before loading the maps
+    // attach the list; its (empty) correlation maps are populated next from the maps element
     flist.setAlignedOtherFeatures(ofl);
   }
 
@@ -421,11 +418,11 @@ public class FeatureListLoadTask extends AbstractTask {
 
   private void parseMsOtherCorrelationMaps(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist) throws XMLStreamException {
-    final MsOtherCorrelationMaps maps = flist.getMsOtherCorrelationMaps();
-    final String uuidStr = reader.getAttributeValue(null, CONST.XML_OTHER_UUID_ATTR);
-    if (uuidStr != null) {
-      maps.setAlignmentUuid(UUID.fromString(uuidStr));
+    final OtherFeatureList ofl = flist.getAlignedOtherFeatures();
+    if (ofl == null) {
+      return; // aligned list must have been parsed first
     }
+    final MsOtherCorrelationMaps maps = ofl.getMsOtherCorrelationMaps();
 
     while (reader.hasNext()) {
       final int t = reader.next();

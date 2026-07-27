@@ -29,6 +29,7 @@ import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -174,10 +175,10 @@ public class FeatureListSaveTask extends AbstractTask {
    */
   private boolean saveOtherDetectorData() {
     final OtherFeatureList ofl = flist.getAlignedOtherFeatures();
-    final MsOtherCorrelationMaps corrMaps = flist.getMsOtherCorrelationMaps();
-    if (ofl == null && corrMaps.isEmpty()) {
-      return true; // nothing to persist
+    if (ofl == null) {
+      return true; // no alignment -> no other-detector data (correlations live on the aligned list)
     }
+    final MsOtherCorrelationMaps corrMaps = ofl.getMsOtherCorrelationMaps();
 
     final File tempFile;
     try {
@@ -228,7 +229,6 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeAlignedOtherFeatures(XMLStreamWriter writer, OtherFeatureList ofl)
       throws XMLStreamException {
     writer.writeStartElement(CONST.XML_ALIGNED_OTHER_FEATURES_ELEMENT);
-    writer.writeAttribute(CONST.XML_OTHER_UUID_ATTR, ofl.getUuid().toString());
     writer.writeAttribute(CONST.XML_FLIST_NAME_ATTR, ofl.getName());
     writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, ofl.getDateCreated());
 
@@ -252,9 +252,7 @@ public class FeatureListSaveTask extends AbstractTask {
    * serialization (its content is never read); a throwaway row is created if the list has none.
    */
   private ModularFeatureListRow placeholderRow() {
-    final List<FeatureListRow> rows = flist.getRows();
-    return rows.isEmpty() ? new ModularFeatureListRow(flist, -1)
-        : (ModularFeatureListRow) rows.getFirst();
+    return new ModularFeatureListRow(FeatureList.createDummy(), -1);
   }
 
   private void writeOtherFeature(XMLStreamWriter writer, OtherFeature feature,
@@ -280,9 +278,6 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeMsOtherCorrelationMaps(XMLStreamWriter writer, MsOtherCorrelationMaps maps)
       throws XMLStreamException {
     writer.writeStartElement(CONST.XML_MS_OTHER_CORRELATION_MAPS_ELEMENT);
-    if (maps.getAlignmentUuid() != null) {
-      writer.writeAttribute(CONST.XML_OTHER_UUID_ATTR, maps.getAlignmentUuid().toString());
-    }
     for (final Entry<Integer, List<OtherCorrelationLink>> msEntry : maps.getAllCorrelations()
         .entrySet()) {
       writer.writeStartElement(CONST.XML_MS_OTHER_CORRELATION_ELEMENT);

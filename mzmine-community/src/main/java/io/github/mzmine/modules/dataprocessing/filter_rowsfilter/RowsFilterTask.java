@@ -458,8 +458,8 @@ public class RowsFilterTask extends AbstractTask {
     // stale and are cleared.
     if (featureList instanceof ModularFeatureList srcMfl) {
       if (processInCurrentList) {
-        if (renumber) {
-          srcMfl.getMsOtherCorrelationMaps().clearAll();
+        if (renumber && srcMfl.getAlignedOtherFeatures() != null) {
+          srcMfl.getAlignedOtherFeatures().getMsOtherCorrelationMaps().clearAll();
         }
         // else: maps stay valid for the surviving (in-place) rows
       } else if (!renumber) {
@@ -664,11 +664,12 @@ public class RowsFilterTask extends AbstractTask {
       }
     }
 
-    // filter by correlated traces (now stored in the ID-only correlation maps on the feature list)
+    // filter by correlated traces (stored in the ID-only maps on the aligned other-feature list)
     if (onlyWithOtherCorrelated) {
       final boolean foundCorrelation =
-          row.getFeatureList() instanceof ModularFeatureList mfl && !mfl.getMsOtherCorrelationMaps()
-              .getCorrelations(row.getID()).isEmpty();
+          row.getFeatureList() instanceof ModularFeatureList mfl
+              && mfl.getAlignedOtherFeatures() != null && !mfl.getAlignedOtherFeatures()
+              .getMsOtherCorrelationMaps().getCorrelations(row.getID()).isEmpty();
       if (!foundCorrelation) {
         return true;
       }

@@ -38,7 +38,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResolver;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
+import io.github.mzmine.datamodel.otherdetectors.CorrelatedOtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
@@ -57,10 +57,10 @@ import org.jetbrains.annotations.Nullable;
  * {@link ModularFeatureList#getMsOtherCorrelationMaps()}. Sub-columns expose the correlation type,
  * chromatogram type, area, height and area%.
  *
- * @see MsOtherCorrelationResultType the row-level list column where the preferred trace is chosen
+ * @see MsOtherCorrelationRowResultType the row-level list column where the preferred trace is chosen
  */
-public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<MsOtherCorrelationResult>
-    implements MappingType<MsOtherCorrelationResult> {
+public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<CorrelatedOtherFeature>
+    implements MappingType<CorrelatedOtherFeature> {
 
   @Override
   public @NotNull String getUniqueID() {
@@ -73,13 +73,13 @@ public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<MsOtherCorr
   }
 
   @Override
-  public Property<MsOtherCorrelationResult> createProperty() {
+  public Property<CorrelatedOtherFeature> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<MsOtherCorrelationResult> getValueClass() {
-    return MsOtherCorrelationResult.class;
+  public Class<CorrelatedOtherFeature> getValueClass() {
+    return CorrelatedOtherFeature.class;
   }
 
   @Override
@@ -89,7 +89,7 @@ public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<MsOtherCorr
   }
 
   @Override
-  public @Nullable MsOtherCorrelationResult getValue(@NotNull final ModularDataModel model) {
+  public @Nullable CorrelatedOtherFeature getValue(@NotNull final ModularDataModel model) {
     // resolve the preferred correlated trace for this feature's file; never call model.get(this)
     if (model instanceof ModularFeature feature
         && feature.getFeatureList() instanceof ModularFeatureList flist) {
@@ -105,7 +105,7 @@ public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<MsOtherCorr
 
   @Override
   public @Nullable Object getSubColValue(final DataType sub, final Object value) {
-    if (!(value instanceof MsOtherCorrelationResult result)) {
+    if (!(value instanceof CorrelatedOtherFeature result)) {
       return null;
     }
     if (this.equals(sub)) {
@@ -114,11 +114,8 @@ public class CorrelatedOtherFeatureType extends SimpleSubColumnsType<MsOtherCorr
     final OtherFeature of = result.otherFeature();
     return switch (sub) {
       case MsOtherCorrelationTypeType t -> result.type();
-      case AreaType a -> of.get(a);
-      case HeightType h -> of.get(h);
       case ChromatogramTypeType c -> of.getChromatogramType();
-      case AreaPercentType a -> of.get(a);
-      default -> null;
+      default -> of.get(sub);
     };
   }
 

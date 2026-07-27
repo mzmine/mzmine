@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationMaps;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -132,15 +131,10 @@ public class ModularFeatureList implements FeatureList {
 
   /**
    * Aligned other-detector (UV/DAD, CAD, …) features, produced by the other-detector alignment step
-   * and stored as a sub-object of this MS feature list. May be null if no such alignment was run.
+   * and stored as a sub-object of this MS feature list. May be null if no such alignment was run. The
+   * MS-to-other correlations live on this object ({@link OtherFeatureList#getMsOtherCorrelationMaps()}).
    */
   private @Nullable OtherFeatureList alignedOtherFeatures;
-
-  /**
-   * MS-feature-to-other-detector correlations, keyed by ID only. Source of truth for the "correlated
-   * traces" columns.
-   */
-  private final MsOtherCorrelationMaps msOtherCorrelationMaps = new MsOtherCorrelationMaps();
 
   @NotNull
   private String nameProperty = "";
@@ -904,21 +898,11 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * Attaches an aligned other-detector list. Re-alignment invalidates existing correlations, so the
-   * {@link #getMsOtherCorrelationMaps()} are cleared and re-stamped with the new alignment UUID.
+   * Attaches an aligned other-detector list (which carries its own MS-to-other correlations). A new
+   * alignment therefore replaces the previous correlations wholesale.
    */
   public void setAlignedOtherFeatures(@Nullable final OtherFeatureList alignedOtherFeatures) {
     this.alignedOtherFeatures = alignedOtherFeatures;
-    // re-alignment (or detaching) makes prior correlation links stale - clear them
-    msOtherCorrelationMaps.clearAll();
-    if (alignedOtherFeatures != null) {
-      msOtherCorrelationMaps.setAlignmentUuid(alignedOtherFeatures.getUuid());
-    }
-  }
-
-  @NotNull
-  public MsOtherCorrelationMaps getMsOtherCorrelationMaps() {
-    return msOtherCorrelationMaps;
   }
 
   @Override

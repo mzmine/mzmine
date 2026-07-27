@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,41 +35,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds the MS-feature-to-other-detector correlations for one {@link
- * io.github.mzmine.datamodel.features.ModularFeatureList}, keyed by ID only (no embedded {@link
- * OtherFeature}s). This is the single source of truth for the "correlated traces" columns, replacing
- * the former per-feature embedded storage. It is analogous to
- * {@code io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps} but links across two
- * containers: the MS feature list and the attached aligned {@link OtherFeatureList}.
+ * Holds the MS-feature-to-other-detector correlations for one {@link OtherFeatureList}, keyed by ID
+ * only (no embedded {@link OtherFeature}s). This is the single source of truth for the "correlated
+ * traces" columns, replacing the former per-feature embedded storage. It is owned by the aligned
+ * {@link OtherFeatureList}, so its other-row IDs always belong to that alignment.
  * <p>
  * Correlations are recorded at row level (MS row -> list of correlated other-rows) with per-file
- * truth ({@link OtherCorrelationLink#perFile()}). The {@link #getAlignmentUuid()} records which
- * {@link OtherFeatureList#getUuid()} the stored other-row IDs belong to; a mismatch means the
- * alignment was replaced and these links are stale.
+ * truth ({@link OtherCorrelationLink#perFile()}).
  */
 public class MsOtherCorrelationMaps {
 
-  private final Map<Integer, List<OtherCorrelationLink>> byMsRow = new ConcurrentHashMap<>();
-  // reverse index: other-row ID -> set of MS row IDs that correlate to it
-  private final Map<Integer, Set<Integer>> otherRowToMsRows = new ConcurrentHashMap<>();
-
-  private @Nullable java.util.UUID alignmentUuid;
-
   /**
-   * @return the {@link OtherFeatureList#getUuid()} these links were computed against, or null if no
-   * correlations are stored.
+   * MS row id -> correlations
    */
-  @Nullable
-  public java.util.UUID getAlignmentUuid() {
-    return alignmentUuid;
-  }
-
-  public void setAlignmentUuid(@Nullable final java.util.UUID alignmentUuid) {
-    this.alignmentUuid = alignmentUuid;
-  }
+  private final Map<Integer, List<OtherCorrelationLink>> byMsRow = new ConcurrentHashMap<>();
+  /// reverse index: other-row ID -> set of MS row IDs that correlate to it
+  private final Map<Integer, Set<Integer>> otherRowToMsRows = new ConcurrentHashMap<>();
 
   /**
    * @return the correlated other-rows for the given MS row (empty if none). The returned list is an
@@ -84,7 +68,7 @@ public class MsOtherCorrelationMaps {
    */
   @NotNull
   public Map<Integer, List<OtherCorrelationLink>> getAllCorrelations() {
-    return java.util.Collections.unmodifiableMap(byMsRow);
+    return Collections.unmodifiableMap(byMsRow);
   }
 
   /**
@@ -193,13 +177,11 @@ public class MsOtherCorrelationMaps {
   }
 
   /**
-   * Removes all correlations. Called when the attached alignment is replaced (re-alignment
-   * invalidates all correlations).
+   * Removes all correlations (e.g. before recomputing them).
    */
   public void clearAll() {
     byMsRow.clear();
     otherRowToMsRows.clear();
-    alignmentUuid = null;
   }
 
   public boolean isEmpty() {
