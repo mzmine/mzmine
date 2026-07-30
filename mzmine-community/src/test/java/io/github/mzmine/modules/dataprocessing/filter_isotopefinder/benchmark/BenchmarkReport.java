@@ -25,18 +25,24 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Renders benchmark {@link MetricRow}s to a committed CSV baseline and to an aligned console
- * table.
+ * Renders benchmark {@link MetricRow}s to a committed CSV baseline and to an aligned console table,
+ * and reads a committed baseline back so a regression test can diff against it.
  * <p>
  * Values are written with a fixed decimal format under {@link Locale#ROOT} so the baseline is
  * stable across locales and produces small diffs. Timing ({@link MetricRow#medianDetectMs()}) is
@@ -45,10 +51,17 @@ import org.jetbrains.annotations.NotNull;
 public final class BenchmarkReport {
 
   /**
-   * Default classpath-relative location of the committed baseline CSV.
+   * Default repository-root-relative location of the committed baseline CSV, used when
+   * {@code IsotopeBenchmarkMain} is run without an explicit output path. Prefer
+   * {@link #BASELINE_RESOURCE} when only reading - it does not depend on the working directory.
    */
   public static final Path DEFAULT_BASELINE = Path.of("mzmine-community", "src", "test",
       "resources", "isotopefinder", "baseline", "metrics_baseline.csv");
+
+  /**
+   * Classpath location of the committed baseline CSV (working-directory independent).
+   */
+  public static final String BASELINE_RESOURCE = "isotopefinder/baseline/metrics_baseline.csv";
 
   private static final String[] HEADER = {"axis", "nCases", "chargeTop1", "chargeRecallAlt",
       "chargeStartInvariance", "patternPrecision", "patternRecall", "patternF1", "borderlineRecall",
@@ -91,6 +104,84 @@ public final class BenchmarkReport {
     } catch (final IOException e) {
       throw new UncheckedIOException("Failed to write baseline CSV: " + path, e);
     }
+  }
+
+  /**
+   * Read the committed baseline from the test classpath ({@link #BASELINE_RESOURCE}).
+   *
+   * @return the baseline rows in file order ({@code ALL} last).
+   */
+  @NotNull
+  public static List<MetricRow> readBaseline() {
+    final InputStream in = BenchmarkReport.class.getClassLoader()
+        .getResourceAsStream(BASELINE_RESOURCE);
+    if (in == null) {
+      throw new IllegalStateException("Baseline CSV not found on classpath: " + BASELINE_RESOURCE);
+    }
+    try (final BufferedReader reader = new BufferedReader(
+        new InputStreamReader(in, StandardCharsets.UTF_8))) {
+      return parseCsv(reader);
+    } catch (final IOException e) {
+      throw new UncheckedIOException("Failed to read baseline CSV: " + BASELINE_RESOURCE, e);
+    }
+  }
+
+  /**
+   * Read a baseline CSV written by {@link #writeCsv(List, Path)} from a filesystem path.
+   */
+  @NotNull
+  public static List<MetricRow> readCsv(@NotNull final Path path) {
+    try (final BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+      return parseCsv(reader);
+    } catch (final IOException e) {
+      throw new UncheckedIOException("Failed to read baseline CSV: " + path, e);
+    }
+  }
+
+  /**
+   * Index rows by their axis label, preserving file order.
+   */
+  @NotNull
+  public static Map<String, MetricRow> byAxis(@NotNull final List<MetricRow> rows) {
+    final Map<String, MetricRow> map = new LinkedHashMap<>();
+    for (final MetricRow r : rows) {
+      map.put(r.axis(), r);
+    }
+    return map;
+  }
+
+  @NotNull
+  private static List<MetricRow> parseCsv(@NotNull final BufferedReader reader) throws IOException {
+    final List<MetricRow> rows = new ArrayList<>();
+    String line = reader.readLine(); // header
+    if (line == null) {
+      throw new IllegalStateException("Baseline CSV is empty");
+    }
+    while ((line = reader.readLine()) != null) {
+      if (line.isBlank()) {
+        continue;
+      }
+      final String[] parts = line.split(",", -1);
+      if (parts.length != HEADER.length) {
+        throw new IllegalStateException(
+            "Baseline CSV row has " + parts.length + " columns, expected " + HEADER.length + ": "
+                + line);
+      }
+      rows.add(new MetricRow(parts[0], Integer.parseInt(parts[1].trim()), val(parts[2]),
+          val(parts[3]), val(parts[4]), val(parts[5]), val(parts[6]), val(parts[7]), val(parts[8]),
+          val(parts[9]), val(parts[10]), val(parts[11]), val(parts[12]), val(parts[13]),
+          val(parts[14])));
+    }
+    return rows;
+  }
+
+  /**
+   * Parse one CSV cell written by {@link #num(double)} / {@link #time(double)}; {@code "NaN"} maps
+   * back to {@link Double#NaN}.
+   */
+  private static double val(@NotNull final String cell) {
+    final String trimmed = cell.trim();
+    return "NaN".equals(trimmed) ? Double.NaN : Double.parseDouble(trimmed);
   }
 
   /**

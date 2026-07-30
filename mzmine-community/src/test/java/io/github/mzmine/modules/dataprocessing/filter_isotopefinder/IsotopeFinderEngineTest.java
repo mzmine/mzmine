@@ -302,6 +302,27 @@ class IsotopeFinderEngineTest {
   }
 
   @Test
+  void keepsChargeTwoWhenWeakIntermediatePeaksAreBelowTheIntensityCutoff() {
+    // a genuine z=2 pattern measured on an instrument with an intensity cutoff: the weak predicted
+    // intermediate peaks are simply not in the data. Their absence must NOT be read as evidence
+    // against z=2 - it is undetectable either way. Every charge error on the benchmark's cutoff axis
+    // used to be exactly this (2->1 / 3->1 under-calling).
+    final List<Element> elements = List.of(new Element("C"), new Element("H"));
+    final double mono = 800.0;
+    final double half = C13 / 2d;
+    // z=2 ladder whose tail has been truncated by a ~5 % cutoff: only the strong head survives
+    final SimpleMassSpectrum cut = spec(
+        new double[]{mono, mono + half, mono + 2 * half, mono + 3 * half},
+        new double[]{100d, 88d, 45d, 16d});
+
+    final DetectionResult result = engine(elements, 2).detect(cut, mono, 100d,
+        PolarityType.POSITIVE);
+    assertNotNull(result);
+    assertEquals(2, result.bestCharge(),
+        "a truncated but self-consistent z=2 ladder must not be down-called to z=1");
+  }
+
+  @Test
   void doesNotPromoteChargeTwoWhenHalfSpacingPeaksAbsent() {
     // a clean charge-1 pattern must not be read as charge 2 (no half-spacing peaks present)
     final List<Element> elements = List.of(new Element("C"), new Element("H"));
@@ -409,6 +430,68 @@ class IsotopeFinderEngineTest {
     }
     assertTrue(hasM2, "M+2 resolved in >= 2 scans should be recovered");
     assertTrue(!hasTransient, "transient peak present in < minScans should be dropped");
+  }
+
+  @Test
+  void crossScanRefinerKeepsFineStructureAtTheSameNominalOffset() {
+    // 13C2 and 34S sit at the SAME nominal offset (+2) but are resolved ~11 mDa apart. The engine
+    // deliberately keeps both, so refinement must not collapse them to a single point.
+    final double mono = 500.0;
+    final double c13x2 = mono + 2 * C13;
+    final double s34 = mono + 1.99579; // 34S - 32S
+    final IsotopePattern detected = new SimpleIsotopePattern(
+        new DataPoint[]{new SimpleDataPoint(mono, 100d), new SimpleDataPoint(s34, 8d),
+            new SimpleDataPoint(c13x2, 5d)}, 1, IsotopePatternStatus.DETECTED, "test");
+
+    final List<MassSpectrum> scans = List.of(
+        spec(new double[]{mono, s34, c13x2}, new double[]{100d, 8d, 5d}),
+        spec(new double[]{mono, s34, c13x2}, new double[]{100d, 8d, 5d}),
+        spec(new double[]{mono, s34, c13x2}, new double[]{100d, 8d, 5d}));
+
+    final IsotopePattern refined = CrossScanRefiner.refine(detected, scans, TOL,
+        RatioAggregation.MEDIAN, 2);
+
+    boolean hasC13x2 = false;
+    boolean hasS34 = false;
+    for (int i = 0; i < refined.getNumberOfDataPoints(); i++) {
+      final double mz = refined.getMzValue(i);
+      if (Math.abs(mz - c13x2) < 0.002) {
+        hasC13x2 = true;
+      }
+      if (Math.abs(mz - s34) < 0.002) {
+        hasS34 = true;
+      }
+    }
+    assertTrue(hasS34 && hasC13x2,
+        "both fine-structure signals at nominal offset +2 must survive refinement");
+  }
+
+  @Test
+  void crossScanRefinerRecoversMonoisotopicBelowTheDetectedPattern() {
+    // the monoisotopic was missing from the single detection scan; it is resolved in the others, so
+    // probing downward must recover it (an upward-only probe never could)
+    final double mono = 500.0;
+    final double m1 = mono + C13;
+    final double m2 = mono + 2 * C13;
+    final IsotopePattern detected = new SimpleIsotopePattern(
+        new DataPoint[]{new SimpleDataPoint(m1, 100d), new SimpleDataPoint(m2, 40d)}, 1,
+        IsotopePatternStatus.DETECTED, "test");
+
+    final List<MassSpectrum> scans = List.of(
+        spec(new double[]{mono, m1, m2}, new double[]{80d, 100d, 40d}),
+        spec(new double[]{mono, m1, m2}, new double[]{80d, 100d, 40d}),
+        spec(new double[]{mono, m1, m2}, new double[]{80d, 100d, 40d}));
+
+    final IsotopePattern refined = CrossScanRefiner.refine(detected, scans, TOL,
+        RatioAggregation.MEDIAN, 2);
+
+    boolean hasMono = false;
+    for (int i = 0; i < refined.getNumberOfDataPoints(); i++) {
+      if (Math.abs(refined.getMzValue(i) - mono) < 0.002) {
+        hasMono = true;
+      }
+    }
+    assertTrue(hasMono, "a monoisotopic resolved in >= minScans below the pattern must be recovered");
   }
 
   @Test
@@ -1175,7 +1258,7 @@ class IsotopeFinderEngineTest {
   }
 
   @Test
-  void multiChargePatternSortedByScoreBestFirst() {
+  void multiChargePatternPreservesEngineRanking() {
     // [M+H]+ and [2M+2H]2+ overlap at the same monoisotopic m/z -> both charges flagged
     final List<Element> elements = List.of(new Element("C"), new Element("H"));
     final SimpleMassSpectrum monomer = ladder(500.0, 1, 40, 5);
@@ -1187,12 +1270,38 @@ class IsotopeFinderEngineTest {
     final IsotopePattern assembled = IsotopeFinderEngine.assemble(r.patterns());
     assertTrue(assembled instanceof MultiChargeStateIsotopePattern);
     final List<IsotopePattern> ordered = ((MultiChargeStateIsotopePattern) assembled).getPatterns();
-    for (int i = 1; i < ordered.size(); i++) {
-      assertTrue(ordered.get(i - 1).getScore() >= ordered.get(i).getScore(),
-          "assembled patterns must be ordered by score, best first");
+
+    // the assembled pattern must keep the engine's selection order, so the preferred pattern is the
+    // winning charge. Re-sorting by the stored score alone could disagree with bestCharge, which is
+    // what the feature is tagged with.
+    assertEquals(r.bestCharge(), assembled.getCharge(),
+        "the preferred pattern must carry the selected charge");
+    for (int i = 0; i < ordered.size(); i++) {
+      assertEquals(r.scores().get(i).charge(), ordered.get(i).getCharge(),
+          "assembled pattern " + i + " must keep the engine's charge ranking");
     }
     assertEquals(assembled.getScore(), ordered.get(0).getScore(), 1e-9,
         "the multi pattern exposes the best (preferred) pattern score");
+  }
+
+  @Test
+  void patternScoreComparatorRanksScoredPatternsFirst() {
+    // the comparator is the fallback for patterns assembled without a known ranking (e.g. loaded
+    // from XML or predicted); scored patterns outrank unscored ones, then higher score wins
+    final IsotopePattern low = new SimpleIsotopePattern(new double[]{500d, 501d},
+        new double[]{100d, 10d}, 1, 0.2, IsotopePatternStatus.DETECTED, "low");
+    final IsotopePattern high = new SimpleIsotopePattern(new double[]{500d, 501d},
+        new double[]{100d, 10d}, 2, 0.8, IsotopePatternStatus.DETECTED, "high");
+    final IsotopePattern unscored = new SimpleIsotopePattern(new double[]{500d, 501d, 502d},
+        new double[]{100d, 10d, 1d}, 3, IsotopePatternStatus.PREDICTED, "unscored");
+
+    final MultiChargeStateIsotopePattern multi = new MultiChargeStateIsotopePattern(
+        List.of(unscored, low, high));
+    final List<IsotopePattern> ordered = multi.getPatterns();
+    assertEquals("high", ordered.get(0).getDescription(), "highest score must sort first");
+    assertEquals("low", ordered.get(1).getDescription());
+    assertEquals("unscored", ordered.get(2).getDescription(),
+        "an unscored pattern must sort after every scored one, even if it has more data points");
   }
 
   @Test

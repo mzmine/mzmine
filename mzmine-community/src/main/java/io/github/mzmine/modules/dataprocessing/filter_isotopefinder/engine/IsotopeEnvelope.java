@@ -39,6 +39,10 @@ import org.jetbrains.annotations.NotNull;
  * in the signal-based model, or taken as the maximum across all candidate formulas in the
  * formula-prediction model). The upper bound drives inclusion/termination: an observed signal that
  * exceeds it is implausible for this charge hypothesis.
+ * <p>
+ * <b>The arrays are exposed directly and must never be mutated by callers.</b> An envelope is built
+ * once per (m/z, charge) hypothesis and shared by every scoring step; a caller that needs to keep a
+ * snapshot (e.g. the diagnostics) must clone.
  */
 public record IsotopeEnvelope(@NotNull double[] expected, @NotNull double[] upperBound,
                               double spacingDa, int charge) {
@@ -47,11 +51,11 @@ public record IsotopeEnvelope(@NotNull double[] expected, @NotNull double[] uppe
     return expected.length - 1;
   }
 
-  public double expectedAt(int offset) {
+  public double expectedAt(final int offset) {
     return offset >= 0 && offset < expected.length ? expected[offset] : 0d;
   }
 
-  public double upperBoundAt(int offset) {
+  public double upperBoundAt(final int offset) {
     return offset >= 0 && offset < upperBound.length ? upperBound[offset] : 0d;
   }
 

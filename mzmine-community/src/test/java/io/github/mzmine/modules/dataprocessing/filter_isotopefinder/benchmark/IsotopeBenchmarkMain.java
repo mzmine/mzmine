@@ -25,14 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark;
 
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -67,33 +60,10 @@ public final class IsotopeBenchmarkMain {
             ? " with requireC13=true." : "."));
 
     // JIT warmup: run the whole corpus once untimed so the timed pass reflects steady-state cost
-    for (final GroundTruthCase c : cases) {
-      buildEngine(c, requireC13).detect(c.spectrum(), c.seedMz(), c.seedHeight(), c.polarity());
-    }
+    BenchmarkRunner.warmUp(cases, requireC13);
 
-    final List<CaseMetrics> metrics = new ArrayList<>(cases.size());
     final ChargeConfusionMatrix confusion = new ChargeConfusionMatrix();
-    for (final GroundTruthCase c : cases) {
-      final IsotopeFinderEngine engine = buildEngine(c, requireC13);
-      final long t0 = System.nanoTime();
-      final DetectionResult result = engine.detect(c.spectrum(), c.seedMz(), c.seedHeight(),
-          c.polarity());
-      final double ms = (System.nanoTime() - t0) / 1_000_000d;
-
-      // start-signal invariance: re-run the finder seeded from each start signal (mono / base / top
-      // true peak) and record the winning charge from each, so the position-agnostic property is
-      // measured across the whole corpus rather than only from the base peak.
-      final List<double[]> seeds = IsotopeMetrics.startSeeds(c);
-      final int[] seedCharges = new int[seeds.size()];
-      for (int i = 0; i < seeds.size(); i++) {
-        final DetectionResult r = engine.detect(c.spectrum(), seeds.get(i)[0], seeds.get(i)[1],
-            c.polarity());
-        seedCharges[i] = r == null ? 0 : r.bestCharge();
-      }
-
-      metrics.add(IsotopeMetrics.computeCase(c, result, seedCharges, ms));
-      confusion.add(c.trueCharge(), result == null ? 0 : result.bestCharge());
-    }
+    final List<CaseMetrics> metrics = BenchmarkRunner.run(cases, requireC13, confusion);
 
     final List<MetricRow> rows = IsotopeMetrics.aggregateByAxis(metrics);
     BenchmarkReport.writeCsv(rows, out);
@@ -104,21 +74,5 @@ public final class IsotopeBenchmarkMain {
     LOGGER.info(String.format(Locale.ROOT,
         "Charge error rates: harmonic=%.4f (z read as 2z or z/2), neighbour=%.4f (z read as z+-1)",
         confusion.harmonicRate(), confusion.neighbourRate()));
-  }
-
-  /**
-   * Build a fresh engine for one case in signal / carbon-averagine mode, exactly as
-   * {@code IsotopeFinderEngineTest} does (standalone, no MZmineCore).
-   *
-   * @param requireC13 whether to enable the require-13C gate (and its gap-truncation).
-   */
-  @NotNull
-  private static IsotopeFinderEngine buildEngine(@NotNull final GroundTruthCase c,
-      final boolean requireC13) {
-    final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
-        CarbonAveragineEnvelopeParameters.createDefault(),
-        new EnvelopeContext(c.elements(), c.tol()));
-    return new IsotopeFinderEngine(c.elements(), c.maxCharge(), c.tol(), model, "benchmark",
-        requireC13);
   }
 }

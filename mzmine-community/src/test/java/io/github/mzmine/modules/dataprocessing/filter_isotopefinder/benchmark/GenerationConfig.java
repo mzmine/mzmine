@@ -68,6 +68,19 @@ public final class GenerationConfig {
    */
   public static final String UNIT_RESOLUTION_AXIS = "unit_resolution";
 
+  /**
+   * Axis label for the co-elution cases ({@link InterferenceMode#REALISTIC}).
+   */
+  public static final String REALISTIC_INTERFERENCE_AXIS = "interference_real";
+
+  /**
+   * Axis label marking a RETIRED sweep slot. The slot is deliberately kept in {@link #sweep()} so
+   * the variant indices of all later variants - and therefore the ids, seeds and degradations of
+   * every case they generate - stay stable; the generator simply emits nothing for it. Never delete
+   * a retired slot and never reuse one for a new variant; append instead.
+   */
+  public static final String RETIRED_AXIS = "__retired__";
+
   // Carbon sizes for the CHNO drug-like grid. Grid = these x N x O; sized to help hit the target.
   private static final int[] CHNO_CARBONS = {14, 20, 26, 32, 40, 48, 56, 64};
   private static final int[] CHNO_NITROGEN = {0, 2, 5, 8};
@@ -94,12 +107,28 @@ public final class GenerationConfig {
    * @param cutoffFraction  intensity cutoff as a fraction of the base peak
    * @param nNoise          number of random noise peaks to add
    * @param noiseMaxRel     max noise intensity as a fraction of the base peak
-   * @param interference    whether to add a co-eluting decoy interferent
+   * @param interference    which kind of co-eluting decoy interferent to add
    */
   public record SweepVariant(String axisHint, @NotNull String resolutionLabel, double mergeWidth,
                              double cutoffFraction, int nNoise, double noiseMaxRel,
-                             boolean interference) {
+                             @NotNull InterferenceMode interference) {
 
+    /**
+     * A retired sweep slot: generates no cases but holds its index so later variants keep theirs.
+     * See {@link GenerationConfig#RETIRED_AXIS}.
+     */
+    @NotNull
+    public static SweepVariant retired() {
+      return new SweepVariant(RETIRED_AXIS, RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 0, 0.0,
+          InterferenceMode.NONE);
+    }
+
+    /**
+     * @return whether this slot is retired and must not produce any case.
+     */
+    public boolean isRetired() {
+      return RETIRED_AXIS.equals(axisHint);
+    }
   }
 
   /**
@@ -408,24 +437,40 @@ public final class GenerationConfig {
    * The per-formula sweep. Pruned from the full cross product to keep the corpus to a few hundred
    * lines while still covering both resolutions and a couple of cutoff / noise / interference
    * variants for every (moleculeClass x charge).
+   * <p>
+   * <b>Order is part of the corpus contract.</b> Each variant's index goes into the case id, which
+   * seeds every degradation, so inserting or reordering variants changes cases that already exist
+   * and invalidates the committed baselines. Only ever APPEND.
    */
   @NotNull
   public static List<SweepVariant> sweep() {
     return List.of(
         // baseline: clean, high resolution -> structural axis (charge / polyhalogen / protein_highz / clean)
-        new SweepVariant(null, RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 0, 0.0, false),
+        new SweepVariant(null, RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 0, 0.0, InterferenceMode.NONE),
         // merged fine structure
-        new SweepVariant("resolution_merged", MERGED, MERGED_MERGE_WIDTH, 0.0, 0, 0.0, false),
+        new SweepVariant("resolution_merged", MERGED, MERGED_MERGE_WIDTH, 0.0, 0, 0.0,
+            InterferenceMode.NONE),
         // intensity cutoff removes the weak tail (and the low mono of humps)
-        new SweepVariant("cutoff", RESOLVED, RESOLVED_MERGE_WIDTH, 0.05, 0, 0.0, false),
+        new SweepVariant("cutoff", RESOLVED, RESOLVED_MERGE_WIDTH, 0.05, 0, 0.0,
+            InterferenceMode.NONE),
         // low random noise
-        new SweepVariant("noise", RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 3, 0.02, false),
+        new SweepVariant("noise", RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 3, 0.02,
+            InterferenceMode.NONE),
         // high random noise
-        new SweepVariant("noise", RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 8, 0.05, false),
-        // co-eluting interferent
-        new SweepVariant("interference", RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 0, 0.0, true),
-        // combined stressors: small cutoff + noise + interference
-        new SweepVariant("combined", RESOLVED, RESOLVED_MERGE_WIDTH, 0.01, 3, 0.02, true));
+        new SweepVariant("noise", RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 8, 0.05,
+            InterferenceMode.NONE),
+        // RETIRED (was "interference"): an adversarial worst-case harmonic decoy - the target's own
+        // envelope shifted by exactly half the isotope spacing. It measured the theoretical maximum
+        // of harmonic confusion rather than anything a real spectrum contains, so its ~0.55 charge
+        // accuracy was routinely misread as a real-world failure rate. Superseded by the realistic
+        // co-elution axis below. Slot kept to preserve later variant indices.
+        SweepVariant.retired(),
+        // RETIRED (was "combined"): cutoff + noise stacked on the same adversarial decoy, so it
+        // inherited the same problem. Slot kept to preserve later variant indices.
+        SweepVariant.retired(),
+        // realistic co-elution (different compound, non-harmonic offset, scaled intensity)
+        new SweepVariant(REALISTIC_INTERFERENCE_AXIS, RESOLVED, RESOLVED_MERGE_WIDTH, 0.0, 0, 0.0,
+            InterferenceMode.REALISTIC));
   }
 
   /**

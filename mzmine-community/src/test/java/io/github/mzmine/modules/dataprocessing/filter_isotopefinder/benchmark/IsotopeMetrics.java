@@ -35,11 +35,14 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Detec
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ElementAutoDetector;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -386,7 +389,7 @@ public final class IsotopeMetrics {
   // ---- aggregation helpers -------------------------------------------------
 
   private static double meanBool(@NotNull final List<CaseMetrics> cases,
-      @NotNull final java.util.function.Predicate<CaseMetrics> flag) {
+      @NotNull final Predicate<CaseMetrics> flag) {
     if (cases.isEmpty()) {
       return Double.NaN;
     }
@@ -400,7 +403,7 @@ public final class IsotopeMetrics {
   }
 
   private static double meanNullable(@NotNull final List<CaseMetrics> cases,
-      @NotNull final java.util.function.Function<CaseMetrics, Double> extractor) {
+      @NotNull final Function<CaseMetrics, Double> extractor) {
     double sum = 0d;
     int count = 0;
     for (final CaseMetrics m : cases) {
@@ -452,7 +455,7 @@ public final class IsotopeMetrics {
     for (int i = 0; i < cases.size(); i++) {
       times[i] = cases.get(i).detectMs();
     }
-    java.util.Arrays.sort(times);
+    Arrays.sort(times);
     final int mid = times.length / 2;
     return times.length % 2 == 1 ? times[mid] : (times[mid - 1] + times[mid]) / 2d;
   }

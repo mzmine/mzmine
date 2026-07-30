@@ -848,11 +848,16 @@ var copyTestResources = tasks.register("copyTestResources", Copy) {
 }
 processTestResources.dependsOn(copyTestResources)
 
-// Generates the isotope finder benchmark pattern corpus (JSONL) from the synthetic pattern generator.
+// Regenerates the isotope finder benchmark pattern corpus (JSONL) from the synthetic pattern generator.
 // The --enable-preview jvmArg is added by the tasks.withType(JavaExec) block above.
+// decision: the corpus (~15 MB) is COMMITTED, not generated at build time. The CDK isotopologue
+// enumeration for the catalog's proteins is expensive, and committing the snapshot pins the exact
+// inputs the accuracy baselines were measured on, so a baseline diff always reflects an engine change
+// rather than a corpus change. Run this ONLY when the catalog/sweep/degradations change - and then
+// regenerate the baselines (isotopeBenchmark) and commit corpus + baselines together.
 tasks.register("generateBenchmarkCorpus", JavaExec) {
     group = "benchmark"
-    description = "Generates the isotope finder benchmark pattern corpus (src/test/resources/isotopefinder/corpus/patterns.jsonl)."
+    description = "Regenerates the COMMITTED isotope finder benchmark corpus (src/test/resources/isotopefinder/corpus/patterns.jsonl). Slow; only needed when the catalog or sweep changes."
     classpath = sourceSets.test.runtimeClasspath
     mainClass = "io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.BenchmarkPatternGenerator"
     args = [layout.projectDirectory.file("src/test/resources/isotopefinder/corpus/patterns.jsonl").asFile.absolutePath]

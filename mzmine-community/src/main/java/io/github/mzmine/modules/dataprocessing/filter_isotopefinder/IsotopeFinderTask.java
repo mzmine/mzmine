@@ -94,6 +94,8 @@ class IsotopeFinderTask extends AbstractTask {
   private final int minScansPresent;
 
   private int processedRows, totalRows;
+  // guard against log spam: the charge/pattern disagreement below is a bug signal, one line is enough
+  private boolean chargeMismatchLogged = false;
 
   IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -209,6 +211,16 @@ class IsotopeFinderTask extends AbstractTask {
         }
 
         final IsotopePattern assembled = IsotopeFinderEngine.assemble(patterns);
+        // the feature charge and the preferred pattern's charge must agree - downstream consumers
+        // (formula prediction, CCS) read one or the other. Log instead of throwing so a single odd
+        // feature cannot abort the whole run.
+        if (assembled.getCharge() != result.bestCharge() && !chargeMismatchLogged) {
+          chargeMismatchLogged = true;
+          logger.warning(String.format(
+              "Isotope finder: preferred pattern charge %d disagrees with the selected charge %d "
+                  + "(feature m/z %.4f). Further occurrences are not logged.", assembled.getCharge(),
+              result.bestCharge(), mz));
+        }
         feature.setIsotopePattern(assembled);
         feature.setCharge(result.bestCharge());
 

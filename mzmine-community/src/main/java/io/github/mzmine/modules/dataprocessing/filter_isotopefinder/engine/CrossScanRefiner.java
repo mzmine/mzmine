@@ -39,10 +39,11 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Refines a detected isotope pattern across multiple scans (e.g. within the feature FWHM) instead
@@ -55,8 +56,13 @@ public final class CrossScanRefiner {
 
   private static final DataPointSorter MZ_SORTER = new DataPointSorter(SortingProperty.MZ,
       SortingDirection.Ascending);
-  // how many offsets beyond the detected range to probe for signals resolved only in other scans
+  // how many offsets beyond the detected range to probe (in BOTH directions) for signals resolved
+  // only in other scans
   private static final int EXTRA_RECOVERY_OFFSETS = 4;
+  // a recovered (previously absent) signal must also reach this fraction of the base peak, so
+  // persistent low-level background at the probed m/z is not added just because it recurs. The
+  // detected signals themselves are never subject to this - refinement must not drop real peaks.
+  private static final double MIN_RECOVERED_REL_INTENSITY = 0.001;
 
   private CrossScanRefiner() {
   }
@@ -96,63 +102,51 @@ public final class CrossScanRefiner {
       return detected;
     }
 
-    // map detected offsets to their m/z
-    final Map<Integer, Double> detectedMz = new HashMap<>();
+    final List<DataPoint> refined = new ArrayList<>();
+    // decision: refine every detected signal at its OWN m/z rather than one signal per nominal
+    // offset. Keying by offset collapsed isotopic fine structure (e.g. 13C2 vs 34S, which the engine
+    // deliberately keeps resolved) down to a single point, so enabling refinement REDUCED pattern
+    // completeness on high-resolution data.
+    final Set<Integer> occupied = new HashSet<>();
     int maxOffset = 0;
     for (int i = 0; i < n; i++) {
-      final int offset = (int) Math.round((detected.getMzValue(i) - minMz) / spacing);
-      detectedMz.put(offset, detected.getMzValue(i));
+      final double mz = detected.getMzValue(i);
+      final int offset = (int) Math.round((mz - minMz) / spacing);
+      occupied.add(offset);
       maxOffset = Math.max(maxOffset, offset);
+
+      final ScanAggregate agg = aggregateAcrossScans(mz, baseMz, scans, tol, aggregation);
+      if (agg == null) {
+        // no scan contained the base peak -> keep the detection-scan values unchanged
+        refined.add(new SimpleDataPoint(mz, detected.getIntensityValue(i)));
+        continue;
+      }
+      final double intensity = agg.ratio() * baseIntensity;
+      refined.add(intensity > 0d ? new SimpleDataPoint(agg.mz(), intensity)
+          : new SimpleDataPoint(mz, detected.getIntensityValue(i)));
     }
 
-    final List<DataPoint> refined = new ArrayList<>();
-    // probe a few offsets beyond the detected range to recover signals resolved only in other scans
-    for (int offset = 0; offset <= maxOffset + EXTRA_RECOVERY_OFFSETS; offset++) {
-      final boolean inDetected = detectedMz.containsKey(offset);
-      final double targetMz = inDetected ? detectedMz.get(offset) : minMz + offset * spacing;
-
-      final List<Double> ratios = new ArrayList<>();
-      int presentCount = 0;
-      double weightedMzSum = 0d;
-      double weightSum = 0d;
-      for (final MassSpectrum scan : scans) {
-        final double baseInScan = closestIntensity(scan, baseMz, tol);
-        if (baseInScan <= 0) {
-          continue; // this scan does not contain the base peak -> skip
-        }
-        final double offsetInScan = closestIntensity(scan, targetMz, tol);
-        ratios.add(offsetInScan / baseInScan);
-        if (offsetInScan > 0) {
-          presentCount++;
-          final double foundMz = closestMz(scan, targetMz, tol);
-          if (!Double.isNaN(foundMz)) {
-            weightedMzSum += foundMz * offsetInScan;
-            weightSum += offsetInScan;
-          }
-        }
-      }
-
-      if (ratios.isEmpty()) {
-        // no scan had the base peak -> keep the detection-scan value if present
-        if (inDetected) {
-          refined.add(
-              new SimpleDataPoint(targetMz, intensityForOffset(detected, offset, spacing, minMz)));
-        }
+    // probe unoccupied offsets on BOTH sides to recover signals resolved only in other scans.
+    // decision: downward too - the monoisotopic can be missing from the single detection scan, and
+    // an upward-only probe could never recover it.
+    for (int offset = -EXTRA_RECOVERY_OFFSETS; offset <= maxOffset + EXTRA_RECOVERY_OFFSETS;
+        offset++) {
+      if (occupied.contains(offset)) {
         continue;
       }
-
-      // keep existing offsets; only add new offsets that recur across enough scans
-      if (!inDetected && presentCount < minScansPresent) {
+      final double targetMz = minMz + offset * spacing;
+      if (targetMz <= 0d) {
         continue;
       }
-
-      final double aggRatio = aggregate(ratios, aggregation);
-      final double refinedIntensity = aggRatio * baseIntensity;
-      if (refinedIntensity <= 0) {
+      final ScanAggregate agg = aggregateAcrossScans(targetMz, baseMz, scans, tol, aggregation);
+      if (agg == null || agg.presentCount() < minScansPresent) {
         continue;
       }
-      final double refinedMz = weightSum > 0 ? weightedMzSum / weightSum : targetMz;
-      refined.add(new SimpleDataPoint(refinedMz, refinedIntensity));
+      final double intensity = agg.ratio() * baseIntensity;
+      if (intensity <= 0d || intensity < MIN_RECOVERED_REL_INTENSITY * baseIntensity) {
+        continue;
+      }
+      refined.add(new SimpleDataPoint(agg.mz(), intensity));
     }
 
     if (refined.isEmpty()) {
@@ -164,18 +158,49 @@ public final class CrossScanRefiner {
         IsotopePatternStatus.DETECTED, detected.getDescription());
   }
 
-  private static double intensityForOffset(final IsotopePattern pattern, final int offset,
-      final double spacing, final double minMz) {
-    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
-      if ((int) Math.round((pattern.getMzValue(i) - minMz) / spacing) == offset) {
-        return pattern.getIntensityValue(i);
+  /**
+   * Aggregate the {@code targetMz / baseMz} intensity ratio of one signal across all scans that
+   * contain the base peak.
+   *
+   * @param targetMz    the m/z to measure.
+   * @param baseMz      the m/z of the pattern's base peak (the ratio denominator).
+   * @param scans       the scans to aggregate over.
+   * @param tol         m/z tolerance for matching signals across scans.
+   * @param aggregation how to aggregate the per-scan ratios.
+   * @return the aggregate, or {@code null} when no scan contained the base peak.
+   */
+  private static @Nullable ScanAggregate aggregateAcrossScans(final double targetMz,
+      final double baseMz, @NotNull final List<? extends MassSpectrum> scans,
+      @NotNull final MZTolerance tol, @NotNull final RatioAggregation aggregation) {
+    final List<Double> ratios = new ArrayList<>();
+    int presentCount = 0;
+    double weightedMzSum = 0d;
+    double weightSum = 0d;
+    for (final MassSpectrum scan : scans) {
+      final double baseInScan = closestIntensity(scan, baseMz, tol);
+      if (baseInScan <= 0) {
+        continue; // this scan does not contain the base peak -> skip
+      }
+      final double inScan = closestIntensity(scan, targetMz, tol);
+      ratios.add(inScan / baseInScan);
+      if (inScan > 0) {
+        presentCount++;
+        final double foundMz = closestMz(scan, targetMz, tol);
+        if (!Double.isNaN(foundMz)) {
+          weightedMzSum += foundMz * inScan;
+          weightSum += inScan;
+        }
       }
     }
-    return 0d;
+    if (ratios.isEmpty()) {
+      return null;
+    }
+    return new ScanAggregate(aggregate(ratios, aggregation),
+        weightSum > 0 ? weightedMzSum / weightSum : targetMz, presentCount);
   }
 
-  private static double closestIntensity(final MassSpectrum scan, final double mz,
-      final MZTolerance tol) {
+  private static double closestIntensity(@NotNull final MassSpectrum scan, final double mz,
+      @NotNull final MZTolerance tol) {
     if (scan.getNumberOfDataPoints() == 0) {
       return 0d;
     }
@@ -186,7 +211,8 @@ public final class CrossScanRefiner {
     return tol.checkWithinTolerance(mz, scan.getMzValue(idx)) ? scan.getIntensityValue(idx) : 0d;
   }
 
-  private static double closestMz(final MassSpectrum scan, final double mz, final MZTolerance tol) {
+  private static double closestMz(@NotNull final MassSpectrum scan, final double mz,
+      @NotNull final MZTolerance tol) {
     if (scan.getNumberOfDataPoints() == 0) {
       return Double.NaN;
     }
@@ -195,6 +221,18 @@ public final class CrossScanRefiner {
       return Double.NaN;
     }
     return tol.checkWithinTolerance(mz, scan.getMzValue(idx)) ? scan.getMzValue(idx) : Double.NaN;
+  }
+
+  /**
+   * The cross-scan aggregate of one probed m/z.
+   *
+   * @param ratio        aggregated {@code target / base} intensity ratio.
+   * @param mz           intensity-weighted mean m/z of the matched signals, or the probed m/z when
+   *                     none were found.
+   * @param presentCount number of scans in which the signal was actually present.
+   */
+  private record ScanAggregate(double ratio, double mz, int presentCount) {
+
   }
 
   private static double aggregate(@NotNull final List<Double> values,

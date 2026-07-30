@@ -17,8 +17,50 @@ parent package. Committed data:
 
 - Corpus: `mzmine-community/src/test/resources/isotopefinder/corpus/patterns.jsonl` (~15 MB, 5919
   patterns). Regenerate deliberately — **never** as part of an engine change.
+  **The corpus is committed on purpose, despite being fully reproducible from the generator.** The
+  CDK isotopologue enumeration for the catalog's proteins is expensive (~15 min), so generating it
+  per build or in CI is not viable; and committing the snapshot pins the exact inputs the baselines
+  were measured on, so a baseline diff always reflects an engine change and never a corpus change.
+  Do not propose generating it at build time or trimming it to save repo size.
 - Baseline: `mzmine-community/src/test/resources/isotopefinder/baseline/metrics_baseline.csv` — the
   last-known-good per-axis metrics. This is the reference you diff against.
+- Companion baseline: `.../baseline/metrics_requireC13.csv` — the same corpus with the opt-in
+  require-13C gate on, regenerated with
+  `./gradlew :mzmine-community:isotopeBenchmark --args="<path> requireC13"`. Nothing asserts against
+  it; it is documentation. Regenerate it alongside `metrics_baseline.csv` whenever the engine or the
+  corpus changes, so the two stay comparable.
+
+### What the require-13C gate costs and buys
+
+Comparing the two committed baselines (same corpus, gate off vs on) shows the trade clearly, and it
+is not a strict win — do not enable it by default:
+
+| axis | chargeTop1 off → on | patternRecall off → on |
+|---|---|---|
+| `cutoff` | **0.9930** → 0.9832 | **0.9856** → 0.9689 |
+| `polyhalogen` | 0.9897 → 0.9536 | **0.9934** → 0.8940 |
+| `resolution_merged` | 1.0000 → 0.9916 | **0.9986** → 0.9522 |
+| `interference_real` | **0.9902** → 0.9832 | **0.9766** → 0.9494 |
+
+The gate costs pattern completeness on every axis — worst on polyhalogens (−0.099 recall), where the
+gap-truncation cuts the heavy comb short — and on this corpus it no longer buys charge accuracy
+anywhere. Since incomplete patterns degrade downstream formula scoring, leave it off unless harmonic
+confusion is demonstrably the dominant problem in the data at hand.
+
+### Retired axes: no adversarial cases
+
+The corpus once carried two axes (`interference`, `combined`) built on an **adversarial** decoy: the
+target's own envelope shifted by exactly half the isotope spacing, which synthesises a near-perfect
+doubled-charge comb. They were removed — at ~0.55 `chargeTop1` they were the worst numbers on the
+board and were repeatedly misread as a real-world failure rate, when in fact they measured the
+theoretical maximum of harmonic confusion against an input no real spectrum produces. Optimising
+against them risked making the harmonic guard trigger-happy on genuine data.
+
+Co-elution is now measured only by `interference_real` (a different compound, non-harmonic offset,
+scaled intensity). **Do not reintroduce a self-shifted decoy.** Their sweep slots are retired in
+place (`SweepVariant.retired()`) rather than deleted, because the variant index is baked into every
+case id and seed — deleting them would renumber later variants and silently change cases that
+already exist. Append new variants; never reuse a retired slot.
 
 ## The before/after workflow (do this for every engine change)
 
@@ -59,12 +101,19 @@ automatically for all three tasks below.
 # 3. Locked unit behaviors + the auto-detector's own tests — must stay green after any engine edit.
 ./gradlew :mzmine-community:test --tests "*IsotopeFinderEngineTest" --tests "*ElementAutoDetectorTest"
 
-# 4. The heavy @Tag("benchmark") test tier (excluded from the default `test` task).
+# 4. The heavy @Tag("benchmark") test tier (excluded from the default `test` task). Contains
+#    IsotopeBenchmarkRegressionTest, which runs the WHOLE corpus and fails if any per-axis metric
+#    dropped more than 0.01 below the committed baseline — run this before proposing an engine
+#    change as an improvement. Also the non-asserting IsotopeFinderScoreDiagnosisTest.
 ./gradlew :mzmine-community:benchmark
 
 # 5. ONLY when you changed the generator/catalog (GenerationConfig, BenchmarkPatternGenerator,
-#    SyntheticSpectra) — NOT for engine changes. Rewrites the 15 MB corpus; deterministic (~15 min,
-#    dominated by the largest protein enumerations). Regenerate the baseline (task 1) afterwards.
+#    SyntheticSpectra) — NOT for engine changes. Rewrites the 15 MB corpus. VERY SLOW: measured at
+#    ~4 h, dominated by the largest protein enumerations — budget for it. Regenerate the baseline
+#    (task 1) afterwards and commit corpus + baseline together.
+#    NOTE: the result is NOT bit-reproducible (CDK's enumeration drifts ~1e-13 per call), so the
+#    regenerated file always differs from the committed one. The drift is ~1.3 ppb in m/z and moves
+#    the metrics by <0.003 — expect a large, noisy file diff that is nonetheless a no-op.
 ./gradlew :mzmine-community:generateBenchmarkCorpus
 ```
 
@@ -90,11 +139,11 @@ One row per `axis` (the degradation family), plus a final `ALL` row. Columns:
 `NaN` is expected where an axis has no cases of that kind (e.g. `noiseLeak` on non-noise axes,
 `elementRecall` on unit-resolution where M+2 defects are unresolvable). Priorities, in order:
 **chargeTop1 → chargeStartInvariance → pattern F1 → borderlineRecall / noiseLeak → element P/R**.
-Hardest axes are the adversarial `interference` / `combined` (self-shifted decoy, ~0.52 top-1);
-don't
-chase those at the cost of the realistic axes (`charge`, `clean`, `noise`, `polyhalogen`,
-`protein_highz`,
-`unit_resolution`), which should stay ~0.97–1.0.
+
+Every axis is now realistic, so **every axis should stay ~0.99–1.0 on `chargeTop1`** — a drop
+anywhere is a genuine regression, not an artificial stress case. The weakest metric on the board is
+`elementRecall` (~0.44 overall), which is the open problem worth working on; charge and pattern
+completeness are essentially saturated.
 
 ## Gotchas
 

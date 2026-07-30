@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.CaseMetrics;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.GenerationConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.GroundTruthCase;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.IsotopeCorpus;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.IsotopeMetrics;
@@ -62,16 +63,17 @@ class IsotopeAccuracyTest {
       "resolution_merged", "protein_highz", "polyhalogen", "cutoff", "noise");
 
   /**
-   * Known-hard axes: co-eluting interference / combined stressors currently drive harmonic
-   * charge-doubling and noise leakage, so only weak invariants are asserted here.
+   * Known-harder axis: a co-eluting interferent overlaps the isotope search window, so the charge is
+   * asserted but the interferent's peaks may still leak into the reported pattern.
    */
-  private static final Set<String> SOFT_AXES = Set.of("interference", "combined");
+  private static final Set<String> SOFT_AXES = Set.of(
+      GenerationConfig.REALISTIC_INTERFERENCE_AXIS);
 
   /**
-   * Upper bound on the noise-leak fraction for the soft axes (the ci interference case currently
-   * leaks its single interferent peak, i.e. 1.0). Plus a tiny epsilon.
+   * Upper bound on the noise-leak fraction for the soft axes: a co-eluting decoy may contribute at
+   * most this fraction of the reported pattern before the detection is considered contaminated.
    */
-  private static final double NOISE_LEAK_MAX = 1.0 + 1e-3;
+  private static final double NOISE_LEAK_MAX = 0.5;
 
   @NotNull
   private static List<Named<GroundTruthCase>> ciCases() {
@@ -114,10 +116,11 @@ class IsotopeAccuracyTest {
             () -> c.id() + ": wrong charge seeded at m/z " + seed[0] + " on " + c.axis());
       }
     } else if (SOFT_AXES.contains(c.axis())) {
-      // known-hard: only require a detection, the true charge flagged, and bounded noise leak
+      // co-elution: the charge must still be right, but the interferent may leak some peaks into
+      // the reported pattern, so recovery is bounded rather than asserted exactly
       Assertions.assertNotNull(result, () -> c.id() + ": expected a detection on " + c.axis());
-      Assertions.assertTrue(m.chargeRecallAlt(),
-          () -> c.id() + ": true charge not even flagged among alternates on " + c.axis());
+      Assertions.assertEquals(c.trueCharge(), result.bestCharge(),
+          () -> c.id() + ": wrong charge on " + c.axis());
       Assertions.assertTrue(m.noiseLeak() == null || m.noiseLeak() <= NOISE_LEAK_MAX,
           () -> c.id() + ": noise leak " + m.noiseLeak() + " above bound " + NOISE_LEAK_MAX);
     } else {

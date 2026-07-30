@@ -60,9 +60,31 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * degradations (cutoff, noise, interference), records the ground truth, and writes one JSON object
  * per line.
  * <p>
- * Fully deterministic: seeds are derived from a stable hash of each pattern id (no
- * {@code Math.random} / wall-clock). Run via
+ * The seeded degradations are deterministic: seeds are derived from a stable hash of each pattern id
+ * (no {@code Math.random} / wall-clock). Run via
  * {@code ./gradlew :mzmine-community:generateBenchmarkCorpus}.
+ * <p>
+ * <b>The corpus is NOT bit-reproducible, however</b>, because the underlying CDK isotope-pattern
+ * enumeration is not: calling {@link SyntheticSpectra#fromFormula} twice with identical arguments in
+ * the same JVM yields m/z values differing by ~1e-13, and those differences accumulate through the
+ * peak merging. Measured over a full regeneration, m/z drifted by at most ~1.3 ppb (1.26 uDa) - some
+ * 1000x below the tightest m/z tolerance the corpus is scored with - but ~0.4 % of cases ended up
+ * with a different peak count, because a borderline peak crossed the {@code minAbundance} cutoff.
+ * The practical effect on the accuracy metrics is negligible (one axis moved by 0.002; the rest were
+ * identical to four decimals), but do NOT expect a regeneration to reproduce the committed file
+ * byte for byte, and do not write a test that asserts it does.
+ * <p>
+ * <b>The generated corpus is committed to the repository on purpose</b>
+ * ({@code src/test/resources/isotopefinder/corpus/patterns.jsonl}, ~15 MB). Although it is fully
+ * reproducible from this generator, the CDK isotopologue enumeration for the large proteins in the
+ * catalog is expensive, so regenerating it on every build (or in CI) is not viable. Committing the
+ * snapshot also pins the exact inputs the committed accuracy baselines were measured on, so a
+ * baseline diff reflects an engine change and never a corpus change. Do not "optimise" it away by
+ * generating it at build time.
+ * <p>
+ * Changing anything that affects the generated cases (the catalog, the sweep, a degradation op)
+ * therefore requires regenerating BOTH the corpus and the baselines
+ * ({@code isotopeBenchmark}), and the two must be committed together.
  */
 public final class BenchmarkPatternGenerator {
 
@@ -80,9 +102,15 @@ public final class BenchmarkPatternGenerator {
     summarize(patterns, out);
   }
 
+  /**
+   * @return the committed corpus path, relative to the {@code mzmine-community} module directory.
+   * Must stay in sync with the path the {@code generateBenchmarkCorpus} Gradle task passes.
+   */
   @NotNull
   private static Path defaultOutput() {
-    return Path.of("src", "test", "resources", "isotopefinder", "corpus", "patterns2.jsonl");
+    return Path.of("src", "test", "resources", "isotopefinder", "corpus",
+        BenchmarkCorpusLoader.RESOURCE.substring(
+            BenchmarkCorpusLoader.RESOURCE.lastIndexOf('/') + 1));
   }
 
   /**
@@ -134,6 +162,19 @@ public final class BenchmarkPatternGenerator {
     // build every case deterministically in catalog order (the parallelism above only fills the caches
     // and does not affect the output order or values)
     final int sign = PolarityType.POSITIVE.getSign();
+    // pool of co-eluting decoys for InterferenceMode.REALISTIC: SMALL molecules only, each with its
+    // cached charge-1 resolved pattern. Deterministic order (catalog order).
+    // assumption: the decoy is generated at the TARGET's charge, so for a highly charged protein
+    // target the interferent is a small molecule's envelope at that charge - chemically unusual, but
+    // the properties the axis tests are the ones that hold regardless: the decoy has a different
+    // envelope shape from the target and sits off the isotope grid, so it must be rejected without
+    // forming a clean doubled-charge comb.
+    final List<DecoyCandidate> decoyPool = new ArrayList<>();
+    for (final FormulaSpec spec : uniqueByFormula.values()) {
+      if (spec.cls() == MoleculeClass.SMALL) {
+        decoyPool.add(new DecoyCandidate(spec.formula(), baseResolved.get(spec.formula())));
+      }
+    }
     final List<BenchmarkPattern> result = new ArrayList<>();
     for (final FormulaSpec spec : catalog) {
       final IMolecularFormula formula = FormulaUtils.parse(spec.formula());
@@ -158,8 +199,12 @@ public final class BenchmarkPatternGenerator {
 
         int variantIndex = 0;
         for (final SweepVariant variant : GenerationConfig.sweep()) {
-          result.add(build(spec, charge, monoNeutralMass, elements, heavy, halogens, minAbundance,
-              trueMonoMz, patResolved, patMerged, variant, variantIndex));
+          // retired slots emit nothing but still consume their index, so every later variant keeps
+          // the ids and seeds its cases were generated with
+          if (!variant.isRetired()) {
+            result.add(build(spec, charge, monoNeutralMass, elements, heavy, halogens, minAbundance,
+                trueMonoMz, patResolved, patMerged, variant, variantIndex, decoyPool));
+          }
           variantIndex++;
         }
       }
@@ -243,7 +288,8 @@ public final class BenchmarkPatternGenerator {
       final double monoNeutralMass, @NotNull final String[] elements, @NotNull final String[] heavy,
       final int halogens, final double minAbundance, final double trueMonoMz,
       @NotNull final SimpleMassSpectrum patResolved, @NotNull final SimpleMassSpectrum patMerged,
-      @NotNull final SweepVariant variant, final int variantIndex) {
+      @NotNull final SweepVariant variant, final int variantIndex,
+      @NotNull final List<DecoyCandidate> decoyPool) {
 
     final SimpleMassSpectrum base =
         variant.resolutionLabel().equals(GenerationConfig.RESOLVED) ? patResolved : patMerged;
@@ -276,13 +322,15 @@ public final class BenchmarkPatternGenerator {
     double[] interferenceMz = new double[0];
     String interferenceFormula = null;
     int nInterference = 0;
-    if (variant.interference()) {
-      // decoy: the same envelope shifted off the isotope grid (+0.5/charge), a co-eluting compound
-      final SimpleMassSpectrum decoy = SyntheticSpectra.shift(base, 0.5 / charge);
+    final SimpleMassSpectrum decoy = switch (variant.interference()) {
+      case NONE -> null;
+      case REALISTIC -> realisticDecoy(base, charge, interferenceSeed, decoyPool);
+    };
+    if (decoy != null) {
       final InjectionResult ir = SyntheticSpectra.addInterference(current, decoy);
       current = ir.spectrum();
       interferenceMz = ir.injectedMz();
-      interferenceFormula = spec.formula();
+      interferenceFormula = decoyPoolFormula(interferenceSeed, decoyPool);
       nInterference = decoy.getNumberOfDataPoints();
     }
 
@@ -295,6 +343,82 @@ public final class BenchmarkPatternGenerator {
         variant.cutoffFraction(), variant.nNoise(), noiseSeed, nInterference, interferenceFormula,
         interferenceSeed, seed, mz, intensity, trueMonoMz, trueOffsetsMz, borderlineOffsetsMz,
         falseOffsetsMz, elements, heavy);
+  }
+
+  /**
+   * Build a realistic co-eluting interferent for {@link InterferenceMode#REALISTIC}: a DIFFERENT
+   * small molecule from the catalog, placed at a seeded <i>non-harmonic</i> m/z offset relative to
+   * the target and scaled to a seeded fraction of the target's intensity.
+   * <p>
+   * The fractional part of the offset (in units of the charge-adjusted 13C spacing) is drawn away
+   * from both {@code 0} (which would put the decoy on the target's own isotope grid) and
+   * {@code 0.5} (which would interleave a copy of the target's comb into a near-perfect doubled-charge
+   * ladder). The decoy therefore overlaps the isotope search window and must be rejected, without
+   * synthesising a harmonic that no real spectrum would produce.
+   *
+   * @param targetBase the target's (undegraded) spectrum at this charge.
+   * @param charge     the target charge; the decoy is generated at the same charge.
+   * @param seed       the case's interference seed.
+   * @param pool       the candidate decoy compounds.
+   * @return the decoy spectrum, or null when no decoy is available.
+   */
+  @Nullable
+  private static SimpleMassSpectrum realisticDecoy(@NotNull final SimpleMassSpectrum targetBase,
+      final int charge, final long seed, @NotNull final List<DecoyCandidate> pool) {
+    if (pool.isEmpty() || targetBase.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+    final Random rnd = new Random(seed);
+    final DecoyCandidate candidate = pool.get(poolIndex(seed, pool.size()));
+    final SimpleMassSpectrum atCharge = SyntheticSpectra.atCharge(candidate.charge1(), charge,
+        PolarityType.POSITIVE.getSign());
+    if (atCharge.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+
+    final double spacing = IsotopePatternCalculator.THIRTHEEN_C_DISTANCE / charge;
+    // whole isotope steps: places the decoy anywhere across the target's envelope
+    final int steps = rnd.nextInt(4);
+    // fractional part in [0.15, 0.45) or [0.55, 0.85) - off the isotope grid, off the half-spacing
+    final double frac =
+        rnd.nextBoolean() ? 0.15 + 0.30 * rnd.nextDouble() : 0.55 + 0.30 * rnd.nextDouble();
+    final double shift =
+        targetBase.getMzValue(0) - atCharge.getMzValue(0) + (steps + frac) * spacing;
+    final SimpleMassSpectrum shifted = SyntheticSpectra.shift(atCharge, shift);
+
+    // realistic relative abundance: 10 %..100 % of the target base peak (the adversarial axis uses
+    // 100 % of an identical envelope, which is the hardest possible case)
+    final double targetHeight = SyntheticSpectra.baseHeight(targetBase);
+    final double decoyHeight = SyntheticSpectra.baseHeight(shifted);
+    if (decoyHeight <= 0d || targetHeight <= 0d) {
+      return shifted;
+    }
+    final double relative = 0.1 + 0.9 * rnd.nextDouble();
+    return SyntheticSpectra.scale(shifted, relative * targetHeight / decoyHeight);
+  }
+
+  /**
+   * @return the formula of the decoy {@link #realisticDecoy} picks for this seed, for the ground
+   * truth record.
+   */
+  @Nullable
+  private static String decoyPoolFormula(final long seed,
+      @NotNull final List<DecoyCandidate> pool) {
+    return pool.isEmpty() ? null : pool.get(poolIndex(seed, pool.size())).formula();
+  }
+
+  /**
+   * @return a stable, non-negative index into a pool of {@code size} entries.
+   */
+  private static int poolIndex(final long seed, final int size) {
+    return (int) Math.floorMod(seed, size);
+  }
+
+  /**
+   * A candidate co-eluting interferent: its formula and its cached charge-1 resolved pattern.
+   */
+  private record DecoyCandidate(@NotNull String formula, @NotNull SimpleMassSpectrum charge1) {
+
   }
 
   /**

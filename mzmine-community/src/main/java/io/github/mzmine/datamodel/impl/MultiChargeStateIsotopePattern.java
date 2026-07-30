@@ -90,11 +90,39 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   public MultiChargeStateIsotopePattern(@NotNull List<IsotopePattern> patterns) {
+    this(patterns, true);
+  }
+
+  /**
+   * @param patterns the isotope patterns, one per charge state (must not be empty).
+   * @param sort     whether to (re-)rank the patterns by {@link #patternScoreComparator}. Pass
+   *                 {@code false} when the caller already ranked them with more information than a
+   *                 single score carries - e.g. the isotope finder, which selects the winning charge
+   *                 from the bounded quality AND a peak-count reward. Re-deriving the order from
+   *                 {@link IsotopePattern#getScore()} alone would then be lossy and could disagree
+   *                 with the charge the caller assigned to the feature.
+   */
+  private MultiChargeStateIsotopePattern(@NotNull List<IsotopePattern> patterns,
+      final boolean sort) {
     if (patterns.isEmpty()) {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
-    evaluateIsotopePatterns();
+    if (sort) {
+      evaluateIsotopePatterns();
+    }
+  }
+
+  /**
+   * Wrap patterns that the caller has ALREADY ranked best-first, preserving that order: the first
+   * element stays the {@link #getPreferredIsotopePattern() preferred} pattern.
+   *
+   * @param bestFirst the patterns, best first (must not be empty).
+   * @return the multi-charge pattern in the given order.
+   */
+  public static @NotNull MultiChargeStateIsotopePattern ofRanked(
+      @NotNull final List<IsotopePattern> bestFirst) {
+    return new MultiChargeStateIsotopePattern(bestFirst, false);
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -114,7 +142,11 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
         patterns.add(SimpleIsotopePattern.loadFromXML(reader));
       }
     }
-    return patterns.isEmpty() ? null : new MultiChargeStateIsotopePattern(patterns);
+    // decision: preserve the persisted order instead of re-sorting. The file order IS the ranking the
+    // writer chose (for the isotope finder, its charge selection - which the stored score alone
+    // cannot reproduce), so re-deriving it here could change the preferred charge on project reload.
+    // Legacy files without scores were already written in sorted order, so they are unaffected.
+    return patterns.isEmpty() ? null : ofRanked(patterns);
   }
 
   /**

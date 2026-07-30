@@ -56,10 +56,12 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
 
   public static final ComboParameter<ElementDetectionMode> elementDetectionMode = new ComboParameter<>(
       "Element auto-detection",
-      "Signal-based mode only. USER_DEFINED (default) keeps the current behavior: heavy-isotope "
-          + "bounds come from the chosen elements with a crude atom-count estimate. AUTO_DETECT infers "
-          + "popular heavy elements (Cl, Br, S, Si) from the pattern and uses the detected atom counts. "
-          + "USER_PLUS_AUTO combines both. Off by default.", ElementDetectionMode.values(),
+      "Infers which heavy elements are present from the detected pattern and uses the inferred atom "
+          + "counts to refine the plausible intensity bounds of the signal-based (carbon-averagine) "
+          + "envelope. USER_DEFINED (default) keeps the current behavior: heavy-isotope bounds come "
+          + "from the chosen elements with a crude atom-count estimate. AUTO_DETECT infers popular "
+          + "heavy elements (Cl, Br, S, Si) from the pattern and uses the detected atom counts. "
+          + "USER_PLUS_AUTO combines both.", ElementDetectionMode.values(),
       ElementDetectionMode.USER_DEFINED);
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
@@ -84,10 +86,19 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
       IsotopeFinderModeOptions.SIGNAL_BASED);
 
   public static final BooleanParameter requireC13 = new BooleanParameter("Require 13C isotope peak",
-      "If enabled, a charge is only accepted when a resolved 13C M+1 peak is present and its M+1/M "
-          + "relative intensity falls within the estimated minimum/maximum carbon bounds. Features "
-          + "without a valid 13C pattern are skipped (useful to suppress noise / heavy-only artifacts).",
-      false);
+      """
+          If enabled, a charge is only accepted when the signals form a gap-free ladder on the \
+          charge-adjusted 13C grid through the detected pattern. Features without such a ladder are \
+          skipped (useful to suppress noise / heavy-isotope-only artifacts).
+          Note that this also TRUNCATES the reported pattern: it stops at the first missing 13C \
+          position, even if further signals exist beyond the gap. Molecules whose pattern is \
+          dominated by an intense +2 comb (Cl/Br/Cu) are allowed to use every second 13C position \
+          instead.
+          Additionally, when the base peak is the monoisotopic, its M+1/M relative intensity must \
+          be roughly plausible for the carbon count the mass implies. The lower bound is \
+          deliberately far below the averagine carbon minimum so that heteroatom-rich, carbon-poor \
+          molecules are not rejected; mid-envelope patterns without a visible monoisotopic (e.g. \
+          proteins) are exempt from this ratio check.""", false);
 
   public IsotopeFinderParameters() {
     super(new UserParameter[]{featureLists, elements, elementDetectionMode, isotopeMzTolerance,

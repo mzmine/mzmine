@@ -40,13 +40,18 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.Carbo
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.Element;
 
 /**
  * Diagnostic (non-asserting) test to explain why a real z=3 pattern around m/z 446.55 gets a low
  * stored score even though the charge is correctly detected. Prints the full per-charge breakdown.
+ * <p>
+ * Tagged {@code benchmark} because it asserts nothing - it only produces console output for manual
+ * analysis, which is noise in a CI run. Run via {@code ./gradlew :mzmine-community:benchmark}.
  */
+@Tag("benchmark")
 class IsotopeFinderScoreDiagnosisTest {
 
   private static final double C13 = 1.0033548;

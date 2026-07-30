@@ -84,8 +84,8 @@ public final class IsotopeCorpus {
     }
 
     // a couple of stressors
-    for (final String axis : List.of("resolution_merged", "cutoff", "noise", "interference",
-        "unit_resolution")) {
+    for (final String axis : List.of("resolution_merged", "cutoff", "noise",
+        GenerationConfig.REALISTIC_INTERFERENCE_AXIS, "unit_resolution")) {
       for (final GroundTruthCase c : all) {
         if (c.axis().equals(axis)) {
           picked.putIfAbsent(c.id(), c);

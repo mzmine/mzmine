@@ -75,9 +75,14 @@ public class IsotopeFinderEngine {
   private static final int MIN_LADDER_PEAKS = 2;
   // reward for the number of isotope offsets a charge explains: a genuine higher charge explains more
   // real isotope peaks (its own full envelope), so this lets it win over a lower charge that fits only a
-  // subsample of the ladder and leaves the intermediate peaks unexplained. A harmonic doubling that only
-  // borrows a co-eluting interferent's peaks does NOT profit here, because the spacing-consistency term
-  // (B2) has already collapsed that charge's bounded quality.
+  // subsample of the ladder and leaves the intermediate peaks unexplained.
+  // KNOWN LIMITATION: this reward is currently applied WITHOUT a harmonic guard. A doubled charge that
+  // interleaves a co-eluting interferent's peaks explains twice as many offsets and can therefore win on
+  // raw score. The spacing-consistency term below would discriminate it, but it is deliberately not
+  // folded into the quality (see spacingConsistency) because a naive multiplicative fold regressed
+  // polyhalogen combs. Measured effect: chargeTop1 ~0.55 on the interference/combined benchmark axes
+  // versus ~0.99 elsewhere, while chargeRecallAlt stays ~0.95 (the true charge is found, just not
+  // ranked first).
   private static final double TIE_WEIGHT = 0.1;
   // a charge decided without a genuine 13C ladder (carbon fit fell back to the neutral 1.0) is
   // down-weighted by this factor so it cannot out-compete a charge with a real carbon fit on a tie
@@ -120,6 +125,9 @@ public class IsotopeFinderEngine {
   // which pulls the observed centroid a few mDa off the exact grid - still counts as present and does
   // not open a false hole that would truncate the pattern early.
   private static final double REQUIRE_C13_GAP_TOL_FACTOR = 3d;
+  // heavy-isotope per-signal attribution window (neutral Da): a signal's mass-defect deviation from
+  // the 13C grid must be within this of a candidate element's M+2/M+1 defect to be labelled with it.
+  private static final double HEAVY_ATTR_WINDOW = 0.006;
 
   private final int maxCharge;
   private final MZTolerance tol;
@@ -134,9 +142,6 @@ public class IsotopeFinderEngine {
   // developer-only: retain rich per-charge scoring diagnostics on the DetectionResult. Off in the
   // normal processing run (the diagnostics are recomputed on demand by the compound dashboard).
   private final boolean keepDiagnostics;
-  // heavy-isotope per-signal attribution window (neutral Da): a signal's mass-defect deviation from
-  // the 13C grid must be within this of a candidate element's M+2/M+1 defect to be labelled with it.
-  private static final double HEAVY_ATTR_WINDOW = 0.006;
 
   public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,
       @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
@@ -191,15 +196,22 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Assemble the per-charge patterns into a single {@link IsotopePattern}. Each pattern carries its
-   * quality {@link IsotopePattern#getScore() score}, so {@link MultiChargeStateIsotopePattern} orders
-   * them best (highest score) first and exposes the winner as the preferred pattern.
+   * Assemble the per-charge patterns into a single {@link IsotopePattern}, preserving the order the
+   * engine selected them in so the preferred pattern is the winning charge.
+   * <p>
+   * decision: the order is preserved rather than re-derived from the stored
+   * {@link IsotopePattern#getScore() score}. The winner is chosen from the bounded quality AND a
+   * peak-count reward, while the stored score is the bounded quality times the intensity agreement
+   * (a display value that deliberately stays out of the selection). Re-sorting by the score could
+   * therefore make {@code pattern.getCharge()} disagree with the charge assigned to the feature.
+   *
+   * @param bestFirst the per-charge patterns in selection order, winner first.
    */
   public static @NotNull IsotopePattern assemble(@NotNull final List<IsotopePattern> bestFirst) {
     if (bestFirst.size() == 1) {
       return bestFirst.getFirst();
     }
-    return new MultiChargeStateIsotopePattern(bestFirst);
+    return MultiChargeStateIsotopePattern.ofRanked(bestFirst);
   }
 
   /**
@@ -258,9 +270,9 @@ public class IsotopeFinderEngine {
 
     // decision: select the WINNER by the raw score (bounded quality x peak-count reward). The count
     // reward is what lets a genuine higher charge win: it explains more real isotope peaks than a lower
-    // charge that only fits a subsample of the ladder. Harmonic doubling does NOT win here because the
-    // spacing-consistency term (B2) collapses the doubled charge's quality before the count reward
-    // applies. ALTERNATES, by contrast, are flagged by an absolute margin on the bounded quality (below),
+    // charge that only fits a subsample of the ladder. Note that nothing here discriminates a harmonic
+    // doubling that borrows a co-eluting interferent's peaks - see TIE_WEIGHT for the known limitation.
+    // ALTERNATES, by contrast, are flagged by an absolute margin on the bounded quality (below),
     // which is invariant to peak count and to how many hypotheses survived.
     scoredList.sort((a, b) -> {
       final int byRaw = Double.compare(b.eval().raw(), a.eval().raw());
@@ -443,6 +455,10 @@ public class IsotopeFinderEngine {
     }
     final double baseMz = base.getMZ();
 
+    // index every candidate on the 13C grid once; the isolated ladder, the collapsed per-offset map,
+    // the spacing regression and the require-13C gap probe are all views on this single walk.
+    CarbonLadder ladder = CarbonLadder.build(candidates, baseMz, spacingDa, tol);
+
     // require-13C ladder validation + gap-truncation. Anchored on the observed base (offset 0), walk
     // the 13C grid outward in BOTH directions and require a gap-free ladder: the pattern is truncated
     // at the first missing grid position even if signals exist beyond it (a strong discriminator
@@ -456,7 +472,7 @@ public class IsotopeFinderEngine {
     final List<DataPoint> cands;
     final int ladderStep;
     if (requireC13) {
-      final int[] span = requireC13LadderSpan(candidates, baseMz, spacingDa);
+      final int[] span = requireC13LadderSpan(ladder);
       if (span == null) {
         return null; // no gap-free 13C (or every-second) ladder through the seed
       }
@@ -469,19 +485,20 @@ public class IsotopeFinderEngine {
         }
       }
       cands = truncated;
+      // re-index the truncated set so every view below sees the validated span only
+      ladder = CarbonLadder.build(cands, baseMz, spacingDa, tol);
     } else {
       cands = candidates;
       ladderStep = 1;
     }
 
-    // isolated 13C ladder on the RAW signals: per offset, the signal closest to the exact 13C
-    // position, so heavy isotopes (37Cl/81Br/34S) and 15N at the same nominal offset do not
-    // contaminate the carbon ratio. Offsets are relative to the observed base (may be negative).
-    final TreeMap<Integer, Double> carbonLadder = buildCarbonLadder(cands, baseMz, spacingDa);
+    // isolated 13C ladder: per offset, the signal closest to the exact 13C position, so heavy
+    // isotopes (37Cl/81Br/34S) and 15N at the same nominal offset do not contaminate the carbon
+    // ratio. Offsets are relative to the observed base (may be negative).
+    final TreeMap<Integer, Double> carbonLadder = ladder.onGridIntensities(1d);
 
     // all-signal per-offset map (summed) for coverage, self-consistency and the inclusive kept pattern
-    final TreeMap<Integer, OffsetPeak> observed = FineStructureCollapser.collapse(cands,
-        baseMz, 0, spacingDa);
+    final TreeMap<Integer, OffsetPeak> observed = ladder.collapsed();
     if (observed.isEmpty()) {
       return null;
     }
@@ -491,34 +508,20 @@ public class IsotopeFinderEngine {
     final CarbonFit carbonFit = slideCarbonFit(carbonLadder, env);
     final int placement = carbonFit.placement();
 
-    // require-13C loose shape gate: only when the observed base is itself the monoisotopic (no
-    // significant 13C-ladder peak below it) and the every-13C (step 1) ladder was used. In that case
-    // the base->M+1 ratio must fall within the loose carbon M+1/M bounds; an "M+1" far too small
-    // (FT ringing / not a real 13C peak) or far too large (a co-eluting mono) rejects the hypothesis.
-    // Skipped for mid-envelope humps (proteins) and for the every-second ladder, where no dominant
-    // monoisotopic exists to anchor the ratio. The M+1 is read from the isolated exact-13C ladder; a
-    // shifted/merged M+1 (absent from the strict ladder) is left to the soft penalties below.
-    if (requireC13 && ladderStep == 1 && m1Bounds != null) {
-      final Double baseIntensity = carbonLadder.get(0);
-      if (baseIntensity != null && baseIntensity > 0d) {
-        double maxBelow = 0d;
-        for (final double below : carbonLadder.headMap(0).values()) {
-          maxBelow = Math.max(maxBelow, below);
-        }
-        final boolean baseIsMono = maxBelow < MONO_DOMINANCE_FRACTION * baseIntensity;
-        final Double m1Intensity = carbonLadder.get(1);
-        if (baseIsMono && m1Intensity != null && m1Intensity > 0d) {
-          final double ratio = m1Intensity / baseIntensity;
-          // lower bound uses REQUIRE_C13_LOWER_FACTOR (not the symmetric slack) so heteroatom-rich,
-          // carbon-poor molecules - whose real 13C M+1/M is legitimately below the averagine carbon
-          // minimum - are not wrongly rejected; the upper bound still uses the slack to catch an "M+1"
-          // too large to be 13C (a co-eluting mono).
-          if (ratio < m1Bounds[0] * REQUIRE_C13_LOWER_FACTOR || ratio > m1Bounds[1] * (1d
-              + C13_RATIO_SLACK)) {
-            return null;
-          }
-        }
-      }
+    // the monoisotopic -> M+1 (13C) ratio of the isolated carbon ladder, measured once at the
+    // placement anchor. Both the optional hard gate below and the soft plausibility penalty further
+    // down read it, so the anchor and the mono-dominance test exist in exactly one place.
+    final CarbonRatio carbonRatio = carbonRatioAt(carbonLadder, placement);
+
+    // require-13C loose shape gate: the mono->M+1 ratio must fall within the loose carbon M+1/M
+    // bounds; an "M+1" far too small (FT ringing / not a real 13C peak) or far too large (a
+    // co-eluting mono) rejects the hypothesis. Only applied when the anchor really is a dominant
+    // monoisotopic and the every-13C (step 1) ladder was used - mid-envelope humps (proteins) and
+    // the every-second ladder have no dominant monoisotopic to anchor the ratio. A shifted/merged
+    // M+1 (absent from the strict ladder) is left to the soft penalty below.
+    if (requireC13 && ladderStep == 1 && m1Bounds != null && failsRequireC13Ratio(carbonRatio,
+        m1Bounds)) {
+      return null;
     }
 
     // coverage: predicted-intensity-weighted fraction of the expected carbon envelope explained by
@@ -542,8 +545,9 @@ public class IsotopeFinderEngine {
     }
     final double coverage = expectedWeight <= 0d ? 1d : presentWeight / expectedWeight;
 
-    // self consistency: higher charges require their intermediate (e.g. half-spacing) peaks
-    final double selfConsistency = selfConsistency(z, observed, env, placement);
+    // self consistency: higher charges require their intermediate (e.g. half-spacing) peaks - but
+    // only those that would actually be detectable above this spectrum's own intensity floor
+    final double selfConsistency = selfConsistency(z, observed, env, placement, base.getIntensity());
 
     // envelope-shape-aware termination -> keep the supported, bridgeable run of offsets (both
     // directions from the base), so the inclusive pattern keeps heavy isotopes and fine structure.
@@ -588,10 +592,13 @@ public class IsotopeFinderEngine {
     // spacing consistency: how well a single m/z spacing explains the on-grid ladder positions.
     // decision: computed and exposed on the ChargeScore for diagnostics, but NOT folded into the
     // selection quality. A naive multiplicative fold regressed polyhalogen combs: a Cl2/Br2 comb at z=2
-    // has ~1 Da m/z steps that nearly align to the z=1 13C grid, which wrongly boosted z=1. The
-    // principled harmonic discriminator is a carbon M+1/M upper-bound check (kept for a follow-up), not
-    // this position-only term.
-    final double spacingConsistency = spacingConsistency(cands, baseMz, spacingDa);
+    // has ~1 Da m/z steps that nearly align to the z=1 13C grid, which wrongly boosted z=1.
+    // The carbon M+1/M upper-bound check below is the harmonic discriminator that IS applied, but it
+    // only bites when the borrowed "M+1" is implausibly large for the implied mass; a co-eluting
+    // compound of similar size and intensity produces a ratio the (mass-scaled) carbon maximum still
+    // allows. Folding this term in only between charges in a divisor/multiple relation would restore
+    // the guard without the polyhalogen regression - not done here, see TIE_WEIGHT.
+    final double spacingConsistency = spacingConsistency(ladder, baseMz);
 
     // bounded [0,1] quality (carbon fit x coverage), gated by self-consistency for higher charges so a
     // higher charge whose intermediate peaks are absent cannot win. This, times the peak-count reward
@@ -606,52 +613,11 @@ public class IsotopeFinderEngine {
     if (!carbonFit.assessed()) {
       quality *= NEUTRAL_FALLBACK_WEIGHT;
     }
-    // carbon M+1/M plausibility penalty (the principled harmonic-doubling discriminator): the isolated
-    // 13C M+1/M ratio must not exceed the maximum carbon prediction. A charge whose implied 13C M+1 is
-    // implausibly large - e.g. a harmonic doubling whose "M+1" slot is really a co-eluting compound's
-    // monoisotopic peak - is down-weighted proportionally. Uses the isolated 13C ladder (no heavy-isotope
-    // contamination) and the reliable CARBON upper bound (not the heavy-halogen bound), so it respects
-    // the 13C-first and no-heavy-penalty principles. A genuine higher charge is a valid sub-grid of the
-    // pattern and keeps a plausible ratio, so it is not penalized. Skipped when the mono/M+1 are absent
-    // (e.g. protein humps with an invisible monoisotopic) or the carbon ladder was not assessable.
+    // carbon M+1/M plausibility penalty: a single two-sided factor in (0,1] on the SAME anchored
+    // ratio the optional gate above used. Skipped when the mono is absent (protein humps with an
+    // invisible monoisotopic) or the carbon ladder was not assessable.
     if (m1Bounds != null && carbonFit.assessed()) {
-      final Double monoI = carbonLadder.get(-placement);
-      final Double m1I = carbonLadder.get(-placement + 1);
-      if (monoI != null && monoI > 0d && m1I != null && m1I > 0d) {
-        final double ratio = m1I / monoI;
-        final double hi = m1Bounds[1] * (1d + C13_RATIO_SLACK);
-        if (hi > 0d && ratio > hi) {
-          // proportional penalty in (0,1): the further the M+1 overshoots the carbon max, the harder
-          quality *= hi / ratio;
-        }
-      }
-    }
-    // FT-ringing plausibility penalty (lower bound, symmetric to the harmonic upper bound above): when
-    // the base peak is the monoisotopic, its isolated 13C M+1 must not be far BELOW the carbon MINIMUM
-    // prediction for the mass this charge implies. Low-intensity FT ringing around a strong singly
-    // charged signal forms a fake fine-spaced ladder at a high charge whose "M+1" is a tiny fraction of
-    // the base - physically impossible for a real 13C peak at the large mass a high charge implies, so
-    // that charge is down-weighted hard. Anchored on the observed base (offset 0), so it is independent
-    // of the sliding placement; gated on the base being the mono (no significant peak below it) so
-    // mid-envelope apices (proteins, halogen combs) are exempt, and on carbonFit.assessed() so
-    // heavy-isotope-only patterns without a 13C ladder are exempt.
-    if (m1Bounds != null && carbonFit.assessed() && m1Bounds[0] > 0d) {
-      final Double baseI = carbonLadder.get(0);
-      if (baseI != null && baseI > 0d) {
-        double maxBelow = 0d;
-        for (final double below : carbonLadder.headMap(0).values()) {
-          maxBelow = Math.max(maxBelow, below);
-        }
-        final boolean baseIsMono = maxBelow < MONO_DOMINANCE_FRACTION * baseI;
-        if (baseIsMono) {
-          final Double m1I = carbonLadder.get(1);
-          final double ratio = (m1I != null ? m1I : 0d) / baseI;
-          final double loThreshold = m1Bounds[0] * C13_RATIO_LOWER_FACTOR;
-          if (loThreshold > 0d && ratio < loThreshold) {
-            quality *= Math.max(C13_RATIO_LOWER_PENALTY_FLOOR, ratio / loThreshold);
-          }
-        }
-      }
+      quality *= carbonRatioPlausibility(carbonRatio, m1Bounds);
     }
     double raw = quality * (1d + TIE_WEIGHT * observedCount);
     // hard misdetection guard: a charge is only accepted when enough signals a genuine 13C distance
@@ -704,29 +670,96 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Per integer offset relative to {@code baseMz}, the intensity of the signal closest to the exact
-   * 13C position within tolerance. Signals off the exact 13C grid (heavy isotopes, 15N) are
-   * excluded, so the carbon envelope is scored on the pure 13C ladder rather than on merged nominal
-   * offsets.
+   * Measure the monoisotopic &rarr; M+1 (13C) intensity ratio of the isolated carbon ladder at the
+   * placement anchor, i.e. the observed offset that the sliding envelope fit aligned to predicted
+   * offset 0.
+   * <p>
+   * decision: this is the single anchor convention for every M+1/M test. Previously the harmonic
+   * upper-bound penalty used the placement anchor while the require-13C gate and the FT-ringing
+   * lower-bound penalty used the observed base, so for any mid-envelope apex ({@code placement != 0}
+   * - every polyhalogen and every protein) the "symmetric" tests silently compared different peak
+   * pairs. The mono-dominance guard is applied here once as well.
+   *
+   * @param carbonLadder the isolated exact-13C ladder (offset &rarr; intensity).
+   * @param placement    the predicted offset aligned to observed offset 0.
+   * @return the measured ratio, or {@link CarbonRatio#ABSENT} when the anchor peak is missing.
    */
-  private @NotNull TreeMap<Integer, Double> buildCarbonLadder(
-      @NotNull final List<DataPoint> candidates, final double baseMz, final double spacingDa) {
-    final TreeMap<Integer, Double> bestIntensity = new TreeMap<>();
-    final TreeMap<Integer, Double> bestError = new TreeMap<>();
-    for (final DataPoint dp : candidates) {
-      final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
-      final double exactMz = baseMz + k * spacingDa;
-      if (!tol.checkWithinTolerance(exactMz, dp.getMZ())) {
-        continue; // not on the exact 13C grid -> heavy isotope / different element
-      }
-      final double err = Math.abs(dp.getMZ() - exactMz);
-      final Double prev = bestError.get(k);
-      if (prev == null || err < prev) {
-        bestError.put(k, err);
-        bestIntensity.put(k, dp.getIntensity());
-      }
+  private static @NotNull CarbonRatio carbonRatioAt(
+      @NotNull final TreeMap<Integer, Double> carbonLadder, final int placement) {
+    final int monoOffset = -placement;
+    final Double monoI = carbonLadder.get(monoOffset);
+    if (monoI == null || monoI <= 0d) {
+      return CarbonRatio.ABSENT;
     }
-    return bestIntensity;
+    double maxBelow = 0d;
+    for (final double below : carbonLadder.headMap(monoOffset).values()) {
+      maxBelow = Math.max(maxBelow, below);
+    }
+    final Double m1I = carbonLadder.get(monoOffset + 1);
+    // a MISSING M+1 is a ratio of 0, not "unmeasurable": that is exactly the FT-ringing signature
+    // the lower bound must catch.
+    return new CarbonRatio(true, (m1I != null ? m1I : 0d) / monoI,
+        maxBelow < MONO_DOMINANCE_FRACTION * monoI, placement == 0);
+  }
+
+  /**
+   * Two-sided plausibility of the carbon M+1/M ratio as a multiplicative factor in {@code (0,1]}.
+   * <ul>
+   *   <li><b>Upper</b> (the harmonic-doubling discriminator): the isolated 13C M+1/M must not exceed
+   *   the maximum carbon prediction. A charge whose implied 13C M+1 is implausibly large - e.g. a
+   *   doubling whose "M+1" slot is really a co-eluting compound's monoisotopic - is down-weighted in
+   *   proportion to the overshoot.</li>
+   *   <li><b>Lower</b> (the FT-ringing discriminator): when the anchor really is a dominant
+   *   monoisotopic, its M+1 must not fall far below the MINIMUM carbon prediction for the mass this
+   *   charge implies. Low-intensity ringing around a strong singly charged signal forms a fake
+   *   fine-spaced high-charge ladder whose "M+1" is far too small to be a real 13C peak.</li>
+   * </ul>
+   * Both use the reliable CARBON bounds (not the heavy-halogen upper bound) on the isolated 13C
+   * ladder, so heavy isotopes never trigger a penalty. A genuine higher charge is a valid sub-grid
+   * of the pattern and keeps a plausible ratio.
+   *
+   * @param ratio    the anchored ratio from {@link #carbonRatioAt}.
+   * @param m1Bounds {@code {min, max}} carbon M+1/M prediction for the implied neutral mass.
+   * @return the factor to multiply into the charge quality.
+   */
+  private static double carbonRatioPlausibility(@NotNull final CarbonRatio ratio,
+      final double @NotNull [] m1Bounds) {
+    if (!ratio.present()) {
+      return 1d;
+    }
+    final double hi = m1Bounds[1] * (1d + C13_RATIO_SLACK);
+    if (hi > 0d && ratio.value() > hi) {
+      return hi / ratio.value();
+    }
+    // the lower bound is far more aggressive, so it only fires when the anchor demonstrably is the
+    // dominant monoisotopic AND the observed base; mid-envelope apices (proteins, halogen combs) are
+    // exempt because their real M+1/M is legitimately below the averagine carbon minimum.
+    final double lo = m1Bounds[0] * C13_RATIO_LOWER_FACTOR;
+    if (ratio.supportsLowerBound() && lo > 0d && ratio.value() < lo) {
+      return Math.max(C13_RATIO_LOWER_PENALTY_FLOOR, ratio.value() / lo);
+    }
+    return 1d;
+  }
+
+  /**
+   * The optional require-13C hard gate on the same anchored ratio.
+   * <p>
+   * The lower bound uses {@link #REQUIRE_C13_LOWER_FACTOR} rather than the (much looser)
+   * {@link #C13_RATIO_LOWER_FACTOR} of the soft penalty: this gate is opt-in and is meant to reject
+   * outright, but it must still not reject heteroatom-rich, carbon-poor molecules whose real 13C
+   * M+1/M is legitimately below the averagine carbon minimum. The upper bound is the same as the
+   * soft penalty's - an "M+1" too large to be 13C (a co-eluting mono).
+   *
+   * @return whether the hypothesis must be rejected.
+   */
+  private static boolean failsRequireC13Ratio(@NotNull final CarbonRatio ratio,
+      final double @NotNull [] m1Bounds) {
+    // a missing M+1 is left to the soft penalty; the gate only judges a ratio it could measure
+    if (!ratio.supportsLowerBound() || ratio.value() <= 0d) {
+      return false;
+    }
+    return ratio.value() < m1Bounds[0] * REQUIRE_C13_LOWER_FACTOR
+        || ratio.value() > m1Bounds[1] * (1d + C13_RATIO_SLACK);
   }
 
   /**
@@ -737,18 +770,15 @@ public class IsotopeFinderEngine {
    * signals (base plus two more on the step-2 grid) so a lone monoisotopic + single heavy M+2 does
    * not qualify as a 13C pattern.
    *
-   * @param candidates the detected signals.
-   * @param baseMz     the observed base (offset 0) m/z.
-   * @param spacingDa  the 13C distance divided by the charge.
+   * @param ladder the candidates indexed on the 13C grid.
    * @return inclusive {@code [minOffset, maxOffset, step]}, or {@code null} if no ladder qualifies.
    */
-  private int @Nullable [] requireC13LadderSpan(@NotNull final List<DataPoint> candidates,
-      final double baseMz, final double spacingDa) {
-    final int[] s1 = gapFreeSpan(candidates, baseMz, spacingDa, 1);
+  private static int @Nullable [] requireC13LadderSpan(@NotNull final CarbonLadder ladder) {
+    final int[] s1 = gapFreeSpan(ladder, 1);
     if (s1[1] - s1[0] >= 1) { // >= 2 signals on the every-13C grid
       return new int[]{s1[0], s1[1], 1};
     }
-    final int[] s2 = gapFreeSpan(candidates, baseMz, spacingDa, 2);
+    final int[] s2 = gapFreeSpan(ladder, 2);
     if (s2[1] - s2[0] >= 4) { // >= 3 signals on the every-second grid
       return new int[]{s2[0], s2[1], 2};
     }
@@ -763,38 +793,20 @@ public class IsotopeFinderEngine {
    * so a heavy isotope merged with the expected 13C peak (shifting it a few mDa off grid) still
    * counts.
    *
-   * @param candidates the detected signals.
-   * @param baseMz     the observed base (offset 0) m/z.
-   * @param spacingDa  the 13C distance divided by the charge.
-   * @param step       the offset step (1 = every 13C, 2 = every second 13C).
+   * @param ladder the candidates indexed on the 13C grid.
+   * @param step   the offset step (1 = every 13C, 2 = every second 13C).
    * @return inclusive {@code [minOffset, maxOffset]} span containing offset 0.
    */
-  private int @NotNull [] gapFreeSpan(@NotNull final List<DataPoint> candidates,
-      final double baseMz, final double spacingDa, final int step) {
+  private static int @NotNull [] gapFreeSpan(@NotNull final CarbonLadder ladder, final int step) {
     int hi = 0;
-    while (hasSignalOnGrid(candidates, baseMz, spacingDa, hi + step)) {
+    while (ladder.hasSignalNearGrid(hi + step, REQUIRE_C13_GAP_TOL_FACTOR)) {
       hi += step;
     }
     int lo = 0;
-    while (hasSignalOnGrid(candidates, baseMz, spacingDa, lo - step)) {
+    while (ladder.hasSignalNearGrid(lo - step, REQUIRE_C13_GAP_TOL_FACTOR)) {
       lo -= step;
     }
     return new int[]{lo, hi};
-  }
-
-  /**
-   * @return whether any candidate lies within the widened tolerance of the exact 13C position for
-   * integer offset {@code k} relative to {@code baseMz}.
-   */
-  private boolean hasSignalOnGrid(@NotNull final List<DataPoint> candidates, final double baseMz,
-      final double spacingDa, final int k) {
-    final double exactMz = baseMz + k * spacingDa;
-    for (final DataPoint dp : candidates) {
-      if (tol.checkWithinTolerance(exactMz, dp.getMZ(), REQUIRE_C13_GAP_TOL_FACTOR)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -811,33 +823,43 @@ public class IsotopeFinderEngine {
       // not assessed so the caller can down-weight a charge decided without a real carbon ladder
       return new CarbonFit(1d, env.baseOffset(), false);
     }
-    final int minK = ladder.firstKey();
-    final int maxK = ladder.lastKey();
-    double bestCos = -1d;
+    // Both cosine norms are INVARIANT across placements, so they are hoisted out of the loop:
+    // the summation range always contains every ladder key (so the observed norm is just the ladder's
+    // own norm) and always covers the full predicted envelope [0, maxOffset] (so the predicted norm
+    // is the envelope's own norm). Only the dot product varies, and it only needs the ladder's
+    // (sparse) keys - everywhere else the observed intensity is 0 and contributes nothing. This turns
+    // O(maxOffset x range) into O(maxOffset x ladderSize) with bit-identical results, which matters
+    // for high-charge proteins where the range is widest.
+    double observedNormSq = 0d;
+    for (final double obs : ladder.values()) {
+      observedNormSq += obs * obs;
+    }
+    double predictedNormSq = 0d;
+    for (int o = 0; o <= env.maxOffset(); o++) {
+      final double pred = env.expectedAt(o);
+      predictedNormSq += pred * pred;
+    }
+    if (observedNormSq <= 0d || predictedNormSq <= 0d) {
+      // no placement could yield a defined cosine; a 13C ladder WAS available, so still "assessed"
+      return new CarbonFit(0d, env.baseOffset(), true);
+    }
+    final double norm = Math.sqrt(observedNormSq) * Math.sqrt(predictedNormSq);
+
+    // placement p in 0..maxOffset: observed offset 0 (base) aligns to predicted offset p. Since the
+    // denominator is constant and positive, the best cosine is the best dot product.
+    double bestDot = Double.NEGATIVE_INFINITY;
     int bestPlacement = env.baseOffset();
-    // placement p in 0..maxOffset: observed offset 0 (base) aligns to predicted offset p
     for (int p = 0; p <= env.maxOffset(); p++) {
-      final int from = Math.min(minK, -p);
-      final int to = Math.max(maxK, env.maxOffset() - p);
       double dot = 0d;
-      double na = 0d;
-      double nb = 0d;
-      for (int k = from; k <= to; k++) {
-        final double obs = ladder.getOrDefault(k, 0d);
-        final double pred = env.expectedAt(k + p);
-        dot += obs * pred;
-        na += obs * obs;
-        nb += pred * pred;
+      for (final var entry : ladder.entrySet()) {
+        dot += entry.getValue() * env.expectedAt(entry.getKey() + p);
       }
-      if (na > 0d && nb > 0d) {
-        final double cos = dot / (Math.sqrt(na) * Math.sqrt(nb));
-        if (cos > bestCos) {
-          bestCos = cos;
-          bestPlacement = p;
-        }
+      if (dot > bestDot) {
+        bestDot = dot;
+        bestPlacement = p;
       }
     }
-    return new CarbonFit(Math.max(0d, bestCos), bestPlacement, true);
+    return new CarbonFit(Math.max(0d, bestDot / norm), bestPlacement, true);
   }
 
   /**
@@ -847,34 +869,14 @@ public class IsotopeFinderEngine {
    * offsets and the term collapses. Uses only m/z positions (not intensities), so it is independent
    * of the carbon fit and of the upper-bound intensity penalty.
    *
-   * @param candidates the detected signals.
-   * @param baseMz     the observed base (offset 0) m/z.
-   * @param spacingDa  the hypothesized m/z spacing between consecutive offsets (13C
-   *                   distance/charge).
+   * @param ladder the candidates indexed on the 13C grid.
+   * @param baseMz the observed base (offset 0) m/z.
    * @return bounded [0,1] spacing consistency (1 = a single clean spacing explains the ladder).
    */
-  private double spacingConsistency(@NotNull final List<DataPoint> candidates, final double baseMz,
-      final double spacingDa) {
-    // per offset, keep the on-exact-13C-grid signal closest to the exact position (mirrors the carbon
-    // ladder) so heavy isotopes off the 13C grid do not enter the spacing regression
-    final TreeMap<Integer, Double> mzByOffset = new TreeMap<>();
-    final TreeMap<Integer, Double> errByOffset = new TreeMap<>();
+  private double spacingConsistency(@NotNull final CarbonLadder ladder, final double baseMz) {
     // tight on-grid window: heavy isotopes (~4-5 mDa off the 13C grid) are excluded, so the spacing
     // regression sees only the pure 13C ladder plus any near-but-off interferent peaks
-    final double gridWindow = SPACING_GRID_FACTOR * tol.getMzToleranceForMass(baseMz);
-    for (final DataPoint dp : candidates) {
-      final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
-      final double exactMz = baseMz + k * spacingDa;
-      final double err = Math.abs(dp.getMZ() - exactMz);
-      if (err > gridWindow) {
-        continue; // off the exact 13C grid -> heavy isotope / different element
-      }
-      final Double prev = errByOffset.get(k);
-      if (prev == null || err < prev) {
-        errByOffset.put(k, err);
-        mzByOffset.put(k, dp.getMZ());
-      }
-    }
+    final TreeMap<Integer, Double> mzByOffset = ladder.onGridMz(SPACING_GRID_FACTOR);
     if (mzByOffset.size() < 2) {
       return 1d; // too few on-grid peaks to assess a spacing -> neutral
     }
@@ -908,10 +910,26 @@ public class IsotopeFinderEngine {
   }
 
   private double selfConsistency(final int z, @NotNull final TreeMap<Integer, OffsetPeak> observed,
-      @NotNull final IsotopeEnvelope env, final int placement) {
+      @NotNull final IsotopeEnvelope env, final int placement, final double baseIntensity) {
     if (z == 1) {
       return 1d;
     }
+    // empirical detection floor of THIS spectrum: the weakest signal that made it into the candidate
+    // set, relative to the base. A predicted peak below it would not be visible here even if it
+    // existed, so its absence carries no information about the charge.
+    // decision: without this, an intensity cutoff (every real spectrum has a noise floor) removed the
+    // weak intermediate peaks of a genuine higher charge and this term collapsed, systematically
+    // DOWN-calling the charge - every charge error on the benchmark's cutoff axis was 2->1 or 3->1.
+    double floor = Double.MAX_VALUE;
+    if (baseIntensity > 0d) {
+      for (final OffsetPeak peak : observed.values()) {
+        floor = Math.min(floor, peak.intensity() / baseIntensity);
+      }
+    }
+    if (floor == Double.MAX_VALUE) {
+      floor = 0d;
+    }
+
     int reqTotal = 0;
     int reqPresent = 0;
     // examine predicted offsets relative to the monoisotopic (offset 0). Offsets not divisible by z
@@ -919,10 +937,14 @@ public class IsotopeFinderEngine {
     // Predicted offset o aligns to observed offset (o - placement).
     for (int o = 1; o <= env.maxOffset(); o++) {
       if (o % z != 0 && env.expectedAt(o) >= ENGINE_CUTOFF) {
-        reqTotal++;
         if (observed.containsKey(o - placement)) {
+          reqTotal++;
           reqPresent++;
+        } else if (env.expectedAt(o) >= floor) {
+          // predicted ABOVE this spectrum's detection floor but absent -> genuine evidence against
+          reqTotal++;
         }
+        // predicted below the floor and absent -> undetectable either way, so it is not counted
       }
     }
     if (reqTotal == 0) {
@@ -1033,6 +1055,36 @@ public class IsotopeFinderEngine {
   private record Scored(@NotNull ChargeEval eval, @NotNull List<DataPoint> candidates,
                         @NotNull IsotopeEnvelope env, @Nullable double[] m1Bounds) {
 
+  }
+
+  /**
+   * The monoisotopic &rarr; M+1 (13C) intensity ratio of the isolated carbon ladder at the placement
+   * anchor.
+   *
+   * @param present      whether the anchor (monoisotopic) peak exists with a positive intensity; if
+   *                     not, no M+1/M test can be applied.
+   * @param value        {@code I(M+1) / I(M)}; {@code 0} when the M+1 is absent, which is itself
+   *                     meaningful (the FT-ringing signature).
+   * @param anchorIsMono whether the anchor dominates the ladder peaks below it, i.e. it really is
+   *                     the monoisotopic rather than a mid-envelope apex.
+   * @param anchorIsBase whether the anchor is the observed base peak ({@code placement == 0}). The
+   *                     aggressive lower-bound tests additionally require this: a carbon-poor
+   *                     halogenated molecule whose apex sits mid-envelope legitimately has an M+1/M
+   *                     far below the averagine carbon minimum, and penalising it costs real
+   *                     polyhalogen charge calls.
+   */
+  private record CarbonRatio(boolean present, double value, boolean anchorIsMono,
+                             boolean anchorIsBase) {
+
+    private static final CarbonRatio ABSENT = new CarbonRatio(false, 0d, false, false);
+
+    /**
+     * @return whether the aggressive lower-bound tests (the FT-ringing penalty and the optional
+     * require-13C gate) may be applied to this ratio.
+     */
+    private boolean supportsLowerBound() {
+      return present && anchorIsMono && anchorIsBase;
+    }
   }
 
   /**

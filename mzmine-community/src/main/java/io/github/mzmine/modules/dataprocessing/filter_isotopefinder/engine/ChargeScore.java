@@ -50,8 +50,10 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
  *                           signals present).
  * @param score              bounded [0,1] quality (carbonFit x coverage x intensityAgreement, gated
  *                           by selfConsistency for higher charges and by a fallback weight when no
- *                           real 13C ladder was assessable). This is the value stored on the
- *                           {@link io.github.mzmine.datamodel.IsotopePattern} to rank charges.
+ *                           real 13C ladder was assessable). Stored on the
+ *                           {@link io.github.mzmine.datamodel.IsotopePattern} as a display value;
+ *                           it does NOT rank the charges - {@code raw} does, and the assembled
+ *                           multi-charge pattern preserves that ranking.
  * @param raw                the winner-selection score: bounded quality x a peak-count reward
  *                           ({@code quality * (1 + w * observedCount)}). The winner is the highest
  *                           raw, so a genuine higher charge (which explains more real isotope

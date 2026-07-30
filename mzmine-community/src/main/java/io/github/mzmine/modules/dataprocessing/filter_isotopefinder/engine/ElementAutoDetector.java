@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.Isotope;
 import io.github.mzmine.util.IsotopesUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -224,26 +225,13 @@ public final class ElementAutoDetector {
     // robust defect) and track the strongest such peak RELATIVE TO THE BASE. Base-relative strength is
     // used (not the partner ratio) because a partner ratio is inflated by a weak lower peak, letting
     // 13C/15N combinations in high-carbon molecules masquerade as a strong heavy signal.
-    final List<double[]> heavyPairs = new ArrayList<>(); // {measuredNeutralSpacing, partnerIntensity}
-    double maxHeavyInt = 0d;
-    for (int i = 0; i < sorted.size(); i++) {
-      final double pMz = sorted.get(i).getMZ();
-      if (sorted.get(i).getIntensity() < minPeak) {
-        continue;
-      }
-      for (int j = i + 1; j < sorted.size(); j++) {
-        final double d = (sorted.get(j).getMZ() - pMz) * z;
-        if (d > bandHi) {
-          break; // sorted by m/z -> all further j are even larger
-        }
-        if (d >= bandLo && sorted.get(j).getIntensity() >= minPeak) {
-          heavyPairs.add(new double[]{d, sorted.get(j).getIntensity()});
-          maxHeavyInt = Math.max(maxHeavyInt, sorted.get(j).getIntensity());
-        }
-      }
-    }
+    final List<double[]> heavyPairs = pairsInBand(sorted, z, minPeak, bandLo, bandHi);
     if (heavyPairs.isEmpty()) {
       return DetectedComposition.empty();
+    }
+    double maxHeavyInt = 0d;
+    for (final double[] p : heavyPairs) {
+      maxHeavyInt = Math.max(maxHeavyInt, p[1]);
     }
 
     // 29Si / 33S M+1 band (below the 13C M+1 position), base-relative - the Si fingerprint used to
@@ -377,22 +365,47 @@ public final class ElementAutoDetector {
     // keep below the 13C M+1 position so the (much stronger) 13C peak never counts as an Si signal
     final double bandHi = Math.min(hi + tolNeutral, C13 - Math.max(0.003, 0.5 * tolNeutral));
     double bestInt = 0d;
+    for (final double[] pair : pairsInBand(sorted, z, minPeak, bandLo, bandHi)) {
+      bestInt = Math.max(bestInt, pair[1]);
+    }
+    return baseInt > 0d ? bestInt / baseInt : 0d;
+  }
+
+  /**
+   * Every (lower, higher) pair of significant signals whose measured NEUTRAL spacing falls inside
+   * {@code [bandLo, bandHi]}. Bidirectional over the whole envelope, so it is mono-independent: the
+   * comb of spaced pairs survives even when the monoisotopic is below the detection threshold.
+   * <p>
+   * Shared by the M+2 heavy band and the 29Si M+1 fingerprint band, which previously ran two copies
+   * of this scan.
+   *
+   * @param sorted  the signals, ascending by m/z.
+   * @param z       the pattern charge (m/z spacings are multiplied by it to get neutral spacings).
+   * @param minPeak minimum intensity for a signal to take part in a pair.
+   * @param bandLo  inclusive lower neutral-spacing bound.
+   * @param bandHi  inclusive upper neutral-spacing bound.
+   * @return list of {@code {measuredNeutralSpacing, higherPeakIntensity}}.
+   */
+  @NotNull
+  private static List<double[]> pairsInBand(@NotNull final List<DataPoint> sorted, final int z,
+      final double minPeak, final double bandLo, final double bandHi) {
+    final List<double[]> pairs = new ArrayList<>();
     for (int i = 0; i < sorted.size(); i++) {
-      final double pMz = sorted.get(i).getMZ();
       if (sorted.get(i).getIntensity() < minPeak) {
         continue;
       }
+      final double pMz = sorted.get(i).getMZ();
       for (int j = i + 1; j < sorted.size(); j++) {
         final double d = (sorted.get(j).getMZ() - pMz) * z;
         if (d > bandHi) {
-          break;
+          break; // sorted by m/z -> all further j are even larger
         }
         if (d >= bandLo && sorted.get(j).getIntensity() >= minPeak) {
-          bestInt = Math.max(bestInt, sorted.get(j).getIntensity());
+          pairs.add(new double[]{d, sorted.get(j).getIntensity()});
         }
       }
     }
-    return baseInt > 0d ? bestInt / baseInt : 0d;
+    return pairs;
   }
 
   /**
@@ -492,7 +505,7 @@ public final class ElementAutoDetector {
     for (int i = 0; i < d.length; i++) {
       d[i] = values.get(i);
     }
-    java.util.Arrays.sort(d);
+    Arrays.sort(d);
     final int mid = d.length / 2;
     return d.length % 2 == 1 ? d[mid] : (d[mid - 1] + d[mid]) / 2d;
   }

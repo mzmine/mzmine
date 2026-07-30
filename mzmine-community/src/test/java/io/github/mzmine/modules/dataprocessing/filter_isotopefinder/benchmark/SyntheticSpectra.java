@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.random.RandomGenerator;
 import org.jetbrains.annotations.NotNull;
@@ -254,6 +255,22 @@ public final class SyntheticSpectra {
   }
 
   /**
+   * Scale every intensity by {@code factor} (to place a co-eluting interferent at a realistic
+   * relative abundance rather than at the target's own intensity).
+   */
+  @NotNull
+  public static SimpleMassSpectrum scale(@NotNull final SimpleMassSpectrum s, final double factor) {
+    final int n = s.getNumberOfDataPoints();
+    final double[] mz = new double[n];
+    final double[] in = new double[n];
+    for (int i = 0; i < n; i++) {
+      mz[i] = s.getMzValue(i);
+      in[i] = s.getIntensityValue(i) * factor;
+    }
+    return new SimpleMassSpectrum(mz, in);
+  }
+
+  /**
    * Shift every m/z by {@code dmz} (to place an interferent away from the target).
    */
   @NotNull
@@ -344,14 +361,26 @@ public final class SyntheticSpectra {
         mz = mzWindowLo + rnd.nextDouble() * (mzWindowHi - mzWindowLo);
         placed = isFarEnough(s, noiseMz, added, mz, tol);
       }
+      // decision: DROP an unplaceable peak instead of adding it anyway. Adding it would put a
+      // "noise" peak inside a true peak's tolerance window, where it is recorded as a false peak -
+      // so correctly detecting the REAL peak there would be scored as a noise leak, inflating the
+      // metric with cases the engine cannot possibly win. A crowded window simply yields fewer
+      // noise peaks, which the ground truth records faithfully.
+      if (!placed) {
+        continue;
+      }
       noiseMz[added] = mz;
       noiseIn[added] = rnd.nextDouble() * (maxRelIntensity * base);
       added++;
     }
-    final SimpleMassSpectrum noise = new SimpleMassSpectrum(sortedCopy(noiseMz),
-        reorderByMz(noiseMz, noiseIn));
+    // only the successfully placed prefix is real noise; the unused tail would otherwise inject
+    // spurious peaks at m/z 0 and claim them as ground-truth false positives
+    final double[] placedMz = Arrays.copyOf(noiseMz, added);
+    final double[] placedIn = Arrays.copyOf(noiseIn, added);
+    final SimpleMassSpectrum noise = new SimpleMassSpectrum(sortedCopy(placedMz),
+        reorderByMz(placedMz, placedIn));
     final SimpleMassSpectrum combined = combine(s, noise);
-    return new InjectionResult(combined, noiseMz);
+    return new InjectionResult(combined, placedMz);
   }
 
   private static boolean isFarEnough(@NotNull final SimpleMassSpectrum s,
@@ -374,7 +403,7 @@ public final class SyntheticSpectra {
   @NotNull
   private static double[] sortedCopy(@NotNull final double[] mz) {
     final double[] copy = mz.clone();
-    java.util.Arrays.sort(copy);
+    Arrays.sort(copy);
     return copy;
   }
 
@@ -385,7 +414,7 @@ public final class SyntheticSpectra {
     for (int i = 0; i < order.length; i++) {
       order[i] = i;
     }
-    java.util.Arrays.sort(order, (a, b) -> Double.compare(mz[a], mz[b]));
+    Arrays.sort(order, (a, b) -> Double.compare(mz[a], mz[b]));
     final double[] out = new double[intensity.length];
     for (int i = 0; i < out.length; i++) {
       out[i] = intensity[order[i]];
