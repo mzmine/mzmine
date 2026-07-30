@@ -66,10 +66,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   /**
    * Pattern is calculated for ion
-   * <p>
-   * StableValue renamed to ComputedConstant in JDK26
    */
-  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+  private final Supplier<IsotopePattern> pattern = LazyConstant.of(
       () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
           FormulaUtils.createMajorIsotopeMolFormulaWithCharge(getFormula()), getAdductType()));
 

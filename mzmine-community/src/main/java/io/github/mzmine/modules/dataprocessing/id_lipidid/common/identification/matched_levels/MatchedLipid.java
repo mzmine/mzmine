@@ -87,10 +87,8 @@ public class MatchedLipid implements FeatureAnnotation {
 
   /**
    * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
-   * <p>
-   * StableValue renamed to ComputedConstant in JDK26
    */
-  private final Supplier<IsotopePattern> pattern = StableValue.supplier(
+  private final Supplier<IsotopePattern> pattern = LazyConstant.of(
       () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
           getLipidAnnotation().getMolecularFormula(), getAdductType()));
 
