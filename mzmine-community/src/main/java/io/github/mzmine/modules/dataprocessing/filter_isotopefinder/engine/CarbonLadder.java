@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The observed signals of one charge hypothesis, indexed once by their integer offset on the
@@ -53,6 +54,24 @@ import org.jetbrains.annotations.NotNull;
  * </ul>
  */
 public final class CarbonLadder {
+
+  /**
+   * The m/z tolerance is widened by this factor when testing whether a 13C-grid position is
+   * occupied, so a heavy isotope (37Cl/81Br) merged with the expected 13C signal - which pulls the
+   * observed centroid a few mDa off the exact grid - still counts as present and does not open a
+   * false hole that would truncate the pattern early.
+   */
+  private static final double GAP_TOL_FACTOR = 3d;
+
+  /**
+   * Cluster connectivity (see {@link #clusterSpanAround}): how many offsets a single step of the
+   * chained walk may span, i.e. one missing position may be bridged. Deliberately tiny: the test
+   * only has to tell the searched signal's own envelope (whose isotope peaks are one or two offsets
+   * apart, even where a weak intermediate 13C peak fell below the noise floor) from an unrelated
+   * cluster the candidate collection chained to through unrelated isotope distances, which is many
+   * offsets away.
+   */
+  private static final int CLUSTER_MAX_GAP = 2;
 
   private final double baseMz;
   private final double spacingDa;
@@ -204,6 +223,96 @@ public final class CarbonLadder {
       out.put(e.getKey(), new OffsetPeak(e.getKey(), mz, p.summedIntensity()));
     }
     return out;
+  }
+
+  /**
+   * Select the gap-free 13C ladder through the observed base (offset 0), as the optional require-13C
+   * gate needs it. Prefers the every-13C (step 1) ladder; when that reaches fewer than two signals it
+   * falls back to an every-second (step 2) ladder for molecules whose pattern shows only on every
+   * second 13C position (an intense +2 heavy comb: Cl/Br/Cu). The step-2 ladder must reach at least
+   * three signals so a lone monoisotopic + single heavy M+2 does not qualify as a 13C pattern.
+   *
+   * @return inclusive {@code [minOffset, maxOffset, step]}, or {@code null} if no ladder qualifies.
+   */
+  public int @Nullable [] requireC13Span() {
+    final int[] s1 = gapFreeSpan(1);
+    if (s1[1] - s1[0] >= 1) { // >= 2 signals on the every-13C grid
+      return new int[]{s1[0], s1[1], 1};
+    }
+    final int[] s2 = gapFreeSpan(2);
+    if (s2[1] - s2[0] >= 4) { // >= 3 signals on the every-second grid
+      return new int[]{s2[0], s2[1], 2};
+    }
+    return null;
+  }
+
+  /**
+   * Contiguous, gap-free span of grid offsets around the observed base (offset 0), stepping by
+   * {@code step} offsets. Walks outward in both directions and stops at the first stepped position
+   * with no signal, so a hole where a peak is expected truncates the span even if signals exist
+   * further out. The presence test uses a widened tolerance ({@link #GAP_TOL_FACTOR}) so a heavy
+   * isotope merged with the expected 13C peak (shifting it a few mDa off grid) still counts.
+   * <p>
+   * decision: probed on the NOMINAL 13C grid of the base, not chained on the observed positions.
+   * Chaining would be anchor-independent, but the accumulated drift of the nominal grid is also what
+   * stops a harmonic (a z=2 comb read as a z=1 ladder, whose steps are only ~4 mDa off) from walking
+   * the whole envelope, so it carries real charge-discrimination weight. The searched signal is kept
+   * inside the pattern by widening the crop instead (see the caller).
+   *
+   * @param step the offset step (1 = every 13C, 2 = every second 13C).
+   * @return inclusive {@code [minOffset, maxOffset]} span containing offset 0.
+   */
+  public int @NotNull [] gapFreeSpan(final int step) {
+    int hi = 0;
+    while (!Double.isNaN(nearestMzWithin(exactMzAt(hi + step), GAP_TOL_FACTOR))) {
+      hi += step;
+    }
+    int lo = 0;
+    while (!Double.isNaN(nearestMzWithin(exactMzAt(lo - step), GAP_TOL_FACTOR))) {
+      lo -= step;
+    }
+    return new int[]{lo, hi};
+  }
+
+  /**
+   * The connected cluster the searched signal belongs to: consecutive positions one 13C spacing
+   * apart, each probed from the m/z of the signal the previous step FOUND rather than from a fixed
+   * grid. Chaining makes it independent of where in the pattern the search started and immune to the
+   * nominal grid's drift against a polyhalogen comb, which is what a cluster test needs - it only
+   * decides which signals belong together, never whether a charge is accepted.
+   *
+   * @param from     the searched signal's offset on this ladder's grid.
+   * @param anchorMz the searched signal's m/z.
+   * @return inclusive {@code [minOffset, maxOffset]} span containing {@code from}.
+   */
+  public int @NotNull [] clusterSpanAround(final int from, final double anchorMz) {
+    final int up = countClusterSteps(anchorMz, spacingDa);
+    final int down = countClusterSteps(anchorMz, -spacingDa);
+    return new int[]{from - down, from + up};
+  }
+
+  /**
+   * @param delta the signed m/z step of one ladder position.
+   * @return how many offsets the searched signal's cluster reaches in that direction.
+   */
+  private int countClusterSteps(final double startMz, final double delta) {
+    // a step must advance by at least half a spacing, so a tolerance window wider than the spacing
+    // (high charge + wide tolerance) cannot re-find the same signal and stall the walk
+    final double minAdvance = Math.abs(delta) / 2d;
+    int steps = 0;
+    double ref = startMz;
+    outer:
+    while (true) {
+      for (int gap = 1; gap <= CLUSTER_MAX_GAP; gap++) {
+        final double found = nearestMzWithin(ref + gap * delta, GAP_TOL_FACTOR);
+        if (!Double.isNaN(found) && Math.abs(found - ref) >= minAdvance) {
+          ref = found;
+          steps += gap;
+          continue outer;
+        }
+      }
+      return steps;
+    }
   }
 
   /**

@@ -53,29 +53,38 @@ public class CarbonAveragineAlgorithmParameters extends SimpleParameterSet {
           + "USER_PLUS_AUTO combines both.", ElementDetectionMode.values(),
       DEFAULT_ELEMENT_DETECTION_MODE);
 
-  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
-      ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
-
-  public static final IntegerParameter maxCharge = new IntegerParameter(
-      "Maximum charge of isotope m/z",
+  // Parameter NAMES and DESCRIPTIONS of the parameters that the simplified "automatic" option also
+  // exposes. decision: the shared part is the text, NOT the parameter instance. A parameter instance
+  // carries its value, and both option sets exist in the configuration at the same time - sharing an
+  // instance would make them share one value. See AutomaticIsotopeFinderParameters.
+  public static final String MAX_CHARGE_NAME = "Maximum charge of isotope m/z";
+  public static final String MAX_CHARGE_DESCRIPTION =
       "Maximum possible charge of the isotope distribution. Charges 1..maxCharge are evaluated and "
-          + "the most probable charge is selected; other highly probable charges are flagged.",
-      DEFAULT_MAX_CHARGE, true, 1, 1000);
+          + "the most probable charge is selected; other highly probable charges are flagged.";
+  public static final String REQUIRE_C13_NAME = "Require 13C isotope peak";
+  public static final String REQUIRE_C13_DESCRIPTION = """
+      If enabled, a charge is only accepted when the signals form a gap-free ladder on the \
+      charge-adjusted 13C grid through the detected pattern. Features without such a ladder are \
+      skipped (useful to suppress noise / heavy-isotope-only artifacts).
+      Note that this also TRUNCATES the reported pattern: it stops at the first missing 13C \
+      position, even if further signals exist beyond the gap. Molecules whose pattern is \
+      dominated by an intense +2 comb (Cl/Br/Cu) are allowed to use every second 13C position \
+      instead.
+      Additionally, when the base peak is the monoisotopic, its M+1/M relative intensity must \
+      be roughly plausible for the carbon count the mass implies. The lower bound is \
+      deliberately far below the averagine carbon minimum so that heteroatom-rich, carbon-poor \
+      molecules are not rejected; mid-envelope patterns without a visible monoisotopic (e.g. \
+      proteins) are exempt from this ratio check.""";
 
-  public static final BooleanParameter requireC13 = new BooleanParameter("Require 13C isotope peak",
-      """
-          If enabled, a charge is only accepted when the signals form a gap-free ladder on the \
-          charge-adjusted 13C grid through the detected pattern. Features without such a ladder are \
-          skipped (useful to suppress noise / heavy-isotope-only artifacts).
-          Note that this also TRUNCATES the reported pattern: it stops at the first missing 13C \
-          position, even if further signals exist beyond the gap. Molecules whose pattern is \
-          dominated by an intense +2 comb (Cl/Br/Cu) are allowed to use every second 13C position \
-          instead.
-          Additionally, when the base peak is the monoisotopic, its M+1/M relative intensity must \
-          be roughly plausible for the carbon count the mass implies. The lower bound is \
-          deliberately far below the averagine carbon minimum so that heteroatom-rich, carbon-poor \
-          molecules are not rejected; mid-envelope patterns without a visible monoisotopic (e.g. \
-          proteins) are exempt from this ratio check.""", DEFAULT_REQUIRE_C13);
+  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
+      ToleranceType.FEATURE_TO_SCAN, DEFAULT_MZ_TOLERANCE.getMzTolerance(),
+      DEFAULT_MZ_TOLERANCE.getPpmTolerance());
+
+  public static final IntegerParameter maxCharge = new IntegerParameter(MAX_CHARGE_NAME,
+      MAX_CHARGE_DESCRIPTION, DEFAULT_MAX_CHARGE, true, 1, 1000);
+
+  public static final BooleanParameter requireC13 = new BooleanParameter(REQUIRE_C13_NAME,
+      REQUIRE_C13_DESCRIPTION, DEFAULT_REQUIRE_C13);
 
   public static final BooleanParameter explainableSignalsOnly = new BooleanParameter(
       "Only keep explainable signals", """

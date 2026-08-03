@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +57,20 @@ public final class IsotopeDefectTable {
   // merge distinguishable defects, but coarse enough to keep each level a few hundred entries.
   private static final double DEDUP_GRID = 1e-5;
 
+  /**
+   * The table depends only on the candidate elements and the level cap - both fixed chemistry - while
+   * an engine is built per feature list (and, in the benchmark, per case). Caching it keeps the
+   * combination expansion a one-off.
+   * <p>
+   * decision: a plain {@link ConcurrentHashMap} rather than a Caffeine cache. The key space is
+   * bounded by the user's configuration - a handful of distinct element sets per session, with the
+   * substitution cap fixed by the caller - and one entry is a few tens of kB, so there is nothing for
+   * an eviction policy to do; {@code computeIfAbsent} additionally guarantees the (expensive)
+   * expansion runs once per key. Switch to Caffeine with a {@code maximumSize} only if a caller ever
+   * starts deriving element sets per feature.
+   */
+  private static final Map<String, IsotopeDefectTable> CACHE = new ConcurrentHashMap<>();
+
   // reachable deviation sums, sorted ascending, with the smallest number of substitutions that
   // reaches each one in the parallel array
   private final double[] deviations;
@@ -66,21 +82,20 @@ public final class IsotopeDefectTable {
   }
 
   /**
-   * The table depends only on the candidate elements and the level cap - both fixed chemistry - while
-   * an engine is built per feature list (and, in the benchmark, per case). Caching it keeps the
-   * combination expansion a one-off.
-   */
-  private static final Map<String, IsotopeDefectTable> CACHE = new ConcurrentHashMap<>();
-
-  /**
    * @param candidates       element symbols whose isotopes may explain a signal.
    * @param maxSubstitutions highest number of combined substitutions to pre-expand (&ge; 1).
    * @return the searchable table, cached per {@code (candidates, maxSubstitutions)}.
    */
   public static @NotNull IsotopeDefectTable build(@NotNull final List<String> candidates,
       final int maxSubstitutions) {
-    return CACHE.computeIfAbsent(candidates + "/" + maxSubstitutions,
-        key -> expand(candidates, maxSubstitutions));
+    // the table content is independent of the candidate ORDER (the reachable sums are merged,
+    // deduplicated and sorted), so the key is built from the SORTED symbols: two searches that
+    // declare the same elements in a different order then share one table instead of expanding it
+    // twice. Joined explicitly rather than via List#toString so the key stays a stable format.
+    final List<String> keySymbols = new ArrayList<>(candidates);
+    Collections.sort(keySymbols);
+    final String key = String.join(",", keySymbols) + "/" + maxSubstitutions;
+    return CACHE.computeIfAbsent(key, _ -> expand(candidates, maxSubstitutions));
   }
 
   private static @NotNull IsotopeDefectTable expand(@NotNull final List<String> candidates,

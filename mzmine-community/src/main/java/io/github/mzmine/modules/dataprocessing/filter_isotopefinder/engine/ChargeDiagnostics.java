@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
 
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Rich per-charge scoring diagnostics captured only when the engine runs with
@@ -52,15 +51,12 @@ import org.jetbrains.annotations.Nullable;
  * @param signals             per kept signal attribution (13C ladder / heavy isotope), ordered by
  *                            m/z.
  * @param score               the exported per-charge {@link ChargeScore} breakdown.
- * @param detectedComposition auto-detected heavy elements for this charge (winner only), else
- *                            null.
  */
 public record ChargeDiagnostics(int charge, double baseMz, double baseIntensity, int placement,
                                 double spacingDa, @NotNull double[] envelopeExpected,
                                 @NotNull double[] envelopeUpperBound, @NotNull double[] m1Bounds,
                                 @NotNull List<IsotopeSignalAttribution> signals,
-                                @NotNull ChargeScore score,
-                                @Nullable DetectedComposition detectedComposition) {
+                                @NotNull ChargeScore score) {
 
   /**
    * @return the m/z of the (predicted) monoisotopic peak (predicted offset 0).

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeDiagnostics;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectedComposition;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeSignalAttribution;
 import org.jetbrains.annotations.NotNull;
@@ -86,23 +87,33 @@ public final class IsotopeDiagnosticsSupport {
   }
 
   /**
-   * @return a compact human-readable summary of the detected heavy-element composition, or null
-   * when nothing was detected.
+   * Compact human-readable summary of the auto-detected heavy-element composition.
+   * <p>
+   * The composition is detected for the WINNING charge only (the engine re-scores that charge with
+   * it), so it is only reported while an alternate charge is not selected.
+   *
+   * @param result the recomputed detection result, or null.
+   * @param diag   the diagnostics of the charge currently shown, or null.
+   * @return the summary, or null when nothing was detected or an alternate charge is shown.
    */
-  public static @Nullable String formatComposition(@Nullable final ChargeDiagnostics diag) {
-    if (diag == null || diag.detectedComposition() == null || diag.detectedComposition().elements()
-        .isEmpty()) {
+  public static @Nullable String formatComposition(@Nullable final DetectionResult result,
+      @Nullable final ChargeDiagnostics diag) {
+    if (result == null || diag == null || diag.charge() != result.bestCharge()) {
+      return null;
+    }
+    final DetectedComposition comp = result.detectedComposition();
+    if (comp == null || comp.elements().isEmpty()) {
       return null;
     }
     final StringBuilder sb = new StringBuilder("Detected heavy elements: ");
     boolean first = true;
-    for (final String el : diag.detectedComposition().elements()) {
+    for (final String el : comp.elements()) {
       if (!first) {
         sb.append(", ");
       }
       first = false;
       sb.append(el);
-      final Double conf = diag.detectedComposition().confidence().get(el);
+      final Double conf = comp.confidence().get(el);
       if (conf != null) {
         sb.append(String.format(" (%.2f)", conf));
       }
@@ -111,10 +122,13 @@ public final class IsotopeDiagnosticsSupport {
   }
 
   /**
+   * @param result the recomputed detection result, for the detected composition.
+   * @param diag   the diagnostics of the charge currently shown, or null.
    * @return a copyable, human-readable dump of the per-signal attribution, the M+1 ratio gate and
    * the detected composition for the selected charge, or a placeholder when no diagnostics exist.
    */
-  public static @NotNull String formatDump(@Nullable final ChargeDiagnostics diag) {
+  public static @NotNull String formatDump(@Nullable final DetectionResult result,
+      @Nullable final ChargeDiagnostics diag) {
     if (diag == null) {
       return "No diagnostics for the selected charge.";
     }
@@ -139,7 +153,7 @@ public final class IsotopeDiagnosticsSupport {
     if (m1.length == 2) {
       sb.append(String.format("M+1/M gate: [%.4f, %.4f]%n", m1[0], m1[1]));
     }
-    final String comp = formatComposition(diag);
+    final String comp = formatComposition(result, diag);
     if (comp != null) {
       sb.append(comp).append('\n');
     }

@@ -14,24 +14,28 @@ import org.jetbrains.annotations.NotNull;
  * dataset. Everything else is filled with the defaults of the
  * {@link CarbonAveragineAlgorithmParameters}, which this option is mapped onto (see
  * {@link AutomaticIsotopeFinderModule}).
+ * <p>
+ * The three parameters are defined again here rather than reusing the instances of
+ * {@link CarbonAveragineAlgorithmParameters}: a parameter instance carries its value, and both
+ * option sets live in the configuration at the same time, so a shared instance would make the two
+ * options share one value. Only the names, descriptions and defaults are shared, so the two dialogs
+ * cannot describe the same setting differently.
  */
 public class AutomaticIsotopeFinderParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
-      ToleranceType.FEATURE_TO_SCAN, 0.001, 10);
+      ToleranceType.FEATURE_TO_SCAN,
+      CarbonAveragineAlgorithmParameters.DEFAULT_MZ_TOLERANCE.getMzTolerance(),
+      CarbonAveragineAlgorithmParameters.DEFAULT_MZ_TOLERANCE.getPpmTolerance());
 
-  public static final BooleanParameter requireC13 = new BooleanParameter("Require 13C isotope peak",
-      """
-          If enabled, a charge is only accepted when the signals form a gap-free ladder on the \
-          charge-adjusted 13C grid through the detected pattern. Features without such a ladder are \
-          skipped (useful to suppress noise / heavy-isotope-only artifacts). Note that this also \
-          truncates the reported pattern at the first missing 13C position.""",
+  public static final BooleanParameter requireC13 = new BooleanParameter(
+      CarbonAveragineAlgorithmParameters.REQUIRE_C13_NAME,
+      CarbonAveragineAlgorithmParameters.REQUIRE_C13_DESCRIPTION,
       CarbonAveragineAlgorithmParameters.DEFAULT_REQUIRE_C13);
 
   public static final IntegerParameter maxCharge = new IntegerParameter(
-      "Maximum charge of isotope m/z",
-      "Maximum possible charge of the isotope distribution. Charges 1..maxCharge are evaluated and "
-          + "the most probable charge is selected; other highly probable charges are flagged.",
+      CarbonAveragineAlgorithmParameters.MAX_CHARGE_NAME,
+      CarbonAveragineAlgorithmParameters.MAX_CHARGE_DESCRIPTION,
       CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE, true, 1, 1000);
 
   public AutomaticIsotopeFinderParameters() {

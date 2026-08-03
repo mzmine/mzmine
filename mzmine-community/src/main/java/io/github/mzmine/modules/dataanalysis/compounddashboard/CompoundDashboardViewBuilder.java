@@ -446,12 +446,12 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final StringBuilder cap = new StringBuilder(
         "Recomputed on the representative scan (single scan; no FWHM refinement). Best charge z=").append(
         result.bestCharge()).append('.');
-    final String comp = IsotopeDiagnosticsSupport.formatComposition(diag);
+    final String comp = IsotopeDiagnosticsSupport.formatComposition(result, diag);
     if (comp != null) {
       cap.append(' ').append(comp);
     }
     caption.setText(cap.toString());
-    dump.setText(IsotopeDiagnosticsSupport.formatDump(diag));
+    dump.setText(IsotopeDiagnosticsSupport.formatDump(result, diag));
     // select the row for the currently shown charge so the table tracks the mirror
     if (diag != null) {
       for (final ChargeScore s : scoreTable.getItems()) {
