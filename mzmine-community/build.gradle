@@ -857,10 +857,10 @@ processTestResources.dependsOn(copyTestResources)
 // regenerate the baselines (isotopeBenchmark) and commit corpus + baselines together.
 tasks.register("generateBenchmarkCorpus", JavaExec) {
     group = "benchmark"
-    description = "Regenerates the COMMITTED isotope finder benchmark corpus (src/test/resources/isotopefinder/corpus/patterns.jsonl). Slow; only needed when the catalog or sweep changes."
+    description = "Regenerates the COMMITTED isotope finder benchmark corpus (src/test/resources/isotopefinder/corpus/patterns.jsonl.gz). Slow; only needed when the catalog or sweep changes."
     classpath = sourceSets.test.runtimeClasspath
     mainClass = "io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark.BenchmarkPatternGenerator"
-    args = [layout.projectDirectory.file("src/test/resources/isotopefinder/corpus/patterns.jsonl").asFile.absolutePath]
+    args = [layout.projectDirectory.file("src/test/resources/isotopefinder/corpus/patterns.jsonl.gz").asFile.absolutePath]
 }
 
 // Regenerates the committed isotope finder accuracy baseline by running the CURRENT engine over the

@@ -35,10 +35,9 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * {@link #expected()} is the best estimate of the relative intensity at each offset and is used for
  * the envelope-fit score and to decide the carbon-driven shape. {@link #upperBound()} is the
- * maximum plausible relative intensity at each offset (widened for heavy isotopes such as S, Cl, Br
- * in the signal-based model, or taken as the maximum across all candidate formulas in the
- * formula-prediction model). The upper bound drives inclusion/termination: an observed signal that
- * exceeds it is implausible for this charge hypothesis.
+ * maximum plausible relative intensity at each offset (widened for heavy isotopes such as S, Cl,
+ * Br). The upper bound drives inclusion/termination: an observed signal that exceeds it is
+ * implausible for this charge hypothesis.
  * <p>
  * <b>The arrays are exposed directly and must never be mutated by callers.</b> An envelope is built
  * once per (m/z, charge) hypothesis and shared by every scoring step; a caller that needs to keep a
@@ -46,6 +45,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public record IsotopeEnvelope(@NotNull double[] expected, @NotNull double[] upperBound,
                               double spacingDa, int charge) {
+
+  /**
+   * Relative intensity from which on an offset counts as predicted ("the envelope supports a peak
+   * here"). Single definition on purpose: the engine's coverage/self-consistency/termination, the
+   * cross-scan refiner's recovery test and the default envelope cutoff have to agree, otherwise the
+   * refiner recovers offsets the engine would have terminated at.
+   */
+  public static final double SUPPORT_CUTOFF = 0.02;
 
   public int maxOffset() {
     return expected.length - 1;

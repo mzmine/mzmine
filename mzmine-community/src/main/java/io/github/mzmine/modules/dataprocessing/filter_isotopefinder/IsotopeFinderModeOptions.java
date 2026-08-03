@@ -40,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
  * carries the full setup of the detection run as its embedded parameters, so the top-level
  * {@link IsotopeFinderParameters} only has the feature lists and the algorithm choice.
  * <p>
- * The formula-prediction algorithm is not exposed yet: the classes in the {@code formula} package are
- * kept for it, but no option maps to them, so it is hidden from the GUI and from saved batches.
+ * Both options run the same carbon-averagine detection; they only differ in how much of its setup
+ * they expose.
  */
 public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderAlgorithmModule> {
 

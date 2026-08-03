@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
@@ -62,13 +63,18 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   // legacy parameters: they used to live on this top level and moved into the algorithm parameters.
   // They are not part of this parameter set anymore and only exist to read the value of an older
   // batch/config XML, see getNameParameterMap() and handleLoadedParameters(). Private on purpose -
-  // nothing but the legacy loading may read them.
-  private static final MZToleranceParameter legacyIsotopeMzTolerance = new MZToleranceParameter(
+  // nothing but the legacy loading may read them. The templates are only ever CLONED, never used
+  // directly: loading writes the parsed value into the parameter instance, so a shared static one
+  // would leak values between parameter sets loading at the same time.
+  private static final MZToleranceParameter legacyMzToleranceTemplate = new MZToleranceParameter(
       ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
 
-  private static final IntegerParameter legacyMaxCharge = new IntegerParameter(
+  private static final IntegerParameter legacyMaxChargeTemplate = new IntegerParameter(
       "Maximum charge of isotope m/z", "Legacy parameter, moved into the algorithm parameters.",
       CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE, true, 1, 1000);
+
+  // even older name of the same tolerance parameter
+  private static final String LEGACY_MZ_TOLERANCE_OLD_NAME = "m/z tolerance";
 
   public IsotopeFinderParameters() {
     super(new UserParameter[]{featureLists, mode},
@@ -118,11 +124,13 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var nameParameterMap = super.getNameParameterMap();
-    // parameters that moved into the algorithm parameters, see handleLoadedParameters
-    nameParameterMap.put(legacyIsotopeMzTolerance.getName(), legacyIsotopeMzTolerance);
-    // even older name of the same tolerance parameter
-    nameParameterMap.put("m/z tolerance", legacyIsotopeMzTolerance);
-    nameParameterMap.put(legacyMaxCharge.getName(), legacyMaxCharge);
+    // parameters that moved into the algorithm parameters, see handleLoadedParameters. Cloned so the
+    // loaded value lands on an instance owned by this load only.
+    final MZToleranceParameter tolerance = legacyMzToleranceTemplate.cloneParameter();
+    final IntegerParameter maxChargeParam = legacyMaxChargeTemplate.cloneParameter();
+    nameParameterMap.put(tolerance.getName(), tolerance);
+    nameParameterMap.put(LEGACY_MZ_TOLERANCE_OLD_NAME, tolerance);
+    nameParameterMap.put(maxChargeParam.getName(), maxChargeParam);
     return nameParameterMap;
   }
 
@@ -131,9 +139,15 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
       final int loadedVersion) {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
-    final boolean hasTolerance = loadedParams.containsKey(legacyIsotopeMzTolerance.getName());
-    final boolean hasMaxCharge = loadedParams.containsKey(legacyMaxCharge.getName());
-    if (!hasTolerance && !hasMaxCharge) {
+    // read the values off the clones that the loading filled, see getNameParameterMap. The map is
+    // keyed by the parameter's own name, also when the XML used the older name.
+    final Parameter<?> loadedTolerance = loadedParams.get(legacyMzToleranceTemplate.getName());
+    final Parameter<?> loadedMaxCharge = loadedParams.get(legacyMaxChargeTemplate.getName());
+    final MZTolerance tolerance =
+        loadedTolerance instanceof MZToleranceParameter p ? p.getValue() : null;
+    final Integer legacyCharge =
+        loadedMaxCharge instanceof IntegerParameter p ? p.getValue() : null;
+    if (tolerance == null && legacyCharge == null) {
       return;
     }
 
@@ -142,12 +156,11 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     // which is that algorithm with defaults plus exactly these two values.
     final ParameterSet automatic = getParameter(mode).setOptionGetParameters(
         IsotopeFinderModeOptions.AUTOMATIC);
-    if (hasTolerance) {
-      automatic.setParameter(AutomaticIsotopeFinderParameters.isotopeMzTolerance,
-          legacyIsotopeMzTolerance.getValue());
+    if (tolerance != null) {
+      automatic.setParameter(AutomaticIsotopeFinderParameters.isotopeMzTolerance, tolerance);
     }
-    if (hasMaxCharge) {
-      automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, legacyMaxCharge.getValue());
+    if (legacyCharge != null) {
+      automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, legacyCharge);
     }
   }
 }

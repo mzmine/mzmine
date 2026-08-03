@@ -34,11 +34,12 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,9 +65,9 @@ public final class CrossScanRefiner {
   // detected signals themselves are never subject to this - refinement must not drop real peaks.
   private static final double MIN_RECOVERED_REL_INTENSITY = 0.001;
   // a recovered offset must additionally be one the predicted envelope allows a peak at, i.e. its
-  // plausible upper bound must reach this relative intensity (same cutoff the engine's termination
-  // uses). Only applied when the caller supplies the envelope anchor.
-  private static final double MIN_RECOVERED_PREDICTED_BOUND = 0.02;
+  // plausible upper bound must reach this relative intensity (the same cutoff the engine's
+  // termination uses). Only applied when the caller supplies the envelope anchor.
+  private static final double MIN_RECOVERED_PREDICTED_BOUND = IsotopeEnvelope.SUPPORT_CUTOFF;
 
   private CrossScanRefiner() {
   }
@@ -199,7 +200,7 @@ public final class CrossScanRefiner {
   private static @Nullable ScanAggregate aggregateAcrossScans(final double targetMz,
       final double baseMz, @NotNull final List<? extends MassSpectrum> scans,
       @NotNull final MZTolerance tol, @NotNull final RatioAggregation aggregation) {
-    final List<Double> ratios = new ArrayList<>();
+    final DoubleArrayList ratios = new DoubleArrayList();
     int presentCount = 0;
     double weightedMzSum = 0d;
     double weightSum = 0d;
@@ -219,7 +220,7 @@ public final class CrossScanRefiner {
     if (ratios.isEmpty()) {
       return null;
     }
-    return new ScanAggregate(aggregate(ratios, aggregation),
+    return new ScanAggregate(aggregate(ratios.toDoubleArray(), aggregation),
         weightSum > 0 ? weightedMzSum / weightSum : targetMz, presentCount);
   }
 
@@ -283,26 +284,14 @@ public final class CrossScanRefiner {
     private static final MatchedSignal ABSENT = new MatchedSignal(0d, Double.NaN);
   }
 
-  private static double aggregate(@NotNull final List<Double> values,
+  private static double aggregate(final double @NotNull [] values,
       @NotNull final RatioAggregation aggregation) {
-    if (values.isEmpty()) {
+    if (values.length == 0) {
       return 0d;
     }
     return switch (aggregation) {
-      case MEAN -> {
-        double sum = 0d;
-        for (final double v : values) {
-          sum += v;
-        }
-        yield sum / values.size();
-      }
-      case MEDIAN -> {
-        final List<Double> sorted = new ArrayList<>(values);
-        Collections.sort(sorted);
-        final int mid = sorted.size() / 2;
-        yield sorted.size() % 2 == 1 ? sorted.get(mid)
-            : (sorted.get(mid - 1) + sorted.get(mid)) / 2d;
-      }
+      case MEAN -> MathUtils.calcAvg(values);
+      case MEDIAN -> MathUtils.calcMedian(values);
     };
   }
 }

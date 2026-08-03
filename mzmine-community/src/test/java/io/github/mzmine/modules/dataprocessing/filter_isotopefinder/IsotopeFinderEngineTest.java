@@ -49,8 +49,6 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Isoto
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.PatternAnchor;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.RatioAggregation;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.formula.FormulaEnvelopeModel;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.formula.FormulaEnvelopeParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
@@ -389,21 +387,6 @@ class IsotopeFinderEngineTest {
     // low resolution: fine structure merged into a single peak per nominal offset
     final List<Element> elements = List.of(new Element("C"), new Element("N"), new Element("O"));
     final DetectionResult result = engine(elements, 2).detect(ladder(600.0, 1, 40, 5), 600.0, 100d,
-        PolarityType.POSITIVE);
-    assertNotNull(result);
-    assertEquals(1, result.bestCharge());
-  }
-
-  @Test
-  void formulaPredictionModeDetectsChargeOne() {
-    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
-        new Element("O"));
-    final EnvelopeModel model = new FormulaEnvelopeModel(new FormulaEnvelopeParameters(),
-        new EnvelopeContext(elements, TOL));
-    final IsotopeFinderEngine engine = new IsotopeFinderEngine(
-        IsotopeFinderEngineConfig.of(elements, 2, TOL, model, "formula", false));
-    // small molecule mass; formula enumeration is cheap here
-    final DetectionResult result = engine.detect(ladder(195.0877, 1, 8, 4), 195.0877, 100d,
         PolarityType.POSITIVE);
     assertNotNull(result);
     assertEquals(1, result.bestCharge());

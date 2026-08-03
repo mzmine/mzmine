@@ -48,8 +48,7 @@ import org.jetbrains.annotations.Nullable;
  *                            base peak normalised to 1.0. Drives the fit/shape overlay.
  * @param envelopeUpperBound  maximum plausible relative intensity per offset. Drives the
  *                            plausibility colouring (observed within vs exceeding the bound).
- * @param m1Bounds            carbon M+1/M ratio bounds {@code [lo, hi]} for the require-13C gate,
- *                            or null in formula-prediction mode.
+ * @param m1Bounds            carbon M+1/M ratio bounds {@code [lo, hi]} for the require-13C gate.
  * @param signals             per kept signal attribution (13C ladder / heavy isotope), ordered by
  *                            m/z.
  * @param score               the exported per-charge {@link ChargeScore} breakdown.
@@ -58,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public record ChargeDiagnostics(int charge, double baseMz, double baseIntensity, int placement,
                                 double spacingDa, @NotNull double[] envelopeExpected,
-                                @NotNull double[] envelopeUpperBound, @Nullable double[] m1Bounds,
+                                @NotNull double[] envelopeUpperBound, @NotNull double[] m1Bounds,
                                 @NotNull List<IsotopeSignalAttribution> signals,
                                 @NotNull ChargeScore score,
                                 @Nullable DetectedComposition detectedComposition) {

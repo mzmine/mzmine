@@ -36,18 +36,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Loads the committed benchmark JSONL corpus and maps each line to a runnable
  * {@link GroundTruthCase}.
+ * <p>
+ * decision: the corpus is committed GZIPPED. It is a 12 MB text file that would otherwise sit in
+ * the git history of every clone forever; gzip takes it to well under a tenth of that while keeping
+ * the "pin the exact inputs the baselines were measured on" property that made committing it the
+ * right call in the first place. Decompression is a few hundred milliseconds against a benchmark run
+ * of minutes.
  */
 public final class BenchmarkCorpusLoader {
 
   /**
-   * Classpath location of the committed corpus.
+   * Classpath location of the committed (gzipped) corpus.
    */
-  public static final String RESOURCE = "isotopefinder/corpus/patterns.jsonl";
+  public static final String RESOURCE = "isotopefinder/corpus/patterns.jsonl.gz";
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -64,8 +71,7 @@ public final class BenchmarkCorpusLoader {
     if (in == null) {
       throw new IllegalStateException("Benchmark corpus not found on classpath: " + RESOURCE);
     }
-    try (final BufferedReader reader = new BufferedReader(
-        new InputStreamReader(in, StandardCharsets.UTF_8))) {
+    try (final BufferedReader reader = newReader(in)) {
       return parse(reader);
     } catch (final IOException e) {
       throw new UncheckedIOException("Failed to read benchmark corpus: " + RESOURCE, e);
@@ -73,15 +79,25 @@ public final class BenchmarkCorpusLoader {
   }
 
   /**
-   * Load the corpus from a filesystem path.
+   * Load the corpus from a filesystem path (gzipped, see {@link #RESOURCE}).
    */
   @NotNull
   public static List<GroundTruthCase> load(@NotNull final Path path) {
-    try (final BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+    try (final BufferedReader reader = newReader(Files.newInputStream(path))) {
       return parse(reader);
     } catch (final IOException e) {
       throw new UncheckedIOException("Failed to read benchmark corpus: " + path, e);
     }
+  }
+
+  /**
+   * @param in the raw gzipped stream; closed together with the returned reader.
+   * @return a UTF-8 line reader over the decompressed corpus.
+   */
+  @NotNull
+  private static BufferedReader newReader(@NotNull final InputStream in) throws IOException {
+    return new BufferedReader(
+        new InputStreamReader(new GZIPInputStream(in), StandardCharsets.UTF_8));
   }
 
   @NotNull

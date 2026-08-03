@@ -61,7 +61,7 @@ import org.openscience.cdk.Element;
 public class IsotopeFinderEngine {
 
   // an offset is "expected" / still supported if predicted >= this relative intensity
-  private static final double ENGINE_CUTOFF = 0.02;
+  private static final double ENGINE_CUTOFF = IsotopeEnvelope.SUPPORT_CUTOFF;
   // an alternate charge is flagged in addition to the winner if its bounded quality is within this
   // absolute margin of the best bounded quality. An absolute margin is invariant to peak count and to
   // how many charge hypotheses survived (a maxCharge-dependent probability denominator was the old
@@ -294,8 +294,8 @@ public class IsotopeFinderEngine {
         continue;
       }
       final IsotopeEnvelope env = model.buildEnvelope(mz, z, polarity);
-      // carbon M+1/M bounds drive both the optional require-13C gate and the carbon-ratio plausibility
-      // penalty in scoreCharge, so compute them whenever the model can (null in formula-prediction mode).
+      // carbon M+1/M bounds drive both the optional require-13C gate and the carbon-ratio
+      // plausibility penalty in scoreCharge
       final double[] m1Bounds = model.expectedM1RatioBounds(mz, z, polarity);
       final ChargeEval eval = scoreCharge(z, mz, candidates, env, m1Bounds);
       if (eval != null && eval.raw() > 0) {
@@ -324,7 +324,7 @@ public class IsotopeFinderEngine {
     // elements from the RAW spectrum around the pattern and rebuild the winner's heavy upper bound
     // from the detected per-element atom counts, then re-score that charge only.
     DetectedComposition detectedComposition = null;
-    if (elementDetectionMode != ElementDetectionMode.USER_DEFINED && !scoredList.isEmpty()) {
+    if (elementDetectionMode != ElementDetectionMode.USER_DEFINED) {
       final Scored winner = scoredList.getFirst();
       final int z = winner.eval().charge();
       // raw-spectrum window around the winning pattern so off-ladder S/Si M+2 peaks are recoverable
@@ -336,7 +336,7 @@ public class IsotopeFinderEngine {
       }
       final List<DataPoint> rawWindow = ElementAutoDetector.collectDetectionWindow(spectrum, lo, hi,
           z);
-      final DetectedComposition comp = ElementAutoDetector.detect(rawWindow, z, mz * z, tol,
+      final DetectedComposition comp = ElementAutoDetector.detect(rawWindow, z, tol,
           autoCandidates);
       if (!comp.elements().isEmpty()) {
         detectedComposition = comp;
@@ -414,7 +414,7 @@ public class IsotopeFinderEngine {
    * score.
    */
   private @NotNull ChargeDiagnostics buildDiagnostics(@NotNull final ChargeEval e,
-      @NotNull final IsotopeEnvelope env, final double @Nullable [] m1Bounds,
+      @NotNull final IsotopeEnvelope env, final double @NotNull [] m1Bounds,
       @NotNull final ChargeScore score, @Nullable final DetectedComposition comp) {
     final double baseMz = e.baseMz();
     final int placement = e.placement();
@@ -463,8 +463,7 @@ public class IsotopeFinderEngine {
               label, relInt));
     }
     return new ChargeDiagnostics(env.charge(), baseMz, baseIntensity, placement, spacingDa,
-        env.expected().clone(), env.upperBound().clone(),
-        m1Bounds == null ? null : m1Bounds.clone(), signals, score, comp);
+        env.expected().clone(), env.upperBound().clone(), m1Bounds.clone(), signals, score, comp);
   }
 
   /**
@@ -506,7 +505,7 @@ public class IsotopeFinderEngine {
 
   private @Nullable ChargeEval scoreCharge(final int z, final double searchedMz,
       @NotNull final List<DataPoint> candidates, @NotNull final IsotopeEnvelope env,
-      @Nullable final double[] m1Bounds) {
+      final double @NotNull [] m1Bounds) {
     final double spacingDa = env.spacingDa();
 
     // the searched signal as it was measured; every crop below is grown out of it, so the emitted
@@ -606,8 +605,7 @@ public class IsotopeFinderEngine {
     // monoisotopic and the every-13C (step 1) ladder was used - mid-envelope humps (proteins) and
     // the every-second ladder have no dominant monoisotopic to anchor the ratio. A shifted/merged
     // M+1 (absent from the strict ladder) is left to the soft penalty below.
-    if (requireC13 && ladderStep == 1 && m1Bounds != null && failsRequireC13Ratio(carbonRatio,
-        m1Bounds)) {
+    if (requireC13 && ladderStep == 1 && failsRequireC13Ratio(carbonRatio, m1Bounds)) {
       return null;
     }
 
@@ -739,7 +737,7 @@ public class IsotopeFinderEngine {
     // carbon M+1/M plausibility penalty: a single two-sided factor in (0,1] on the SAME anchored
     // ratio the optional gate above used. Skipped when the mono is absent (protein humps with an
     // invisible monoisotopic) or the carbon ladder was not assessable.
-    if (m1Bounds != null && carbonFit.assessed()) {
+    if (carbonFit.assessed()) {
       quality *= carbonRatioPlausibility(carbonRatio, m1Bounds);
     }
     double raw = quality * (1d + TIE_WEIGHT * observedCount);
@@ -1336,10 +1334,10 @@ public class IsotopeFinderEngine {
    * @param eval       the current scoring result for this charge.
    * @param candidates the raw candidate signals collected for this charge.
    * @param env        the predicted envelope used to produce {@code eval}.
-   * @param m1Bounds   the carbon M+1/M ratio bounds (may be null in formula-prediction mode).
+   * @param m1Bounds   the carbon M+1/M ratio bounds.
    */
   private record Scored(@NotNull ChargeEval eval, @NotNull List<DataPoint> candidates,
-                        @NotNull IsotopeEnvelope env, @Nullable double[] m1Bounds) {
+                        @NotNull IsotopeEnvelope env, @NotNull double[] m1Bounds) {
 
   }
 

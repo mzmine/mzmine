@@ -1,6 +1,6 @@
 ---
 name: Isotope finder benchmark
-description: How to run and interpret the isotope-finder accuracy benchmark before/after changing the engine or related scoring/model code. Use when editing IsotopeFinderEngine, ChargeScore, the EnvelopeModel implementations (CarbonAveragineEnvelopeModel / formula mode), ElementAutoDetector, or anything under the filter_isotopefinder engine/signal packages that affects charge-state, pattern, or element detection.
+description: How to run and interpret the isotope-finder accuracy benchmark before/after changing the engine or related scoring/model code. Use when editing IsotopeFinderEngine, ChargeScore, the EnvelopeModel implementation (CarbonAveragineEnvelopeModel), ElementAutoDetector, or anything under the filter_isotopefinder engine/signal packages that affects charge-state, pattern, or element detection.
 ---
 
 # Isotope finder benchmark
@@ -15,7 +15,7 @@ Everything lives in the test source set, package
 the
 parent package. Committed data:
 
-- Corpus: `mzmine-community/src/test/resources/isotopefinder/corpus/patterns.jsonl` (~15 MB, 5919
+- Corpus: `mzmine-community/src/test/resources/isotopefinder/corpus/patterns.jsonl.gz` (gzipped JSONL, ~1.4 MB on disk, 5919
   patterns). Regenerate deliberately — **never** as part of an engine change.
   **The corpus is committed on purpose, despite being fully reproducible from the generator.** The
   CDK isotopologue enumeration for the catalog's proteins is expensive (~15 min), so generating it
@@ -146,11 +146,11 @@ automatically for all three tasks below.
 # 4. The heavy @Tag("benchmark") test tier (excluded from the default `test` task). Contains
 #    IsotopeBenchmarkRegressionTest, which runs the WHOLE corpus and fails if any per-axis metric
 #    dropped more than 0.01 below the committed baseline — run this before proposing an engine
-#    change as an improvement. Also the non-asserting IsotopeFinderScoreDiagnosisTest.
+#    change as an improvement.
 ./gradlew :mzmine-community:benchmark
 
 # 5. ONLY when you changed the generator/catalog (GenerationConfig, BenchmarkPatternGenerator,
-#    SyntheticSpectra) — NOT for engine changes. Rewrites the 15 MB corpus. VERY SLOW: measured at
+#    SyntheticSpectra) — NOT for engine changes. Rewrites the gzipped corpus. VERY SLOW: measured at
 #    ~4 h, dominated by the largest protein enumerations — budget for it. Regenerate the baseline
 #    (task 1) afterwards and commit corpus + baseline together.
 #    NOTE: the result is NOT bit-reproducible (CDK's enumeration drifts ~1e-13 per call), so the
@@ -294,4 +294,3 @@ signals instead of a raw window (the open half of review item 6.5).
 - Engine under test: `engine/IsotopeFinderEngine`, `engine/ChargeScore`,
   `signal/CarbonAveragineEnvelopeModel`,
   `engine/ElementAutoDetector`.
-- Design/status log: `isotope_finder_benchmark_plan.md` at the repo root.

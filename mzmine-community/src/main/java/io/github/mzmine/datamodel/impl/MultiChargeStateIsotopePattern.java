@@ -64,23 +64,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * {@link #patternSizeComparator} (size descending, charge ascending), preserving the legacy
    * ordering when no scores are present.
    */
-  public static final Comparator<IsotopePattern> patternScoreComparator = (a, b) -> {
-    final double sa = a.getScore();
-    final double sb = b.getScore();
-    final boolean na = Double.isNaN(sa);
-    final boolean nb = Double.isNaN(sb);
-    // decision: a scored pattern always outranks an unscored one
-    if (na != nb) {
-      return na ? 1 : -1;
-    }
-    if (!na) {
-      final int byScore = Double.compare(sb, sa); // higher score first
-      if (byScore != 0) {
-        return byScore;
-      }
-    }
-    return patternSizeComparator.compare(a, b);
-  };
+  public static final Comparator<IsotopePattern> patternScoreComparator = Comparator.comparingDouble(
+          // decision: an unscored (NaN) pattern is ranked as the worst score, so a scored pattern
+          // always outranks it and a set without any score falls through to the size ordering
+          (IsotopePattern ip) -> Double.isNaN(ip.getScore()) ? Double.NEGATIVE_INFINITY
+              : ip.getScore()).reversed() // higher score first
+      .thenComparing(patternSizeComparator);
 
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();

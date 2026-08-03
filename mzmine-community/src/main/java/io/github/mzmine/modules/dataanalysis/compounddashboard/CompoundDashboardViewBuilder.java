@@ -60,6 +60,7 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -419,7 +420,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   }
 
   private static @NotNull TableColumn<ChargeScore, String> scoreColumn(@NotNull final String title,
-      @NotNull final java.util.function.Function<ChargeScore, String> value) {
+      @NotNull final Function<ChargeScore, String> value) {
     final TableColumn<ChargeScore, String> col = new TableColumn<>(title);
     col.setCellValueFactory(cd -> new ReadOnlyStringWrapper(value.apply(cd.getValue())));
     return col;
@@ -507,6 +508,7 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
 
     if (representative != null) {
       // No isotope pattern: show a plain full MS1 spectrum of the row (same chart type as MS1/MS2).
+      // fully qualified: javafx.scene.paint.Color is imported for the JavaFX side of this builder
       final java.awt.Color awt = FxColorUtil.fxColorToAWT(
           ConfigService.getDefaultColorPalette().getNeutralColor());
       isotopeSpectrumChart.clearDatasets();

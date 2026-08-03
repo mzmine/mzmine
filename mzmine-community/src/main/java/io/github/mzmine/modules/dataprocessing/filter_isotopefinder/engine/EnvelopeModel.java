@@ -32,10 +32,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Strategy that predicts the isotope intensity envelope for a searched signal at a given charge.
- * This is the only part of the detection that differs between the signal-based (carbon-averagine)
- * and formula-prediction modes. Implementations are created by an {@link EnvelopeModelModule} so
- * they can be selected through a
- * {@link io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter}.
+ * This is the part of the detection a future alternative model (e.g. formula prediction) would
+ * replace; today {@link io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel}
+ * is the only implementation and models are built directly by
+ * {@link io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderEngineFactory}.
  */
 public interface EnvelopeModel {
 
@@ -50,10 +50,7 @@ public interface EnvelopeModel {
       @NotNull PolarityType polarity);
 
   /**
-   * Build the envelope using per-element detected heavy-atom counts (Part D2). The default
-   * implementation ignores the extra information and falls back to
-   * {@link #buildEnvelope(double, int, PolarityType)}, so models that cannot use it (e.g. formula
-   * prediction) are unaffected.
+   * Build the envelope using per-element detected heavy-atom counts.
    *
    * @param detectedHeavyCounts element symbol -> atom count to model for the heavy upper bound, or
    *                            null to use the model's own default. Overrides/extends the
@@ -62,24 +59,20 @@ public interface EnvelopeModel {
    *                            model's default estimated count) in addition to
    *                            {@code detectedHeavyCounts}.
    */
-  default @NotNull IsotopeEnvelope buildEnvelope(final double observedMz, final int charge,
-      @NotNull final PolarityType polarity,
-      @Nullable final Map<String, Integer> detectedHeavyCounts, final boolean includeUserHeavies) {
-    return buildEnvelope(observedMz, charge, polarity);
-  }
+  @NotNull IsotopeEnvelope buildEnvelope(double observedMz, int charge,
+      @NotNull PolarityType polarity, @Nullable Map<String, Integer> detectedHeavyCounts,
+      boolean includeUserHeavies);
 
   /**
    * Estimated lower/upper bound of the expected M+1 / M (13C) relative intensity for the searched
-   * neutral mass, used by the optional "require 13C" gate. Models that cannot estimate this (e.g.
-   * formula prediction) return {@code null}, in which case the gate only checks 13C M+1 presence.
+   * neutral mass, used by the optional "require 13C" gate and by the carbon-ratio plausibility
+   * penalty.
    *
    * @param observedMz the observed m/z of the searched signal.
    * @param charge     the hypothesized charge state (>= 1).
    * @param polarity   ion polarity.
-   * @return {@code {low, high}} bounds of the M+1/M ratio, or {@code null} if not estimable.
+   * @return {@code {low, high}} bounds of the M+1/M ratio.
    */
-  default double @Nullable [] expectedM1RatioBounds(double observedMz, int charge,
-      @NotNull PolarityType polarity) {
-    return null;
-  }
+  double @NotNull [] expectedM1RatioBounds(double observedMz, int charge,
+      @NotNull PolarityType polarity);
 }

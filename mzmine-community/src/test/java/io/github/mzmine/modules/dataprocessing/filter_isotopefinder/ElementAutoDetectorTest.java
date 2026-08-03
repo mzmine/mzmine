@@ -72,16 +72,11 @@ class ElementAutoDetectorTest {
   }
 
   /**
-   * Detect from a signal list, seeding the neutral mass as {@code lowestMz * charge} exactly as the
-   * benchmark metric does.
+   * Detect from a signal list, exactly as the benchmark element metric does.
    */
   @NotNull
   private static Set<String> elementsOf(@NotNull final List<DataPoint> signals, final int charge) {
-    double lowestMz = Double.POSITIVE_INFINITY;
-    for (final DataPoint dp : signals) {
-      lowestMz = Math.min(lowestMz, dp.getMZ());
-    }
-    return ElementAutoDetector.detect(signals, charge, lowestMz * charge, TOL).elements();
+    return ElementAutoDetector.detect(signals, charge, TOL).elements();
   }
 
   @NotNull
@@ -99,12 +94,7 @@ class ElementAutoDetectorTest {
   @Nullable
   private static String topElement(@NotNull final String formula, final int charge) {
     final List<DataPoint> signals = signalsOf(formula, charge);
-    double lowestMz = Double.POSITIVE_INFINITY;
-    for (final DataPoint dp : signals) {
-      lowestMz = Math.min(lowestMz, dp.getMZ());
-    }
-    final DetectedComposition c = ElementAutoDetector.detect(signals, charge, lowestMz * charge,
-        TOL);
+    final DetectedComposition c = ElementAutoDetector.detect(signals, charge, TOL);
     return c.elements().isEmpty() ? null : c.elements().iterator().next();
   }
 
@@ -246,15 +236,13 @@ class ElementAutoDetectorTest {
   void honoursCustomCandidateListAndTolerastesUnknownElements() {
     final List<DataPoint> signals = signalsOf("C20H30Br2", 1);
     // an extended candidate list including a non-default element must not crash and still find Br
-    final DetectedComposition extended = ElementAutoDetector.detect(signals, 1,
-        signals.get(0).getMZ(), TOL, List.of("Cl", "Br", "S", "Si", "Se"));
+    final DetectedComposition extended = ElementAutoDetector.detect(signals, 1, TOL, List.of("Cl", "Br", "S", "Si", "Se"));
     Assertions.assertTrue(extended.elements().contains("Br"),
         () -> "expected Br with an extended candidate list: " + extended.elements());
 
     // restricting the candidates to just {Cl} must not report Br for a Cl compound
     final List<DataPoint> clSignals = signalsOf("C20H30Cl4", 1);
-    final DetectedComposition onlyCl = ElementAutoDetector.detect(clSignals, 1,
-        clSignals.get(0).getMZ(), TOL, List.of("Cl"));
+    final DetectedComposition onlyCl = ElementAutoDetector.detect(clSignals, 1, TOL, List.of("Cl"));
     Assertions.assertEquals(Set.of("Cl"), onlyCl.elements(),
         () -> "expected only Cl with a Cl-only candidate list: " + onlyCl.elements());
   }

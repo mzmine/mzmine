@@ -77,12 +77,9 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   }
 
   @Override
-  public @Nullable double[] expectedM1RatioBounds(final double observedMz, final int charge,
+  public double @NotNull [] expectedM1RatioBounds(final double observedMz, final int charge,
       @NotNull final PolarityType polarity) {
-    double neutralMass = observedMz * charge - charge * PROTON_MASS * polarity.getSign();
-    if (neutralMass <= 0) {
-      neutralMass = observedMz * charge;
-    }
+    final double neutralMass = neutralMass(observedMz, charge, polarity);
     // M+1/M ratio for a pure-carbon Poisson envelope is lambda = nC * P_13C
     final double low = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonMin)) * P_13C;
     final double high = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonMax)) * P_13C;
@@ -90,11 +87,21 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   }
 
   /**
+   * @return the neutral mass of the searched ion, falling back to the uncorrected {@code mz * z}
+   * when the ionization correction would make it non-positive.
+   */
+  private static double neutralMass(final double observedMz, final int charge,
+      @NotNull final PolarityType polarity) {
+    final double neutralMass = observedMz * charge - charge * PROTON_MASS * polarity.getSign();
+    return neutralMass > 0 ? neutralMass : observedMz * charge;
+  }
+
+  /**
    * @param elements the allowed elements
    * @return the dominant heavy isotope (offset step in Da + fractional abundance) of every element
    * except C and H, keyed by element symbol, used to widen the upper bound.
    */
-  private static LinkedHashMap<String, HeavyContribution> extractHeavyContributions(
+  private static @NotNull LinkedHashMap<String, HeavyContribution> extractHeavyContributions(
       @NotNull final List<Element> elements) {
     final LinkedHashMap<String, HeavyContribution> result = new LinkedHashMap<>();
     for (final Element element : elements) {
@@ -120,8 +127,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     }
     Isotope dominant = null;
     for (final Isotope iso : IsotopesUtils.getIsotopeRecord(symbol)) {
-      final int step = (int) Math.round(iso.deltaMass());
-      if (step < 1) {
+      if (Math.round(iso.deltaMass()) < 1) {
         continue;
       }
       if (dominant == null || iso.relativeIntensity() > dominant.relativeIntensity()) {
@@ -187,10 +193,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   public @NotNull IsotopeEnvelope buildEnvelope(final double observedMz, final int charge,
       @NotNull final PolarityType polarity,
       @Nullable final Map<String, Integer> detectedHeavyCounts, final boolean includeUserHeavies) {
-    double neutralMass = observedMz * charge - charge * PROTON_MASS * polarity.getSign();
-    if (neutralMass <= 0) {
-      neutralMass = observedMz * charge;
-    }
+    final double neutralMass = neutralMass(observedMz, charge, polarity);
 
     final int nCtypical = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonTypical));
     final int nCmax = Math.max(0, (int) Math.round(neutralMass * carbonPerDaltonMax));
@@ -254,11 +257,11 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     return trim(expected, upperBound, spacingDa, charge);
   }
 
-  private double[] carbonDistribution(final int nCarbon) {
+  private double @NotNull [] carbonDistribution(final int nCarbon) {
     return usePoisson ? poisson(nCarbon * P_13C) : binomial(nCarbon, P_13C);
   }
 
-  private double[] poisson(final double lambda) {
+  private static double @NotNull [] poisson(final double lambda) {
     final double[] p = new double[CAP + 1];
     p[0] = Math.exp(-lambda);
     for (int k = 1; k <= CAP; k++) {
@@ -267,7 +270,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     return p;
   }
 
-  private double[] binomial(final int n, final double prob) {
+  private static double @NotNull [] binomial(final int n, final double prob) {
     final double[] p = new double[CAP + 1];
     if (n <= 0 || prob <= 0) {
       p[0] = 1d;
@@ -286,7 +289,8 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
    * Binomial distribution of {@code n} heavy atoms whose isotope sits {@code step} Da above the
    * main isotope, mapped onto the Da-offset grid (peaks at 0, step, 2*step, ...).
    */
-  private double[] steppedBinomial(final int n, final double abundance, final int step) {
+  private static double @NotNull [] steppedBinomial(final int n, final double abundance,
+      final int step) {
     final double[] bin = binomial(n, abundance);
     final double[] dist = new double[CAP + 1];
     for (int k = 0; k * step <= CAP && k <= n; k++) {
@@ -295,7 +299,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     return dist;
   }
 
-  private double[] convolve(final double[] a, final double[] b) {
+  private static double @NotNull [] convolve(final double @NotNull [] a, final double @NotNull [] b) {
     final double[] r = new double[CAP + 1];
     for (int i = 0; i < a.length && i <= CAP; i++) {
       if (a[i] == 0d) {
@@ -308,7 +312,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     return r;
   }
 
-  private double[] normalizeToMax(final double[] arr) {
+  private static double @NotNull [] normalizeToMax(final double @NotNull [] arr) {
     double max = 0d;
     for (final double v : arr) {
       if (v > max) {
@@ -316,8 +320,7 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
       }
     }
     if (max <= 0d) {
-      final double[] r = new double[]{1d};
-      return r;
+      return new double[]{1d};
     }
     final double[] r = new double[arr.length];
     for (int i = 0; i < arr.length; i++) {
@@ -326,8 +329,8 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     return r;
   }
 
-  private IsotopeEnvelope trim(final double[] expected, final double[] upperBound,
-      final double spacingDa, final int charge) {
+  private @NotNull IsotopeEnvelope trim(final double @NotNull [] expected,
+      final double @NotNull [] upperBound, final double spacingDa, final int charge) {
     int last = 0;
     final int len = Math.max(expected.length, upperBound.length);
     for (int i = 0; i < len; i++) {

@@ -110,12 +110,4 @@ public final class IsotopeFinderDiagnostics {
     }
     return found;
   }
-
-  /**
-   * @return whether the feature list carries at least one {@link IsotopeFinderModule} run (so the
-   * dashboard can gate the diagnostics UI on data that actually has a pattern to explain).
-   */
-  public static boolean hasIsotopeFinderRun(@NotNull final FeatureList flist) {
-    return findIsotopeFinderParameters(flist) != null;
-  }
 }

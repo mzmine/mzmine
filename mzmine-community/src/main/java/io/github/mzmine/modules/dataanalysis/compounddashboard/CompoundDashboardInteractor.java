@@ -87,9 +87,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.setSelectedMs2Row(null);
       model.getAvailableMs2Scans().clear();
       model.setSelectedMs2Scan(null);
-      model.getIsotopeChargeStates().clear();
-      model.setSelectedIsotopePattern(null);
-      model.setIsotopeRepresentativeScan(null);
+      clearIsotopeState();
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMobilogramDatasets().clear();
@@ -223,10 +221,7 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
   public void recomputeIsotopePattern() {
     final FeatureListRow source = model.getSelectedAdductRow();
     if (source == null) {
-      model.getIsotopeChargeStates().clear();
-      model.setSelectedIsotopePattern(null);
-      model.setIsotopeRepresentativeScan(null);
-      model.setIsotopeDiagnostics(null);
+      clearIsotopeState();
       return;
     }
     final IsotopePattern best = source.getBestIsotopePattern();
@@ -247,6 +242,17 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     final Scan representative = pickRepresentativeScan(source, model.getCurrentRawDataFile());
     model.setIsotopeRepresentativeScan(representative);
     recomputeDiagnostics(source, representative);
+  }
+
+  /**
+   * Reset everything the isotope mirror reads, so no stale pattern, scan or diagnostics survives a
+   * selection change.
+   */
+  private void clearIsotopeState() {
+    model.getIsotopeChargeStates().clear();
+    model.setSelectedIsotopePattern(null);
+    model.setIsotopeRepresentativeScan(null);
+    model.setIsotopeDiagnostics(null);
   }
 
   /**

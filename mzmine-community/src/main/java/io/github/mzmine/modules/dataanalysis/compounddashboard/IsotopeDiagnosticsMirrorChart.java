@@ -132,10 +132,10 @@ final class IsotopeDiagnosticsMirrorChart {
       }
     }
 
-    // M+1 ratio gate band (only when the model provided M+1/M bounds): two reference sticks at the
-    // M+1 m/z showing the allowed lower and upper M+1 intensity for a real 13C peak.
+    // M+1 ratio gate band: two reference sticks at the M+1 m/z showing the allowed lower and upper
+    // M+1 intensity for a real 13C peak.
     final double[] m1 = diag.m1Bounds();
-    if (m1 != null && m1.length == 2 && monoIntensity > 0d) {
+    if (m1.length == 2 && monoIntensity > 0d) {
       final double m1Mz = diag.mzForPredictedOffset(1);
       gate.addDP(m1Mz, m1[1] * monoIntensity, "M+1 gate max");
       gate.addDP(m1Mz, m1[0] * monoIntensity, "M+1 gate min");

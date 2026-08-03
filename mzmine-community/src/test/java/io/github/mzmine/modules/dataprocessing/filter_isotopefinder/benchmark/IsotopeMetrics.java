@@ -343,9 +343,6 @@ public final class IsotopeMetrics {
    * detector than the one that ships - heavy M+2 evidence often sits at an offset the pattern did not
    * keep, so the metric under-reported recall for reasons the engine does not suffer from. The window
    * definition is shared with {@link IsotopeFinderEngine} so the two cannot drift apart.
-   * <p>
-   * assumption: neutral mass is estimated as {@code seedMz * charge}, as the engine does; it only
-   * seeds the detector's carbon estimate, so a rough value suffices.
    *
    * @param p        the detected pattern (null / empty -> no detection).
    * @param spectrum the source spectrum the pattern was detected in.
@@ -368,8 +365,7 @@ public final class IsotopeMetrics {
     final int charge = Math.max(1, p.getCharge());
     final List<DataPoint> window = ElementAutoDetector.collectDetectionWindow(spectrum, loMz, hiMz,
         charge);
-    final DetectedComposition composition = ElementAutoDetector.detect(window, charge,
-        seedMz * charge, tol);
+    final DetectedComposition composition = ElementAutoDetector.detect(window, charge, tol);
     return composition.elements();
   }
 

@@ -34,6 +34,7 @@ import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator
 import io.github.mzmine.util.FormulaUtils;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,6 +50,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -75,7 +77,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  * byte for byte, and do not write a test that asserts it does.
  * <p>
  * <b>The generated corpus is committed to the repository on purpose</b>
- * ({@code src/test/resources/isotopefinder/corpus/patterns.jsonl}, ~15 MB). Although it is fully
+ * ({@code src/test/resources/isotopefinder/corpus/patterns.jsonl.gz}, ~1 MB gzipped, 12 MB of JSONL).
+ * Although it is fully
  * reproducible from this generator, the CDK isotopologue enumeration for the large proteins in the
  * catalog is expensive, so regenerating it on every build (or in CI) is not viable. Committing the
  * snapshot also pins the exact inputs the committed accuracy baselines were measured on, so a
@@ -511,9 +514,11 @@ public final class BenchmarkPatternGenerator {
       Files.createDirectories(parent);
     }
     final ObjectMapper mapper = new ObjectMapper();
-    try (final BufferedWriter w = Files.newBufferedWriter(out, StandardCharsets.UTF_8,
-        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
-        StandardOpenOption.WRITE)) {
+    // gzipped: the corpus is committed, see BenchmarkCorpusLoader
+    try (final BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
+        new GZIPOutputStream(Files.newOutputStream(out, StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)),
+        StandardCharsets.UTF_8))) {
       for (final BenchmarkPattern p : patterns) {
         w.write(mapper.writeValueAsString(p));
         w.write("\n");

@@ -55,8 +55,6 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskController;
-import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
@@ -86,9 +84,7 @@ class IsotopeFinderTask extends AbstractTask {
 
   // parameter values
   private final ParameterSet parameters;
-  private final MZTolerance isoMzTolerance;
-  private final int isotopeMaxCharge;
-  private final List<Element> isotopeElements;
+  // only used to report which elements were searched when nothing could be found
   private final String isotopes;
 
   private final IsotopeFinderEngine engine;
@@ -120,9 +116,8 @@ class IsotopeFinderTask extends AbstractTask {
     this.featureList = featureList;
     this.parameters = parameters;
 
-    isotopeElements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
-    isotopeMaxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
-    isoMzTolerance = algo.getValue(CarbonAveragineAlgorithmParameters.isotopeMzTolerance);
+    final List<Element> isotopeElements = algo.getValue(
+        CarbonAveragineAlgorithmParameters.elements);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
 
     // build the detection engine (envelope model, charge scoring, element auto-detection) from the

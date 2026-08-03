@@ -425,16 +425,13 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       if (newPattern instanceof MultiChargeStateIsotopePattern multi) {
 
+        // the status is the same for every charge state, so the color is resolved once
+        final Color newColor =
+            newPattern.getStatus() == IsotopePatternStatus.DETECTED ? detectedIsotopesColor
+                : predictedIsotopesColor;
+
         List<IsotopePattern> patterns = multi.getPatterns();
         for (int i = 0; i < patterns.size(); i++) {
-          Color newColor;
-          if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
-            newColor = detectedIsotopesColor;
-          } else {
-            newColor = predictedIsotopesColor;
-          }
-          newColor = palette.getNextColorAWT();
-
           IsotopePattern pattern = patterns.get(i);
           final IsotopePattern normalizedPattern = normalizeIsotopePattern(pattern);
           if (normalizedPattern == null) {
@@ -442,7 +439,7 @@ public class SpectraVisualizerTab extends MZmineTab {
           }
 
           final IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern,
-              (i == 0 ? "Isotopes (n=%d, c=%d, preferred)" : "Isotopes (%d, c=%d)").formatted(
+              (i == 0 ? "Isotopes (n=%d, c=%d, preferred)" : "Isotopes (n=%d, c=%d)").formatted(
                   pattern.getNumberOfDataPoints(), pattern.getCharge()));
           spectrumPlot.addDataSet(newDataSet, newColor, true, false);
         }

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.Isotope;
 import io.github.mzmine.util.IsotopesUtils;
+import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -222,32 +223,29 @@ public final class ElementAutoDetector {
    * Detect heavy elements from the default candidate set ({@link #DEFAULT_CANDIDATES}) at a known
    * charge.
    *
-   * @param signals     the pattern signals (m/z + intensity); order does not matter
-   * @param charge      the pattern charge (values &lt; 1 are treated as 1)
-   * @param neutralMass rough neutral mass of the ion (currently unused by the detection core; kept
-   *                    for API stability and future carbon-count use)
-   * @param tol         the m/z tolerance of the source data
+   * @param signals the pattern signals (m/z + intensity); order does not matter
+   * @param charge  the pattern charge (values &lt; 1 are treated as 1)
+   * @param tol     the m/z tolerance of the source data
    * @return the detected composition (possibly empty)
    */
   @NotNull
   public static DetectedComposition detect(@Nullable final List<DataPoint> signals,
-      final int charge, final double neutralMass, @NotNull final MZTolerance tol) {
-    return detect(signals, charge, neutralMass, tol, DEFAULT_CANDIDATES);
+      final int charge, @NotNull final MZTolerance tol) {
+    return detect(signals, charge, tol, DEFAULT_CANDIDATES);
   }
 
   /**
    * Detect heavy elements from a custom candidate set at a known charge.
    *
-   * @param signals     the pattern signals (m/z + intensity); order does not matter
-   * @param charge      the pattern charge (values &lt; 1 are treated as 1)
-   * @param neutralMass rough neutral mass of the ion (currently unused by the detection core)
-   * @param tol         the m/z tolerance of the source data
-   * @param candidates  the heavy-element symbols to consider
+   * @param signals    the pattern signals (m/z + intensity); order does not matter
+   * @param charge     the pattern charge (values &lt; 1 are treated as 1)
+   * @param tol        the m/z tolerance of the source data
+   * @param candidates the heavy-element symbols to consider
    * @return the detected composition (possibly empty)
    */
   @NotNull
   public static DetectedComposition detect(@Nullable final List<DataPoint> signals,
-      final int charge, final double neutralMass, @NotNull final MZTolerance tol,
+      final int charge, @NotNull final MZTolerance tol,
       @NotNull final List<String> candidates) {
     if (signals == null || signals.size() < 2 || candidates.isEmpty()) {
       return DetectedComposition.empty();
@@ -310,13 +308,18 @@ public final class ElementAutoDetector {
     // Robust defect from the SIGNIFICANT heavy peaks only (partner >= a fraction of the strongest
     // heavy peak). This keeps weak 13C/15N combinations in high-carbon molecules from pulling the
     // median toward the wrong element; the dominant heavy element's peaks drive it.
-    final List<Double> strongSpacings = new ArrayList<>();
+    final DoubleArrayList strongSpacings = new DoubleArrayList();
     for (final double[] p : heavyPairs) {
       if (p[1] >= SIGNIFICANT_FRACTION * maxHeavyInt) {
         strongSpacings.add(p[0]);
       }
     }
-    final double medDelta = medianOf(strongSpacings);
+    final double[] spacings = strongSpacings.toDoubleArray();
+    // robust to per-peak m/z jitter: the median's error shrinks with the count, which recovers
+    // sub-tolerance defect precision
+    final double medDelta = MathUtils.calcMedian(spacings);
+    // strength of the strongest heavy M+2 signal relative to the base peak, used both for the
+    // intensity-reachability ranking and for the rough atom count
     final double maxRatio = maxHeavyInt / baseInt;
     // Self-calibrating defect sigma from the observed spread of the spacings: tight (near the floor)
     // for a clean comb, so the defect sharply separates neighbouring elements; wide when the peaks are
@@ -327,16 +330,15 @@ public final class ElementAutoDetector {
     // test reject every candidate on merged / unit-resolution patterns (elementContainment on
     // unit_resolution collapsed to 0.021) even though such data cannot separate the elements at all.
     // The median of n measurements each within +/- tol carries an error of ~tol/sqrt(n).
-    final double countSigma = tolNeutral / Math.sqrt(Math.max(1, strongSpacings.size()));
+    final double countSigma = tolNeutral / Math.sqrt(Math.max(1, spacings.length));
     final double defectSigma = Math.max(MIN_DEFECT_SIGMA,
-        Math.max(1.5d * stdDevOf(strongSpacings), countSigma));
+        Math.max(1.5d * stdDevOf(spacings), countSigma));
 
     // Membership: an element is POTENTIAL when some observed pair's neutral spacing matches one of its
     // isotope distances within the m/z tolerance (scaled by charge). decision: this - not the scoring -
     // decides who is reported. The score below only RANKS the potential set, because at any realistic
     // tolerance the candidate defects (0.2-2.2 mDa apart) cannot be resolved, so an intensity or defect
     // gate that removes a matching element is asserting a distinction the data does not support.
-    final double maxRatioForReach = maxHeavyInt / baseInt;
     final LinkedHashSet<String> spacingMatched = new LinkedHashSet<>();
     for (final ElementIsotopes e : elements) {
       // intensity IMPOSSIBILITY (not a preference): one atom of this element must produce an M+2 peak
@@ -345,7 +347,7 @@ public final class ElementAutoDetector {
       // (2.00039) sits within tolerance of the 81Br distance (1.99795), and without this floor every
       // CHNO molecule would report Br as possible. The floor is deliberately far below one atom's worth
       // so a weak or partly unresolved M+2 peak still admits the element.
-      if (maxRatioForReach < REACH_FLOOR_FRACTION * e.m2Rel()) {
+      if (maxRatio < REACH_FLOOR_FRACTION * e.m2Rel()) {
         continue;
       }
       for (final double[] p : heavyPairs) {
@@ -364,7 +366,7 @@ public final class ElementAutoDetector {
 
   /**
    * Try several charge states when the charge is unknown, returning the detected composition per
-   * charge (1..{@code maxCharge}). The neutral mass is estimated as {@code lowestMz * z}.
+   * charge (1..{@code maxCharge}).
    *
    * @param signals    the pattern signals
    * @param maxCharge  highest charge to try (&gt;= 1)
@@ -380,13 +382,8 @@ public final class ElementAutoDetector {
     if (signals == null || signals.isEmpty()) {
       return byCharge;
     }
-    double lowestMz = Double.POSITIVE_INFINITY;
-    for (final DataPoint dp : signals) {
-      lowestMz = Math.min(lowestMz, dp.getMZ());
-    }
     for (int z = 1; z <= Math.max(1, maxCharge); z++) {
-      final double neutralMass = lowestMz * z;
-      final DetectedComposition c = detect(signals, z, neutralMass, tol, candidates);
+      final DetectedComposition c = detect(signals, z, tol, candidates);
       if (!c.elements().isEmpty()) {
         byCharge.put(z, c);
       }
@@ -669,36 +666,27 @@ public final class ElementAutoDetector {
   }
 
   /**
-   * Median of the measured neutral M+2 spacings. Robust to per-peak m/z jitter: its error shrinks
-   * with the count, recovering sub-tolerance defect precision.
-   */
-  private static double medianOf(@NotNull final List<Double> values) {
-    final double[] d = new double[values.size()];
-    for (int i = 0; i < d.length; i++) {
-      d[i] = values.get(i);
-    }
-    Arrays.sort(d);
-    final int mid = d.length / 2;
-    return d.length % 2 == 1 ? d[mid] : (d[mid - 1] + d[mid]) / 2d;
-  }
-
-  /**
    * Population standard deviation of the values (0 for fewer than two values).
+   * <p>
+   * decision: deliberately NOT {@link io.github.mzmine.util.MathUtils#calcStd}, which is the SAMPLE
+   * (n-1) deviation. The spacings are the whole population of observed pairs, and the sample
+   * correction would inflate the self-calibrating defect sigma for the small pair counts that are
+   * the common case.
    */
-  private static double stdDevOf(@NotNull final List<Double> values) {
-    if (values.size() < 2) {
+  private static double stdDevOf(final double @NotNull [] values) {
+    if (values.length < 2) {
       return 0d;
     }
     double mean = 0d;
     for (final double v : values) {
       mean += v;
     }
-    mean /= values.size();
+    mean /= values.length;
     double sumSq = 0d;
     for (final double v : values) {
       sumSq += (v - mean) * (v - mean);
     }
-    return Math.sqrt(sumSq / values.size());
+    return Math.sqrt(sumSq / values.length);
   }
 
   /**

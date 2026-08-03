@@ -136,7 +136,7 @@ public final class IsotopeDiagnosticsSupport {
           s.relIntensity() * 100d, s.label() + " (" + s.assignment() + ")", note));
     }
     final double[] m1 = diag.m1Bounds();
-    if (m1 != null && m1.length == 2) {
+    if (m1.length == 2) {
       sb.append(String.format("M+1/M gate: [%.4f, %.4f]%n", m1[0], m1[1]));
     }
     final String comp = formatComposition(diag);
