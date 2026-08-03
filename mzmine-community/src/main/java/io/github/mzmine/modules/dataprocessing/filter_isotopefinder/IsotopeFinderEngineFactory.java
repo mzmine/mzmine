@@ -40,10 +40,10 @@ import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 
 /**
- * Builds an {@link IsotopeFinderEngine} from an {@link IsotopeFinderParameters} parameter set. Single
- * source of truth for the engine wiring so both {@link IsotopeFinderTask} (the processing run) and
- * the on-demand diagnostics recompute (compound dashboard, see {@link IsotopeFinderDiagnostics})
- * build an identically configured engine.
+ * Builds an {@link IsotopeFinderEngine} from a {@link CarbonAveragineAlgorithmParameters} setup.
+ * Single source of truth for the engine wiring so both {@link IsotopeFinderTask} (the processing run)
+ * and the on-demand diagnostics recompute (compound dashboard, see
+ * {@link IsotopeFinderDiagnostics}) build an identically configured engine.
  */
 public final class IsotopeFinderEngineFactory {
 
@@ -51,48 +51,38 @@ public final class IsotopeFinderEngineFactory {
   }
 
   /**
-   * Resolve the selected algorithm to its full carbon-averagine setup. Simplified options map their
-   * few parameters onto the full set with defaults for the rest.
-   *
-   * @param parameters an {@link IsotopeFinderParameters} value set.
-   * @return the resolved, self-contained algorithm parameters.
-   */
-  public static @NotNull CarbonAveragineAlgorithmParameters resolveAlgorithmParameters(
-      @NotNull final ParameterSet parameters) {
-    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
-        IsotopeFinderParameters.mode).getValueWithParameters();
-    return IsotopeFinderModeOptions.resolve(modeValue);
-  }
-
-  /**
-   * @param parameters an {@link IsotopeFinderParameters} value set.
-   * @return the name of the selected algorithm, for reporting.
-   */
-  public static @NotNull String algorithmName(@NotNull final ParameterSet parameters) {
-    return parameters.getValue(IsotopeFinderParameters.mode).toString();
-  }
-
-  /**
-   * Build the engine configured from {@code parameters}.
+   * Rebuild the engine of a finished run from its stored top-level parameters. Only for the
+   * developer-only diagnostics recompute - the normal run gets its parameters from the algorithm that
+   * created the task, see
+   * {@link IsotopeFinderAlgorithmModule#createTasks(io.github.mzmine.datamodel.MZmineProject,
+   * io.github.mzmine.datamodel.features.ModularFeatureList[], ParameterSet, ParameterSet,
+   * java.time.Instant)}.
    *
    * @param parameters      an {@link IsotopeFinderParameters} value set.
-   * @param keepDiagnostics developer-only: retain rich per-charge scoring diagnostics on the result
-   *                        (used by the compound dashboard review tooling). Off for the normal
-   *                        run.
-   * @return the configured engine.
+   * @param keepDiagnostics developer-only: retain rich per-charge scoring diagnostics on the result.
+   * @return the configured engine. The switch below is exhaustive on purpose: an algorithm that this
+   * carbon-averagine engine cannot reproduce must decide here what the diagnostics should do.
    */
-  public static @NotNull IsotopeFinderEngine create(@NotNull final ParameterSet parameters,
-      final boolean keepDiagnostics) {
-    return create(resolveAlgorithmParameters(parameters), algorithmName(parameters),
-        keepDiagnostics);
+  public static @NotNull IsotopeFinderEngine createForDiagnostics(
+      @NotNull final ParameterSet parameters, final boolean keepDiagnostics) {
+    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
+        IsotopeFinderParameters.mode).getValueWithParameters();
+    final CarbonAveragineAlgorithmParameters algo = switch (modeValue.value()) {
+      case AUTOMATIC -> AutomaticIsotopeFinderParameters.toCarbonAveragineParameters(
+          modeValue.parameters());
+      case CARBON_AVERAGINE ->
+          (CarbonAveragineAlgorithmParameters) modeValue.parameters().cloneParameterSet();
+    };
+    return create(algo, modeValue.value().toString(), keepDiagnostics);
   }
 
   /**
-   * Build the engine from the already resolved algorithm parameters.
+   * Build the engine from the full algorithm parameters.
    *
    * @param algo            the full carbon-averagine setup.
    * @param algorithmName   name of the selected algorithm, only used for reporting.
-   * @param keepDiagnostics developer-only, see {@link #create(ParameterSet, boolean)}.
+   * @param keepDiagnostics developer-only: retain rich per-charge scoring diagnostics on the result
+   *                        (used by the compound dashboard review tooling). Off for the normal run.
    * @return the configured engine.
    */
   public static @NotNull IsotopeFinderEngine create(

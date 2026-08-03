@@ -25,8 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
+import io.github.mzmine.taskcontrol.Task;
+import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -75,11 +81,18 @@ public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderA
   }
 
   /**
-   * @param value selected algorithm with its embedded parameters.
-   * @return the full carbon-averagine setup the selected algorithm resolves to.
+   * @param value          selected algorithm with its embedded parameters.
+   * @param project        the current project.
+   * @param featureLists   the feature lists to process.
+   * @param topParameters  the top-level {@link IsotopeFinderParameters}, stored as applied method.
+   * @param moduleCallDate the module call date of the applied method.
+   * @return the tasks of the selected algorithm.
    */
-  public static @NotNull CarbonAveragineAlgorithmParameters resolve(
-      @NotNull final ValueWithParameters<IsotopeFinderModeOptions> value) {
-    return value.value().getModuleInstance().resolve(value.parameters());
+  public static @NotNull List<Task> createTasks(
+      @NotNull final ValueWithParameters<IsotopeFinderModeOptions> value,
+      @NotNull final MZmineProject project, @NotNull final ModularFeatureList[] featureLists,
+      @NotNull final ParameterSet topParameters, @NotNull final Instant moduleCallDate) {
+    return value.value().getModuleInstance()
+        .createTasks(project, featureLists, value.parameters(), topParameters, moduleCallDate);
   }
 }

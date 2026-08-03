@@ -88,7 +88,7 @@ public final class IsotopeFinderDiagnostics {
     if (polarity == null) {
       polarity = PolarityType.UNKNOWN;
     }
-    final IsotopeFinderEngine engine = IsotopeFinderEngineFactory.create(params, true);
+    final IsotopeFinderEngine engine = IsotopeFinderEngineFactory.createForDiagnostics(params, true);
     if (!engine.hasIsotopeDiffs()) {
       return null;
     }

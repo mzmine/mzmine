@@ -56,15 +56,15 @@ class IsotopeFinderParametersTest {
   }
 
   @Test
-  void automaticResolvesToCarbonAveragineDefaultsWithItsOwnValues() {
+  void automaticMapsOntoCarbonAveragineDefaultsWithItsOwnValues() {
     final IsotopeFinderParameters params = cloned();
     final ParameterSet automatic = params.getParameter(IsotopeFinderParameters.mode)
         .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
     automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, 3);
     automatic.setParameter(AutomaticIsotopeFinderParameters.requireC13, true);
 
-    final CarbonAveragineAlgorithmParameters resolved = IsotopeFinderEngineFactory.resolveAlgorithmParameters(
-        params);
+    final CarbonAveragineAlgorithmParameters resolved = AutomaticIsotopeFinderParameters.toCarbonAveragineParameters(
+        automatic);
 
     // exposed values are carried over
     assertEquals(3, resolved.getValue(CarbonAveragineAlgorithmParameters.maxCharge));

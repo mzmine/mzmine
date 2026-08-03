@@ -56,13 +56,13 @@ public class IsotopeFinderModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    ModularFeatureList[] featureLists = parameters
-        .getParameter(IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists();
+    final ModularFeatureList[] featureLists = parameters.getParameter(
+        IsotopeFinderParameters.featureLists).getValue().getMatchingFeatureLists();
 
-    for (final ModularFeatureList featureList : featureLists) {
-      Task newTask = new IsotopeFinderTask(project, featureList, parameters, moduleCallDate);
-      tasks.add(newTask);
-    }
+    // the selected algorithm owns the processing: it decides how many tasks are needed and what they do
+    tasks.addAll(IsotopeFinderModeOptions.createTasks(
+        parameters.getParameter(IsotopeFinderParameters.mode).getValueWithParameters(), project,
+        featureLists, parameters, moduleCallDate));
 
     return ExitCode.OK;
   }

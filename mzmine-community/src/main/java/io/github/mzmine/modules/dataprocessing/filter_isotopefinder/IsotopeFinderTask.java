@@ -98,17 +98,19 @@ class IsotopeFinderTask extends AbstractTask {
   // guard against log spam: the charge/pattern disagreement below is a bug signal, one line is enough
   private boolean chargeMismatchLogged = false;
 
-  IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  /**
+   * @param parameters    the top-level {@link IsotopeFinderParameters}, only stored as the applied
+   *                      method of the feature list.
+   * @param algo          the full detection setup this task runs with.
+   * @param algorithmName name of the algorithm that created this task, only used for reporting.
+   */
+  IsotopeFinderTask(@NotNull MZmineProject project, @NotNull ModularFeatureList featureList,
+      @NotNull ParameterSet parameters, @NotNull CarbonAveragineAlgorithmParameters algo,
+      @NotNull String algorithmName, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
 
     this.featureList = featureList;
     this.parameters = parameters;
-
-    // the selected algorithm resolves to the full carbon-averagine setup: simplified options only
-    // expose fewer parameters and default the rest
-    final CarbonAveragineAlgorithmParameters algo = IsotopeFinderEngineFactory.resolveAlgorithmParameters(
-        parameters);
 
     isotopeElements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
     isotopeMaxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
@@ -116,9 +118,8 @@ class IsotopeFinderTask extends AbstractTask {
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
 
     // build the detection engine (envelope model, charge scoring, element auto-detection) from the
-    // resolved parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
-    this.engine = IsotopeFinderEngineFactory.create(algo,
-        IsotopeFinderEngineFactory.algorithmName(parameters), false);
+    // algorithm parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
+    this.engine = IsotopeFinderEngineFactory.create(algo, algorithmName, false);
 
     // FWHM refinement parameters
     this.fwhmRefineEnabled = algo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine);
