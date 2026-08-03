@@ -55,12 +55,17 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskController;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -94,9 +99,12 @@ class IsotopeFinderTask extends AbstractTask {
   private final RatioAggregation ratioAggregation;
   private final int minScansPresent;
 
-  private int processedRows, totalRows;
+  private final AtomicLong processedRows = new AtomicLong(0);
+  private long totalRows;
   // guard against log spam: the charge/pattern disagreement below is a bug signal, one line is enough
-  private boolean chargeMismatchLogged = false;
+  private final AtomicBoolean chargeMismatchLogged = new AtomicBoolean(false);
+  // first error of any sample thread, stops all other threads and errors the task
+  private final AtomicReference<String> errorMessage = new AtomicReference<>();
 
   /**
    * @param parameters    the top-level {@link IsotopeFinderParameters}, only stored as the applied
@@ -140,7 +148,7 @@ class IsotopeFinderTask extends AbstractTask {
     if (totalRows == 0) {
       return 0.0d;
     }
-    return (double) processedRows / (double) totalRows;
+    return (double) processedRows.get() / (double) totalRows;
   }
 
   @Override
@@ -148,39 +156,63 @@ class IsotopeFinderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running isotope pattern finder on " + featureList);
 
-    // We assume source peakList contains one datafile
-    if (featureList.getRawDataFiles().size() > 1) {
-      setErrorMessage("Cannot perform isotope finder on aligned feature list.");
-      setStatus(TaskStatus.ERROR);
-      return;
-    }
-
     if (!engine.hasIsotopeDiffs()) {
       setErrorMessage("No isotopes found for elements: " + isotopes);
       setStatus(TaskStatus.ERROR);
       return;
     }
 
-    // start processing
-    totalRows = featureList.getNumberOfRows();
-    processedRows = 0;
-    RawDataFile raw = featureList.getRawDataFile(0);
+    // start processing, all samples are processed in parallel
+    final List<RawDataFile> raws = featureList.getRawDataFiles();
+    totalRows = (long) featureList.getNumberOfRows() * raws.size();
+    processedRows.set(0);
 
+    final long detected = raws.parallelStream().mapToLong(this::processRawDataFile).sum();
+
+    if (isCanceled()) {
+      return;
+    }
+    final String error = errorMessage.get();
+    if (error != null) {
+      setErrorMessage(error);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
+    if (detected > 0) {
+      logger.info(String.format("Found %d isotope pattern in %s", detected, featureList));
+    }
+    featureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Isotope finder module", IsotopeFinderModule.class,
+            parameters, getModuleCallDate()));
+
+    logger.info("Finished isotope pattern finder on " + featureList);
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Detects isotope patterns for all features of a single sample. Runs on its own thread with its
+   * own data access, so nothing here may be shared with other samples.
+   *
+   * @return the number of features with a detected isotope pattern.
+   */
+  private long processRawDataFile(@NotNull final RawDataFile raw) {
     final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
         featureList.getSeletedScans(raw));
     final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
 
-    int detected = 0;
+    long detected = 0;
 
     try {
       for (FeatureListRow row : featureList.getRows()) {
-        if (isCanceled()) {
-          return;
+        // another sample may have failed already, then stop early
+        if (isCanceled() || errorMessage.get() != null) {
+          return detected;
         }
 
         final Feature feature = row.getFeature(raw);
         if (feature == null || feature.getRepresentativeScan() == null) {
-          processedRows++;
+          processedRows.incrementAndGet();
           continue;
         }
 
@@ -200,7 +232,7 @@ class IsotopeFinderTask extends AbstractTask {
           result = engine.detect(spectrum, mz, height, polarity);
         }
         if (result == null) {
-          processedRows++;
+          processedRows.incrementAndGet();
           continue;
         }
 
@@ -225,8 +257,8 @@ class IsotopeFinderTask extends AbstractTask {
         // the feature charge and the preferred pattern's charge must agree - downstream consumers
         // (formula prediction, CCS) read one or the other. Log instead of throwing so a single odd
         // feature cannot abort the whole run.
-        if (assembled.getCharge() != result.bestCharge() && !chargeMismatchLogged) {
-          chargeMismatchLogged = true;
+        if (assembled.getCharge() != result.bestCharge() && chargeMismatchLogged.compareAndSet(false,
+            true)) {
           logger.warning(String.format(
               "Isotope finder: preferred pattern charge %d disagrees with the selected charge %d "
                   + "(feature m/z %.4f). Further occurrences are not logged.", assembled.getCharge(),
@@ -248,23 +280,15 @@ class IsotopeFinderTask extends AbstractTask {
           }
         }
         detected++;
-        processedRows++;
+        processedRows.incrementAndGet();
       }
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
-      setStatus(TaskStatus.ERROR);
-      return;
+      // only keep the first error, all other sample threads stop on it
+      errorMessage.compareAndSet(null,
+          "Error in isotope finder on %s: %s".formatted(raw.getName(), ex.getMessage()));
     }
-
-    if (detected > 0) {
-      logger.info(String.format("Found %d isotope pattern in %s", detected, featureList));
-    }
-    featureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Isotope finder module", IsotopeFinderModule.class,
-            parameters, getModuleCallDate()));
-
-    logger.info("Finished isotope pattern finder on " + featureList);
-    setStatus(TaskStatus.FINISHED);
+    return detected;
   }
 
   /**
