@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Detec
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
 import java.util.ArrayList;
@@ -60,8 +61,9 @@ public final class BenchmarkRunner {
     final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
         CarbonAveragineEnvelopeParameters.createDefault(),
         new EnvelopeContext(c.elements(), c.tol()));
-    return new IsotopeFinderEngine(c.elements(), c.maxCharge(), c.tol(), model, "benchmark",
-        requireC13);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(c.elements(), c.maxCharge(), c.tol(), model, "benchmark",
+            requireC13));
   }
 
   /**

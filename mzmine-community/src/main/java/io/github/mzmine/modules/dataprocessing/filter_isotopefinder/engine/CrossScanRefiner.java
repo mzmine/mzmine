@@ -63,8 +63,24 @@ public final class CrossScanRefiner {
   // persistent low-level background at the probed m/z is not added just because it recurs. The
   // detected signals themselves are never subject to this - refinement must not drop real peaks.
   private static final double MIN_RECOVERED_REL_INTENSITY = 0.001;
+  // a recovered offset must additionally be one the predicted envelope allows a peak at, i.e. its
+  // plausible upper bound must reach this relative intensity (same cutoff the engine's termination
+  // uses). Only applied when the caller supplies the envelope anchor.
+  private static final double MIN_RECOVERED_PREDICTED_BOUND = 0.02;
 
   private CrossScanRefiner() {
+  }
+
+  /**
+   * Refine without an envelope anchor, i.e. without the predicted-offset plausibility check on
+   * recovered offsets.
+   *
+   * @see #refine(IsotopePattern, List, MZTolerance, RatioAggregation, int, PatternAnchor)
+   */
+  public static @NotNull IsotopePattern refine(@NotNull final IsotopePattern detected,
+      @NotNull final List<? extends MassSpectrum> scans, @NotNull final MZTolerance tol,
+      @NotNull final RatioAggregation aggregation, final int minScansPresent) {
+    return refine(detected, scans, tol, aggregation, minScansPresent, null);
   }
 
   /**
@@ -74,12 +90,17 @@ public final class CrossScanRefiner {
    * @param aggregation     how to aggregate the per-scan ratios.
    * @param minScansPresent a recovered (previously absent) offset must appear in at least this many
    *                        scans to be added.
+   * @param anchor          how the pattern maps to its predicted envelope, or null when unknown. When
+   *                        given, a recovered offset must also be one the envelope predicts a peak
+   *                        at - recurring in enough scans alone does not make a persistent
+   *                        background signal part of the isotope pattern.
    * @return the refined pattern (same charge/description), or the original if refinement is not
    * possible.
    */
   public static @NotNull IsotopePattern refine(@NotNull final IsotopePattern detected,
       @NotNull final List<? extends MassSpectrum> scans, @NotNull final MZTolerance tol,
-      @NotNull final RatioAggregation aggregation, final int minScansPresent) {
+      @NotNull final RatioAggregation aggregation, final int minScansPresent,
+      @Nullable final PatternAnchor anchor) {
     final int n = detected.getNumberOfDataPoints();
     if (n == 0 || scans.isEmpty()) {
       return detected;
@@ -138,6 +159,12 @@ public final class CrossScanRefiner {
       if (targetMz <= 0d) {
         continue;
       }
+      // envelope plausibility: only recover where a peak is predicted at all, mirroring the
+      // termination check the engine applies to the detected offsets
+      if (anchor != null && anchor.env().upperBoundAt(anchor.predictedOffsetOf(targetMz))
+          < MIN_RECOVERED_PREDICTED_BOUND) {
+        continue;
+      }
       final ScanAggregate agg = aggregateAcrossScans(targetMz, baseMz, scans, tol, aggregation);
       if (agg == null || agg.presentCount() < minScansPresent) {
         continue;
@@ -177,19 +204,16 @@ public final class CrossScanRefiner {
     double weightedMzSum = 0d;
     double weightSum = 0d;
     for (final MassSpectrum scan : scans) {
-      final double baseInScan = closestIntensity(scan, baseMz, tol);
-      if (baseInScan <= 0) {
+      final MatchedSignal base = matchWithinTolerance(scan, baseMz, tol);
+      if (base.intensity() <= 0) {
         continue; // this scan does not contain the base peak -> skip
       }
-      final double inScan = closestIntensity(scan, targetMz, tol);
-      ratios.add(inScan / baseInScan);
-      if (inScan > 0) {
+      final MatchedSignal target = matchWithinTolerance(scan, targetMz, tol);
+      ratios.add(target.intensity() / base.intensity());
+      if (target.intensity() > 0) {
         presentCount++;
-        final double foundMz = closestMz(scan, targetMz, tol);
-        if (!Double.isNaN(foundMz)) {
-          weightedMzSum += foundMz * inScan;
-          weightSum += inScan;
-        }
+        weightedMzSum += target.mz() * target.intensity();
+        weightSum += target.intensity();
       }
     }
     if (ratios.isEmpty()) {
@@ -199,28 +223,41 @@ public final class CrossScanRefiner {
         weightSum > 0 ? weightedMzSum / weightSum : targetMz, presentCount);
   }
 
-  private static double closestIntensity(@NotNull final MassSpectrum scan, final double mz,
-      @NotNull final MZTolerance tol) {
-    if (scan.getNumberOfDataPoints() == 0) {
-      return 0d;
+  /**
+   * Match a probed m/z in one scan, summing ALL data points within the tolerance rather than taking
+   * the single nearest one.
+   * <p>
+   * decision: a split centroid (one peak reported as two adjacent points, common on FT data and
+   * after mass-list recalibration) otherwise contributes only part of its intensity, which biases
+   * every ratio it takes part in - and asymmetrically, since the base peak may be split in one scan
+   * and the target in another. The returned m/z is intensity-weighted over the matched points.
+   *
+   * @return the summed intensity and intensity-weighted m/z; intensity 0 (m/z {@code NaN}) when no
+   * data point falls within the tolerance.
+   */
+  private static @NotNull MatchedSignal matchWithinTolerance(@NotNull final MassSpectrum scan,
+      final double mz, @NotNull final MZTolerance tol) {
+    final int n = scan.getNumberOfDataPoints();
+    if (n == 0) {
+      return MatchedSignal.ABSENT;
     }
     final int idx = scan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
-    if (idx < 0) {
-      return 0d;
+    if (idx < 0 || !tol.checkWithinTolerance(mz, scan.getMzValue(idx))) {
+      return MatchedSignal.ABSENT;
     }
-    return tol.checkWithinTolerance(mz, scan.getMzValue(idx)) ? scan.getIntensityValue(idx) : 0d;
-  }
-
-  private static double closestMz(@NotNull final MassSpectrum scan, final double mz,
-      @NotNull final MZTolerance tol) {
-    if (scan.getNumberOfDataPoints() == 0) {
-      return Double.NaN;
+    double sum = 0d;
+    double weightedMz = 0d;
+    // data points are sorted by m/z, so the matches form a contiguous run around idx
+    for (int i = idx; i >= 0 && tol.checkWithinTolerance(mz, scan.getMzValue(i)); i--) {
+      sum += scan.getIntensityValue(i);
+      weightedMz += scan.getMzValue(i) * scan.getIntensityValue(i);
     }
-    final int idx = scan.binarySearch(mz, DefaultTo.CLOSEST_VALUE);
-    if (idx < 0) {
-      return Double.NaN;
+    for (int i = idx + 1; i < n && tol.checkWithinTolerance(mz, scan.getMzValue(i)); i++) {
+      sum += scan.getIntensityValue(i);
+      weightedMz += scan.getMzValue(i) * scan.getIntensityValue(i);
     }
-    return tol.checkWithinTolerance(mz, scan.getMzValue(idx)) ? scan.getMzValue(idx) : Double.NaN;
+    return sum > 0d ? new MatchedSignal(sum, weightedMz / sum)
+        : new MatchedSignal(0d, scan.getMzValue(idx));
   }
 
   /**
@@ -233,6 +270,17 @@ public final class CrossScanRefiner {
    */
   private record ScanAggregate(double ratio, double mz, int presentCount) {
 
+  }
+
+  /**
+   * One probed m/z matched in a single scan.
+   *
+   * @param intensity summed intensity of every data point within the tolerance (0 = absent).
+   * @param mz        intensity-weighted m/z of those points, {@code NaN} when absent.
+   */
+  private record MatchedSignal(double intensity, double mz) {
+
+    private static final MatchedSignal ABSENT = new MatchedSignal(0d, Double.NaN);
   }
 
   private static double aggregate(@NotNull final List<Double> values,

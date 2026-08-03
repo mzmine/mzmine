@@ -29,6 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Eleme
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -73,8 +74,13 @@ public final class IsotopeFinderEngineFactory {
         IsotopeFinderParameters.elementDetectionMode);
     final List<String> autoCandidates = autoCandidates(elementDetectionMode, elements);
 
-    return new IsotopeFinderEngine(elements, maxCharge, tol, model, modeValue.value().toString(),
-        requireC13, elementDetectionMode, autoCandidates, keepDiagnostics);
+    final boolean explainableOnly = parameters.getValue(
+        IsotopeFinderParameters.explainableSignalsOnly);
+
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, maxCharge, tol, model, modeValue.value().toString(),
+                requireC13).withElementDetection(elementDetectionMode, autoCandidates)
+            .withExplainableSignalsOnly(explainableOnly).withDiagnostics(keepDiagnostics));
   }
 
   /**

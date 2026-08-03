@@ -40,6 +40,7 @@ import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -68,21 +69,28 @@ public class IsotopeFinderEngine {
   private static final double ALT_MARGIN = 0.15;
   // an alternate charge must also reach at least this bounded quality to be flagged at all
   private static final double MIN_ALT_QUALITY = 0.1;
-  // look-ahead window (in offsets) used to bridge gaps during termination
-  private static final int HORIZON = 4;
+  // smallest look-ahead window (in offsets) used to bridge gaps during termination. The effective
+  // window scales with the predicted envelope width (see gapHorizon); this is the floor for narrow
+  // small-molecule envelopes.
+  private static final int MIN_GAP_HORIZON = 4;
+  // fraction of the predicted (above-cutoff) envelope width used as the gap look-ahead
+  private static final double GAP_HORIZON_FRACTION = 0.25;
   // minimum isolated 13C peaks needed to assess the carbon envelope; below this the carbon fit is
   // neutral (1.0) and heavy-element coverage carries the detection
   private static final int MIN_LADDER_PEAKS = 2;
   // reward for the number of isotope offsets a charge explains: a genuine higher charge explains more
   // real isotope peaks (its own full envelope), so this lets it win over a lower charge that fits only a
   // subsample of the ladder and leaves the intermediate peaks unexplained.
-  // KNOWN LIMITATION: this reward is currently applied WITHOUT a harmonic guard. A doubled charge that
-  // interleaves a co-eluting interferent's peaks explains twice as many offsets and can therefore win on
-  // raw score. The spacing-consistency term below would discriminate it, but it is deliberately not
-  // folded into the quality (see spacingConsistency) because a naive multiplicative fold regressed
-  // polyhalogen combs. Measured effect: chargeTop1 ~0.55 on the interference/combined benchmark axes
-  // versus ~0.99 elsewhere, while chargeRecallAlt stays ~0.95 (the true charge is found, just not
-  // ranked first).
+  // decision: the reward counts EVERY kept offset, not only those the predicted envelope covers.
+  // Restricting it to predicted support was tried as a harmonic guard and MEASURED WORSE on the whole
+  // corpus, in both variants (ALL chargeTop1 0.9958 baseline; 0.9931 gated on upperBound >= cutoff,
+  // 0.9885 gated on expected >= cutoff, with the harmonic error rate rising 0.0019 -> 0.0048 -> 0.0096
+  // and polyhalogen dropping to 0.9845 / 0.9742). The gate removes the TAIL offsets of a GENUINE
+  // envelope - exactly where a real higher charge earns its advantage - faster than it removes an
+  // interferent's peaks, which sit inside the doubled charge's (wider) predicted window anyway.
+  // So the harmonic incentive is bounded only by the carbon M+1/M plausibility factor; the
+  // spacing-consistency term would discriminate the rest but is not folded in (see
+  // spacingConsistency). Residual measured harmonic error rate on the corpus: 0.0019.
   private static final double TIE_WEIGHT = 0.1;
   // a charge decided without a genuine 13C ladder (carbon fit fell back to the neutral 1.0) is
   // down-weighted by this factor so it cannot out-compete a charge with a real carbon fit on a tie
@@ -119,15 +127,38 @@ public class IsotopeFinderEngine {
   // a signal reached only by bridging a gap (not directly adjacent to the kept run) must be at least
   // this fraction of the base peak to be included, so insignificant noise on the tails does not widen
   // the pattern. Contiguous/adjacent signals are always kept to preserve complete isotope envelopes.
+  // Kept FLAT on purpose: relaxing it proportionally to the predicted intensity (so the broad tail of
+  // a high-charge envelope, whose real peaks sit at a few per mille, is not truncated by a constant
+  // tuned on small molecules) was measured and rejected - it raised noiseLeak (0.0116 -> 0.0121 on the
+  // noise axis, 0.0174 -> 0.0177 overall) and bought no completeness, because the corpus's wide
+  // envelopes already reach patternRecall 1.0000. Revisit only with real data that shows truncation.
   private static final double MIN_BRIDGED_REL_INTENSITY = 0.005;
   // require-13C gap-truncation: the m/z tolerance is widened by this factor when testing whether a
   // 13C-grid position is occupied, so a heavy isotope (37Cl/81Br) merged with the expected 13C signal -
   // which pulls the observed centroid a few mDa off the exact grid - still counts as present and does
   // not open a false hole that would truncate the pattern early.
   private static final double REQUIRE_C13_GAP_TOL_FACTOR = 3d;
+  // cluster connectivity (see clusterSpanAround): how many offsets a single step of the chained walk
+  // may span, i.e. one missing position may be bridged. Deliberately tiny: the test only has to tell
+  // the searched signal's own envelope (whose isotope peaks are one or two offsets apart, even where
+  // a weak intermediate 13C peak fell below the noise floor) from an unrelated cluster the candidate
+  // collection chained to through unrelated isotope distances, which is many offsets away.
+  private static final int CLUSTER_MAX_GAP = 2;
   // heavy-isotope per-signal attribution window (neutral Da): a signal's mass-defect deviation from
   // the 13C grid must be within this of a candidate element's M+2/M+1 defect to be labelled with it.
   private static final double HEAVY_ATTR_WINDOW = 0.006;
+  // largest number of isotope substitutions the opt-in emitted-pattern filter combines when testing
+  // whether an off-grid signal's mass defect is reachable at all
+  private static final int MAX_ATTR_SUBSTITUTIONS = 8;
+  // that filter's match window as a fraction of the m/z tolerance. Deliberately BELOW 1: candidates
+  // are collected within the full tolerance of an isotope distance, so a window equal to the
+  // tolerance would call every collected signal explainable and the filter would be a no-op by
+  // construction. At half the tolerance a signal must sit closer to a real isotope defect than the
+  // collection step required, which is what separates a defect from a coincidence.
+  private static final double ATTR_WINDOW_TOL_FACTOR = 0.5;
+  // floor for that filter's match window (neutral Da), so a very tight tolerance cannot reject a
+  // genuine defect over sub-mDa calibration error
+  private static final double MIN_ATTR_WINDOW = 0.0015;
 
   private final int maxCharge;
   private final MZTolerance tol;
@@ -139,41 +170,51 @@ public class IsotopeFinderEngine {
   private final ElementDetectionMode elementDetectionMode;
   private final List<String> autoCandidates;
   private final boolean includeUserHeavies;
+  // opt-in: emit only signals attributable to the 13C grid or an isotope mass defect (see the
+  // filter in scoreCharge). Off by default - it trades pattern completeness for a lower noise leak.
+  private final boolean explainableSignalsOnly;
+  // mass-defect deviations from the exact 13C grid that the configured chemistry can produce, used to
+  // decide whether an off-grid signal is explainable at all (opt-in emitted-pattern filter). Built
+  // once from the user's elements plus any auto-detection candidates.
+  private final IsotopeDefectTable attributionDefects;
   // developer-only: retain rich per-charge scoring diagnostics on the DetectionResult. Off in the
   // normal processing run (the diagnostics are recomputed on demand by the compound dashboard).
   private final boolean keepDiagnostics;
 
-  public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,
-      @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
-      @NotNull final String modeLabel, final boolean requireC13) {
-    this(elements, maxCharge, tol, model, modeLabel, requireC13, ElementDetectionMode.USER_DEFINED,
-        List.of());
-  }
-
-  public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,
-      @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
-      @NotNull final String modeLabel, final boolean requireC13,
-      @NotNull final ElementDetectionMode elementDetectionMode,
-      @NotNull final List<String> autoCandidates) {
-    this(elements, maxCharge, tol, model, modeLabel, requireC13, elementDetectionMode,
-        autoCandidates, false);
-  }
-
-  public IsotopeFinderEngine(@NotNull final List<Element> elements, final int maxCharge,
-      @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
-      @NotNull final String modeLabel, final boolean requireC13,
-      @NotNull final ElementDetectionMode elementDetectionMode,
-      @NotNull final List<String> autoCandidates, final boolean keepDiagnostics) {
-    this.maxCharge = maxCharge;
-    this.tol = tol;
-    this.model = model;
-    this.modeLabel = modeLabel;
-    this.requireC13 = requireC13;
-    this.elementDetectionMode = elementDetectionMode;
-    this.autoCandidates = autoCandidates;
-    this.keepDiagnostics = keepDiagnostics;
+  /**
+   * @param config the full engine configuration, see {@link IsotopeFinderEngineConfig#of}.
+   */
+  public IsotopeFinderEngine(@NotNull final IsotopeFinderEngineConfig config) {
+    final List<Element> elements = config.elements();
+    this.maxCharge = config.maxCharge();
+    this.tol = config.tol();
+    this.model = config.model();
+    this.modeLabel = config.modeLabel();
+    this.requireC13 = config.requireC13();
+    this.elementDetectionMode = config.elementDetectionMode();
+    this.autoCandidates = config.autoCandidates();
+    this.explainableSignalsOnly = config.explainableSignalsOnly();
+    this.keepDiagnostics = config.keepDiagnostics();
     // user heavies are only added on top of the detected ones in the combined mode
     this.includeUserHeavies = elementDetectionMode == ElementDetectionMode.USER_PLUS_AUTO;
+    // attribution candidates: the elements the user declared, plus the ones auto-detection may infer
+    // when it is enabled. decision: NOT the default heavy candidates on top - the filter's promise is
+    // "explainable by the chemistry you selected", and unioning Cl/Br/S/Si into every search made the
+    // defect grid dense enough to explain almost any deviation, i.e. a filter that filters nothing.
+    final List<String> attributionCandidates = new ArrayList<>();
+    for (final Element e : elements) {
+      final String symbol = e.getSymbol();
+      if (symbol != null && !attributionCandidates.contains(symbol)) {
+        attributionCandidates.add(symbol);
+      }
+    }
+    for (final String symbol : autoCandidates) {
+      if (!attributionCandidates.contains(symbol)) {
+        attributionCandidates.add(symbol);
+      }
+    }
+    this.attributionDefects = IsotopeDefectTable.build(attributionCandidates,
+        MAX_ATTR_SUBSTITUTIONS);
     this.diffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(elements, maxCharge);
     this.maxDiff = new double[maxCharge];
     for (int i = 0; i < maxCharge; i++) {
@@ -256,7 +297,7 @@ public class IsotopeFinderEngine {
       // carbon M+1/M bounds drive both the optional require-13C gate and the carbon-ratio plausibility
       // penalty in scoreCharge, so compute them whenever the model can (null in formula-prediction mode).
       final double[] m1Bounds = model.expectedM1RatioBounds(mz, z, polarity);
-      final ChargeEval eval = scoreCharge(z, candidates, env, m1Bounds);
+      final ChargeEval eval = scoreCharge(z, mz, candidates, env, m1Bounds);
       if (eval != null && eval.raw() > 0) {
         // retain the raw candidates, envelope and bounds so the winner can be re-scored after
         // element auto-detection rebuilds its heavy upper bound
@@ -270,8 +311,8 @@ public class IsotopeFinderEngine {
 
     // decision: select the WINNER by the raw score (bounded quality x peak-count reward). The count
     // reward is what lets a genuine higher charge win: it explains more real isotope peaks than a lower
-    // charge that only fits a subsample of the ladder. Note that nothing here discriminates a harmonic
-    // doubling that borrows a co-eluting interferent's peaks - see TIE_WEIGHT for the known limitation.
+    // charge that only fits a subsample of the ladder. See TIE_WEIGHT for what that does and does not
+    // guard against, and for the measured reason the reward is not restricted to predicted offsets.
     // ALTERNATES, by contrast, are flagged by an absolute margin on the bounded quality (below),
     // which is invariant to peak count and to how many hypotheses survived.
     scoredList.sort((a, b) -> {
@@ -293,8 +334,8 @@ public class IsotopeFinderEngine {
         lo = Math.min(lo, dp.getMZ());
         hi = Math.max(hi, dp.getMZ());
       }
-      final double pad = 2.5d / z; // ~one extra M+2 spacing at this charge
-      final List<DataPoint> rawWindow = collectRawWindow(spectrum, lo - pad, hi + pad);
+      final List<DataPoint> rawWindow = ElementAutoDetector.collectDetectionWindow(spectrum, lo, hi,
+          z);
       final DetectedComposition comp = ElementAutoDetector.detect(rawWindow, z, mz * z, tol,
           autoCandidates);
       if (!comp.elements().isEmpty()) {
@@ -306,7 +347,7 @@ public class IsotopeFinderEngine {
         }
         final IsotopeEnvelope env2 = model.buildEnvelope(mz, z, polarity, counts,
             includeUserHeavies);
-        final ChargeEval reEval = scoreCharge(z, winner.candidates(), env2, winner.m1Bounds());
+        final ChargeEval reEval = scoreCharge(z, mz, winner.candidates(), env2, winner.m1Bounds());
         if (reEval != null && reEval.raw() > 0) {
           scoredList.set(0, new Scored(reEval, winner.candidates(), env2, winner.m1Bounds()));
         }
@@ -324,6 +365,8 @@ public class IsotopeFinderEngine {
 
     final List<IsotopePattern> patterns = new ArrayList<>();
     final List<ChargeScore> scores = new ArrayList<>();
+    // aligned by index with scores/patterns: the envelope anchor of each emitted pattern
+    final List<PatternAnchor> anchors = new ArrayList<>();
     // developer-only: aligned by index with scores/patterns. Winner (index 0) carries the detected
     // composition; alternates carry null (element auto-detection re-scores the winner only).
     final List<ChargeDiagnostics> diagnostics = keepDiagnostics ? new ArrayList<>() : null;
@@ -349,6 +392,7 @@ public class IsotopeFinderEngine {
             e.selfConsistency(), e.spacingConsistency(), e.intensityAgreement(), patternScore,
             e.raw(), prob);
         scores.add(score);
+        anchors.add(new PatternAnchor(scored.env(), e.baseMz(), e.placement()));
         if (diagnostics != null) {
           diagnostics.add(buildDiagnostics(e, scored.env(), scored.m1Bounds(), score,
               first ? detectedComposition : null));
@@ -359,7 +403,8 @@ public class IsotopeFinderEngine {
       }
       first = false;
     }
-    return new DetectionResult(bestCharge, scores, patterns, detectedComposition, diagnostics);
+    return new DetectionResult(bestCharge, scores, patterns, anchors, detectedComposition,
+        diagnostics);
   }
 
   /**
@@ -379,7 +424,10 @@ public class IsotopeFinderEngine {
       baseIntensity = Math.max(baseIntensity, dp.getIntensity());
     }
     // candidate heavy elements for per-signal attribution: the detected composition when available,
-    // otherwise the default candidate set so alternates still get a best-effort label.
+    // otherwise the default candidate set so alternates still get a best-effort label. This is a
+    // NARROWER set than the emitted-pattern filter's (see isExplainable), so UNEXPLAINED can still
+    // appear here - for a signal the filter kept because nothing at its offset was explainable, or
+    // for one attributable to an element outside the detected composition.
     final List<String> heavyCandidates =
         comp != null && !comp.elements().isEmpty() ? List.copyOf(comp.elements())
             : ElementAutoDetector.DEFAULT_CANDIDATES;
@@ -420,44 +468,75 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Collect the raw spectrum data points whose m/z falls within {@code [loMz, hiMz]}, so element
-   * auto-detection can see off-ladder heavy M+2 peaks that were not kept in the pattern.
+   * Whether a single signal is explainable by this charge hypothesis: it sits on the exact 13C grid
+   * of the observed base (within the m/z tolerance), or its neutral-mass deviation from that grid
+   * matches the mass defect of one or more heavy isotopes of a candidate element
+   * (37Cl/81Br/34S/30Si, 29Si). Same window the diagnostics use to label a signal
+   * {@code HEAVY_ISOTOPE} versus {@code UNEXPLAINED}.
+   *
+   * @param mz        the signal's m/z.
+   * @param baseMz    the observed base peak's m/z (grid origin, offset 0).
+   * @param spacingDa the 13C spacing at this charge.
+   * @param z         the charge hypothesis, to convert an m/z deviation to a neutral-mass deviation.
+   * @return whether the signal is on the 13C grid or attributable to heavy isotopes.
    */
-  private @NotNull List<DataPoint> collectRawWindow(@NotNull final MassSpectrum spectrum,
-      final double loMz, final double hiMz) {
-    final List<DataPoint> out = new ArrayList<>();
-    final int n = spectrum.getNumberOfDataPoints();
-    for (int i = 0; i < n; i++) {
-      final double m = spectrum.getMzValue(i);
-      if (m < loMz) {
-        continue;
-      }
-      if (m > hiMz) {
-        break; // data points are sorted ascending by m/z
-      }
-      out.add(new SimpleDataPoint(m, spectrum.getIntensityValue(i)));
+  private boolean isExplainable(final double mz, final double baseMz, final double spacingDa,
+      final int z) {
+    final int k = (int) Math.round((mz - baseMz) / spacingDa);
+    final double exactGrid = baseMz + k * spacingDa;
+    if (tol.checkWithinTolerance(exactGrid, mz)) {
+      return true;
     }
-    return out;
+    final double deviation = (mz - exactGrid) * z;
+    // a signal k offsets from the base can carry at most |k| substitutions (each adds >= 1 to the
+    // nominal offset), which bounds the multiplicity the deviation may be a multiple of. Capped at
+    // MAX_ATTR_SUBSTITUTIONS: beyond it the accumulated defect exceeds the tolerance of any real
+    // measurement anyway, and the table stays small enough to search per signal.
+    final int maxSubstitutions = Math.min(MAX_ATTR_SUBSTITUTIONS, Math.max(1, Math.abs(k)));
+    // decision: the match window is derived from the search's OWN m/z tolerance (as a neutral-mass
+    // window, hence x charge) rather than being a fixed constant. Isotope mass defects of mixtures lie
+    // ~1 mDa apart - an 81Br spacing sits 0.03 mDa from 15N+18O - so a fixed 6 mDa window declares
+    // nearly every collected signal explainable and the filter degenerates into a no-op. Tying it to
+    // the tolerance (with the factor below) makes attribution as strict as the data allows:
+    // discriminating on FT data, permissive where the peaks themselves are unresolved.
+    final double window = Math.max(MIN_ATTR_WINDOW,
+        tol.getMzToleranceForMass(mz) * z * ATTR_WINDOW_TOL_FACTOR);
+    return attributionDefects.explains(deviation, window, maxSubstitutions);
   }
 
-  private @Nullable ChargeEval scoreCharge(final int z, @NotNull final List<DataPoint> candidates,
-      @NotNull final IsotopeEnvelope env, @Nullable final double[] m1Bounds) {
+  private @Nullable ChargeEval scoreCharge(final int z, final double searchedMz,
+      @NotNull final List<DataPoint> candidates, @NotNull final IsotopeEnvelope env,
+      @Nullable final double[] m1Bounds) {
     final double spacingDa = env.spacingDa();
+
+    // the searched signal as it was measured; every crop below is grown out of it, so the emitted
+    // pattern always contains the signal the pattern was searched for.
+    final DataPoint searched = closestCandidate(candidates, searchedMz);
+    final double anchorMz = searched != null ? searched.getMZ() : mostIntense(candidates).getMZ();
 
     // observed base peak (most intense candidate). Used only as the observed grid origin (offset 0);
     // the predicted envelope is slid over the observed ladder rather than pinning the base to a
     // predicted offset, so the score does not depend on where in the pattern the search started.
-    DataPoint base = candidates.getFirst();
-    for (final DataPoint dp : candidates) {
-      if (dp.getIntensity() > base.getIntensity()) {
-        base = dp;
-      }
+    DataPoint base = mostIntense(candidates);
+    CarbonLadder ladder = CarbonLadder.build(candidates, base.getMZ(), spacingDa, tol);
+    int anchorOffset = (int) Math.round((anchorMz - base.getMZ()) / spacingDa);
+    // decision: the intensity maximum is only a valid grid origin while it belongs to the SEARCHED
+    // signal's own cluster. The candidate collection chains outward through isotope distances and can
+    // reach an unrelated, more intense cluster tens of Da away; anchoring there cropped the searched
+    // signal out of its own pattern (real case: searching m/z 667.311 emitted a z=2 pattern of
+    // 652.306-654.315). When that happens the origin moves to the strongest peak of the searched
+    // signal's cluster.
+    final int[] cluster = clusterSpanAround(ladder, anchorOffset, anchorMz, spacingDa);
+    // decision: only when the searched signal has a cluster of its own (2+ positions). A lone signal
+    // - the isolated tail peak of a low-resolution envelope, say - carries no envelope information,
+    // and making it the grid origin would decide the charge from a single peak. It is still kept in
+    // the emitted pattern by the crop widening below.
+    if ((cluster[0] > 0 || cluster[1] < 0) && cluster[1] - cluster[0] >= 1) {
+      base = mostIntenseWithin(candidates, base.getMZ(), spacingDa, cluster);
+      ladder = CarbonLadder.build(candidates, base.getMZ(), spacingDa, tol);
+      anchorOffset = (int) Math.round((anchorMz - base.getMZ()) / spacingDa);
     }
     final double baseMz = base.getMZ();
-
-    // index every candidate on the 13C grid once; the isolated ladder, the collapsed per-offset map,
-    // the spacing regression and the require-13C gap probe are all views on this single walk.
-    CarbonLadder ladder = CarbonLadder.build(candidates, baseMz, spacingDa, tol);
 
     // require-13C ladder validation + gap-truncation. Anchored on the observed base (offset 0), walk
     // the 13C grid outward in BOTH directions and require a gap-free ladder: the pattern is truncated
@@ -477,10 +556,18 @@ public class IsotopeFinderEngine {
         return null; // no gap-free 13C (or every-second) ladder through the seed
       }
       ladderStep = span[2];
+      // decision: the VALIDATED span decides whether the charge is accepted at all, but the CROP is
+      // widened to the searched signal when it falls outside. The nominal 13C grid drifts against a
+      // polyhalogen comb (Br/Cl spacing is ~4.5 mDa short of the 13C distance per offset), so the
+      // gap-free walk runs out of tolerance a dozen offsets away from the origin - and cropping there
+      // would again drop the very signal the pattern belongs to. The signals in between are part of
+      // the same cluster by construction (see the base re-anchoring above).
+      final int cropLo = Math.min(span[0], anchorOffset);
+      final int cropHi = Math.max(span[1], anchorOffset);
       final List<DataPoint> truncated = new ArrayList<>(candidates.size());
       for (final DataPoint dp : candidates) {
         final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
-        if (k >= span[0] && k <= span[1]) {
+        if (k >= cropLo && k <= cropHi) {
           truncated.add(dp);
         }
       }
@@ -558,11 +645,47 @@ public class IsotopeFinderEngine {
     final double baseIntensity = base.getIntensity();
     final Set<Integer> keptOffsets = requireC13 ? new HashSet<>(observed.keySet())
         : computeKeptOffsets(observed, env, placement, baseIntensity);
+    // the offsets actually reported, which always reach the searched signal (see emittedOffsets)
+    final Set<Integer> emitOffsets = emittedOffsets(keptOffsets, observed, anchorOffset);
+    // OPT-IN attribution filter on the EMITTED signals: keeping an offset says the pattern reaches
+    // that offset, it does not make every signal sitting there part of the pattern. A signal that is
+    // neither on the exact 13C grid nor attributable to a combination of the elements' isotope mass
+    // defects is noise or a co-eluting interferent that happens to fall at a kept offset.
+    // decision: off by default and never allowed to empty an offset. Measured over the corpus it
+    // lowers the noise leak (0.0174 -> 0.0162) but also pattern completeness (recall 0.9931 ->
+    // 0.9909, F1 0.9938 -> 0.9927, elementPrecision 0.8446 -> 0.8365), because a blended
+    // fine-structure centroid can land between two isotope defects and is then indistinguishable
+    // from contamination. Charge selection is unaffected either way (the filter runs after scoring).
     final List<DataPoint> kept = new ArrayList<>();
-    for (final DataPoint dp : cands) {
-      final int offset = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
-      if (keptOffsets.contains(offset)) {
-        kept.add(dp);
+    // per kept offset, the strongest signal there that IS explainable (0 = none)
+    final Map<Integer, Double> explainedAtOffset = new HashMap<>();
+    // explainability is memoized per candidate: the attribution test is the most expensive part of
+    // this method and both passes below need the same answer
+    final boolean[] explainable = new boolean[cands.size()];
+    final int[] offsets = new int[cands.size()];
+    for (int i = 0; i < cands.size(); i++) {
+      final DataPoint dp = cands.get(i);
+      offsets[i] = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
+      if (!explainableSignalsOnly || !emitOffsets.contains(offsets[i])) {
+        continue;
+      }
+      explainable[i] = isExplainable(dp.getMZ(), baseMz, spacingDa, z);
+      if (explainable[i]) {
+        explainedAtOffset.merge(offsets[i], dp.getIntensity(), Math::max);
+      }
+    }
+    for (int i = 0; i < cands.size(); i++) {
+      if (!emitOffsets.contains(offsets[i])) {
+        continue;
+      }
+      final Double explainedIntensity = explainedAtOffset.get(offsets[i]);
+      // an unexplained signal is dropped only where the offset also holds an explainable signal that
+      // DOMINATES it. decision: a signal that dominates its offset is the isotope peak the pattern
+      // reaches there - if its measured centroid matches no isotope defect, that is blended fine
+      // structure rather than contamination, so it stays even with the filter on.
+      if (!explainableSignalsOnly || explainable[i] || explainedIntensity == null
+          || explainedIntensity < cands.get(i).getIntensity()) {
+        kept.add(cands.get(i));
       }
     }
     if (kept.isEmpty()) {
@@ -763,12 +886,63 @@ public class IsotopeFinderEngine {
   }
 
   /**
-   * Select the gap-free 13C ladder through the observed base for the require-13C gate. Prefers the
-   * every-13C (step 1) ladder; when that reaches fewer than two signals it falls back to an
-   * every-second (step 2) ladder for molecules whose pattern shows only on every second 13C
-   * position (an intense +2 heavy comb: Cl/Br/Cu). The step-2 ladder must reach at least three
-   * signals (base plus two more on the step-2 grid) so a lone monoisotopic + single heavy M+2 does
-   * not qualify as a 13C pattern.
+   * The candidate closest to the searched m/z, i.e. the searched signal as it was measured.
+   *
+   * @return the matching candidate, or {@code null} when none falls within the m/z tolerance (the
+   * candidate collection seeds on the nearest data point in the spectrum, which may be far away in a
+   * sparse spectrum).
+   */
+  private @Nullable DataPoint closestCandidate(@NotNull final List<DataPoint> candidates,
+      final double searchedMz) {
+    DataPoint best = null;
+    double bestDiff = Double.MAX_VALUE;
+    for (final DataPoint dp : candidates) {
+      final double diff = Math.abs(dp.getMZ() - searchedMz);
+      if (diff < bestDiff && tol.checkWithinTolerance(searchedMz, dp.getMZ())) {
+        best = dp;
+        bestDiff = diff;
+      }
+    }
+    return best;
+  }
+
+  private static @NotNull DataPoint mostIntense(@NotNull final List<DataPoint> candidates) {
+    DataPoint best = candidates.getFirst();
+    for (final DataPoint dp : candidates) {
+      if (dp.getIntensity() > best.getIntensity()) {
+        best = dp;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The most intense candidate whose 13C-grid offset falls inside {@code span}.
+   *
+   * @param baseMz the grid origin the span's offsets are expressed on.
+   * @param span   inclusive {@code [minOffset, maxOffset, step]}.
+   * @return the strongest signal of that span (the candidates always occupy at least one offset of
+   * it, since the span was walked on the same grid).
+   */
+  private static @NotNull DataPoint mostIntenseWithin(@NotNull final List<DataPoint> candidates,
+      final double baseMz, final double spacingDa, final int @NotNull [] span) {
+    DataPoint best = null;
+    for (final DataPoint dp : candidates) {
+      final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
+      if (k >= span[0] && k <= span[1] && (best == null || dp.getIntensity() > best.getIntensity())) {
+        best = dp;
+      }
+    }
+    return best != null ? best : mostIntense(candidates);
+  }
+
+  /**
+   * Select the gap-free 13C ladder through the searched signal. Prefers the every-13C (step 1)
+   * ladder; when that reaches fewer than two signals it falls back to an every-second (step 2)
+   * ladder for molecules whose pattern shows only on every second 13C position (an intense +2 heavy
+   * comb: Cl/Br/Cu). The step-2 ladder must reach at least three signals (the searched signal plus
+   * two more on the step-2 grid) so a lone monoisotopic + single heavy M+2 does not qualify as a 13C
+   * pattern.
    *
    * @param ladder the candidates indexed on the 13C grid.
    * @return inclusive {@code [minOffset, maxOffset, step]}, or {@code null} if no ladder qualifies.
@@ -789,9 +963,14 @@ public class IsotopeFinderEngine {
    * Contiguous, gap-free span of grid offsets around the observed base (offset 0), stepping by
    * {@code step} offsets. Walks outward in both directions and stops at the first stepped position
    * with no signal, so a hole where a peak is expected truncates the span even if signals exist
-   * further out. The presence test uses a widened tolerance ({@link #REQUIRE_C13_GAP_TOL_FACTOR})
-   * so a heavy isotope merged with the expected 13C peak (shifting it a few mDa off grid) still
-   * counts.
+   * further out. The presence test uses a widened tolerance ({@link #REQUIRE_C13_GAP_TOL_FACTOR}) so
+   * a heavy isotope merged with the expected 13C peak (shifting it a few mDa off grid) still counts.
+   * <p>
+   * decision: probed on the NOMINAL 13C grid of the base, not chained on the observed positions.
+   * Chaining would be anchor-independent, but the accumulated drift of the nominal grid is also what
+   * stops a harmonic (a z=2 comb read as a z=1 ladder, whose steps are only ~4 mDa off) from walking
+   * the whole envelope, so it carries real charge-discrimination weight. The searched signal is kept
+   * inside the pattern by widening the crop instead (see the caller).
    *
    * @param ladder the candidates indexed on the 13C grid.
    * @param step   the offset step (1 = every 13C, 2 = every second 13C).
@@ -799,14 +978,61 @@ public class IsotopeFinderEngine {
    */
   private static int @NotNull [] gapFreeSpan(@NotNull final CarbonLadder ladder, final int step) {
     int hi = 0;
-    while (ladder.hasSignalNearGrid(hi + step, REQUIRE_C13_GAP_TOL_FACTOR)) {
+    while (!Double.isNaN(
+        ladder.nearestMzWithin(ladder.exactMzAt(hi + step), REQUIRE_C13_GAP_TOL_FACTOR))) {
       hi += step;
     }
     int lo = 0;
-    while (ladder.hasSignalNearGrid(lo - step, REQUIRE_C13_GAP_TOL_FACTOR)) {
+    while (!Double.isNaN(
+        ladder.nearestMzWithin(ladder.exactMzAt(lo - step), REQUIRE_C13_GAP_TOL_FACTOR))) {
       lo -= step;
     }
     return new int[]{lo, hi};
+  }
+
+  /**
+   * The connected cluster the searched signal belongs to: consecutive positions one 13C spacing
+   * apart, each probed from the m/z of the signal the previous step FOUND rather than from a fixed
+   * grid. Chaining makes it independent of where in the pattern the search started and immune to the
+   * nominal grid's drift against a polyhalogen comb, which is what a cluster test needs - it only
+   * decides which signals belong together, never whether a charge is accepted.
+   *
+   * @param ladder    the candidates indexed on the base's 13C grid.
+   * @param from      the searched signal's offset on that grid.
+   * @param anchorMz  the searched signal's m/z.
+   * @param spacingDa the 13C spacing at this charge.
+   * @return inclusive {@code [minOffset, maxOffset]} span containing {@code from}.
+   */
+  private static int @NotNull [] clusterSpanAround(@NotNull final CarbonLadder ladder,
+      final int from, final double anchorMz, final double spacingDa) {
+    final int up = countClusterSteps(ladder, anchorMz, spacingDa);
+    final int down = countClusterSteps(ladder, anchorMz, -spacingDa);
+    return new int[]{from - down, from + up};
+  }
+
+  /**
+   * @param delta the signed m/z step of one ladder position.
+   * @return how many offsets the searched signal's cluster reaches in that direction.
+   */
+  private static int countClusterSteps(@NotNull final CarbonLadder ladder, final double startMz,
+      final double delta) {
+    // a step must advance by at least half a spacing, so a tolerance window wider than the spacing
+    // (high charge + wide tolerance) cannot re-find the same signal and stall the walk
+    final double minAdvance = Math.abs(delta) / 2d;
+    int steps = 0;
+    double ref = startMz;
+    outer:
+    while (true) {
+      for (int gap = 1; gap <= CLUSTER_MAX_GAP; gap++) {
+        final double found = ladder.nearestMzWithin(ref + gap * delta, REQUIRE_C13_GAP_TOL_FACTOR);
+        if (!Double.isNaN(found) && Math.abs(found - ref) >= minAdvance) {
+          ref = found;
+          steps += gap;
+          continue outer;
+        }
+      }
+      return steps;
+    }
   }
 
   /**
@@ -956,6 +1182,12 @@ public class IsotopeFinderEngine {
     return (double) reqPresent / reqTotal;
   }
 
+  /**
+   * The offsets the pattern is SCORED on: the supported, bridgeable run of offsets around the base
+   * peak (offset 0). See {@link #emittedOffsets} for the reported ones.
+   *
+   * @param observed the collapsed per-offset signals, relative to the base peak (offset 0).
+   */
   private Set<Integer> computeKeptOffsets(@NotNull final TreeMap<Integer, OffsetPeak> observed,
       @NotNull final IsotopeEnvelope env, final int placement, final double baseIntensity) {
     final Set<Integer> kept = new HashSet<>();
@@ -966,6 +1198,7 @@ public class IsotopeFinderEngine {
     kept.add(0);
     final int maxObs = observed.lastKey();
     final int minObs = observed.firstKey();
+    final int horizon = gapHorizon(env);
 
     // extend upward, bridging gaps only when the envelope still supports a peak ahead and the
     // bridged (gap-crossing) signal is significant, so insignificant noise does not widen the pattern
@@ -973,7 +1206,7 @@ public class IsotopeFinderEngine {
     boolean advanced = true;
     while (advanced) {
       advanced = false;
-      for (int k = current + 1; k <= current + HORIZON && k <= maxObs; k++) {
+      for (int k = current + 1; k <= current + horizon && k <= maxObs; k++) {
         if (observed.containsKey(k) && (k == current + 1 || (
             env.upperBoundAt(k + placement) >= ENGINE_CUTOFF && significant(observed.get(k),
                 baseIntensity)))) {
@@ -989,7 +1222,7 @@ public class IsotopeFinderEngine {
     advanced = true;
     while (advanced) {
       advanced = false;
-      for (int k = current - 1; k >= current - HORIZON && k >= minObs; k--) {
+      for (int k = current - 1; k >= current - horizon && k >= minObs; k--) {
         if (observed.containsKey(k) && (k == current - 1 || (
             env.upperBoundAt(k + placement) >= ENGINE_CUTOFF && significant(observed.get(k),
                 baseIntensity)))) {
@@ -1001,6 +1234,59 @@ public class IsotopeFinderEngine {
       }
     }
     return kept;
+  }
+
+  /**
+   * The offsets the pattern is EMITTED at: the scored offsets plus, when the shape-aware walk
+   * stopped short of the searched signal (a hole, or a bridge the significance test rejected), the
+   * observed offsets between them. The searched signal is always part of its own pattern.
+   * <p>
+   * decision: this widening is deliberately kept out of the scoring set. Coverage, the peak-count
+   * reward and the intensity agreement stay exactly what the shape-aware termination produced, so
+   * the charge a spectrum is assigned does not depend on which of its isotope peaks was searched -
+   * only the reported signals do, which is the point.
+   *
+   * @param kept         the scored offsets.
+   * @param observed     the collapsed per-offset signals.
+   * @param anchorOffset the searched signal's offset.
+   */
+  private static @NotNull Set<Integer> emittedOffsets(@NotNull final Set<Integer> kept,
+      @NotNull final TreeMap<Integer, OffsetPeak> observed, final int anchorOffset) {
+    if (kept.contains(anchorOffset)) {
+      return kept;
+    }
+    final Set<Integer> emitted = new HashSet<>(kept);
+    for (int k = Math.min(anchorOffset, 0); k <= Math.max(anchorOffset, 0); k++) {
+      if (observed.containsKey(k)) {
+        emitted.add(k);
+      }
+    }
+    return emitted;
+  }
+
+  /**
+   * Gap look-ahead (in offsets) for the envelope-shape-aware termination, derived from the width of
+   * the predicted envelope rather than fixed.
+   * <p>
+   * decision: a fixed look-ahead is wrong at both ends of the charge range. A small molecule
+   * predicts a handful of offsets, so 4 already reaches past its whole envelope; a high-charge
+   * protein predicts dozens, and a run of undetected offsets inside such a wide envelope is longer
+   * than 4 in absolute terms while being a small fraction of the pattern. The look-ahead is
+   * therefore a fraction of the predicted, above-cutoff envelope width, floored at the previous
+   * fixed value so nothing narrows. Measured neutral on the corpus (every metric unchanged); it is a
+   * structural guard for envelopes wider than the corpus contains, not a scoring change.
+   *
+   * @param env the predicted envelope of the charge hypothesis.
+   * @return the maximum number of offsets a single gap may span.
+   */
+  private static int gapHorizon(@NotNull final IsotopeEnvelope env) {
+    int supported = 0;
+    for (int o = 0; o <= env.maxOffset(); o++) {
+      if (env.expectedAt(o) >= ENGINE_CUTOFF) {
+        supported++;
+      }
+    }
+    return Math.max(MIN_GAP_HORIZON, (int) Math.round(supported * GAP_HORIZON_FRACTION));
   }
 
   /**

@@ -53,8 +53,18 @@ import org.jetbrains.annotations.Nullable;
  *                             exist
  * @param noiseLeak            fraction of injected false peaks that leaked in, or {@code null} if
  *                             none
- * @param elementPrecision     placeholder heavy-element precision (Cl/Br/S/Si), or {@code null}
- * @param elementRecall        placeholder heavy-element recall (Cl/Br/S/Si), or {@code null}
+ * @param elementPrecision     heavy-element precision (Cl/Br/S/Si), or {@code null}. Read together
+ *                             with {@code elementContainment}: the detector reports every element the
+ *                             evidence cannot rule out, so precision necessarily falls as the
+ *                             reported ambiguity set grows and is NOT on its own a quality measure.
+ * @param elementRecall        heavy-element recall (Cl/Br/S/Si), or {@code null}
+ * @param elementContainment   whether EVERY true heavy element is in the reported set (the property
+ *                             that actually matters for a set of possibilities - a missing element
+ *                             means the envelope's heavy upper bound is too tight), or {@code null}
+ *                             when the case has no inferable heavy element
+ * @param elementSetSize       size of the reported heavy-element set, or {@code null} when there was
+ *                             no detection. This is the cost side of containment: how much ambiguity
+ *                             was reported to achieve it.
  * @param scoreMargin          best correct-charge score − best incorrect-charge score, or
  *                             {@code null} if there was no detection
  * @param winningScore         the best-first (winner) charge score, or {@code 0} if no detection
@@ -65,6 +75,7 @@ public record CaseMetrics(@NotNull String axis, int trueCharge, int predictedCha
                           double patternPrecision, double patternRecall, double patternF1,
                           @Nullable Double borderlineRecall, @Nullable Double noiseLeak,
                           @Nullable Double elementPrecision, @Nullable Double elementRecall,
+                          @Nullable Boolean elementContainment, @Nullable Integer elementSetSize,
                           @Nullable Double scoreMargin, double winningScore, double detectMs) {
 
 }

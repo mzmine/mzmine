@@ -65,8 +65,8 @@ public final class BenchmarkReport {
 
   private static final String[] HEADER = {"axis", "nCases", "chargeTop1", "chargeRecallAlt",
       "chargeStartInvariance", "patternPrecision", "patternRecall", "patternF1", "borderlineRecall",
-      "noiseLeak", "elementPrecision", "elementRecall", "scoreMargin", "aucCharge",
-      "medianDetectMs"};
+      "noiseLeak", "elementPrecision", "elementRecall", "elementContainment", "elementSetSize",
+      "scoreMargin", "aucCharge", "medianDetectMs"};
 
   private BenchmarkReport() {
   }
@@ -91,6 +91,8 @@ public final class BenchmarkReport {
       sb.append(num(r.noiseLeak())).append(',');
       sb.append(num(r.elementPrecision())).append(',');
       sb.append(num(r.elementRecall())).append(',');
+      sb.append(num(r.elementContainment())).append(',');
+      sb.append(num(r.elementSetSize())).append(',');
       sb.append(num(r.scoreMargin())).append(',');
       sb.append(num(r.aucCharge())).append(',');
       sb.append(time(r.medianDetectMs())).append('\n');
@@ -170,7 +172,7 @@ public final class BenchmarkReport {
       rows.add(new MetricRow(parts[0], Integer.parseInt(parts[1].trim()), val(parts[2]),
           val(parts[3]), val(parts[4]), val(parts[5]), val(parts[6]), val(parts[7]), val(parts[8]),
           val(parts[9]), val(parts[10]), val(parts[11]), val(parts[12]), val(parts[13]),
-          val(parts[14])));
+          val(parts[14]), val(parts[15]), val(parts[16])));
     }
     return rows;
   }
@@ -190,16 +192,17 @@ public final class BenchmarkReport {
    */
   @NotNull
   public static String renderConsole(@NotNull final List<MetricRow> rows) {
-    final String fmt = "%-18s%6s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%9s%8s%9s%n";
+    final String fmt = "%-18s%6s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%8s%9s%8s%9s%n";
     final StringBuilder sb = new StringBuilder();
     sb.append(String.format(fmt, "axis", "n", "chgT1", "chgAlt", "invar", "patP", "patR", "patF1",
-        "bordR", "noise", "elemP", "elemR", "scMargin", "auc", "medMs"));
+        "bordR", "noise", "elemP", "elemR", "elemIn", "elemN", "scMargin", "auc", "medMs"));
     for (final MetricRow r : rows) {
       sb.append(String.format(fmt, r.axis(), Integer.toString(r.nCases()), cell(r.chargeTop1()),
           cell(r.chargeRecallAlt()), cell(r.chargeStartInvariance()), cell(r.patternPrecision()),
           cell(r.patternRecall()), cell(r.patternF1()), cell(r.borderlineRecall()),
           cell(r.noiseLeak()), cell(r.elementPrecision()), cell(r.elementRecall()),
-          cell(r.scoreMargin()), cell(r.aucCharge()), timeCell(r.medianDetectMs())));
+          cell(r.elementContainment()), cell(r.elementSetSize()), cell(r.scoreMargin()),
+          cell(r.aucCharge()), timeCell(r.medianDetectMs())));
     }
     return sb.toString();
   }

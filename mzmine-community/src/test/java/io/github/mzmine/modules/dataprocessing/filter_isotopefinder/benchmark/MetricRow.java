@@ -54,10 +54,17 @@ import org.jetbrains.annotations.NotNull;
  * @param noiseLeak             mean per-case fraction of injected false peaks that leaked into the
  *                              detected pattern; cases without false peaks are excluded from the
  *                              mean
- * @param elementPrecision      mean per-case precision of the (placeholder) detected heavy-element
- *                              set restricted to {Cl,Br,S,Si}; undefined cases excluded
- * @param elementRecall         mean per-case recall of the (placeholder) detected heavy-element set
- *                              restricted to {Cl,Br,S,Si}; undefined cases excluded
+ * @param elementPrecision      mean per-case precision of the detected heavy-element set restricted
+ *                              to {Cl,Br,S,Si}; undefined cases excluded. Falls by construction as
+ *                              the reported ambiguity set grows - never read it alone, see
+ *                              {@code elementContainment}
+ * @param elementRecall         mean per-case recall of the detected heavy-element set restricted to
+ *                              {Cl,Br,S,Si}; undefined cases excluded
+ * @param elementContainment    fraction of cases where EVERY true heavy element was reported. This is
+ *                              the target metric for a set of possibilities: below 1.0 means the
+ *                              envelope's heavy upper bound was too tight for some case
+ * @param elementSetSize        mean number of reported heavy elements - the cost of containment
+ *                              (1.0 = a single element per case, 4.0 = every candidate)
  * @param scoreMargin           mean over cases with a detection of (best correct-charge score −
  *                              best incorrect-charge score); positive is good separation
  * @param aucCharge             separation AUC: fraction of (correct-charge, incorrect-charge) case
@@ -70,7 +77,8 @@ import org.jetbrains.annotations.NotNull;
 public record MetricRow(@NotNull String axis, int nCases, double chargeTop1, double chargeRecallAlt,
                         double chargeStartInvariance, double patternPrecision, double patternRecall,
                         double patternF1, double borderlineRecall, double noiseLeak,
-                        double elementPrecision, double elementRecall, double scoreMargin,
-                        double aucCharge, double medianDetectMs) {
+                        double elementPrecision, double elementRecall, double elementContainment,
+                        double elementSetSize, double scoreMargin, double aucCharge,
+                        double medianDetectMs) {
 
 }

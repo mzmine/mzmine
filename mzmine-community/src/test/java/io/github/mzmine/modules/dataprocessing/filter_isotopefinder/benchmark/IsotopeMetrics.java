@@ -27,12 +27,14 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.benchmark;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeScore;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectedComposition;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ElementAutoDetector;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,9 +128,15 @@ public final class IsotopeMetrics {
         : (double) countMatched(c.falseOffsetsMz(), detected, tol) / c.falseOffsetsMz().length;
 
     // heavy-element precision/recall via the auto-detector
-    final Set<String> detectedHeavy = restrictHeavy(detectHeavyElements(best, tol));
+    final Set<String> detectedHeavy = restrictHeavy(
+        detectHeavyElements(best, c.spectrum(), c.seedMz(), tol));
     final Set<String> trueHeavy = restrictHeavy(c.trueHeavyElements());
     final Double[] elementPr = elementPrecisionRecall(detectedHeavy, trueHeavy);
+    // containment: is every true element among the reported possibilities? This is the property a set
+    // of possibilities is supposed to have - precision only measures how large the set is.
+    final Boolean elementContainment =
+        trueHeavy.isEmpty() ? null : detectedHeavy.containsAll(trueHeavy);
+    final Integer elementSetSize = best == null ? null : detectedHeavy.size();
 
     // score margin (only meaningful when there is a detection)
     final Double scoreMargin = result == null ? null : scoreMargin(result.scores(), c.trueCharge());
@@ -142,7 +150,7 @@ public final class IsotopeMetrics {
 
     return new CaseMetrics(c.axis(), c.trueCharge(), predictedCharge, chargeTop1, chargeRecallAlt,
         chargeStartInvariant, precision, recall, f1, borderlineRecall, noiseLeak, elementPr[0],
-        elementPr[1], scoreMargin, winningScore, detectMs);
+        elementPr[1], elementContainment, elementSetSize, scoreMargin, winningScore, detectMs);
   }
 
   /**
@@ -240,13 +248,16 @@ public final class IsotopeMetrics {
     final double noiseLeak = meanNullable(cases, CaseMetrics::noiseLeak);
     final double elementPrecision = meanNullable(cases, CaseMetrics::elementPrecision);
     final double elementRecall = meanNullable(cases, CaseMetrics::elementRecall);
+    final double elementContainment = meanNullableBool(cases, CaseMetrics::elementContainment);
+    final double elementSetSize = meanNullable(cases,
+        m -> m.elementSetSize() == null ? null : (double) m.elementSetSize());
     final double scoreMargin = meanNullable(cases, CaseMetrics::scoreMargin);
     final double aucCharge = auc(cases);
     final double medianDetectMs = median(cases);
 
     return new MetricRow(axisLabel, n, chargeTop1, chargeRecallAlt, chargeStartInvariance,
         patternPrecision, patternRecall, patternF1, borderlineRecall, noiseLeak, elementPrecision,
-        elementRecall, scoreMargin, aucCharge, medianDetectMs);
+        elementRecall, elementContainment, elementSetSize, scoreMargin, aucCharge, medianDetectMs);
   }
 
   /**
@@ -324,29 +335,41 @@ public final class IsotopeMetrics {
   }
 
   /**
-   * Heavy-element detector for the element metric: rebuilds the detected pattern's signals as
-   * {@link DataPoint}s and delegates to {@link ElementAutoDetector}, which infers {Cl,Br,S,Si} from
-   * the M+2 / M+1 / M+4 exact-mass defects and relative intensities.
+   * Heavy-element detector for the element metric, run on the SAME input the engine gives the
+   * detector during processing: the raw spectrum window around the detected pattern
+   * ({@link ElementAutoDetector#collectDetectionWindow}), not the emitted pattern alone.
    * <p>
-   * assumption: neutral mass is estimated as {@code lowestMz * charge} (the metric only carries the
-   * detected pattern); this only seeds the detector's carbon estimate, so a rough value suffices.
+   * decision: this used to pass only the pattern's own signals, which measured a strictly weaker
+   * detector than the one that ships - heavy M+2 evidence often sits at an offset the pattern did not
+   * keep, so the metric under-reported recall for reasons the engine does not suffer from. The window
+   * definition is shared with {@link IsotopeFinderEngine} so the two cannot drift apart.
+   * <p>
+   * assumption: neutral mass is estimated as {@code seedMz * charge}, as the engine does; it only
+   * seeds the detector's carbon estimate, so a rough value suffices.
+   *
+   * @param p        the detected pattern (null / empty -> no detection).
+   * @param spectrum the source spectrum the pattern was detected in.
+   * @param seedMz   the m/z the search was seeded from (the feature m/z in the engine).
+   * @param tol      the case's m/z tolerance.
    */
   @NotNull
   static Set<String> detectHeavyElements(@Nullable final IsotopePattern p,
-      @NotNull final MZTolerance tol) {
+      @NotNull final MassSpectrum spectrum, final double seedMz, @NotNull final MZTolerance tol) {
     if (p == null || p.getNumberOfDataPoints() == 0) {
       return Set.of();
     }
-    final int n = p.getNumberOfDataPoints();
-    final List<DataPoint> signals = new ArrayList<>(n);
-    double lowestMz = Double.POSITIVE_INFINITY;
-    for (int i = 0; i < n; i++) {
-      signals.add(new SimpleDataPoint(p.getMzValue(i), p.getIntensityValue(i)));
-      lowestMz = Math.min(lowestMz, p.getMzValue(i));
+    // the engine anchors the window on the seed m/z as well as the kept pattern signals
+    double loMz = seedMz;
+    double hiMz = seedMz;
+    for (int i = 0; i < p.getNumberOfDataPoints(); i++) {
+      loMz = Math.min(loMz, p.getMzValue(i));
+      hiMz = Math.max(hiMz, p.getMzValue(i));
     }
     final int charge = Math.max(1, p.getCharge());
-    final DetectedComposition composition = ElementAutoDetector.detect(signals, charge,
-        lowestMz * charge, tol);
+    final List<DataPoint> window = ElementAutoDetector.collectDetectionWindow(spectrum, loMz, hiMz,
+        charge);
+    final DetectedComposition composition = ElementAutoDetector.detect(window, charge,
+        seedMz * charge, tol);
     return composition.elements();
   }
 
@@ -414,6 +437,26 @@ public final class IsotopeMetrics {
       }
     }
     return count == 0 ? Double.NaN : sum / count;
+  }
+
+  /**
+   * Mean of a nullable boolean per-case flag (null = undefined for that case, excluded from the
+   * mean), i.e. the fraction of defined cases where the flag holds.
+   */
+  private static double meanNullableBool(@NotNull final List<CaseMetrics> cases,
+      @NotNull final Function<CaseMetrics, Boolean> extractor) {
+    int hits = 0;
+    int count = 0;
+    for (final CaseMetrics m : cases) {
+      final Boolean v = extractor.apply(m);
+      if (v != null) {
+        count++;
+        if (v) {
+          hits++;
+        }
+      }
+    }
+    return count == 0 ? Double.NaN : (double) hits / count;
   }
 
   /**

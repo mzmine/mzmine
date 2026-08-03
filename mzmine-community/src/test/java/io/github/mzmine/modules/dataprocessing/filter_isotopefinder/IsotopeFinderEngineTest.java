@@ -46,6 +46,8 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Envel
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeEnvelope;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.PatternAnchor;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.RatioAggregation;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.formula.FormulaEnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.formula.FormulaEnvelopeParameters;
@@ -54,6 +56,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.Carbo
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -75,12 +78,15 @@ class IsotopeFinderEngineTest {
   }
 
   private static IsotopeFinderEngine engine(final List<Element> elements, final int maxCharge) {
-    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", false);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, maxCharge, TOL, signalModel(elements), "test",
+            false));
   }
 
   private static IsotopeFinderEngine engineRequireC13(final List<Element> elements,
       final int maxCharge) {
-    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", true);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, maxCharge, TOL, signalModel(elements), "test", true));
   }
 
   /**
@@ -90,8 +96,10 @@ class IsotopeFinderEngineTest {
   @NotNull
   private static IsotopeFinderEngine engineAutoDetect(@NotNull final List<Element> elements,
       final int maxCharge) {
-    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", false,
-        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, maxCharge, TOL, signalModel(elements), "test", false)
+            .withElementDetection(ElementDetectionMode.AUTO_DETECT,
+                ElementAutoDetector.DEFAULT_CANDIDATES));
   }
 
   /**
@@ -101,8 +109,10 @@ class IsotopeFinderEngineTest {
   @NotNull
   private static IsotopeFinderEngine engineAutoDetectRequireC13(
       @NotNull final List<Element> elements, final int maxCharge) {
-    return new IsotopeFinderEngine(elements, maxCharge, TOL, signalModel(elements), "test", true,
-        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, maxCharge, TOL, signalModel(elements), "test", true)
+            .withElementDetection(ElementDetectionMode.AUTO_DETECT,
+                ElementAutoDetector.DEFAULT_CANDIDATES));
   }
 
   /**
@@ -245,9 +255,9 @@ class IsotopeFinderEngineTest {
 
   private static IsotopeFinderEngine engineTol(final List<Element> elements, final int maxCharge,
       final MZTolerance tol) {
-    return new IsotopeFinderEngine(elements, maxCharge, tol,
+    return new IsotopeFinderEngine(IsotopeFinderEngineConfig.of(elements, maxCharge, tol,
         new CarbonAveragineEnvelopeModel(CarbonAveragineEnvelopeParameters.createDefault(),
-            new EnvelopeContext(elements, tol)), "test", false);
+            new EnvelopeContext(elements, tol)), "test", false));
   }
 
   private static boolean containsMz(final IsotopePattern p, final double mz) {
@@ -390,8 +400,8 @@ class IsotopeFinderEngineTest {
         new Element("O"));
     final EnvelopeModel model = new FormulaEnvelopeModel(new FormulaEnvelopeParameters(),
         new EnvelopeContext(elements, TOL));
-    final IsotopeFinderEngine engine = new IsotopeFinderEngine(elements, 2, TOL, model, "formula",
-        false);
+    final IsotopeFinderEngine engine = new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, 2, TOL, model, "formula", false));
     // small molecule mass; formula enumeration is cheap here
     final DetectionResult result = engine.detect(ladder(195.0877, 1, 8, 4), 195.0877, 100d,
         PolarityType.POSITIVE);
@@ -492,6 +502,80 @@ class IsotopeFinderEngineTest {
       }
     }
     assertTrue(hasMono, "a monoisotopic resolved in >= minScans below the pattern must be recovered");
+  }
+
+  @Test
+  void crossScanRefinerSumsSplitCentroids() {
+    // the M+1 is reported as two adjacent points (a split centroid) in every scan. Taking only the
+    // nearest one would halve its intensity and therefore the M+1/M ratio.
+    final double mono = 500.0;
+    final double m1 = mono + C13;
+    final IsotopePattern detected = new SimpleIsotopePattern(
+        new DataPoint[]{new SimpleDataPoint(mono, 100d), new SimpleDataPoint(m1, 40d)}, 1,
+        IsotopePatternStatus.DETECTED, "test");
+
+    // both halves are well inside the 5 ppm tolerance of the M+1 position (~2.5 mDa at m/z 501)
+    final List<MassSpectrum> scans = List.of(
+        spec(new double[]{mono, m1 - 0.0008, m1 + 0.0008}, new double[]{100d, 20d, 20d}),
+        spec(new double[]{mono, m1 - 0.0008, m1 + 0.0008}, new double[]{100d, 20d, 20d}),
+        spec(new double[]{mono, m1 - 0.0008, m1 + 0.0008}, new double[]{100d, 20d, 20d}));
+
+    final IsotopePattern refined = CrossScanRefiner.refine(detected, scans, TOL,
+        RatioAggregation.MEDIAN, 2);
+
+    double monoIntensity = 0d;
+    double m1Intensity = 0d;
+    for (int i = 0; i < refined.getNumberOfDataPoints(); i++) {
+      if (Math.abs(refined.getMzValue(i) - mono) < 0.002) {
+        monoIntensity = refined.getIntensityValue(i);
+      } else if (Math.abs(refined.getMzValue(i) - m1) < 0.002) {
+        m1Intensity = refined.getIntensityValue(i);
+      }
+    }
+    assertTrue(monoIntensity > 0d && m1Intensity > 0d, "both signals must survive refinement");
+    // 40 % of the base, not 20 %: both halves of the split centroid contribute
+    assertEquals(0.4d, m1Intensity / monoIntensity, 0.01d,
+        "a split centroid must contribute its summed intensity to the ratio");
+  }
+
+  @Test
+  void crossScanRefinerRejectsRecoveredOffsetTheEnvelopeDoesNotPredict() {
+    // a persistent background signal 3 offsets above the pattern, present in every scan. Without the
+    // envelope anchor it is recovered on recurrence alone; with it, the predicted envelope ends
+    // before that offset and it must be rejected.
+    final double mono = 500.0;
+    final double m1 = mono + C13;
+    final double background = mono + 3 * C13;
+    final IsotopePattern detected = new SimpleIsotopePattern(
+        new DataPoint[]{new SimpleDataPoint(mono, 100d), new SimpleDataPoint(m1, 30d)}, 1,
+        IsotopePatternStatus.DETECTED, "test");
+    final List<MassSpectrum> scans = List.of(
+        spec(new double[]{mono, m1, background}, new double[]{100d, 30d, 5d}),
+        spec(new double[]{mono, m1, background}, new double[]{100d, 30d, 5d}),
+        spec(new double[]{mono, m1, background}, new double[]{100d, 30d, 5d}));
+
+    // envelope predicting only mono + M+1 (offset 2 and beyond are not plausible)
+    final PatternAnchor anchor = new PatternAnchor(
+        new IsotopeEnvelope(new double[]{1d, 0.3d}, new double[]{1d, 0.4d}, C13, 1), mono, 0);
+
+    final IsotopePattern withoutAnchor = CrossScanRefiner.refine(detected, scans, TOL,
+        RatioAggregation.MEDIAN, 2);
+    final IsotopePattern withAnchor = CrossScanRefiner.refine(detected, scans, TOL,
+        RatioAggregation.MEDIAN, 2, anchor);
+
+    assertTrue(contains(withoutAnchor, background),
+        "without an envelope the recurring signal is recovered");
+    assertTrue(!contains(withAnchor, background),
+        "an offset the envelope does not predict must not be recovered");
+  }
+
+  private static boolean contains(@NotNull final IsotopePattern pattern, final double mz) {
+    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+      if (Math.abs(pattern.getMzValue(i) - mz) < 0.002) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test
@@ -1091,8 +1175,10 @@ class IsotopeFinderEngineTest {
     final MZTolerance tol = new MZTolerance(0.009, 25);
     final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
         CarbonAveragineEnvelopeParameters.createDefault(), new EnvelopeContext(els, tol));
-    return new IsotopeFinderEngine(els, 10, tol, model, "test", requireC13,
-        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(els, 10, tol, model, "test", requireC13)
+            .withElementDetection(ElementDetectionMode.AUTO_DETECT,
+                ElementAutoDetector.DEFAULT_CANDIDATES));
   }
 
   @Test
@@ -1204,7 +1290,7 @@ class IsotopeFinderEngineTest {
         new Halo("C32Cl16CuN8",
             List.of(new Element("C"), br, cl, new Element("Cu"), new Element("N"))),
         // BDE-209 (decabromodiphenyl ether): 10 Br -> very broad, base near M+10
-        new Halo("C12Br10O", List.of(new Element("C"), br, cl, new Element("O"))),
+        new Halo("C12Br10O", List.of(new Element("C"), br, cl, new Element("Cu"), new Element("N"))),
         new Halo("C10Cl6", List.of(new Element("C"), br, cl)),
         new Halo("C10H4Cl2Br2", List.of(new Element("C"), new Element("H"), br, cl, br)));
 
@@ -1241,6 +1327,51 @@ class IsotopeFinderEngineTest {
 
   private static double baseHeight(final MassSpectrum s) {
     return s.getIntensityValue(baseIndex(s));
+  }
+
+  @Test
+  void explainableSignalsOnlyDropsAnUnattributableSignalAtAKeptOffset() {
+    // a peak collected at the EDGE of the m/z tolerance around the 2H distance, 6.5 mDa above the M+1
+    // 13C position: too far off the grid to be a 13C peak, and no isotope (or pair of isotopes) of
+    // C/H/N/O produces that defect either. The opt-in filter must drop it while the default engine
+    // keeps it. Both must still report charge 1 and keep the real signals.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"), new Element("N"),
+        new Element("O"));
+    final double mono = 500.0;
+    final double contaminant = mono + C13 + 0.0065;
+    final SimpleMassSpectrum spectrum = spec(
+        new double[]{mono, mono + C13, contaminant, mono + 2 * C13},
+        new double[]{100d, 36d, 12d, 6d});
+
+    final DetectionResult lenient = engine(elements, 3).detect(spectrum, mono, 100d,
+        PolarityType.POSITIVE);
+    final DetectionResult strict = new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(elements, 3, TOL, signalModel(elements), "test", false)
+            .withExplainableSignalsOnly(true)).detect(spectrum, mono, 100d, PolarityType.POSITIVE);
+
+    assertNotNull(lenient);
+    assertNotNull(strict);
+    assertEquals(1, lenient.bestCharge());
+    assertEquals(1, strict.bestCharge(), "the filter must not change charge selection");
+    assertTrue(hasExactMz(lenient.patterns().get(0), contaminant),
+        "by default the unattributable signal is reported");
+    assertTrue(!hasExactMz(strict.patterns().get(0), contaminant),
+        "with the filter on the unattributable signal is dropped");
+    assertTrue(
+        hasExactMz(strict.patterns().get(0), mono) && hasExactMz(strict.patterns().get(0), mono + C13),
+        "the real 13C signals must survive the filter");
+  }
+
+  /**
+   * Like {@link #containsMz} but exact enough to tell neighbouring fine-structure signals apart.
+   */
+  private static boolean hasExactMz(@NotNull final IsotopePattern p, final double mz) {
+    for (int i = 0; i < p.getNumberOfDataPoints(); i++) {
+      if (Math.abs(p.getMzValue(i) - mz) < 1e-6) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test
@@ -1346,6 +1477,70 @@ class IsotopeFinderEngineTest {
     assertNotNull(composition, "auto-detect must populate the detected composition");
     assertTrue(composition.elements().contains("Cl"),
         "the 37Cl M+2 comb must be detected as chlorine but was " + composition.elements());
+  }
+
+  @Test
+  void autoDetectRanksTheEvidenceFirstAmongIndistinguishableAlternatives() {
+    // the detector reports possibilities, not one winner: Cl and Br differ by 0.9 mDa in M+2 defect,
+    // so on real data Br may well be reported too. What must hold is the RANKING - the composition
+    // iterates best-first and the confidence map carries the score - so a consumer that needs a single
+    // label takes the first entry.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"));
+    final SimpleMassSpectrum spectrum = chlorineComb();
+    final double mono = spectrum.getMzValue(0);
+    final DetectionResult r = engineAutoDetect(elements, 4).detect(spectrum, mono,
+        spectrum.getIntensityValue(0), PolarityType.POSITIVE);
+    assertNotNull(r);
+    final DetectedComposition composition = r.detectedComposition();
+    assertNotNull(composition);
+    assertEquals("Cl", composition.elements().iterator().next(),
+        "the 37Cl comb must rank chlorine first, got " + composition.elements());
+    for (final String symbol : composition.elements()) {
+      final Double confidence = composition.confidence().get(symbol);
+      assertNotNull(confidence, "every reported element needs a confidence: " + symbol);
+      assertTrue(confidence > 0d && confidence <= 1d,
+          "confidence must be a (0,1] value but was " + confidence + " for " + symbol);
+    }
+  }
+
+  @Test
+  void detectedElementsAreAlternativesNotCoPresentInTheUpperBound() {
+    // decision under test: several detected elements are mutually exclusive hypotheses, so the heavy
+    // upper bound is the MAX over their individual bounds. Convolving them would multiply the heavy
+    // contributions together (as if the molecule held all of them), which loosens the bound and widens
+    // pattern termination. The max of two alternatives can never exceed either convolved with both.
+    final List<Element> elements = List.of(new Element("C"), new Element("H"));
+    final EnvelopeModel model = signalModel(elements);
+    final IsotopeEnvelope onlyCl = model.buildEnvelope(500d, 1, PolarityType.POSITIVE,
+        Map.of("Cl", 2), false);
+    final IsotopeEnvelope onlyBr = model.buildEnvelope(500d, 1, PolarityType.POSITIVE,
+        Map.of("Br", 2), false);
+    final IsotopeEnvelope both = model.buildEnvelope(500d, 1, PolarityType.POSITIVE,
+        Map.of("Cl", 2, "Br", 2), false);
+
+    // width = offsets the bound still supports. Alternatives: the pair reaches no further than the
+    // wider of the two. Co-present (the old convolution) would span roughly their sum, because two Cl
+    // plus two Br carry the comb twice as far.
+    final int widthCl = supportedWidth(onlyCl);
+    final int widthBr = supportedWidth(onlyBr);
+    final int widthBoth = supportedWidth(both);
+    assertEquals(Math.max(widthCl, widthBr), widthBoth,
+        "the {Cl,Br} bound must span the wider alternative (%d/%d), not their combination, but spanned %d".formatted(
+            widthCl, widthBr, widthBoth));
+  }
+
+  /**
+   * @return the number of offsets whose plausible upper bound still reaches the engine's 2 % support
+   * cutoff, i.e. how far the bound admits signals.
+   */
+  private static int supportedWidth(@NotNull final IsotopeEnvelope env) {
+    int width = 0;
+    for (int offset = 0; offset <= env.maxOffset(); offset++) {
+      if (env.upperBoundAt(offset) >= 0.02d) {
+        width++;
+      }
+    }
+    return width;
   }
 
   @Test

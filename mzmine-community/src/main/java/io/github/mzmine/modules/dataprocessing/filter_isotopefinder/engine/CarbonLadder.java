@@ -58,7 +58,7 @@ public final class CarbonLadder {
   private final double spacingDa;
   private final MZTolerance tol;
   /**
-   * All candidate m/z ascending, so {@link #hasSignalNearGrid} can binary-search a widened window
+   * All candidate m/z ascending, so {@link #nearestMzWithin} can binary-search a widened window
    * instead of scanning every candidate per probed offset.
    */
   private final double[] sortedMz;
@@ -161,30 +161,31 @@ public final class CarbonLadder {
   }
 
   /**
-   * Whether any candidate lies within {@code toleranceFactor} times the m/z tolerance of the exact
-   * 13C position of {@code offset}. Unlike {@link #onGridIntensities(double)} this does not require
-   * the signal to round to {@code offset}, so a widened window can legitimately match a neighbour -
-   * which is the point when a merged heavy isotope pulls the observed centroid off the grid.
+   * The candidate m/z closest to the probed position, within {@code toleranceFactor} times the m/z
+   * tolerance. Unlike {@link #onGridIntensities(double)} the signal does not have to round to a
+   * particular offset, so a widened window can legitimately match a neighbour - which is the point
+   * when a merged heavy isotope pulls the observed centroid off the grid.
    *
-   * @param offset          the grid offset to probe.
+   * @param mz              the m/z to probe.
    * @param toleranceFactor multiplier on the m/z tolerance.
-   * @return whether the position is occupied.
+   * @return the closest candidate m/z, or {@link Double#NaN} when the position is unoccupied.
    */
-  public boolean hasSignalNearGrid(final int offset, final double toleranceFactor) {
+  public double nearestMzWithin(final double mz, final double toleranceFactor) {
     if (sortedMz.length == 0) {
-      return false;
+      return Double.NaN;
     }
-    final double exactMz = exactMzAt(offset);
-    final double window = tol.getMzToleranceForMass(exactMz) * toleranceFactor;
-    int idx = Arrays.binarySearch(sortedMz, exactMz);
+    final double window = tol.getMzToleranceForMass(mz) * toleranceFactor;
+    int idx = Arrays.binarySearch(sortedMz, mz);
     if (idx >= 0) {
-      return true;
+      return sortedMz[idx];
     }
-    idx = -idx - 1; // insertion point: first element greater than exactMz
-    if (idx < sortedMz.length && sortedMz[idx] - exactMz <= window) {
-      return true;
+    idx = -idx - 1; // insertion point: first element greater than mz
+    final double above = idx < sortedMz.length ? sortedMz[idx] - mz : Double.MAX_VALUE;
+    final double below = idx > 0 ? mz - sortedMz[idx - 1] : Double.MAX_VALUE;
+    if (Math.min(above, below) > window) {
+      return Double.NaN;
     }
-    return idx > 0 && exactMz - sortedMz[idx - 1] <= window;
+    return above <= below ? sortedMz[idx] : sortedMz[idx - 1];
   }
 
   /**

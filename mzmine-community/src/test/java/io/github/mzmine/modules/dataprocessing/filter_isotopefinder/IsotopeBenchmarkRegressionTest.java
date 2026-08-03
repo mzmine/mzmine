@@ -74,6 +74,12 @@ class IsotopeBenchmarkRegressionTest {
    * Metrics where a higher value is better. {@code scoreMargin} / {@code aucCharge} are deliberately
    * excluded: they are separation diagnostics that legitimately shift when the scoring formula
    * changes, so they are reported but not asserted. {@code medianDetectMs} is machine-dependent.
+   * <p>
+   * {@code elementPrecision} and {@code elementSetSize} are excluded on purpose as well: the detector
+   * reports every heavy element the evidence cannot rule out, so both move with the size of that
+   * ambiguity set rather than with detection quality, and asserting precision would fail every
+   * deliberate widening. {@code elementContainment} - did the reported set cover the true elements -
+   * is the guarded property; watch the other two in the printed table.
    */
   private static final List<Metric> HIGHER_IS_BETTER = List.of(
       new Metric("chargeTop1", MetricRow::chargeTop1),
@@ -83,8 +89,8 @@ class IsotopeBenchmarkRegressionTest {
       new Metric("patternRecall", MetricRow::patternRecall),
       new Metric("patternF1", MetricRow::patternF1),
       new Metric("borderlineRecall", MetricRow::borderlineRecall),
-      new Metric("elementPrecision", MetricRow::elementPrecision),
-      new Metric("elementRecall", MetricRow::elementRecall));
+      new Metric("elementRecall", MetricRow::elementRecall),
+      new Metric("elementContainment", MetricRow::elementContainment));
 
   /**
    * Metrics where a lower value is better (the fraction of injected false peaks that leaked into

@@ -40,12 +40,54 @@ is not a strict win — do not enable it by default:
 | `cutoff` | **0.9930** → 0.9832 | **0.9856** → 0.9689 |
 | `polyhalogen` | 0.9897 → 0.9536 | **0.9934** → 0.8940 |
 | `resolution_merged` | 1.0000 → 0.9916 | **0.9986** → 0.9522 |
-| `interference_real` | **0.9902** → 0.9832 | **0.9766** → 0.9494 |
+| `interference_real` | **0.9902** → 0.9832 | **0.9758** → 0.9489 |
 
 The gate costs pattern completeness on every axis — worst on polyhalogens (−0.099 recall), where the
 gap-truncation cuts the heavy comb short — and on this corpus it no longer buys charge accuracy
 anywhere. Since incomplete patterns degrade downstream formula scoring, leave it off unless harmonic
 confusion is demonstrably the dominant problem in the data at hand.
+
+### Measured and rejected — do not re-propose without new data
+
+Ideas that look right on paper, were implemented and benchmarked, and made things worse. The
+reasoning behind each is in a `decision:` comment at the named constant.
+
+| change | result | constant |
+|---|---|---|
+| Count only offsets the envelope predicts in the peak-count reward (as a harmonic guard) | ALL `chargeTop1` 0.9958 → 0.9931 (`upperBound` gate) / 0.9885 (`expected` gate); harmonic error 0.0019 → 0.0048 / 0.0096; `polyhalogen` → 0.9845 / 0.9742 | `TIE_WEIGHT` |
+| Relax the gap-bridged significance floor proportionally to the predicted intensity | `noiseLeak` 0.0116 → 0.0121 (`noise`), 0.0174 → 0.0177 (ALL); no recall gain — the wide envelopes already reach recall 1.0000 | `MIN_BRIDGED_REL_INTENSITY` |
+| Fold spacing consistency into the quality multiplicatively | regressed polyhalogen combs (a Cl₂/Br₂ comb at z=2 nearly aligns to the z=1 grid) | `SPACING_GRID_FACTOR` / `spacingConsistency` |
+
+### The opt-in "only keep explainable signals" filter
+
+`IsotopeFinderParameters.explainableSignalsOnly` (off by default) drops an emitted signal when it is
+off the 13C grid and its mass defect matches no combination of the selected elements' isotopes. Off →
+the committed baseline; on → measured over the same corpus:
+
+| metric | off → on |
+|---|---|
+| `noiseLeak` | **0.0174** → 0.0162 |
+| `patternRecall` | **0.9931** → 0.9909 |
+| `patternF1` | **0.9938** → 0.9927 |
+| `elementPrecision` | **0.8446** → 0.8365 |
+| `chargeTop1` | 0.9958 → 0.9958 (unchanged) |
+
+Two things make this filter subtle, and both are load-bearing:
+
+- **The match window must be tighter than the m/z tolerance** (`ATTR_WINDOW_TOL_FACTOR = 0.5`).
+  Candidates are only collected within the full tolerance of an isotope distance, so a window equal
+  to the tolerance calls everything explainable and the filter becomes a no-op.
+- **Mass defect cannot always separate chemistry**: an 81Br spacing sits 0.03 mDa from 15N+18O, so in
+  a sufficiently rich element list almost any deviation is reachable. The filter's power comes from
+  the element list being *narrow*, which is why the defect table is built from the user's elements
+  (plus auto-detection candidates) and **not** from the default heavy-candidate set.
+
+Since it is off by default, a baseline diff must stay empty when you change it — measure it by
+temporarily enabling it in `BenchmarkRunner.buildEngine` and reading the console table.
+
+Also note: `medianDetectMs` drifts by **2× between runs on the same machine and code** depending on
+machine state. Never read a timing change from two runs made at different times — A/B it back to
+back, and confirm with the ratio between a cheap axis and `protein_highz` rather than absolute ms.
 
 ### Retired axes: no adversarial cases
 
@@ -132,18 +174,96 @@ One row per `axis` (the degradation family), plus a final `ALL` row. Columns:
 | `patternPrecision/Recall/F1` | detected isotope signals vs ground-truth true offsets                                                                       |
 | `borderlineRecall`           | fraction of borderline signals kept (inclusiveness)                                                                         |
 | `noiseLeak`                  | fraction of injected noise peaks wrongly kept (lower is better)                                                             |
-| `elementPrecision/Recall`    | heavy-element (Cl/Br/S/Si) detection via `ElementAutoDetector`                                                              |
+| `elementPrecision/Recall`    | heavy-element (Cl/Br/S/Si) detection via `ElementAutoDetector`; precision falls as the reported ambiguity set grows — see below |
+| `elementContainment`         | **the asserted element metric** — fraction of cases where every true heavy element was reported                             |
+| `elementSetSize`             | mean number of heavy elements reported (the cost of containment)                                                            |
 | `scoreMargin`, `aucCharge`   | winner-vs-runner-up separation, ranking quality                                                                             |
 | `medianDetectMs`             | per-case detection time — watch for perf regressions (proteins are the slow axis)                                           |
 
 `NaN` is expected where an axis has no cases of that kind (e.g. `noiseLeak` on non-noise axes,
 `elementRecall` on unit-resolution where M+2 defects are unresolvable). Priorities, in order:
-**chargeTop1 → chargeStartInvariance → pattern F1 → borderlineRecall / noiseLeak → element P/R**.
+**chargeTop1 → chargeStartInvariance → pattern F1 → borderlineRecall / noiseLeak →
+elementContainment**.
 
 Every axis is now realistic, so **every axis should stay ~0.99–1.0 on `chargeTop1`** — a drop
 anywhere is a genuine regression, not an artificial stress case. The weakest metric on the board is
-`elementRecall` (~0.44 overall), which is the open problem worth working on; charge and pattern
+`elementContainment` (0.622 overall), which is the open problem worth working on; charge and pattern
 completeness are essentially saturated.
+
+### Heavy-element detection: `elementContainment` is the target, not `elementPrecision`
+
+The detector reports every heavy element the evidence **cannot rule out**, ranked by confidence. Two
+columns exist for that shape and the asserted one is `elementContainment` (was every true element in
+the reported set?); `elementSetSize` is its cost (mean elements per case). `elementPrecision` and
+`elementSetSize` are **reported but not asserted** by `IsotopeBenchmarkRegressionTest`, because both
+move with the size of the ambiguity set rather than with detection quality — asserting precision would
+fail every deliberate widening.
+
+Membership is three tests, each of which had to exist for a measured reason:
+
+1. **Spacing match** — some observed pair sits within the m/z tolerance (× charge) of the element's
+   isotope distance. This is the coarse "possible" test.
+2. **Intensity impossibility floor** (`REACH_FLOOR_FRACTION = 0.15`) — one atom must produce its
+   per-atom M+2 abundance, so Br (~97 % per atom) is impossible on a weak comb. Without it, a plain
+   CHNO ¹³C+¹⁵N peak (2.00039) is within 5 mDa of the ⁸¹Br distance (1.99795) and *every* organic
+   molecule reports Br: precision 0.208 vs 0.294.
+3. **Defect consistency** (`MIN_CONFIDENCE`) — the robust median defect must be consistent with the
+   element at the precision the data supports, which is what keeps clean CHNO patterns empty.
+
+`defectSigma` takes the **max of the spacing spread and `tol/√nPairs`**. The count term is essential:
+with a single pair the spread is 0, which claimed sub-mDa precision on data that has none and dropped
+`unit_resolution` containment to 0.021 (0.494 with it).
+
+Measured progression, whole corpus (containment / recall / precision / set size):
+
+| variant | elemIn | elemR | elemP | elemN |
+|---|---|---|---|---|
+| winner + defect-separated second (old) | — | 0.4370 | 0.8446 | ~1.0 |
+| spacing match only | 0.670 | 0.670 | 0.208 | 1.99 |
+| + intensity floor | 0.667 | 0.667 | 0.235 | 1.72 |
+| + defect consistency, σ floor only | 0.504 | 0.505 | 0.457 | 0.78 |
+| **+ count-aware σ (current)** | **0.622** | **0.624** | 0.294 | 1.32 |
+
+`protein_highz` is 0.000 across every variant — no heavy pair is ever found there, so proteins are the
+place to look next, not the reporting rule.
+
+### Element alternatives are combined with max, not convolution
+
+`CarbonAveragineEnvelopeModel.buildEnvelope` treats the **user's** elements as co-present (convolved)
+but **detected** elements as mutually exclusive alternatives, taking the element-wise maximum of each
+alternative's bound. Convolving them would bound the pattern as if the molecule contained Cl and Br
+and S and Si at once, which loosens the bound multiplicatively and thereby widens `computeKeptOffsets`
+termination and flattens `intensityAgreement`. With element detection off (the benchmark default) this
+path is inert, so the change does not show in the committed baseline — cover it with
+`IsotopeFinderEngineTest` auto-detect cases instead.
+
+### The detector's input: the engine's raw window
+
+`IsotopeMetrics.detectHeavyElements` runs the detector on
+`ElementAutoDetector.collectDetectionWindow` — the raw spectrum window around the pattern — which is
+the same call `IsotopeFinderEngine` makes during processing, so metric and production cannot drift. It
+previously passed only the emitted pattern, i.e. measured a detector that does not ship.
+
+**That honesty immediately showed the raw window to be a net liability.** Same detector, same corpus,
+only the input differs (measured before the membership rework, so the absolute values are superseded —
+the comparison is not):
+
+| axis | pattern only (P / R) | engine's raw window (P / R) |
+|---|---|---|
+| `interference_real` | **0.8552** / 0.5839 | 0.4878 / **0.5959** |
+| `unit_resolution` | NaN / 0.0000 (no detections) | 0.2976 / 0.0188 |
+| `noise` | **0.7315** / 0.6331 | 0.7148 / 0.6331 |
+| `polyhalogen` | 0.7186 / 0.8660 | 0.7186 / 0.8660 |
+| `ALL` | **0.7185** / 0.4807 | 0.6579 / **0.4800** |
+
+The window buys essentially **no recall** (0.4807 → 0.4800) and costs 0.06 precision, because it
+hands the detector foreign peaks: a co-eluting compound's signals form spurious M+2 pairs, and — worse
+— `detect` normalises every intensity against the *most intense peak of its input*, so an interferent
+taller than the pattern rescales all the base-relative ratios the scoring depends on. At unit
+resolution, where no M+2 defect is resolvable, the window manufactures detections that are ~70 %
+wrong where the pattern-only input correctly produced none. Two candidate fixes, unmeasured:
+normalise on the pattern's base peak rather than the window's, or feed the pattern's attributed heavy
+signals instead of a raw window (the open half of review item 6.5).
 
 ## Gotchas
 

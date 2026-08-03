@@ -139,6 +139,35 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
   }
 
   /**
+   * The stepped binomial isotope contribution of {@code atoms} atoms of one element.
+   *
+   * @param symbol element symbol.
+   * @param atoms  number of atoms of it.
+   * @return the distribution, or null when the element has no usable heavy isotope.
+   */
+  private double @Nullable [] heavyDistributionFor(@NotNull final String symbol, final int atoms) {
+    // prefer the cached user contribution, else resolve on the fly for a detected-only element
+    HeavyContribution hc = userHeavies.get(symbol);
+    if (hc == null) {
+      hc = heavyContributionFor(symbol);
+    }
+    return hc == null ? null : steppedBinomial(atoms, hc.abundance(), hc.step());
+  }
+
+  /**
+   * @return the element-wise maximum of two distributions, length = the longer one.
+   */
+  private static double @NotNull [] maxOf(final double @NotNull [] a, final double @NotNull [] b) {
+    final double[] out = new double[Math.max(a.length, b.length)];
+    for (int i = 0; i < out.length; i++) {
+      final double av = i < a.length ? a[i] : 0d;
+      final double bv = i < b.length ? b[i] : 0d;
+      out[i] = Math.max(av, bv);
+    }
+    return out;
+  }
+
+  /**
    * @param neutralMass the searched neutral mass
    * @return the crude, mass-proportional estimate of the number of heavy atoms per element
    * (capped), used when a detected atom count is not available.
@@ -169,40 +198,50 @@ public class CarbonAveragineEnvelopeModel implements EnvelopeModel {
     final double[] carbonExpected = carbonDistribution(nCtypical);
     final double[] carbonUpper = carbonDistribution(nCmax);
 
-    // assemble per-element heavy atom counts: user heavies at the crude estimate, then detected
-    // counts override/extend them.
-    final LinkedHashMap<String, Integer> heavyCounts = new LinkedHashMap<>();
+    // The user's elements are DECLARED to be present together, so their contributions are convolved:
+    // a molecule with Cl and S carries both.
+    final LinkedHashMap<String, Integer> coPresent = new LinkedHashMap<>();
     if (includeUserHeavies) {
       final int crude = crudeHeavyAtomCount(neutralMass);
       for (final String sym : userHeavies.keySet()) {
-        heavyCounts.put(sym, crude);
+        coPresent.put(sym, crude);
       }
     }
-    if (detectedHeavyCounts != null) {
-      for (final Map.Entry<String, Integer> entry : detectedHeavyCounts.entrySet()) {
-        final Integer count = entry.getValue();
-        if (count != null && count > 0) {
-          heavyCounts.put(entry.getKey(), count);
-        }
+    double[] coPresentDist = new double[]{1d};
+    for (final Map.Entry<String, Integer> entry : coPresent.entrySet()) {
+      final double[] elemDist = heavyDistributionFor(entry.getKey(), entry.getValue());
+      if (elemDist != null) {
+        coPresentDist = convolve(coPresentDist, elemDist);
       }
     }
 
-    // convolve heavy-isotope contributions into the upper bound only
-    double[] heavyDist = new double[]{1d};
-    for (final Map.Entry<String, Integer> entry : heavyCounts.entrySet()) {
-      final String sym = entry.getKey();
-      // prefer the cached user contribution, else resolve on the fly for a detected-only element
-      HeavyContribution hc = userHeavies.get(sym);
-      if (hc == null) {
-        hc = heavyContributionFor(sym);
+    // decision: DETECTED elements are ALTERNATIVES, not co-present. The auto-detector reports every
+    // element the evidence cannot rule out - the candidate M+2 defects are ~1 mDa apart, so Cl/Br/S/Si
+    // are routinely indistinguishable - and convolving them would bound the pattern as if the molecule
+    // contained all of them at once. That inflates the bound multiplicatively, which widens the
+    // termination in computeKeptOffsets (patterns spread over noise) and flattens intensityAgreement.
+    // The plausible maximum over mutually exclusive hypotheses is the ENVELOPE-WISE MAXIMUM of each
+    // alternative's own bound. With no detected counts this reduces to the co-present path unchanged.
+    double[] upperRaw = convolve(carbonUpper, coPresentDist);
+    if (detectedHeavyCounts != null && !detectedHeavyCounts.isEmpty()) {
+      double[] best = null;
+      for (final Map.Entry<String, Integer> entry : detectedHeavyCounts.entrySet()) {
+        final Integer count = entry.getValue();
+        if (count == null || count <= 0) {
+          continue;
+        }
+        final double[] elemDist = heavyDistributionFor(entry.getKey(), count);
+        if (elemDist == null) {
+          continue;
+        }
+        // each alternative sits on top of the declared co-present heavies
+        final double[] candidate = convolve(upperRaw, elemDist);
+        best = best == null ? candidate : maxOf(best, candidate);
       }
-      if (hc == null) {
-        continue;
+      if (best != null) {
+        upperRaw = best;
       }
-      final double[] elemDist = steppedBinomial(entry.getValue(), hc.abundance(), hc.step());
-      heavyDist = convolve(heavyDist, elemDist);
     }
-    final double[] upperRaw = convolve(carbonUpper, heavyDist);
 
     final double[] expected = normalizeToMax(carbonExpected);
     final double[] upperBound = normalizeToMax(upperRaw);

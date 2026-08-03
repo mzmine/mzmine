@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Envel
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeEnvelope;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -63,8 +64,9 @@ class IsotopeFinderScoreDiagnosisTest {
     final MZTolerance tol = new MZTolerance(0.009, 25);
     final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
         CarbonAveragineEnvelopeParameters.createDefault(), new EnvelopeContext(els, tol));
-    return new IsotopeFinderEngine(els, 10, tol, model, "test", false,
-        ElementDetectionMode.AUTO_DETECT, ElementAutoDetector.DEFAULT_CANDIDATES);
+    return new IsotopeFinderEngine(IsotopeFinderEngineConfig.of(els, 10, tol, model, "test", false)
+        .withElementDetection(ElementDetectionMode.AUTO_DETECT,
+            ElementAutoDetector.DEFAULT_CANDIDATES));
   }
 
   @Test

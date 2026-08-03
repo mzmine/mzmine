@@ -100,9 +100,24 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           molecules are not rejected; mid-envelope patterns without a visible monoisotopic (e.g. \
           proteins) are exempt from this ratio check.""", false);
 
+  public static final BooleanParameter explainableSignalsOnly = new BooleanParameter(
+      "Only keep explainable signals", """
+      If enabled, a detected signal is only reported when it sits on the charge-adjusted 13C grid \
+      or its mass defect matches a combination of isotopes of the selected elements (37Cl, 81Br, \
+      34S, 29/30Si, 15N, 2H, 18O, ...). Noise or a co-eluting compound's peak that happens to fall \
+      at an offset the pattern reaches is then dropped instead of being reported as an isotope \
+      signal. A signal is never dropped where nothing at its offset is explainable, nor when it is \
+      the most intense signal at its offset.
+      Off by default, because it is a trade rather than a strict win: measured over the synthetic \
+      benchmark corpus it lowers the noise leak (0.0174 to 0.0162) but also pattern completeness \
+      (recall 0.9931 to 0.9909, F1 0.9938 to 0.9927), since a blended fine-structure centroid can \
+      land between two isotope defects. Charge detection is unaffected. Enable it when a clean \
+      pattern matters more than completeness - e.g. before formula prediction, which otherwise has \
+      to explain signals that are not isotopes.""", false);
+
   public IsotopeFinderParameters() {
     super(new UserParameter[]{featureLists, elements, elementDetectionMode, isotopeMzTolerance,
-            maxCharge, fwhmRefine, mode, requireC13},
+            maxCharge, fwhmRefine, mode, requireC13, explainableSignalsOnly},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 

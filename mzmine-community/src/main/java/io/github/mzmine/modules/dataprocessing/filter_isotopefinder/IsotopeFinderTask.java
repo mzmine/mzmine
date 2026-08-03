@@ -49,6 +49,7 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.PatternAnchor;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.RatioAggregation;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.parameters.ParameterSet;
@@ -202,9 +203,12 @@ class IsotopeFinderTask extends AbstractTask {
           final List<MassSpectrum> fwhmScans = collectFwhmMassLists(feature);
           if (fwhmScans.size() > 1) {
             final List<IsotopePattern> refined = new ArrayList<>(patterns.size());
-            for (final IsotopePattern p : patterns) {
-              refined.add(CrossScanRefiner.refine(p, fwhmScans, refineMzTolerance, ratioAggregation,
-                  minScansPresent));
+            final List<PatternAnchor> anchors = result.anchors();
+            for (int i = 0; i < patterns.size(); i++) {
+              // the anchor lets the refiner reject recovered offsets the envelope does not predict
+              final PatternAnchor anchor = i < anchors.size() ? anchors.get(i) : null;
+              refined.add(CrossScanRefiner.refine(patterns.get(i), fwhmScans, refineMzTolerance,
+                  ratioAggregation, minScansPresent, anchor));
             }
             patterns = refined;
           }

@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +90,25 @@ class ElementAutoDetectorTest {
   }
 
   /**
+   * The detector reports every candidate the evidence cannot rule out, ranked best first, so a test
+   * that pins down WHICH element the data points at asserts the ranking rather than the absence of
+   * the (indistinguishable) alternatives.
+   *
+   * @return the highest-confidence element symbol, or null when nothing was detected.
+   */
+  @Nullable
+  private static String topElement(@NotNull final String formula, final int charge) {
+    final List<DataPoint> signals = signalsOf(formula, charge);
+    double lowestMz = Double.POSITIVE_INFINITY;
+    for (final DataPoint dp : signals) {
+      lowestMz = Math.min(lowestMz, dp.getMZ());
+    }
+    final DetectedComposition c = ElementAutoDetector.detect(signals, charge, lowestMz * charge,
+        TOL);
+    return c.elements().isEmpty() ? null : c.elements().iterator().next();
+  }
+
+  /**
    * Remove the {@code n} lowest-m/z signals (simulate a monoisotopic + first isotopes below the
    * detection threshold).
    */
@@ -117,9 +137,12 @@ class ElementAutoDetectorTest {
 
   @Test
   void detectsTetrachloroAsClNotBr() {
+    // Br is only 0.9 mDa from Cl in M+2 defect, so at this tolerance it stays in the reported
+    // ambiguity set - but Cl must be the element the evidence points at, i.e. ranked first
     final Set<String> e = detect("C20H30Cl4", 1);
     Assertions.assertTrue(e.contains("Cl"), () -> "expected Cl in " + e);
-    Assertions.assertFalse(e.contains("Br"), () -> "Cl4 must not be read as Br: " + e);
+    Assertions.assertEquals("Cl", topElement("C20H30Cl4", 1),
+        () -> "Cl4 must rank Cl above every alternative, got " + e);
   }
 
   @Test
@@ -166,8 +189,9 @@ class ElementAutoDetectorTest {
     for (final int z : new int[]{1, 2, 3}) {
       final Set<String> e = detect("C40H60Cl4", z);
       Assertions.assertTrue(e.contains("Cl"), () -> "expected Cl at charge " + z + ": " + e);
-      Assertions.assertFalse(e.contains("Br"),
-          () -> "Cl4 at charge " + z + " must not be read as Br: " + e);
+      // as above: Br cannot be excluded at this defect precision, but Cl must rank first
+      Assertions.assertEquals("Cl", topElement("C40H60Cl4", z),
+          () -> "Cl4 at charge " + z + " must rank Cl first, got " + e);
     }
   }
 

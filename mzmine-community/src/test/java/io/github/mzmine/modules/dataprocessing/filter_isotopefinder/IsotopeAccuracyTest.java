@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Detec
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
 import java.util.ArrayList;
@@ -49,10 +50,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  * CI accuracy guard for the isotope finder over the fast {@link IsotopeCorpus#ciCases()} subset.
  * <p>
  * Thresholds are pinned to the CURRENT engine's measured baseline (regenerate with the
- * {@code isotopeBenchmark} Gradle task): axes the engine solves cleanly assert an exact charge
- * match, while the known-hard interference/combined axes assert only that a detection is returned,
- * the true charge is at least flagged among the alternates, and the noise leak stays within the
- * observed bound. This locks in current behaviour without turning CI red on the present engine.
+ * {@code isotopeBenchmark} Gradle task): axes the engine solves cleanly assert an exact charge match
+ * and a pattern-recall floor, while the co-elution axis ({@code interference_real}) asserts the
+ * charge but only bounds the noise leak, since an interferent's peaks may still reach the reported
+ * pattern. This locks in current behaviour without turning CI red on the present engine.
  */
 class IsotopeAccuracyTest {
 
@@ -89,7 +90,8 @@ class IsotopeAccuracyTest {
     final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
         CarbonAveragineEnvelopeParameters.createDefault(),
         new EnvelopeContext(c.elements(), c.tol()));
-    return new IsotopeFinderEngine(c.elements(), c.maxCharge(), c.tol(), model, "ci", false);
+    return new IsotopeFinderEngine(
+        IsotopeFinderEngineConfig.of(c.elements(), c.maxCharge(), c.tol(), model, "ci", false));
   }
 
   @ParameterizedTest(name = "{0}")
