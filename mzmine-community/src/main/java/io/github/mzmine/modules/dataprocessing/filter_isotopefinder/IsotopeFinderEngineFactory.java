@@ -30,6 +30,7 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Envel
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -39,14 +40,36 @@ import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 
 /**
- * Builds an {@link IsotopeFinderEngine} from an {@link IsotopeFinderParameters} parameter set.
- * Single source of truth for the engine wiring so both {@link IsotopeFinderTask} (the processing
- * run) and the on-demand diagnostics recompute (compound dashboard, see
- * {@link IsotopeFinderDiagnostics}) build an identically configured engine.
+ * Builds an {@link IsotopeFinderEngine} from an {@link IsotopeFinderParameters} parameter set. Single
+ * source of truth for the engine wiring so both {@link IsotopeFinderTask} (the processing run) and
+ * the on-demand diagnostics recompute (compound dashboard, see {@link IsotopeFinderDiagnostics})
+ * build an identically configured engine.
  */
 public final class IsotopeFinderEngineFactory {
 
   private IsotopeFinderEngineFactory() {
+  }
+
+  /**
+   * Resolve the selected algorithm to its full carbon-averagine setup. Simplified options map their
+   * few parameters onto the full set with defaults for the rest.
+   *
+   * @param parameters an {@link IsotopeFinderParameters} value set.
+   * @return the resolved, self-contained algorithm parameters.
+   */
+  public static @NotNull CarbonAveragineAlgorithmParameters resolveAlgorithmParameters(
+      @NotNull final ParameterSet parameters) {
+    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
+        IsotopeFinderParameters.mode).getValueWithParameters();
+    return IsotopeFinderModeOptions.resolve(modeValue);
+  }
+
+  /**
+   * @param parameters an {@link IsotopeFinderParameters} value set.
+   * @return the name of the selected algorithm, for reporting.
+   */
+  public static @NotNull String algorithmName(@NotNull final ParameterSet parameters) {
+    return parameters.getValue(IsotopeFinderParameters.mode).toString();
   }
 
   /**
@@ -60,26 +83,40 @@ public final class IsotopeFinderEngineFactory {
    */
   public static @NotNull IsotopeFinderEngine create(@NotNull final ParameterSet parameters,
       final boolean keepDiagnostics) {
-    final List<Element> elements = parameters.getValue(IsotopeFinderParameters.elements);
-    final int maxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
-    final MZTolerance tol = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
+    return create(resolveAlgorithmParameters(parameters), algorithmName(parameters),
+        keepDiagnostics);
+  }
 
-    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
-        IsotopeFinderParameters.mode).getValueWithParameters();
+  /**
+   * Build the engine from the already resolved algorithm parameters.
+   *
+   * @param algo            the full carbon-averagine setup.
+   * @param algorithmName   name of the selected algorithm, only used for reporting.
+   * @param keepDiagnostics developer-only, see {@link #create(ParameterSet, boolean)}.
+   * @return the configured engine.
+   */
+  public static @NotNull IsotopeFinderEngine create(
+      @NotNull final CarbonAveragineAlgorithmParameters algo, @NotNull final String algorithmName,
+      final boolean keepDiagnostics) {
+    final List<Element> elements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
+    final int maxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
+    final MZTolerance tol = algo.getValue(CarbonAveragineAlgorithmParameters.isotopeMzTolerance);
+
     final EnvelopeContext ctx = new EnvelopeContext(elements, tol);
-    final EnvelopeModel model = IsotopeFinderModeOptions.createModel(modeValue, ctx);
+    final EnvelopeModel model = new CarbonAveragineEnvelopeModel(
+        algo.getParameter(CarbonAveragineAlgorithmParameters.envelope).getEmbeddedParameters(), ctx);
 
-    final boolean requireC13 = parameters.getValue(IsotopeFinderParameters.requireC13);
-    final ElementDetectionMode elementDetectionMode = parameters.getValue(
-        IsotopeFinderParameters.elementDetectionMode);
+    final boolean requireC13 = algo.getValue(CarbonAveragineAlgorithmParameters.requireC13);
+    final ElementDetectionMode elementDetectionMode = algo.getValue(
+        CarbonAveragineAlgorithmParameters.elementDetectionMode);
     final List<String> autoCandidates = autoCandidates(elementDetectionMode, elements);
 
-    final boolean explainableOnly = parameters.getValue(
-        IsotopeFinderParameters.explainableSignalsOnly);
+    final boolean explainableOnly = algo.getValue(
+        CarbonAveragineAlgorithmParameters.explainableSignalsOnly);
 
     return new IsotopeFinderEngine(
-        IsotopeFinderEngineConfig.of(elements, maxCharge, tol, model, modeValue.value().toString(),
-                requireC13).withElementDetection(elementDetectionMode, autoCandidates)
+        IsotopeFinderEngineConfig.of(elements, maxCharge, tol, model, algorithmName, requireC13)
+            .withElementDetection(elementDetectionMode, autoCandidates)
             .withExplainableSignalsOnly(explainableOnly).withDiagnostics(keepDiagnostics));
   }
 

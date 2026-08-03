@@ -29,16 +29,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.XMLUtils;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Parameter defaults, save/load round-trip, and backward compatibility (legacy batches that still
- * contain the removed "Search in scans" parameter must load without error and fall back to the
- * signal-based, single-scan defaults).
+ * Parameter defaults, save/load round-trip, and the mapping of the simplified "Automatic" algorithm
+ * onto the full carbon-averagine setup. Also covers backward compatibility: legacy batches that still
+ * contain removed parameters must load without error and fall back to the defaults.
  */
 class IsotopeFinderParametersTest {
 
@@ -48,42 +50,81 @@ class IsotopeFinderParametersTest {
   }
 
   @Test
-  void freshParametersDefaultToSignalBasedSingleScan() {
+  void freshParametersDefaultToAutomatic() {
     final IsotopeFinderParameters params = cloned();
-    assertEquals(IsotopeFinderModeOptions.SIGNAL_BASED,
-        params.getValue(IsotopeFinderParameters.mode));
-    assertFalse(params.getValue(IsotopeFinderParameters.fwhmRefine));
+    assertEquals(IsotopeFinderModeOptions.AUTOMATIC, params.getValue(IsotopeFinderParameters.mode));
   }
 
   @Test
-  void saveLoadRoundtripPreservesModeChargeAndRefine() throws Exception {
+  void automaticResolvesToCarbonAveragineDefaultsWithItsOwnValues() {
     final IsotopeFinderParameters params = cloned();
-    params.setParameter(IsotopeFinderParameters.maxCharge, 4);
-    params.getParameter(IsotopeFinderParameters.mode)
-        .setValue(IsotopeFinderModeOptions.FORMULA_PREDICTION);
-    params.getParameter(IsotopeFinderParameters.fwhmRefine).setValue(true);
+    final ParameterSet automatic = params.getParameter(IsotopeFinderParameters.mode)
+        .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
+    automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, 3);
+    automatic.setParameter(AutomaticIsotopeFinderParameters.requireC13, true);
+
+    final CarbonAveragineAlgorithmParameters resolved = IsotopeFinderEngineFactory.resolveAlgorithmParameters(
+        params);
+
+    // exposed values are carried over
+    assertEquals(3, resolved.getValue(CarbonAveragineAlgorithmParameters.maxCharge));
+    assertTrue(resolved.getValue(CarbonAveragineAlgorithmParameters.requireC13));
+    // everything else falls back to the documented defaults
+    assertEquals(CarbonAveragineAlgorithmParameters.DEFAULT_ELEMENTS,
+        resolved.getValue(CarbonAveragineAlgorithmParameters.elements));
+    assertEquals(CarbonAveragineAlgorithmParameters.DEFAULT_ELEMENT_DETECTION_MODE,
+        resolved.getValue(CarbonAveragineAlgorithmParameters.elementDetectionMode));
+    assertFalse(resolved.getValue(CarbonAveragineAlgorithmParameters.explainableSignalsOnly));
+    assertFalse(resolved.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine));
+  }
+
+  @Test
+  void saveLoadRoundtripPreservesAlgorithmAndItsParameters() throws Exception {
+    final IsotopeFinderParameters params = cloned();
+    final ParameterSet algo = params.getParameter(IsotopeFinderParameters.mode)
+        .setOptionGetParameters(IsotopeFinderModeOptions.CARBON_AVERAGINE);
+    algo.setParameter(CarbonAveragineAlgorithmParameters.maxCharge, 4);
+    algo.getParameter(CarbonAveragineAlgorithmParameters.fwhmRefine).setValue(true);
 
     final String xml = ParameterUtils.saveValuesToXMLString(params);
     final IsotopeFinderParameters loaded = cloned();
     ParameterUtils.loadValuesFromXMLString(loaded, xml);
 
-    assertEquals(4, loaded.getValue(IsotopeFinderParameters.maxCharge));
-    assertEquals(IsotopeFinderModeOptions.FORMULA_PREDICTION,
+    assertEquals(IsotopeFinderModeOptions.CARBON_AVERAGINE,
         loaded.getValue(IsotopeFinderParameters.mode));
-    assertTrue(loaded.getValue(IsotopeFinderParameters.fwhmRefine));
+    final ParameterSet loadedAlgo = loaded.getParameter(IsotopeFinderParameters.mode)
+        .getEmbeddedParameters();
+    assertEquals(4, loadedAlgo.getValue(CarbonAveragineAlgorithmParameters.maxCharge));
+    assertTrue(loadedAlgo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine));
   }
 
   @Test
-  void legacyScanRangeParameterIsIgnoredAndDefaultsApply() throws Exception {
-    // simulate a legacy batch: only the (kept) maxCharge plus the removed "Search in scans"
+  void legacyTopLevelParametersAreMappedOntoAutomatic() throws Exception {
+    // simulate a legacy batch: the two parameters that moved into the algorithm, the removed
+    // "Search in scans", and the old name of the algorithm parameter
     final Document doc = XMLUtils.newDocument();
     final Element root = doc.createElement("parameters");
     doc.appendChild(root);
 
     final Element charge = doc.createElement("parameter");
-    charge.setAttribute("name", IsotopeFinderParameters.maxCharge.getName());
-    charge.setTextContent("3");
+    charge.setAttribute("name", "Maximum charge of isotope m/z");
+    charge.setTextContent("4");
     root.appendChild(charge);
+
+    final Element tolerance = doc.createElement("parameter");
+    tolerance.setAttribute("name", "m/z tolerance (feature-to-scan)");
+    final Element absTol = doc.createElement("absolutetolerance");
+    absTol.setTextContent("0.003");
+    final Element ppmTol = doc.createElement("ppmtolerance");
+    ppmTol.setTextContent("20.0");
+    tolerance.appendChild(absTol);
+    tolerance.appendChild(ppmTol);
+    root.appendChild(tolerance);
+
+    final Element legacyMode = doc.createElement("parameter");
+    legacyMode.setAttribute("name", "Detection mode");
+    legacyMode.setAttribute("selected_item", "signal_based");
+    root.appendChild(legacyMode);
 
     final Element legacyScanRange = doc.createElement("parameter");
     legacyScanRange.setAttribute("name", "Search in scans");
@@ -91,11 +132,19 @@ class IsotopeFinderParametersTest {
     root.appendChild(legacyScanRange);
 
     final IsotopeFinderParameters params = cloned();
-    params.loadValuesFromXML(root); // must not throw on the unknown parameter
+    params.loadValuesFromXML(root); // must not throw on the unknown parameters
 
-    assertEquals(3, params.getValue(IsotopeFinderParameters.maxCharge));
-    assertEquals(IsotopeFinderModeOptions.SIGNAL_BASED,
-        params.getValue(IsotopeFinderParameters.mode));
-    assertFalse(params.getValue(IsotopeFinderParameters.fwhmRefine));
+    // the legacy top level setup maps onto the automatic algorithm, which carries the two values
+    assertEquals(IsotopeFinderModeOptions.AUTOMATIC, params.getValue(IsotopeFinderParameters.mode));
+    final ParameterSet automatic = params.getParameter(IsotopeFinderParameters.mode)
+        .getEmbeddedParameters();
+    assertEquals(4, automatic.getValue(AutomaticIsotopeFinderParameters.maxCharge));
+    final MZTolerance loadedTol = automatic.getValue(
+        AutomaticIsotopeFinderParameters.isotopeMzTolerance);
+    assertEquals(0.003, loadedTol.getMzTolerance(), 1e-9);
+    assertEquals(20.0, loadedTol.getPpmTolerance(), 1e-9);
+
+    // a version 1 batch must inform the user that the algorithm itself changed
+    assertTrue(params.getLoadingVersionMessages().contains("reworked"));
   }
 }

@@ -105,19 +105,25 @@ class IsotopeFinderTask extends AbstractTask {
     this.featureList = featureList;
     this.parameters = parameters;
 
-    isotopeElements = parameters.getValue(IsotopeFinderParameters.elements);
-    isotopeMaxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
-    isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
+    // the selected algorithm resolves to the full carbon-averagine setup: simplified options only
+    // expose fewer parameters and default the rest
+    final CarbonAveragineAlgorithmParameters algo = IsotopeFinderEngineFactory.resolveAlgorithmParameters(
+        parameters);
+
+    isotopeElements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
+    isotopeMaxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
+    isoMzTolerance = algo.getValue(CarbonAveragineAlgorithmParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
 
     // build the detection engine (envelope model, charge scoring, element auto-detection) from the
-    // parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
-    this.engine = IsotopeFinderEngineFactory.create(parameters, false);
+    // resolved parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
+    this.engine = IsotopeFinderEngineFactory.create(algo,
+        IsotopeFinderEngineFactory.algorithmName(parameters), false);
 
     // FWHM refinement parameters
-    this.fwhmRefineEnabled = parameters.getValue(IsotopeFinderParameters.fwhmRefine);
-    final ParameterSet refineParams = parameters.getParameter(IsotopeFinderParameters.fwhmRefine)
-        .getEmbeddedParameters();
+    this.fwhmRefineEnabled = algo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine);
+    final ParameterSet refineParams = algo.getParameter(
+        CarbonAveragineAlgorithmParameters.fwhmRefine).getEmbeddedParameters();
     this.refineMzTolerance = refineParams.getValue(FwhmRefineParameters.refineMzTolerance);
     this.ratioAggregation = refineParams.getValue(FwhmRefineParameters.ratioAggregation);
     this.minScansPresent = refineParams.getValue(FwhmRefineParameters.minScansPresent);

@@ -25,44 +25,42 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeContext;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModel;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.EnvelopeModelModule;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.formula.FormulaEnvelopeModule;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModule;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Selectable isotope pattern detection modes. Each maps to an {@link EnvelopeModelModule} that
- * builds the predicted isotope envelope used to score charges and bound the pattern.
+ * Selectable isotope finder algorithms. Each maps to an {@link IsotopeFinderAlgorithmModule} that
+ * carries the full setup of the detection run as its embedded parameters, so the top-level
+ * {@link IsotopeFinderParameters} only has the feature lists and the algorithm choice.
+ * <p>
+ * The formula-prediction algorithm is not exposed yet: the classes in the {@code formula} package are
+ * kept for it, but no option maps to them, so it is hidden from the GUI and from saved batches.
  */
-public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<EnvelopeModelModule> {
+public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderAlgorithmModule> {
 
   /**
-   * Carbon-averagine envelope: estimates carbon count from m/z, no formula prediction. Default.
+   * Simplified setup: m/z tolerance, 13C requirement, and maximum charge only. Default.
    */
-  SIGNAL_BASED,
+  AUTOMATIC,
   /**
-   * Formula-prediction envelope: enumerates candidate formulas and unions their predicted
-   * patterns.
+   * Full carbon-averagine setup: estimates the carbon count from m/z, no formula prediction.
    */
-  FORMULA_PREDICTION;
+  CARBON_AVERAGINE;
 
   @Override
-  public Class<? extends EnvelopeModelModule> getModuleClass() {
+  public Class<? extends IsotopeFinderAlgorithmModule> getModuleClass() {
     return switch (this) {
-      case SIGNAL_BASED -> CarbonAveragineEnvelopeModule.class;
-      case FORMULA_PREDICTION -> FormulaEnvelopeModule.class;
+      case AUTOMATIC -> AutomaticIsotopeFinderModule.class;
+      case CARBON_AVERAGINE -> CarbonAveragineAlgorithmModule.class;
     };
   }
 
   @Override
   public String toString() {
     return switch (this) {
-      case SIGNAL_BASED -> "Signal based (carbon-averagine)";
-      case FORMULA_PREDICTION -> "Formula prediction";
+      case AUTOMATIC -> "Automatic";
+      case CARBON_AVERAGINE -> "Carbon-averagine";
     };
   }
 
@@ -70,19 +68,18 @@ public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<EnvelopeModelM
   public String getStableId() {
     // do not change these values for save/load
     return switch (this) {
-      case SIGNAL_BASED -> "signal_based";
-      case FORMULA_PREDICTION -> "formula_prediction";
+      case AUTOMATIC -> "automatic";
+      // kept from the former "Signal based (carbon-averagine)" mode so a saved selection still resolves
+      case CARBON_AVERAGINE -> "signal_based";
     };
   }
 
   /**
-   * @param value selected mode with its embedded parameters.
-   * @param ctx   shared top-level configuration.
-   * @return the configured envelope model for the selected mode.
+   * @param value selected algorithm with its embedded parameters.
+   * @return the full carbon-averagine setup the selected algorithm resolves to.
    */
-  public static @NotNull EnvelopeModel createModel(
-      @NotNull final ValueWithParameters<IsotopeFinderModeOptions> value,
-      @NotNull final EnvelopeContext ctx) {
-    return value.value().getModuleInstance().createModel(value.parameters(), ctx);
+  public static @NotNull CarbonAveragineAlgorithmParameters resolve(
+      @NotNull final ValueWithParameters<IsotopeFinderModeOptions> value) {
+    return value.value().getModuleInstance().resolve(value.parameters());
   }
 }
