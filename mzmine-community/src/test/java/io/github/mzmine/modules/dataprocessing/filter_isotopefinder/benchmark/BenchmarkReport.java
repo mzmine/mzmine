@@ -63,6 +63,13 @@ public final class BenchmarkReport {
    */
   public static final String BASELINE_RESOURCE = "isotopefinder/baseline/metrics_baseline.csv";
 
+  /**
+   * Classpath location of the committed companion baseline for the opt-in require-13C mode, produced
+   * by {@code isotopeBenchmark --args="<path> requireC13"}.
+   */
+  public static final String REQUIRE_C13_BASELINE_RESOURCE =
+      "isotopefinder/baseline/metrics_requireC13.csv";
+
   private static final String[] HEADER = {"axis", "nCases", "chargeTop1", "chargeRecallAlt",
       "chargeStartInvariance", "patternPrecision", "patternRecall", "patternF1", "borderlineRecall",
       "noiseLeak", "elementPrecision", "elementRecall", "elementContainment", "elementSetSize",
@@ -109,22 +116,32 @@ public final class BenchmarkReport {
   }
 
   /**
-   * Read the committed baseline from the test classpath ({@link #BASELINE_RESOURCE}).
+   * Read the committed default baseline from the test classpath ({@link #BASELINE_RESOURCE}).
    *
    * @return the baseline rows in file order ({@code ALL} last).
    */
   @NotNull
   public static List<MetricRow> readBaseline() {
-    final InputStream in = BenchmarkReport.class.getClassLoader()
-        .getResourceAsStream(BASELINE_RESOURCE);
+    return readBaseline(BASELINE_RESOURCE);
+  }
+
+  /**
+   * Read a committed baseline from the test classpath.
+   *
+   * @param resource {@link #BASELINE_RESOURCE} or {@link #REQUIRE_C13_BASELINE_RESOURCE}.
+   * @return the baseline rows in file order ({@code ALL} last).
+   */
+  @NotNull
+  public static List<MetricRow> readBaseline(@NotNull final String resource) {
+    final InputStream in = BenchmarkReport.class.getClassLoader().getResourceAsStream(resource);
     if (in == null) {
-      throw new IllegalStateException("Baseline CSV not found on classpath: " + BASELINE_RESOURCE);
+      throw new IllegalStateException("Baseline CSV not found on classpath: " + resource);
     }
     try (final BufferedReader reader = new BufferedReader(
         new InputStreamReader(in, StandardCharsets.UTF_8))) {
       return parseCsv(reader);
     } catch (final IOException e) {
-      throw new UncheckedIOException("Failed to read baseline CSV: " + BASELINE_RESOURCE, e);
+      throw new UncheckedIOException("Failed to read baseline CSV: " + resource, e);
     }
   }
 

@@ -45,17 +45,20 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * Full-corpus accuracy regression guard: runs the current engine over every committed benchmark
- * case and diffs the per-axis metrics against the committed baseline
- * ({@link BenchmarkReport#BASELINE_RESOURCE}). This is what makes the baseline a guard rather than
- * documentation - without it a scoring change can silently regress an axis.
+ * Full-corpus accuracy regression guard: runs the current engine over every committed benchmark case
+ * and diffs the per-axis metrics against the committed baselines - the default one
+ * ({@link BenchmarkReport#BASELINE_RESOURCE}) and the opt-in require-13C one
+ * ({@link BenchmarkReport#REQUIRE_C13_BASELINE_RESOURCE}), one test each. This is what makes the
+ * baselines guards rather than documentation - without them a scoring change can silently regress an
+ * axis.
  * <p>
  * Tagged {@code benchmark}: excluded from the default {@code test} task, run via
- * {@code ./gradlew :mzmine-community:benchmark}. It runs ~5900 cases x 4 detections, so it is far
- * too slow for CI; the fast CI guard is {@link IsotopeAccuracyTest}.
+ * {@code ./gradlew :mzmine-community:benchmark}. Each test runs ~5900 cases x 4 detections, so it is
+ * far too slow for CI; the fast CI guard is {@link IsotopeAccuracyTest}.
  * <p>
- * When a change intentionally moves the numbers, regenerate the baseline with
- * {@code ./gradlew :mzmine-community:isotopeBenchmark} and commit the new CSV.
+ * When a change intentionally moves the numbers, regenerate BOTH baselines
+ * ({@code ./gradlew :mzmine-community:isotopeBenchmark} and the same task with
+ * {@code --args="<path> requireC13"}) and commit the new CSVs.
  */
 @Tag("benchmark")
 class IsotopeBenchmarkRegressionTest {
@@ -101,21 +104,47 @@ class IsotopeBenchmarkRegressionTest {
 
   @Test
   void doesNotRegressAgainstCommittedBaseline() {
+    assertNoRegression(false, BenchmarkReport.BASELINE_RESOURCE);
+  }
+
+  /**
+   * The same guard for the opt-in require-13C mode against its companion baseline. Without it the
+   * committed {@code metrics_requireC13.csv} would be documentation only: the gate and its
+   * gap-truncation are a separate code path that the default run never exercises, so a change there
+   * (the ladder walk, the M+1/M gate) could regress unnoticed.
+   */
+  @Test
+  void requireC13DoesNotRegressAgainstCommittedBaseline() {
+    assertNoRegression(true, BenchmarkReport.REQUIRE_C13_BASELINE_RESOURCE);
+  }
+
+  /**
+   * Run the whole corpus with the given mode and diff every guarded per-axis metric against the
+   * committed baseline.
+   *
+   * @param requireC13       whether to enable the require-13C gate (and its gap-truncation).
+   * @param baselineResource the committed baseline to diff against.
+   */
+  private static void assertNoRegression(final boolean requireC13,
+      @NotNull final String baselineResource) {
     final List<GroundTruthCase> cases = IsotopeCorpus.all();
     Assertions.assertFalse(cases.isEmpty(), "benchmark corpus is empty");
 
-    BenchmarkRunner.warmUp(cases, false);
+    BenchmarkRunner.warmUp(cases, requireC13);
     final ChargeConfusionMatrix confusion = new ChargeConfusionMatrix();
-    final List<CaseMetrics> metrics = BenchmarkRunner.run(cases, false, confusion);
+    final List<CaseMetrics> metrics = BenchmarkRunner.run(cases, requireC13, confusion);
     final List<MetricRow> current = IsotopeMetrics.aggregateByAxis(metrics);
 
-    logger.info(System.lineSeparator() + BenchmarkReport.renderConsole(current));
+    logger.info(
+        System.lineSeparator() + "requireC13=" + requireC13 + System.lineSeparator()
+            + BenchmarkReport.renderConsole(current));
     logger.info(System.lineSeparator() + confusion.render());
     logger.info(String.format(Locale.ROOT,
         "Charge error rates: harmonic=%.4f (z read as 2z or z/2), neighbour=%.4f (z read as z+-1)",
         confusion.harmonicRate(), confusion.neighbourRate()));
 
-    final Map<String, MetricRow> baseline = BenchmarkReport.byAxis(BenchmarkReport.readBaseline());
+    final Map<String, MetricRow> baseline = BenchmarkReport.byAxis(
+        BenchmarkReport.readBaseline(baselineResource));
     final Map<String, MetricRow> now = BenchmarkReport.byAxis(current);
 
     // collect every violation so one run reports the full picture instead of the first failure
@@ -150,9 +179,11 @@ class IsotopeBenchmarkRegressionTest {
     }
 
     Assertions.assertTrue(problems.isEmpty(), () -> String.format(Locale.ROOT,
-        "Isotope finder accuracy regressed against the committed baseline (tolerance %.3f).%n"
-            + "Regenerate with ./gradlew :mzmine-community:isotopeBenchmark if the change is "
-            + "intended.%n%s", TOLERANCE, String.join(System.lineSeparator(), problems)));
+        "Isotope finder accuracy regressed against %s (tolerance %.3f).%n"
+            + "Regenerate with ./gradlew :mzmine-community:isotopeBenchmark%s if the change is "
+            + "intended.%n%s", baselineResource, TOLERANCE,
+        requireC13 ? " --args=\"<path> requireC13\"" : "",
+        String.join(System.lineSeparator(), problems)));
   }
 
   /**

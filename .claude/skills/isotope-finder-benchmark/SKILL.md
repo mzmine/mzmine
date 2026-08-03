@@ -26,9 +26,10 @@ parent package. Committed data:
   last-known-good per-axis metrics. This is the reference you diff against.
 - Companion baseline: `.../baseline/metrics_requireC13.csv` — the same corpus with the opt-in
   require-13C gate on, regenerated with
-  `./gradlew :mzmine-community:isotopeBenchmark --args="<path> requireC13"`. Nothing asserts against
-  it; it is documentation. Regenerate it alongside `metrics_baseline.csv` whenever the engine or the
-  corpus changes, so the two stay comparable.
+  `./gradlew :mzmine-community:isotopeBenchmark --args="<path> requireC13"`. Guarded by its own test
+  in the `benchmark` tier (`requireC13DoesNotRegressAgainstCommittedBaseline`), so regenerate it
+  alongside `metrics_baseline.csv` whenever the engine or the corpus changes — otherwise that test
+  fails.
 
 ### What the require-13C gate costs and buys
 
@@ -144,9 +145,9 @@ automatically for all three tasks below.
 ./gradlew :mzmine-community:test --tests "*IsotopeFinderEngineTest" --tests "*ElementAutoDetectorTest"
 
 # 4. The heavy @Tag("benchmark") test tier (excluded from the default `test` task). Contains
-#    IsotopeBenchmarkRegressionTest, which runs the WHOLE corpus and fails if any per-axis metric
-#    dropped more than 0.01 below the committed baseline — run this before proposing an engine
-#    change as an improvement.
+#    IsotopeBenchmarkRegressionTest, which runs the WHOLE corpus twice - once per mode - and fails if
+#    any per-axis metric dropped more than 0.01 below the committed baseline (metrics_baseline.csv /
+#    metrics_requireC13.csv) — run this before proposing an engine change as an improvement.
 ./gradlew :mzmine-community:benchmark
 
 # 5. ONLY when you changed the generator/catalog (GenerationConfig, BenchmarkPatternGenerator,

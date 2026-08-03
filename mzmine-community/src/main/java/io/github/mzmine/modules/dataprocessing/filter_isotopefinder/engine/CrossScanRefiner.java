@@ -40,9 +40,8 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,9 +109,11 @@ public final class CrossScanRefiner {
     final int charge = detected.getCharge() > 0 ? detected.getCharge() : 1;
     final double spacing = IsotopePatternCalculator.THIRTHEEN_C_DISTANCE / charge;
 
+    final List<DataPoint> points = new ArrayList<>(n);
     double minMz = Double.MAX_VALUE;
     int baseIndex = 0;
     for (int i = 0; i < n; i++) {
+      points.add(new SimpleDataPoint(detected.getMzValue(i), detected.getIntensityValue(i)));
       minMz = Math.min(minMz, detected.getMzValue(i));
       if (detected.getIntensityValue(i) > detected.getIntensityValue(baseIndex)) {
         baseIndex = i;
@@ -124,28 +125,29 @@ public final class CrossScanRefiner {
       return detected;
     }
 
+    // index the detected signals on the 13C grid of the lowest detected m/z. decision: through the
+    // shared CarbonLadder rather than a local round((mz - minMz) / spacing), so the refiner's idea of
+    // "which offset is this" cannot drift from the engine's - the grid is walked in one place.
+    final CarbonLadder ladder = CarbonLadder.build(points, minMz, spacing, tol);
+    final TreeMap<Integer, OffsetPeak> occupied = ladder.collapsed();
+    // the detected offsets are relative to the LOWEST detected m/z, so they are all >= 0
+    final int maxOffset = occupied.isEmpty() ? 0 : occupied.lastKey();
+
     final List<DataPoint> refined = new ArrayList<>();
     // decision: refine every detected signal at its OWN m/z rather than one signal per nominal
     // offset. Keying by offset collapsed isotopic fine structure (e.g. 13C2 vs 34S, which the engine
     // deliberately keeps resolved) down to a single point, so enabling refinement REDUCED pattern
     // completeness on high-resolution data.
-    final Set<Integer> occupied = new HashSet<>();
-    int maxOffset = 0;
-    for (int i = 0; i < n; i++) {
-      final double mz = detected.getMzValue(i);
-      final int offset = (int) Math.round((mz - minMz) / spacing);
-      occupied.add(offset);
-      maxOffset = Math.max(maxOffset, offset);
-
+    for (final DataPoint dp : points) {
+      final double mz = dp.getMZ();
       final ScanAggregate agg = aggregateAcrossScans(mz, baseMz, scans, tol, aggregation);
       if (agg == null) {
         // no scan contained the base peak -> keep the detection-scan values unchanged
-        refined.add(new SimpleDataPoint(mz, detected.getIntensityValue(i)));
+        refined.add(dp);
         continue;
       }
       final double intensity = agg.ratio() * baseIntensity;
-      refined.add(intensity > 0d ? new SimpleDataPoint(agg.mz(), intensity)
-          : new SimpleDataPoint(mz, detected.getIntensityValue(i)));
+      refined.add(intensity > 0d ? new SimpleDataPoint(agg.mz(), intensity) : dp);
     }
 
     // probe unoccupied offsets on BOTH sides to recover signals resolved only in other scans.
@@ -153,10 +155,10 @@ public final class CrossScanRefiner {
     // an upward-only probe could never recover it.
     for (int offset = -EXTRA_RECOVERY_OFFSETS; offset <= maxOffset + EXTRA_RECOVERY_OFFSETS;
         offset++) {
-      if (occupied.contains(offset)) {
+      if (occupied.containsKey(offset)) {
         continue;
       }
-      final double targetMz = minMz + offset * spacing;
+      final double targetMz = ladder.exactMzAt(offset);
       if (targetMz <= 0d) {
         continue;
       }
