@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,7 +90,7 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
    * @param addPreview add preview datasets
    */
   protected void subSampleAndCorrect(final BaselineDataBuffer buffer, final boolean addPreview) {
-    if (buffer.hasRemovedRanges()) {
+    if (buffer.hasInterpolatedRanges()) {
       subSampleAndCorrect(buffer.xBuffer(), buffer.yBuffer(), buffer.numValues(),
           buffer.xBufferRemovedPeaks(), buffer.yBufferRemovedPeaks(), buffer.remaining(),
           addPreview);
@@ -123,14 +123,14 @@ public abstract class AbstractResolverBaselineCorrector extends AbstractBaseline
       // inplace baseline correct on copyX and Y
       subSampleAndCorrect(copyX, copyY, numValues, false);
 
-      // 2. detect peaks and remove the ranges from the original data
+      // 2. detect peaks and bridge the ranges in the original data
       // resolver sets some data points to 0 if < chromatographic threshold
       final List<Range<Double>> resolved = resolver.resolve(copyX, copyY);
-      // 3. remove baseline finally on original data
+      // 3. bridge peak ranges by interpolation so the baseline fit keeps a regular sample spacing
       // results stored in buffer
-      buffer.removeRangesFromArrays(resolved);
+      buffer.interpolateRangesInArrays(resolved);
 
-      // use the data with features removed - correct data is automatically chosen from buffer
+      // use the data with peaks bridged - correct data is automatically chosen from buffer
       subSampleAndCorrect(buffer, isPreview());
     } else {
       // use the original data for baseline correction
