@@ -37,9 +37,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 
+/// Loads the new {@link IonType} from XML and also the {@link LegacyIonType} (package private) that
+/// was replaced by it.
 public class LegacyIonTypeXMLReader {
 
-  public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+  public static IonType loadNewAndLegacyIonFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(IonType.XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not an iontype");
     }

@@ -207,7 +207,7 @@ public final class IonType implements Comparable<IonType> {
 
   public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     // need to try read legacy and new format
-    return LegacyIonTypeXMLReader.loadFromXML(reader);
+    return LegacyIonTypeXMLReader.loadNewAndLegacyIonFromXML(reader);
   }
 
   /**
