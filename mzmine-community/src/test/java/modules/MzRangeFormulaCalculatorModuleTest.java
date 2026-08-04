@@ -31,6 +31,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import org.junit.jupiter.api.Test;
 
 public class MzRangeFormulaCalculatorModuleTest {
@@ -50,6 +51,12 @@ public class MzRangeFormulaCalculatorModuleTest {
     assertEquals(Range.closed(17.02857658009093, 17.048576580090934),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
             IonizationType.POSITIVE_HYDROGEN, tol), tolerance);
+    final double dimerMz = (FormulaUtils.getMonoisotopicMass(FormulaUtils.parse("CH4"))
+        * IonizationType.NAME32.getNumMol() + IonizationType.NAME32.getAddedMass())
+        / Math.abs(IonizationType.NAME32.getCharge());
+    assertEquals(tol.getToleranceRange(dimerMz),
+        MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4", IonizationType.NAME32, tol),
+        tolerance);
     assertEquals(Range.closed(15.014023675909066, 15.034023675909065),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
             IonizationType.NEGATIVE_HYDROGEN, tol), tolerance);
