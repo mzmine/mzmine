@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -89,34 +90,45 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
         StandardCompoundNormalizationTypeParameters.rtTolerance);
     final List<ImportType<?>> standardImportTypes = moduleSpecificParameters.getValue(
         StandardCompoundNormalizationTypeParameters.standardCompounds);
-    final MobilityTolerance mobilityTolerance = ImportType.isDataTypeSelectedInImportTypes(
-        standardImportTypes, MobilityType.class) ? moduleSpecificParameters.getValue(
-        StandardCompoundNormalizationTypeParameters.mobilityTolerance) : null;
+    final MobilityTolerance mobilityTolerance =
+        ImportType.isDataTypeSelectedInImportTypes(standardImportTypes, MobilityType.class)
+            ? moduleSpecificParameters.getValue(
+            StandardCompoundNormalizationTypeParameters.mobilityTolerance) : null;
     final AbundanceMeasure abundanceMeasure = mainParameters.getValue(
         IntensityNormalizerParameters.featureMeasurementType);
-    final boolean requireAllStandards = moduleSpecificParameters.getValue(
-        StandardCompoundNormalizationTypeParameters.requireAllStandards);
+    final StandardCompoundNormalizationMode mode = moduleSpecificParameters.getValue(
+        StandardCompoundNormalizationTypeParameters.mode);
 
     final List<CompoundDBAnnotation> standardAnnotations = loadStandardAnnotations(
         moduleSpecificParameters);
-    final List<StandardCompoundMatch> standardMatches = findBestStandardMatches(featureList,
-        standardAnnotations, mzTolerance, rtTolerance, mobilityTolerance);
+    final List<StandardCompoundMatch> standardMatches = findBestStandardMatches(summary,
+        featureList, standardAnnotations, mzTolerance, rtTolerance, mobilityTolerance,
+        referenceFiles, abundanceMeasure);
     if (standardMatches.isEmpty()) {
-      throw new IllegalStateException(
-          "No internal standard compounds matched the feature list.");
+      throw new IllegalStateException("No internal standard compounds matched the feature list.");
     }
 
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = new HashMap<>();
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(summary,
-          rawFile, standardMatches, abundanceMeasure, requireAllStandards);
-      NormalizationFunction function = new StandardCompoundNormalizationFunction(standardUsageType, mzVsRtBalance, referencePoints);
+          rawFile, standardMatches, abundanceMeasure, mode);
+      if (referencePoints.isEmpty()) {
+        // only reachable in SKIP_FILES_WITHOUT_STANDARD mode. Leaving the file out of the result
+        // means it is normalized by interpolation between the neighboring reference samples
+        continue;
+      }
+      NormalizationFunction function = new StandardCompoundNormalizationFunction(standardUsageType,
+          mzVsRtBalance, referencePoints);
 
       // add or merge function into a new instance within summary
       summary.addMergeFunction(rawFile, function);
 
       // return the actual function of this step for interpolation
       fileToFunction.put(rawFile, function);
+    }
+    if (fileToFunction.isEmpty()) {
+      throw new IllegalStateException(
+          "No internal standard was detected in any of the reference samples.");
     }
     return fileToFunction;
   }
@@ -128,8 +140,8 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
             StandardCompoundNormalizationTypeParameters.standardCompoundsFile),
         moduleSpecificParameters.getValue(
             StandardCompoundNormalizationTypeParameters.fieldSeparator),
-        moduleSpecificParameters.getValue(StandardCompoundNormalizationTypeParameters.standardCompounds),
-        null);
+        moduleSpecificParameters.getValue(
+            StandardCompoundNormalizationTypeParameters.standardCompounds), null);
 
     if (compoundResult.status() == TaskStatus.ERROR) {
       throw new IllegalStateException(compoundResult.errorMessage());
@@ -146,16 +158,19 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
   }
 
   private @NotNull List<StandardCompoundMatch> findBestStandardMatches(
+      @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final ModularFeatureList featureList,
       @NotNull final List<CompoundDBAnnotation> standardAnnotations,
       @NotNull final MZTolerance mzTolerance, @NotNull final RTTolerance rtTolerance,
-      @Nullable final MobilityTolerance mobilityTolerance) {
-    final List<StandardCompoundMatch> standardMatches = new ArrayList<>(
-        standardAnnotations.size());
+      @Nullable final MobilityTolerance mobilityTolerance,
+      @NotNull final List<@NotNull RawDataFile> referenceFiles,
+      @NotNull final AbundanceMeasure abundanceMeasure) {
+    final List<StandardCompoundMatch> standardMatches = new ArrayList<>(standardAnnotations.size());
 
     for (final CompoundDBAnnotation standardAnnotation : standardAnnotations) {
-      final StandardCompoundMatch bestMatch = findBestStandardMatch(featureList,
-          standardAnnotation, mzTolerance, rtTolerance, mobilityTolerance);
+      final StandardCompoundMatch bestMatch = findBestStandardMatch(summary, featureList,
+          standardAnnotation, mzTolerance, rtTolerance, mobilityTolerance, referenceFiles,
+          abundanceMeasure);
       if (bestMatch != null) {
         bestMatch.row().addCompoundAnnotation(bestMatch.annotation());
         standardMatches.add(bestMatch);
@@ -165,37 +180,86 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
     return standardMatches;
   }
 
+  /**
+   * Selects the best feature list row for a standard. The user defined m/z, RT, and mobility may
+   * deviate from the measured values, so the deviation is only used as a filter (all candidates are
+   * within tolerances) and never as the primary ranking. A standard is only useful if it is
+   * actually detected in the reference samples, therefore candidates are ranked by
+   * <ol>
+   *   <li>the number of reference samples with a usable abundance (detection rate),</li>
+   *   <li>the summed abundance over those reference samples (tie breaker),</li>
+   *   <li>the annotation score and finally the row ID to stay deterministic.</li>
+   * </ol>
+   */
   private @Nullable StandardCompoundMatch findBestStandardMatch(
+      @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final ModularFeatureList featureList,
       @NotNull final CompoundDBAnnotation standardAnnotation,
       @NotNull final MZTolerance mzTolerance, @NotNull final RTTolerance rtTolerance,
-      @Nullable final MobilityTolerance mobilityTolerance) {
-    FeatureListRow bestRow = null;
-    CompoundDBAnnotation bestAnnotation = null;
-    float bestScore = Float.NEGATIVE_INFINITY;
+      @Nullable final MobilityTolerance mobilityTolerance,
+      @NotNull final List<@NotNull RawDataFile> referenceFiles,
+      @NotNull final AbundanceMeasure abundanceMeasure) {
+    StandardCompoundMatch bestMatch = null;
 
     for (final FeatureListRow row : featureList.getRows()) {
       final CompoundDBAnnotation matchedAnnotation = standardAnnotation.checkMatchAndCalculateDeviation(
           row, mzTolerance, rtTolerance, mobilityTolerance, null, null);
-      if (matchedAnnotation == null || matchedAnnotation.getScore() == null) {
+      if (matchedAnnotation == null) {
         continue;
       }
 
-      final float score = matchedAnnotation.getScore();
-      if (bestRow == null || score > bestScore) {
-        bestRow = row;
-        bestAnnotation = matchedAnnotation;
-        bestScore = score;
+      final StandardCompoundMatch candidate = createMatch(summary, row, matchedAnnotation,
+          referenceFiles, abundanceMeasure);
+      if (bestMatch == null || candidate.isBetterThan(bestMatch)) {
+        bestMatch = candidate;
       }
     }
 
-    return bestRow != null ? new StandardCompoundMatch(bestRow, bestAnnotation) : null;
+    return bestMatch;
   }
 
+  /**
+   * Counts in how many reference samples the row is detected with a usable abundance and sums those
+   * abundances. Already applied normalization functions are taken into account, just like in
+   * {@link #createReferencePoints}.
+   */
+  private @NotNull StandardCompoundMatch createMatch(
+      @NotNull final IntensityNormalizationSearchableSummary summary,
+      @NotNull final FeatureListRow row, @NotNull final CompoundDBAnnotation annotation,
+      @NotNull final List<@NotNull RawDataFile> referenceFiles,
+      @NotNull final AbundanceMeasure abundanceMeasure) {
+    int detectedInReferences = 0;
+    double summedAbundance = 0d;
+
+    for (final RawDataFile referenceFile : referenceFiles) {
+      final ModularFeature feature = (ModularFeature) row.getFeature(referenceFile);
+      if (feature == null) {
+        continue;
+      }
+      final float abundance = abundanceMeasure.getOrNaN(feature,
+          summary.functions().get(referenceFile));
+      if (!Float.isFinite(abundance) || abundance <= 0f) {
+        continue;
+      }
+      detectedInReferences++;
+      summedAbundance += abundance;
+    }
+
+    return new StandardCompoundMatch(row, annotation, detectedInReferences, summedAbundance);
+  }
+
+  /**
+   * @return the reference points of this file. May be empty in
+   * {@link StandardCompoundNormalizationMode#SKIP_FILES_WITHOUT_STANDARD} mode, then the caller
+   * skips the file. The other modes throw instead.
+   */
   private @NotNull List<StandardCompoundReferencePoint> createReferencePoints(
       @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile rawFile,
       @NotNull final List<StandardCompoundMatch> standardMatches,
-      @NotNull final AbundanceMeasure abundanceMeasure, boolean requireAllStandards) {
+      @NotNull final AbundanceMeasure abundanceMeasure,
+      @NotNull final StandardCompoundNormalizationMode mode) {
+    final boolean requireAllStandards =
+        mode == StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
     final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>(
         standardMatches.size());
     for (final StandardCompoundMatch standardMatch : standardMatches) {
@@ -222,7 +286,8 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       }
 
       // apply existing function to abundance to normalize on already normalized values
-      final @Nullable RawFileNormalizationFunction existingFunction = summary.functions().get(rawFile);
+      final @Nullable RawFileNormalizationFunction existingFunction = summary.functions()
+          .get(rawFile);
 
       final float standardAbundance = abundanceMeasure.getOrNaN(standardFeature, existingFunction);
       if (Float.compare(standardAbundance, 0.0f) == 0 || !Float.isFinite(standardAbundance)) {
@@ -236,16 +301,47 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       referencePoints.add(
           new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance));
     }
-    if (referencePoints.isEmpty()) {
+    if (referencePoints.isEmpty()
+        && mode != StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD) {
       throw new IllegalStateException(
           "No intensity normalization standards found for file: " + rawFile.getName());
     }
     return referencePoints;
   }
 
+  /**
+   * A standard annotation matched to a feature list row, together with how well that row is covered
+   * by the reference samples. See {@link #findBestStandardMatch}.
+   *
+   * @param detectedInReferences number of reference samples with a usable abundance
+   * @param summedAbundance      sum of those abundances
+   */
   private record StandardCompoundMatch(@NotNull FeatureListRow row,
-                                       @NotNull CompoundDBAnnotation annotation) {
+                                       @NotNull CompoundDBAnnotation annotation,
+                                       int detectedInReferences, double summedAbundance) {
 
+    /**
+     * Highest detection rate wins, ties are broken by the highest summed abundance, then by the
+     * annotation score, and finally by the lowest row ID to stay deterministic.
+     */
+    boolean isBetterThan(@NotNull final StandardCompoundMatch other) {
+      if (detectedInReferences != other.detectedInReferences) {
+        return detectedInReferences > other.detectedInReferences;
+      }
+      if (Double.compare(summedAbundance, other.summedAbundance) != 0) {
+        return summedAbundance > other.summedAbundance;
+      }
+      final int scoreCompare = Float.compare(score(), other.score());
+      if (scoreCompare != 0) {
+        return scoreCompare > 0;
+      }
+      return row.getID() < other.row.getID();
+    }
+
+    private float score() {
+      final Float score = annotation.getScore();
+      return score == null ? Float.NEGATIVE_INFINITY : score;
+    }
   }
 
 }
