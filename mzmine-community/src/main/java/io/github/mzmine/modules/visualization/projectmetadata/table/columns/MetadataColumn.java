@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,9 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
     StringMetadataColumn, DoubleMetadataColumn, DateMetadataColumn {
 
   public static final String FILENAME_HEADER = "filename";
+  /// sample_name is used by Mass Dynamics export and may be also used by other workflows default is
+  /// the filename without extension
+  public static final String SAMPLE_NAME_HEADER = "sample_name";
   public static final String DATE_HEADER = "run_date";
   // renamed this from sample_type to mz_sample_type because too standard name that may be overwritten by users metadata
   public static final String SAMPLE_TYPE_HEADER = "mzmine_sample_type";
@@ -188,6 +191,14 @@ public abstract sealed class MetadataColumn<T> implements Comparable<MetadataCol
       return -1;
     }
     if (o.getTitle().equals(FILENAME_HEADER)) {
+      return 1;
+    }
+
+    // then sample name
+    if (this.getTitle().equalsIgnoreCase(SAMPLE_NAME_HEADER)) {
+      return -1;
+    }
+    if (o.getTitle().equalsIgnoreCase(SAMPLE_NAME_HEADER)) {
       return 1;
     }
 
