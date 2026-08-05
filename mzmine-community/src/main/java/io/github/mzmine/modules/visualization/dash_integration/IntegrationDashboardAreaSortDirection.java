@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,24 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.components.factories;
+package io.github.mzmine.modules.visualization.dash_integration;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Tooltip;
+public enum IntegrationDashboardAreaSortDirection {
+  NONE("None"),
+  ASCENDING("Area ↑ (min→max)"),
+  DESCENDING("Area ↓ (max→min)");
 
-public class FxCheckBox {
+  private final String label;
 
-  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty) {
-    var box = new CheckBox(text);
-    box.selectedProperty().bindBidirectional(selectedProperty);
-    return box;
+  IntegrationDashboardAreaSortDirection(String label) {
+    this.label = label;
   }
 
-  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty,
-      String tooltip) {
-    var box = FxCheckBox.newCheckBox(text, selectedProperty);
-    box.setTooltip(new Tooltip(tooltip));
-    return box;
+  @Override
+  public String toString() {
+    return label;
   }
 }
