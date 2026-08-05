@@ -340,7 +340,7 @@ runtime {
             "java.transaction.xa",
             "java.scripting",
             "java.compiler",
-            "jdk.jsobject",
+            // jdk.jsobject was removed in JDK 26; netscape.javascript now ships in the javafx.web jar
             "jdk.jfr",
             "java.security.sasl",
             "java.security.jgss",
