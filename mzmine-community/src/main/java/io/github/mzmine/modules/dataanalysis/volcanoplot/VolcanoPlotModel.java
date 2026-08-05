@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,8 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotModel {
@@ -63,6 +65,20 @@ public class VolcanoPlotModel {
   // null = feature list rows; non-null = use compound list with the given selection level
   private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
       null);
+
+  private final StringProperty userWarning = new SimpleStringProperty("");
+
+  public String getUserWarning() {
+    return userWarning.get();
+  }
+
+  public StringProperty userWarningProperty() {
+    return userWarning;
+  }
+
+  public void setUserWarning(String userWarning) {
+    this.userWarning.set(userWarning);
+  }
 
   public List<FeatureList> getFlists() {
     return flists.get();

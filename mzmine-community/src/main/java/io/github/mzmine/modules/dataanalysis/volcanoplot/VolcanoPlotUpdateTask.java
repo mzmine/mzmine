@@ -40,6 +40,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
@@ -50,6 +51,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -58,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
+  private static final Logger logger = Logger.getLogger(VolcanoPlotUpdateTask.class.getName());
   private final FeaturesDataTable dataTable;
   private final RowSignificanceTest test;
   private final double pValue;
@@ -71,7 +75,26 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     dataTable = model.getFeatureDataTable();
     final UnivariateRowSignificanceTestConfig testConfig = model.getTest();
     if (testConfig != null && dataTable != null) {
-      test = testConfig.toValidConfig(dataTable);
+      RowSignificanceTest test = null;
+      String msg = null;
+      try {
+        test = testConfig.toValidConfig(dataTable);
+      } catch (MetadataValueDoesNotExistException e) {
+        msg = "Metadata value does not exist for feature list raw data files.";
+      } catch (IllegalArgumentException e) {
+        msg = e.getMessage();
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Volcano plot update error: " + e.getMessage(), e);
+//        msg = "Unknown error";
+      }
+      if (msg != null) {
+        logger.finer(msg);
+        model.setUserWarning(msg);
+      } else {
+        model.setUserWarning(null);
+      }
+      // might be null after exception
+      this.test = test;
     } else {
       test = null;
     }
