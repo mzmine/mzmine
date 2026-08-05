@@ -26,6 +26,7 @@
 package util;
 
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil.DIA;
 import io.github.mzmine.util.ArrayUtils;
 import java.util.Arrays;
@@ -108,6 +109,84 @@ public class DIACorrelationTest {
     Assertions.assertEquals(correlationData4.getPearsonR(), correlationData5.getPearsonR());
     Assertions.assertEquals(correlationData4.getCosineSimilarity(),
         correlationData5.getCosineSimilarity());
+  }
+
+  /**
+   * Case 1: The maximum of the longer trace A lies outside the x-range that the shorter trace B
+   * covers, but the two traces still correlate around the maximum of B. This happens e.g. when A is
+   * a double peak (its global maximum being the peak that B does not cover) while B is a single
+   * peak that aligns with A's second peak.
+   * <p></p>
+   * Before the fix, {@link DIA#corrFeatureShape} threw an {@link IllegalStateException} because it
+   * could not locate A's maximum in B. Now it searches the other way round (B's maximum in A) and
+   * still finds the correlation.
+   */
+  @Test
+  void testMaxOfLongerTraceOutsideShorterTrace() {
+    // A is the "longer" trace (more data points) with a double peak:
+    // - the small peak sits at x = 2 and aligns with B
+    // - the tall (global) peak sits at x = 6, which B does not cover
+    final double[] aX = {0, 1, 2, 3, 4, 5, 6};
+    final double[] aY = new double[aX.length];
+    for (int i = 0; i < aX.length; i++) {
+      aY[i] = gauss(aX[i], 0.8, 2) + 3 * gauss(aX[i], 0.8, 6);
+    }
+
+    // B is the "shorter" trace (fewer data points), a single peak at x = 2. Its trailing point at
+    // x = 8 is outside the overlapping range and is only there to make the ranges connect.
+    final double[] bX = {0, 1, 2, 3, 4, 8};
+    final double[] bY = new double[bX.length];
+    for (int i = 0; i < bX.length; i++) {
+      bY[i] = gauss(bX[i], 0.8, 2);
+    }
+
+    // sanity check: the global maximum of A is at x = 6, i.e. outside the range B covers (0 - 4)
+    Assertions.assertEquals(6, aX[FeatureCorrelationUtil.indexOfMax(aY)]);
+
+    final CorrelationData correlationData = DIA.corrFeatureShape(aX, aY, bX, bY, 5, 2, 0.0);
+    Assertions.assertNotNull(correlationData,
+        "Expected a correlation around the maximum of the shorter trace B.");
+    // A's second peak matches B's single peak -> strong positive correlation
+    Assertions.assertTrue(correlationData.getPearsonR() > 0.9,
+        "Expected a strong correlation but got r = " + correlationData.getPearsonR());
+
+    // must be symmetric: swapping A and B may not throw either and yields the same correlation
+    final CorrelationData swapped = DIA.corrFeatureShape(bX, bY, aX, aY, 5, 2, 0.0);
+    Assertions.assertNotNull(swapped);
+    Assertions.assertEquals(correlationData.getPearsonR(), swapped.getPearsonR());
+  }
+
+  /**
+   * Case 2: A and B only have a small overlap and both maxima lie outside the range of the other
+   * trace. There is no common peak to correlate, so no correlation must be reported (return null
+   * instead of a spurious correlation or an exception).
+   */
+  @Test
+  void testOnlySmallOverlapNoCommonPeak() {
+    // A: single peak at x = 2, covering x = 0 - 5
+    final double[] aX = {0, 1, 2, 3, 4, 5};
+    final double[] aY = new double[aX.length];
+    for (int i = 0; i < aX.length; i++) {
+      aY[i] = gauss(aX[i], 0.8, 2);
+    }
+
+    // B: single peak at x = 9, covering x = 4 - 10. The traces only overlap in x = 4 - 5.
+    final double[] bX = {4, 5, 6, 7, 8, 9, 10};
+    final double[] bY = new double[bX.length];
+    for (int i = 0; i < bX.length; i++) {
+      bY[i] = gauss(bX[i], 0.8, 9);
+    }
+
+    // both maxima lie outside the range of the other trace
+    Assertions.assertEquals(2, aX[FeatureCorrelationUtil.indexOfMax(aY)]);
+    Assertions.assertEquals(9, bX[FeatureCorrelationUtil.indexOfMax(bY)]);
+
+    final CorrelationData correlationData = DIA.corrFeatureShape(aX, aY, bX, bY, 5, 2, 0.0);
+    Assertions.assertNull(correlationData,
+        "Expected no correlation for two traces that only overlap in their tails.");
+
+    // symmetric
+    Assertions.assertNull(DIA.corrFeatureShape(bX, bY, aX, aY, 5, 2, 0.0));
   }
 
   private double gauss(double x, double sigma, double mu) {

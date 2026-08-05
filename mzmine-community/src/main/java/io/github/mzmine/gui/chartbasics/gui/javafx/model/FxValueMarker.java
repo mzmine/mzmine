@@ -58,7 +58,7 @@ public class FxValueMarker extends ValueMarker implements FxMarker {
   // the actual alpha is used to hide the marker if value is null or invisible
   private final ReadOnlyFloatWrapper alpha = new ReadOnlyFloatWrapper(1f);
 
-  private final BooleanProperty visible = new SimpleBooleanProperty();
+  private final BooleanProperty visible = new SimpleBooleanProperty(true);
   private final ObjectProperty<@NotNull Stroke> stroke = new SimpleObjectProperty<>(
       new BasicStroke(1.0f));
   private final ObjectProperty<@NotNull Paint> paint = new SimpleObjectProperty<>(

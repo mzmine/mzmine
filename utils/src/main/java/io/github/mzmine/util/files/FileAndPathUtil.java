@@ -49,6 +49,8 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -528,8 +530,31 @@ public class FileAndPathUtil {
     return uniqueFile;
   }
 
+
+  /**
+   * all illegal chars for paths.
+   */
+  public static String PATH_ILLEGAL_PATTERN = "<>:\"/\\\\|?*\\p{Cntrl}";
+//  public static String PATH_ILLEGAL_PATTERN = "<>:\"/\\\\|?*\\x00-\\x1F\\x7F";
+
+  public static Collection<String> getPathIllegalChars(@Nullable String input) {
+    if (input == null) {
+      return List.of();
+    }
+    final String illegal = input.replaceAll("[^" + PATH_ILLEGAL_PATTERN + "]", "");
+
+    Set<String> illegalChars = new LinkedHashSet<>();
+    for (char character : illegal.toCharArray()) {
+      final String s = String.valueOf(character);
+      illegalChars.add(s);
+    }
+    return illegalChars;
+  }
+
   /**
    * Remove all symbols not allowed in path. Replaces with _
+   * <p>
+   * Find all illegal chars with {@link #getPathIllegalChars(String)}
    *
    * @param name source name (filename or path)
    * @return path safe string
@@ -540,13 +565,17 @@ public class FileAndPathUtil {
 
   /**
    * Remove all symbols not allowed in path
+   * <p>
+   * Find all illegal chars with {@link #getPathIllegalChars(String)}
    *
    * @param name       source name (filename or path)
    * @param replaceStr replace all restricted characters by this str
    * @return path safe string
    */
   public static String safePathEncode(String name, String replaceStr) {
-    return name.replaceAll("[^a-zA-Z0-9-_()\\.\\s]", replaceStr);
+    // remove all illegal chars
+    return name.replaceAll("[" + PATH_ILLEGAL_PATTERN + "]", replaceStr);
+//    return name.replaceAll("[^a-zA-Z0-9-_()\\.\\s]", replaceStr);
   }
 
   /**
@@ -777,24 +806,29 @@ public class FileAndPathUtil {
   }
 
   /**
-   * External tools live in the installation main directory /external_tools/
+   * External tools from jpackage --app-content live in
+   * {softwareMainDirectory}/external_tools/
+   * (for Linux installers this is typically {installDir}/lib/external_tools/).
    */
   public static @NotNull File resolveInExternalToolsDir(String path) {
     return new File(getExternalToolsDir(), path);
   }
 
   /**
-   * External tools live in the installation main directory /external_tools/
+   * Resolve external tools for packaged apps and dev runs.
    *
    */
   private static @NotNull File getExternalToolsDir() {
     final File mainDir = FileAndPathUtil.getSoftwareMainDirectory();
     if (mainDir != null) {
-      File extAtAppRoot = new File(mainDir, "external_tools/");
-      if (extAtAppRoot.exists()) {
-        return extAtAppRoot;
+      // Preferred packaged location for jpackage --app-content on all platforms.
+      File extAtMainDir = new File(mainDir, "external_tools/");
+      if (extAtMainDir.exists()) {
+        // this route is taken for packaged apps on linux. inside the /lib folder
+        return extAtMainDir;
       }
     }
+
     // Dev-run from module dir: parent project root
     File extParent = new File("../external_tools/");
     if (extParent.exists()) {

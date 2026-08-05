@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,9 +27,8 @@ package io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.CompoundData;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
@@ -54,11 +54,10 @@ public class PubChemResultsModel {
   private final ObjectProperty<FeatureListRow> selectedRow = new SimpleObjectProperty<>();
 
   private final ObjectProperty<@NotNull IonType> ionType = new SimpleObjectProperty<>(
-      new IonType(IonModification.H));
+      IonTypes.H.asIonType());
 
   private final ObjectProperty<@Nullable MZTolerance> mzTolerance = new SimpleObjectProperty<>(
       new MZTolerance(0.003, 5));
-
 
 
   public ObservableList<TreeItem<CompoundDBAnnotation>> getCompounds() {

@@ -24,13 +24,14 @@
 
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record ComboWithStringInputValue<EnumType>(EnumType value, String embeddedValue) implements
     ComboWithInputValue<EnumType, String> {
 
   @Override
-  public EnumType getSelectedOption() {
+  public @NotNull EnumType getSelectedOption() {
     return value();
   }
 

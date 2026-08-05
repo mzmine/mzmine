@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,8 +66,9 @@ public class IonNetworkIDType extends IntegerType {
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file, DataType<?> superType,
+      @Nullable final Object value) {
 
     var ionIdentity = row.getBestIonIdentity();
     if (ionIdentity == null) {
@@ -79,12 +81,15 @@ public class IonNetworkIDType extends IntegerType {
       final RawDataFile bestRaw = bestFeature.getRawDataFile();
 
       Map<Feature, String> labels = new HashMap<>();
-      List<Feature> features = network.keySet().stream().filter(r -> r.getFeature(bestRaw) != null)
-          .<Feature>mapMulti((r, c) -> {
-            Feature feature = r.getFeature(bestRaw);
-            labels.put(feature, network.get(r).getAdduct());
-            c.accept(feature);
-          }).toList();
+      List<Feature> features = new ArrayList<>();
+      network.forEach((nodeRow, ion) -> {
+        final Feature feature = nodeRow.getFeature(bestRaw);
+        if (feature == null) {
+          return;
+        }
+        labels.put(feature, ion.toString());
+        features.add(feature);
+      });
 
       TICVisualizerTab tab = new TICVisualizerTab(new RawDataFile[]{bestRaw}, TICPlotType.BASEPEAK,
           new ScanSelection(1), bestFeature.getRawDataPointsMZRange(), features, labels, null);

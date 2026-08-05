@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -59,6 +60,7 @@ import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.github.mzmine.util.web.ProxyTestUtils;
 import io.github.mzmine.util.web.ProxyUtils;
 import io.github.mzmine.util.web.proxy.FullProxyConfig;
+import io.github.mzmine.util.web.truststore.NativeTrustStoreManager;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
@@ -82,7 +84,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -112,12 +113,13 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       printDebugInfo(args);
+
       final MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
       getInstance().startUp(argsParser);
-
       launchBatchOrGui(args, argsParser);
 
     } catch (Exception ex) {
+      StartupSplash.hide();
       logger.log(Level.SEVERE, "Error during mzmine start up", ex);
       exit(null);
     }
@@ -130,6 +132,10 @@ public final class MZmineCore {
    * called.
    */
   public void startUp(@NotNull final MZmineCoreArgumentParser argsParser) {
+    showStartupSplash(argsParser);
+
+    NativeTrustStoreManager.initTrustStore();
+
     ProxyTestUtils.logProxyState("Proxy on startup:");
     ProxyUtils.applyConfig(FullProxyConfig.defaultConfig());
     ProxyTestUtils.logProxyState("Proxy after default config:");
@@ -139,6 +145,13 @@ public final class MZmineCore {
 
     // so log state after load
     ProxyTestUtils.logProxyState("Auto proxy after config loading:");
+
+    // In GUI mode the user is restored asynchronously below. Capture the saved username now,
+    // before subscribing — the subscription fires immediately with user=null and would otherwise
+    // overwrite the saved preference with null before the async thread can read it.
+    final String savedUsername =
+        argsParser.isGuiMode() && argsParser.getUserFile() == null ? ConfigService.getPreference(
+            MZminePreferences.username) : null;
 
     CurrentUserService.subscribe(user -> {
       var nickname = user == null ? null : user.getNickname();
@@ -151,6 +164,13 @@ public final class MZmineCore {
 
     // after loading the config and numCores
     TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
+
+    // GUI mode: restore the previously active user on a virtual thread so that file I/O and
+    // optional network validation (every 5 days) do not block GUI startup.
+    if (savedUsername != null) {
+      Thread.ofVirtual().name("user-restore")
+          .start(() -> ArgsToConfigUtils.restoreUserFromConfig(savedUsername));
+    }
   }
 
   public static void checkUserRemainingDays(MZmineUser user) {
@@ -280,11 +300,13 @@ public final class MZmineCore {
       final File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       final File overrideMetadataFile = argsParser.getMetadataFile();
       final File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
+      final File overrideProjectImport = argsParser.getProjectImport();
+      final File overrideCsvDatabase = argsParser.getCsvDatabase();
 
       // run batch file
       batchTask = BatchModeModule.runBatchFile(ProjectService.getProject(), batchFile,
           overrideDataFiles, overrideMetadataFile, overrideSpectralLibraryFiles, outBaseFile,
-          Instant.now());
+          Instant.now(), overrideProjectImport, overrideCsvDatabase);
     }
 
     // option to keep MZmine running after the batch is finished
@@ -296,16 +318,15 @@ public final class MZmineCore {
   }
 
 
-  private static void launchGui(String[] args) {
+  private static void launchGui(final @NotNull String[] args) {
     try {
       logger.info("Starting mzmine GUI");
-      FxThread.setIsFxInitialized(true);
-      Application.launch(MZmineGUI.class, args);
+      MZmineGUI.launch();
     } catch (Throwable e) {
-      logger.log(Level.SEVERE, "Could not applyArgsToConfig GUI", e);
+      StartupSplash.hide();
+      logger.log(Level.SEVERE, "Could not launch mzmine GUI", e);
       System.exit(1);
     }
-    System.exit(0);
   }
 
   public static MZmineCore getInstance() {
@@ -316,6 +337,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit(final @Nullable Task batchTask) {
+    StartupSplash.hide();
     if (isHeadLessMode() && FxThread.isFxInitialized()) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
@@ -389,6 +411,29 @@ public final class MZmineCore {
   }
 
   /**
+   * Returns the instance of a module of given class.getName()
+   */
+  @SuppressWarnings("unchecked")
+  public synchronized static MZmineModule getModuleInstance(
+      final @Nullable String moduleClassName) {
+    if (moduleClassName == null) {
+      return null;
+    }
+    MZmineModule module = getInstance().initializedModules.get(moduleClassName);
+
+    if (module != null) {
+      return module;
+    }
+
+    try {
+      final Class moduleClass = Class.forName(moduleClassName);
+      return getModuleInstance(moduleClass);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
    *
    * @return An unmodifiable copy of the currently initialized modules.
    */
@@ -400,7 +445,7 @@ public final class MZmineCore {
    *
    * @return An unmodifiable copy of the currently initialized modules.
    */
-  public static Map<String, MZmineModule> getInitializedModules() {
+  private static Map<String, MZmineModule> getInitializedModules() {
     return Map.copyOf(getInstance().initializedModules);
   }
 
@@ -556,6 +601,20 @@ public final class MZmineCore {
    */
   public static boolean isGUI() {
     return !isHeadLessMode();
+  }
+
+  private static void showStartupSplash(@NotNull final MZmineCoreArgumentParser argsParser) {
+    if (argsParser.getBatchFile() != null) {
+      // basically a headless check when DesktopService is not initialized (always headless at this point)
+      return;
+    }
+    if (argsParser.isCliLogin() || argsParser.isCliLoginPassword()) {
+      return;
+    }
+    if (argsParser.isKeepRunningAfterBatch()) {
+      return;
+    }
+    StartupSplash.show();
   }
 
   /**

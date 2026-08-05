@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -61,7 +62,8 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   private SpectralLibrary library;
-  private @Nullable MolecularStructure structure;
+  private boolean isHarmonizedStructure = false;
+
   /**
    * Pattern is calculated for ion
    * <p>
@@ -69,7 +71,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
    */
   private final Supplier<IsotopePattern> pattern = StableValue.supplier(
       () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
-          FormulaUtils.createMajorIsotopeMolFormula(getFormula()), getAdductType()));
+          FormulaUtils.createMajorIsotopeMolFormulaWithCharge(getFormula()), getAdductType()));
 
   /**
    * Copy constructor
@@ -170,6 +172,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       final String value = reader.getElementText();
 
       DBEntryField field = DBEntryField.valueOf(keyName);
+      // saveToXML never writes runtime-only fields; defensively skip them on read too
+      if (field.isRuntimeOnly()) {
+        continue;
+      }
       try {
         Object convertValue = field.convertValue(value);
         fields.put(field, convertValue);
@@ -186,13 +192,19 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public void putAll(Map<DBEntryField, Object> fields) {
+    if (fields.containsKey(DBEntryField.SMILES) || fields.containsKey(DBEntryField.INCHI)
+        || fields.containsKey(DBEntryField.ISOMERIC_SMILES) || fields.containsKey(
+        DBEntryField.INCHIKEY)) {
+      isHarmonizedStructure = false;
+    }
     this.fields.putAll(fields);
   }
 
   @Override
   public boolean putIfNotNull(DBEntryField field, Object value) {
-    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI) {
-      structure = null; // clear and recalculate later
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      isHarmonizedStructure = false;
     }
 
     if (field != null && value != null) {
@@ -200,6 +212,24 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       return true;
     }
     return false;
+  }
+
+  public boolean put(DBEntryField field, Object value) {
+    if (field == null) {
+      return false;
+    }
+
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI
+        || field == DBEntryField.ISOMERIC_SMILES) {
+      isHarmonizedStructure = false;
+    }
+
+    if (value == null) {
+      fields.remove(field);
+      return true;
+    }
+    fields.put(field, value);
+    return true;
   }
 
   @Override
@@ -238,6 +268,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     writer.writeStartElement(XML_DB_FIELD_LIST_ELEMENT);
     for (Entry<DBEntryField, Object> entry : fields.entrySet()) {
       var key = entry.getKey();
+      // runtime-only fields (e.g. ML embedding caches) live in the same map but must not persist
+      if (key.isRuntimeOnly()) {
+        continue;
+      }
       var value = entry.getValue();
       writer.writeStartElement(XML_DB_FIELD_ELEMENT);
       writer.writeAttribute(XML_FIELD_NAME_ATTR, key.name());
@@ -258,7 +292,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
       return false;
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
-    return Objects.equals(fields, that.fields)
+    return persistedFields().equals(that.persistedFields())
         && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
@@ -270,7 +304,18 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public int hashCode() {
-    return Objects.hash(fields, getNumberOfDataPoints());
+    return Objects.hash(persistedFields(), getNumberOfDataPoints());
+  }
+
+  // exclude runtime-only fields (e.g. ML embedding caches) — they would break equals/hashCode by
+  // mixing reference-equal array values into the map identity
+  private Map<DBEntryField, Object> persistedFields() {
+    if (fields.keySet().stream().noneMatch(DBEntryField::isRuntimeOnly)) {
+      return fields;
+    }
+    final Map<DBEntryField, Object> filtered = new HashMap<>(fields);
+    filtered.keySet().removeIf(DBEntryField::isRuntimeOnly);
+    return filtered;
   }
 
   @Override
@@ -292,22 +337,25 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return library != null ? library.getName() : null;
   }
 
+  /**
+   * Formula may be set independently in the entry (e.g. when the library file supplies it but no
+   * SMILES/InChI is present). Try harmonization first — if it succeeds, the FORMULA field has been
+   * replaced with the canonical formula; if it fails, the originally mapped value is returned.
+   */
   @Override
   @Nullable
   public String getFormula() {
+    if (!isHarmonizedStructure) {
+      // best-effort harmonization populates FORMULA via setStructure on success
+      enrichMetadata();
+    }
     final String formula = getOrElse(DBEntryField.FORMULA, null);
-    if (StringUtils.hasValue(formula)) {
-      return formula;
-    }
-    final MolecularStructure structure = getStructure();
-    if (structure != null) {
-      final String formulaString = structure.formulaString();
-      if (formulaString != null) {
-        putIfNotNull(DBEntryField.FORMULA, formulaString);
-      }
-      return formulaString;
-    }
-    return null;
+    return StringUtils.hasValue(formula) ? formula : null;
+  }
+
+  @Override
+  public boolean isStructureHarmonized() {
+    return isHarmonizedStructure;
   }
 
   @Override
@@ -317,14 +365,43 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   }
 
   @Override
+  @Nullable
   public MolecularStructure getStructure() {
-    if (structure != null) {
-      return structure;
+    if (!isHarmonizedStructure) {
+      return enrichMetadata(); // creates new structure if inchi or smiles present
     }
-    String smiles = getOrElse(DBEntryField.SMILES, "");
-    String inchi = getOrElse(DBEntryField.INCHI, "");
-    structure = StructureParser.silent().parseStructure(smiles, inchi);
-    return structure;
+    final String inchi = getOrElse(DBEntryField.INCHI, null);
+    final String smiles = getAsString(DBEntryField.ISOMERIC_SMILES).orElseGet(
+        () -> getAsString(DBEntryField.SMILES).orElse(null));
+    return StructureParser.silent().parseStructure(smiles, inchi);
+  }
+
+  @Override
+  public void setStructure(final MolecularStructure structure) {
+    if (structure == null) {
+      return;
+    }
+    putIfNotNull(DBEntryField.SMILES, structure.canonicalSmiles());
+    putIfNotNull(DBEntryField.ISOMERIC_SMILES, structure.isomericSmiles());
+    putIfNotNull(DBEntryField.INCHIKEY, structure.inchiKey());
+    putIfNotNull(DBEntryField.INCHI, structure.inchi());
+    putIfNotNull(DBEntryField.FORMULA, structure.formulaString());
+    putIfNotNull(DBEntryField.EXACT_MASS, structure.monoIsotopicMass());
+    isHarmonizedStructure = true;
+    // DO NOT KEEP structure as it is too memory heavy
+  }
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  @Override
+  public void clearStructure() {
+    isHarmonizedStructure = false;
+    put(DBEntryField.SMILES, null);
+    put(DBEntryField.ISOMERIC_SMILES, null);
+    put(DBEntryField.INCHI, null);
+    put(DBEntryField.INCHIKEY, null);
   }
 
   @Override

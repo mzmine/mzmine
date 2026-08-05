@@ -223,7 +223,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
       ri = (float) riScale.interpolator().value(rt);
     } else if (shouldExtrapolate && rt > knots[knots.length - 1]) {
       ri = (float) riScale.interpolator().getPolynomials()[
-          riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 1]);
+          riScale.interpolator().getPolynomials().length - 1].value(rt - knots[knots.length - 2]);
     } else if (shouldExtrapolate && rt < knots[0]) {
       ri = (float) riScale.interpolator().getPolynomials()[0].value(rt - knots[0]);
     }

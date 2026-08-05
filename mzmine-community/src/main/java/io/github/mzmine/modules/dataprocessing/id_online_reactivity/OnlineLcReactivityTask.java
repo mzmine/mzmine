@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,11 +31,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction.Type;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -73,8 +74,8 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final boolean onlyGroupedRows;
 
   private final String description;
-  private final List<IonModification> eductAdducts;
-  private final List<IonModification> productAdducts;
+  private final List<IonType> eductAdducts;
+  private final List<IonType> productAdducts;
   private final MetadataColumn<?> sampleIdCol;
   private final MetadataColumn<?> unreactedControlsCol;
 
@@ -129,8 +130,8 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
    * @return new list
    */
   public static List<ReactionMatchingRawFiles> createAdductReactions(
-      final List<ReactionMatchingRawFiles> reactions, final List<IonModification> eductAdducts,
-      final List<IonModification> productAdducts) {
+      final List<ReactionMatchingRawFiles> reactions, final List<IonType> eductAdducts,
+      final List<IonType> productAdducts) {
     return reactions.stream().<ReactionMatchingRawFiles>mapMulti((reaction, consumer) -> {
       List<OnlineReaction> adductReactions = reaction.reaction()
           .createCrossAdductReactions(eductAdducts, productAdducts);

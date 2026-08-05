@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.gui.framework.fx.features;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * General pane that updates if the feature list rows change based on an ObservableList that is
@@ -37,9 +39,10 @@ import javafx.scene.layout.BorderPane;
 public abstract class AbstractFeatureListRowsPane extends BorderPane implements
     FeatureListRowsPane {
 
+  @NotNull
   private final ParentFeatureListPaneGroup parentGroup;
 
-  public AbstractFeatureListRowsPane(final ParentFeatureListPaneGroup parentGroup) {
+  public AbstractFeatureListRowsPane(final @NotNull ParentFeatureListPaneGroup parentGroup) {
     this.parentGroup = parentGroup;
     parentGroup.addChildren(this);
   }
@@ -69,5 +72,10 @@ public abstract class AbstractFeatureListRowsPane extends BorderPane implements
       }
     }
     parentGroup.featureListProperty().set(featureList);
+  }
+
+  @Override
+  public @NotNull BooleanProperty autoUpdateProperty() {
+    return parentGroup.autoUpdateProperty();
   }
 }

@@ -157,16 +157,16 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           final IonNetwork network = adduct.getNetwork();
 
           // add all connection for ids>rowID to avoid duplicates
-          network.entrySet().stream().filter(Objects::nonNull)
-              .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                FeatureListRow link = e.getKey();
+          network.getNodes().stream().filter(Objects::nonNull).filter(e -> e.row().getID() > rowID)
+              .forEach(e -> {
+                FeatureListRow link = e.row();
                 if (filter.accept(link)) {
-                  IonIdentity id = e.getValue();
+                  IonIdentity id = e.ion();
                   double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
                   // the data
-                  exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
+                  exportEdge(ann, "MS1 annotation", rowID, e.row().getID(),
                       corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                      id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                      id.getIonType() + " " + adduct.getIonType() + " dm/z=" + mzForm.format(dmz));
                   added.incrementAndGet();
                 }
               });
@@ -276,15 +276,15 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   private FeatureListRow[] getBestRelatedRows(IonNetwork netA, IonNetwork netB) {
     FeatureListRow[] rows = new FeatureListRow[2];
     double sumIntensity = 0;
-    for (Map.Entry<FeatureListRow, IonIdentity> entryA : netA.entrySet()) {
-      FeatureListRow rowA = entryA.getKey();
+    for (var entryA : netA.getNodes()) {
+      FeatureListRow rowA = entryA.row();
       if (filter.accept(rowA)) {
-        IonIdentity iinA = entryA.getValue();
-        for (Map.Entry<FeatureListRow, IonIdentity> entryB : netB.entrySet()) {
-          FeatureListRow rowB = entryB.getKey();
+        IonIdentity iinA = entryA.ion();
+        for (var entryB : netB.getNodes()) {
+          FeatureListRow rowB = entryB.row();
           if (filter.accept(rowB)) {
-            IonIdentity iinB = entryB.getValue();
-            if (iinA.getAdduct().equals(iinB.getAdduct())) {
+            IonIdentity iinB = entryB.ion();
+            if (iinA.equalsIonType(iinB.getIonType())) {
               // find pair with the highest sum intensity (that match the row filter)
               double sum = rowA.getMaxHeight() + rowB.getMaxHeight();
               if (sum >= sumIntensity) {
@@ -554,21 +554,21 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             final IonNetwork network = adduct.getNetwork();
 
             // add all connection for ids>rowID
-            network.entrySet().stream().filter(Objects::nonNull)
-                .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                  FeatureListRow link = e.getKey();
+            network.getNodes().stream().filter(Objects::nonNull)
+                .filter(e -> e.row().getID() > rowID).forEach(e -> {
+                  FeatureListRow link = e.row();
                   if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
-                    IonIdentity id = e.getValue();
+                    IonIdentity id = e.ion();
                     double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
 
                     // convert ids for merging
                     Integer id1 = renumbered.get(getRowMapKey(r));
-                    Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
+                    Integer id2 = renumbered.get(getRowMapKey(e.row()));
 
                     // the data
                     exportEdge(ann, "MS1 annotation", id1, id2,
                         corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                        id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                        id.getIonType() + " " + adduct.getIonType() + " dm/z=" + mzForm.format(dmz));
                     added.incrementAndGet();
                   }
                 });

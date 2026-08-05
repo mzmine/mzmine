@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -40,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
@@ -63,11 +65,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.datamodel.structures.StructureParser;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -94,7 +96,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     Comparable<CompoundDBAnnotation> {
@@ -110,11 +111,10 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
-      CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
+      CompoundDBAnnotation neutralAnnotation, IonLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
-    for (IonType adduct : library.getAllAdducts()) {
-      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
-          .contains("?")) {
+    for (IonType adduct : library.ions()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedMass()) {
         continue;
       }
       try {
@@ -189,8 +189,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
             : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFormulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
-      return MolecularFormulaManipulator.getMass(neutralFormula,
-          MolecularFormulaManipulator.MonoIsotopic);
+      return FormulaUtils.getMonoisotopicMass(neutralFormula);
     }
     return null;
   }
@@ -283,16 +282,44 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
   @Nullable
   default String getSmiles() {
+    if (!isStructureHarmonized()) {
+      // best-effort harmonization populates the SMILES field via setStructure on success
+      enrichMetadata();
+    }
     return get(SmilesStructureType.class);
+  }
+
+  @Override
+  default @Nullable String getIsomericSmiles() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
+    final String isomeric = get(SmilesIsomericStructureType.class);
+    if (isomeric == null) {
+      // direct map access — getSmiles would re-check harmonization unnecessarily
+      return get(SmilesStructureType.class);
+    }
+    return isomeric;
   }
 
   @Nullable
   default String getInChI() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(InChIStructureType.class);
   }
 
+  /**
+   * InChIKey may be set independently of the structure (e.g. when only the key is provided by an
+   * external source). When harmonization succeeds it is overwritten with the canonical key; when it
+   * fails the originally mapped value is returned.
+   */
   @Nullable
   default String getInChIKey() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(InChIKeyStructureType.class);
   }
 
@@ -302,9 +329,17 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CompoundNameType.class);
   }
 
+  /**
+   * Formula may be set independently of the structure (e.g. when only the formula is provided by an
+   * external source). When harmonization succeeds it is overwritten with the canonical formula;
+   * when it fails the originally mapped value is returned.
+   */
   @Override
   @Nullable
   default String getFormula() {
+    if (!isStructureHarmonized()) {
+      enrichMetadata();
+    }
     return get(FormulaType.class);
   }
 
@@ -580,17 +615,59 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return -Float.compare(sc, sc2);
   }
 
-  void setStructure(MolecularStructure structure);
+  /**
+   * Sets the structure and all internal representations like smiles, inchi, inchikey, formula will
+   * be canonicalized and set.
+   * <p>
+   * for null structure nothing is done. Use {@link #clearStructure()} to clear the structure.
+   * <p>
+   * Do not save structure to object as it is cached in {@link StructureParser} and heavy on
+   * memory.
+   *
+   * @param structure the structure to set
+   */
+  void setStructure(@Nullable MolecularStructure structure);
+
+  /**
+   * Clears the structure and all internal representations like smiles, inchi, inchikey. Formula is
+   * kept.
+   */
+  void clearStructure();
+
+  /**
+   * @return true if {@link #setStructure(MolecularStructure)} has been called with a parsed
+   * structure since the last edit to SMILES / InChI / InChIKey / IsomericSmiles. When false, the
+   * structure-derived getters ({@link #getSmiles()}, {@link #getInChI()}, {@link #getInChIKey()},
+   * {@link #getIsomericSmiles()}, {@link #getFormula()}) trigger a best-effort harmonization via
+   * {@link #getStructure()} before returning the mapped value.
+   */
+  boolean isStructureHarmonized();
 
   /**
    * convenience method to derive additional fields from fields that are present. Recommended to
    * call this method after retrieving the annotation from an external source.
+   * <p>
+   * Reads raw smiles/inchi via direct map access ({@link #get(Class)}) — must not go through
+   * {@link #getSmiles()} / {@link #getInChI()} etc., as those route back through
+   * {@link #getStructure()} which would re-enter this method.
    */
-  default void enrichMetadata() {
-    MolecularStructure struc = StructureParser.silent().parseStructure(getSmiles(), getInChI());
-    if (struc != null) {
-      setStructure(struc);
+  default @Nullable MolecularStructure enrichMetadata() {
+    String smiles = get(SmilesIsomericStructureType.class);
+    if (smiles == null) {
+      smiles = get(SmilesStructureType.class);
     }
+    final String inchi = get(InChIStructureType.class);
+    try {
+      MolecularStructure struc = StructureParser.silent().parseStructure(smiles, inchi);
+      if (struc != null) {
+        setStructure(struc);
+      }
+      return struc;
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Failed to harmonize structure: smiles %s   inchi %s".formatted(
+          smiles != null ? smiles : "", inchi != null ? inchi : ""), e.getMessage());
+    }
+    return null;
   }
 
   /**
@@ -621,18 +698,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
         formula = structure.formulaString();
       }
 
-      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormula(
+      final IMolecularFormula majorIsotopeMolFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
           formula);
 
       if (majorIsotopeMolFormula == null) {
         continue;
       }
       final IMolecularFormula majorIsotopeIon;
-      try {
-        majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
-      } catch (CloneNotSupportedException e) {
-        continue;
-      }
+      majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
 
       // skip pattern calculation if not needed
       // check ion as ionization might be Cl- or Br- with strong influence on isotope pattern
@@ -642,7 +715,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
       final double majorIsotopeMz = FormulaUtils.calculateMzRatio(majorIsotopeIon);
       final IsotopePattern resolutionAdjustedPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
-          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.getCharge(),
+          majorIsotopeIon, 0.005, tol.getMzToleranceForMass(majorIsotopeMz), adduct.totalCharge(),
           adduct.getPolarity(), true);
 
       if (resolutionAdjustedPattern.getNumberOfDataPoints() <= 1) {
@@ -674,7 +747,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
 
         // find the most intense individual isotope signal as representative
         final IsotopePattern highResPattern = IsotopePatternCalculator.estimateIsotopePatternFast(
-            majorIsotopeIon, 0.005, 0d, adduct.getCharge(), adduct.getPolarity(), true);
+            majorIsotopeIon, 0.005, 0d, adduct.totalCharge(), adduct.getPolarity(), true);
         final double mainPeak = mainIsotopePeak.getPrecursorMZ();
         Range<Double> mainPeakRange = tol.getToleranceRange(mainPeak);
         IndexRange peakRange = BinarySearch.indexRange(mainPeakRange,

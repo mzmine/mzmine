@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,9 +35,15 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -54,6 +60,9 @@ public class Structure2DComponent extends Canvas {
       ConfigService.getStructureRenderConfig());
 
   private final BooleanProperty contextMenuEnabled = new SimpleBooleanProperty(true);
+
+  // overlay drawn after the structure in the top-right corner; null/empty = no overlay
+  private final StringProperty topRightText = new SimpleStringProperty(null);
 
   public static Structure2DComponent create(String structure) throws CDKException, IOException {
 
@@ -87,6 +96,9 @@ public class Structure2DComponent extends Canvas {
       final Structure2DRenderer renderer) {
     this.renderer = renderer;
     molecule.addListener((_, _, mol) -> onStructureChange(mol));
+    // overlay text changes trigger a full repaint (the renderer clears the canvas background, so
+    // we cannot just append; the structure has to be redrawn too)
+    topRightText.addListener((_, _, _) -> repaint());
     setMolecule(container);
 
     // Create context menu
@@ -122,6 +134,26 @@ public class Structure2DComponent extends Canvas {
    */
   private void repaint() {
     renderer.drawStructure(this, molecule.getValue(), renderConfig.getValue());
+    drawTopRightOverlay();
+  }
+
+  // Draws topRightText (if set) on top of the rendered structure. Called after the renderer fills
+  // and paints, so the overlay sits above the structure.
+  private void drawTopRightOverlay() {
+    final String text = topRightText.get();
+    if (text == null || text.isBlank()) {
+      return;
+    }
+    final GraphicsContext gc = getGraphicsContext2D();
+    final double padding = 4d;
+    final javafx.scene.text.Font font = javafx.scene.text.Font.font(11d);
+    gc.save();
+    gc.setFont(font);
+    gc.setTextAlign(TextAlignment.RIGHT);
+    gc.setTextBaseline(VPos.TOP);
+    gc.setFill(Color.BLACK);
+    gc.fillText(text, getWidth() - padding, padding);
+    gc.restore();
   }
 
   @Override
@@ -200,5 +232,21 @@ public class Structure2DComponent extends Canvas {
 
   public void setContextMenuEnabled(boolean contextMenuEnabled) {
     this.contextMenuEnabled.set(contextMenuEnabled);
+  }
+
+  public @Nullable String getTopRightText() {
+    return topRightText.get();
+  }
+
+  public StringProperty topRightTextProperty() {
+    return topRightText;
+  }
+
+  /**
+   * Set an optional short label drawn over the structure in the top-right corner. Pass null or
+   * empty to clear.
+   */
+  public void setTopRightText(@Nullable String text) {
+    this.topRightText.set(text);
   }
 }

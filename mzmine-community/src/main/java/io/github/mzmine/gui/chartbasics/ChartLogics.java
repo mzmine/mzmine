@@ -32,8 +32,11 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
@@ -43,9 +46,11 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
@@ -133,16 +138,23 @@ public class ChartLogics {
       }
 
       if (domainAxis != null) {
-        cx = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
+        cx = domainAxis.java2DToValue(getCoordinateForAxis(p.getX(), p.getY(), domainAxisEdge),
+            dataArea, domainAxisEdge);
       }
       if (rangeAxis != null) {
-        cy = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
+        cy = rangeAxis.java2DToValue(getCoordinateForAxis(p.getX(), p.getY(), rangeAxisEdge),
+            dataArea, rangeAxisEdge);
       }
     } else {
       throw new Exception("no xyplot found");
     }
     return new Point2D.Double(cx, cy);
 
+  }
+
+  private static double getCoordinateForAxis(double x, double y, RectangleEdge axisEdge) {
+    // decision: horizontal edges use the x-coordinate, vertical edges use y.
+    return RectangleEdge.isTopOrBottom(axisEdge) ? x : y;
   }
 
   /**
@@ -194,9 +206,55 @@ public class ChartLogics {
       EntityCollection entities = info.getEntityCollection();
       if (entities != null) {
         entity = entities.getEntity(x, y);
+        if (entity instanceof XYItemEntity && !isInAnyDataArea(info, x, y)) {
+          // decision: data items should only be selectable inside plot data bounds.
+          entity = findNonDataEntityAt(entities, x, y);
+        }
       }
     }
     return entity;
+  }
+
+  private static boolean isInAnyDataArea(final @NotNull ChartRenderingInfo info, final double x,
+      final double y) {
+    final PlotRenderingInfo plotInfo = info.getPlotInfo();
+    if (plotInfo == null) {
+      return false;
+    }
+
+    final Rectangle2D mainDataArea = plotInfo.getDataArea();
+    if (mainDataArea != null && mainDataArea.contains(x, y)) {
+      return true;
+    }
+
+    for (int i = 0; i < plotInfo.getSubplotCount(); i++) {
+      final PlotRenderingInfo subplotInfo = plotInfo.getSubplotInfo(i);
+      if (subplotInfo == null) {
+        continue;
+      }
+      final Rectangle2D subplotDataArea = subplotInfo.getDataArea();
+      if (subplotDataArea != null && subplotDataArea.contains(x, y)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static @Nullable ChartEntity findNonDataEntityAt(final @NotNull EntityCollection entities,
+      final double x, final double y) {
+    final var allEntities = new ArrayList<>(entities.getEntities());
+    for (int i = allEntities.size() - 1; i >= 0; i--) {
+      if (!(allEntities.get(i) instanceof ChartEntity candidate)) {
+        continue;
+      }
+      if (candidate instanceof XYItemEntity || candidate.getArea() == null) {
+        continue;
+      }
+      if (candidate.getArea().contains(x, y)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   /**

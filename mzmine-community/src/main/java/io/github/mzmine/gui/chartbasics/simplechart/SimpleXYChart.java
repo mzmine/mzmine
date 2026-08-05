@@ -232,6 +232,14 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     });
   }
 
+  public @NotNull SimpleXYLabelGenerator getDefaultLabelGenerator() {
+    return defaultLabelGenerator;
+  }
+
+  public @NotNull SimpleToolTipGenerator getDefaultToolTipGenerator() {
+    return defaultToolTipGenerator;
+  }
+
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
     prepareRenderer(renderer);
     return plot.addDataset(dataset, renderer);

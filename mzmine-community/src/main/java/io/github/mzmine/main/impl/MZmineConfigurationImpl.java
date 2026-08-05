@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -59,8 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -251,10 +248,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     List<String> exculdeWarningsFor = List.of("jmzml", "adap");
 
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document configuration = dBuilder.parse(file);
+      final Document configuration = XMLUtils.load(file);
 
       XPathFactory factory = XPathFactory.newInstance();
       XPath xpath = factory.newXPath();
@@ -337,10 +331,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       // write sensitive parameters only to the local config file
       final boolean skipSensitive = !file.equals(MZmineConfiguration.CONFIG_FILE);
 
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-      Document configuration = dBuilder.newDocument();
+      final Document configuration = XMLUtils.newDocument();
       Element configRoot = configuration.createElement("configuration");
       configuration.appendChild(configRoot);
 
@@ -482,7 +473,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   @Override
   public Themes getTheme() {
-    return getPreferences().getValue(MZminePreferences.theme);
+    return getPreferences().getThemeConfig();
   }
 
   @Override

@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Vector;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -130,7 +129,7 @@ public class DataPointProcessingQueue extends
 
   public void saveToFile(final @NotNull File file) {
     try {
-      Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+      final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("DataPointProcessing");
       document.appendChild(element);
 

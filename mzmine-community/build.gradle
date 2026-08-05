@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -165,6 +165,17 @@ ext {
     trfpWinUrl = providers.gradleProperty("trfp.win.url").orNull
             ?: System.getenv("TRFP_WIN_URL")
             ?: "https://github.com/mzmine/ThermoRawFileParser/releases/download/v2.0.0-dev/ThermoRawFileParser-v.2.0.0-dev-win.zip"
+
+    // SCIEX Clearcore/Wiff2 server download. No macOS build exists.
+    // Configure in gradle.properties or via env vars to override defaults below if needed:
+    // sciex.linux.url=...
+    // sciex.win.url=...
+    sciexLinuxUrl = providers.gradleProperty("sciex.linux.url").orNull
+            ?: System.getenv("SCIEX_LINUX_URL")
+            ?: "https://github.com/mzio-public/raw-data-apis/releases/download/sciex_v1.0/Server-linux-x64.zip"
+    sciexWinUrl = providers.gradleProperty("sciex.win.url").orNull
+            ?: System.getenv("SCIEX_WIN_URL")
+            ?: "https://github.com/mzio-public/raw-data-apis/releases/download/sciex_v1.0/Server-win10-x64.zip"
 }
 
 dependencies {
@@ -178,6 +189,7 @@ dependencies {
     // mzmine version parsing
     implementation(libs.semver4j)
     implementation(libs.guava)
+    implementation(libs.caffeine)
     implementation(libs.commons.math3)
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
@@ -209,6 +221,8 @@ dependencies {
     implementation(libs.sirius.api)
     // reporting
     implementation(libs.bundles.jasper)
+
+    implementation(libs.bundles.protobuf)
 
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
@@ -302,36 +316,8 @@ application {
     ]
 }
 
-// add external libraries to the built product
-def EXTERNAL_TOOLS_DESTINATION =
-        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/$APPNAME/external_tools").get()
-                : getLayout().getBuildDirectory().dir("jpackage/${APPNAME}.app/Contents/external_tools").get()
-def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
-tasks.jpackage.doFirst {
-    copy {
-        from EXTERNAL_TOOLS_SRC
-        into EXTERNAL_TOOLS_DESTINATION
-    }
-
-    if (OperatingSystem.current().isMacOsX()) {
-        def execOps = project.services.get(ExecOperations)
-        // Ensure external tools are executable and not quarantined on macOS
-        try {
-            def externalToolsDir = EXTERNAL_TOOLS_DESTINATION.asFile
-            def trfpMac = new File(externalToolsDir, "thermo_raw_file_parser/ThermoRawFileParser")
-            if (trfpMac.exists()) {
-                execOps.exec { commandLine(['chmod', '+x', trfpMac.absolutePath]) }
-            }
-            // Remove quarantine attributes recursively (ignore failures on files without the attribute)
-            execOps.exec {
-                commandLine(['xattr', '-r', '-d', 'com.apple.quarantine', externalToolsDir.absolutePath])
-                ignoreExitValue = true
-            }
-        } catch (Exception ignored) {
-            // best-effort; continue
-        }
-    }
-}
+// Bundle external tools directly through jpackage on all operating systems.
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools").asFile.absolutePath
 
 /*
  * Build the JVM runtime using jlink
@@ -339,26 +325,32 @@ tasks.jpackage.doFirst {
 runtime {
     // compress 6 is default for jlink
     options = ["--compress=zip-6", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
-    modules = ["java.desktop",
-               "java.logging",
-               "java.net.http",
-               "java.rmi",
-               "java.sql",
-               "java.datatransfer",
-               "java.management",
-               "java.xml",
-               "java.xml.crypto",
-               "jdk.xml.dom",
-               "java.naming",
-               "java.transaction.xa",
-               "java.scripting",
-               "java.compiler",
-               "jdk.jsobject",
-               "jdk.jfr",
-               "java.security.sasl",
-               "java.security.jgss",
-               "jdk.unsupported",
-               "jdk.unsupported.desktop"]
+    modules = [
+            "java.desktop",
+            "java.logging",
+            "java.net.http",
+            "java.rmi",
+            "java.sql",
+            "java.datatransfer",
+            "java.management",
+            "java.xml",
+            "java.xml.crypto",
+            "jdk.xml.dom",
+            "java.naming",
+            "java.transaction.xa",
+            "java.scripting",
+            "java.compiler",
+            "jdk.jsobject",
+            "jdk.jfr",
+            "java.security.sasl",
+            "java.security.jgss",
+            "jdk.unsupported",
+            "jdk.unsupported.desktop"
+    ]
+    if(OperatingSystem.current().isWindows()) {
+        // only required on windows to access the trust store for root certificates
+        modules.add("jdk.crypto.mscapi")
+    }
     jpackage {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
@@ -366,6 +358,7 @@ runtime {
             installerName = APPNAME + "_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.ico",
+                            "--app-content", EXTERNAL_TOOLS_SRC,
                             "--add-launcher", APPNAME + "_console=gradle/win_console_launcher.properties"
             ]
             installerOptions = [
@@ -386,13 +379,15 @@ runtime {
             if (!macSigning) {
                 imageOptions = [
                         "--vendor", "mzio GmbH",
-                        "--icon", "src/main/resources/mzmineIcon.icns"
+                        "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--app-content", EXTERNAL_TOOLS_SRC
                 ]
 //                installerOptions = ["--license-file", "LICENSE.txt"] not required
                 installerOptions = []
             } else {
                 imageOptions = [
                         "--icon", "src/main/resources/mzmineIcon.icns",
+                        "--app-content", EXTERNAL_TOOLS_SRC,
                         "--mac-sign",
                         "--mac-package-name", APPNAME,
                         "--mac-package-identifier", "io.github.mzmine.main",
@@ -412,7 +407,8 @@ runtime {
             // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
             // installerType = "deb"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/mzmineIcon.png"]
+            imageOptions = ["--icon", "src/main/resources/mzmineIcon.png",
+                            "--app-content", EXTERNAL_TOOLS_SRC]
             installerOptions = [
                     "--vendor", "mzio GmbH",
                     "--linux-package-name", APPNAME,
@@ -745,11 +741,65 @@ tasks.register('fetchThermoRawFileParser') {
     }
 }
 
+// Linux and Windows only: fetch SCIEX Clearcore/Wiff2 server binaries and overlay
+// into external_tools/sciex_wiff2 - runs before processing resources. No macOS build.
+tasks.register('fetchSciexWiff2Server') {
+    // decision: scope up-to-date check to the OS-specific Server-* subdir, not the
+    // parent dir, because external_tools/sciex_wiff2 also holds committed launcher
+    // files (Wiff2Launcher.dll, libWiff2Launcher.so) that must not be touched.
+    final def serverSubdir = OperatingSystem.current().isWindows() ? "Server-win10-x64"
+            : OperatingSystem.current().isLinux() ? "Server-linux-x64"
+            : null
+    if (serverSubdir != null) {
+        outputs.dir(new File(layout.projectDirectory.asFile,
+                "../external_tools/sciex_wiff2/" + serverSubdir))
+    }
+    doLast {
+        if (OperatingSystem.current().isMacOsX()) {
+            logger.lifecycle("SCIEX Clearcore server: no macOS build available; skipping download")
+            return
+        }
+        final def url = OperatingSystem.current().isWindows() ? sciexWinUrl : sciexLinuxUrl
+        if (url == null || url.isBlank()) {
+            logger.lifecycle("SCIEX URL not configured; skipping download (will use repo external_tools if present)")
+            return
+        }
+
+        final def outBase = layout.buildDirectory.get().asFile
+        final def tmpDir = new File(outBase, "tmp/sciex_wiff2")
+        tmpDir.mkdirs()
+        final def zipFile = new File(tmpDir, "sciex_server.zip")
+        new URL(url).withInputStream { i -> zipFile.withOutputStream { it << i } }
+
+        final def parentDir = new File(layout.projectDirectory.asFile, "../external_tools/sciex_wiff2")
+        parentDir.mkdirs()
+
+        // decision: delete only the OS-specific Server-* subdir to preserve sibling
+        // committed files (Wiff2Launcher.dll, libWiff2Launcher.so, LICENSE).
+        final def serverDir = new File(parentDir, serverSubdir)
+        project.delete(serverDir)
+
+        // assumption: the release zip's top-level folder is Server-<os>-x64/, so
+        // extracting into parentDir restores the expected layout.
+        copy { from zipTree(zipFile); into parentDir }
+
+        // Mark Linux server binaries executable. Windows .exe needs no chmod.
+        if (OperatingSystem.current().isLinux()) {
+            serverDir.eachFileRecurse { f ->
+                if (f.isFile() && (f.name.endsWith(".so") || !f.name.contains("."))) {
+                    f.setExecutable(true)
+                }
+            }
+        }
+    }
+}
+
 // download extra resources before processing resources so that they are available to all gradle tasks
 // like test, run, jpackage
 // running in intellij will not download the resources so one manual gradle task call is needed
 tasks.named('processResources') {
     dependsOn(tasks.named('fetchThermoRawFileParser'))
+    dependsOn(tasks.named('fetchSciexWiff2Server'))
 }
 
 /*
@@ -886,3 +936,4 @@ afterEvaluate {
         }
     }
 }
+

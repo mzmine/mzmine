@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.online_reaction;
 
+import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.TypeStringType;
@@ -32,7 +33,6 @@ import io.github.mzmine.datamodel.features.types.annotations.SmartsEductStructur
 import io.github.mzmine.datamodel.features.types.annotations.SmartsReactionStructureType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

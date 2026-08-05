@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -42,7 +41,6 @@ import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_scans.ExportScansModule;
-import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
@@ -204,15 +202,6 @@ public class SpectraVisualizerTab extends MZmineTab {
     exportButton.setTooltip(new Tooltip("Export spectra to spectra file"));
     exportButton.setOnAction(e -> ExportScansModule.showSetupDialog(currentScan));
 
-    Button createLibraryEntryButton = new Button(null, new ImageView(exportIcon));
-    createLibraryEntryButton.setTooltip(new Tooltip("Create spectral library entry"));
-    createLibraryEntryButton.setOnAction(e -> {
-      // open window with all selected rows
-      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
-      libraryWindow.setData(currentScan);
-      libraryWindow.show();
-    });
-
     Button dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
     dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(
@@ -233,7 +222,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     toolBar.getItems()
         .addAll(centroidContinuousButton, dataPointsButton, annotationsButton, pickedPeakButton,
-            isotopePeakButton, axesButton, exportButton, createLibraryEntryButton, dbCustomButton,
+            isotopePeakButton, axesButton, exportButton, dbCustomButton,
             dbSpectraButton, sumFormulaButton);
 
     mainPane.setRight(toolBar);

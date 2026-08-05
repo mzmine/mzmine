@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.Collection;
 import java.util.List;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +42,12 @@ import org.jetbrains.annotations.NotNull;
  * passed by the parent
  */
 public interface FeatureListRowsPane {
+
+  @NotNull BooleanProperty autoUpdateProperty();
+
+  default boolean isAutoUpdate() {
+    return autoUpdateProperty().get();
+  }
 
   /**
    * Initialize the bindings to rows and selected rows
@@ -68,6 +75,9 @@ public interface FeatureListRowsPane {
    *             the selected nodes in {@link FeatureNetworkPane}.
    */
   default void onRowsChanged(@NotNull List<? extends FeatureListRow> rows) {
+    if (!isAutoUpdate()) {
+      return;
+    }
     getChildFeaturePanes().forEach(child -> child.onRowsChanged(rows));
   }
 
@@ -80,6 +90,9 @@ public interface FeatureListRowsPane {
    *                     {@link FeatureNetworkPane}.
    */
   default void onSelectedRowsChanged(@NotNull List<? extends FeatureListRow> selectedRows) {
+    if (!isAutoUpdate()) {
+      return;
+    }
     getChildFeaturePanes().forEach(child -> child.onSelectedRowsChanged(selectedRows));
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,9 @@ import org.jfree.data.xy.XYZDataset;
 /**
  * Used to plot XYZ datasets in a scatterplot-type of plot. Used to display spatial distribution in
  * imaging and ion mobility heatmaps.
+ * <br>
+ * When using a ColoredXYDataset, also use a renderer that respects the color set in the dataset.
+ * Available renderers are located in io.github.mzmine.gui.chartbasics.simplechart.renderers
  *
  * @author https://github.com/SteffenHeu
  */

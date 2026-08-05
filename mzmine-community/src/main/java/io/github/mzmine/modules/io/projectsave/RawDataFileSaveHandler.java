@@ -65,8 +65,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.jetbrains.annotations.NotNull;
@@ -163,10 +161,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
     zipStream.putNextEntry(new ZipEntry(RAW_DATA_IMPORT_BATCH_FILENAME));
 
     try {
-      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      final DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
-
-      final Document batchQueueFile = dbBuilder.newDocument();
+      final Document batchQueueFile = XMLUtils.newDocument();
       final Element root = batchQueueFile.createElement(ROOT_ELEMENT);
       final Element batchRoot = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,25 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.ui.Layer;
 
-public record MarkerDefinition(int index, Marker marker, Layer layer) {
+public record MarkerDefinition(@NotNull IntegerProperty indexProperty, @NotNull Marker marker,
+                               @NotNull Layer layer) {
 
-  public MarkerDefinition(Marker marker) {
+  public MarkerDefinition(final int index, final @NotNull Marker marker,
+      final @NotNull Layer layer) {
+    this(new SimpleIntegerProperty(index), marker, layer);
+  }
+
+  public MarkerDefinition(final @NotNull Marker marker) {
     this(0, marker, Layer.FOREGROUND);
+  }
+
+  public int index() {
+    return indexProperty.get();
   }
 }

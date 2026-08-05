@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,8 @@ public class SpectralLibraryToFeatureListParameters extends SimpleParameterSet {
   public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
 
   public SpectralLibraryToFeatureListParameters() {
-    super(libraries);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/tools_spectral_library_to_feature_list/spectral_library_to_feature_list.html",
+        libraries);
   }
 }

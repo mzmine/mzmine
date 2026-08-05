@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,7 +82,7 @@ public class ClearIonIdentitiesTask extends AbstractTask {
       LOG.info("Clearing ion identities and networks in " + featureList.getName());
 
       // filter
-      doFiltering(featureList, finishedRows);
+      clearAllIonIdentities(featureList);
 
       // Done.
       setStatus(TaskStatus.FINISHED);
@@ -98,15 +98,11 @@ public class ClearIonIdentitiesTask extends AbstractTask {
 
   /**
    * Delete all networks smaller min size
-   * 
-   * @param pkl
-   * @param finishedRows pointer to finished networks
-   * @throws Exception
    */
-  public static void doFiltering(FeatureList pkl, AtomicInteger finishedRows) throws Exception {
-    pkl.stream().filter(FeatureListRow::hasIonIdentity).forEach(r -> {
-      r.clearIonIdentites();
-    });
+  public static void clearAllIonIdentities(FeatureList pkl) {
+    for (FeatureListRow row : pkl.getRows()) {
+      row.clearIonIdentites();
+    }
   }
 
 }

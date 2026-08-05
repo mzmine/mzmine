@@ -96,4 +96,21 @@ public class SignalFiltersParameters extends SimpleParameterSet {
     setParameter(cropToMaxSignals, filter.cropToMaxSignals());
     return this;
   }
+
+  public static SignalFiltersParameters create(boolean removePrecursorPeak, double removeMzWidth,
+      int maxSignals, int signalThreshold, double intensityThreshold) {
+    SpectralSignalFilter filter = new SpectralSignalFilter(removePrecursorPeak, removeMzWidth,
+        maxSignals, signalThreshold, intensityThreshold);
+    SignalFiltersParameters param = (SignalFiltersParameters) new SignalFiltersParameters().cloneParameterSet();
+    param.setValue(filter);
+    return param;
+  }
+
+  public static SignalFiltersParameters createDefault() {
+    SpectralSignalFilter defaultNoPrecursor = SpectralSignalFilter.DEFAULT_NO_PRECURSOR;
+    return create(defaultNoPrecursor.isRemovePrecursor(), defaultNoPrecursor.removePrecursorMz(),
+        defaultNoPrecursor.cropToMaxSignals(),
+        defaultNoPrecursor.signalThresholdForTargetIntensityPercent(),
+        defaultNoPrecursor.targetIntensityPercentage());
+  }
 }

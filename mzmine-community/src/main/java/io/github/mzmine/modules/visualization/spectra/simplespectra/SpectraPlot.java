@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -102,12 +103,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private final FxXYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<Range<Double>> selectedMzRangeProperty = new SimpleObjectProperty<>();
   /**
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
-  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
-  private final ObjectProperty<Range<Double>> selectedMzRangeProperty = new SimpleObjectProperty<>();
 
   // Spectra processing
   protected DataPointProcessingController controller;
@@ -521,14 +522,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     boolean showPrecursorWindow = MZmineCore.getConfiguration().getPreferences()
         .getValue(MZminePreferences.showPrecursorWindow);
     if (scan.getMSLevel() == 2) {
+      final MsMsInfo info = scan.getMsMsInfo();
       final Double prmz = scan.getPrecursorMz();
-      if (prmz != null) {
-        final MsMsInfo info = scan.getMsMsInfo();
-        if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
-          addDomainMarker(info.getIsolationWindow(), color, alpha);
-        } else {
-          addDomainMarker(prmz, color, alpha);
-        }
+      if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
+        addDomainMarker(info.getIsolationWindow(), color, alpha);
+      } else if (prmz != null) {
+        addDomainMarker(prmz, color, alpha);
       }
     } else if (scan.getMSLevel() > 2) {
       // add all parent precursors

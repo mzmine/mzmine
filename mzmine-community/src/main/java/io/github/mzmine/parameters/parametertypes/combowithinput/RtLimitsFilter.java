@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @param filter      defines how to apply the filter
@@ -38,7 +39,7 @@ public record RtLimitsFilter(FeatureLimitOptions filter, RTTolerance rtTolerance
     ComboWithInputValue<FeatureLimitOptions, RTTolerance> {
 
   @Override
-  public FeatureLimitOptions getSelectedOption() {
+  public @NotNull FeatureLimitOptions getSelectedOption() {
     return filter;
   }
 

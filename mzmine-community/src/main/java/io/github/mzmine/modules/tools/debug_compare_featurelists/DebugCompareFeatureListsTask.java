@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
@@ -86,8 +85,6 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             NetworkStatsType.class,
             // check separately
             IonIdentityListType.class,
-            // references to other rows do not work
-            FeatureGroupType.class,
             // different order
             FragmentScanNumbersType.class));
 
@@ -136,7 +133,7 @@ public class DebugCompareFeatureListsTask extends AbstractSimpleToolTask {
             for (int ion = 0; ion < ions1.size(); ion++) {
               var adduct1 = ions1.get(ion);
               var adduct2 = ions2.get(ion);
-              if (!adduct1.equalsAdduct(adduct2.getIonType())) {
+              if (!adduct1.equalsIonType(adduct2.getIonType())) {
                 errors.add("Ion types were different for row i=%d. %s : %s".formatted(i, adduct1,
                     adduct2));
               }

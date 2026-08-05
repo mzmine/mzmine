@@ -317,6 +317,7 @@ public class MzMLCV {
   // square centimeter"/>
   public static final String cvMobilityInverseReduced = "MS:1002815";
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
+  public static final String cvIonMobilityArray = "MS:1003007";
 
 
   /**

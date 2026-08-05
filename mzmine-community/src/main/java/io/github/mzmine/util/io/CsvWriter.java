@@ -30,11 +30,14 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.opencsv.ICSVWriter;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -130,6 +133,24 @@ public class CsvWriter {
     } catch (JsonProcessingException ex) {
       logger.log(Level.WARNING, "Cannot write csv:" + ex.getMessage(), ex);
       return "";
+    }
+  }
+
+  /**
+   * Writes rows to csv or tsv files. Values are escaped if needed.
+   *
+   * @param exportFile               the file to write
+   * @param rows                     rows to export
+   * @param defaultFormatIfUndefined format if format is not defined
+   * @throws IOException
+   */
+  public static void writeToFile(@NotNull File exportFile, @NotNull List<List<String>> rows,
+      String defaultFormatIfUndefined) throws IOException {
+    try (ICSVWriter writer = CSVParsingUtils.createDefaultWriterAutoDetect(exportFile,
+        defaultFormatIfUndefined, WriterOptions.REPLACE)) {
+      for (List<String> row : rows) {
+        writer.writeNext(row.toArray(String[]::new), false);
+      }
     }
   }
 }
