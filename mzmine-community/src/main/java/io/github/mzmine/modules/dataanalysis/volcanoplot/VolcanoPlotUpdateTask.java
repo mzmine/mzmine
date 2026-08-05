@@ -143,6 +143,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     temporaryDatasets = new ArrayList<>();
     // rows without a computable p value (e.g. constant abundances in both groups) have no
     // -log10(p) to plot. Count them instead of dropping them silently.
+    // this is expected if the row actually has no features in all samples in both groups
     int missingPValues = 0;
 
     for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
@@ -176,6 +177,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       }
     }
 
+    // expected if no features in row in group data files -> no data for row
     if (missingPValues > 0) {
       final String msg = """
           %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups - try a different missing value imputation.""".formatted(

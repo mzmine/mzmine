@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
@@ -152,8 +153,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
       return datasets != null && !datasets.isEmpty();
     }, model.datasetsProperty());
 
-    final Label warningLabel = new Label();
-    warningLabel.textProperty().bind(model.userWarningProperty());
+    final Label warningLabel = FxLabels.newBoldLabel(model.userWarningProperty());
     warningLabel.setWrapText(true);
     warningLabel.setMouseTransparent(true);
     warningLabel.setTextAlignment(TextAlignment.CENTER);
