@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,25 +25,33 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.formatters.NonZeroIntegerSpinnerValueFactory;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.control.Spinner;
-import org.jetbrains.annotations.NotNull;
+import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
+import javafx.scene.control.Tooltip;
+import org.jetbrains.annotations.Nullable;
 
 public class FxSpinners {
 
-  public static Spinner<Integer> newSpinner(int min, int max,
-      @NotNull ObjectProperty<Integer> valueProperty) {
-    final Spinner<Integer> spinner = new Spinner<>(min, max, min);
-    if (valueProperty.get() != null) {
-      spinner.getValueFactory().setValue(valueProperty.get());
-    }
-    spinner.getValueFactory().valueProperty().bindBidirectional(valueProperty);
-    return spinner;
+  public static Spinner<Integer> newSpinner(IntegerProperty valueProperty) {
+    return newSpinner(valueProperty, null);
   }
 
-  public static Spinner<Integer> newSpinner(int min, int max,
-      @NotNull IntegerProperty valueProperty) {
+  public static Spinner<Integer> newSpinner(IntegerProperty valueProperty,
+      @Nullable String tooltip) {
+    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
+  }
+
+
+  public static Spinner<Integer> newSpinner(int min, int max, IntegerProperty valueProperty) {
+    return newSpinner(min, max, valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(int min, int max, IntegerProperty valueProperty,
+      @Nullable String tooltip) {
+
     final Spinner<Integer> spinner = new Spinner<>(min, max, valueProperty.get());
     //    spCols.getValueFactory().valueProperty()
 //        .bindBidirectional(model.gridNumColumnsProperty().asObject());
@@ -54,6 +63,48 @@ public class FxSpinners {
     valueProperty.addListener((_, _, i) -> {
       spinner.getValueFactory().setValue(valueProperty.get());
     });
+    if (tooltip != null) {
+      spinner.setTooltip(new Tooltip(tooltip));
+    }
+    return spinner;
+  }
+
+  public static Spinner<Integer> newNonZeroSpinner(ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
+    return newNonZeroSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
+  }
+
+  public static Spinner<Integer> newNonZeroSpinner(int min, int max,
+      ObjectProperty<Integer> valueProperty, @Nullable String tooltip) {
+    final Spinner<Integer> spinner = newSpinner(min, max, valueProperty, tooltip);
+    spinner.setValueFactory(new NonZeroIntegerSpinnerValueFactory(min, max));
+    spinner.getValueFactory().valueProperty().bindBidirectional(valueProperty);
+    return spinner;
+  }
+
+  public static Spinner<Integer> newSpinner(ObjectProperty<Integer> valueProperty) {
+    return newSpinner(valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
+    return newSpinner(Integer.MIN_VALUE, Integer.MAX_VALUE, valueProperty, tooltip);
+  }
+
+  public static Spinner<Integer> newSpinner(int min, int max,
+      ObjectProperty<Integer> valueProperty) {
+    return newSpinner(min, max, valueProperty, null);
+  }
+
+  public static Spinner<Integer> newSpinner(int min, int max, ObjectProperty<Integer> valueProperty,
+      @Nullable String tooltip) {
+    var spinner = new Spinner<Integer>();
+    spinner.setValueFactory(new IntegerSpinnerValueFactory(min, max));
+    spinner.getValueFactory().valueProperty().bindBidirectional(valueProperty);
+    if (tooltip != null) {
+      spinner.setTooltip(new Tooltip(tooltip));
+    }
+
     return spinner;
   }
 }

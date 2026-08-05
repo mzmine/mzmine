@@ -59,17 +59,15 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   private final @Nullable GroupableTreeView<T> ownerTreeView;
   private final @Nullable Function<T, File> dragFileExtractor;
 
-  // saved reference to the default disclosure node so we can restore it for group items
-  private @Nullable Node savedDisclosureNode;
-
   /**
-   * @param textExtractor    function to extract display text from an item
-   * @param graphicFactory   optional function to create a graphic node for an item, may be null
-   * @param ownerTreeView    the owning GroupableTreeView, used for drag & drop move operations. May
-   *                         be null if drag & drop is not needed.
+   * @param textExtractor     function to extract display text from an item
+   * @param graphicFactory    optional function to create a graphic node for an item, may be null
+   * @param ownerTreeView     the owning GroupableTreeView, used for drag & drop move operations.
+   *                          May be null if drag & drop is not needed.
    * @param dragFileExtractor optional function to extract a {@link File} from an item. When set,
-   *                          all currently selected files are added to the dragboard so the drag can
-   *                          be accepted by external file-drop targets (e.g. FileNamesComponent).
+   *                          all currently selected files are added to the dragboard so the drag
+   *                          can be accepted by external file-drop targets (e.g.
+   *                          FileNamesComponent).
    */
   public GroupableTreeCell(@NotNull final Function<T, String> textExtractor,
       @Nullable final Function<T, Node> graphicFactory,
@@ -92,16 +90,10 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
   protected void updateItem(final @Nullable T item, final boolean empty) {
     super.updateItem(item, empty);
 
-    // capture the default disclosure node on first use so we can restore it later
-    if (savedDisclosureNode == null && getDisclosureNode() != null) {
-      savedDisclosureNode = getDisclosureNode();
-    }
-
     if (empty || getTreeItem() == null) {
       setText(null);
       setGraphic(null);
       setFont(Font.getDefault());
-      setDisclosureNode(null);
       return;
     }
 
@@ -110,18 +102,15 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
       setGraphic(null);
       setFont(Font.font(getFont().getFamily(), FontWeight.BOLD, getFont().getSize()));
       // restore disclosure node for groups so the expand/collapse arrow is shown
-      setDisclosureNode(savedDisclosureNode);
     } else if (item != null) {
       setText(textExtractor.apply(item));
       setGraphic(graphicFactory != null ? graphicFactory.apply(item) : null);
       setFont(Font.getDefault());
       // null disclosure node for leaf items
-      setDisclosureNode(null);
     } else {
       setText(null);
       setGraphic(null);
       setFont(Font.getDefault());
-      setDisclosureNode(null);
     }
   }
 
@@ -151,22 +140,13 @@ public class GroupableTreeCell<T> extends TreeCell<T> {
    * skin, CSS theme, and HiDPI scaling instead of using a hardcoded value.
    */
   private double computeDisclosureShift() {
-    if (savedDisclosureNode != null) {
-      final double w = savedDisclosureNode.prefWidth(-1);
-      if (w > 0) {
-        return w;
-      }
-    }
-    // assumption: fall back to the JavaFX default if the node is not yet measured
     return 18;
   }
 
   /**
-   * @return true if the drag event originated from a cell in this tree view (internal reorder)
-   */
-  /**
-   * Collects {@link File} objects for all currently selected items using {@link #dragFileExtractor}.
-   * Returns an empty list when no extractor is set or no owner tree view is available.
+   * Collects {@link File} objects for all currently selected items using
+   * {@link #dragFileExtractor}. Returns an empty list when no extractor is set or no owner tree
+   * view is available.
    */
   private @NotNull List<File> buildDragFiles() {
     if (dragFileExtractor == null || ownerTreeView == null) {

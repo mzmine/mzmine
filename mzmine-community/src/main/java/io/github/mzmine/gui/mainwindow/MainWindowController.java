@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -44,6 +45,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardTab;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
@@ -52,6 +54,8 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
+import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
@@ -132,7 +136,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -154,10 +157,6 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class MainWindowController {
 
-  private static final Image featureListSingleIcon = FxIconUtil.loadImageFromResources(
-      "icons/peaklisticon_single.png");
-  private static final Image featureListAlignedIcon = FxIconUtil.loadImageFromResources(
-      "icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private static final Logger logger = Logger.getLogger(MainWindowController.class.getName());
 
@@ -190,6 +189,8 @@ public class MainWindowController {
   @FXML
   public MenuItem mergeLibrariesMenuItem;
 
+  @FXML
+  public MenuItem showCompoundDashboardItem;
   @FXML
   public NotificationPane notificationPane;
 
@@ -251,11 +252,11 @@ public class MainWindowController {
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
     try {
-      ImageView rawIcon = new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor()));
+      Node rawIcon = FxIconUtil.getFileIconNode(rawDataFile.getColor());
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
           rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, 15,
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, FxIconUtil.LIST_ICON_SIZE,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
@@ -278,6 +279,14 @@ public class MainWindowController {
       return box;
     } catch (Exception ex) {
       return new StackPane();
+    }
+  }
+
+  private static Node getFeatureListIcon(@NotNull FeatureList flist) {
+    if (!flist.isAligned()) {
+      return FxIconUtil.getFontIcon(FxIcons.FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE, flist.getRawDataFile(0).getColor());
+    } else {
+      return FxIconUtil.getFontIcon(FxIcons.ALIGNED_FEATURE_LIST, FxIconUtil.LIST_ICON_SIZE);
     }
   }
 
@@ -309,9 +318,9 @@ public class MainWindowController {
 
     featureListsList.getTreeView().setEditable(false);
     featureListsList.getTreeView().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    featureListsList.getTreeView().setCellFactory(_ -> new GroupableTreeCell<>(FeatureList::getName,
-        flist -> flist.isAligned() ? new ImageView(featureListAlignedIcon)
-            : new ImageView(featureListSingleIcon), featureListsList));
+    featureListsList.getTreeView().setCellFactory(
+        _ -> new GroupableTreeCell<>(FeatureList::getName, MainWindowController::getFeatureListIcon,
+            featureListsList));
 
     spectralLibraryList.setEditable(false);
     spectralLibraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -375,7 +384,7 @@ public class MainWindowController {
     // Add mouse clicked event handler
     featureListsList.getTreeView().setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        handleOpenFeatureList(event);
+        handlePreferredDashboardFeatureList();
       }
     });
 
@@ -391,36 +400,44 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getTreeView().getSelectionModel().getSelectedItems()
-        .addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
-          while (change.next()) {
-            if (change.getList() == null) {
-              return;
-            }
+    final ObservableList<TreeItem<FeatureList>> selectedItems = featureListsList.getTreeView()
+        .getSelectionModel().getSelectedItems();
+    selectedItems.addListener((ListChangeListener<TreeItem<FeatureList>>) change -> {
+      while (change.next()) {
+        if (change.getList() == null) {
+          return;
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              openFeatureListMenuItem.setText("Open feature list");
-              showFeatureListSummaryMenuItem.setText("Show feature list summary");
-              featureListsRemoveMenuItem.setText("Remove feature list");
-            } else {
-              openFeatureListMenuItem.setText("Open feature lists");
-              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-              featureListsRemoveMenuItem.setText("Remove feature lists");
-            }
+        if (selectedItems.isEmpty() || selectedItems.getFirst().getValue() == null
+            || selectedItems.getFirst().getValue().getCompoundList() == null) {
+          showCompoundDashboardItem.setVisible(false);
+        } else {
+          showCompoundDashboardItem.setVisible(true);
+        }
 
-            if (featureListsList.getTreeView().getSelectionModel().getSelectedItems().size() == 1) {
-              featureListsRenameMenuItem.setDisable(false);
-              if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
-                  == null) {
-                featureListsRenameMenuItem.setText("Rename group");
-              } else {
-                featureListsRenameMenuItem.setText("Rename feature list");
-              }
-            } else {
-              featureListsRenameMenuItem.setDisable(true);
-            }
+        if (selectedItems.size() == 1) {
+          openFeatureListMenuItem.setText("Open feature list");
+          showFeatureListSummaryMenuItem.setText("Show feature list summary");
+          featureListsRemoveMenuItem.setText("Remove feature list");
+        } else {
+          openFeatureListMenuItem.setText("Open feature lists");
+          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+          featureListsRemoveMenuItem.setText("Remove feature lists");
+        }
+
+        if (selectedItems.size() == 1) {
+          featureListsRenameMenuItem.setDisable(false);
+          if (featureListsList.getTreeView().getSelectionModel().getSelectedItem().getValue()
+              == null) {
+            featureListsRenameMenuItem.setText("Rename group");
+          } else {
+            featureListsRenameMenuItem.setText("Rename feature list");
           }
-        });
+        } else {
+          featureListsRenameMenuItem.setDisable(true);
+        }
+      }
+    });
 
     featureListsList.setRenameConsumer(FeatureList::setName);
   }
@@ -779,10 +796,24 @@ public class MainWindowController {
     }
   }
 
+  public void handlePreferredDashboardFeatureList() {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    for (FeatureList fl : selectedFeatureLists) {
+      FxThread.runLater(() -> {
+        // decision: feature lists carrying a CompoundList open the compound dashboard, which
+        // already embeds a FeatureTableFX. Plain feature lists fall back to the legacy table tab.
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        } else {
+          FeatureTableFXUtil.addFeatureTableTab(fl);
+        }
+      });
+    }
+  }
+
   public void handleOpenFeatureList(Event event) {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
-      // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
       FxThread.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
@@ -841,6 +872,17 @@ public class MainWindowController {
       param.setParameter(IntegrationDashboardParameters.flists,
           new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
       MZmineCore.runMZmineModule(IntegrationDashboardModule.class, param);
+    }
+  }
+
+  public void handleShowLipidDashboard(Event event) {
+    final List<FeatureList> selected = getFeatureListsList().getSelectedValues().stream().distinct()
+        .toList();
+    if (!selected.isEmpty()) {
+      final ParameterSet param = new LipidAnnotationQCDashboardParameters().cloneParameterSet();
+      param.setParameter(LipidAnnotationQCDashboardParameters.flists,
+          new FeatureListsSelection((ModularFeatureList) selected.getFirst()));
+      MZmineCore.runMZmineModule(LipidAnnotationQCDashboardModule.class, param);
     }
   }
 
@@ -1064,5 +1106,16 @@ public class MainWindowController {
 
   public void handleMergeLibraries(ActionEvent e) {
     MZmineCore.setupAndRunModule(MergeLibrariesModule.class);
+  }
+
+  public void handleShowCompoundDashboard(ActionEvent actionEvent) {
+    List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
+    FxThread.runLater(() -> {
+      for (FeatureList fl : selectedFeatureLists) {
+        if (fl.getCompoundList() != null) {
+          MZmineCore.getDesktop().addTab(new CompoundDashboardTab(fl));
+        }
+      }
+    });
   }
 }

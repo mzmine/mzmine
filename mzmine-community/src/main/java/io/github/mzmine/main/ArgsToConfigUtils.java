@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,14 +30,17 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
+import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper class to apply all parsed args from the
@@ -136,14 +139,30 @@ class ArgsToConfigUtils {
   }
 
   static void checkAndOverrideArgsUser(@NotNull final MZmineCoreArgumentParser argsParser) {
-    if (argsParser.getUserFile() == null) {
-      // listen for user changes so that the latest user is saved
-      String username = ConfigService.getPreference(MZminePreferences.username);
-      // this will set the current user to CurrentUserService
-      // loads all users already logged in from the user folder
-      if (StringUtils.hasValue(username)) {
-        UsersController.getInstance().setCurrentUserByName(username);
-      }
+    if (argsParser.getUserFile() != null) {
+      return; // user was already read and locked in MZmineCoreArgumentParser
+    }
+    if (argsParser.isGuiMode()) {
+      return; // GUI: caller will restore the user asynchronously after TaskService is ready
+    }
+    // Headless / CLI mode: restore synchronously so the user is set before the batch runs.
+    restoreUserFromConfig(ConfigService.getPreference(MZminePreferences.username));
+  }
+
+  /**
+   * Restores the previously active user identified by {@code username} by scanning all saved user
+   * files. Safe to call from any thread. May do network I/O when the user file is older than 5
+   * days.
+   */
+  static void restoreUserFromConfig(@Nullable final String username) {
+    if (!StringUtils.hasValue(username)) {
+      return;
+    }
+    try {
+      UserAuthStore.readAllUserFiles().stream().filter(u -> username.equals(u.getNickname()))
+          .findFirst().ifPresent(CurrentUserService::setUser);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Could not restore saved user: " + username, e);
     }
   }
 

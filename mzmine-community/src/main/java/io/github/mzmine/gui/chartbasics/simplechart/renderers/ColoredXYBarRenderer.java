@@ -62,6 +62,9 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
 
   private boolean isTransparent;
   private XYDataset currentDataset;
+  // Multiplier applied to each bar's pixel width in drawItem, centered on the bar's midpoint.
+  // 1.0 = unchanged. Used by the compound dashboard to widen the selected adduct row's MS1 sticks.
+  private double barWidthMultiplier = 1.0;
 
   public ColoredXYBarRenderer(boolean isTransparent) {
     this.isTransparent = isTransparent;
@@ -163,6 +166,12 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
       double cut = translatedWidth * getMargin();
       translatedWidth = translatedWidth - cut;
       left = left + cut / 2;
+    }
+    if (barWidthMultiplier != 1.0) {
+      // grow/shrink the bar around its midpoint so it stays centred on the data x value
+      final double widened = translatedWidth * barWidthMultiplier;
+      left = left - (widened - translatedWidth) / 2.0;
+      translatedWidth = widened;
     }
 
     Rectangle2D bar = null;
@@ -303,5 +312,18 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
     return super.lookupSeriesPaint(series);
   }
 
+  public double getBarWidthMultiplier() {
+    return barWidthMultiplier;
+  }
+
+  public void setBarWidthMultiplier(double barWidthMultiplier) {
+    if (this.barWidthMultiplier == barWidthMultiplier) {
+      return;
+    }
+    this.barWidthMultiplier = barWidthMultiplier;
+    // fireChangeEvent (inherited from AbstractRenderer) is the standard hook JFreeChart uses to
+    // schedule a repaint when a renderer property changes
+    fireChangeEvent();
+  }
 
 }

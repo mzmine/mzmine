@@ -64,7 +64,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   private static final List<DataType> subTypes = List.of(new IonNetworkIDType(),
       new IonIdentityListType(),
       // start with netID
-      new SizeType(), new NeutralMassType(), new PartnerIdsType(), new MsMsMultimerVerifiedType(),
+      new SizeType(), new NeutralMassType(),
       // all realtionship types
       new IINRelationshipsType(), new IINRelationshipsSummaryType(),
       // all formula types
@@ -97,18 +97,13 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
       case SizeType __ -> net != null ? net.size() : null;
       case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;
-      case PartnerIdsType __ -> ion.getPartnerRowsString(";");
-      case MsMsMultimerVerifiedType __ -> {
-        int msmsMultimerCount = ion.getMSMSMultimerCount();
-        yield msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
-      }
       // list of relationships has no order
       case IINRelationshipsType __ ->
           net != null ? new ArrayList<>(net.getRelations().entrySet()) : null;
       case IINRelationshipsSummaryType __ ->
-          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream()
-              .map(entry -> entry.getValue().getName(entry.getKey()))
-              .collect(Collectors.joining(";")) : null;
+          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream().map(
+              entry -> entry.getValue().getName(entry.getKey())).collect(Collectors.joining(";"))
+              : null;
       //
       case ConsensusFormulaListType __ -> net != null ? net.getMolFormulas() : null;
       case SimpleFormulaListType __ -> ion.getMolFormulas();

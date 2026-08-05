@@ -27,10 +27,12 @@ package io.github.mzmine.javafx.properties;
 
 import java.time.Instant;
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 
 /**
  * Binds multiple observables and updates the latest change as an Instant
@@ -42,10 +44,27 @@ public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
   }
 
   public LastUpdateProperty(final Observable... triggers) {
-    this();
-    // all properties that cause a full update need to be bound here
-    var binding = Bindings.createObjectBinding(Instant::now, triggers);
-    this.bind(binding);
+    // use listeners and not binding to be able to clear the property
+    for (Observable trigger : triggers) {
+      if (trigger instanceof Property<?> prop) {
+        prop.addListener((_, _, _) -> setNow());
+      } else if (trigger instanceof ObservableList prop) {
+        prop.addListener((ListChangeListener) _ -> setNow());
+      } else {
+        // invalidation
+        trigger.addListener(_ -> setNow());
+      }
+    }
+  }
+
+  public void clearValue() {
+    setValue(null);
+  }
+
+  public Instant setNow() {
+    Instant now = Instant.now();
+    set(now);
+    return now;
   }
 
   /**

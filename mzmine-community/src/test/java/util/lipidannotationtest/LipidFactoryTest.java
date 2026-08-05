@@ -12,8 +12,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidFactoryTest {
 
@@ -79,8 +77,8 @@ public class LipidFactoryTest {
     Double expectedMass = FormulaUtils.calculateExactMass(formulaString);
     IMolecularFormula testChain = LIPID_CHAIN_FACTORY.buildLipidChainFormula(chainType, carbonAtoms,
         doubleBonds);
-    assertEquals(NUMBER_FORMAT.format(expectedMass), NUMBER_FORMAT.format(
-        MolecularFormulaManipulator.getMass(testChain, AtomContainerManipulator.MonoIsotopic)));
+    assertEquals(NUMBER_FORMAT.format(expectedMass),
+        NUMBER_FORMAT.format(FormulaUtils.getMonoisotopicMass(testChain)));
   }
 
 }

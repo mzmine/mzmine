@@ -84,7 +84,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddGapFillStep(q, null, minRtDataPoints);
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q, minRtDataPoints, null, true);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, null);
 
     // annotation
     makeAndAddLibrarySearchStep(q, false);
@@ -95,6 +95,11 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     if (applySpectralNetworking) {
       makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath, false);
     }
+
+    // compound grouping (requires meta correlation + IIN)
+    // for now disabled, might need a different algorithm for DIA and flow injection
+    // maybe only rely on ion identities then
+//    makeAndAddCompoundGrouperStep(q, null);
 
     // export
     makeAndAddDdaExportSteps(q, steps, mzTolScans);

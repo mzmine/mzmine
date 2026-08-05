@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorPreprocessor;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.PreprocessedIntensitiesProvider;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.maths.Weighting;
@@ -42,7 +44,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LocalMaxMassDetector implements MassDetector {
+public class LocalMaxMassDetector implements MassDetector, PreprocessedIntensitiesProvider {
 
   private static final Logger logger = Logger.getLogger(LocalMaxMassDetector.class.getName());
 
@@ -60,15 +62,33 @@ public class LocalMaxMassDetector implements MassDetector {
   private final double noiseLevel;
   private final AbundanceMeasure intensityCalculation;
 
+  /**
+   * Optional preprocessing of the intensities (e.g. smoothing) before maximum and edge detection.
+   * Returns the original intensities when no preprocessing is configured.
+   */
+  private final @NotNull MassDetectorPreprocessor preprocessor;
+
+  /**
+   * Preprocessed (e.g. smoothed) intensities of the most recently processed spectrum, or null if no
+   * preprocessing was applied. Kept for the preview to display the preprocessed series.
+   */
+  private double @Nullable [] lastPreprocessedIntensities;
+
   public LocalMaxMassDetector() {
-    this(0, AbundanceMeasure.Height, 3);
+    this(0, AbundanceMeasure.Height, 3, new LocalMaxNoSmoothingModule());
   }
 
   public LocalMaxMassDetector(final double noiseLevel, final AbundanceMeasure intensityCalculation,
       final int minNonZeroDp) {
+    this(noiseLevel, intensityCalculation, minNonZeroDp, new LocalMaxNoSmoothingModule());
+  }
+
+  public LocalMaxMassDetector(final double noiseLevel, final AbundanceMeasure intensityCalculation,
+      final int minNonZeroDp, final @NotNull MassDetectorPreprocessor preprocessor) {
     this.noiseLevel = noiseLevel;
     this.intensityCalculation = intensityCalculation;
     this.minNonZeroDp = minNonZeroDp;
+    this.preprocessor = preprocessor;
   }
 
   /**
@@ -116,9 +136,16 @@ public class LocalMaxMassDetector implements MassDetector {
 
   @Override
   public MassDetector create(final ParameterSet params) {
+    final LocalMaxSmoothingOptions smoothingOption = params.getValue(
+        LocalMaxMassDetectorParameters.smoothing);
+    final ParameterSet smoothingParams = params.getEmbeddedParameterValue(
+        LocalMaxMassDetectorParameters.smoothing);
+    final MassDetectorPreprocessor preprocessor = smoothingOption.createPreprocessor(
+        smoothingParams);
+
     return new LocalMaxMassDetector(params.getValue(LocalMaxMassDetectorParameters.noiseLevel),
         params.getValue(LocalMaxMassDetectorParameters.intensityCalculation),
-        params.getValue(LocalMaxMassDetectorParameters.minNumberOfDp));
+        params.getValue(LocalMaxMassDetectorParameters.minNumberOfDp), preprocessor);
   }
 
   @Override
@@ -128,6 +155,9 @@ public class LocalMaxMassDetector implements MassDetector {
 
   @Override
   public double[][] getMassValues(final MassSpectrum spectrum) {
+    // reset so the preview never shows a stale preprocessed series for an unprocessed spectrum
+    lastPreprocessedIntensities = null;
+
     final int numPoints = spectrum.getNumberOfDataPoints();
     if (numPoints < minNonZeroDp) {
       return new double[2][0];
@@ -197,8 +227,16 @@ public class LocalMaxMassDetector implements MassDetector {
     final DoubleArrayList resultMzs = new DoubleArrayList();
     final DoubleArrayList resultIntensities = new DoubleArrayList();
 
+    // Optional preprocessing: maximum and edge detection run on the (potentially smoothed)
+    // intensities, while the intensity calculation keeps using the original intensities.
+    final double[] detectIntensities = preprocessor.preprocessIntensities(intensities,
+        consecutiveRanges);
+    // store only if preprocessing actually changed the data (NONE returns the original array)
+    lastPreprocessedIntensities = (detectIntensities == intensities) ? null : detectIntensities;
+
     for (final IndexRange range : consecutiveRanges) {
-      findAndCentroidPeaks(mzs, intensities, range, absMinIntensity, resultMzs, resultIntensities);
+      findAndCentroidPeaks(mzs, detectIntensities, intensities, range, absMinIntensity, resultMzs,
+          resultIntensities);
     }
 
     final double[][] result = new double[2][];
@@ -210,13 +248,17 @@ public class LocalMaxMassDetector implements MassDetector {
 
   /**
    * Identifies peaks within a continuous region using the valley/rise logic, then centroids them.
+   *
+   * @param detectIntensities the (potentially smoothed) intensities used for maximum and edge
+   *                          detection.
+   * @param origIntensities   the original intensities used for the intensity calculation.
    */
-  private void findAndCentroidPeaks(final double[] mzs, final double[] intensities,
-      final IndexRange range, final double minIntensity, final DoubleArrayList resultMzs,
-      final DoubleArrayList resultIntensities) {
+  private void findAndCentroidPeaks(final double[] mzs, final double[] detectIntensities,
+      final double[] origIntensities, final IndexRange range, final double minIntensity,
+      final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
 
     // Find all raw local maxima (candidates) in the region above noise
-    final IntArrayList candidateIndices = findLocalMaximaIndices(intensities, range);
+    final IntArrayList candidateIndices = findLocalMaximaIndices(detectIntensities, range);
 
     if (candidateIndices.isEmpty()) {
       return;
@@ -231,11 +273,12 @@ public class LocalMaxMassDetector implements MassDetector {
       final int nextCandidateIdx = candidateIndices.getInt(i);
 
       // Find the deepest valley between the current active peak and the next candidate (to the right)
-      final int valleyIdx = findLowestValleyIndex(intensities, activePeakIdx, nextCandidateIdx);
+      final int valleyIdx = findLowestValleyIndex(detectIntensities, activePeakIdx,
+          nextCandidateIdx);
 
-      final double activePeakInt = intensities[activePeakIdx];
-      final double nextCandidateInt = intensities[nextCandidateIdx];
-      final double valleyInt = intensities[valleyIdx];
+      final double activePeakInt = detectIntensities[activePeakIdx];
+      final double nextCandidateInt = detectIntensities[nextCandidateIdx];
+      final double valleyInt = detectIntensities[valleyIdx];
 
       // Rule: Separate if it drops below 0.7 * active AND rises 1.3 * valley
       final boolean dropsEnough = valleyInt < (VALLEY_FACTOR * activePeakInt);
@@ -245,8 +288,8 @@ public class LocalMaxMassDetector implements MassDetector {
         // They are separate peaks.
         // The right boundary for the current peak is the valley.
         // include valleyIdx in this peak and also as potential new peak - similar to belows use of range.maxExclusive
-        processSinglePeak(mzs, intensities, activePeakIdx, leftBoundary, valleyIdx + 1,
-            minIntensity, resultMzs, resultIntensities);
+        processSinglePeak(mzs, origIntensities, leftBoundary, valleyIdx + 1, minIntensity,
+            resultMzs, resultIntensities);
 
         // Move to the next peak
         activePeakIdx = nextCandidateIdx;
@@ -261,8 +304,8 @@ public class LocalMaxMassDetector implements MassDetector {
       }
     }
 
-    processSinglePeak(mzs, intensities, activePeakIdx, leftBoundary, range.maxExclusive(),
-        minIntensity, resultMzs, resultIntensities);
+    processSinglePeak(mzs, origIntensities, leftBoundary, range.maxExclusive(), minIntensity,
+        resultMzs, resultIntensities);
   }
 
   /**
@@ -307,22 +350,35 @@ public class LocalMaxMassDetector implements MassDetector {
   }
 
   /**
-   * Calculates centroid and intensity for a defined peak and adds to results.
+   * Calculates centroid and intensity for a defined peak and adds to results. The peak edges
+   * ({@code startIdx}, {@code endIdx}) should be determined on the (potentially smoothed) detection
+   * series, but the intensity calculation (apex, height, area, centroid) runs on the original
+   * intensities passed here.
    *
-   * @param peakMaxIdx      The index of the maximum intensity within these bounds.
    * @param startIdx        Inclusive start of peak region (valley or range start).
    * @param endIdx          Exclusive end of peak region (valley or range end).
    * @param absMinIntensity Absolute minimum intensity of the whole spectrum.
    */
-  private void processSinglePeak(final double[] mzs, final double[] intensities,
-      final int peakMaxIdx, final int startIdx, final int endIdx, final double absMinIntensity,
+  private void processSinglePeak(final double[] mzs, final double[] intensities, final int startIdx,
+      final int endIdx, final double absMinIntensity,
       final DoubleArrayList resultMzs, final DoubleArrayList resultIntensities) {
 
     if (endIdx - startIdx < minNonZeroDp) {
       return;
     }
 
-    final double maxIntensity = intensities[peakMaxIdx];
+    // Locate the apex on the original intensities within the detected edges. Using the original
+    // (not smoothed) maximum ensures the reported height and the centroid window reference the raw
+    // signal, even when smoothing shifted or lowered the smoothed apex.
+    int peakMaxIdx = startIdx;
+    double maxIntensity = intensities[startIdx];
+    for (int i = startIdx + 1; i < endIdx; i++) {
+      if (intensities[i] > maxIntensity) {
+        maxIntensity = intensities[i];
+        peakMaxIdx = i;
+      }
+    }
+
     final double detectionThreshold = Math.max(noiseLevel, 2 * absMinIntensity);
 
     // check the actual intensity as noise level not the area which is harder to optimize
@@ -388,5 +444,10 @@ public class LocalMaxMassDetector implements MassDetector {
   public double[][] getMassValues(double[] mzs, double[] intensities,
       @NotNull MassSpectrumType type) {
     return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
+  }
+
+  @Override
+  public double @Nullable [] getLastPreprocessedIntensities() {
+    return lastPreprocessedIntensities;
   }
 }

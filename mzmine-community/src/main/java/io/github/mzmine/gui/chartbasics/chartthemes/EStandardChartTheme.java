@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,7 +79,6 @@ public class EStandardChartTheme extends StandardChartTheme {
   @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
-  private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
   // master font
@@ -270,8 +269,6 @@ public class EStandardChartTheme extends StandardChartTheme {
       xyp.setRangeCrosshairPaint(crosshairColor);
       xyp.setDomainCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
       xyp.setRangeCrosshairStroke(DEFAULT_CROSS_HAIR_STROKE);
-      xyp.setDomainCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
-      xyp.setRangeCrosshairVisible(DEFAULT_CROSS_HAIR_VISIBLE);
     }
   }
 

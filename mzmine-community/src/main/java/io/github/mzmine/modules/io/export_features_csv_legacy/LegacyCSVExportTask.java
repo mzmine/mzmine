@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,11 +34,16 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
+import io.github.mzmine.datamodel.features.types.compoundlist.CompoundMembersJsonType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
@@ -48,6 +54,7 @@ import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.StringUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -80,6 +88,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final Boolean exportAllFeatureInfo;
   private final String idSeparator;
   private final FeatureListRowsFilter filter;
+  private final CompoundRowSelection rowSelection;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
 
@@ -101,10 +110,12 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         .getValue();
     idSeparator = parameters.getParameter(LegacyCSVExportParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(LegacyCSVExportParameters.filter).getValue();
+    this.rowSelection = parameters.getValue(LegacyCSVExportParameters.compoundRowSelection);
     refineCommonElements();
   }
 
   /**
+   * @param compoundRowSelection
    * @param featureLists         feature lists to export
    * @param fileName             export to file name
    * @param fieldSeparator       separator for each column
@@ -117,7 +128,8 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements, Boolean exportAllFeatureInfo,
-      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate,
+      CompoundRowSelection compoundRowSelection) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
@@ -127,6 +139,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     this.exportAllFeatureInfo = exportAllFeatureInfo;
     this.idSeparator = idSeparator;
     this.filter = filter;
+    this.rowSelection = compoundRowSelection;
   }
 
   @Override
@@ -247,6 +260,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         line.append("auto MS2 verify").append(fieldSeparator);
         line.append("identified by n=").append(fieldSeparator);
         line.append("partners").append(fieldSeparator);
+      } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_COMPOUND_ID)) {
+        line.append(DataTypes.get(CompoundIdType.class).getUniqueID()).append(fieldSeparator);
+        line.append(DataTypes.get(CompoundMembersJsonType.class).getUniqueID())
+            .append(fieldSeparator);
       } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
         line.append("best ion").append(fieldSeparator);
       } else {
@@ -260,7 +277,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     // feature Information
     Set<String> featureInformationFields = new HashSet<>();
 
-    final List<FeatureListRow> rows = featureList.getRowsCopy();
+    final List<FeatureListRow> rows = new ArrayList<>(featureList.getRowsCopy(rowSelection));
 
     final int numRows = rows.size();
     final long numFeatures = rows.stream().count();
@@ -421,6 +438,15 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
         case ROW_ID:
           line.append(featureListRow.getID()).append(fieldSeparator);
           break;
+        case ROW_COMPOUND_ID:
+          // compound ID is only stored on CompoundRow, regular rows export an empty value
+          final Integer compoundId = featureListRow.get(CompoundIdType.class);
+          final CompoundMembersJsonType membType = DataTypes.get(CompoundMembersJsonType.class);
+          final String membersJson = featureListRow.get(membType);
+          line.append(compoundId == null ? "" : compoundId).append(fieldSeparator);
+          line.append(membersJson == null ? "" : escapeStringForCSV(membersJson))
+              .append(fieldSeparator);
+          break;
         case ROW_MZ:
           line.append(featureListRow.getAverageMZ()).append(fieldSeparator);
           break;
@@ -485,11 +511,6 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           }
           line.append(numDetected).append(fieldSeparator);
           break;
-        case ROW_CORR_GROUP_ID:
-          int gid = featureListRow.getGroupID();
-          line.append(gid == -1 ? "" : gid).append(fieldSeparator);
-
-          break;
         case ROW_MOL_NETWORK_ID:
           IonIdentity ion = featureListRow.getBestIonIdentity();
           line.append(ion == null ? "" : ion.getNetID()).append(fieldSeparator);
@@ -504,17 +525,16 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             line.append(fieldSeparator).append(fieldSeparator).append(fieldSeparator)
                 .append(fieldSeparator);
           } else {
+            final IonNetwork net = ad.getNetwork();
             String msms = "";
-            if (ad.getMSMSModVerify() > 0) {
-              msms = "MS/MS verified: nloss";
-            }
-            if (ad.getMSMSMultimerCount() > 0) {
-              msms += msms.isEmpty() ? "MS/MS verified: xmer" : (idSeparator + " xmer");
-            }
-            String partners = ad.getPartnerRowsString(idSeparator);
-            line.append(ad.getIonType().toString(false)).append(fieldSeparator) //
+            String partners = net == null ? ""
+                : StringUtils.join(net.getRows(), idSeparator, r -> String.valueOf(r.getID()));
+            final int netSize = net == null ? 0 : net.size();
+
+            line.append(ad.toString()) //
+                .append(fieldSeparator) //
                 .append(msms).append(fieldSeparator) //
-                .append(ad.getPartnerRows().toArray().length).append(fieldSeparator) //
+                .append(netSize).append(fieldSeparator) //
                 .append(partners).append(fieldSeparator);
           }
           break;

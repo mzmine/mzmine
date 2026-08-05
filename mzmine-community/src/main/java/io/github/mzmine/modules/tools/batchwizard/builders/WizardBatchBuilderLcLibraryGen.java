@@ -121,10 +121,13 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // ions annotation and feature grouping
     makeAndAddMetaCorrStep(q);
-    makeAndAddIinStep(q);
+    makeAndAddIinStep(q, intraSampleRtTol);
 
     // match against own library
     makeAndAddLibrarySearchStep(q, true);
+
+    // compound grouping (requires meta correlation + IIN)
+    makeAndAddCompoundGrouperStep(q, intraSampleRtTol);
 
     // export all unannotated scans - after alignment to merge duplicates
     if (exportUnknownScansFile) {

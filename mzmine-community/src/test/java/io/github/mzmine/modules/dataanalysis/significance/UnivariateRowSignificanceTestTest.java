@@ -97,8 +97,11 @@ class UnivariateRowSignificanceTestTest {
     final UnivariateRowSignificanceTest<String> test = new UnivariateRowSignificanceTest<>(table,
         SignificanceTests.WELCHS_T_TEST, groupColumn, "A", "B");
 
-    assertEquals(List.of(allFiles.get(0), allFiles.get(1)), test.getGroupAFiles());
-    assertEquals(List.of(allFiles.get(3), allFiles.get(4)), test.getGroupBFiles());
+    // in data table order, the metadata grouping itself has no stable order
+    assertEquals(List.of(allFiles.get(0), allFiles.get(1)),
+        test.getGroupAData().getRawDataFiles());
+    assertEquals(List.of(allFiles.get(3), allFiles.get(4)),
+        test.getGroupBData().getRawDataFiles());
     assertEquals(2, test.getGroupAData().getNumberOfSamples());
     assertEquals(2, test.getGroupBData().getNumberOfSamples());
     assertEquals(NUM_ROWS, test.getGroupAData().getNumberOfFeatures());
@@ -107,6 +110,19 @@ class UnivariateRowSignificanceTestTest {
     for (final var row : table.getFeatureListRows()) {
       assertNotNull(test.test(row));
     }
+  }
+
+  @Test
+  void testGetMatchingFilesIsLimitedToTheGivenFiles() {
+    final List<RawDataFile> subset = List.of(allFiles.get(0), allFiles.get(1), allFiles.get(3));
+
+    assertEquals(List.of(allFiles.get(0), allFiles.get(1)),
+        ProjectService.getMetadata().getMatchingFiles(subset, groupColumn, "A"));
+    assertEquals(List.of(allFiles.get(3)),
+        ProjectService.getMetadata().getMatchingFiles(subset, groupColumn, "B"));
+    // and all known files are still matched when they are all passed in
+    assertEquals(3, ProjectService.getMetadata()
+        .getMatchingFiles(List.<RawDataFile>copyOf(allFiles), groupColumn, "A").size());
   }
 
   @Test

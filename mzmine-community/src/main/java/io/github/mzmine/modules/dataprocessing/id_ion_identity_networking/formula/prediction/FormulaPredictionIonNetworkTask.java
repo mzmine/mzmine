@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
@@ -57,13 +56,13 @@ import io.github.mzmine.parameters.parametertypes.ValueOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,7 +73,6 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
@@ -238,9 +236,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       }
     } else {
       // run on all rows
-      for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-        FeatureListRow row = e.getKey();
-        IonIdentity ion = e.getValue();
+      net.forEach((row, ion) -> {
         if (!ion.getIonType().isUndefinedAdduct()) {
           ion.clearMolFormulas();
           List<ResultFormula> list = predictFormulas(row, ion.getIonType());
@@ -251,7 +247,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
             ion.addMolFormulas(list);
           }
         }
-      }
+      });
     }
     // find best formula for neutral mol of network
     // add all that have the same mol formula in at least 2 different ions (rows)
@@ -275,16 +271,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     IMolecularFormula cdkFormula;
     while ((cdkFormula = generator.getNextFormula()) != null) {
-      try {
-        // ionized formula
-        IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula);
+      // ionized formula
+      IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true);
 
-        // Mass is ok, so test other constraints
-        checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion, searchedMass);
-      } catch (CloneNotSupportedException e) {
-        logger.log(Level.SEVERE, "Cannot copy cdk formula", e);
-        throw new MSDKRuntimeException(e);
-      }
+      // Mass is ok, so test other constraints
+      checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion, searchedMass);
     }
 
     return resultingFormulas;
@@ -299,7 +290,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
    * @param addToIon add formulas to ions
    */
   private void predictFormulasForWholeNetwork(IonNetwork net, boolean sort, boolean addToIon) {
-    final var entries = new ArrayList<>(net.entrySet());
+    final var entries = net.getNodes();
 
     ArrayList<ResultFormula>[] resultingFormulas = new ArrayList[net.size()];
     for (int i = 0; i < net.size(); i++) {
@@ -319,31 +310,26 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     IMolecularFormula cdkFormula;
     while ((cdkFormula = generator.getNextFormula()) != null) {
       for (int i = 0; i < net.size(); i++) {
-        try {
-          final FeatureListRow row = entries.get(i).getKey();
-          final IonType ion = entries.get(i).getValue().getIonType();
-          if (ion.isUndefinedAdduct()) {
-            continue;
-          }
-          // ionized formula
-          IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula);
-
-          // correct by ppm offset
-          double rowMass = ion.getMass(row.getAverageMZ());
-          rowMass += rowMass * ppmOffset / 1E6;
-
-          // Mass is ok, so test other constraints
-          checkConstraints(resultingFormulas[i], cdkFormula, cdkFormulaIon, row, ion, rowMass);
-        } catch (CloneNotSupportedException e) {
-          logger.log(Level.SEVERE, "Cannot copy cdk formula", e);
-          throw new MSDKRuntimeException(e);
+        final FeatureListRow row = entries.get(i).row();
+        final IonType ion = entries.get(i).ion().getIonType();
+        if (ion.isUndefinedAdduct()) {
+          continue;
         }
+        // ionized formula
+        IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true);
+
+        // correct by ppm offset
+        double rowMass = ion.getMass(row.getAverageMZ());
+        rowMass += rowMass * ppmOffset / 1E6;
+
+        // Mass is ok, so test other constraints
+        checkConstraints(resultingFormulas[i], cdkFormula, cdkFormulaIon, row, ion, rowMass);
       }
     }
 
     for (int i = 0; i < net.size(); i++) {
-      final FeatureListRow row = entries.get(i).getKey();
-      final IonIdentity ion = entries.get(i).getValue();
+      final FeatureListRow row = entries.get(i).row();
+      final IonIdentity ion = entries.get(i).ion();
       if (!ion.getIonType().isUndefinedAdduct()) {
         ion.clearMolFormulas();
         List<ResultFormula> list = resultingFormulas[i];
@@ -362,7 +348,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   private void checkConstraints(List<ResultFormula> resultingFormulas,
       IMolecularFormula cdkFormulaNeutralM, IMolecularFormula cdkFormulaIon,
       FeatureListRow featureListRow, IonType ionType, double searchedMass) {
-    int charge = ionType.getCharge();
+    int charge = ionType.totalCharge();
 
     // Check elemental ratios
     if (checkRatios) {
@@ -435,8 +421,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     } catch (Exception e) {
       logger.log(Level.WARNING, () -> MessageFormat.format(
           "Error in MS/MS score calculation for ion formula {0} (for neutral M: {1})",
-          MolecularFormulaManipulator.getString(cdkFormulaIon),
-          MolecularFormulaManipulator.getString(cdkFormulaNeutralM)));
+          FormulaUtils.getFormulaString(cdkFormulaIon),
+          FormulaUtils.getFormulaString(cdkFormulaNeutralM)));
     }
 
     // Create a new formula entry

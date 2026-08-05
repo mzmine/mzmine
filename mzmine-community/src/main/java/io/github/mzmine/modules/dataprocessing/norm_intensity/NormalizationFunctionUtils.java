@@ -34,9 +34,9 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.Interpolatio
 import io.github.mzmine.modules.visualization.projectmetadata.table.InterpolationWeights.SingleInterpolationWeight;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
-import io.github.mzmine.util.StringUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
@@ -58,7 +58,7 @@ public class NormalizationFunctionUtils {
       throw new IllegalStateException(
           "No reference files found for batch with ID %s for sample types: %s".formatted(
               samplesBatch.getGroupMetadataValueStr(),
-              StringUtils.join(includedTypes, ", ", SampleType::toString)));
+              includedTypes.stream().map(SampleType::toString).collect(Collectors.joining(", "))));
     }
     return filtered;
   }
@@ -103,8 +103,7 @@ public class NormalizationFunctionUtils {
         // interpolated between two functions
         case BinaryInterpolationWeights w -> {
           // both left and right functions are not null so interpolate between them
-          final NormalizationFunction previousFunction = refFunctions.get(
-              w.previousRun().file());
+          final NormalizationFunction previousFunction = refFunctions.get(w.previousRun().file());
           final NormalizationFunction nextFunction = refFunctions.get(w.nextRun().file());
 
           if (previousFunction == null || nextFunction == null) {
@@ -121,8 +120,8 @@ public class NormalizationFunctionUtils {
             yield new FactorNormalizationFunction(factor);
           } else {
             // saves both functions to interpolate, works for all cases
-            yield new InterpolatedNormalizationFunction(previousFunction,
-                w.previousRun().weight(), nextFunction, w.nextRun().weight());
+            yield new InterpolatedNormalizationFunction(previousFunction, w.previousRun().weight(),
+                nextFunction, w.nextRun().weight());
           }
         }
         case MultiInterpolationWeights w -> throw new UnsupportedOperationException(

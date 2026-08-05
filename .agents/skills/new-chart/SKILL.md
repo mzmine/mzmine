@@ -11,3 +11,5 @@ description: How to create a new chart, renderer, label generator in the mzmine 
 - When passing data to a chart, check if we have an appropriate provider in
   io.github.mzmine.gui.chartbasics.simplechart.providers.
 - The providers can be passed to a ColoredXYDataset and a ColoredXYZDataset.
+- When using a ColoredXYDataset, also use a renderer that respects the color set in the dataset.
+  Available renderers are located in io.github.mzmine.gui.chartbasics.simplechart.renderers

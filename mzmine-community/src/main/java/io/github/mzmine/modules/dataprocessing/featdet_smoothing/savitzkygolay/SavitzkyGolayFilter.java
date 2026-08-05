@@ -133,6 +133,44 @@ public class SavitzkyGolayFilter {
   }
 
   /**
+   * Convolve a sub-window {@code [from, to)} of the input in place into the provided output buffer.
+   * Boundary handling uses the strict intersection of filter and data, but confined to
+   * {@code [from, to)} so that separate windows (e.g. consecutive m/z ranges) never bleed into each
+   * other. Only {@code out[from..to)} is written; the rest of {@code out} is left untouched. This
+   * avoids per-window allocations when smoothing many small ranges of a larger array.
+   *
+   * @param in      the input intensities.
+   * @param from    inclusive start index of the window.
+   * @param to      exclusive end index of the window.
+   * @param weights the filter weights.
+   * @param out     the output buffer (must be at least {@code to} long, may be the same length as
+   *                {@code in}).
+   */
+  public static void convolve(final double[] in, final int from, final int to,
+      final double[] weights, final double[] out) {
+
+    final int fullWidth = weights.length;
+    final int halfWidth = (fullWidth - 1) / 2;
+    final int numPoints = to - from;
+
+    for (int i = from; i < to; i++) {
+      double sum = 0.0;
+      // index into the window where the leftmost filter tap would land
+      final int k = (i - from) - halfWidth;
+
+      // Boundary handling: strict intersection of filter and the window [from, to)
+      final int startJ = Math.max(0, -k);
+      final int endJ = Math.min(fullWidth, numPoints - k);
+
+      for (int j = startJ; j < endJ; j++) {
+        sum += in[from + k + j] * weights[j];
+      }
+
+      out[i] = sum;
+    }
+  }
+
+  /**
    * Returns the valid filter width. Ensures the width is odd and at least 3.
    */
   public static int getClosestFilterWidth(int width) {

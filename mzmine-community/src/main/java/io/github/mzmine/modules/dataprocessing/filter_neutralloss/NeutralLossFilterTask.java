@@ -99,7 +99,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     // calc mass for molecule
     if (!molecule.isEmpty()) {
-      formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
+      formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(molecule);
       if (formula != null) {
         dMassLoss = 0;
         for (IIsotope i : formula.isotopes()) {
@@ -342,7 +342,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
         addComment(child, " m/z shift(ppm): " + round(
             ((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1)) / parent.getAverageMZ()
-                * 1E6, 2) + " ");
+            * 1E6, 2) + " ");
 
         rowBuffer.add(parent);
       }
@@ -434,7 +434,7 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       if (pL[i].getAverageMZ() > mz && pL[i].getAverageMZ() <= (mz + maxDiff
-          + mzTolerance.getMzTolerance())) {
+                                                                + mzTolerance.getMzTolerance())) {
         buf.add(pL[i]);
       }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignif
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,38 +50,25 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
 
   public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
       @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
-    // the metadata matches all files of the project, but the data table only contains the samples
-    // of the selected feature list. only keep the samples that are actually in the data table.
-    List<RawDataFile> metadataFilesA = ProjectService.getMetadata()
-        .getMatchingFiles(column, groupA);
-    List<RawDataFile> metadataFilesB = ProjectService.getMetadata()
-        .getMatchingFiles(column, groupB);
+    // limit to actual raw data files to not select files not in feature table
+    final List<RawDataFile> actualRaws = dataTable.getRawDataFiles();
 
-    List<RawDataFile> groupedFilesA = retainTableSamples(dataTable, metadataFilesA);
-    List<RawDataFile> groupedFilesB = retainTableSamples(dataTable, metadataFilesB);
-
+    // this might throw MetadataValueDoesNotExistException
+    List<RawDataFile> groupedFilesA = ProjectService.getMetadata()
+        .getMatchingFiles(actualRaws, column, groupA);
+    List<RawDataFile> groupedFilesB = ProjectService.getMetadata()
+        .getMatchingFiles(actualRaws, column, groupB);
     if (groupedFilesA.size() < 2 || groupedFilesB.size() < 2) {
       throw new IllegalArgumentException("""
-          Not enough samples for group, at least two samples required per group. Column %s had %s n=%d and %s n=%d samples in the metadata, of which n=%d and n=%d are present in the selected feature list (of %d samples).""".formatted(
-          column.getTitle(), groupA, metadataFilesA.size(), groupB, metadataFilesB.size(),
-          groupedFilesA.size(), groupedFilesB.size(), dataTable.getNumberOfSamples()));
+          Not enough samples for group, at least two samples required per group. Column %s had %s n=%d and %s n=%d samples in the selected feature list (of %d samples).""".formatted(
+          column.getTitle(), groupA, groupedFilesA.size(), groupB, groupedFilesB.size(),
+          dataTable.getNumberOfSamples()));
     }
 
     // split table into the two groups
     var groupAData = dataTable.subsetBySamples(groupedFilesA);
     var groupBData = dataTable.subsetBySamples(groupedFilesB);
     this(groupAData, groupBData, test, column, groupA, groupB);
-  }
-
-  /**
-   * @return the subset of group files that are samples of the data table, in the sample order of the
-   * data table. The metadata grouping has no stable order, so use the table order to keep results
-   * reproducible.
-   */
-  private static List<RawDataFile> retainTableSamples(@NotNull FeaturesDataTable dataTable,
-      @NotNull List<RawDataFile> group) {
-    final Set<RawDataFile> groupSamples = Set.copyOf(group);
-    return dataTable.getRawDataFiles().stream().filter(groupSamples::contains).toList();
   }
 
   public FeaturesDataTable getGroupAData() {
@@ -149,22 +135,6 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
 
   public T groupB() {
     return groupB;
-  }
-
-  /**
-   * @return the samples of group A that are actually used by this test, i.e., limited to the samples
-   * of the underlying data table
-   */
-  public List<RawDataFile> getGroupAFiles() {
-    return groupAData.getRawDataFiles();
-  }
-
-  /**
-   * @return the samples of group B that are actually used by this test, i.e., limited to the samples
-   * of the underlying data table
-   */
-  public List<RawDataFile> getGroupBFiles() {
-    return groupBData.getRawDataFiles();
   }
 
   @Override

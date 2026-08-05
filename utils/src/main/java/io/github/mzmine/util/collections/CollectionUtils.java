@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -449,4 +449,19 @@ public class CollectionUtils {
     return items.stream().filter(item -> !uniques.add(item)).toList();
   }
 
+  /**
+   * Order independent check for equal content
+   *
+   * @return true if both inputs have the same size and content - in any order
+   */
+  public static boolean equalContentIgnoreOrder(Collection a, Collection b) {
+    if (a == b) {
+      return true;
+    }
+    if (a == null || b == null || a.size() != b.size()) {
+      return false;
+    }
+
+    return new HashSet<>(a).containsAll(b);
+  }
 }

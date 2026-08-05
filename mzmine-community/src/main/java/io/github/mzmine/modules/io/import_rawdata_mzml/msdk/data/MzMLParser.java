@@ -246,7 +246,26 @@ public class MzMLParser {
         String refValue = getRequiredAttribute(xmlStreamReader, "ref");
         for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
           if (ref.getParamGroupName().equals(refValue)) {
-            vars.spectrum.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
+            // Route referenced params to the correct context, mirroring inline cvParam logic
+            if (tracker.inside(MzMLTags.TAG_SCAN_LIST)) {
+              if (tracker.inside(MzMLTags.TAG_SCAN_WINDOW)) {
+                vars.scanWindow.getCVParamsList().addAll(ref.getCVParamsList());
+              } else if (tracker.inside(MzMLTags.TAG_SCAN)) {
+                vars.scan.getCVParamsList().addAll(ref.getCVParamsList());
+              } else {
+                vars.spectrum.getScanList().getCVParamsList().addAll(ref.getCVParamsList());
+              }
+            } else if (tracker.inside(MzMLTags.TAG_PRECURSOR_LIST)) {
+              if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
+                vars.isolationWindow.getCVParamsList().addAll(ref.getCVParamsList());
+              } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
+                vars.selectedIon.getCVParamsList().addAll(ref.getCVParamsList());
+              } else if (tracker.inside(MzMLTags.TAG_ACTIVATION)) {
+                vars.activation.getCVParamsList().addAll(ref.getCVParamsList());
+              }
+            } else {
+              vars.spectrum.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
+            }
             break;
           }
         }

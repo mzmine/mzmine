@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,49 +24,49 @@
 
 package io.github.mzmine.gui.preferences;
 
+import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
-public enum Themes {
-  //  MZMINE_LIGHT("MZmine light", List.of("themes/MZmine_default.css", "themes/MZmine_light.css"),
-//      false), //
-//  MZMINE_DARK("MZmine dark", List.of("themes/MZmine_default.css", "themes/MZmine_dark.css"),
-//      true), //
-  /*MZMINE_AKK("MZmine AKK", List.of("themes/MZmine_AKK.css"), true), *///
-  JABREF_LIGHT("Light", List.of("themes/jabref_light.css", "themes/jabref_additions_common.css",
-      "themes/jabref_additions_light.css"), false), //
-  JABREF_DARK("Dark", List.of("themes/jabref_light.css", "themes/jabref_dark.css",
-      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
-  JABREF_DARK_CUSTOM("Dark (High contrast)",
-      List.of("themes/jabref_light.css", "themes/jabref_dark.css", "themes/jabref_dark_2.css",
-          "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true), //
-  DARK_GREY("Dark grey",
-      List.of("themes/jabref_light.css", "themes/jabref_dark_grey.css",
-      "themes/jabref_additions_common.css", "themes/jabref_additions_dark.css"), true) //
-  ;
+/**
+ * Combines a {@link ThemeStyle} (structural UI styling) with a {@link ThemeColors} (color palette)
+ * to produce the full list of CSS stylesheets for the application.
+ * <p>
+ * Loading order:
+ * <ol>
+ *   <li>Style base stylesheet (structural controls)</li>
+ *   <li>Color palette stylesheet (.root color variables, overrides style defaults)</li>
+ *   <li>Dark overrides (if dark palette, structural rules that differ for dark mode)</li>
+ *   <li>Common additions</li>
+ *   <li>Light or dark additions</li>
+ * </ol>
+ */
+public record Themes(@NotNull ThemeStyle style, @NotNull ThemeColors colors) {
 
-  private final String name;
-  private final List<String> stylesheets;
-  private final boolean isDark;
+  private static final String ADDITIONS_COMMON = "themes/jabref_additions_common.css";
+  private static final String ADDITIONS_LIGHT = "themes/jabref_additions_light.css";
+  private static final String ADDITIONS_DARK = "themes/jabref_additions_dark.css";
 
-  Themes(String name, List<String> stylesheets, boolean isDark) {
-    this.name = name;
-    this.stylesheets = stylesheets;
-    this.isDark = isDark;
-  }
-
-  public void apply(ObservableList<String> sheets) {
-    sheets.clear();
-    sheets.addAll(stylesheets);
+  /**
+   * Applies this theme's stylesheets to the given observable list (typically a Scene's stylesheet
+   * list). Clears any existing stylesheets first.
+   */
+  public void apply(@NotNull final ObservableList<String> sheets) {
+    List<String> styles = new ArrayList<>();
+    styles.add(style.getStylesheet());
+    styles.add(colors.getStylesheet());
+    styles.add(ADDITIONS_COMMON);
+    styles.add(colors.isDark() ? ADDITIONS_DARK : ADDITIONS_LIGHT);
+    sheets.setAll(styles);
   }
 
   public boolean isDark() {
-    return isDark;
+    return colors.isDark();
   }
 
   @Override
   public String toString() {
-    return name;
+    return style + " - " + colors;
   }
-
 }

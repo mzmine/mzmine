@@ -74,7 +74,7 @@ public enum ChargeFilterType implements UniqueIdSupplier {
         if (annotationAdduct == null) {
           yield true;
         }
-        final int absCharge = annotationAdduct.getAbsCharge();
+        final int absCharge = annotationAdduct.absTotalCharge();
         final int rowCharge = Math.abs(row.getRowCharge());
         yield annotationAdduct.getPolarity() == rowPolarity && absCharge == rowCharge;
       }
@@ -82,7 +82,7 @@ public enum ChargeFilterType implements UniqueIdSupplier {
         if (annotationAdduct == null) {
           yield false;
         }
-        final int absCharge = annotationAdduct.getAbsCharge();
+        final int absCharge = annotationAdduct.absTotalCharge();
         final int rowCharge = Math.abs(row.getRowCharge());
         yield annotationAdduct.getPolarity() == rowPolarity && absCharge == rowCharge;
       }

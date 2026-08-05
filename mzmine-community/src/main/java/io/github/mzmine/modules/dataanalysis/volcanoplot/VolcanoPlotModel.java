@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -59,12 +60,33 @@ public class VolcanoPlotModel {
 
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
 
-  /**
-   * Explains why the plot is empty or incomplete. Empty string if there is nothing to report.
-   */
-  private final StringProperty statusMessage = new SimpleStringProperty("");
-
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
+
+  // null = feature list rows; non-null = use compound list with the given selection level
+  private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
+      null);
+
+  /**
+   * Explains why the plot is empty or incomplete and is shown instead of / on top of the plot. Empty
+   * string if there is nothing to report.
+   */
+  private final StringProperty userWarning = new SimpleStringProperty("");
+
+  public String getUserWarning() {
+    return userWarning.get();
+  }
+
+  public StringProperty userWarningProperty() {
+    return userWarning;
+  }
+
+  /**
+   * @param userWarning null or empty to clear the warning
+   */
+  public void setUserWarning(@Nullable String userWarning) {
+    // never null, so bindings like isNotEmpty stay simple
+    this.userWarning.set(userWarning == null ? "" : userWarning);
+  }
 
   public List<FeatureList> getFlists() {
     return flists.get();
@@ -150,18 +172,6 @@ public class VolcanoPlotModel {
     this.pValue.set(pValue);
   }
 
-  public String getStatusMessage() {
-    return statusMessage.get();
-  }
-
-  public void setStatusMessage(@Nullable String message) {
-    this.statusMessage.set(message == null ? "" : message);
-  }
-
-  public StringProperty statusMessageProperty() {
-    return statusMessage;
-  }
-
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
   }
@@ -172,6 +182,14 @@ public class VolcanoPlotModel {
 
   public void setSelectedRows(List<FeatureListRow> selectedRows) {
     this.selectedRows.set(selectedRows);
+  }
+
+  public @Nullable CompoundRowSelection getCompoundRowSelection() {
+    return compoundRowSelection.get();
+  }
+
+  public ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelectionProperty() {
+    return compoundRowSelection;
   }
 }
 

@@ -41,6 +41,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.UnivariateRowSignificanceTest;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
@@ -72,7 +73,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
    * Set if the plot cannot be computed or is incomplete. Reported to the user in
    * {@link #updateGuiModel()}
    */
-  private @Nullable String statusMessage;
+  private @Nullable String userWarning;
 
   VolcanoPlotUpdateTask(VolcanoPlotModel model) {
     super("volcanoplot_update", model);
@@ -96,7 +97,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     // clear the plot and explain why, otherwise an empty chart is indistinguishable from a failure
     FxThread.runLater(() -> {
       model.setDatasets(List.of());
-      model.setStatusMessage(
+      model.setUserWarning(
           "Select a feature list, a metadata column, and two groups to compute a volcano plot.");
     });
   }
@@ -108,27 +109,18 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
 
     // creating the test resolves the metadata groups and splits the data table - may fail
-    final RowSignificanceTest test;
-    try {
-      test = testConfig.toValidConfig(dataTable);
-    } catch (Exception ex) {
-      logger.log(Level.WARNING, "Cannot compute volcano plot: " + ex.getMessage(), ex);
-      statusMessage = "Cannot compute volcano plot: " + ex.getMessage();
-      return;
-    }
+    final RowSignificanceTest test = createTest();
     if (test == null) {
-      statusMessage = """
-          Cannot compute volcano plot. Metadata column "%s" with groups "%s" and "%s" is not a valid selection. See the log for details.""".formatted(
-          testConfig.column(), testConfig.groupA(), testConfig.groupB());
       return;
     }
     if (!(test instanceof UnivariateRowSignificanceTest<?> ttest)) {
-      statusMessage = "The volcano plot requires a univariate significance test.";
+      userWarning = "The volcano plot requires a univariate significance test.";
       return;
     }
 
-    // use the rows of the data table, not of the feature list. The test operates on subsets of this
-    // table, so only these rows are guaranteed to resolve to an abundance index.
+    // decision: iterate the prepared data table rather than the source feature list so the
+    // CompoundRowSelection filtering applied in VolcanoPlotController.prepareDataTable is respected.
+    // The test operates on subsets of this table, so only these rows resolve to an abundance index.
     final List<FeatureListRow> rows = dataTable.getFeatureListRows();
     List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>(rows.size());
     for (final FeatureListRow row : rows) {
@@ -185,10 +177,37 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
 
     if (missingPValues > 0) {
-      statusMessage = """
+      userWarning = """
           %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups - try a different missing value imputation.""".formatted(
           missingPValues, rows.size());
     }
+  }
+
+  /**
+   * Creates the significance test and translates any failure into a message for the user.
+   *
+   * @return the test or null if it cannot be created, then {@link #userWarning} explains why
+   */
+  private @Nullable RowSignificanceTest createTest() {
+    try {
+      final RowSignificanceTest test = testConfig.toValidConfig(dataTable);
+      if (test == null) {
+        // toValidConfig only logs the actual reason
+        userWarning = """
+            Cannot compute volcano plot. Metadata column "%s" with groups "%s" and "%s" is not a valid selection. See the log for details.""".formatted(
+            testConfig.column(), testConfig.groupA(), testConfig.groupB());
+      }
+      return test;
+    } catch (MetadataValueDoesNotExistException e) {
+      userWarning = "Metadata value does not exist for feature list raw data files.";
+    } catch (IllegalArgumentException e) {
+      userWarning = e.getMessage();
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Volcano plot update error: " + e.getMessage(), e);
+      userWarning = "Cannot compute volcano plot: " + e.getMessage();
+    }
+    logger.finer(userWarning);
+    return null;
   }
 
   @Override
@@ -199,7 +218,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
     // process may have aborted with a reason, then temporaryDatasets is null and the plot is cleared
     model.setDatasets(temporaryDatasets != null ? temporaryDatasets : List.of());
-    model.setStatusMessage(statusMessage);
+    model.setUserWarning(userWarning);
   }
 
   @Override

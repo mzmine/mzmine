@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
@@ -260,8 +261,8 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
         .getValue();
 
-    return new CSVExportModularTask(featureLists, full, ",", ";", filter, true,
-        getModuleCallDate());
+    return new CSVExportModularTask(featureLists, full, ",", ";", filter, true, getModuleCallDate(),
+        CompoundRowSelection.ALL_FEATURE_ROWS);
   }
 
 
@@ -281,7 +282,6 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         LegacyExportRowCommonElement.ROW_ION_MOBILITY,
         LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT, LegacyExportRowCommonElement.ROW_CCS,
         // extra for ion identity networking
-        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
         LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
         LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
         LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
@@ -294,7 +294,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
     return new LegacyCSVExportTask(featureLists, full, ",", common, rawdata, false, ";", filter,
-        getModuleCallDate());
+        getModuleCallDate(), CompoundRowSelection.ALL_FEATURE_ROWS);
   }
 
 

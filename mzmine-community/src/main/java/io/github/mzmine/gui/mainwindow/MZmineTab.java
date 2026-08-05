@@ -164,6 +164,10 @@ public abstract class MZmineTab extends Tab {
     subTitleText.setText(subTitle);
   }
 
+  public StringProperty titleProperty() {
+    return titleText.textProperty();
+  }
+
   public StringProperty subTitleProperty() {
     return subTitleText.textProperty();
   }

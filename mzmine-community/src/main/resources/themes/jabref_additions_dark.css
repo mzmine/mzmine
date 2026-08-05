@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -105,4 +104,24 @@ Text, Text:hover {
 }
 .icon-button:hover .ikonli-font-icon {
     -fx-icon-color: -jr-selected;
+}
+
+/* === Lipid QC quality pane === */
+.quality-warning {
+  -fx-background-color: transparent;
+  -fx-border-color: -error-text-color;
+  -fx-padding: 6;
+}
+
+.quality-card {
+  -fx-background-color: transparent;
+  -fx-border-color: #5b5b5b;
+  -fx-padding: 8;
+}
+
+.metric-bar-track {
+  -fx-background-color: rgba(255, 255, 255, 0.14);
+  -fx-border-color: #5b5b5b;
+  -fx-background-radius: 3;
+  -fx-border-radius: 3;
 }

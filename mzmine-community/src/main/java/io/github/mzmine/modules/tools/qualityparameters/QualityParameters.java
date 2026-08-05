@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
@@ -441,5 +442,74 @@ public class QualityParameters {
       final double nPoints) {
     final int changes = getSignChanges(startIndex, endIndexExclusive, y);
     return (double) changes / ((endIndexExclusive - startIndex) / (double) nPoints);
+  }
+
+  public static float calculateFWHM(SummedIntensityMobilitySeries series) {
+    if (series == null) {
+      return Float.NaN;
+    }
+
+    if (series.getNumberOfValues() < 3) {
+      return Float.NaN;
+    }
+
+    // Extract intensity and mobility values
+    double[] intensities = DataPointUtils.getDoubleBufferAsArray(series.getIntensityValueBuffer());
+    double[] mobilities = DataPointUtils.getDoubleBufferAsArray(series.getMobilityValues());
+
+    if (intensities.length < 3 || mobilities.length < 3) {
+      return Float.NaN;
+    }
+
+    // Find the peak maximum
+    double maxIntensity = 0;
+    int maxIndex = 0;
+    for (int i = 0; i < intensities.length; i++) {
+      if (intensities[i] > maxIntensity) {
+        maxIntensity = intensities[i];
+        maxIndex = i;
+      }
+    }
+
+    double halfMaxIntensity = maxIntensity / 2.0;
+    double peakMobility = mobilities[maxIndex];
+
+    // Find mobility values at half maximum intensity
+    double mob1 = mobilities[0];
+    double mob2 = mobilities[mobilities.length - 1];
+
+    double lastDiff1 = halfMaxIntensity;
+    double lastDiff2 = halfMaxIntensity;
+
+    // Find left side (before peak)
+    for (int i = 0; i < maxIndex - 1; i++) {
+      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
+      if (currentDiff < lastDiff1 && mobilities[i] <= peakMobility) {
+        // Linear interpolation between i and i+1
+        double slope = (intensities[i + 1] - intensities[i]) / (mobilities[i + 1] - mobilities[i]);
+        double intercept = intensities[i] - (slope * mobilities[i]);
+        mob1 = (halfMaxIntensity - intercept) / slope;
+        lastDiff1 = currentDiff;
+      }
+    }
+
+    // Find right side (after peak)
+    for (int i = maxIndex + 1; i < intensities.length - 1; i++) {
+      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
+      if (currentDiff < lastDiff2 && mobilities[i] >= peakMobility) {
+        // Linear interpolation between i-1 and i
+        double slope = (intensities[i] - intensities[i - 1]) / (mobilities[i] - mobilities[i - 1]);
+        double intercept = intensities[i - 1] - (slope * mobilities[i - 1]);
+        mob2 = (halfMaxIntensity - intercept) / slope;
+        lastDiff2 = currentDiff;
+      }
+    }
+
+    double fwhm = mob2 - mob1;
+    if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
+      return Float.NaN;
+    }
+
+    return (float) fwhm;
   }
 }

@@ -137,4 +137,22 @@ public class StageWindowSettingsUtil {
         .anyMatch(screen -> screen.getBounds().contains(stagePosition));
   }
 
+  /**
+   * @return the next best screen different from screen
+   */
+  @NotNull
+  public static Screen nextBestScreen(@NotNull Screen screen) {
+    final Screen primary = Screen.getPrimary();
+    if (!Objects.equals(primary, screen)) {
+      return primary;
+    }
+
+    final ObservableList<Screen> screens = Screen.getScreens();
+    for (Screen other : screens) {
+      if (!screen.equals(other) && other.getBounds().getWidth() > 400) {
+        return other;
+      }
+    }
+    return screen;
+  }
 }

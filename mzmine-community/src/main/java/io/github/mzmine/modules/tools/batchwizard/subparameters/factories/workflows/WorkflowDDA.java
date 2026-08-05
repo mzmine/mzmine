@@ -33,7 +33,7 @@ public class WorkflowDDA extends WorkflowWizardParameterFactory {
 
   @Override
   public WizardStepParameters create() {
-    return new WorkflowDdaWizardParameters(true, true, null, true, true, false);
+    return new WorkflowDdaWizardParameters(true, false, true, null, true, true, false);
   }
 
   @Override

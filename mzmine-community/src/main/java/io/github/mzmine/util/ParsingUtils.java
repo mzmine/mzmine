@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.foreign.MemorySegment;
@@ -506,11 +505,6 @@ public class ParsingUtils {
     return true;
   }
 
-  public static IonType parseIon(String str) {
-    Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
-    return null;
-  }
-
   /**
    * @param number A number or null
    * @return The string representation of the given number. ({@link CONST#XML_NULL_VALUE} for null).
@@ -539,6 +533,26 @@ public class ParsingUtils {
 
     try {
       return Double.valueOf(str.trim());
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to an integer. If the string is equal to {@link CONST#XML_NULL_VALUE}, null
+   * is returned.
+   *
+   * @param str The string.
+   * @return The Integer.
+   */
+  @Nullable
+  public static Integer stringToInteger(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Integer.parseInt(str);
     } catch (NumberFormatException e) {
       return null;
     }
