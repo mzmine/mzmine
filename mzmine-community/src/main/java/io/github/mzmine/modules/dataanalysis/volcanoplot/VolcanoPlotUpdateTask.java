@@ -177,9 +177,10 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     }
 
     if (missingPValues > 0) {
-      userWarning = """
+      final String msg = """
           %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups - try a different missing value imputation.""".formatted(
           missingPValues, rows.size());
+      logger.fine(msg);
     }
   }
 
