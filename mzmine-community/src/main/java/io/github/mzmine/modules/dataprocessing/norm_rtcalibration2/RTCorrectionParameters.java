@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,15 +32,14 @@ import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRt
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -69,12 +69,16 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       "Minimum height of a feature to be selected as standard for RT correction",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+  // defaults to "all sample types" instead of listing every known type, so that a batch does not
+  // silently exclude custom or newly added sample types
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      """, SampleType.values(), List.of(SampleType.values()));
+      Any custom group name of the mzmine_sample_type column can be selected, not just the
+      predefined types.
+      """, SampleTypeFilter.all());
 
   public static final ComboParameter<RTMeasure> rtMeasure = new ComboParameter<>(
       "RT standard calculation",
@@ -109,7 +113,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
         errorMessages.add(createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
       }
 
-      var sampleTypeFilter = new SampleTypeFilter(getValue(RTCorrectionParameters.sampleTypes));
+      var sampleTypeFilter = getValue(RTCorrectionParameters.sampleTypes);
       final List<FeatureList> referenceFlists = flists.stream()
           .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
           .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
