@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
@@ -54,8 +56,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -64,7 +68,9 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -75,6 +81,7 @@ import org.jfree.data.xy.XYDataset;
 public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
+  private static final double WARNING_LABEL_MAX_WIDTH = 600;
 
   private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
   private final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
@@ -96,7 +103,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     // add the chart after the building the controls pane, bc the region wrapper automatically puts the
     // chart into it's center. to avoid the chart not showing up, set it to the plot pane afterward
-    mainPane.setCenter(chart);
+    mainPane.setCenter(createChartPane());
     mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
@@ -132,6 +139,38 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     addChartValueListener();
     initializeExternalSelectedRowListener();
     return mainPane;
+  }
+
+  /**
+   * The chart with a warning that explains why the plot is empty or incomplete. Without it, a failed
+   * computation is indistinguishable from a chart that was simply not computed yet. If there is
+   * nothing to plot at all, the warning replaces the chart instead of overlaying it.
+   */
+  private @NotNull Region createChartPane() {
+    final BooleanBinding hasWarning = model.userWarningProperty().isNotEmpty();
+    final BooleanBinding hasData = Bindings.createBooleanBinding(() -> {
+      final var datasets = model.getDatasets();
+      return datasets != null && !datasets.isEmpty();
+    }, model.datasetsProperty());
+
+    final Label warningLabel = FxLabels.newBoldLabel(model.userWarningProperty());
+    warningLabel.setWrapText(true);
+    warningLabel.setMouseTransparent(true);
+    warningLabel.setTextAlignment(TextAlignment.CENTER);
+    warningLabel.setMaxWidth(WARNING_LABEL_MAX_WIDTH);
+    StackPane.setMargin(warningLabel, new Insets(FxLayout.DEFAULT_SPACE));
+    warningLabel.visibleProperty().bind(hasWarning);
+    warningLabel.managedProperty().bind(hasWarning);
+
+    // no data to plot: show the warning in place of the chart. partial data: overlay it on top
+    chart.visibleProperty().bind(hasData);
+    chart.managedProperty().bind(hasData);
+    final StackPane pane = new StackPane(chart, warningLabel);
+    hasData.addListener((_, _, dataShown) -> StackPane.setAlignment(warningLabel,
+        dataShown ? Pos.TOP_CENTER : Pos.CENTER));
+    StackPane.setAlignment(warningLabel, hasData.get() ? Pos.TOP_CENTER : Pos.CENTER);
+
+    return pane;
   }
 
   private @NotNull Accordion createControlsAccordion() {
