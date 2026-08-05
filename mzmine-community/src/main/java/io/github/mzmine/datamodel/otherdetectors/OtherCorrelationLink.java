@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,41 +25,22 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.RawDataFile;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-public enum MsOtherCorrelationType implements UniqueIdSupplier {
-  /**
-   * The correlation was set manually in the dashboard.
-   */
-  MANUAL,
-  /**
-   * The correlation was calculated (Pearson score above threshold).
-   */
-  CALCULATED,
-  /**
-   * The other-detector trace is aligned into this raw file, but the file's MS feature did not
-   * correlate to it (below threshold, no RT overlap, or no MS feature). This is a derived status: it
-   * is never stored, only computed at render time for files that lack a real correlation entry.
-   */
-  ALIGNED;
+/**
+ * A link from one MS feature row to one aligned other-detector row ({@link OtherFeatureListRow}),
+ * identified by the other-row ID only (no embedded feature). The per-file map records, for each
+ * {@link RawDataFile} where the MS feature actually correlated to that file's peak of the aligned
+ * other-row, the correlation details ({@link PerFileCorrelation}). A file absent from the map did not
+ * correlate.
+ *
+ * @param otherRowId the {@link OtherFeatureListRow#getID()} of the correlated aligned other-row
+ * @param perFile    per-file correlation truth; resolve the actual other feature via
+ *                   {@code otherRow.getFeature(file)}
+ */
+public record OtherCorrelationLink(int otherRowId,
+                                   @NotNull Map<RawDataFile, PerFileCorrelation> perFile) {
 
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case MANUAL -> "Manual";
-      case CALCULATED -> "Calculated";
-      case ALIGNED -> "Aligned";
-    };
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MANUAL -> "MANUAL";
-      case CALCULATED -> "CALCULATED";
-      case ALIGNED -> "ALIGNED";
-    };
-  }
 }

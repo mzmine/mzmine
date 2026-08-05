@@ -100,6 +100,23 @@ public class CONST {
   public static final String XML_OTHER_TIME_SERIES_NAME_ATTR = "otherdata_timeseriesname";
 
   /**
+   * Aligned other-detector features + MS-to-other correlation maps (persisted in a per-feature-list
+   * side-car file, see {@code FeatureListSaveTask#OTHER_DETECTOR_FILE_SUFFIX}).
+   */
+  public static final String XML_OTHER_DETECTOR_DATA_ELEMENT = "other_detector_data";
+  public static final String XML_ALIGNED_OTHER_FEATURES_ELEMENT = "aligned_other_features";
+  public static final String XML_OTHER_ROW_ELEMENT = "otherrow";
+  public static final String XML_OTHER_UUID_ATTR = "uuid";
+  public static final String XML_MS_OTHER_CORRELATION_MAPS_ELEMENT = "ms_other_correlation_maps";
+  public static final String XML_MS_OTHER_CORRELATION_ELEMENT = "ms_other_correlation";
+  public static final String XML_OTHER_CORRELATION_LINK_ELEMENT = "other_correlation_link";
+  public static final String XML_PER_FILE_CORRELATION_ELEMENT = "per_file_correlation";
+  public static final String XML_MS_ROW_ID_ATTR = "msrow";
+  public static final String XML_OTHER_ROW_ID_ATTR = "otherrow";
+  public static final String XML_CORRELATION_ORIGIN_ATTR = "origin";
+  public static final String XML_CORRELATION_PEARSON_ATTR = "pearson";
+
+  /**
    *
    */
   public static final String XML_VERSION_ATTR = "version";

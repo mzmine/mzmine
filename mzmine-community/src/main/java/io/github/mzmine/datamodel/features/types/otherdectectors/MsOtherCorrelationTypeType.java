@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,43 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.datamodel.features.types.abstr.EnumDataType;
+import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
 import org.jetbrains.annotations.NotNull;
 
-public enum MsOtherCorrelationType implements UniqueIdSupplier {
-  /**
-   * The correlation was set manually in the dashboard.
-   */
-  MANUAL,
-  /**
-   * The correlation was calculated (Pearson score above threshold).
-   */
-  CALCULATED,
-  /**
-   * The other-detector trace is aligned into this raw file, but the file's MS feature did not
-   * correlate to it (below threshold, no RT overlap, or no MS feature). This is a derived status: it
-   * is never stored, only computed at render time for files that lack a real correlation entry.
-   */
-  ALIGNED;
-
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case MANUAL -> "Manual";
-      case CALCULATED -> "Calculated";
-      case ALIGNED -> "Aligned";
-    };
-  }
+/**
+ * DataType for the {@link MsOtherCorrelationType} (manual vs calculated) of an MS-to-other-detector
+ * correlation. Displayed as a sub-column of the feature-level {@link CorrelatedOtherFeatureType}.
+ */
+public class MsOtherCorrelationTypeType extends EnumDataType<MsOtherCorrelationType> {
 
   @Override
   public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MANUAL -> "MANUAL";
-      case CALCULATED -> "CALCULATED";
-      case ALIGNED -> "ALIGNED";
-    };
+    return "ms_other_correlation_type";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Correlation type";
+  }
+
+  @Override
+  public Class<MsOtherCorrelationType> getValueClass() {
+    return MsOtherCorrelationType.class;
   }
 }
