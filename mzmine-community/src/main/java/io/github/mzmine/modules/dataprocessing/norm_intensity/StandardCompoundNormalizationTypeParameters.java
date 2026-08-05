@@ -164,7 +164,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
     final Parameter<?> oldRequireAllParam = loadedParams.get(legacyRequireAllStandards.getName());
-    if (oldRequireAllParam != null) {
+    if (oldRequireAllParam != null && !loadedParams.containsKey(mode.getName())) {
       // old parameter set: true was "all standards in all samples", false only required one standard
       setParameter(mode, oldRequireAllParam.getValue() == Boolean.FALSE
           ? StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE

@@ -393,6 +393,9 @@ class StandardCompoundNormalizationTypeModuleTest {
   @Test
   void loadValuesFromXmlPrefersNewModeOverLegacyParameter() throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
+    // set something else to see that its actually loaded
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mode,
+        StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES);
     parameters.loadValuesFromXML(createParametersElement("true",
         StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD.getUniqueID()));
 
