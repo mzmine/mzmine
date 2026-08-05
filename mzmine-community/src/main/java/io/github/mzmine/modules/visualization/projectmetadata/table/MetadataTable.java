@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
@@ -148,6 +149,11 @@ public class MetadataTable {
     }
   }
 
+  /**
+   * Writes the default sample type guessed from the file name. The user may overwrite it with any
+   * group name afterwards - from then on the column value is authoritative, see
+   * {@link SampleTypeFilter}.
+   */
   private void assignSampleType(RawDataFile newFile) {
     final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
@@ -475,15 +481,32 @@ public class MetadataTable {
   }
 
   /**
-   * @param sampleType a sample type to filter for
-   * @return list of raw data files that match type in type column
+   * @param sampleType a predefined sample type to filter for
+   * @return list of raw data files that match the type in the sample type column, matched ignoring
+   * case and surrounding whitespace
    */
   public List<RawDataFile> getFilesOfSampleType(final SampleType sampleType) {
-    var sampleTypeColumn = getSampleTypeColumn();
+    return getFilesOfSampleType(sampleType.toString());
+  }
+
+  /**
+   * @param sampleType a sample type value, either a predefined {@link SampleType} or a custom group
+   *                   name the user defined in the metadata
+   * @return list of raw data files that match the value in the sample type column, matched ignoring
+   * case and surrounding whitespace. Empty list if nothing matches.
+   */
+  public List<RawDataFile> getFilesOfSampleType(final String sampleType) {
+    final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     if (sampleTypeColumn == null) {
       return List.of();
     }
-    return getMatchingFiles(sampleTypeColumn, sampleType.toString());
+    final SampleTypeFilter filter = SampleTypeFilter.ofValues(sampleType);
+    final Map<RawDataFile, Object> columnData = getColumnData(sampleTypeColumn);
+    if (columnData == null) {
+      return List.of();
+    }
+    return columnData.entrySet().stream().filter(e -> filter.matchesValue(e.getValue()))
+        .map(Entry::getKey).toList();
   }
 
   public StringMetadataColumn createDataFileColumn() {

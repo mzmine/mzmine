@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,8 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 public class TotalRawSignalNormalizationTypeParameters extends SimpleParameterSet {
 
   // needs to have the same name in all modules so that each instance can extract with the same name
-  public static final CheckComboParameter<SampleType> sampleTypes = FeatureIntensityNormalizationParameters.sampleTypes.cloneParameter();
+  public static final SampleTypeFilterParameter sampleTypes = FeatureIntensityNormalizationParameters.sampleTypes.cloneParameter();
 
   public TotalRawSignalNormalizationTypeParameters() {
     super(sampleTypes);
@@ -44,6 +46,11 @@ public class TotalRawSignalNormalizationTypeParameters extends SimpleParameterSe
 
   public static @NotNull TotalRawSignalNormalizationTypeParameters create(
       final @NotNull List<SampleType> selectedSampleTypes) {
+    return create(SampleTypeFilter.of(selectedSampleTypes));
+  }
+
+  public static @NotNull TotalRawSignalNormalizationTypeParameters create(
+      final @NotNull SampleTypeFilter selectedSampleTypes) {
     final TotalRawSignalNormalizationTypeParameters parameters = (TotalRawSignalNormalizationTypeParameters) new TotalRawSignalNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(TotalRawSignalNormalizationTypeParameters.sampleTypes, selectedSampleTypes);
     return parameters;
