@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -162,7 +163,8 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
       final var param = AllSpectralDataImportParameters.create(
           ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
-          metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
+          metadataFile.active() ? metadataFile.value() : null, extractMetadataParams, libraries,
+          advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(
           MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
