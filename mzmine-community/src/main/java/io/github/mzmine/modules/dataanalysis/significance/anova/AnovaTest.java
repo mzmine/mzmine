@@ -34,8 +34,10 @@ import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoes
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.math3.stat.inference.TestUtils;
 
 public class AnovaTest implements RowSignificanceTest {
@@ -52,15 +54,36 @@ public class AnovaTest implements RowSignificanceTest {
 
     final MetadataTable metadata = ProjectService.getMetadata();
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
+
+    // the metadata groups all files of the project, but the data table only contains the samples of
+    // the selected feature list. only keep the samples that are actually in the data table. use the
+    // table order because the metadata grouping has no stable order.
+    final List<RawDataFile> tableSamples = dataTable.getRawDataFiles();
+    final List<List<RawDataFile>> groups = new ArrayList<>();
+
     // can check conditions here that all groups have at least two values because we impute missing values
     for (var group : fileGrouping.entrySet()) {
-      if (group.getValue().size() < 2) {
-        throw new IllegalArgumentException(
-            "Group %s has less than two samples which is a requirement for ANOVA.".formatted(
-                group.getKey()));
+      final Set<RawDataFile> groupSamples = Set.copyOf(group.getValue());
+      final List<RawDataFile> inTable = tableSamples.stream().filter(groupSamples::contains)
+          .toList();
+      if (inTable.isEmpty()) {
+        // group is not represented in this feature list at all
+        continue;
       }
+      if (inTable.size() < 2) {
+        throw new IllegalArgumentException(
+            "Group %s has less than two samples in the selected feature list (n=%d of %d samples in the metadata) which is a requirement for ANOVA.".formatted(
+                group.getKey(), inTable.size(), group.getValue().size()));
+      }
+      groups.add(inTable);
     }
-    groupedFiles = fileGrouping.values().stream().toList();
+
+    if (groups.size() < 2) {
+      throw new IllegalArgumentException(
+          "Column %s defines only %d group(s) with at least two samples in the selected feature list. ANOVA requires at least two groups.".formatted(
+              groupingColumn.getTitle(), groups.size()));
+    }
+    groupedFiles = List.copyOf(groups);
   }
 
   @Override

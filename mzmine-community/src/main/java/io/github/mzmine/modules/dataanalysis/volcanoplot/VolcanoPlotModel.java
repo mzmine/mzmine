@@ -38,6 +38,8 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotModel {
@@ -56,6 +58,11 @@ public class VolcanoPlotModel {
   private final ObjectProperty<@Nullable UnivariateRowSignificanceTestConfig> test = new SimpleObjectProperty<>();
 
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
+
+  /**
+   * Explains why the plot is empty or incomplete. Empty string if there is nothing to report.
+   */
+  private final StringProperty statusMessage = new SimpleStringProperty("");
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
 
@@ -141,6 +148,18 @@ public class VolcanoPlotModel {
 
   public void setpValue(double pValue) {
     this.pValue.set(pValue);
+  }
+
+  public String getStatusMessage() {
+    return statusMessage.get();
+  }
+
+  public void setStatusMessage(@Nullable String message) {
+    this.statusMessage.set(message == null ? "" : message);
+  }
+
+  public StringProperty statusMessageProperty() {
+    return statusMessage;
   }
 
   public List<FeatureListRow> getSelectedRows() {

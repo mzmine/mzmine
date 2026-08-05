@@ -29,12 +29,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.UnivariateRowSignificanceTestResult;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,19 +51,38 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
 
   public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
       @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
-    List<RawDataFile> groupedFilesA = ProjectService.getMetadata().getMatchingFiles(column, groupA);
-    List<RawDataFile> groupedFilesB = ProjectService.getMetadata().getMatchingFiles(column, groupB);
+    // the metadata matches all files of the project, but the data table only contains the samples
+    // of the selected feature list. only keep the samples that are actually in the data table.
+    List<RawDataFile> metadataFilesA = ProjectService.getMetadata()
+        .getMatchingFiles(column, groupA);
+    List<RawDataFile> metadataFilesB = ProjectService.getMetadata()
+        .getMatchingFiles(column, groupB);
+
+    List<RawDataFile> groupedFilesA = retainTableSamples(dataTable, metadataFilesA);
+    List<RawDataFile> groupedFilesB = retainTableSamples(dataTable, metadataFilesB);
 
     if (groupedFilesA.size() < 2 || groupedFilesB.size() < 2) {
       throw new IllegalArgumentException("""
-          Not enough matching files for group, at least two samples required but column %s had %s n=%d and %s n=%d samples.""".formatted(
-          column.getTitle(), groupA, groupedFilesA.size(), groupB, groupedFilesB.size()));
+          Not enough samples for group, at least two samples required per group. Column %s had %s n=%d and %s n=%d samples in the metadata, of which n=%d and n=%d are present in the selected feature list (of %d samples).""".formatted(
+          column.getTitle(), groupA, metadataFilesA.size(), groupB, metadataFilesB.size(),
+          groupedFilesA.size(), groupedFilesB.size(), dataTable.getNumberOfSamples()));
     }
 
     // split table into the two groups
     var groupAData = dataTable.subsetBySamples(groupedFilesA);
     var groupBData = dataTable.subsetBySamples(groupedFilesB);
     this(groupAData, groupBData, test, column, groupA, groupB);
+  }
+
+  /**
+   * @return the subset of group files that are samples of the data table, in the sample order of the
+   * data table. The metadata grouping has no stable order, so use the table order to keep results
+   * reproducible.
+   */
+  private static List<RawDataFile> retainTableSamples(@NotNull FeaturesDataTable dataTable,
+      @NotNull List<RawDataFile> group) {
+    final Set<RawDataFile> groupSamples = Set.copyOf(group);
+    return dataTable.getRawDataFiles().stream().filter(groupSamples::contains).toList();
   }
 
   public FeaturesDataTable getGroupAData() {
@@ -111,7 +130,8 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
     } catch (Exception e) {
       // this should not happen after imputing missing values and providing a p value for every input
       throw new IllegalStateException(
-          "Reached ANOVA error which should not happen after missing value imputation");
+          "Error while computing significance test for row " + row.getID() + ": " + e.getMessage(),
+          e);
     }
   }
 
@@ -131,14 +151,20 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
     return groupB;
   }
 
+  /**
+   * @return the samples of group A that are actually used by this test, i.e., limited to the samples
+   * of the underlying data table
+   */
   public List<RawDataFile> getGroupAFiles() {
-    final MetadataTable metadata = ProjectService.getMetadata();
-    return metadata.getMatchingFiles(column(), groupA());
+    return groupAData.getRawDataFiles();
   }
 
+  /**
+   * @return the samples of group B that are actually used by this test, i.e., limited to the samples
+   * of the underlying data table
+   */
   public List<RawDataFile> getGroupBFiles() {
-    final MetadataTable metadata = ProjectService.getMetadata();
-    return metadata.getMatchingFiles(column(), groupB());
+    return groupBData.getRawDataFiles();
   }
 
   @Override
