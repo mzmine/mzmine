@@ -708,11 +708,13 @@ public class FeatureListUtils {
    */
   public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
     List<RawDataFile> allDataFiles = new ArrayList<>();
+    // set lookup: a linear contains check is O(files^2) when aligning many samples
+    Set<RawDataFile> seen = new HashSet<>();
     for (FeatureList featureList : flists) {
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
         // Each data file can only have one column in aligned feature
         // list
-        if (allDataFiles.contains(dataFile)) {
+        if (!seen.add(dataFile)) {
           throw new IllegalArgumentException(
               "File " + dataFile + " is present in multiple feature lists");
         }
