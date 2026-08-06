@@ -50,6 +50,7 @@ import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -88,9 +89,15 @@ public class MatchedLipid implements FeatureAnnotation {
   /**
    * Pattern is calculated for ion so cannot be saved in {@link ILipidAnnotation}
    */
-  private final Supplier<IsotopePattern> pattern = LazyConstant.of(
-      () -> IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
+  private final Supplier<Optional<IsotopePattern>> pattern = LazyConstant.of(() -> {
+    // catch exceptions otherwise the LazyConstant may retry on next call
+    try {
+      return Optional.ofNullable(IsotopePatternCalculator.calculateFeatureAnnotationIsotopePattern(
           getLipidAnnotation().getMolecularFormula(), getAdductType()));
+    } catch (Throwable e) {
+      return Optional.empty();
+    }
+  });
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
@@ -425,7 +432,7 @@ public class MatchedLipid implements FeatureAnnotation {
 
   @Override
   public @Nullable IsotopePattern getIsotopePattern() {
-    return pattern.get();
+    return pattern.get().orElse(null);
   }
 
   @Override
