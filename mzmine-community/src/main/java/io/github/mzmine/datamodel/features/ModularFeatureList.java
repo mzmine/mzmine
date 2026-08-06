@@ -65,7 +65,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -497,7 +496,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public ModularFeature getFeature(int row, RawDataFile raw) {
-    return ((ModularFeatureListRow) featureListRows.get(row)).getFilesFeatures().get(raw);
+    return ((ModularFeatureListRow) featureListRows.get(row)).getFeature(raw);
   }
 
   /**
@@ -530,28 +529,30 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setRowsApplySort(FeatureListRow... rows) {
-    Set<RawDataFile> fileSet = new HashSet<>();
+    // a row reports the files of its own feature list, so rows of this list never need validation.
     for (FeatureListRow row : rows) {
-      if (!(row instanceof ModularFeatureListRow)) {
-        throw new IllegalArgumentException(
-            "Can not add non-modular feature list row to modular feature list");
-      }
-      fileSet.addAll(row.getRawDataFiles());
+      requireRowAssertions(row);
     }
 
-    // check that all files are represented
-    final List<RawDataFile> rawFiles = getRawDataFiles();
-    for (var raw : fileSet) {
-      if (!rawFiles.contains(raw)) {
-        throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
-      }
-    }
-//    logger.log(Level.FINEST, "SET ALL ROWS");
     featureListRows.setAll(rows);
     applyRowBindings();
 
     // sorting
     applyDefaultRowsSorting();
+  }
+
+  /// Checks that this row is actually member of this {@link FeatureList} and is of type
+  /// {@link ModularFeatureListRow}
+  private void requireRowAssertions(FeatureListRow row) {
+    if (row.getFeatureList() != this) {
+      throw new IllegalArgumentException(
+          "Row %d is not member of this feature list (%s) but belongs to feature list (%s)".formatted(
+              row.getID(), this.getName(), row.getFeatureList().getName()));
+    }
+    if (!(row instanceof ModularFeatureListRow)) {
+      throw new IllegalArgumentException(
+          "Can not add non-modular feature list row to modular feature list");
+    }
   }
 
   @Override
@@ -583,21 +584,9 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void addRow(FeatureListRow row) {
-    if (!(row instanceof ModularFeatureListRow modularRow)) {
-      throw new IllegalArgumentException(
-          "Can not add non-modular feature list row to modular feature list");
-    }
-
-    List<RawDataFile> myFiles = this.getRawDataFiles();
-    for (RawDataFile testFile : modularRow.getRawDataFiles()) {
-      if (!myFiles.contains(testFile)) {
-        throw (new IllegalArgumentException(
-            "Data file " + testFile + " is not in this feature list"));
-      }
-    }
-    //    logger.finest("ADD ROW");
-    featureListRows.add(modularRow);
-    applyRowBindings(modularRow);
+    requireRowAssertions(row);
+    featureListRows.add(row);
+    applyRowBindings(row);
   }
 
   /**
