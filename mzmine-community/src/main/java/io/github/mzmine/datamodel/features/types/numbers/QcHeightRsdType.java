@@ -25,13 +25,19 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.QcRsdRowBinding;
+import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class NormalizedAreaType extends AreaType {
+/**
+ * Relative standard deviation (RSD, coefficient of variation) of the {@link HeightType} across all
+ * quality control samples of a feature list. Calculated by {@link QcRsdRowBinding}, which is
+ * created by {@link HeightType#createDefaultRowBindings()}.
+ */
+public class QcHeightRsdType extends PercentType implements MinSamplesRequirement {
 
-  public static final String UNIQUE_ID = "area_norm";
+  public static final String UNIQUE_ID = "qc_height_rsd";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -40,11 +46,11 @@ public class NormalizedAreaType extends AreaType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Norm. area";
+    return "QC RSD (height)";
   }
 
   @Override
-  protected @NotNull DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcNormalizedAreaRsdType.class);
+  public boolean getDefaultVisibility() {
+    return false;
   }
 }
