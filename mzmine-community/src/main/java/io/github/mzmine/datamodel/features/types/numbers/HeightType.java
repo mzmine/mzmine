@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,11 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.QcRsdRowBinding;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.javafx.components.factories.TableColumns;
@@ -80,7 +83,16 @@ public class HeightType extends FloatType {
   @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, BindingsType.MAX));
+    return List.of(new SimpleRowBinding(this, BindingsType.MAX),
+        new QcRsdRowBinding(getQcRsdType(), this));
+  }
+
+  /**
+   * @return the row type that holds the RSD of this area type over all QC samples
+   */
+  @NotNull
+  protected DataType<Float> getQcRsdType() {
+    return DataTypes.get(QcHeightRsdType.class);
   }
 
   @Override

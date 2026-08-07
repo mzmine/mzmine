@@ -25,13 +25,17 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.QcRsdRowBinding;
 import org.jetbrains.annotations.NotNull;
 
-public class NormalizedAreaType extends AreaType {
+/**
+ * Relative standard deviation (RSD, coefficient of variation) of the {@link NormalizedHeightType}
+ * across all quality control samples of a feature list. Calculated by {@link QcRsdRowBinding},
+ * which is created by {@link NormalizedHeightType#createDefaultRowBindings()}.
+ */
+public class QcNormalizedHeightRsdType extends QcHeightRsdType {
 
-  public static final String UNIQUE_ID = "area_norm";
+  public static final String UNIQUE_ID = "qc_height_norm_rsd";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -40,11 +44,6 @@ public class NormalizedAreaType extends AreaType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Norm. area";
-  }
-
-  @Override
-  protected @NotNull DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcNormalizedAreaRsdType.class);
+    return "QC RSD (norm. height)";
   }
 }

@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -54,6 +55,10 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.QcAreaRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.QcHeightRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.QcNormalizedAreaRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.QcNormalizedHeightRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -79,7 +84,9 @@ public class DataTypeUtils {
       // needed next to each other for switching between RTType and RTRangeType
       RTType.class, RTRangeType.class, //
       MZType.class, MZRangeType.class, //
-      HeightType.class, AreaType.class,
+      HeightType.class, AreaType.class, //
+      QcHeightRsdType.class, QcNormalizedHeightRsdType.class, //
+      QcAreaRsdType.class, QcNormalizedAreaRsdType.class, //
       // added CommentType as default in 4.8 to transition away from ManualAnnotationType
       CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class);
 
