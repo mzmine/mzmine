@@ -56,7 +56,7 @@ public class SmallDomBatchSpeedTestMain {
 
     String batchFile = "rawdatafiles/test_batch_small.xml";
 
-    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 3, batchFile, samples));
+    List<BatchSpeedJob> jobs = List.of(new BatchSpeedJob(description, 1, 3, batchFile, samples));
 
     BatchSpeedTestMain.startAndRunTests(speedTestFile, headLess, inMemory, jobs, false);
   }

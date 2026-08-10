@@ -316,6 +316,48 @@ application {
     ]
 }
 
+/*
+ * Batch speed benchmark, see import_data.speed.BatchSpeedTestMain. Run this instead of starting the
+ * main from the IDE when comparing branches: the heap is fixed here, so every branch is measured with
+ * the same memory. The mzmine preferences (threads, GC after batch step) are not changed, they are
+ * only documented in the results.
+ *
+ * gradlew batchSpeedTest -Pspeed.description=my-branch -Pspeed.batch=D:\some.mzbatch -Pspeed.out=D:\speed
+ * gradlew batchSpeedReport -Pspeed.in=D:\speed.jsonlines
+ *
+ * The properties are prefixed because plain names like 'description' collide with built in gradle
+ * project properties.
+ */
+def speedTestProperties = ['out', 'description', 'batch', 'iterations', 'warmups', 'inMemory',
+                           'headless', 'importOnce', 'trackMemory']
+
+tasks.register('batchSpeedTest', JavaExec) {
+    group = 'benchmark'
+    description = 'Runs the batch speed test with a fixed 32 GB heap. See BatchSpeedTestMain.'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass.set('import_data.speed.BatchSpeedTestMain')
+    // fixed min = max heap so that the GC behaves the same on every branch
+    jvmArgs += application.applicationDefaultJvmArgs + ['-Xms32g', '-Xmx32g']
+    speedTestProperties.each { name ->
+        if (project.hasProperty("speed.$name")) {
+            systemProperty("mzmine.speed.$name", project.property("speed.$name"))
+        }
+    }
+}
+
+tasks.register('batchSpeedReport', JavaExec) {
+    group = 'benchmark'
+    description = 'Creates the html speed report from a speed test export. See SpeedReportMain.'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass.set('import_data.speed.SpeedReportMain')
+    if (project.hasProperty('speed.in')) {
+        args += [project.property('speed.in').toString()]
+        if (project.hasProperty('speed.report')) {
+            args += [project.property('speed.report').toString()]
+        }
+    }
+}
+
 // Bundle external tools directly through jpackage on all operating systems.
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools").asFile.absolutePath
 
