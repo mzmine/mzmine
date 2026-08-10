@@ -25,16 +25,15 @@
 
 package import_data.speed;
 
-import java.io.File;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public record BatchSpeedJob(String description, int iterations, String batchFile,
-                            List<String> files) {
+/**
+ * One measurement flattened for the HTML speed report. The {@link #series()} is the grouping on the
+ * x axis (usually the mzmine version, taken from the last part of the description) while
+ * {@link #step()} defines the panel (batch step name).
+ */
+public record SpeedReportRow(@NotNull String step, @NotNull String series, int files,
+                             double timeSeconds, @Nullable Double gbRamUsed) {
 
-  @NotNull
-  public String getBatchFileName() {
-    return new File(batchFile).getName();
-  }
 }
-

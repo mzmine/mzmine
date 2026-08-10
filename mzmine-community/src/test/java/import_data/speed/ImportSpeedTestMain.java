@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,7 +25,8 @@
 
 package import_data.speed;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -43,6 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +73,7 @@ public class ImportSpeedTestMain {
       """.split("\n"));
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
   public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
   public static void main(String[] args) {
 
@@ -106,7 +111,8 @@ public class ImportSpeedTestMain {
 
     if (finished instanceof FINISHED f) {
       System.gc(); // better memory tracking
-      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds(),
+      final String now = LocalDate.now().format(DATE_FORMATTER);
+      var sm = new SpeedMeasurement(now, name, null, description, files.size(), f.getSeconds(),
           "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()));
       appendToFile(speedTestFile, sm);
     }
@@ -120,7 +126,7 @@ public class ImportSpeedTestMain {
 
     try (var fileWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
         WriterOptions.APPEND.toOpenOption())) {
-      var jsonWriter = new ObjectMapper();
+      var jsonWriter = JsonMapper.builder().addModule(new JavaTimeModule()).build();
       String str = jsonWriter.writeValueAsString(sm);
       fileWriter.append(str).append('\n');
     }

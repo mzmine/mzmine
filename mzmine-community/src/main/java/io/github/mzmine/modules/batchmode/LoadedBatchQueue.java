@@ -23,18 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.modules.batchmode;
 
-import java.io.File;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
-public record BatchSpeedJob(String description, int iterations, String batchFile,
-                            List<String> files) {
+public record LoadedBatchQueue(List<String> errorMessages, BatchQueue newQueue) {
 
-  @NotNull
-  public String getBatchFileName() {
-    return new File(batchFile).getName();
-  }
 }
-
