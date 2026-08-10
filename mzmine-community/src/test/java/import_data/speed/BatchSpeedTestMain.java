@@ -95,7 +95,7 @@ public class BatchSpeedTestMain {
   public static void main(String[] args) {
     String speedTestFile = property("out", "D:\\speed");
     // qualifies what is tested, e.g. the branch name or the optimization under test
-    String description = property("description", "mzmine4.10.25_fastercopy3");
+    String description = property("description", "master4.10.26");
     // keep running and all in memory
 //    String inMemory = "all";
     String inMemory = property("inMemory", "none");
@@ -104,13 +104,13 @@ public class BatchSpeedTestMain {
     // opt in, the sampler costs performance
     boolean trackMemory = booleanProperty("trackMemory", false);
     int warmups = intProperty("warmups", 1);
-    int iterations = intProperty("iterations", 2);
+    int iterations = intProperty("iterations", 4);
 
 //    String batchFile = "rawdatafiles/test_batch_small.xml";
 //    String batchFile = "D:\\tmp\\workshop_small.mzbatch";
-    String batchFile = property("batch", "D:\\Data\\batch\\test_small_microbes.mzbatch");
-//    String batchFile = property("batch",
-//        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_250_mzmine4-10-25-factor_speed.mzbatch");
+//    String batchFile = property("batch", "D:\\Data\\batch\\test_small_microbes.mzbatch");
+    String batchFile = property("batch",
+        "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\speedtest_benchmark\\Orbitrap_QE_environmental_DOM_sea_water\\0_dom_250_mzmine4-10-25-factor_speed.mzbatch");
 //    List<String> samples = List.of("rawdatafiles/DOM_a.mzML",
 //        "rawdatafiles/DOM_a_invalid_chars.mzML", "rawdatafiles/DOM_a_invalid_header.mzML",
 //        "rawdatafiles/DOM_b.mzXML", "rawdatafiles/DOM_b_invalid_header.mzXML");
