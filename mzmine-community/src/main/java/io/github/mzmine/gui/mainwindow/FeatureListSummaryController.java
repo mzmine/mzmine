@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -26,6 +27,7 @@ package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -66,6 +68,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
@@ -75,6 +78,10 @@ public class FeatureListSummaryController {
 
   @FXML
   public TextField tfNumRows;
+  @FXML
+  public TextField tfNumAnnotated;
+  @FXML
+  public Label lbNumAnnotated;
   @FXML
   public TextField tfCreated;
   @FXML
@@ -150,8 +157,17 @@ public class FeatureListSummaryController {
 
     lbFeatureListName.setText(featureList.getName());
     tfNumRows.setText(String.valueOf(featureList.getNumberOfRows()));
+    tfNumAnnotated.setText(String.valueOf(countAnnotatedRows(featureList)));
     tfCreated.setText(featureList.getDateCreated());
     lvAppliedMethods.setItems(featureList.getAppliedMethods());
+  }
+
+  /**
+   * @return the number of rows with any annotation, based on the rows themselves and not on a
+   * potential compound database table.
+   */
+  private long countAnnotatedRows(@NotNull ModularFeatureList featureList) {
+    return featureList.getRows().stream().filter(FeatureListRow::isIdentified).count();
   }
 
   public void setRawDataFile(@Nullable RawDataFile file) {
@@ -169,6 +185,7 @@ public class FeatureListSummaryController {
   public void clear() {
     lbFeatureListName.setText("None selected");
     tfNumRows.setText("");
+    tfNumAnnotated.setText("");
     tfCreated.setText("");
     lvAppliedMethods.getItems().clear();
     tvParameterValues.setText("");
