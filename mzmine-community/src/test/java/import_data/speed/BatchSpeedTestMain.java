@@ -25,6 +25,7 @@
 
 package import_data.speed;
 
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -77,8 +78,8 @@ import org.xml.sax.SAXException;
  * comparable. The task passes its configuration as {@code -Dmzmine.speed.*} system properties.
  * <p>
  * The harness never changes a preference. The performance relevant configuration
- * ({@link io.github.mzmine.gui.preferences.MZminePreferences#runGCafterBatchStep},
- * {@link io.github.mzmine.gui.preferences.MZminePreferences#numOfThreads}, the memory option, the VM
+ * ({@link MZminePreferences#runGCafterBatchStep},
+ * {@link MZminePreferences#numOfThreads}, the memory option, the VM
  * arguments, ...) is only documented in every exported row, see {@link SpeedTestEnvironment}. Two
  * runs are only comparable when those columns match, so keep the configuration and the VM options
  * identical when comparing branches.
