@@ -73,8 +73,8 @@ import org.xml.sax.SAXException;
  * <p>
  * Started either from the IDE (edit the values in the main) or through the gradle task
  * {@code gradlew batchSpeedTest -Pspeed.description=... -Pspeed.batch=...}, which fixes the heap to
- * 32 GB so that runs on different branches stay comparable. The task passes its configuration as
- * {@code -Dmzmine.speed.*} system properties.
+ * 32 GB, or to {@code -Pspeed.heapGb=...} when given, so that runs on different branches stay
+ * comparable. The task passes its configuration as {@code -Dmzmine.speed.*} system properties.
  * <p>
  * The harness never changes a preference. The performance relevant configuration
  * ({@link io.github.mzmine.gui.preferences.MZminePreferences#runGCafterBatchStep},
