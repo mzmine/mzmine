@@ -133,8 +133,8 @@ public class RowAlignmentScoreCalculator {
           minMobility = min(featureMobility, minMobility);
           maxMobility = max(featureMobility, maxMobility);
         }
-        alignmentScore += FeatureListUtils.getAlignmentScore(feature, mzRange, rtRange, null,
-            mobilityRange, mzWeight, rtWeight, mobilityWeight, 1);
+        alignmentScore += FeatureListUtils.getAlignmentScore(feature, mzRange, rtRange,
+            mobilityRange, null, mzWeight, rtWeight, mobilityWeight, 1);
       }
     }
 

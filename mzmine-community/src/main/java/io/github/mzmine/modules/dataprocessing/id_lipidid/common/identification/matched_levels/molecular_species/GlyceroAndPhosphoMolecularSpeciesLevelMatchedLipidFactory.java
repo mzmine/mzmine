@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,16 +26,17 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implements
@@ -60,11 +61,16 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
 
   @Override
-  public MatchedLipid validateMolecularSpeciesLevelAnnotation(double accurateMz,
-      ILipidAnnotation molecularSpeciesLevelAnnotation, Set<LipidFragment> annotatedFragments,
-      DataPoint[] massList, double minMsMsScore, MZTolerance mzTolRangeMSMS,
-      IonizationType ionizationType) {
-    if (!annotatedFragments.isEmpty()) {
+  public MatchedLipid validateMolecularSpeciesLevelAnnotation(final double accurateMz,
+      final @NotNull ILipidAnnotation molecularSpeciesLevelAnnotation,
+      final @NotNull Set<LipidFragment> annotatedFragments, final @NotNull DataPoint[] massList,
+      final double minMsMsScore, final @NotNull MZTolerance mzTolRangeMSMS,
+      final @NotNull IonizationType ionizationType) {
+    final Set<LipidFragment> molecularSpeciesFragments = annotatedFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentInformationLevelType()
+            .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)).collect(Collectors.toSet());
+    if (!molecularSpeciesFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
+        molecularSpeciesFragments)) {
       IMolecularFormula lipidFormula = null;
       try {
         lipidFormula = (IMolecularFormula) molecularSpeciesLevelAnnotation.getMolecularFormula()
@@ -105,18 +111,9 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
     Set<MatchedLipid> matchedMolecularSpeciesLevelAnnotations = new HashSet<>();
 
     // get number of total C atoms, double bonds and number of chains
-    int totalNumberOfCAtoms = 0;
-    int totalNumberOfDBEs = 0;
-    if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
-      totalNumberOfCAtoms = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfCarbons();
-      totalNumberOfDBEs = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfDBEs();
-    } else if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation) {
-      totalNumberOfCAtoms = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
-          .stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
-      totalNumberOfDBEs = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
-          .stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
-    }
-    int chainsInLipid = lipidAnnotation.getLipidClass().getChainTypes().length;
+    final int totalNumberOfCAtoms = lipidAnnotation.getChainsCarbonCount();
+    final int totalNumberOfDBEs = lipidAnnotation.getChainsDoubleBondCount();
+    final int chainsInLipid = lipidAnnotation.getLipidClass().getChainTypes().length;
 
     for (int i = 0; i < chains.size(); i++) {
       int carbonOne = chains.get(i).getNumberOfCarbons();
@@ -127,9 +124,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
         if (checkChainTypesFitLipidClass(predictedChains, lipidAnnotation.getLipidClass())) {
           Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(predictedChains,
               detectedFragmentsWithChainInformation);
-          matchedMolecularSpeciesLevelAnnotations.add(
-              buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation, accurateMz,
-                  massList, predictedChains, mzTolRangeMSMS, ionizationType));
+          final MatchedLipid newMatch = buildNewMolecularSpeciesLevelMatch(fittingFragments,
+              lipidAnnotation, accurateMz, massList, predictedChains, mzTolRangeMSMS,
+              ionizationType);
+          if (newMatch != null) {
+            matchedMolecularSpeciesLevelAnnotations.add(newMatch);
+          }
         }
       }
       if (chainsInLipid >= 2) {
@@ -144,9 +144,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
             if (checkChainTypesFitLipidClass(predictedChains, lipidAnnotation.getLipidClass())) {
               Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
                   predictedChains, detectedFragmentsWithChainInformation);
-              matchedMolecularSpeciesLevelAnnotations.add(
-                  buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation, accurateMz,
-                      massList, predictedChains, mzTolRangeMSMS, ionizationType));
+              final MatchedLipid newMatch = buildNewMolecularSpeciesLevelMatch(fittingFragments,
+                  lipidAnnotation, accurateMz, massList, predictedChains, mzTolRangeMSMS,
+                  ionizationType);
+              if (newMatch != null) {
+                matchedMolecularSpeciesLevelAnnotations.add(newMatch);
+              }
             }
           }
           if (chainsInLipid >= 3) {
@@ -163,10 +166,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                     lipidAnnotation.getLipidClass())) {
                   Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
                       predictedChains, detectedFragmentsWithChainInformation);
-                  matchedMolecularSpeciesLevelAnnotations.add(
-                      buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation,
-                          accurateMz, massList, predictedChains, mzTolRangeMSMS,
-                          ionizationType));
+                  final MatchedLipid newMatch = buildNewMolecularSpeciesLevelMatch(fittingFragments,
+                      lipidAnnotation, accurateMz, massList, predictedChains, mzTolRangeMSMS,
+                      ionizationType);
+                  if (newMatch != null) {
+                    matchedMolecularSpeciesLevelAnnotations.add(newMatch);
+                  }
                 }
               }
               if (chainsInLipid >= 4) {
@@ -185,10 +190,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
                         lipidAnnotation.getLipidClass())) {
                       Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
                           predictedChains, detectedFragmentsWithChainInformation);
-                      matchedMolecularSpeciesLevelAnnotations.add(
-                          buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation,
-                              accurateMz, massList, predictedChains, mzTolRangeMSMS,
-                              ionizationType));
+                      final MatchedLipid newMatch = buildNewMolecularSpeciesLevelMatch(
+                          fittingFragments, lipidAnnotation, accurateMz, massList, predictedChains,
+                          mzTolRangeMSMS, ionizationType);
+                      if (newMatch != null) {
+                        matchedMolecularSpeciesLevelAnnotations.add(newMatch);
+                      }
                     }
                   }
                 }
@@ -252,10 +259,12 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
               List<ILipidChain> predictedChains = List.of(combinedChainOne, combinedChainTwo);
               Set<LipidFragment> extractFragmentsForFittingChains = extractFragmentsForFittingChains(
                   predictedChains, detectedFragmentsWithCombinedChainInformation);
-              matchedMolecularSpeciesLevelAnnotations.add(
-                  buildNewSpeciesLevelMatch(extractFragmentsForFittingChains, lipidAnnotation,
-                      accurateMz, massList, predictedChains, mzTolRangeMSMS,
-                      ionizationType));
+              final MatchedLipid newMatch = buildNewSpeciesLevelMatch(
+                  extractFragmentsForFittingChains, lipidAnnotation, accurateMz, massList,
+                  predictedChains, mzTolRangeMSMS, ionizationType);
+              if (newMatch != null) {
+                matchedMolecularSpeciesLevelAnnotations.add(newMatch);
+              }
             }
           }
         }
@@ -340,7 +349,8 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
           double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
           Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, entry.getValue(),
               precursorMz, mzTolRangeMSMS);
-          if (msMsScore >= minMsMsScore) {
+          if (msMsScore >= minMsMsScore && LipidQcScoringUtils.hasSufficientEvidence(
+              entry.getValue())) {
             matchedLipids.add(
                 new MatchedLipid(lipidAnnotation, accurateMz, ionizationType, entry.getValue(),
                     msMsScore));
@@ -392,10 +402,15 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
     return fittingFragments;
   }
 
-  private MatchedLipid buildNewMolecularSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
-      ILipidAnnotation lipidAnnotation, Double accurateMz, DataPoint[] massList,
-      List<ILipidChain> predictedChains, MZTolerance mzTolRangeMSMS,
-      IonizationType ionizationType) {
+  private MatchedLipid buildNewMolecularSpeciesLevelMatch(
+      final @NotNull Set<LipidFragment> detectedFragments,
+      final @NotNull ILipidAnnotation lipidAnnotation, final @NotNull Double accurateMz,
+      final @NotNull DataPoint[] massList, final @NotNull List<ILipidChain> predictedChains,
+      final @NotNull MZTolerance mzTolRangeMSMS, final @NotNull IonizationType ionizationType) {
+    if (detectedFragments.isEmpty() || !LipidQcScoringUtils.hasSufficientEvidence(
+        detectedFragments)) {
+      return null;
+    }
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildMolecularSpeciesLevelLipidFromChains(
         lipidAnnotation.getLipidClass(), predictedChains);
     if (molecularSpeciesLevelAnnotation != null) {
@@ -415,10 +430,15 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
     }
   }
 
-  private MatchedLipid buildNewSpeciesLevelMatch(Set<LipidFragment> detectedFragments,
-      ILipidAnnotation lipidAnnotation, Double accurateMz, DataPoint[] massList,
-      List<ILipidChain> predictedChains, MZTolerance mzTolRangeMSMS,
-      IonizationType ionizationType) {
+  private MatchedLipid buildNewSpeciesLevelMatch(
+      final @NotNull Set<LipidFragment> detectedFragments,
+      final @NotNull ILipidAnnotation lipidAnnotation, final @NotNull Double accurateMz,
+      final @NotNull DataPoint[] massList, final @NotNull List<ILipidChain> predictedChains,
+      final @NotNull MZTolerance mzTolRangeMSMS, final @NotNull IonizationType ionizationType) {
+    if (detectedFragments.isEmpty() || !LipidQcScoringUtils.hasSufficientEvidence(
+        detectedFragments)) {
+      return null;
+    }
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildSpeciesLevelLipid(
         lipidAnnotation.getLipidClass(),
         predictedChains.stream().mapToInt(ILipidChain::getNumberOfCarbons).sum(),

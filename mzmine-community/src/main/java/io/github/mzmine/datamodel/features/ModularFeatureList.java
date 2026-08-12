@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -33,8 +34,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -48,20 +50,18 @@ import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
-import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,12 +71,14 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -90,7 +92,10 @@ import org.jetbrains.annotations.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   public static final int DEFAULT_ESTIMATED_ROWS = 5000;
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  // DateTimeFormatter instead of SimpleDateFormat: this constant is shared across threads and
+  // SimpleDateFormat is not thread-safe (concurrent use corrupts its internal calendar).
+  public static final DateTimeFormatter DATA_FORMAT = DateTimeFormatter.ofPattern(
+      "yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
@@ -128,8 +133,6 @@ public class ModularFeatureList implements FeatureList {
   @NotNull
   private String nameProperty = "";
   private String dateCreated;
-  // grouping
-  private List<RowGroup> groups;
 
   /**
    * this just counts the mutations of annotationSortConfig to signal change.
@@ -139,6 +142,14 @@ public class ModularFeatureList implements FeatureList {
    */
   private int annotationSortConfigVersion = 0;
   private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
+
+  private final AtomicLong structuralVersion = new AtomicLong(0);
+  @Nullable
+  private volatile CompoundList compoundList;
+  // True while {@link #removeRow}/{@link #removeRows} runs after it has already propagated the
+  // deletion into the compound list. The featureListRows listener uses this to keep the compound
+  // list alive (just syncs its source structural version) instead of disposing it.
+  private volatile boolean compoundListPropagationInFlight = false;
 
   /**
    * Used to buffer charts of rows and features to display in the
@@ -192,7 +203,7 @@ public class ModularFeatureList implements FeatureList {
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
-    dateCreated = DATA_FORMAT.format(new Date());
+    dateCreated = DATA_FORMAT.format(LocalDateTime.now());
     selectedScans = FXCollections.observableMap(new HashMap<>());
     this.memoryMapStorage = storage;
 
@@ -219,6 +230,36 @@ public class ModularFeatureList implements FeatureList {
           .anyMatch(t -> CompoundAnnotationUtils.annotationTypePriority.contains(t))) {
         // as soon as we have an annotation that is handled by the preferred annotation, add the type automatically
         addRowType(DataTypes.get(PreferredAnnotationType.class));
+      }
+    });
+
+    featureListRows.addListener((ListChangeListener<FeatureListRow>) change -> {
+      boolean structural = false;
+      while (change.next()) {
+        if (change.wasAdded() || change.wasRemoved() || change.wasReplaced()) {
+          structural = true;
+          break;
+        }
+      }
+      if (!structural) {
+        return;
+      }
+      structuralVersion.incrementAndGet();
+      // {@link #removeRow(s)} already propagated the deletion into the compound list — keep it
+      // alive and just sync its source structural version so {@link CompoundList#isStale()} stays
+      // false.
+      if (compoundListPropagationInFlight) {
+        final CompoundList alive = compoundList;
+        if (alive != null) {
+          alive.syncSourceStructuralVersion();
+        }
+        return;
+      }
+      // implicit invalidation — dispose the old compound list so its listeners are removed
+      final CompoundList old = compoundList;
+      compoundList = null;
+      if (old != null) {
+        old.dispose();
       }
     });
   }
@@ -608,7 +649,16 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    featureListRows.remove(row);
+    if (row == null) {
+      return;
+    }
+    detachFromCompoundListIfPresent(List.of(row));
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.remove(row);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
   }
 
   /**
@@ -624,7 +674,16 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(int rowNum) {
-    featureListRows.remove(rowNum);
+    if (rowNum < 0 || rowNum >= featureListRows.size()) {
+      return;
+    }
+    detachFromCompoundListIfPresent(List.of(featureListRows.get(rowNum)));
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.remove(rowNum);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
   }
 
   /**
@@ -640,7 +699,30 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRows(final Collection<FeatureListRow> rowsToRemove) {
-    featureListRows.removeAll(rowsToRemove);
+    if (rowsToRemove == null || rowsToRemove.isEmpty()) {
+      return;
+    }
+    detachFromCompoundListIfPresent(rowsToRemove);
+    compoundListPropagationInFlight = true;
+    try {
+      featureListRows.removeAll(rowsToRemove);
+    } finally {
+      compoundListPropagationInFlight = false;
+    }
+  }
+
+  /**
+   * If a compound list is attached, strip {@code rows} from every compound row's member list
+   * (promoting a new representative if needed, dropping empty compounds). Dispatched to the FX
+   * thread because {@link CompoundList} mutation may touch FX-bound row data.
+   */
+  private void detachFromCompoundListIfPresent(
+      @NotNull final Collection<? extends FeatureListRow> rows) {
+    final CompoundList cl = compoundList;
+    if (cl == null) {
+      return;
+    }
+    CompoundRowUtils.detachMemberRows(cl, rows);
   }
 
   @Override
@@ -792,17 +874,6 @@ public class ModularFeatureList implements FeatureList {
     }
 
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
-  }
-
-  @Override
-  public List<RowGroup> getGroups() {
-    return groups;
-  }
-
-  @Override
-  public void setGroups(List<RowGroup> groups) {
-    this.groups = groups;
-    CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
   @Override
@@ -1017,5 +1088,24 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public int getAnnotationSortConfigVersion() {
     return annotationSortConfigVersion;
+  }
+
+  @Override
+  public long getStructuralVersion() {
+    return structuralVersion.get();
+  }
+
+  @Override
+  public @Nullable CompoundList getCompoundList() {
+    return compoundList;
+  }
+
+  @Override
+  public synchronized void setCompoundList(@Nullable final CompoundList cl) {
+    final CompoundList old = this.compoundList;
+    this.compoundList = cl;
+    if (old != null && old != cl) {
+      old.dispose();
+    }
   }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2024 The mzmine Development Team
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -27,7 +27,8 @@
 
 <!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
 
-<?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
+<?import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView?>
+<?import impl.org.controlsfx.skin.DecorationPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -49,7 +50,6 @@
 <?import javafx.stage.Screen?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import org.controlsfx.control.StatusBar?>
-<?import impl.org.controlsfx.skin.DecorationPane?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
   fx:id="mainScene">
@@ -87,8 +87,7 @@
                 <content>
                   <BorderPane minHeight="0.0" minWidth="0.0">
                     <center>
-                      <GroupableListView
-                        editable="true" fx:id="rawDataList">
+                      <GroupableTreeView fx:id="rawDataList">
                         <contextMenu>
                           <ContextMenu fx:id="rawDataContextMenu">
                             <items>
@@ -129,7 +128,12 @@
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
-                                text="Group/Ungroup files" fx:id="rawDataGroupMenuItem"/>
+                                text="Group files" fx:id="rawDataGroupMenuItem"/>
+                              <MenuItem onAction="#handleUngroupRawDataFiles"
+                                text="Ungroup files" fx:id="rawDataUngroupMenuItem"/>
+                              <MenuItem onAction="#handleRenameRawDataGroup"
+                                text="Rename group" fx:id="rawDataRenameGroupMenuItem"
+                                disable="true"/>
 
                               <SeparatorMenuItem/>
                               <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
@@ -137,7 +141,7 @@
                             </items>
                           </ContextMenu>
                         </contextMenu>
-                      </GroupableListView>
+                      </GroupableTreeView>
                     </center>
                   </BorderPane>
                 </content>
@@ -146,20 +150,19 @@
                 <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0">
                     <children>
-                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      <GroupableTreeView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
-                        editable="true" fx:id="featureListsList">
+                        fx:id="featureListsList">
                         <contextMenu>
                           <ContextMenu fx:id="featureListContextMenu">
                             <items>
-                              <MenuItem onAction="#handleOpenFeatureList"
-                                text="Open feature list" fx:id="openFeatureListMenuItem"/>
-                              <MenuItem onAction="#handleShowFeatureListSummary"
-                                text="Show feature list summary"
-                                fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleOpenFeatureList" text="Open feature list" fx:id="openFeatureListMenuItem"/>
+                              <MenuItem onAction="#handleShowFeatureListSummary" text="Show feature list summary" fx:id="showFeatureListSummaryMenuItem"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleShowCompoundDashboard" fx:id="showCompoundDashboardItem" text="Show compound dashboard"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>
-                              <MenuItem onAction="#handleShowIntegrationDashboard"
-                                text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowIntegrationDashboard" text="Show integration dashboard"/>
+                              <MenuItem onAction="#handleShowLipidDashboard" text="Show lipid dashboard"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleFeatureListsSort"
                                 text="Sort alphabetically"/>
@@ -170,7 +173,7 @@
                             </items>
                           </ContextMenu>
                         </contextMenu>
-                      </GroupableListView>
+                      </GroupableTreeView>
                     </children>
                   </AnchorPane>
                 </content>

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -33,8 +32,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.XMLUtils;
 import java.awt.Color;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Keeps a {@link WeakReference} to {@link RawDataFile} and its name and file hashcode to find the
@@ -104,6 +106,25 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   public @Nullable Integer getFileHashCode() {
     return fileHashCode;
+  }
+
+  public void saveToXML(final @NotNull Element xmlElement) {
+    xmlElement.setAttribute(CONST.XML_RAW_FILE_NAME_ELEMENT, getName());
+
+    final String absolutePath = getAbsolutePath();
+    if (absolutePath != null) {
+      xmlElement.setAttribute(CONST.XML_RAW_FILE_PATH_ELEMENT, absolutePath);
+    }
+
+  }
+
+  public static @NotNull RawDataFilePlaceholder loadFromXML(final @NotNull Element xmlElement) {
+    final String rawFileName = XMLUtils.requireAttribute(xmlElement,
+        CONST.XML_RAW_FILE_NAME_ELEMENT);
+    final String rawFilePath = xmlElement.getAttribute(CONST.XML_RAW_FILE_PATH_ELEMENT);
+
+    final String pathOrNull = rawFilePath == null || rawFilePath.isBlank() ? null : rawFilePath;
+    return new RawDataFilePlaceholder(rawFileName, pathOrNull, null);
   }
 
   /**

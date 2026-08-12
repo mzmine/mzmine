@@ -31,7 +31,7 @@ public class WorkflowDIA extends WorkflowWizardParameterFactory {
 
   @Override
   public WizardStepParameters create() {
-    return new WorkflowDiaWizardParameters(0.8, 5, true, true, null, true, true, false);
+    return new WorkflowDiaWizardParameters(0.8, 5, true, false, true, null, true, true, false);
   }
 
   @Override

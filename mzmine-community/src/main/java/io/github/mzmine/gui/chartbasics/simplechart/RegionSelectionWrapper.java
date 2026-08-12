@@ -72,8 +72,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.validation.constraints.NotNull;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
@@ -283,9 +281,7 @@ public class RegionSelectionWrapper<T extends EChartViewer> extends BorderPane {
     List<List<Point2D>> regions = new ArrayList<>();
 
     try {
-      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      final Document regionsFile = dBuilder.parse(file);
+      final Document regionsFile = XMLUtils.load(file);
       final XPathFactory factory = XPathFactory.newInstance();
       final XPath xpath = factory.newXPath();
 
@@ -318,8 +314,7 @@ public class RegionSelectionWrapper<T extends EChartViewer> extends BorderPane {
         return;
       }
       try {
-        final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        final Document doc = builder.newDocument();
+        final Document doc = XMLUtils.newDocument();
         final Element root = doc.createElement("root");
         doc.appendChild(root);
         final Element element = doc.createElement(parameter.getName().toLowerCase());

@@ -27,8 +27,13 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> {
+
+  public static final String NAME = "Abundance measure";
+  public static final String DESCRIPTION = "Select the abundance measure.";
 
   public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices) {
     this(name, description, choices, AbundanceMeasure.Height);
@@ -38,8 +43,11 @@ public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> 
     this(AbundanceMeasure.Height);
   }
 
+  public AbundanceMeasureParameter(@NotNull AbundanceMeasure[] choices, @Nullable AbundanceMeasure defaultValue) {
+    this(NAME, DESCRIPTION, choices, defaultValue);
+  }
   public AbundanceMeasureParameter(AbundanceMeasure defaultValue) {
-    this("Abundance measure", "Select the abundance measure.", AbundanceMeasure.values(),
+    this(NAME, DESCRIPTION, AbundanceMeasure.values(),
         defaultValue);
   }
 

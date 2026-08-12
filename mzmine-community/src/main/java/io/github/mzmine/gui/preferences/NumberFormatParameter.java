@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,24 +33,30 @@ import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
- * 
- * 
+ *
+ *
  */
 public class NumberFormatParameter implements UserParameter<DecimalFormat, NumberFormatEditor> {
 
   private String name, description;
   private boolean showExponentOption;
   private DecimalFormat value;
+  private final boolean isPercent;
 
   public NumberFormatParameter(String name, String description, boolean showExponentOption,
       DecimalFormat defaultValue) {
+    this(name, description, showExponentOption, defaultValue, false);
+  }
 
+  public NumberFormatParameter(String name, String description, boolean showExponentOption,
+      DecimalFormat defaultValue, boolean isPercent) {
     assert defaultValue != null;
 
     this.name = name;
     this.description = description;
     this.showExponentOption = showExponentOption;
     this.value = defaultValue;
+    this.isPercent = isPercent;
   }
 
   /**
@@ -87,8 +93,8 @@ public class NumberFormatParameter implements UserParameter<DecimalFormat, Numbe
 
   @Override
   public NumberFormatParameter cloneParameter() {
-    NumberFormatParameter copy =
-        new NumberFormatParameter(name, description, showExponentOption, value);
+    NumberFormatParameter copy = new NumberFormatParameter(name, description, showExponentOption,
+        value, isPercent);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -101,11 +107,15 @@ public class NumberFormatParameter implements UserParameter<DecimalFormat, Numbe
 
     if (decimals > 0) {
       pattern += ".";
-      for (int i = 0; i < decimals; i++)
+      for (int i = 0; i < decimals; i++) {
         pattern += "0";
+      }
     }
     if (showExponent) {
       pattern += "E0";
+    }
+    if (isPercent) {
+      pattern += "%";
     }
     value.applyPattern(pattern);
   }

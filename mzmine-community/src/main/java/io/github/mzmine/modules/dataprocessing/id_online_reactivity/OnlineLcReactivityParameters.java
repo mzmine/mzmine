@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -65,8 +66,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       type is either REACTION, EDUCT, PRODUCT""", extensions,
       OnlineLcReactivityParameters::exportExample);
 
-  private static final List<IonModification> adducts = List.of(IonModification.H,
-      IonModification.NA);
+  private static final List<IonType> adducts = IonTypes.listIons(false, IonTypes.H, IonTypes.NA);
 
   public static final IonCheckComboBoxParameter eductAdducts = new IonCheckComboBoxParameter(
       "Educt adducts", """

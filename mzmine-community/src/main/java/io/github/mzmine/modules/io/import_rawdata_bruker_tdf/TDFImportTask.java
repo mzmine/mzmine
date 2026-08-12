@@ -617,7 +617,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
 
   @Nullable
   private Frame getParentFrame(IMSRawDataFile file, Integer parentFrameNumber) {
-    if (parentFrameNumber == null) {
+    if (parentFrameNumber == null || parentFrameNumber == 0) {
       return null;
     }
     Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()

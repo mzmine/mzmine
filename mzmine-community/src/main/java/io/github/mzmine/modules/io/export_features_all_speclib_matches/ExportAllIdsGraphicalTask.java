@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -12,6 +11,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -42,7 +42,6 @@ import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsFormats;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
@@ -141,7 +140,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     if (MZmineCore.isHeadLessMode()) {
-      FxThread.initJavaFxInHeadlessMode();
+      FxThread.initJavaFx();
     }
 
     try {
@@ -336,7 +335,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       root.setPrefSize(width, height);
       root.setMinSize(width, height);
       Scene scene = new Scene(root, width, height);
-      MZmineCore.getConfiguration().getPreferences().getValue(MZminePreferences.theme)
+      MZmineCore.getConfiguration().getPreferences().getThemeConfig()
           .apply(scene.getStylesheets());
 
       WritableImage[] images = new WritableImage[elementsToExport];

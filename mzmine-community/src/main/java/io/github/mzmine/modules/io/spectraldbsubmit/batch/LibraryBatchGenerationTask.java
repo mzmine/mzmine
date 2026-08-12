@@ -65,15 +65,14 @@ import io.github.mzmine.util.io.WriterOptions;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -82,7 +81,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
@@ -93,18 +94,26 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class LibraryBatchGenerationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LibraryBatchGenerationTask.class.getName());
-  private final SpectralLibrary library;
+  @Nullable
   private final ModularFeatureList[] flists;
+  @Nullable
   private final File outFile;
+  @NotNull
   private final String fileNameWithoutExtension;
+  @Nullable
   private final SpectralLibraryExportFormats format;
+  @Nullable
   private final ParameterSet parameters;
+  @Nullable
+  private final IntensityNormalizer normalizer;
+  // storage for spectral library entries - may be null to use heap memory
+  @Nullable
+  private final MemoryMapStorage entryStorage;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
   private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
   private final MsLevelFilter postMergingMsLevelFilter;
-  private final IntensityNormalizer normalizer;
   private final SpectralLibraryEntryFactory entryFactory;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
@@ -115,39 +124,31 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private ChimericMsOption handleChimericsOption;
   private String description = "Batch exporting spectral library";
 
-  public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
+  /**
+   * Full batch mode constructor: processes feature lists and writes entries to a file.
+   */
+  public LibraryBatchGenerationTask(@NotNull final LibraryBatchGenerationParameters parameters,
+      @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
     this.parameters = parameters;
-    String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
-    outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
-
+    outFile = FileAndPathUtil.getRealFilePath(file, format.getExtension());
     fileNameWithoutExtension = FileAndPathUtil.eraseFormat(outFile.getName());
-
-    library = new SpectralLibrary(MemoryMapStorage.forMassList(), outFile.getName() + "_batch",
-        outFile);
-    // metadata as a map
-    LibraryBatchMetadataParameters meta = parameters.getParameter(
-        LibraryBatchGenerationParameters.metadata).getEmbeddedParameters();
-    metadataMap = meta.asMap();
-
-    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
-        .getEmbeddedParameters().toQualityChecker();
-
-    postMergingMsLevelFilter = parameters.getValue(
-        LibraryBatchGenerationParameters.postMergingMsLevelFilter);
-
+    entryStorage = MemoryMapStorage.forMassList();
     normalizer = parameters.getValue(LibraryBatchGenerationParameters.normalizer);
 
-    // used to extract and merge spectra
+    metadataMap = parameters.getParameter(LibraryBatchGenerationParameters.metadata)
+        .getEmbeddedParameters().asMap();
+    msMsQualityChecker = parameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
+    postMergingMsLevelFilter = parameters.getValue(
+        LibraryBatchGenerationParameters.postMergingMsLevelFilter);
     var selectParam = parameters.getParameter(LibraryBatchGenerationParameters.merging)
         .getValueWithParameters();
     selection = selectParam.value()
         .createFragmentScanSelection(getMemoryMapStorage(), selectParam.parameters());
-
-    //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
     if (handleChimerics) {
       HandleChimericMsMsParameters param = parameters.getParameter(
@@ -157,17 +158,60 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       chimericsMainIonMzTol = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
-
-    boolean isAdvanced = parameters.getValue(LibraryBatchGenerationParameters.advanced);
-    boolean compactUSI;
-    if (isAdvanced) {
-      var advanced = parameters.getParameter(LibraryBatchGenerationParameters.advanced)
-          .getEmbeddedParameters();
-      compactUSI = advanced.getValue(AdvancedLibraryBatchGenerationParameters.compactUSI);
-    } else {
-      compactUSI = false;
+    boolean compactUSI = false;
+    if (parameters.getValue(LibraryBatchGenerationParameters.advanced)) {
+      compactUSI = parameters.getParameter(LibraryBatchGenerationParameters.advanced)
+          .getEmbeddedParameters().getValue(AdvancedLibraryBatchGenerationParameters.compactUSI);
     }
+    entryFactory = new SpectralLibraryEntryFactory(compactUSI, false, true, true);
+    if (handleChimericsOption == ChimericMsOption.FLAG) {
+      entryFactory.setFlagChimerics(true);
+    }
+  }
 
+  /**
+   * Secondary constructor for use by external callers (e.g., send selected rows to spectral
+   * library). Does not write to file; use {@link #processRow(FeatureListRow)} to generate entries
+   * and handle them externally.
+   *
+   * @param subParameters parameters from {@link LibraryBatchGenerationSubParameters}
+   */
+  public LibraryBatchGenerationTask(
+      @NotNull final LibraryBatchGenerationSubParameters subParameters,
+      @NotNull String targetLibrary, @NotNull final Instant moduleCallDate) {
+    super(null, moduleCallDate);
+    flists = null;
+    outFile = null;
+    fileNameWithoutExtension = FilenameUtils.removeExtension(targetLibrary);
+    format = null;
+    parameters = null;
+    normalizer = null;
+    entryStorage = MemoryMapStorage.forMassList();
+
+    metadataMap = subParameters.getParameter(LibraryBatchGenerationParameters.metadata)
+        .getEmbeddedParameters().asMap();
+    msMsQualityChecker = subParameters.getParameter(LibraryBatchGenerationParameters.quality)
+        .getEmbeddedParameters().toQualityChecker();
+    postMergingMsLevelFilter = subParameters.getValue(
+        LibraryBatchGenerationParameters.postMergingMsLevelFilter);
+    var selectParam = subParameters.getParameter(LibraryBatchGenerationParameters.merging)
+        .getValueWithParameters();
+    selection = selectParam.value()
+        .createFragmentScanSelection(getMemoryMapStorage(), selectParam.parameters());
+    handleChimerics = subParameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
+    if (handleChimerics) {
+      HandleChimericMsMsParameters param = subParameters.getParameter(
+          LibraryBatchGenerationParameters.handleChimerics).getEmbeddedParameters();
+      minimumPrecursorPurity = param.getValue(HandleChimericMsMsParameters.minimumPrecursorPurity);
+      chimericsIsolationMzTol = param.getValue(HandleChimericMsMsParameters.isolationWindow);
+      chimericsMainIonMzTol = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
+      handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
+    }
+    boolean compactUSI = false;
+    if (subParameters.getValue(LibraryBatchGenerationParameters.advanced)) {
+      compactUSI = subParameters.getParameter(LibraryBatchGenerationParameters.advanced)
+          .getEmbeddedParameters().getValue(AdvancedLibraryBatchGenerationParameters.compactUSI);
+    }
     entryFactory = new SpectralLibraryEntryFactory(compactUSI, false, true, true);
     if (handleChimericsOption == ChimericMsOption.FLAG) {
       entryFactory.setFlagChimerics(true);
@@ -183,6 +227,14 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
+    if (outFile == null || flists == null || format == null || normalizer == null) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(
+          "LibraryBatchGenerationTask.run() called on a task created with the secondary constructor. "
+              + "Use processRow() instead.");
+      return;
+    }
+
     totalRows = Arrays.stream(flists).mapToLong(ModularFeatureList::getNumberOfRows).sum();
 
     FileAndPathUtil.createDirectory(outFile.getParentFile());
@@ -192,7 +244,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       for (ModularFeatureList flist : flists) {
         description = "Exporting entries for feature list " + flist.getName();
         for (var row : flist.getRows()) {
-          processRow(writer, row);
+          List<SpectralLibraryEntry> entries = processRow(row);
+          for (SpectralLibraryEntry entry : entries) {
+            ExportScansFeatureTask.exportEntry(writer, entry, format, normalizer);
+          }
           finishedRows.incrementAndGet();
         }
         flist.getAppliedMethods().add(
@@ -205,7 +260,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         // maybe ms level filter mismatch?
         checkAndLogEmptyResult();
       } else {
-        //
         logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
             outFile.getAbsolutePath()));
       }
@@ -261,8 +315,16 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         The MS level filter was checked and seems to match. Maybe there is a different parameter mismatch.""");
   }
 
-  private void processRow(final BufferedWriter writer, final FeatureListRow row)
-      throws IOException {
+  /**
+   * Processes a single feature list row and returns all generated spectral library entries. Entries
+   * do not yet have {@link DBEntryField#ENTRY_ID} or {@link DBEntryField#USI} assigned — the caller
+   * is responsible for assigning these.
+   *
+   * @param row the feature list row to process
+   * @return list of generated entries; empty if the row has no fragment scans or no annotations
+   */
+  @NotNull
+  public List<SpectralLibraryEntry> processRow(@NotNull final FeatureListRow row) {
     List<Scan> scans = row.getAllFragmentScans();
 
     var featureList = row.getFeatureList();
@@ -272,7 +334,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         .filter(match -> msMsQualityChecker.matchesName(match, featureList)).toList();
 
     if (scans.isEmpty() || matches.isEmpty()) {
-      return;
+      return List.of();
     }
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
@@ -283,8 +345,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     final var chimericMap = handleChimericsAndFilterScansIfSelected(row, scans);
 
     scans = selectMergeAndFilterScans(scans);
-    // export
-    exportAllMatches(writer, row, scans, matches, chimericMap);
+    return createEntries(row, scans, matches, chimericMap);
   }
 
   /**
@@ -307,17 +368,21 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   }
 
   /**
-   * Exports all matches
+   * Creates spectral library entries for all annotation × scan combinations that pass quality
+   * checks. ENTRY_ID and USI are not assigned here; the caller handles that.
    *
    * @param scans           filtered scans
-   * @param filteredMatches filtered annotations, each will be exported
+   * @param filteredMatches filtered annotations, each will generate entries
    * @param chimericMap     flags chimeric spectra
+   * @return list of created entries
    */
-  private void exportAllMatches(final BufferedWriter writer, final FeatureListRow row,
-      final List<Scan> scans, final List<FeatureAnnotation> filteredMatches,
-      final Map<Scan, ChimericPrecursorResults> chimericMap) throws IOException {
+  @NotNull
+  private List<SpectralLibraryEntry> createEntries(@NotNull final FeatureListRow row,
+      @NotNull final List<Scan> scans, @NotNull final List<FeatureAnnotation> filteredMatches,
+      @NotNull final Map<Scan, ChimericPrecursorResults> chimericMap) {
     // filtered matches contain one match per compound name sorted by the least complex first
     // M+H better than 2M+H2+2
+    final List<SpectralLibraryEntry> entries = new ArrayList<>();
     for (final FeatureAnnotation match : filteredMatches) {
       // cache all formulas
       IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
@@ -336,8 +401,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
         var chimeric = chimericMap.getOrDefault(msmsScan, ChimericPrecursorResults.PASSED);
 
-        SpectralLibraryEntry entry = entryFactory.createAnnotated(library.getStorage(), row,
-            msmsScan, match, dps, chimeric, score, filteredMatches, metadataMap);
+        SpectralLibraryEntry entry = entryFactory.createAnnotated(entryStorage, row, msmsScan,
+            match, dps, chimeric, score, filteredMatches, metadataMap);
+        entries.add(entry);
 
         // specific things that should only happen in library generation - otherwise add to the factory
         final int entryId = exported.incrementAndGet();
@@ -346,10 +412,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         entry.putIfNotNull(DBEntryField.USI,
             ScanUtils.createUSI(entry.getAsString(DBEntryField.DATASET_ID).orElse(null),
                 fileNameWithoutExtension, String.valueOf(entryId)));
-
-        ExportScansFeatureTask.exportEntry(writer, entry, format, normalizer);
       }
     }
+    return entries;
   }
 
 

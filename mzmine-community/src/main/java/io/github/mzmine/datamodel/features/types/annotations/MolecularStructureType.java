@@ -133,8 +133,8 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
       if (mainType instanceof CompoundDatabaseMatchesType) {
         CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
         MZmineCore.getDesktop().addTab(tab);
-      } else if (mainType instanceof SpectralLibraryMatchesType) {
-        MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
+      } else if (mainType instanceof AbstractSpectralLibraryMatchesType t) {
+        MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table, t.getClass()));
       } else {
         new MolStructureViewer("", structure.structure()).show();
       }

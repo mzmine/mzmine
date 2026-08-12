@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -49,6 +48,9 @@ import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLModelId;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScore;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MLScoreType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
@@ -57,9 +59,9 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -244,6 +246,40 @@ public class RegularScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
         file);
+  }
+
+  @Test
+  void analogSpectralLibMatchSummaryTypeTest() {
+    final io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType type = new io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType();
+
+    final List<SpectralDBAnnotation> value = generateAnalogLibraryMatches();
+    // every analog match must report itself as analog and carry the analog DataType class
+    Assertions.assertTrue(value.stream().allMatch(SpectralDBAnnotation::isAnalogMatch));
+    Assertions.assertTrue(value.stream().allMatch(a -> a.getDataType().equals(
+        io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class)));
+
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, feature,
+        file);
+  }
+
+  private @NotNull List<SpectralDBAnnotation> generateAnalogLibraryMatches() {
+    // build two annotations with the analog data-type class so the XML attribute is round-tripped
+    final List<SpectralDBAnnotation> base = generateLibraryMatches();
+    final List<SpectralDBAnnotation> analog = new java.util.ArrayList<>(base.size());
+    for (final SpectralDBAnnotation a : base) {
+      final SpectralDBAnnotation an = new SpectralDBAnnotation(a.getEntry(), a.getSimilarity(),
+          a.getQueryScan(), a.getCCSError(), a.getMzAbsoluteError() == null ? null
+          : a.getMzAbsoluteError() + (a.getEntry().getPrecursorMZ() == null ? 0d
+              : a.getEntry().getPrecursorMZ()), a.getRtAbsoluteError(), a.getRiDiff(),
+          io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType.class);
+      // simulate ML score storage on at least one annotation
+      an.set(MLScoreType.class, new MLScore(0.82f, MLModelId.MS2_DEEPSCORE_2_0));
+      analog.add(an);
+    }
+    return analog;
   }
 
   private @NotNull List<SpectralDBAnnotation> generateLibraryMatches() {

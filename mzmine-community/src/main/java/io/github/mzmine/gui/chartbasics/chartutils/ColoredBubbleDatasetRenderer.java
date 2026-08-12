@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,15 +31,23 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotX
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -49,6 +57,7 @@ import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.text.TextUtils;
 import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.chart.util.Args;
 import org.jfree.chart.util.PublicCloneable;
@@ -67,6 +76,9 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
    *
    */
   private static final long serialVersionUID = 1L;
+  private static final double LABEL_EDGE_GAP = 2.0;
+  private static final double LABEL_PADDING = 2.0;
+  private static final double SELF_POINT_EPSILON = 0.01;
 
   /**
    * The circle width (defaults to 1.0).
@@ -95,6 +107,12 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   private PaintScale paintScale;
 
   private boolean highlightAnnotated = false;
+  private List<Rectangle2D> drawnLabelBounds = new ArrayList<>();
+  private List<Rectangle2D> dataPointBounds = new ArrayList<>();
+  private transient XYDataset cachedBubbleRangeDataset;
+  private boolean bubbleSizeRangeCacheValid = false;
+  private double cachedMinBubbleSize = Double.NaN;
+  private double cachedMaxBubbleSize = Double.NaN;
 
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
@@ -102,6 +120,21 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
   public ColoredBubbleDatasetRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
+  }
+
+  @Override
+  public @NotNull XYItemRendererState initialise(final @NotNull Graphics2D g2,
+      final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
+      final @Nullable XYDataset data, final @Nullable PlotRenderingInfo info) {
+    drawnLabelBounds.clear();
+    dataPointBounds.clear();
+    if (data != null) {
+      updateBubbleSizeRangeCache(data);
+      cacheDataPointBounds(plot, dataArea, data);
+    } else {
+      invalidateBubbleSizeRangeCache();
+    }
+    return super.initialise(g2, dataArea, plot, data, info);
   }
 
   /**
@@ -316,35 +349,25 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
    * @param pass the pass index.
    */
   @Override
-  public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
-      PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
-      XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
+  public void drawItem(final @NotNull Graphics2D g2, final @NotNull XYItemRendererState state,
+      final @NotNull Rectangle2D dataArea, final @Nullable PlotRenderingInfo info,
+      final @NotNull XYPlot plot, final @NotNull ValueAxis domainAxis,
+      final @NotNull ValueAxis rangeAxis, final @NotNull XYDataset dataset, final int series,
+      final int item, final @Nullable CrosshairState crosshairState, final int pass) {
 
     double x = dataset.getXValue(series, item);
     double y = dataset.getYValue(series, item);
     double z = 0.0;
-    double bubbleSize = 0;
-    double minBubbleSize;
-    double maxBubbleSize;
+    double bubbleSize = resolveBubbleSize(dataset, series, item);
     Color specificDatasetColor = null;
     boolean annotated = false;
     if (dataset instanceof KendrickMassPlotXYDataset kds) {
-      double[] bubbleSizeValues = kds.getBubbleSizeValues();
-      minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
-      maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
-      bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          kds.getBubbleSize(series, item));
       if (kds.getColor() != null) {
         specificDatasetColor = kds.getColor();
       }
     }
     if (dataset instanceof XYZBubbleDataset bubbleDataset) {
       z = bubbleDataset.getZValue(series, item);
-      double[] bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
-      minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
-      maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
-      bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          bubbleDataset.getBubbleSizeValue(series, item));
     }
     if(dataset instanceof KendrickMassPlotXYZDataset xyz) {
       annotated = xyz.isAnnotated(item);
@@ -359,16 +382,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
           specificDatasetColor.getBlue(), 150);
     }
 
-    double xx0 = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge()) - bubbleSize / 2;
-    double yy0 = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge()) - bubbleSize / 2;
-    double xx1 = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge()) - bubbleSize / 2;
-    double yy1 = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge()) - bubbleSize / 2;
-    Ellipse2D circle;
-    PlotOrientation orientation = plot.getOrientation();
-    if (orientation.equals(PlotOrientation.HORIZONTAL)) {
-      circle = new Ellipse2D.Double(Math.min(yy0, yy1), Math.min(xx0, xx1), bubbleSize, bubbleSize);
-    } else {
-      circle = new Ellipse2D.Double(Math.min(xx0, xx1), Math.min(yy0, yy1), bubbleSize, bubbleSize);
+    final PlotOrientation orientation = plot.getOrientation();
+    final Ellipse2D circle = createBubbleShape(x, y, bubbleSize, dataArea, plot, domainAxis,
+        rangeAxis);
+    if (circle == null) {
+      return;
     }
     g2.setPaint(p);
     g2.fill(circle);
@@ -378,8 +396,11 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
     }
     g2.draw(circle);
     if (isItemLabelVisible(series, item)) {
-      drawItemLabel(g2, orientation, dataset, series, item, circle.getCenterX(),
-          circle.getCenterY(), y < 0.0);
+      final LabelPlacement labelPlacement = resolveItemLabelPlacement(g2, orientation, dataset,
+          series, item, circle.getCenterX(), circle.getCenterY(), bubbleSize, y < 0.0, dataArea);
+      if (labelPlacement != null) {
+        drawResolvedItemLabel(g2, dataset, series, item, labelPlacement);
+      }
     }
 
 
@@ -446,6 +467,9 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();
     }
+    clone.drawnLabelBounds = new ArrayList<>();
+    clone.dataPointBounds = new ArrayList<>();
+    clone.invalidateBubbleSizeRangeCache();
     return clone;
   }
 
@@ -467,5 +491,242 @@ public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer impleme
 
   public void setHighlightAnnotated(boolean highlightAnnotated) {
     this.highlightAnnotated = highlightAnnotated;
+  }
+
+  private void cacheDataPointBounds(final @NotNull XYPlot plot, final @NotNull Rectangle2D dataArea,
+      final @NotNull XYDataset dataset) {
+    final int datasetIndex = plot.indexOf(dataset);
+    ValueAxis domainAxis = datasetIndex >= 0 ? plot.getDomainAxisForDataset(datasetIndex) : null;
+    ValueAxis rangeAxis = datasetIndex >= 0 ? plot.getRangeAxisForDataset(datasetIndex) : null;
+    if (domainAxis == null) {
+      domainAxis = plot.getDomainAxis();
+    }
+    if (rangeAxis == null) {
+      rangeAxis = plot.getRangeAxis();
+    }
+    if (domainAxis == null || rangeAxis == null) {
+      return;
+    }
+
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final double bubbleSize = resolveBubbleSize(dataset, series, item);
+        if (bubbleSize <= 0 || !Double.isFinite(bubbleSize)) {
+          continue;
+        }
+        final double x = dataset.getXValue(series, item);
+        final double y = dataset.getYValue(series, item);
+        final Ellipse2D pointShape = createBubbleShape(x, y, bubbleSize, dataArea, plot,
+            domainAxis, rangeAxis);
+        if (pointShape != null) {
+          dataPointBounds.add(pointShape.getBounds2D());
+        }
+      }
+    }
+  }
+
+  private double resolveBubbleSize(final @NotNull XYDataset dataset, final int series,
+      final int item) {
+    final double rawBubbleSizeValue;
+    if (dataset instanceof KendrickMassPlotXYDataset kds) {
+      rawBubbleSizeValue = kds.getBubbleSize(series, item);
+    } else if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      rawBubbleSizeValue = bubbleDataset.getBubbleSizeValue(series, item);
+    } else {
+      return 0;
+    }
+
+    if (dataset != cachedBubbleRangeDataset || !bubbleSizeRangeCacheValid) {
+      updateBubbleSizeRangeCache(dataset);
+    }
+    if (!Double.isFinite(cachedMinBubbleSize) || !Double.isFinite(cachedMaxBubbleSize)) {
+      return 0;
+    }
+    return scaleBubbeSize(cachedMinBubbleSize, cachedMaxBubbleSize, rawBubbleSizeValue);
+  }
+
+  private void updateBubbleSizeRangeCache(final @NotNull XYDataset dataset) {
+    if (dataset == cachedBubbleRangeDataset && bubbleSizeRangeCacheValid) {
+      return;
+    }
+
+    bubbleSizeRangeCacheValid = true;
+    cachedBubbleRangeDataset = dataset;
+    final double[] bubbleSizeValues;
+    if (dataset instanceof KendrickMassPlotXYDataset kds) {
+      bubbleSizeValues = kds.getBubbleSizeValues();
+    } else if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
+    } else {
+      cachedMinBubbleSize = Double.NaN;
+      cachedMaxBubbleSize = Double.NaN;
+      return;
+    }
+
+    double minBubbleSize = Double.POSITIVE_INFINITY;
+    double maxBubbleSize = Double.NEGATIVE_INFINITY;
+    for (final double bubbleSizeValue : bubbleSizeValues) {
+      if (!Double.isFinite(bubbleSizeValue)) {
+        continue;
+      }
+      minBubbleSize = Math.min(minBubbleSize, bubbleSizeValue);
+      maxBubbleSize = Math.max(maxBubbleSize, bubbleSizeValue);
+    }
+
+    if (!Double.isFinite(minBubbleSize) || !Double.isFinite(maxBubbleSize)) {
+      cachedMinBubbleSize = Double.NaN;
+      cachedMaxBubbleSize = Double.NaN;
+      return;
+    }
+
+    cachedMinBubbleSize = minBubbleSize;
+    cachedMaxBubbleSize = maxBubbleSize;
+  }
+
+  private void invalidateBubbleSizeRangeCache() {
+    cachedBubbleRangeDataset = null;
+    bubbleSizeRangeCacheValid = false;
+    cachedMinBubbleSize = Double.NaN;
+    cachedMaxBubbleSize = Double.NaN;
+  }
+
+  private @Nullable Ellipse2D createBubbleShape(final double x, final double y,
+      final double bubbleSize, final @NotNull Rectangle2D dataArea, final @NotNull XYPlot plot,
+      final @NotNull ValueAxis domainAxis, final @NotNull ValueAxis rangeAxis) {
+    if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(bubbleSize)
+        || bubbleSize <= 0) {
+      return null;
+    }
+
+    final double transX = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge())
+                          - bubbleSize / 2d;
+    final double transY = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge())
+                          - bubbleSize / 2d;
+    if (!Double.isFinite(transX) || !Double.isFinite(transY)) {
+      return null;
+    }
+
+    if (plot.getOrientation().equals(PlotOrientation.HORIZONTAL)) {
+      return new Ellipse2D.Double(transY, transX, bubbleSize, bubbleSize);
+    }
+    return new Ellipse2D.Double(transX, transY, bubbleSize, bubbleSize);
+  }
+
+  private @Nullable LabelPlacement resolveItemLabelPlacement(final @NotNull Graphics2D g2,
+      final @NotNull PlotOrientation orientation, final @NotNull XYDataset dataset,
+      final int series, final int item, final double x, final double y, final double bubbleSize,
+      final boolean negative, final @NotNull Rectangle2D dataArea) {
+    final XYItemLabelGenerator generator = getItemLabelGenerator(series, item);
+    if (generator == null) {
+      return null;
+    }
+
+    final String label = generator.generateLabel(dataset, series, item);
+    if (label == null || label.isBlank()) {
+      return null;
+    }
+
+    final ItemLabelPosition position = negative ? getNegativeItemLabelPosition(series, item)
+        : getPositiveItemLabelPosition(series, item);
+    final Point2D baseAnchorPoint = calculateLabelAnchorPoint(position.getItemLabelAnchor(), x, y,
+        orientation);
+    final Point2D anchorPoint = offsetAnchorFromBubbleEdge(baseAnchorPoint, x, y, bubbleSize);
+    final Rectangle2D labelBounds = calculateLabelBounds(g2, label, position, series, item,
+        anchorPoint);
+    if (labelBounds == null || !dataArea.contains(labelBounds)) {
+      return null;
+    }
+    if (!isLabelBoundsFree(labelBounds, x, y)) {
+      return null;
+    }
+
+    drawnLabelBounds.add(labelBounds);
+    return new LabelPlacement(position, anchorPoint);
+  }
+
+  private @NotNull Point2D offsetAnchorFromBubbleEdge(final @NotNull Point2D baseAnchorPoint,
+      final double x, final double y, final double bubbleSize) {
+    double dx = baseAnchorPoint.getX() - x;
+    double dy = baseAnchorPoint.getY() - y;
+    if (Math.abs(dx) < SELF_POINT_EPSILON && Math.abs(dy) < SELF_POINT_EPSILON) {
+      dx = 0.0;
+      dy = -1.0;
+    }
+
+    final double vectorLength = Math.hypot(dx, dy);
+    final double normalizedX = dx / vectorLength;
+    final double normalizedY = dy / vectorLength;
+    final double distanceFromCenter = Math.max(0.0, bubbleSize / 2d) + LABEL_EDGE_GAP;
+    return new Point2D.Double(x + normalizedX * distanceFromCenter,
+        y + normalizedY * distanceFromCenter);
+  }
+
+  private boolean isLabelBoundsFree(final @NotNull Rectangle2D labelBounds, final double x,
+      final double y) {
+    boolean skippedSelf = false;
+    for (final Rectangle2D pointBounds : dataPointBounds) {
+      if (!skippedSelf && Math.abs(pointBounds.getCenterX() - x) <= SELF_POINT_EPSILON
+          && Math.abs(pointBounds.getCenterY() - y) <= SELF_POINT_EPSILON) {
+        skippedSelf = true;
+        continue;
+      }
+      if (pointBounds.intersects(labelBounds)) {
+        return false;
+      }
+    }
+
+    for (final Rectangle2D existingBounds : drawnLabelBounds) {
+      if (existingBounds.intersects(labelBounds)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void drawResolvedItemLabel(final @NotNull Graphics2D g2, final @NotNull XYDataset dataset,
+      final int series, final int item, final @NotNull LabelPlacement placement) {
+    final XYItemLabelGenerator generator = getItemLabelGenerator(series, item);
+    if (generator == null) {
+      return;
+    }
+
+    final String label = generator.generateLabel(dataset, series, item);
+    if (label == null || label.isBlank()) {
+      return;
+    }
+
+    final Font oldFont = g2.getFont();
+    final Paint oldPaint = g2.getPaint();
+    g2.setFont(getItemLabelFont(series, item));
+    g2.setPaint(getItemLabelPaint(series, item));
+    TextUtils.drawRotatedString(label, g2, (float) placement.anchorPoint().getX(),
+        (float) placement.anchorPoint().getY(), placement.position().getTextAnchor(),
+        placement.position().getAngle(), placement.position().getRotationAnchor());
+    g2.setFont(oldFont);
+    g2.setPaint(oldPaint);
+  }
+
+  private @Nullable Rectangle2D calculateLabelBounds(final @NotNull Graphics2D g2,
+      final @NotNull String label, final @NotNull ItemLabelPosition position, final int series,
+      final int item, final @NotNull Point2D anchorPoint) {
+    final Font oldFont = g2.getFont();
+    g2.setFont(getItemLabelFont(series, item));
+    final Shape labelShape = TextUtils.calculateRotatedStringBounds(label, g2,
+        (float) anchorPoint.getX(), (float) anchorPoint.getY(), position.getTextAnchor(),
+        position.getAngle(), position.getRotationAnchor());
+    g2.setFont(oldFont);
+    if (labelShape == null) {
+      return null;
+    }
+    return addPadding(labelShape.getBounds2D(), LABEL_PADDING);
+  }
+
+  private record LabelPlacement(@NotNull ItemLabelPosition position,
+                                @NotNull Point2D anchorPoint) {
+  }
+
+  private @NotNull Rectangle2D addPadding(final @NotNull Rectangle2D bounds, final double padding) {
+    return new Rectangle2D.Double(bounds.getX() - padding, bounds.getY() - padding,
+        bounds.getWidth() + padding * 2, bounds.getHeight() + padding * 2);
   }
 }

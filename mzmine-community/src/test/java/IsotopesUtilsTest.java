@@ -379,7 +379,7 @@ class IsotopesUtilsTest {
 
   @Test
   public void testPattern() {
-    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+    final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         "C80H120N40O30Br2Cl");
 
     final double resolution = 0.01;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,9 @@ public class LipidAnnotationMatchTab extends SimpleFeatureListTab {
   private final LipidAnnotationMatchPane lipidAnnotationMatchPane;
 
   public LipidAnnotationMatchTab(final FeatureTableFX table) {
-    super("Lipid matches", false, false);
+    super("Lipid matches", true, true);
     lipidAnnotationMatchPane = new LipidAnnotationMatchPane(getParentGroup());
+    lipidAnnotationMatchPane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());
     setContent(lipidAnnotationMatchPane);
     lipidAnnotationMatchPane.setFeatureTable(table);
   }

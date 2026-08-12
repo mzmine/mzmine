@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.JsonStringType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ExtraColumnHandler;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -163,7 +163,8 @@ public class CSVParsingUtils {
                 () -> "Library file contains two columns called \"" + columnName + "\".");
           }
           importType.setColumnIndex(i);
-          importType.setCsvColumnName(columnName); // need to set to the specific upper/lower case for getCompoundFromLine
+          importType.setCsvColumnName(
+              columnName); // need to set to the specific upper/lower case for getCompoundFromLine
         }
       }
     }
@@ -198,11 +199,10 @@ public class CSVParsingUtils {
    *                       given in the file. Otherwise, all formulas will be ionised by
    *                       {@link
    *                       CompoundDBAnnotation#buildCompoundsWithAdducts(CompoundDBAnnotation,
-   *                       IonNetworkLibrary)}.
+   *                       IonLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      String fieldSeparator, @NotNull List<ImportType<?>> types,
-      @Nullable IonNetworkLibrary ionLibrary) {
+      String fieldSeparator, @NotNull List<ImportType<?>> types, @Nullable IonLibrary ionLibrary) {
     final List<CompoundDBAnnotation> list = new ArrayList<>();
     final ExtraColumnHandler extraColHandler = new ExtraColumnHandler(
         new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));

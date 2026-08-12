@@ -169,6 +169,10 @@ public class OptionalModuleComponent extends BorderPane implements EstimatedComp
     applyCheckBoxState();
   }
 
+  public HBox getTopPane() {
+    return topPane;
+  }
+
   public ParameterSet getEmbeddedParameters() {
     return embeddedParameters;
   }

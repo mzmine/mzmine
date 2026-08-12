@@ -108,7 +108,15 @@ public interface PresetStore<T extends Preset> {
    *
    * @param preset the preset to save
    */
-  void saveToFile(@NotNull T preset);
+  @Nullable
+  default File saveToFile(@NotNull T preset) {
+    ensureDirectoryExists();
+    final File file = getPresetFile(preset);
+    return saveToFile(file, preset);
+  }
+
+  @Nullable
+  File saveToFile(@NotNull File file, @NotNull T preset);
 
   @Nullable T loadFromFile(@NotNull File file);
 

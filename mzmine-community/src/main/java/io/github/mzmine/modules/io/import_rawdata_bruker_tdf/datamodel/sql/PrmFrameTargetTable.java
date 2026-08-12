@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -133,9 +133,9 @@ public class PrmFrameTargetTable extends TDFDataTable<Long> {
       final double precursorMz = isolationMzColumn.get(i);
 
       entry.add(new BuildingPASEFMsMsInfo(precursorMz,
-          Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
-              // bruker scan numbers start at 1, ours start at 0
-              scanNumEndColumn.get(i).intValue() - 1), collisionEnergyColumn.get(i).floatValue(),
+          // range adjustment done in tdf import task
+          Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
+              scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
           chargeColumn.get(i).intValue(), null, frameId, isolationWidthColumn.get(i)));
     }
   }

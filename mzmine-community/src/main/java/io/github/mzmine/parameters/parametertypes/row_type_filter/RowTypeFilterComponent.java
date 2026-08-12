@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   private final StringParameterComponent queryField;
   private final StringProperty queryFormatErrorMessage = new SimpleStringProperty();
 
-  public RowTypeFilterComponent(RowTypeFilter value,
-      ComboComponent<RowTypeFilterOption> optionCombo,
+  public RowTypeFilterComponent(ComboComponent<RowTypeFilterOption> optionCombo,
       ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField,
       boolean addPresetsMenuButton) {
 
@@ -108,7 +107,6 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
       matchingModeCombo.getSelectionModel().select(0);
     });
 
-    setValue(value);
     this.value.subscribe(nv -> setToComponents());
   }
 

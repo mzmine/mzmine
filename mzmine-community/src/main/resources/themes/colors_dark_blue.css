@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/* mzconnect - deep navy surface with a magenta accent, derived from the mzconnect deck visual identity. */
+.root {
+    -jr-theme: #BF2C84;
+    -jr-accent: #BF2C84;
+    -jr-accent-below-text: #5a1a40;
+    -jr-selected: -jr-accent;
+    -jr-hover: #fff1;
+
+    -jr-row-odd-background: #15214a;
+    -jr-row-even-background: #0a1430;
+    -jr-accent-alt: -jr-accent;
+
+    -jr-red: #f85149;
+    -jr-light-red: #ff7b72;
+    -jr-green: #3fb950;
+    -jr-light-green: #56d364;
+    -jr-blue: #3c6ec8;
+    -jr-light-blue: #6ca8d8;
+    -jr-purple: #d2a8ff;
+    -jr-light-purple: #e2c5ff;
+    -jr-yellow: #e3b341;
+    -jr-orange: #f0a864;
+
+    /*-jr-base: #0a1430;*/
+    -jr-base: #060b22;
+    -jr-background-alt: #0a1430;
+    /*-jr-menu-background: #060b22;*/
+    -jr-menu-background: derive(-jr-base, -10%);
+    -jr-toolbar: -jr-menu-background;
+    -jr-sidepane-background: #0f1a3d;
+    -jr-search-background: #0f1a3d;
+
+    -jr-sidepane-header-background: -jr-background-alt;
+    -jr-group-hits-bg: -jr-background-alt;
+    -jr-group-hits-fg: -fx-light-text-color;
+    -fx-control-inner-background: derive(-jr-base, 20%);
+    -fx-control-inner-background-alt: -fx-control-inner-background;
+
+    -fx-dark-text-color: black;
+    -fx-mid-text-color: #8b9bc4;
+    -fx-light-text-color: #e6ecf7;
+    -jr-separator: #2a3a66;
+    -fx-outer-border: #2a3a66;
+
+    -jr-icon: -fx-light-text-color;
+    -jr-icon-active: derive(-fx-light-text-color, 50%);
+    -jr-icon-background-active: -jr-hover;
+    -jr-icon-background-armed: #fff2;
+
+    -jr-menu-foreground: -fx-light-text-color;
+    -jr-menu-item-foreground: -fx-light-text-color;
+    -jr-menu-forground-active: derive(-fx-light-text-color, 50%);
+
+    -jr-scrollbar-thumb: #3a4a7a;
+    -jr-scrollbar-track: derive(-fx-control-inner-background, -90%);
+
+    -fx-focused-text-base-color: -fx-dark-text-color;
+
+    -jr-tooltip-fg: #e6ecf7;
+
+    -jr-drag-target: -jr-accent;
+    -jr-drag-target-hover: -jr-accent;
+
+    -js-summary-text-color: derive(-fx-light-text-color, 70%);
+    -js-summary-text-color-selected: derive(-fx-dark-text-color, 70%);
+}

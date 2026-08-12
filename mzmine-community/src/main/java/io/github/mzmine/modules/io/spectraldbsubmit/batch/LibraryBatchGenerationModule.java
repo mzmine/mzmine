@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,8 @@ public class LibraryBatchGenerationModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    Task newTask = new LibraryBatchGenerationTask(parameters, moduleCallDate);
+    Task newTask = new LibraryBatchGenerationTask((LibraryBatchGenerationParameters) parameters,
+        moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

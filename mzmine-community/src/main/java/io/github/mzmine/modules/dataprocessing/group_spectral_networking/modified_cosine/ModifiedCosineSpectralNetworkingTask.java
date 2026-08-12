@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,11 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine;
 
 
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -47,9 +52,6 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalA
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
-import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -72,7 +74,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import static java.util.Objects.requireNonNullElse;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -311,23 +312,12 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTas
           weights.getIntensity(), weights.getMz());
 
       final double cosineDivisor = Similarity.cosineDivisor(diffArray);
-      double[] contributions = new double[diffArray.length];
-      SignalAlignmentAnnotation[] annotations = new SignalAlignmentAnnotation[diffArray.length];
+      final double[] contributions = new double[diffArray.length];
       for (int i = 0; i < diffArray.length; i++) {
-        final double[] pair = diffArray[i];
-        contributions[i] = Similarity.cosineSignalContribution(pair, cosineDivisor);
-
-        final DataPoint[] dps = aligned.get(i);
-        if (dps[0] != null && dps[1] != null) {
-          if (mzTol.checkWithinTolerance(dps[0].getMZ(), dps[1].getMZ())) {
-            annotations[i] = SignalAlignmentAnnotation.MATCH;
-          } else {
-            annotations[i] = SignalAlignmentAnnotation.MODIFIED;
-          }
-        } else {
-          annotations[i] = SignalAlignmentAnnotation.NONE;
-        }
+        contributions[i] = Similarity.cosineSignalContribution(diffArray[i], cosineDivisor);
       }
+      final SignalAlignmentAnnotation[] annotations = SignalAlignmentAnnotation.classify(aligned,
+          mzTol);
 
       return new CosinePairContributions(aligned, contributions, annotations);
     }

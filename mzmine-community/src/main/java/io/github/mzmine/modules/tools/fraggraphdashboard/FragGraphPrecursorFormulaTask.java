@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.tools.fraggraphdashboard;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -41,7 +41,6 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -65,7 +64,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final PolarityType polarity;
   private final double averageMZ;
   private final String desc;
-  private final List<IonModification> assignedIonTypes;
+  private final IonLibrary assignedIonTypes;
   private final MassSpectrum ms2Spectrum;
   private final MassSpectrum measuredIsotopePattern;
   private final MolecularFormulaRange elements;
@@ -85,7 +84,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
             .getValue(ElementalHeuristicParameters.checkMultiple), true, //
         parameters.getValue(FragmentGraphCalcParameters.maximumFormulae), //
         parameters.getValue(FragmentGraphCalcParameters.polarity), //
-        parameters.getValue(FragmentGraphCalcParameters.adducts), //
+        parameters.getValue(FragmentGraphCalcParameters.allowedIons), //
         parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance), //
         parameters.getValue(FragmentGraphCalcParameters.elements));
   }
@@ -94,7 +93,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkNOPS,
       boolean checkCH, boolean checkMultiple, boolean checkRDBE, int maxFormulaCount,
-      @NotNull PolarityType polarity, @NotNull List<IonModification> assignedIonTypes,
+      @NotNull PolarityType polarity, @NotNull IonLibrary assignedIonTypes,
       @NotNull MZTolerance ms2Tolerance, @NotNull MolecularFormulaRange elements) {
     super("Calculate precursor formulae", model);
     this.ionTypeOverride = ionTypeOverride;
@@ -107,8 +106,9 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
     this.ms2Tolerance = ms2Tolerance;
     try {
       this.elements = (MolecularFormulaRange) elements.clone();
-      assignedIonTypes.forEach(
-          ion -> FragmentUtils.reflectIonTypeInFormulaRange(new IonType(ion), this.elements));
+      for (IonType ion : assignedIonTypes.ions()) {
+        FragmentUtils.reflectIonTypeInFormulaRange(ion, this.elements);
+      }
     } catch (CloneNotSupportedException e) {
       throw new RuntimeException(e);
     }
@@ -133,7 +133,8 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
   @Override
   public void process() {
-    final boolean couldBeRadical = assignedIonTypes.stream().anyMatch(IonModification::isElectron);
+    final boolean couldBeRadical = assignedIonTypes.ions().stream()
+        .anyMatch(IonType::hasOddElectrons);
 
     generator = setUpFormulaGenerator();
     generateFormulae(couldBeRadical, generator);

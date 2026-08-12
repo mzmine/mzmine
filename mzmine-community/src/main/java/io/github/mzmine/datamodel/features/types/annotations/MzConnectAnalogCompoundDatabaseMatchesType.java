@@ -66,6 +66,6 @@ public class MzConnectAnalogCompoundDatabaseMatchesType extends CompoundDatabase
 
   @Override
   public boolean getDefaultVisibility() {
-    return true;
+    return false;
   }
 }

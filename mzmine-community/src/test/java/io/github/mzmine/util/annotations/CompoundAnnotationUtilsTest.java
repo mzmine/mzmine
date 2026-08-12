@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,8 +40,8 @@ import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatc
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.util.collections.SortOrder;
 import java.util.Collection;
 import java.util.List;
@@ -68,9 +68,9 @@ class CompoundAnnotationUtilsTest {
     db.setScore(rand.nextFloat());
 
     IonType ion = switch (rand.nextInt(4)) {
-      case 0 -> new IonType(2, IonModification.H);
-      case 1 -> new IonType(1, IonModification.H);
-      case 2 -> new IonType(1, IonModification.H, IonModification.H2O);
+      case 0 -> IonTypes.M2_H.asIonType();
+      case 1 -> IonTypes.H.asIonType();
+      case 2 -> IonTypes.H_H2O.asIonType();
       default -> null;
     };
     db.put(IonTypeType.class, ion);
@@ -108,9 +108,9 @@ class CompoundAnnotationUtilsTest {
 
   @Test
   void rankUniqueAnnotationTypes() {
-    List<DataType> types = DataTypes.getAll(FormulaType.class, MZType.class, SmilesStructureType.class,
-        LipidMatchListType.class, SpectralLibraryMatchesType.class, MissingValueType.class,
-        MissingValueType.class);
+    List<DataType> types = DataTypes.getAll(FormulaType.class, MZType.class,
+        SmilesStructureType.class, LipidMatchListType.class, SpectralLibraryMatchesType.class,
+        MissingValueType.class, MissingValueType.class);
     var map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types,
         SortOrder.DESCENDING);
     assertEquals(3, map.size());

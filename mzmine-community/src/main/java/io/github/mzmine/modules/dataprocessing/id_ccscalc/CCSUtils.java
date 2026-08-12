@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -129,12 +128,16 @@ public class CCSUtils {
     final List<String[]> content = CSVParsingUtils.readData(file, ";");
     fileReader.close();
 
+    final MZType mzType = DataTypes.get(MZType.class);
+    final io.github.mzmine.datamodel.features.types.numbers.MobilityType mobilityType = DataTypes.get(
+        io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
+    final CCSType ccsType = DataTypes.get(CCSType.class);
+    final ChargeType chargeType = DataTypes.get(ChargeType.class);
     List<ImportType<?>> importTypes = CSVParsingUtils.findLineIds(
-        List.of(new ImportType<>(true, "mz", DataTypes.get(MZType.class)), //
-            new ImportType<>(true, "mobility", DataTypes.get(
-                io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
-            new ImportType<>(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType<>(true, "charge", DataTypes.get(ChargeType.class))), content.getFirst(),
+        List.of(new ImportType<>(true, "mz", mzType), //
+            new ImportType<>(true, "mobility", mobilityType), //
+            new ImportType<>(true, "ccs", ccsType), //
+            new ImportType<>(true, "charge", chargeType)), content.getFirst(),
         new SimpleStringProperty());
 
     if (importTypes == null) {
@@ -157,10 +160,10 @@ public class CCSUtils {
     for (int i = 0; i < numCalibrants; i++) {
       try {
         calibrants.add(new CCSCalibrant(null, null, //
-            Double.parseDouble(content.get(i + 1)[mzIndex]), // mz
-            Float.parseFloat(content.get(i + 1)[mobilityIndex]), // mobility
-            Float.parseFloat(content.get(i + 1)[ccsIndex]), // ccs
-            Integer.parseInt(content.get(i + 1)[chargeIndex]))); // charge
+            mzType.getMapper().apply(content.get(i + 1)[mzIndex]), // mz
+            mobilityType.getMapper().apply(content.get(i + 1)[mobilityIndex]), // mobility
+            ccsType.getMapper().apply(content.get(i + 1)[ccsIndex]), // ccs
+            chargeType.getMapper().apply(content.get(i + 1)[chargeIndex]))); // charge
       } catch (NumberFormatException e) {
         final int finalI = i;
         logger.warning(

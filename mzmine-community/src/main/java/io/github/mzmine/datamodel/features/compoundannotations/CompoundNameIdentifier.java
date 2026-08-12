@@ -43,14 +43,13 @@ import io.github.mzmine.datamodel.features.types.identifiers.IupacNameType;
  * May add a "uniqueness" identifier in the future, that ranks by uniqueness.
  */
 public enum CompoundNameIdentifier {
-  COMPOUND_NAME, IUPAC_NAME, INTERNAL_ID, SMILES, INCHI, INCHI_KEY, FORMULA, CAS;
+  COMPOUND_NAME, IUPAC_NAME, INTERNAL_ID, SMILES, INCHI, INCHI_KEY, CAS;
 
   public Class<? extends DataType<?>> getDataTypeClass() {
     return switch (this) {
       case COMPOUND_NAME -> CompoundNameType.class;
       case IUPAC_NAME -> IupacNameType.class;
       case INTERNAL_ID -> InternalIdType.class;
-      case FORMULA -> FormulaType.class;
       case SMILES -> SmilesStructureType.class;
       case INCHI_KEY -> InChIKeyStructureType.class;
       case INCHI -> InChIStructureType.class;

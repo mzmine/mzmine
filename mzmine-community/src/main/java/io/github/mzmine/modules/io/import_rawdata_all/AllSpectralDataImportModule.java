@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,13 +51,14 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
 import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoImportTaskDelegator;
-import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.Wiff2ImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
@@ -147,7 +148,16 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   public static ImportFile validateToActualPath(File file, boolean keepConverted) {
     file = validateBrukerPath(file);
 
-    final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+    RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+    /*if (type == RawDataFileType.SCIEX_WIFF) { // prefer wiff2 over wiff1
+      final File wiff2 = new File(file.getParentFile(),
+          FileAndPathUtil.eraseFormat(file.getName()) + ".wiff2");
+      if (wiff2.exists() && wiff2.canRead()) {
+        file = wiff2;
+        type = RawDataFileType.SCIEX_WIFF2;
+      }
+    }*/
+
     // we are loading thermo raw files by thermo raw file parser that keeps the .raw extension.
     // MSconvert task can in theory convert thermo .raw so skip the method call instead of changing the way msconvert task works
     // TODO this will need to change with the data handling parameter that defines which SDK to use for each format.
@@ -188,20 +198,24 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private static boolean checkDuplicateFilesInImportListAndProject(
       final @NotNull MZmineProject project, final ImportFile[] filesToImport) {
     // check that files were not loaded before
-    File[] alreadyImportedFiles = Stream.concat(
-        project.getCurrentRawDataFiles().stream().map(RawDataFile::getAbsoluteFilePath),
-        Arrays.stream(filesToImport).map(ImportFile::importedFile)).toArray(File[]::new);
-    return containsDuplicateFiles(alreadyImportedFiles,
+    final Stream<@NotNull File> currentFiles = project.getCurrentRawDataFiles().stream()
+        .map(RawDataFile::getAbsoluteFilePath)
+        .distinct(); // some data files may create more than one RawDataFile
+    final Stream<@NotNull File> importFiles = Arrays.stream(filesToImport)
+        .map(ImportFile::importedFile);
+
+    final File[] combinedFiles = Stream.concat(currentFiles, importFiles).toArray(File[]::new);
+    return containsDuplicateFiles(combinedFiles,
         "raw data file names in the import list that collide with already loaded data");
   }
 
   /**
-   * @param context libraries or raw data
+   * @param context libraries or raw data (context for the error message)
    * @return true if file names are duplicates
    */
-  private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
+  private static boolean containsDuplicateFiles(final File[] files, String context) {
     List<String> duplicates = CollectionUtils.streamDuplicates(
-        Arrays.stream(fileNames).map(File::getName)).toList();
+        Arrays.stream(files).map(File::getName)).toList();
     if (!duplicates.isEmpty()) {
       String msg = """
           Stopped import as there were duplicate %s.
@@ -316,9 +330,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final List<ImportFile> unknownFileTypes = Arrays.stream(filesToImport)
         .filter(f -> f.type() == null).toList();
     if (!unknownFileTypes.isEmpty()) {
-      String files = Arrays.stream(filesToImport).map(f -> f.originalFile().getAbsolutePath())
+      String files = unknownFileTypes.stream().map(f -> f.originalFile().getAbsolutePath())
           .collect(Collectors.joining(",\n"));
-      String msg = "Could not identify the data type needed for import of n files=%d. The file/path might not exist.\n%s".formatted(
+      String msg = "Could not identify the data type needed for import of %d files. The file/path might not exist or be corrupt.\n%s".formatted(
           unknownFileTypes.size(), files);
       MZmineCore.getDesktop().displayErrorMessage(msg);
       logger.log(Level.SEVERE, "%s.  %s".formatted(msg, files));
@@ -422,7 +436,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               scanProcessorConfig);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
+      case SCIEX_WIFF2, SCIEX_WIFF ->
+          new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
+          scanProcessorConfig);
+      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       case WATERS_RAW, WATERS_RAW_IMS ->
@@ -471,8 +488,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case WATERS_RAW, WATERS_RAW_IMS ->
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);
+      case SCIEX_WIFF2, SCIEX_WIFF ->
+          new Wiff2ImportTask(storage, moduleCallDate, file, parameters, project,
+          scanProcessorConfig);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
-      case AGILENT_D, AGILENT_D_IMS, SCIEX_WIFF, SCIEX_WIFF2, SHIMADZU_LCD, MBI ->
+      case AGILENT_D, AGILENT_D_IMS, SHIMADZU_LCD, MBI ->
           new MSConvertImportTask(storage, moduleCallDate, file, scanProcessorConfig, project,
               module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately

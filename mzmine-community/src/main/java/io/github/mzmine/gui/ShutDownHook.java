@@ -27,6 +27,7 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.ClearcoreServer;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskService;
 import java.util.logging.Level;
@@ -42,6 +43,12 @@ class ShutDownHook extends Thread {
 
   @Override
   public void run() {
+
+    try {
+      ClearcoreServer.terminateSeverIfRunning();
+    } catch (Exception e) {
+      // silent
+    }
 
     // Cancel all running tasks - this is important because tasks can spawn
     // additional processes (such as ThermoRawDump.exe on Windows) and these

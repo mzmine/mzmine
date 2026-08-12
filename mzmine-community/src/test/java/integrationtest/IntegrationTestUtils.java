@@ -27,6 +27,7 @@ package integrationtest;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -157,9 +158,9 @@ public class IntegrationTestUtils {
 
   public static List<CheckResult> runBatchCompareToCsv(@NotNull final IntegrationTest test,
       String expectedResultsFullPath) {
-    final URL resource = IntegrationTestUtils.class.getClassLoader().getResource(expectedResultsFullPath);
-    return runBatchCompareToCsv(test.batchFile(),
-        urlToFile(resource), test.tempDir(),
+    final URL resource = IntegrationTestUtils.class.getClassLoader()
+        .getResource(expectedResultsFullPath);
+    return runBatchCompareToCsv(test.batchFile(), urlToFile(resource), test.tempDir(),
         test.rawFiles(), test.specLibs());
   }
 
@@ -218,7 +219,7 @@ public class IntegrationTestUtils {
     final File csvExportFile = addOrModifyModularCsvExportStep(batchFileName, tempDir, queue);
 
     final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, overrideDataFiles,
-        null, overrideSpectralLibraries, null, Instant.now());
+        null, overrideSpectralLibraries, null, Instant.now(), null, null);
 
     checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
         project);
@@ -265,8 +266,8 @@ public class IntegrationTestUtils {
 
   /**
    * @param expectedResultsFullPath path string to the expected results.
-   * @param batchExportedFile   the exported csv file.
-   * @param batchFileName       the batch name for logging.
+   * @param batchExportedFile       the exported csv file.
+   * @param batchFileName           the batch name for logging.
    * @return A list of check results. empty if everything was ok.
    */
   public static List<@NotNull CheckResult> getCsvComparisonResults(
@@ -328,7 +329,8 @@ public class IntegrationTestUtils {
     } else {
       final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
           FeatureListRowsFilter.ALL, true, ";", ",",
-          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+          CompoundRowSelection.ALL_FEATURE_ROWS);
       queue.add(
           new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(CSVExportModularModule.class),
               parameters));
@@ -366,7 +368,7 @@ public class IntegrationTestUtils {
 
     final CSVExportModularTask exportTask = new CSVExportModularTask(
         new ModularFeatureList[]{(ModularFeatureList) finalFlist}, csvExportFile, ",", ";",
-        FeatureListRowsFilter.ALL, true, Instant.now());
+        FeatureListRowsFilter.ALL, true, Instant.now(), CompoundRowSelection.ALL_FEATURE_ROWS);
     exportTask.run();
     return csvExportFile;
   }

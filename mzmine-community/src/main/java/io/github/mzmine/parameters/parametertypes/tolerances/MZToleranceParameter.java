@@ -70,9 +70,19 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
 
   public MZToleranceParameter(@NotNull ToleranceType tolType, String description, double deltaMZ,
       double ppm, boolean zeroAllowed) {
+    this(tolType, description, new MZTolerance(deltaMZ, ppm), zeroAllowed);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, String description,
+      MZTolerance mzTol) {
+    this(tolType, description, mzTol, false);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, String description, MZTolerance mzTol,
+      boolean zeroAllowed) {
     this(tolType, description);
     this.zeroAllowed = zeroAllowed;
-    value = new MZTolerance(deltaMZ, ppm);
+    value = mzTol;
   }
 
   public MZToleranceParameter(@NotNull ToleranceType tolType, double deltaMZ, double ppm,

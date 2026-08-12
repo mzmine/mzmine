@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -45,9 +46,7 @@ import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
@@ -210,17 +209,15 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
 
     if (lastEntity != null && x == lastEntityX && y == lastEntityY) {
       return lastEntity;
-    } else {
-      ChartRenderingInfo info = chartViewer.getCanvas().getRenderingInfo();
-      ChartEntity entity = null;
-      if (info != null) {
-        EntityCollection entities = info.getEntityCollection();
-        if (entities != null) {
-          entity = entities.getEntity(x, y);
-        }
-      }
-      return entity;
     }
+    final double adjustedX = e.getX() - insets.getLeft();
+    final double adjustedY = e.getY() - insets.getTop();
+    final ChartEntity entity = ChartLogicsFX.findChartEntity(chartViewer.getCanvas(), adjustedX,
+        adjustedY);
+    lastEntity = entity;
+    lastEntityX = x;
+    lastEntityY = y;
+    return entity;
   }
 
   /**

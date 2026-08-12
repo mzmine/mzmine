@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,20 +25,33 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.arpls.ArplsBaselineCorrectorParameters;
+import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,13 +65,15 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   public static final ModuleOptionsEnumComboParameter<BaselineCorrectors> correctionAlgorithm = new ModuleOptionsEnumComboParameter<>(
       "Baseline corrector", "Select the baseline correction algorithm.",
       new BaselineCorrectors[]{BaselineCorrectors.LOESS, BaselineCorrectors.POLYNOMIAL,
-          BaselineCorrectors.SPLINE}, BaselineCorrectors.LOESS);
+          BaselineCorrectors.SPLINE, BaselineCorrectors.ARPLS}, BaselineCorrectors.ARPLS);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       false);
 
   public BaselineCorrectionParameters() {
-    super(flists, suffix, correctionAlgorithm, handleOriginal);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/uv/uv_baseline_correction/uv_baseline_correction.html",
+        flists, suffix, correctionAlgorithm, handleOriginal);
   }
 
   @Override
@@ -90,7 +105,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterDialogWithPreviewPanes(valueCheckRequired, this,
-        BaselineCorrectionPreview::new);
+        getMessage(), BaselineCorrectionPreview::new, true);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -112,5 +127,46 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlowInAccordion("Citation", text("When using the "),
+        boldText(BaselineCorrectors.ARPLS.toString()), text(" baseline corrector, please cite "),
+        hyperlinkText("Baek et al.", " https://doi.org/10.1039/c4an01061b"));
+  }
+
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+    return List.of(
+        new ModulePreset("arPLS - default (batch)", new BaselineCorrectionModule().getUniqueID(),
+            createDefaultArpls(
+                new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+                OriginalFeatureListOption.REMOVE, "bl")),
+        new ModulePreset("arPLS - default (selected in GUI)",
+            new BaselineCorrectionModule().getUniqueID(), createDefaultArpls(
+            new FeatureListsSelection(FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS),
+            OriginalFeatureListOption.REMOVE, "bl")));
+  }
+
+  public static ParameterSet create(@NotNull FeatureListsSelection selection,
+      @NotNull OriginalFeatureListOption original, @NotNull String nameSuffix,
+      @NotNull BaselineCorrectors corrector, @NotNull ParameterSet correctorParam) {
+    BaselineCorrectionParameters param = (BaselineCorrectionParameters) new BaselineCorrectionParameters().cloneParameterSet();
+    param.setParameter(BaselineCorrectionParameters.flists, selection);
+    param.setParameter(BaselineCorrectionParameters.handleOriginal, original);
+    param.setParameter(BaselineCorrectionParameters.suffix, nameSuffix);
+    param.setParameter(BaselineCorrectionParameters.correctionAlgorithm, corrector);
+    param.getParameter(BaselineCorrectionParameters.correctionAlgorithm)
+        .setEmbeddedParameters(correctorParam);
+    return param;
+  }
+
+  public static ParameterSet createDefaultArpls(@NotNull FeatureListsSelection selection,
+      @NotNull OriginalFeatureListOption original, @NotNull String nameSuffix) {
+    ArplsBaselineCorrectorParameters arpls = ArplsBaselineCorrectorParameters.create(false,
+        ArplsBaselineCorrectorParameters.DEFAULT_LAMBDA,
+        ArplsBaselineCorrectorParameters.DEFAULT_MAX_ITERATIONS);
+    return create(selection, original, nameSuffix, BaselineCorrectors.ARPLS, arpls);
   }
 }

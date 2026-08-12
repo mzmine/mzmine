@@ -209,7 +209,7 @@ class FormulaPredictionSubTask extends AbstractTask {
 
       List<ResultFormula> resultingFormulas = new ArrayList<>();
       final double rowMz = row.getAverageMZ();
-      if(rowMz > highMassLimit) {
+      if (rowMz > highMassLimit) {
         continue;
       }
 

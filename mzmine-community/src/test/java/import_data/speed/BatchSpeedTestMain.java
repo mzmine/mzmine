@@ -193,7 +193,7 @@ public class BatchSpeedTestMain {
     File batch = getFileOrResource(batchFile);
 
     BatchTask task = BatchModeModule.runBatchFile(ProjectService.getProject(), batch, files, null, null,
-        null, Instant.now());
+        null, Instant.now(), null, null);
 
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
 

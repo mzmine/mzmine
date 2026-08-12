@@ -26,9 +26,13 @@
 package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.identities.iontype.IonPart;
+import io.github.mzmine.datamodel.identities.iontype.IonPartParsingException;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.validation.FxValidation;
+import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,8 +41,10 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonTypeTextField extends HBox {
@@ -48,6 +54,7 @@ public class IonTypeTextField extends HBox {
   private final TextField tf = new TextField();
   private final Label parsed = new Label();
   private final StringProperty stringProperty = new SimpleStringProperty();
+  private final StringProperty parsingError = new SimpleStringProperty();
 
   public IonTypeTextField() {
     super(FxLayout.DEFAULT_SPACE);
@@ -66,18 +73,44 @@ public class IonTypeTextField extends HBox {
         if (string == null || string.isBlank()) {
           return null;
         }
-        return IonTypeParser.parse(string);
+        try {
+          final IonType ion = IonTypeParser.parseOrThrow(string);
+          if (ion == null) {
+            parsingError.set(null);
+            return null;
+          }
+
+          final List<@NotNull IonPart> undefined = ion.stream().filter(IonPart::isUndefinedMass)
+              .toList();
+          parsingError.set(undefined.isEmpty() ? null : """
+              Ion type contains parts with undefined mass, open the %s tab to define these ion building blocks and re-enter this ion.""");
+          return ion;
+        } catch (IonPartParsingException e) {
+          parsingError.set(e.getMessage());
+          return null;
+        }
       }
     };
 
     Bindings.bindBidirectional(stringProperty, ionTypeProperty, converter);
 
     tf.textProperty().bindBidirectional(stringProperty);
-    tf.textProperty().addListener((_, _, _) -> ionTypeProperty.get());
+
+    // check if we should use prompt in text field
+//    final String prompt = "Format: [2M-H2O+2H]+2 or with charge +(Cu+2)";
+    final String tooltip = """
+        Enter ion types like adducts, in source fragments, and clusters.
+        Full format uses M (for molecule), brackets, and charge state: [M+2H]+2 but all three are optional.
+        Simple format just uses defined ion building blocks, e.g., -H2O+H results in [M-H2O+H]+
+        Define charge of individual parts in (): +(Cu+2)-H equals [M+(Cu+2)-H]+
+        Use () to enclose reserved symbols like +- or braces, e.g., +(propan-2-ol)""";
+    tf.setTooltip(new Tooltip(tooltip));
 
     ionTypeProperty.addListener((__, old, newType) -> {
       parsed.setText(converter.toString(newType));
     });
+
+    FxValidation.registerErrorValidator(tf, parsingError);
 
     setAlignment(Pos.CENTER_LEFT);
     getChildren().addAll(tf, parsed);

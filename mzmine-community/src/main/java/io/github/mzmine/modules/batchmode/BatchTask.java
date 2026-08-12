@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
+import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -59,6 +61,8 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapSnapshot;
+import io.github.mzmine.util.MemoryMapStorageStats;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CsvWriter;
@@ -76,6 +80,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Batch mode task
@@ -87,13 +92,14 @@ public class BatchTask extends AbstractTask {
   // advanced parameters
   private final int stepsPerDataset;
   private final int totalSteps;
-  private final MZmineProject project;
   private final boolean useAdvanced;
   private final int datasets;
   private final List<StepTimeMeasurement> stepTimes = new ArrayList<>();
+  // collected in parallel to stepTimes - temp file (MemoryMapStorage) statistics per step
+  private final List<StepStorageMeasurement> stepStorageStats = new ArrayList<>();
   private final boolean runGCafterBatchStep;
   private int processedSteps;
-  private List<File> subDirectories;
+  private @Nullable List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
   private List<FeatureList> createdFeatureLists;
@@ -110,14 +116,14 @@ public class BatchTask extends AbstractTask {
   }
 
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
-      final Instant moduleCallDate, final List<File> subDirectories) {
+      final Instant moduleCallDate, final @Nullable List<File> subDirectories) {
     super(null, moduleCallDate);
     this.runGCafterBatchStep = requireNonNullElse(
         getPreference(MZminePreferences.runGCafterBatchStep), false);
 
     setName("Batch task");
-    this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
+
     // advanced parameters
     useAdvanced = false;
 //    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
@@ -220,7 +226,7 @@ public class BatchTask extends AbstractTask {
       System.gc();
     }
     stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
-    printBatchTimes();
+    printBatchMeasurements();
   }
 
   private void runBatchQueue() {
@@ -230,15 +236,16 @@ public class BatchTask extends AbstractTask {
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
-      if (useAdvanced && currentStep() == 0) {
+      if (useAdvanced && currentStep() == 0 && subDirectories != null) {
         // clear the old project
         ProjectService.getProjectManager().clearProject();
         currentDataset++;
 
-        // print step times
-        if (!stepTimes.isEmpty()) {
-          printBatchTimes();
+        // print and reset per-dataset step measurements (timing + temp file usage)
+        if (!stepStorageStats.isEmpty()) {
+          printBatchMeasurements();
           stepTimes.clear();
+          stepStorageStats.clear();
         }
 
         // change files
@@ -286,6 +293,7 @@ public class BatchTask extends AbstractTask {
       // run step
       final int stepNumber = i % stepsPerDataset;
       Instant start = Instant.now();
+      final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
 
       // the heavy lifting
       processQueueStep(stepNumber);
@@ -295,9 +303,13 @@ public class BatchTask extends AbstractTask {
       if (runGCafterBatchStep) {
         System.gc();
       }
+      final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       stepTimes.add(
           new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
               duration, runGCafterBatchStep));
+      stepStorageStats.add(
+          new StepStorageMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
+              storageBefore, storageAfter));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
@@ -318,18 +330,46 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void printBatchTimes() {
-    String csv = CsvWriter.writeToString(stepTimes, StepTimeMeasurement.class, '\t', true);
-    logger.info("""
-        Timing: Whole batch took %.3f seconds to finish
-        %s""".formatted(stepTimes.getLast().secondsToFinish(), csv));
+  /**
+   * Logs timing and temp file usage of all collected steps as a single CSV, followed by a TOTAL row
+   * that sums the per-step values (live values are the latest snapshot). Pairs {@link #stepTimes}
+   * and {@link #stepStorageStats} by index; a trailing "WHOLE BATCH" timing entry (if present) is
+   * ignored in favor of the computed TOTAL row.
+   */
+  private void printBatchMeasurements() {
+    final int steps = stepStorageStats.size();
+    if (steps == 0) {
+      return;
+    }
+    final List<StepMeasurement> measurements = new ArrayList<>(steps + 1);
+    for (int i = 0; i < steps; i++) {
+      measurements.add(new StepMeasurement(stepTimes.get(i), stepStorageStats.get(i)));
+    }
 
-//    CsvWriter.writeToFile();
-//    logger.info(csv);
-//    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
-//    logger.info(STR."""
-//    Timing: Whole batch took \{duration} to finish
-//    \{times}""");
+    // TOTAL row: sum per-step values, round to 3 decimals to keep the CSV clean; live values are
+    // the latest snapshot, not a sum
+    final double totalSeconds = round3(
+        stepTimes.stream().limit(steps).mapToDouble(StepTimeMeasurement::secondsToFinish).sum());
+    final long totalFiles = stepStorageStats.stream()
+        .mapToLong(StepStorageMeasurement::filesCreatedInStep).sum();
+    final double totalReservedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::reservedGBInStep).sum());
+    final double totalUsedGB = round3(
+        stepStorageStats.stream().mapToDouble(StepStorageMeasurement::usedGBInStep).sum());
+
+    final StepStorageMeasurement last = stepStorageStats.getLast();
+    measurements.add(new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, "TOTAL", null),
+        new StepStorageMeasurement(0, "TOTAL", totalFiles, totalReservedGB, totalUsedGB,
+            last.liveFiles(), last.liveUsedGB())));
+
+    final String csv = CsvWriter.writeToString(measurements, StepMeasurement.class, '\t', true);
+    logger.info("""
+        Batch step measurements (timing + temp file usage)
+        %s""".formatted(csv));
+  }
+
+  private static double round3(final double value) {
+    return Math.round(value * 1e3) / 1e3;
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -372,8 +412,8 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = project.getCurrentFeatureLists();
-    final List<RawDataFile> beforeDataFiles = project.getCurrentRawDataFiles();
+    final List<FeatureList> beforeFeatureLists = getProject().getCurrentFeatureLists();
+    final List<RawDataFile> beforeDataFiles = getProject().getCurrentRawDataFiles();
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -419,7 +459,7 @@ public class BatchTask extends AbstractTask {
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString()
         + " with parameters " + batchStepParameters.cloneParameterSet(true).toString());
-    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
+    ExitCode exitCode = method.runModule(getProject(), batchStepParameters, currentStepTasks,
         moduleCallDate);
     logger.finest(
         () -> "Module " + method.getName() + " created " + currentStepTasks.size() + " tasks");
@@ -456,8 +496,8 @@ public class BatchTask extends AbstractTask {
       return;
     }
 
-    createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
+    createdDataFiles = new ArrayList<>(getProject().getCurrentRawDataFiles());
+    createdFeatureLists = new ArrayList<>(getProject().getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     createdFeatureLists.removeIf(FeatureList::isExcludedFromBatchLastSelection);
@@ -596,5 +636,11 @@ public class BatchTask extends AbstractTask {
 
   public BatchQueue getQueueCopy() {
     return queue.clone();
+  }
+
+  private MZmineProject getProject() {
+    // uses the current project as the project may change, e.g., by loading a project in the batch
+    // potentially make a supplier in the future. will need to update the project opening task in that case.
+    return ProjectService.getProject();
   }
 }

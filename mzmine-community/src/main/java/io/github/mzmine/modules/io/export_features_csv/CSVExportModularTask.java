@@ -33,6 +33,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
+import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
@@ -94,6 +97,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter rowFilter;
   private final boolean removeEmptyCols;
+  private final CompoundRowSelection rowSelection;
   private final ParameterSet parameters;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
@@ -108,10 +112,12 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
+    rowSelection = parameters.getValue(CSVExportModularParameters.compoundRowSelection);
     this.parameters = parameters;
   }
 
   /**
+   * @param compoundRowSelection
    * @param featureLists   feature lists to export
    * @param fileName       export file name
    * @param fieldSeparator separation of columns
@@ -120,7 +126,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator, String idSeparator, FeatureListRowsFilter rowFilter,
-      boolean removeEmptyCols, @NotNull Instant moduleCallDate) {
+      boolean removeEmptyCols, @NotNull Instant moduleCallDate,
+      CompoundRowSelection compoundRowSelection) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat.format(
@@ -132,6 +139,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.idSeparator = idSeparator;
     this.rowFilter = rowFilter;
     this.removeEmptyCols = removeEmptyCols;
+    this.rowSelection = compoundRowSelection;
     parameters = null;
   }
 
@@ -237,13 +245,21 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   @SuppressWarnings("rawtypes")
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
-    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept)
+    final List<FeatureListRow> selectedRows = new ArrayList<>(flist.getRowsCopy(rowSelection));
+    final List<FeatureListRow> rows = selectedRows.stream().filter(rowFilter::accept)
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     final Comparator<DataType> sorter = DataTypes.getDefaultSorterFeatureTable();
 
-    List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
+    // when compound rows are exported, also offer the compound-only row types as columns
+    final Set<DataType> rowTypeSource = new LinkedHashSet<>(flist.getRowTypes());
+    final CompoundList compoundList = flist.getCompoundList();
+    if (compoundList != null && rows.stream().anyMatch(row -> row instanceof CompoundRow)) {
+      rowTypeSource.addAll(compoundList.getCompoundRowSchema().getTypes());
+    }
+
+    List<DataType> rowTypes = rowTypeSource.stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1)).sorted(sorter)
         .collect(Collectors.toList());
 

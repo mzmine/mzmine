@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.awt.geom.Rectangle2D;
@@ -63,50 +64,49 @@ public class PlotCursorUtils {
 
     final Rectangle2D dataArea = ChartLogicsFX.getDataArea(searchX, searchY, renderInfo);
 
-    // find axis
-    RenderedValueAxis domainAxis = RenderedValueAxis.domainOf(plot);
-    RenderedValueAxis rangeAxis = RenderedValueAxis.rangeOf(plot);
-    if (rangeAxis == null || domainAxis == null) {
-      throw new UnsupportedOperationException(
-          "No axis found for plot (maybe category or combined axis plot?)" + plot);
-    }
-
     // mabye there is a more efficient way of searching for the selected value index.
     int itemIndex = -1;
-    int datasetIndex = -1;
+    @Nullable XYDataset bestDataset = null;
     double dist = Double.MAX_VALUE;
 
     double bestX = -1;
     double bestY = -1;
 
     for (int dsIndex = 0; dsIndex < plot.getDatasetCount(); dsIndex++) {
-      XYDataset dataset = plot.getDataset(dsIndex);
-      if (dataset == null) {
+      final XYDataset dataset = plot.getDataset(dsIndex);
+      if (dataset == null || !isCursorSelectable(dataset)) {
         continue;
       }
 
-      final int numDP = dataset.getItemCount(0);
-      for (int i = 0; i < numDP; i++) {
-        final double itemX = dataset.getXValue(0, i);
-        final double itemY = dataset.getYValue(0, i);
-        final double screenX = domainAxis.valueToJava2D(itemX, dataArea);
-        final double screenY = rangeAxis.valueToJava2D(itemY, dataArea);
-        // compare on pixel basis
-        double newDist = MathUtils.getDistance(searchX, searchY, screenX, screenY);
-        if (newDist < dist) {
-          dist = newDist;
-          itemIndex = i;
-          datasetIndex = dsIndex;
-          bestX = itemX;
-          bestY = itemY;
+      final RenderedValueAxis domainAxis = RenderedValueAxis.domainOfDataset(plot, dataset);
+      final RenderedValueAxis rangeAxis = RenderedValueAxis.rangeOfDataset(plot, dataset);
+      if (rangeAxis == null || domainAxis == null) {
+        continue;
+      }
+
+      for (int series = 0; series < dataset.getSeriesCount(); series++) {
+        final int numDP = dataset.getItemCount(series);
+        for (int i = 0; i < numDP; i++) {
+          final double itemX = dataset.getXValue(series, i);
+          final double itemY = dataset.getYValue(series, i);
+          final double screenX = domainAxis.valueToJava2D(itemX, dataArea);
+          final double screenY = rangeAxis.valueToJava2D(itemY, dataArea);
+          // assumption: selectable datasets are single-series in the current cursor model.
+          final double newDist = MathUtils.getDistance(searchX, searchY, screenX, screenY);
+          if (newDist < dist) {
+            dist = newDist;
+            itemIndex = i;
+            bestDataset = dataset;
+            bestX = itemX;
+            bestY = itemY;
+          }
         }
       }
     }
     if (itemIndex == -1) {
       cursorPositionProperty.set(null);
     } else {
-      cursorPositionProperty.set(
-          new PlotCursorPosition(bestX, bestY, itemIndex, plot.getDataset(datasetIndex),
+      cursorPositionProperty.set(new PlotCursorPosition(bestX, bestY, itemIndex, bestDataset,
               event.getMouseEvent()));
     }
   }
@@ -227,11 +227,16 @@ public class PlotCursorUtils {
   @Nullable
   private static PlotCursorPosition findItemInDataset(@NotNull XYDataset dataset, double domain,
       double range) {
-    for (int i = 0; i < dataset.getItemCount(0); i++) {
-      final double x = dataset.getXValue(0, i);
-      final double y = dataset.getYValue(0, i);
-      if (Double.compare(x, domain) == 0 && Double.compare(y, range) == 0) {
-        return new PlotCursorPosition(x, y, i, dataset);
+    if (!isCursorSelectable(dataset)) {
+      return null;
+    }
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int i = 0; i < dataset.getItemCount(series); i++) {
+        final double x = dataset.getXValue(series, i);
+        final double y = dataset.getYValue(series, i);
+        if (Double.compare(x, domain) == 0 && Double.compare(y, range) == 0) {
+          return new PlotCursorPosition(x, y, i, dataset);
+        }
       }
     }
     return null;
@@ -240,14 +245,16 @@ public class PlotCursorUtils {
   @Nullable
   private static PlotCursorPosition findItemInDatasetByDomain(@NotNull XYDataset dataset,
       double domain) {
-    if (dataset.getSeriesCount() == 0) {
+    if (dataset.getSeriesCount() == 0 || !isCursorSelectable(dataset)) {
       return null;
     }
-    for (int i = 0; i < dataset.getItemCount(0); i++) {
-      final double x = dataset.getXValue(0, i);
-      final double y = dataset.getYValue(0, i);
-      if (Double.compare(x, domain) == 0) {
-        return new PlotCursorPosition(x, y, i, dataset);
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int i = 0; i < dataset.getItemCount(series); i++) {
+        final double x = dataset.getXValue(series, i);
+        final double y = dataset.getYValue(series, i);
+        if (Double.compare(x, domain) == 0) {
+          return new PlotCursorPosition(x, y, i, dataset);
+        }
       }
     }
     return null;
@@ -256,16 +263,23 @@ public class PlotCursorUtils {
   @Nullable
   private static PlotCursorPosition findItemInDatasetByRange(@NotNull XYDataset dataset,
       double range) {
-    if (dataset.getSeriesCount() == 0) {
+    if (dataset.getSeriesCount() == 0 || !isCursorSelectable(dataset)) {
       return null;
     }
-    for (int i = 0; i < dataset.getItemCount(0); i++) {
-      final double x = dataset.getXValue(0, i);
-      final double y = dataset.getYValue(0, i);
-      if (Double.compare(y, range) == 0) {
-        return new PlotCursorPosition(x, y, i, dataset);
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int i = 0; i < dataset.getItemCount(series); i++) {
+        final double x = dataset.getXValue(series, i);
+        final double y = dataset.getYValue(series, i);
+        if (Double.compare(y, range) == 0) {
+          return new PlotCursorPosition(x, y, i, dataset);
+        }
       }
     }
     return null;
+  }
+
+  private static boolean isCursorSelectable(final @Nullable XYDataset dataset) {
+    return !(dataset instanceof ColoredXYDataset coloredDataset)
+        || coloredDataset.isCursorSelectable();
   }
 }

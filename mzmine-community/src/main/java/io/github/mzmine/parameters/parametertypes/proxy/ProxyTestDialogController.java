@@ -30,7 +30,6 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.web.ProxyTestUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ProxyTestDialogController extends FxController<ProxyTestDialogModel> {
@@ -41,22 +40,7 @@ public class ProxyTestDialogController extends FxController<ProxyTestDialogModel
     super(new ProxyTestDialogModel());
     viewBuilder = new ProxyTestDialogViewBuilder(model);
 
-    onTaskThread(this::runTests);
-  }
-
-  private void runTests() {
-    final boolean testProxy = ProxyTestUtils.testDefaultClient(true);
-    final boolean testNoProxy = ProxyTestUtils.testDefaultClient(false);
-
-    final String results = ProxyTestUtils.testAll();
-    final String log = ProxyTestUtils.logProxyState("Proxy config test: ");
-
-    FxThread.runLater(() -> {
-      model.setProxyTest(testProxy);
-      model.setNoProxyTest(testNoProxy);
-      model.setMessage(results + "\n\n" + log);
-      model.setTestsFinished(true);
-    });
+    onTaskThread(new ProxyTestUpdateTask(model));
   }
 
   @Override

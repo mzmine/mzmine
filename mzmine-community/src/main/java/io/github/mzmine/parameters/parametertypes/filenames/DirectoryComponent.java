@@ -64,23 +64,7 @@ public class DirectoryComponent extends BorderPane {
     // Chooser button.
     final Button btnFileBrowser = new Button("...");
     btnFileBrowser.setOnAction(e -> {
-      // Create chooser.
-      DirectoryChooser fileChooser = new DirectoryChooser();
-      fileChooser.setTitle(TITLE);
-
-      // Set current directory.
-      final String currentPath = txtDirectory.getText();
-      if (currentPath.length() > 0) {
-
-        final File currentFile = new File(currentPath);
-        final File currentDir = currentFile.getParentFile();
-        if (currentDir != null && currentDir.exists()) {
-          fileChooser.setInitialDirectory(currentDir);
-        }
-      }
-
-      // Open chooser.
-      File selectedFile = fileChooser.showDialog(null);
+      final File selectedFile = showChooseDirectoryDialog();
       if (selectedFile == null) {
         return;
       }
@@ -90,6 +74,30 @@ public class DirectoryComponent extends BorderPane {
 
     setCenter(txtDirectory);
     setRight(btnFileBrowser);
+  }
+
+  public File showChooseDirectoryDialog() {
+    // Create chooser.
+    DirectoryChooser fileChooser = new DirectoryChooser();
+    fileChooser.setTitle(TITLE);
+
+    // Set current directory.
+    final String currentPath = txtDirectory.getText();
+    if (!currentPath.isEmpty()) {
+
+      final File currentDir = new File(currentPath);
+      if (currentDir.exists() && currentDir.isDirectory()) {
+        fileChooser.setInitialDirectory(currentDir);
+      } else {
+        final File parentFile = currentDir.getParentFile();
+        if (parentFile.exists() && parentFile.isDirectory()) {
+          fileChooser.setInitialDirectory(parentFile);
+        }
+      }
+    }
+
+    // Open chooser.
+    return fileChooser.showDialog(null);
   }
 
   public File getValue() {

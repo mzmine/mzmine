@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -30,9 +29,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFra
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javafx.util.Pair;
 
 /**
  * This class contains methods for MS/MS lipid identifications
@@ -59,25 +55,6 @@ public class MSMSLipidTools {
     Double intensityMatchedSignals = annotatedFragments.stream().map(LipidFragment::getDataPoint)
         .mapToDouble(DataPoint::getIntensity).sum();
     return (intensityMatchedSignals / intensityAllSignals);
-  }
-
-  public static Pair<Integer, Integer> getCarbonandDBEFromLipidAnnotaitonString(
-      String lipidAnnotation) {
-    int numberOfCarbons = 0;
-    int doubleBondEquivalents = 0;
-
-    // Define the regular expression pattern
-    Pattern pattern = Pattern.compile("(\\d+):(\\d+)");
-    Matcher matcher = pattern.matcher(lipidAnnotation);
-
-    while (matcher.find()) {
-      int carbonValue = Integer.parseInt(matcher.group(1));
-      int doubleBondValue = Integer.parseInt(matcher.group(2));
-      numberOfCarbons += carbonValue;
-      doubleBondEquivalents += doubleBondValue;
-    }
-
-    return new Pair<>(numberOfCarbons, doubleBondEquivalents);
   }
 
 }

@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,15 +26,17 @@ package io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory implements
@@ -44,14 +45,16 @@ public class GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory implements
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
 
   @Override
-  public MatchedLipid validateSpeciesLevelAnnotation(double accurateMz,
-      ILipidAnnotation speciesLevelAnnotation, Set<LipidFragment> annotatedFragments,
-      DataPoint[] massList, double minMsMsScore, MZTolerance mzTolRangeMSMS,
-      IonizationType ionizationType) {
-    Set<LipidFragment> speciesLevelFragments = annotatedFragments.stream().filter(
+  public MatchedLipid validateSpeciesLevelAnnotation(final double accurateMz,
+      final @NotNull ILipidAnnotation speciesLevelAnnotation,
+      final @NotNull Set<LipidFragment> annotatedFragments, final @NotNull DataPoint[] massList,
+      final double minMsMsScore, final @NotNull MZTolerance mzTolRangeMSMS,
+      final @NotNull IonizationType ionizationType) {
+    final Set<LipidFragment> speciesLevelFragments = annotatedFragments.stream().filter(
         lipidFragment -> lipidFragment.getLipidFragmentInformationLevelType()
             .equals(LipidAnnotationLevel.SPECIES_LEVEL)).collect(Collectors.toSet());
-    if (!speciesLevelFragments.isEmpty()) {
+    if (!speciesLevelFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
+        speciesLevelFragments)) {
       IMolecularFormula lipidFormula = null;
       try {
         lipidFormula = (IMolecularFormula) speciesLevelAnnotation.getMolecularFormula().clone();

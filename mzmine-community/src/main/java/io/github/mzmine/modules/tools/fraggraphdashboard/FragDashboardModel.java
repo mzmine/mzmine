@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,8 @@ package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
@@ -68,10 +68,9 @@ public class FragDashboardModel {
    * currently not used.
    */
   private final ObjectProperty<IonType> ionType = new SimpleObjectProperty<>(
-      new IonType(IonModification.H));
+      IonTypes.H.asIonType());
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
-      FXCollections.observableArrayList(new IonType(IonModification.H),
-          new IonType(IonModification.H_NEG)));
+      FXCollections.observableArrayList(IonTypes.H.asIonType(), IonTypes.H_MINUS.asIonType()));
 
   /**
    * A list of possible precursor formulae for the given precursor m/z. Displayed in a table in the

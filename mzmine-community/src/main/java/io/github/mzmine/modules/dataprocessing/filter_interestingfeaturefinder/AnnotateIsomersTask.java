@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -48,8 +45,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -128,10 +123,6 @@ public class AnnotateIsomersTask extends AbstractTask {
 
       processed.getAndIncrement();
 
-      if (row.getAverageMZ() > 212.127 && row.getAverageMZ() < 212.129) {
-        logger.info("blub");
-      }
-
       Integer maxRowDp = IonMobilityUtils.getMaxNumTraceDatapoints(row);
       if (row.getMaxDataPointIntensity() < minIntensity || maxRowDp == null
           || maxRowDp < minTraceDatapoints) {
@@ -161,10 +152,6 @@ public class AnnotateIsomersTask extends AbstractTask {
         FeatureListRow possibleRow = rowIterator.next();
         final Float mobility = possibleRow.getAverageMobility();
 
-        if (!rtTolerance.checkWithinTolerance(row.getAverageRT(), possibleRow.getAverageRT())) {
-          logger.info("blub");
-        }
-
         if (mobility == null) {
           continue;
         }
@@ -185,22 +172,27 @@ public class AnnotateIsomersTask extends AbstractTask {
         return;
       }
 
-      if (refineByIIN) {
-        refineByIIN(row, possibleRows);
-      }
+      // TODO method needs rework
+      // Maybe just check the network of each possible row if it has both the 2M+H and M+H combination
+//      if (refineByIIN) {
+//        refineByIIN(row, possibleRows);
+//      }
 
       if (possibleRows.isEmpty()) {
         return;
       }
 
-      row.set(PossibleIsomerType.class, possibleRows.stream().map(FeatureListRow::getID).toList());
+      // sort by ID
+      row.set(PossibleIsomerType.class,
+          possibleRows.stream().map(FeatureListRow::getID).sorted().toList());
 
-      var isomerIds = new ArrayList<>(row.get(PossibleIsomerType.class));
-      final List<FeatureListRow> isomerRows = new ArrayList<>(
-          isomerIds.stream().map(flist::findRowByID).filter(Objects::nonNull).distinct().toList());
-      if (!possibleRows.containsAll(isomerRows)) {
-        logger.info("Candidates do not include all rows");
-      }
+      // for debugging
+//      var isomerIds = new ArrayList<>(row.get(PossibleIsomerType.class));
+//      final List<FeatureListRow> isomerRows = new ArrayList<>(
+//          isomerIds.stream().map(flist::findRowByID).filter(Objects::nonNull).distinct().toList());
+//      if (!possibleRows.containsAll(isomerRows)) {
+//        logger.info("Candidates do not include all rows");
+//      }
     });
 
     flist.getAppliedMethods().add(
@@ -223,83 +215,78 @@ public class AnnotateIsomersTask extends AbstractTask {
     possibleRows.removeAll(rowsToRemove);
   }
 
-  private boolean isFragmentOfMultimer(@NotNull final FeatureListRow row) {
-    if (row.getBestIonIdentity() == null || row.getAverageMobility() == null) {
-      return false;
-    }
-
-    final IonIdentity identity = row.getBestIonIdentity();
-    final IonNetwork network = identity.getNetwork();
-    final int rowMoleculeCount = identity.getIonType().getMolecules();
-    final Float rowMobility = row.getAverageMobility();
-
-    for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
-      final FeatureListRow networkRow = entry.getKey();
-      if (row.equals(networkRow)) {
-        continue;
-      }
-
-      final IonIdentity networkIdentity = entry.getValue();
-      final IonType networkIonType = networkIdentity.getIonType();
-
-      if (networkIonType.getMolecules() > rowMoleculeCount
-          && multimerRecognitionTolerance.checkWithinTolerance(rowMobility,
-          networkRow.getAverageMobility())) {
-        if (networkIdentity.getIonType().getAdduct().contains(identity.getIonType().getAdduct())) {
-          logger.finest(() -> String.format(
-              "m/z %.4f (%s, %.4f %s) is a fragment of multimer m/z %.4f (%s, %.4f %s)",
-              row.getAverageMZ(), identity, row.getAverageMobility(),
-              row.getBestFeature().getMobilityUnit().getUnit(), networkRow.getAverageMZ(),
-              networkIdentity, networkRow.getAverageMobility(),
-              networkRow.getBestFeature().getMobilityUnit().getUnit()));
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private void refineByIIN(@NotNull final FeatureListRow row,
-      @NotNull List<FeatureListRow> possibleIsomery) {
-    if (!row.hasIonIdentity()) {
-      return;
-    }
-/*
-    // Identität in einem IIN
-    final IonIdentity ionIdentity = row.getBestIonIdentity();
-
-    // [2M+ACN+Na]+
-    ionIdentity.getAdduct(); // -> "[2M+ACN+Na]+"
-    ionIdentity.getIonType(); // Kombiniert modification mit adduct / [2M+ACN+Na]+
-    ionIdentity.getIonType().getModification(); // -> ACN
-    ionIdentity.getIonType().getAdduct(); // -> Na+ / Adduct bringt Ladung auf Molekül
-    ionIdentity.getIonType().getMolecules(); // 2 <- Anzahl von M
-
-    // [2M-H+2Na]+
-    ionIdentity.getIonType().getAdduct(); // -> 2Na-H
-    ionIdentity.getIonType().getAdduct().contains(IonModification.NA); // -> 2Na-H*/
-
-    final Float rowMobility = row.getAverageMobility();
-    final IonIdentity rowIdentity = row.getBestIonIdentity();
-    if (rowIdentity == null || rowMobility == null) {
-      return;
-    }
-    final int rowMoleculeCount = rowIdentity.getIonType().getMolecules();
-
-    final List<FeatureListRow> notIsomers = new ArrayList<>();
-    final IonNetwork network = rowIdentity.getNetwork();
-    for (final FeatureListRow isomerRow : possibleIsomery) {
-      final IonIdentity isomerIdentity = network.get(isomerRow);
-      if (isomerIdentity == null) {
-        continue;
-      }
-
-      if (isFragmentOfMultimer(isomerRow)) {
-        // is just a fragmented multimer, remove from possibleIsomers.
-        notIsomers.add(isomerRow);
-      }
-    }
-    possibleIsomery.removeAll(notIsomers);
-  }
+  /*
+   * This method was wrong as it only compared a row.ion.network against the row itself. Maybe the
+   * calling method should have passed the parent row.
+   *
+   * Some assumptions were wrong as well like comparing adducts and requiring ion.molecules() to
+   * be higher. And Ion mobility to be the same. So maybe this was supposed to check for multimers
+   * where we still detect the multimer and monomer at the same ion mobility.
+   *
+   * But the input candidates are already a list of rows with the same mz and RT of the parent row.
+   */
+//  private boolean isFragmentOfMultimer(@NotNull final FeatureListRow row) {
+//    if (row.getBestIonIdentity() == null || row.getAverageMobility() == null) {
+//      return false;
+//    }
+//
+//    final IonIdentity identity = row.getBestIonIdentity();
+//    final IonNetwork network = identity.getNetwork();
+//    final int rowMoleculeCount = identity.getIonType().molecules();
+//    final Float rowMobility = row.getAverageMobility();
+//
+//    for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
+//      final FeatureListRow networkRow = entry.getKey();
+//      if (row.equals(networkRow)) {
+//        continue;
+//      }
+//
+//      final IonIdentity networkIdentity = entry.getValue();
+//      final IonType networkIonType = networkIdentity.getIonType();
+//
+//      if (networkIonType.molecules() > rowMoleculeCount
+//          && !multimerRecognitionTolerance.checkWithinTolerance(rowMobility,
+//          networkRow.getAverageMobility())) {
+//        if (networkIdentity.getIonType().getAdduct().contains(identity.getIonType().getAdduct())) {
+//          logger.finest(() -> String.format(
+//              "m/z %.4f (%s, %.4f %s) is a fragment of multimer m/z %.4f (%s, %.4f %s)",
+//              row.getAverageMZ(), identity, row.getAverageMobility(),
+//              row.getBestFeature().getMobilityUnit().getUnit(), networkRow.getAverageMZ(),
+//              networkIdentity, networkRow.getAverageMobility(),
+//              networkRow.getBestFeature().getMobilityUnit().getUnit()));
+//          return true;
+//        }
+//      }
+//    }
+//    return false;
+//  }
+//
+//  private void refineByIIN(@NotNull final FeatureListRow row,
+//      @NotNull List<FeatureListRow> possibleIsomery) {
+//    if (!row.hasIonIdentity()) {
+//      return;
+//    }
+//
+//    final Float rowMobility = row.getAverageMobility();
+//    final IonIdentity rowIdentity = row.getBestIonIdentity();
+//    if (rowIdentity == null || rowMobility == null) {
+//      return;
+//    }
+//
+//    final List<FeatureListRow> notIsomers = new ArrayList<>();
+//    final IonNetwork network = rowIdentity.getNetwork();
+//    for (final FeatureListRow isomerRow : possibleIsomery) {
+//      final IonIdentity isomerIdentity = network.get(isomerRow);
+//      if (isomerIdentity == null) {
+//        continue;
+//      }
+//
+//      if (isFragmentOfMultimer(row, rowIdentity, isomerRow, isomerIdentity)) {
+//        // is just a fragmented multimer, remove from possibleIsomers.
+//        notIsomers.add(isomerRow);
+//      }
+//    }
+//    possibleIsomery.removeAll(notIsomers);
+//  }
 
 }

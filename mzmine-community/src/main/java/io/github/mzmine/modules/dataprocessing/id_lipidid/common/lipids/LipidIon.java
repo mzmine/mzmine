@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
 
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
 
 public record LipidIon(ILipidAnnotation lipidAnnotation, IonizationType ionizationType, Double mz) {
 

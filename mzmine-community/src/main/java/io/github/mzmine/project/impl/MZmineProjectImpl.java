@@ -47,7 +47,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -73,9 +72,8 @@ public class MZmineProjectImpl implements MZmineProject {
   // use read lock to allow unlimited reads while no write is happening
   private final ReadWriteLock rawLock = new ReentrantReadWriteLock();
   private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
-
-  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private final MetadataTable projectMetadata;
+  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
   @Nullable
@@ -105,14 +103,14 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public @NotNull MetadataTable getProjectMetadata() {
-    return projectMetadata;
-  }
-
-  @Override
   public void setProjectParametersAndValues(
       Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues) {
     this.projectParametersAndValues = projectParametersAndValues;
+  }
+
+  @Override
+  public @NotNull MetadataTable getProjectMetadata() {
+    return projectMetadata;
   }
 
   @Nullable
@@ -134,14 +132,12 @@ public class MZmineProjectImpl implements MZmineProject {
       rawLock.writeLock().lock();
       // avoid duplicate file names and check the actual names of the files of the raw data files
       // since that will be the problem during project save (duplicate zip entries)
-      final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
-          .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+      final List<ProjectFile> names = rawDataFiles.stream().map(ProjectFile::new).toList();
       // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
-      final String name =
-          newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
-      if (names.contains(name)) {
+      final ProjectFile newProjectFile = new ProjectFile(newFile);
+      if (names.contains(newProjectFile)) {
         if (!MZmineCore.isHeadLessMode()) {
-          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
+          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + newProjectFile
               + " because a file with the same name already exists in the project. Please copy "
               + "the file and rename it, if you want to import it twice.");
         }

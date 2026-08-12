@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -198,5 +198,9 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
    */
   public boolean isComputed() {
     return true;
+  }
+
+  public MassSpectrum getSpectrum() {
+    return spectrum;
   }
 }
