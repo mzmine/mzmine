@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -32,7 +33,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
@@ -295,9 +295,10 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   }
 
   @NotNull
-  protected List<LipidFragment> findChainMinusFormulaFragment(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType chainType) {
-    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+  protected List<LipidFragment> findChainMinusFormulaFragment(
+      final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
+      final @NotNull Scan msMsScan, final @NotNull LipidChainType chainType) {
+    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         rule.getMolecularFormula());
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
@@ -305,6 +306,9 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
     for (final ILipidChain lipidChain : chains) {
       final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
           lipidChain.getChainMolecularFormula());
+      if (!FormulaUtils.canSubtractFormula(lipidChainFormula, modificationFormula)) {
+        continue;
+      }
       final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
           modificationFormula);
       final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
@@ -335,9 +339,10 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   }
 
   @NotNull
-  protected List<LipidFragment> findChainMinusFormulaFragmentNL(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType chainType) {
-    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+  protected List<LipidFragment> findChainMinusFormulaFragmentNL(
+      final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
+      final @NotNull Scan msMsScan, final @NotNull LipidChainType chainType) {
+    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         rule.getMolecularFormula());
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
@@ -352,8 +357,14 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       rule.getIonizationType().ionizeFormula(lipidFormula);
       final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
           lipidChain.getChainMolecularFormula());
+      if (!FormulaUtils.canSubtractFormula(lipidChainFormula, modificationFormula)) {
+        continue;
+      }
       final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
           modificationFormula);
+      if (!FormulaUtils.canSubtractFormula(lipidFormula, fragmentFormula)) {
+        continue;
+      }
       final IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
@@ -457,9 +468,10 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
   }
 
   @NotNull
-  protected List<LipidFragment> findChainPlusFormulaFragmentNL(LipidFragmentationRule rule,
-      ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType lipidChainType) {
-    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
+  protected List<LipidFragment> findChainPlusFormulaFragmentNL(
+      final @NotNull LipidFragmentationRule rule, final @NotNull ILipidAnnotation lipidAnnotation,
+      final @NotNull Scan msMsScan, final @NotNull LipidChainType lipidChainType) {
+    final IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         rule.getMolecularFormula());
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
@@ -476,8 +488,9 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
           lipidChain.getChainMolecularFormula());
       final IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
           modificationFormula);
-      // Keep legacy behavior for plus-formula neutral-loss rules:
-      // subtracting an over-specified loss formula is allowed and clipped by subtractFormula.
+      if (!FormulaUtils.canSubtractFormula(lipidFormula, fragmentFormula)) {
+        continue;
+      }
       final IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
