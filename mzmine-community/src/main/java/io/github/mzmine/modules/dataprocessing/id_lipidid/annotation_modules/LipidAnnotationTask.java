@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -237,9 +238,10 @@ public class LipidAnnotationTask extends AbstractTask {
         }
       }
       if (!possibleRowAnnotations.isEmpty()) {
-        LipidAnnotationUtils.addAnnotationsToFeatureList(row, possibleRowAnnotations,
-            lipidAnalysisType, searchForMSMSFragments, minimumOverallQualityScore, customQcWeights,
-            mzTolerance);
+        // Context-dependent QC scores must not be evaluated while rows are processed in parallel.
+        // Apply the configured threshold after all rows have been annotated and scored.
+        LipidAnnotationUtils.addCandidateAnnotationsToFeatureList(row, possibleRowAnnotations,
+            searchForMSMSFragments, mzTolerance);
       }
       finishedSteps++;
     });
@@ -251,7 +253,11 @@ public class LipidAnnotationTask extends AbstractTask {
     LipidQcScoringUtils.computeAndStoreOverallQualityScores((ModularFeatureList) featureList,
         searchForMSMSFragments, lipidAnalysisType.hasRetentionTimePattern(), lipidAnalysisType,
         customQcWeights, mzTolerance);
-    featureList.getRows().forEach(LipidQcScoringUtils::sortLipidAnnotationsByOverallScore);
+    featureList.getRows().forEach(row -> {
+      LipidQcScoringUtils.filterLipidAnnotationsByOverallQualityScore(row,
+          minimumOverallQualityScore);
+      LipidQcScoringUtils.sortLipidAnnotationsByOverallScore(row);
+    });
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(
