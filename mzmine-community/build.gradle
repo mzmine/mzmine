@@ -908,6 +908,10 @@ tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseI
 // make sure the publish action is run after the semver plugin has been evaluated,
 // otherwise the version will always be 1.0.0
 afterEvaluate {
+    // Native package formats only accept the numeric SemVer core. Keep prerelease/build metadata
+    // on Maven artifacts and application files, but do not pass it to jpackage.
+    runtime.jpackageData.get().appVersion = semver.version.toString().replaceFirst(/[-+].*$/, '')
+
     publishing {
         publications {
             register("mzmine-community-package", MavenPublication) {
@@ -936,4 +940,3 @@ afterEvaluate {
         }
     }
 }
-
