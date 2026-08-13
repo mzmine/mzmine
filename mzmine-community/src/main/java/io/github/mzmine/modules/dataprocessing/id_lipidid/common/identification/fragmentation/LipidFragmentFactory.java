@@ -44,6 +44,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -234,11 +235,12 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       throw new RuntimeException(e);
     }
     rule.getIonizationType().ionizeFormula(lipidFormula);
-    if (!FormulaUtils.canSubtractFormula(lipidFormula, formulaNL)) {
+    final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+        lipidFormula, formulaNL);
+    if (fragmentFormula.isEmpty()) {
       return List.of();
     }
-    final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula, formulaNL);
-    return findLipidFragmentFromIonFormula(rule, lipidAnnotation, msMsScan, fragmentFormula);
+    return findLipidFragmentFromIonFormula(rule, lipidAnnotation, msMsScan, fragmentFormula.get());
   }
 
   private List<LipidFragment> checkForAcylChainFragment(LipidFragmentationRule rule,
@@ -304,15 +306,13 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     final List<LipidFragment> matchedFragments = new ArrayList<>();
     for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
-          lipidChain.getChainMolecularFormula());
-      if (!FormulaUtils.canSubtractFormula(lipidChainFormula, modificationFormula)) {
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+          lipidChain.getChainMolecularFormula(), modificationFormula);
+      if (fragmentFormula.isEmpty()) {
         continue;
       }
-      final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
-          modificationFormula);
       final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
-          fragmentFormula,
+          fragmentFormula.get(),
           rule.getPolarityType());
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
           ionizedFragmentFormula);
@@ -355,20 +355,18 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         throw new RuntimeException(e);
       }
       rule.getIonizationType().ionizeFormula(lipidFormula);
-      final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
-          lipidChain.getChainMolecularFormula());
-      if (!FormulaUtils.canSubtractFormula(lipidChainFormula, modificationFormula)) {
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+          lipidChain.getChainMolecularFormula(), modificationFormula);
+      if (fragmentFormula.isEmpty()) {
         continue;
       }
-      final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
-          modificationFormula);
-      if (!FormulaUtils.canSubtractFormula(lipidFormula, fragmentFormula)) {
+      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+          lipidFormula, fragmentFormula.get());
+      if (lipidMinusFragmentFormula.isEmpty()) {
         continue;
       }
-      final IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
-          fragmentFormula);
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          lipidMinusFragmentFormula);
+          lipidMinusFragmentFormula.get());
     }
     return matchedFragments;
   }
@@ -455,14 +453,13 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         throw new RuntimeException(e);
       }
       rule.getIonizationType().ionizeFormula(lipidFormula);
-      final IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
-      if (!FormulaUtils.canSubtractFormula(lipidFormula, lipidChainFormula)) {
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+          lipidFormula, lipidChain.getChainMolecularFormula());
+      if (fragmentFormula.isEmpty()) {
         continue;
       }
-      final IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
-          lipidChainFormula);
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          fragmentFormula);
+          fragmentFormula.get());
     }
     return matchedFragments;
   }
@@ -488,13 +485,13 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
           lipidChain.getChainMolecularFormula());
       final IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
           modificationFormula);
-      if (!FormulaUtils.canSubtractFormula(lipidFormula, fragmentFormula)) {
+      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormulaIfPossible(
+          lipidFormula, fragmentFormula);
+      if (lipidMinusFragmentFormula.isEmpty()) {
         continue;
       }
-      final IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
-          fragmentFormula);
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
-          lipidMinusFragmentFormula);
+          lipidMinusFragmentFormula.get());
     }
     return matchedFragments;
   }
