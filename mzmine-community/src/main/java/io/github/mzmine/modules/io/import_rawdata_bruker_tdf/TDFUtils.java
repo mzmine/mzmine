@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
 
 import com.google.common.collect.Range;
-import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -65,13 +64,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -97,11 +93,16 @@ public class TDFUtils implements AutoCloseable {
    * the handle of the currently opened file
    **/
   private long handle = 0L;
+  private boolean applyPressureComp = false;
 
   public TDFUtils() {
     loadLibrary();
   }
 
+  public TDFUtils(boolean perFramePressureComp) {
+    this();
+    this.applyPressureComp = perFramePressureComp;
+  }
 
   /**
    * Creates an array of the given size and populates it with numbers from 1 to size
@@ -220,11 +221,7 @@ public class TDFUtils implements AutoCloseable {
       return 0L;
     }
 
-    final Boolean applyPressureComp = false;
-    // currently disabled as it's not working as expected ~SteffenHeu
-    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
-        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
-    final int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+    final int pressureCompensation = applyPressureComp ? 2 : 0;
 
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =

@@ -243,6 +243,10 @@ public class MZminePreferences extends SimpleParameterSet {
       .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
+  public static final BooleanParameter brukerPressureComp = VendorImportParameters.applyTimsPressureCompensation.getEmbeddedParameter()
+      .cloneParameter();
+
+
   public static final HiddenParameter<Boolean> showTempFolderAlert = new HiddenParameter<>(
       new BooleanParameter("Show temp alert", "Show temp folder alert", true));
   public static final HiddenParameter<String> username = new HiddenParameter<>(
@@ -294,7 +298,8 @@ public class MZminePreferences extends SimpleParameterSet {
             showTempFolderAlert, username, showQuickStart, siriusCountWarningOptOut,
             // conversion, data handling
             applyVendorCentroiding, watersLockmass, massLynxImportChoice, msConvertPath,
-            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses},
+            keepConvertedFile, thermoRawFileParserPath, excludeThermoExceptionMasses,
+            brukerPressureComp},
         "https://mzmine.github.io/mzmine_documentation/performance.html#preferences");
 
     darkModeProperty.subscribe(state -> {
@@ -330,7 +335,7 @@ public class MZminePreferences extends SimpleParameterSet {
             imageTransformation, imageNormalization, windowSettings), //
         new ParameterGroup("MS data import", applyVendorCentroiding, massLynxImportChoice,
             watersLockmass, msConvertPath, keepConvertedFile, thermoRawFileParserPath,
-            excludeThermoExceptionMasses) //
+            excludeThermoExceptionMasses, brukerPressureComp) //
     );
     // imsModuleWarnings, showTempFolderAlert, showQuickStart  are hidden parameters
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,8 @@
 package io.github.mzmine.datamodel.data_access;
 
 import com.google.common.collect.Range;
-import com.google.common.primitives.Booleans;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -51,12 +49,15 @@ import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.Recur
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,11 +78,13 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   private final IMSRawDataFile dataFile;
 
   private final double[] intensities;
-  private final double[] tempMobilities;
-  private final double[] tempIntensities;
   private final double[] mobilities;
   private final double[] upperBinLimits;
   private final int binWidth;
+
+  // not final: grown on demand if a summed mobilogram with more values than expected is set
+  private double[] tempMobilities;
+  private double[] tempIntensities;
 
   private final double approximateBinSize;
 
@@ -91,63 +94,81 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       throw new IllegalArgumentException("Illegal bin width (" + binWidth + ")");
     }
     dataFile = rawDataFile;
-
-    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
-    // multiple mobility ranges are possible in tims
-    final int maxMobilityScans =
-        rawDataFile.getFrames().stream().mapToInt(Frame::getNumberOfMobilityScans).max()
-            .orElseThrow() * ranges.size();
-
-    tempIntensities = new double[maxMobilityScans];
-    tempMobilities = new double[maxMobilityScans];
     this.binWidth = binWidth;
 
-    var entries = ranges.entrySet().stream().toList();
-    List<Double> distinctMobilities = new ArrayList<>();
+    // multiple mobility ranges are possible in tims. in MALDI acquisitions every single frame may
+    // have its own mobility segment, so anything sized by the number of segments has to be avoided.
+    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
+    final int maxMobilityScans = rawDataFile.getFrames().stream()
+        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow();
+
     final MobilityType mt = rawDataFile.getMobilityType();
 
-    // find all possible mobility values
-    for (int j = 0; j < entries.size(); j++) {
-      final Entry<Frame, Range<Double>> entry = entries.get(j);
-      final Frame frame = entry.getKey();
+    // decision: process the segments starting at the outer end of the mobility axis. The filter
+    // below only ever extends the collected values in one direction, so starting anywhere else
+    // silently discards everything a later segment adds beyond the first segment's outer limit.
+    // tims mobilities descend with mobility scan number, all other types ascend.
+    final List<Frame> orderedFrames = new ArrayList<>(ranges.keySet());
+    orderedFrames.sort(mt == MobilityType.TIMS //
+        ? Comparator.comparingDouble((Frame f) -> f.getMobilityRange().upperEndpoint()).reversed()
+        : Comparator.comparingDouble((Frame f) -> f.getMobilityRange().lowerEndpoint()));
 
-      for (final MobilityScan scan : frame.getMobilityScans()) {
+    // find all possible mobility values. read them from the frame instead of its mobility scans:
+    // Frame#getMobilityScans creates a new wrapper object for every mobility scan on every call.
+    final DoubleArrayList distinctMobilities = new DoubleArrayList(
+        estimateDistinctMobilityCount(ranges.keySet()));
+    for (final Frame frame : orderedFrames) {
+      final DoubleImmutableList frameMobilities = frame.getMobilities();
+      if (frameMobilities == null) {
+        continue;
+      }
+      for (int i = 0; i < frameMobilities.size(); i++) {
+        final double mobility = frameMobilities.getDouble(i);
         if (!distinctMobilities.isEmpty()
             // either not tims and current mobility > highest mobility
-            && ((distinctMobilities.get(distinctMobilities.size() - 1) > scan.getMobility()
+            && ((distinctMobilities.getDouble(distinctMobilities.size() - 1) > mobility
             && mt != MobilityType.TIMS)
             // or tims and current mobility < lowest mobility
-            || (distinctMobilities.get(distinctMobilities.size() - 1) < scan.getMobility()
+            || (distinctMobilities.getDouble(distinctMobilities.size() - 1) < mobility
             && mt == MobilityType.TIMS))) {
           continue;
         }
-        distinctMobilities.add(scan.getMobility());
+        distinctMobilities.add(mobility);
       }
     }
 
-    distinctMobilities.sort(Double::compare);
+    // the segment order above guarantees that these span every mobility range of the file: the first
+    // segment contributes all of its values, so the outer limit is the outermost of all segments, and
+    // every later segment extends the opposite end. No value of any frame can fall outside all bins.
+    final double[] sortedMobilities = distinctMobilities.toDoubleArray();
+    Arrays.sort(sortedMobilities);
 
-    final List<Double> upperLimits = new ArrayList<>();
-    final List<Double> centerBins = new ArrayList<>();
-    for (int i = 0; i < distinctMobilities.size(); i += binWidth) {
+    final int numBins = (sortedMobilities.length + binWidth - 1) / binWidth;
+    mobilities = new double[numBins];
+    upperBinLimits = new double[numBins];
+    for (int bin = 0; bin < numBins; bin++) {
+      final int i = bin * binWidth;
 
       int currentBins = 0;
       double summedMobility = 0d;
-      for (int j = 0; i + j < distinctMobilities.size() && j < binWidth; j++) {
-        summedMobility += distinctMobilities.get(i + j);
+      for (int j = 0; i + j < sortedMobilities.length && j < binWidth; j++) {
+        summedMobility += sortedMobilities[i + j];
         currentBins++;
-        double d = distinctMobilities.get(i + j);
-//        logger.finest(() -> "Adding " + d + " to bin");
       }
-      centerBins.add(summedMobility / Math.max(currentBins, 1));
-      upperLimits.add(
-          distinctMobilities.get(Math.min(i + binWidth - 1, distinctMobilities.size() - 1))
-              + MOBILITY_EPSILON);
+      mobilities[bin] = summedMobility / Math.max(currentBins, 1);
+      upperBinLimits[bin] =
+          sortedMobilities[Math.min(i + binWidth - 1, sortedMobilities.length - 1)]
+              + MOBILITY_EPSILON;
     }
 
-    mobilities = centerBins.stream().mapToDouble(Double::doubleValue).toArray();
-    upperBinLimits = upperLimits.stream().mapToDouble(Double::doubleValue).toArray();
     intensities = new double[mobilities.length];
+
+    // the temp arrays only ever hold a single mobilogram (one value per mobility scan of one frame)
+    // or a single summed mobilogram (one value per bin at bin width 1). They are grown on demand in
+    // setMobilogram, so an underestimate here is safe.
+    final int tempSize = Math.max(maxMobilityScans, sortedMobilities.length);
+    tempIntensities = new double[tempSize];
+    tempMobilities = new double[tempSize];
 
     double previous = mobilities[0];
     double deltas = 0;
@@ -160,6 +181,50 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     logger.finest(
         () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
             + rawDataFile.getMobilityType().getUnit() + ")");
+  }
+
+  /**
+   * Estimates the number of distinct mobility values across all mobility segments, so the
+   * collecting list can be pre-sized. The total mobility span divided by the smallest mobility step
+   * is an upper bound that stays small even if every frame has its own mobility segment, whereas
+   * {@code valuesPerFrame * numberOfSegments} grows without bound and can exhaust the heap.
+   * <p>
+   * assumption: the mobility step is nearly constant within a frame (measured at max/min = 1.11 for
+   * timsTOF data), so the smallest step of the first frame is representative. This is only a
+   * capacity hint - the list still grows if the estimate turns out to be too low.
+   *
+   * @param frames One frame per unique mobility range.
+   * @return The estimated number of distinct mobility values, at least 1.
+   */
+  private static int estimateDistinctMobilityCount(@NotNull final Collection<Frame> frames) {
+    double lowest = Double.MAX_VALUE;
+    double highest = -Double.MAX_VALUE;
+
+    // the span only needs the outer values of each segment, which is O(numberOfSegments)
+    for (final Frame frame : frames) {
+      final Range<Double> range = frame.getMobilityRange();
+      lowest = Math.min(lowest, range.lowerEndpoint());
+      highest = Math.max(highest, range.upperEndpoint());
+    }
+    if (frames.isEmpty() || lowest > highest) {
+      return 1;
+    }
+
+    final DoubleImmutableList first = frames.iterator().next().getMobilities();
+    if (first == null || first.size() < 2) {
+      return 1;
+    }
+    double smallestStep = Double.MAX_VALUE;
+    for (int i = 1; i < first.size(); i++) {
+      final double step = Math.abs(first.getDouble(i) - first.getDouble(i - 1));
+      if (step > 0d && step < smallestStep) {
+        smallestStep = step;
+      }
+    }
+    if (smallestStep == Double.MAX_VALUE) {
+      return 1;
+    }
+    return (int) Math.min(Integer.MAX_VALUE, Math.ceil((highest - lowest) / smallestStep) + 1);
   }
 
   /**
@@ -295,6 +360,18 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   /**
+   * Ensures the temp buffers can hold {@code numValues}. The copy methods of
+   * {@link IntensitySeries} and {@link MobilitySeries} silently allocate a new array if the
+   * destination is too small and return it, so without this the buffers would keep stale data.
+   */
+  private void ensureTempCapacity(final int numValues) {
+    if (tempIntensities.length < numValues) {
+      tempIntensities = new double[numValues];
+      tempMobilities = new double[numValues];
+    }
+  }
+
+  /**
    * Re-bins an already summed mobilogram. Note that re-binning an already binned mobilogram with a
    * lower binnign width than before will lead to 0-intensity values. Consider using
    * {@link #setMobilogram(List)} instead.
@@ -305,7 +382,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     clearIntensities();
 
     final int numValues = summedMobilogram.getNumberOfValues();
-    assert numValues <= tempIntensities.length;
+    ensureTempCapacity(numValues);
 
     summedMobilogram.getIntensityValues(tempIntensities);
     summedMobilogram.getMobilityValues(tempMobilities);
@@ -345,6 +422,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     for (IonMobilitySeries ims : mobilograms) {
       final int numValues = ims.getNumberOfValues();
+      ensureTempCapacity(numValues);
       ims.getIntensityValues(tempIntensities);
 
       for (int i = 0; i < numValues; i++) {
@@ -355,8 +433,8 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       final int start = order == 1 ? 0 : numValues - 1;
       int rawIndex = start;
 
-      boolean[] assigned = new boolean[numValues];
-      Arrays.fill(assigned, false);
+      // rawIndex only ever moves forward, so counting the additions counts the assigned values
+      int numAssigned = 0;
 
       for (int i = 0; i < upperBinLimits.length && rawIndex >= 0; i++) {
 
@@ -368,14 +446,15 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
             && tempMobilities[rawIndex] > binStart) {
 
           intensities[i] += tempIntensities[rawIndex];
-          assigned[rawIndex] = true;
+          numAssigned++;
           rawIndex += order;
         }
       }
 
-      long numAssigned = Booleans.asList(assigned).stream().filter(val -> val).count();
       if (numAssigned != numValues) {
-        logger.info("assiged " + numAssigned + "/" + numValues);
+        // happens if a mobilogram uses a mobility segment that extends beyond the binned range
+        final int assigned = numAssigned;
+        logger.finest(() -> "Assigned " + assigned + "/" + numValues + " mobility values to bins.");
       }
     }
   }
@@ -395,7 +474,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     // first non zero - 1, include one zero.
     firstNonZero = Math.max(firstNonZero - 1, 0);
     // last non zero + 2 because Arrays.copyOfRange is exclusive, include one zero.
-    lastNonZero = Math.min(lastNonZero + 2, mobilities.length - 1);
+    lastNonZero = Math.min(lastNonZero + 2, mobilities.length);
 
     return new SummedIntensityMobilitySeries(storage,
         Arrays.copyOfRange(mobilities, firstNonZero, lastNonZero),
