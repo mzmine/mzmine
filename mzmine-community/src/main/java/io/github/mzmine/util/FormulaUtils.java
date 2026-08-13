@@ -691,27 +691,63 @@ public class FormulaUtils {
    */
   public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
       int subMultiplier, boolean clone) {
+    return subtractFormula(result, sub, subMultiplier, clone, false);
+  }
+
+  /**
+   *
+   * @param result        the input formula that may be cloned or directly changed
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   * @param clone         clone the input formula to protect input from change. Otherwise do an
+   *                      inplace operation on result
+   * @return the input result formula if clone is false otherwise a copy
+   */
+  public static Optional<IMolecularFormula> subtractFormula(IMolecularFormula result,
+      IMolecularFormula sub, int subMultiplier, boolean clone, boolean verbose) {
     if (clone) {
       result = cloneFormula(result);
+      if (result == null) {
+        return Optional.empty();
+      }
     }
+
+    StringBuilder message = new StringBuilder();
+    int missingIsotopes = 0;
 
     for (IIsotope isotopeToRemove : sub.isotopes()) {
       int count = sub.getIsotopeCount(isotopeToRemove) * subMultiplier;
-      addOrRemoveIsotope(result, isotopeToRemove, -count, true);
+      final boolean success = addOrRemoveIsotope(result, isotopeToRemove, -count, true);
+      if (!success) {
+        if (!verbose) {
+          return Optional.empty();
+        }
+        missingIsotopes++;
+        message.append(isotopeToRemove.toString()).append(" ");
+      }
     }
+
+    if (missingIsotopes > 0) {
+      logger.fine("""
+          Could not subtract isotopes from remainder formula: %s
+          Isotopes: %s""".formatted(FormulaUtils.getFormulaString(result), message.toString()));
+      return Optional.empty();
+    }
+
     final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
     final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
     result.setCharge(resultCharge - subtractCharge);
-    return result;
+    return Optional.of(result);
   }
 
   /**
    * Subtracts {@code sub} from a clone of {@code result}, or returns an empty optional if the
    * subtraction would require more atoms of an element than are available.
    * <p>
-   * Isotope removal follows the same rules as {@link #subtractFormula(IMolecularFormula,
-   * IMolecularFormula)}: an isotope with a defined mass number is removed exactly first and then
-   * falls back to another isotope of the same element. Neither input formula is modified.
+   * Isotope removal follows the same rules as
+   * {@link #subtractFormula(IMolecularFormula, IMolecularFormula)}: an isotope with a defined mass
+   * number is removed exactly first and then falls back to another isotope of the same element.
+   * Neither input formula is modified.
    */
   public static @NotNull Optional<IMolecularFormula> subtractFormulaIfPossible(
       final @Nullable IMolecularFormula result, final @Nullable IMolecularFormula sub) {
@@ -740,13 +776,14 @@ public class FormulaUtils {
    *                                      isotope will be removed. This is important if the result
    *                                      formula has no massNumbers defined or only has major
    *                                      isotopes
+   * @return true if the isotope was added or removed, false if isotope could not be removed
    */
-  public static void addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
+  public static boolean addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
       int count, boolean removeMajorForMissingIsotopes) {
     boolean adding = count > 0;
     if (adding) {
       result.addIsotope(isotopeToChange, count);
-      return;
+      return true;
     }
 
     // removing, trying first with the exact isotope like [13]C
@@ -757,23 +794,22 @@ public class FormulaUtils {
         if (equalElementIsotopes(isotopeToChange, isotope)) {
           int realCount = result.getIsotopeCount(isotope);
           int remaining = realCount + count; // count is negative
-          if (remaining <= 0) {
+          if (remaining == 0) {
             result.removeIsotope(isotope);
+            return true;
+          } else if (remaining < 0) {
             // reduce count but not all were removed so search for more isotopes that match
-            count = remaining; // negative again
+            result.removeIsotope(isotope);
+            count = remaining; // count negative again to remove other isotopes
           } else {
             // this is captured in a test to make sure this call is valid in the future as well
             result.addIsotope(isotope, count); // count is negative will remove elements
-            return;
+            return true;
           }
         }
       }
       if (!removeMajorForMissingIsotopes) {
-        logger.fine(
-            "Could not remove %d of isotope %s from formula %s. Will continue with the formula as is.".formatted(
-                -count, isotopeToChange, FormulaUtils.getFormulaString(result)));
-
-        return;
+        return false;
       }
     }
     // Remove the rest of the count from the first element with the same symbol - does not matter
@@ -783,16 +819,21 @@ public class FormulaUtils {
       if (equalElementSymbols(isotopeToChange, isotope)) {
         int realCount = result.getIsotopeCount(isotope);
         int remaining = realCount + count; // count is negative
-        if (remaining <= 0) {
+        if (remaining == 0) {
           result.removeIsotope(isotope);
+          return true;
+        } else if (remaining < 0) {
           // reduce count but not all were removed so search for more isotopes that match
+          result.removeIsotope(isotope);
           count = remaining; // negative again
         } else {
           result.addIsotope(isotope, count); // count is negative will remove elements
-          return;
+          return true;
         }
       }
     }
+    // there are still remaining to remove, but nothing matching found
+    return false;
   }
 
   /**
