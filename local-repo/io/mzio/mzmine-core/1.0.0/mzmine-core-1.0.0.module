@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.6.1"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 25,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -28,10 +28,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 14380,
-          "sha512": "ef4c34ad49ffe165dcd7e921c25e74b7418b720e167b55561ba4c43c28b8744ff02009f104298dfe99b5b9b098f606bebca98dfcf2264e9715506f0765b3ff8a",
-          "sha256": "d5668bdef14bfe4580da07006f32db2f176c97de176b85941c2ac3d64aec9f38",
-          "sha1": "30a0e2eba8154af1cdd6bbe66cfdace56542c081",
-          "md5": "9cca0bbfdd30a88b47ef61916943985f"
+          "sha512": "97e41153cebbe8e18f8a106ced534a35b9958ad28549f574548151cfdba2cff2274b1c35ba9470c80d0dd2eb34d6bad15e8c81b60091e209edc715098a40949a",
+          "sha256": "75c361d41a491d1effb60ea6b6f7646154116da921ff287d89d2b61a9ee7d44f",
+          "sha1": "b6ac19c5b8427a715346bf97ab22222da92fd7a3",
+          "md5": "5d2638f9fddf194c495eeb7150b1b920"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 25,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -116,42 +116,42 @@
           "group": "org.openjfx",
           "module": "javafx-base",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-graphics",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-controls",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-fxml",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-swing",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-web",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         }
       ],
@@ -160,10 +160,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 14380,
-          "sha512": "ef4c34ad49ffe165dcd7e921c25e74b7418b720e167b55561ba4c43c28b8744ff02009f104298dfe99b5b9b098f606bebca98dfcf2264e9715506f0765b3ff8a",
-          "sha256": "d5668bdef14bfe4580da07006f32db2f176c97de176b85941c2ac3d64aec9f38",
-          "sha1": "30a0e2eba8154af1cdd6bbe66cfdace56542c081",
-          "md5": "9cca0bbfdd30a88b47ef61916943985f"
+          "sha512": "97e41153cebbe8e18f8a106ced534a35b9958ad28549f574548151cfdba2cff2274b1c35ba9470c80d0dd2eb34d6bad15e8c81b60091e209edc715098a40949a",
+          "sha256": "75c361d41a491d1effb60ea6b6f7646154116da921ff287d89d2b61a9ee7d44f",
+          "sha1": "b6ac19c5b8427a715346bf97ab22222da92fd7a3",
+          "md5": "5d2638f9fddf194c495eeb7150b1b920"
         }
       ]
     }
