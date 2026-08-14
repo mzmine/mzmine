@@ -72,8 +72,6 @@ public class ImportSubsetDataMenu extends HBox {
     final TextArea subsetTextArea = new TextArea();
     subsetTextArea.setPrefColumnCount(55);
     subsetTextArea.setPrefRowCount(10);
-    subsetTextArea.setMinHeight(500);
-    subsetTextArea.setPrefHeight(500);
     subsetTextArea.setEditable(false);
     subsetTextArea.setFont(FileNamesComponent.smallFont);
 
