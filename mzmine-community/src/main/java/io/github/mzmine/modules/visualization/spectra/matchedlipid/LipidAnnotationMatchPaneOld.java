@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -184,11 +184,13 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
     formula.setWrapText(true);
     panelOther.getChildren().addAll(formula);
 
-    Label ion = new Label("Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-        + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-        FormulaUtils.ionizeFormula(
-            FormulaUtils.getFormulaString(matchedLipid.getLipidAnnotation().getMolecularFormula()),
-            matchedLipid.getIonizationType()))));
+    // no m/z shown if the ionization cannot be applied to the lipid formula
+    final String ionMz = matchedLipid.getIonizationType()
+        .ionizeFormula(matchedLipid.getLipidAnnotation().getMolecularFormula()).map(
+            ionFormula -> MZmineCore.getConfiguration().getMZFormat()
+                .format(FormulaUtils.calculateMzRatio(ionFormula))).orElse("NA");
+    Label ion = new Label(
+        "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " " + ionMz);
     ion.setWrapText(true);
     panelOther.getChildren().addAll(ion);
 

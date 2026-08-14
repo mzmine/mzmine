@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,7 +108,15 @@ class IonTypeTest {
     assertEquals(before, FormulaUtils.getFormulaString(formula),
         "addToFormula must not mutate the input formula");
     // returned formula has one extra H (charge shown by default)
-    assertEquals("[C6H13O6]+", FormulaUtils.getFormulaString(ionized));
+    assertEquals("[C6H13O6]+", FormulaUtils.getFormulaString(ionized.orElseThrow()));
+  }
+
+  @Test
+  void addToFormula_emptyIfLossNotApplicable() {
+    // water loss requires an oxygen that C6H14 does not have
+    final IonType mMinusH2OPlusH = IonTypes.H_H2O.asIonType();
+    assertTrue(mMinusH2OPlusH.addToFormula(FormulaUtils.parse("C6H14"), true).isEmpty());
+    assertTrue(mMinusH2OPlusH.addToFormula(FormulaUtils.parse("C6H12O6"), true).isPresent());
   }
 
   @Test

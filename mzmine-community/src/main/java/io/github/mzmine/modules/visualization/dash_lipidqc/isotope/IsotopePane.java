@@ -132,14 +132,18 @@ public class IsotopePane extends DashboardComputationPane {
     if (selectedMatch == null) {
       return null;
     }
-    IonType adductType = selectedMatch.getAdductType();
-    if (adductType == null) {
-      adductType = IonTypeParser.parseOptional(selectedMatch.getIonizationType().getAdductName()).orElse(null);
+    IonType type = selectedMatch.getAdductType();
+    if (type == null) {
+      type = IonTypeParser.parseOptional(selectedMatch.getIonizationType().getAdductName())
+          .orElse(null);
     }
+    final IonType adductType = type;
     IsotopePattern pattern = null;
     final IMolecularFormula neutralFormula = selectedMatch.getLipidAnnotation().getMolecularFormula();
-    if (neutralFormula != null && adductType != null) {
-      final IMolecularFormula ionFormula = adductType.addToFormula(neutralFormula, true);
+    // empty if the ion type cannot be applied to the lipid formula
+    final IMolecularFormula ionFormula = neutralFormula == null || adductType == null ? null
+        : adductType.addToFormula(neutralFormula, true).orElse(null);
+    if (adductType != null && ionFormula != null) {
       final double referenceMz =
           selectedMatch.getAccurateMz() != null ? selectedMatch.getAccurateMz()
               : row.getAverageMZ();

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -68,14 +69,12 @@ public class FattyAcylMolecularSpeciesLevelMatchedLipidFactory implements
             .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)).collect(Collectors.toSet());
     if (!molecularSpeciesFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
         molecularSpeciesFragments)) {
-      IMolecularFormula lipidFormula = null;
-      try {
-        lipidFormula = (IMolecularFormula) molecularSpeciesLevelAnnotation.getMolecularFormula()
-            .clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
+      // empty if the ionization cannot be applied to the lipid formula
+      final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+          molecularSpeciesLevelAnnotation.getMolecularFormula()).orElse(null);
+      if (lipidFormula == null) {
+        return null;
       }
-      ionizationType.ionizeFormula(lipidFormula);
       double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, annotatedFragments,
           precursorMz, mzTolRangeMSMS);
@@ -230,13 +229,12 @@ public class FattyAcylMolecularSpeciesLevelMatchedLipidFactory implements
         int carbonEstimateSecondChain = totalNumberOfCAtoms - chain.getNumberOfCarbons();
         if (carbonEstimateSecondChain > 0 && totalNumberOfDBEs >= 0) {
           //Fall back to Species Level annotation to avoid over annotation
-          IMolecularFormula lipidFormula = null;
-          try {
-            lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-          } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+          // empty if the ionization cannot be applied to the lipid formula
+          final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+              lipidAnnotation.getMolecularFormula()).orElse(null);
+          if (lipidFormula == null) {
+            continue;
           }
-          ionizationType.ionizeFormula(lipidFormula);
           double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
           Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, entry.getValue(),
               precursorMz, mzTolRangeMSMS);

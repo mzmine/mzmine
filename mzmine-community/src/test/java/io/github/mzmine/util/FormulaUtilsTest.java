@@ -109,12 +109,16 @@ class FormulaUtilsTest {
       if (it == IonizationType.NO_IONIZATION) {
         continue;
       }
-      final IMolecularFormula glucose = FormulaUtils.parse(nacetylglucosamine);
+      final IMolecularFormula neutral = FormulaUtils.parse(nacetylglucosamine);
 
-      it.ionizeFormula(glucose);
+      // all ionization types must be applicable to this formula
+      final IMolecularFormula glucose = it.ionizeFormula(neutral).orElseThrow(
+          () -> new AssertionError("Cannot apply %s to %s".formatted(it, nacetylglucosamine)));
 
       logger.info(it + " " + FormulaUtils.getFormulaString(glucose));
-      Assert.assertEquals(Math.abs((neutralMass + it.getAddedMass()) / it.getCharge()),
+      // 2M and 3M types multiply the neutral mass
+      Assert.assertEquals(
+          Math.abs((neutralMass * it.getNumMol() + it.getAddedMass()) / it.getCharge()),
           FormulaUtils.calculateMzRatio(glucose), 0.0000001d);
     }
   }
@@ -333,18 +337,27 @@ class FormulaUtilsTest {
     final IMolecularFormula C2H4O = FormulaUtils.parse("C2H4O");
     final IMolecularFormula C2H4O13C2 = FormulaUtils.parse("[13]C2H4O");
 
-    assertEquals("C2H4O4",
-        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O, 2, true)));
-    assertEquals("C2H4O4",
-        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose, C2H4O13C2, 2, true)));
-    assertEquals("[13]C2H4O4",
-        FormulaUtils.getFormulaString(FormulaUtils.subtractFormula(hexose13C2, C2H4O, 2, true)));
-    assertEquals("C2H4O4", FormulaUtils.getFormulaString(
-        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 2, true)));
+    assertEquals("C2H4O4", getSubtractedFormulaString(hexose, C2H4O, 2));
+    assertEquals("C2H4O4", getSubtractedFormulaString(hexose, C2H4O13C2, 2));
+    assertEquals("[13]C2H4O4", getSubtractedFormulaString(hexose13C2, C2H4O, 2));
+    assertEquals("C2H4O4", getSubtractedFormulaString(hexose13C2, C2H4O13C2, 2));
 
-    // full removal
-    assertEquals("", FormulaUtils.getFormulaString(
-        FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 20, true)));
+    // too many atoms removed - subtraction is not possible
+    assertTrue(FormulaUtils.subtractFormula(hexose13C2, C2H4O13C2, 20, true).isEmpty());
+    // input was not modified because clone was used
+    assertEquals(6, FormulaUtils.countElement(hexose13C2, "C"));
+    assertEquals(12, FormulaUtils.countElement(hexose13C2, "H"));
+    assertEquals(6, FormulaUtils.countElement(hexose13C2, "O"));
+
+    // null inputs
+    assertTrue(FormulaUtils.subtractFormula(null, C2H4O).isEmpty());
+    assertEquals(hexose, FormulaUtils.subtractFormula(hexose, null).get());
+  }
+
+  private static String getSubtractedFormulaString(final IMolecularFormula result,
+      final IMolecularFormula sub, final int subMultiplier) {
+    return FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(result, sub, subMultiplier, true).orElseThrow());
   }
 
   @Test

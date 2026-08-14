@@ -226,16 +226,20 @@ public class IsotopePatternCalculator implements MZmineModule {
    * Predict pattern with default binning width for annotations
    *
    * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
-   * @return the isotope pattern of ion formula. or null if formula or ionType are null
+   * @return the isotope pattern of ion formula. or null if formula or ionType are null or if ionType
+   * cannot be applied to neutralFormula
    */
   public static @Nullable IsotopePattern calculateFeatureAnnotationIsotopePattern(
       @Nullable IMolecularFormula neutralFormula, @Nullable IonType ionType) {
     if (neutralFormula == null || ionType == null) {
       return null;
     }
-    neutralFormula = ionType.addToFormula(neutralFormula, true);
+    final IMolecularFormula ionFormula = ionType.addToFormula(neutralFormula, true).orElse(null);
+    if (ionFormula == null) {
+      return null;
+    }
 
-    return calculateIsotopePattern(neutralFormula, 0.005, ionType.absTotalCharge(),
+    return calculateIsotopePattern(ionFormula, 0.005, ionType.absTotalCharge(),
         ionType.getPolarity(), false);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FormulaUtils;
 import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -259,14 +258,15 @@ public class SingleRowPredictionTask extends AbstractTask {
     // Calculate isotope similarity score
     final IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
 
-    final IMolecularFormula clonedFormula = FormulaUtils.cloneFormula(cdkFormula);
-    ionType.ionizeFormula(clonedFormula);
+    // empty if the ionization cannot be applied to this formula, then no isotope pattern
+    final IMolecularFormula ionFormula = ionType.ionizeFormula(cdkFormula).orElse(null);
 
     // Fixed min abundance
     final double minPredictedAbundance = 0.00001;
 
-    final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
-        clonedFormula, minPredictedAbundance, charge, ionType.getPolarity());
+    final IsotopePattern predictedIsotopePattern = ionFormula == null ? null
+        : IsotopePatternCalculator.calculateIsotopePattern(ionFormula, minPredictedAbundance,
+            charge, ionType.getPolarity());
 
     Float isotopeScore = null;
     if (checkIsotopes && detectedPattern != null && predictedIsotopePattern != null) {

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -55,13 +56,12 @@ public class GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory implements
             .equals(LipidAnnotationLevel.SPECIES_LEVEL)).collect(Collectors.toSet());
     if (!speciesLevelFragments.isEmpty() && LipidQcScoringUtils.hasSufficientEvidence(
         speciesLevelFragments)) {
-      IMolecularFormula lipidFormula = null;
-      try {
-        lipidFormula = (IMolecularFormula) speciesLevelAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
+      // empty if the ionization cannot be applied to the lipid formula
+      final IMolecularFormula lipidFormula = ionizationType.ionizeFormula(
+          speciesLevelAnnotation.getMolecularFormula()).orElse(null);
+      if (lipidFormula == null) {
+        return null;
       }
-      ionizationType.ionizeFormula(lipidFormula);
       double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, speciesLevelFragments,
           precursorMz, mzTolRangeMSMS);

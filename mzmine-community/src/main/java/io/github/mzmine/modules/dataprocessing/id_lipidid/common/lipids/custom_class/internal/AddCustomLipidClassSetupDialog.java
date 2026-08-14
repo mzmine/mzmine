@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -383,10 +384,12 @@ class AddCustomLipidClassSetupDialog extends ParameterSetupDialog {
         }
         for (IonizationType ionNotation : ionizationTypeList) {
           lipidGridPane.add(new Label(ionNotation.getAdductName()), 1, ionNotationStartColumn);
-          lipidGridPane.add(new Label(MZmineCore.getConfiguration().getMZFormat().format(
-              FormulaUtils.calculateMzRatio(FormulaUtils.ionizeFormula(
-                  FormulaUtils.getFormulaString(speciesLevelAnnotation.getMolecularFormula()),
-                  ionNotation)))), 2, ionNotationStartColumn);
+          // no m/z shown if the ionization cannot be applied to the lipid formula
+          final String ionMz = ionNotation.ionizeFormula(
+              speciesLevelAnnotation.getMolecularFormula()).map(
+              ionFormula -> MZmineCore.getConfiguration().getMZFormat()
+                  .format(FormulaUtils.calculateMzRatio(ionFormula))).orElse("NA");
+          lipidGridPane.add(new Label(ionMz), 2, ionNotationStartColumn);
           ionNotationStartColumn++;
         }
       } else {

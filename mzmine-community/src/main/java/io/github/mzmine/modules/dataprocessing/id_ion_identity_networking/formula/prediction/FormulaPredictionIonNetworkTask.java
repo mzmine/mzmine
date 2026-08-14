@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -271,8 +271,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     IMolecularFormula cdkFormula;
     while ((cdkFormula = generator.getNextFormula()) != null) {
-      // ionized formula
-      IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true);
+      // ionized formula, skip candidates that the ion cannot be applied to
+      final IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true).orElse(null);
+      if (cdkFormulaIon == null) {
+        continue;
+      }
 
       // Mass is ok, so test other constraints
       checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion, searchedMass);
@@ -315,8 +318,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
         if (ion.isUndefinedAdduct()) {
           continue;
         }
-        // ionized formula
-        IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true);
+        // ionized formula, skip candidates that the ion cannot be applied to
+        final IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula, true).orElse(null);
+        if (cdkFormulaIon == null) {
+          continue;
+        }
 
         // correct by ppm offset
         double rowMass = ion.getMass(row.getAverageMZ());
