@@ -122,6 +122,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.Lip
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
@@ -401,6 +402,7 @@ public class BatchModeModulesList {
           SetLipidAnnotationLevelModule.class, //
           LocalCSVDatabaseSearchModule.class, //
           Ms2SearchModule.class, //
+          NistPepSearchModule.class, //
           NistMsSearchModule.class, //
           PrecursorDBSearchModule.class, //
           SpectralLibrarySearchModule.class, //

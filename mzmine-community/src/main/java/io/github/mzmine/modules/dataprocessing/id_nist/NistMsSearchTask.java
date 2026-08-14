@@ -41,6 +41,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectr
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -66,6 +67,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Performs NIST MS Search.
@@ -78,8 +80,12 @@ public class NistMsSearchTask extends AbstractTask {
   // Logger.
   private static final Logger logger = Logger.getLogger(NistMsSearchModule.class.getName());
 
-  // Command-line arguments passed to executable.
-  private static final String COMMAND_LINE_ARGS = "/par=2 /instrument";
+  // Command-line arguments passed to executable. Kept as a list so that an installation path
+  // containing spaces is passed as a single argument instead of being re-tokenized by the shell.
+  private static final List<String> COMMAND_LINE_ARGS = List.of("/par=2", "/instrument");
+
+  // Give up waiting for MS Search after this long instead of polling forever.
+  private static final long SEARCH_TIMEOUT_MS = 5 * 60 * 1000L;
 
   // The locator file names.
   private static final String PRIMARY_LOCATOR_FILE_NAME = "AUTOIMP.MSD";
@@ -138,6 +144,10 @@ public class NistMsSearchTask extends AbstractTask {
   private int progress;
   private int progressMax;
   private FragmentScanSelection fragmentScanSelection;
+  // Aggregated problems, reported once when the search finishes instead of failing the task.
+  private int emptySpectra;
+  private int missingMassLists;
+  private int unmatchedRows;
 
   /**
    * Create the task.
@@ -258,29 +268,28 @@ public class NistMsSearchTask extends AbstractTask {
 
       File locatorFile2 = null;
       try {
-        if (!isCanceled()) {
-
-          setStatus(TaskStatus.PROCESSING);
-
-          // Configure locator files.
-          final File locatorFile1 = new File(nistMsSearchDir, PRIMARY_LOCATOR_FILE_NAME);
-          locatorFile2 = getSecondLocatorFile(locatorFile1);
-
-          if (locatorFile2 == null) {
-            throw new IOException("Primary locator file " + locatorFile1
-                + " doesn't contain the name of a valid file.");
-          }
-
-          // Is MS Search already running?
-          if (locatorFile2.exists()) {
-            throw new IllegalStateException(
-                "NIST MS Search appears to be busy - please wait until it finishes its current task and then try again.  Alternatively, try manually deleting the file "
-                    + locatorFile2);
-          }
+        if (isCanceled()) {
+          return;
         }
 
-        // Search command string.
-        final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
+        setStatus(TaskStatus.PROCESSING);
+
+        // Configure locator files. Resolved before the search loop so that a cancel can never
+        // leave locatorFile2 null while it is still being used below.
+        final File locatorFile1 = new File(nistMsSearchDir, PRIMARY_LOCATOR_FILE_NAME);
+        locatorFile2 = getSecondLocatorFile(locatorFile1);
+
+        if (locatorFile2 == null) {
+          throw new IOException("Primary locator file " + locatorFile1
+              + " doesn't contain the name of a valid file.");
+        }
+
+        // Is MS Search already running?
+        if (locatorFile2.exists()) {
+          throw new IllegalStateException(
+              "NIST MS Search appears to be busy - please wait until it finishes its current task and then try again.  Alternatively, try manually deleting the file "
+                  + locatorFile2);
+        }
 
         List<FeatureListRow> rows = new ArrayList<>();
 
@@ -296,9 +305,6 @@ public class NistMsSearchTask extends AbstractTask {
         progressMax = rows.size();
         for (final FeatureListRow row : rows) {
 
-          DataPoint[] dataPoints = null;
-          String comment = null;
-
           if (!row.hasMs2Fragmentation()) {
             progress++;
             continue;
@@ -307,36 +313,39 @@ public class NistMsSearchTask extends AbstractTask {
           // Merge multiple MSn fragment spectra.
           final List<Scan> msMsScans = fragmentScanSelection.getAllFragmentSpectra(row);
           for (Scan scan : msMsScans) {
-            dataPoints = ScanUtils.extractDataPoints(scan, true);
-            comment = scan.getScanDefinition();
-
-            // Round high-res to low-res.
-            if (integerMZ != null & dataPoints != null) {
-              dataPoints = ScanUtils.integerDataPoints(dataPoints, integerMZ);
+            if (isCanceled()) {
+              return;
             }
 
-            if (!isCanceled()) {
-
-              // Write spectra file.
-              final File spectraFile = writeSpectraFile(row, dataPoints, comment);
-
-              // Write locator file.
-              writeSecondaryLocatorFile(locatorFile2, spectraFile);
-
-              // Run the search.
-              runNistMsSearch(command);
-
-              // Read the search results file and store the results.
-              List<SpectralDBAnnotation> identities = readSearchResults(row, scan);
-
-              if (identities != null) {
-                addIdentities(row, identities);
-                SortSpectralMatchesTask.sortIdentities(row);
+            final DataPoint[] dataPoints = extractSearchSpectrum(scan);
+            if (dataPoints == null || dataPoints.length == 0) {
+              // MS Search silently refuses a spectrum without peaks: no search runs, no new
+              // results file is written, and the previous row's results would be read instead.
+              if (dataPoints != null) {
+                emptySpectra++;
               }
+              continue;
+            }
+
+            // Write spectra file.
+            final File spectraFile = writeSpectraFile(row, dataPoints, scan.getScanDefinition());
+
+            // Run the search. This clears the previous results before handing MS Search the
+            // locator file, so the results we then read can only be from this search.
+            runNistMsSearch(locatorFile2, spectraFile, dataPoints.length);
+
+            // Read the search results file and store the results.
+            List<SpectralDBAnnotation> identities = readSearchResults(row, scan);
+
+            if (identities != null && !identities.isEmpty()) {
+              addIdentities(row, identities);
+              SortSpectralMatchesTask.sortIdentities(row);
             }
           }
           progress++;
         }
+
+        logSkippedSpectra();
       } finally {
 
         // Clean up.
@@ -348,140 +357,91 @@ public class NistMsSearchTask extends AbstractTask {
   }
 
   /**
+   * Extracts the search spectrum of a scan, applying the optional unit-mass rounding.
+   *
+   * @param scan the scan.
+   * @return the data points, an empty array if the mass list is empty, or null if the scan has no
+   * mass list at all.
+   */
+  private @Nullable DataPoint[] extractSearchSpectrum(final Scan scan) {
+
+    final DataPoint[] dataPoints;
+    try {
+      dataPoints = ScanUtils.extractDataPoints(scan, true);
+    } catch (MissingMassListException e) {
+      missingMassLists++;
+      return null;
+    }
+
+    // Round high-res to low-res.
+    return integerMZ != null ? ScanUtils.integerDataPoints(dataPoints, integerMZ) : dataPoints;
+  }
+
+  /**
+   * Reports the spectra that were not searched, once, rather than failing the whole task.
+   */
+  private void logSkippedSpectra() {
+
+    if (missingMassLists > 0) {
+      logger.warning(() -> missingMassLists
+          + " spectra were skipped because they have no mass list - run mass detection first.");
+    }
+    if (emptySpectra > 0) {
+      logger.warning(() -> emptySpectra
+          + " spectra were skipped because their mass list is empty - check the noise level of your mass detection.");
+    }
+    if (unmatchedRows > 0) {
+      logger.warning(() -> "NIST MS Search returned no results block for " + unmatchedRows
+          + " searched spectra.");
+    }
+  }
+
+  /**
    * Reads the search results file for a given feature list row.
+   * <p>
+   * The results file holds one block per spectrum in the MS Search spec list, so blocks belonging
+   * to other rows are expected - with {@link ImportOption#APPEND} every previously searched
+   * spectrum is reported again - and are skipped rather than treated as an error.
    *
    * @param row the row.
-   * @return a list of identities corresponding to the search results, or null if none is found.
+   * @return the identities for this row, or null if the file holds no block for it.
    * @throws IOException if and i/o problem occurs.
    */
   private List<SpectralDBAnnotation> readSearchResults(final FeatureListRow row,
       @NotNull final Scan queryScan) throws IOException {
 
-    // Search results.
-    List<SpectralDBAnnotation> ids = null;
+    final File resultsFile = new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME);
+    if (!resultsFile.exists()) {
+      unmatchedRows++;
+      logger.warning(
+          () -> "NIST MS Search wrote no results file " + resultsFile + " for row " + row.getID());
+      return null;
+    }
+
+    final int rowID = row.getID();
 
     // Read the results file.
-    try (BufferedReader reader = new BufferedReader(
-        new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)))) {
+    final List<String> hitLines;
+    try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
+      hitLines = readHitLinesForRow(reader, rowID);
+    }
 
-      // Read results.
-      int lineCount = 1;
-      String line = reader.readLine();
-      while (line != null) {
+    if (hitLines == null) {
+      unmatchedRows++;
+      logger.warning(() -> "No results block for row " + rowID + " in " + SEARCH_RESULTS_FILE_NAME);
+      return null;
+    }
 
-        // Match the line.
-        final Matcher scanMatcher = SEARCH_REGEX.matcher(line);
-        final Matcher cmpMatcher = CMP_REGEX.matcher(line);
+    final List<SpectralDBAnnotation> ids = new ArrayList<>();
+    for (final String hitLine : hitLines) {
 
-        // Is this the start of a result block?
-        if (scanMatcher.matches()) {
+      final Matcher cmpMatcher = CMP_REGEX.matcher(hitLine);
+      if (cmpMatcher.find()) {
 
-          // Is the row ID correct?
-          final int rowID = row.getID();
-          final int hitID = Integer.parseInt(scanMatcher.group(1));
-          if (rowID == hitID) {
-            // Create a new list for the hits.
-            ids = new ArrayList<>(1);
-
-          } else {
-            // Search results are for the wrong peak.
-            throw new IllegalArgumentException(
-                "Search results are for a different peak.  Expected peak: " + rowID + " but found: "
-                    + hitID);
-          }
-        } else if (cmpMatcher.find()) {
-
-          if (ids != null) {
-
-            Matcher mfMatcher = MF_REGEX.matcher(line);
-            Matcher rmfMatcher = RMF_REGEX.matcher(line);
-
-            /*
-              Known bug in NIST MS Search v. <= 2.5. For MS/MS-based searches, Dot Product is
-              reported in RMF field. Must conditionally assign dot product based one whether
-              EI or MS/MS spectrum search type. Only EI-based searches report RI.
-             */
-            double dotProduct;
-            if (RI_REGEX.matcher(line).find()) {
-              dotProduct = mfMatcher.find() ? Double.parseDouble(mfMatcher.group(1)) : Double.NaN;
-            } else {
-              dotProduct = rmfMatcher.find() ? Double.parseDouble(rmfMatcher.group(1)) : Double.NaN;
-            }
-
-            // NIST cosine similarity scores range between 0 and 1000. Make compatible with MZmine.
-            dotProduct = dotProduct / 1000;
-
-            // Parse compound meta data and make SprectralDBAnnotation.
-            if (dotProduct >= minDotProduct) {
-
-              String name = cmpMatcher.group(1);
-
-              Matcher fmlMatcher = FML_REGEX.matcher(line);
-              Matcher casMatcher = CAS_REGEX.matcher(line);
-              Matcher mwMatcher = MW_REGEX.matcher(line);
-              Matcher idMatcher = ID_REGEX.matcher(line);
-              Matcher libMatcher = LIB_REGEX.matcher(line);
-
-              String formula = "";
-              String ion = "";
-              String molWeight = "";
-              String casNumber = "";
-              String id = "";
-              String lib = "";
-
-              if (fmlMatcher.find()) {
-                formula = fmlMatcher.group(1);
-              }
-              if (mwMatcher.find()) {
-                molWeight = mwMatcher.group(1);
-              }
-              if (casMatcher.find()) {
-                casNumber = casMatcher.group(1);
-              }
-              if (idMatcher.find()) {
-                id = idMatcher.group(1);
-              }
-              if (libMatcher.find()) {
-                lib = "Library: " + libMatcher.group(1) + "\n"
-                    + "NIST results only viewable in NIST MS Search";
-              }
-
-              // Compound ion_type is combined with name field for LC-MS/MS field.
-              Matcher ionMatcher = ION_REGEX.matcher(name);
-              if (ionMatcher.find()) {
-                name = StringUtils.substringBefore(name, "  [");
-                ion = ionMatcher.group(1);
-              }
-
-              Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME,
-                  name, DBEntryField.FORMULA, formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS,
-                  casNumber, DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib,
-                  DBEntryField.SOFTWARE, SEARCH_METHOD);
-
-              // Use empty spectrum for now as NIST search does not provide the spectrum
-              SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
-                  map);
-
-              SpectralSimilarity similarity = new SpectralSimilarity("Cosine Dot Product",
-                  dotProduct, 100, Double.NaN);
-
-              final SpectralDBAnnotation libraryID = new SpectralDBAnnotation(entry, similarity,
-                  queryScan, null, row.getAverageMZ(), row.getAverageRT(), null);
-
-              ids.add(libraryID);
-            }
-          } else {
-
-            throw new IOException(
-                "Didn't find start of results block before listing hits at line " + lineCount);
-          }
-        } else {
-          throw new IOException("Unrecognised results file text at line " + lineCount);
+        final SpectralDBAnnotation match = parseHitLine(hitLine, cmpMatcher, row, queryScan);
+        if (match != null) {
+          ids.add(match);
         }
-
-        // Read the next line.
-        line = reader.readLine();
-        lineCount++;
       }
     }
 
@@ -489,31 +449,207 @@ public class NistMsSearchTask extends AbstractTask {
   }
 
   /**
-   * Executes the NIST MS Search.
+   * Splits a results file into its {@code Unknown: Row <n>} blocks and returns the hit lines of the
+   * block that belongs to the given row.
+   * <p>
+   * Blocks of other rows and unrecognised text are logged and skipped - never treated as an error.
    *
-   * @param command the search command-line string.
-   * @throws IOException if there are i/o problems.
+   * @param reader the results file reader.
+   * @param rowID  the row whose block is wanted.
+   * @return the hit lines of the row's block, or null if the file holds no block for it.
+   * @throws IOException if an i/o problem occurs.
    */
-  private void runNistMsSearch(final String command) throws IOException {
+  static @Nullable List<String> readHitLinesForRow(final BufferedReader reader, final int rowID)
+      throws IOException {
 
-    // Remove the results polling file.
-    final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
-    if (srcReady.exists() && !srcReady.delete()) {
-      throw new IOException("Couldn't delete the search results polling file " + srcReady
-          + ".  Please delete it manually.");
+    final List<String> hitLines = new ArrayList<>();
+    boolean insideOwnBlock = false;
+    boolean foundOwnBlock = false;
+
+    int lineCount = 1;
+    String line = reader.readLine();
+    while (line != null) {
+
+      final String currentLine = line;
+      final int currentLineCount = lineCount;
+
+      // Match the line.
+      final Matcher scanMatcher = SEARCH_REGEX.matcher(line);
+
+      // Is this the start of a result block?
+      if (scanMatcher.matches()) {
+
+        final int hitID = Integer.parseInt(scanMatcher.group(1));
+        insideOwnBlock = hitID == rowID;
+        foundOwnBlock |= insideOwnBlock;
+
+        if (!insideOwnBlock) {
+          logger.finest(() -> "Skipping results block of row " + hitID + " at line "
+              + currentLineCount + " while searching row " + rowID);
+        }
+      } else if (CMP_REGEX.matcher(line).find()) {
+
+        if (insideOwnBlock) {
+          hitLines.add(currentLine);
+        }
+      } else if (!line.isBlank()) {
+        logger.finest(() -> "Ignoring unrecognised text at line " + currentLineCount + " of "
+            + SEARCH_RESULTS_FILE_NAME + ": " + StringUtils.abbreviate(currentLine, 120));
+      }
+
+      // Read the next line.
+      line = reader.readLine();
+      lineCount++;
     }
 
-    // Execute NIS MS Search.
-    logger.finest("Executing " + command);
-    Runtime.getRuntime().exec(command);
+    return foundOwnBlock ? hitLines : null;
+  }
+
+  /**
+   * Parses a single hit line into an annotation.
+   *
+   * @return the annotation, or null if the hit is below the dot product cut-off.
+   */
+  private @Nullable SpectralDBAnnotation parseHitLine(final String line, final Matcher cmpMatcher,
+      final FeatureListRow row, @NotNull final Scan queryScan) {
+
+    final Matcher mfMatcher = MF_REGEX.matcher(line);
+    final Matcher rmfMatcher = RMF_REGEX.matcher(line);
+
+    /*
+      Known bug in NIST MS Search v. <= 2.5. For MS/MS-based searches, Dot Product is
+      reported in RMF field. Must conditionally assign dot product based one whether
+      EI or MS/MS spectrum search type. Only EI-based searches report RI.
+     */
+    double dotProduct;
+    if (RI_REGEX.matcher(line).find()) {
+      dotProduct = mfMatcher.find() ? Double.parseDouble(mfMatcher.group(1)) : Double.NaN;
+    } else {
+      dotProduct = rmfMatcher.find() ? Double.parseDouble(rmfMatcher.group(1)) : Double.NaN;
+    }
+
+    // NIST cosine similarity scores range between 0 and 1000. Make compatible with MZmine.
+    dotProduct = dotProduct / 1000;
+
+    // Parse compound meta data and make SprectralDBAnnotation.
+    if (!(dotProduct >= minDotProduct)) {
+      return null;
+    }
+
+    String name = cmpMatcher.group(1);
+
+    final Matcher fmlMatcher = FML_REGEX.matcher(line);
+    final Matcher casMatcher = CAS_REGEX.matcher(line);
+    final Matcher mwMatcher = MW_REGEX.matcher(line);
+    final Matcher idMatcher = ID_REGEX.matcher(line);
+    final Matcher libMatcher = LIB_REGEX.matcher(line);
+
+    String formula = "";
+    String ion = "";
+    String molWeight = "";
+    String casNumber = "";
+    String id = "";
+    String lib = "";
+
+    if (fmlMatcher.find()) {
+      formula = fmlMatcher.group(1);
+    }
+    if (mwMatcher.find()) {
+      molWeight = mwMatcher.group(1);
+    }
+    if (casMatcher.find()) {
+      casNumber = casMatcher.group(1);
+    }
+    if (idMatcher.find()) {
+      id = idMatcher.group(1);
+    }
+    if (libMatcher.find()) {
+      lib = "Library: " + libMatcher.group(1) + "\n"
+          + "NIST results only viewable in NIST MS Search";
+    }
+
+    // Compound ion_type is combined with name field for LC-MS/MS field.
+    final Matcher ionMatcher = ION_REGEX.matcher(name);
+    if (ionMatcher.find()) {
+      name = StringUtils.substringBefore(name, "  [");
+      ion = ionMatcher.group(1);
+    }
+
+    Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, id, DBEntryField.NAME, name,
+        DBEntryField.FORMULA, formula, DBEntryField.ION_TYPE, ion, DBEntryField.CAS, casNumber,
+        DBEntryField.MOLWEIGHT, molWeight, DBEntryField.COMMENT, lib, DBEntryField.SOFTWARE,
+        SEARCH_METHOD);
+
+    // Use empty spectrum for now as NIST search does not provide the spectrum
+    SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0], map);
+
+    SpectralSimilarity similarity = new SpectralSimilarity("Cosine Dot Product", dotProduct, 100,
+        Double.NaN);
+
+    return new SpectralDBAnnotation(entry, similarity, queryScan, null, row.getAverageMZ(),
+        row.getAverageRT(), null);
+  }
+
+  /**
+   * Executes the NIST MS Search for a single spectra file.
+   *
+   * @param locatorFile the secondary locator file telling MS Search what to import.
+   * @param spectraFile the spectra file to search.
+   * @param numSignals  number of signals submitted, used in the timeout message.
+   * @throws IOException if there are i/o problems, or if MS Search produced no results in time.
+   */
+  private void runNistMsSearch(final File locatorFile, final File spectraFile, final int numSignals)
+      throws IOException {
+
+    final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
+    final File srcResult = new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME);
+
+    // Remove the previous results *before* the locator file is written. MS Search polls for the
+    // locator file on its own schedule, so it may pick it up and finish before we get here -
+    // deleting the polling file afterwards would destroy the very signal we then wait for.
+    // Once both files are gone, their reappearance can only be the result of this search.
+    deleteResultFile(srcReady);
+    deleteResultFile(srcResult);
+
+    // Tell MS Search which file to import and search.
+    writeSecondaryLocatorFile(locatorFile, spectraFile);
+
+    // Execute NIST MS Search. Passed as an argument list so that an installation directory
+    // containing spaces is not split into separate arguments.
+    final List<String> command = new ArrayList<>();
+    command.add(nistMsSearchExe.getAbsolutePath());
+    command.addAll(COMMAND_LINE_ARGS);
+    logger.finest(() -> "Executing " + String.join(" ", command));
+    new ProcessBuilder(command).directory(nistMsSearchDir).start();
 
     // Wait for the search to finish by polling the results file.
+    final long deadline = System.currentTimeMillis() + SEARCH_TIMEOUT_MS;
     while (!srcReady.exists() && !isCanceled()) {
+
+      if (System.currentTimeMillis() > deadline) {
+        throw new IOException("NIST MS Search produced no results within %d s. Check that the "
+            .formatted(SEARCH_TIMEOUT_MS / 1000)
+            + "\"Automation\" check box is enabled (Options -> Library search options -> Other "
+            + "options -> Automation), that MS Search is not waiting on a dialog, and that the "
+            + "submitted spectrum is valid (%d signals were submitted).".formatted(numSignals));
+      }
+
       try {
         Thread.sleep(POLL_RESULTS);
       } catch (InterruptedException ignore) {
         // uninterruptible.
       }
+    }
+  }
+
+  /**
+   * Deletes one of the MS Search result files, failing with an actionable message.
+   */
+  private static void deleteResultFile(final File file) throws IOException {
+
+    if (file.exists() && !file.delete()) {
+      throw new IOException("Couldn't delete the previous search results file " + file
+          + ".  Close NIST MS Search and delete it manually.");
     }
   }
 
@@ -526,7 +662,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @return the file.
    * @throws IOException if an i/o problem occurs.
    */
-  private File writeSpectraFile(final FeatureListRow peakRow, final DataPoint[] dataPoint,
+  private File writeSpectraFile(final FeatureListRow peakRow, @NotNull final DataPoint[] dataPoint,
       final String comment) throws IOException {
 
     final File spectraFile = FileAndPathUtil.createTempFile(SPECTRA_FILE_PREFIX,
@@ -547,33 +683,14 @@ public class NistMsSearchTask extends AbstractTask {
       writer.write("Comments: " + comment);
       writer.newLine();
 
-      // Write ions.
-      if (dataPoint == null) {
+      // Write clustered spectra or MSn spectra.
+      writer.write("Num Peaks: " + dataPoint.length);
+      writer.newLine();
 
-        // Write precursor MZ if no clustered spectra or MSn spectra.
-        writer.write("Num Peaks: 1");
+      for (final DataPoint dp : dataPoint) {
+
+        writer.write(dp.getMZ() + "\t" + dp.getIntensity());
         writer.newLine();
-
-        double mz = peakRow.getAverageMZ();
-
-        // If integer, round.
-        if (integerMZ != null) {
-          mz = (int) Math.round(mz);
-        }
-
-        writer.write(mz + "\t" + peakRow.getMaxHeight());
-
-      } else {
-
-        // Write clustered spectra or MSn spectra.
-        writer.write("Num Peaks: " + dataPoint.length);
-        writer.newLine();
-
-        for (final DataPoint dp : dataPoint) {
-
-          writer.write(dp.getMZ() + "\t" + dp.getIntensity());
-          writer.newLine();
-        }
       }
     }
     return spectraFile;
