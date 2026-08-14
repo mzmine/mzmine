@@ -174,13 +174,20 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
   @Override
   public @Nullable Region getMessage() {
-    return FxTextFlows.newTextFlowInAccordion("Information", true, text("""
+    return FxTextFlows.newTextFlowInAccordion("Information", true, boldText("Deprecated: "),
+        text("this module drives the NIST MS Search user interface, one spectrum at a time, and "
+            + "cannot run without a visible MS Search window. Prefer "),
+        italicText("NIST MSPepSearch"),
+        text(", which searches all spectra in a single headless run.\n\n"), text("""
             You must have a valid NIST library installation and the "Automation" check box under"""),
         italicText(" Options"), text(" -> "), italicText("Library search options"), text(" -> "),
         italicText("Other options"), text(" -> "), italicText("Automation"),
         text(" must be enabled."),
         text("\nThis search may take longer than spectral library searches in mzmine."),
         text("\nWe recommend to "), boldText("not interact"),
-        text(" with the MS Search interface during the search."));
+        text(" with the MS Search interface during the search."),
+        text("\nWith "), italicText("Spectrum Import = Append"),
+        text(" the MS Search spec list keeps growing, which makes every search slower - "),
+        italicText("Overwrite"), text(" is recommended."));
   }
 }
