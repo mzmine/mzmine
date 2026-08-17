@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.6.1"
     }
   },
   "variants": [
@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 25,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 54461,
-          "sha512": "e1c954111aaa75207d635cbcd479b32907930fe88a7c39eef02c16b25dcaa09325ea304e4d69cbe3c4ea5aae59e376435fcdcf763181e2481d5421fa44811046",
-          "sha256": "69d91df68adaaebb65e0916e70b27612dada7927635e02023694197060b90bf0",
-          "sha1": "8e7271f3d306ac4b3a550ee458b1de221489d6fd",
-          "md5": "a1699c0824b99a529a177488d5fc9779"
+          "size": 55923,
+          "sha512": "b5751a1b9f7d4c5b6514d48b8cf0434b0783053a1d9348fb6252452efd1cbc3788d99982bfc417fc3dc34941750fa8e865669dc18d80ca5f1ac066b51b388b35",
+          "sha256": "ae35d7d98e6f85c21041e96d9886e692c590ae2865436d332ae8f245185044f3",
+          "sha1": "a1fea6e8ef15005276b98a4eaa5d281d4ace62bc",
+          "md5": "57296b8329bd2ddc6d499aace9804c39"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 25,
+        "org.gradle.jvm.version": 26,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -124,42 +124,42 @@
           "group": "org.openjfx",
           "module": "javafx-base",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-graphics",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-controls",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-fxml",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-swing",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         },
         {
           "group": "org.openjfx",
           "module": "javafx-web",
           "version": {
-            "requires": "24.0.2"
+            "requires": "24"
           }
         }
       ],
@@ -167,11 +167,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 54461,
-          "sha512": "e1c954111aaa75207d635cbcd479b32907930fe88a7c39eef02c16b25dcaa09325ea304e4d69cbe3c4ea5aae59e376435fcdcf763181e2481d5421fa44811046",
-          "sha256": "69d91df68adaaebb65e0916e70b27612dada7927635e02023694197060b90bf0",
-          "sha1": "8e7271f3d306ac4b3a550ee458b1de221489d6fd",
-          "md5": "a1699c0824b99a529a177488d5fc9779"
+          "size": 55923,
+          "sha512": "b5751a1b9f7d4c5b6514d48b8cf0434b0783053a1d9348fb6252452efd1cbc3788d99982bfc417fc3dc34941750fa8e865669dc18d80ca5f1ac066b51b388b35",
+          "sha256": "ae35d7d98e6f85c21041e96d9886e692c590ae2865436d332ae8f245185044f3",
+          "sha1": "a1fea6e8ef15005276b98a4eaa5d281d4ace62bc",
+          "md5": "57296b8329bd2ddc6d499aace9804c39"
         }
       ]
     }

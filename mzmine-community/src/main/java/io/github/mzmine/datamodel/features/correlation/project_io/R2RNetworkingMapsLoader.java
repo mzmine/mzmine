@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,43 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package io.github.mzmine.datamodel.features.correlation.project_io;
 
-package io.github.mzmine.datamodel.features.types;
-
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.util.io.JsonUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Level of feature grouping
+ * Loads a {@link R2RNetworkingMaps} from JSON written by {@link R2RNetworkingMapsSaver}. Rows are
+ * resolved on the given feature list by their {@code getID()}; edges whose endpoints are missing
+ * are silently dropped.
  */
-public class FeatureGroupType extends DataType<RowGroup> {
+public final class R2RNetworkingMapsLoader {
+
+  private R2RNetworkingMapsLoader() {
+  }
 
   @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "feature_group";
-  }
-
-  @Override
-  @NotNull
-  public String getHeaderString() {
-    return "Group";
-  }
-
-  @Override
-  public ObjectProperty<RowGroup> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<RowGroup> getValueClass() {
-    return RowGroup.class;
-  }
-
-  public enum GroupType {
-    CORRELATED, ISOTOPES, ION_ADDUCTS
+  public static R2RNetworkingMaps load(@NotNull final InputStream in,
+      @NotNull final ModularFeatureList flist) throws IOException {
+    final R2RNetworkingMapsDto dto = JsonUtils.MAPPER.readValue(in, R2RNetworkingMapsDto.class);
+    return R2RDtoConverter.fromDto(dto, flist);
   }
 }

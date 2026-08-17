@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,13 +40,11 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
@@ -61,7 +59,6 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -114,7 +111,6 @@ public class CorrelateGroupingTask extends AbstractTask {
   // output
   protected ModularFeatureList groupedPKL;
   private int totalRows;
-  private List<RowGroup> groups;
 
 
   /**
@@ -205,10 +201,6 @@ public class CorrelateGroupingTask extends AbstractTask {
 
   }
 
-  public List<RowGroup> getGroups() {
-    return groups;
-  }
-
   @Override
   public double getFinishedPercentage() {
     return stageProgress.get();
@@ -268,42 +260,26 @@ public class CorrelateGroupingTask extends AbstractTask {
       r2rNetworkingMaps.removeAllRowRelationships(Type.MS1_FEATURE_CORR);
       r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
-      logger.fine("Corr: Starting to group by correlation");
-      groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL, keepExtendedStats);
-
       if (isCanceled()) {
         return;
       }
-      // refinement:
-      // filter by avg correlation in group
-      // delete single connections between sub networks
-      if (groups != null) {
-        // set groups to pkl
-        for (final RowGroup group : groups) {
-          // not needed for RowGroupSimple
-          if (group instanceof CorrelationRowGroup g) {
-            g.recalcGroupCorrelation(corrMap);
-          }
-        }
-        groupedPKL.setGroups(groups);
 
-        if (isCanceled()) {
-          return;
-        }
+      // Correlation groups (connected components) are no longer stored on the feature list. The
+      // correlation map above is the source of truth; downstream tasks that need the connected
+      // components generate them on demand via CorrelationGroupingUtils.createCorrGroups.
 
-        // Add task description to peakList.
-        groupedPKL.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters,
-                getModuleCallDate()));
+      // Add task description to peakList.
+      groupedPKL.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters,
+              getModuleCallDate()));
 
-        // add to project
-        handleOriginal.reflectNewFeatureListToProject(suffix, project, groupedPKL, featureList);
+      // add to project
+      handleOriginal.reflectNewFeatureListToProject(suffix, project, groupedPKL, featureList);
 
-        // Done.
-        setStatus(TaskStatus.FINISHED);
-        logger.log(Level.INFO, "Finished correlation grouping in feature list {0}",
-            featureList.getName());
-      }
+      // Done.
+      setStatus(TaskStatus.FINISHED);
+      logger.log(Level.INFO, "Finished correlation grouping in feature list {0}",
+          featureList.getName());
     } catch (Exception t) {
       logger.log(Level.SEVERE, "Correlation error", t);
       setStatus(TaskStatus.ERROR);

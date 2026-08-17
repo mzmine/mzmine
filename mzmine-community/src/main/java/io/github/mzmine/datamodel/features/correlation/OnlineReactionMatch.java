@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
+package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.correlation.InternalTypedRowsRelationship;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction;
 import java.text.NumberFormat;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An online reaction educt -> product relationship. Can be visualized in network
  */
-public class OnlineReactionMatch extends InternalTypedRowsRelationship {
+public final class OnlineReactionMatch extends InternalTypedRowsRelationship {
 
   private final OnlineReaction reaction;
 

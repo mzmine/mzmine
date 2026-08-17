@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,11 +34,12 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MSMSLogic;
@@ -176,8 +177,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       // for all rows in network
       List<FeatureListRow> rows = net.getRows();
 
-      // check group for correlation
-      RowGroup group = row.getGroup();
+      // check MS1 correlation map for a direct correlation edge between the rows
+      final R2RMap<RowsRelationship> ms1Map = pkl.getMs1CorrelationMap().orElse(null);
 
       if (rows != null) {
         for (FeatureListRow parent : rows) {
@@ -185,8 +186,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
             continue;
           }
 
-          // only correlated rows in this group
-          if (group == null || group.isCorrelated(row, parent)) {
+          // only correlated rows (or all rows if no correlation map is available)
+          if (ms1Map == null || ms1Map.contains(row, parent)) {
             // has MS/MS
             Scan msmsScan = parent.getMostIntenseFragmentScan();
             if (msmsScan == null) {
@@ -211,7 +212,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
     }
 
     // sort and get best
-    IonNetworkLogic.sortIonIdentities(row, true);
+    IonNetworkLogic.sortIonIdentities(row);
     IonIdentity best = row.getBestIonIdentity();
     final int counter = c;
     if (c > 0) {

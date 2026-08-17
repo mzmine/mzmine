@@ -26,11 +26,14 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.structure_tanimoto.StructureTanimotoNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityTask;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public interface RowsRelationship {
+public sealed interface RowsRelationship permits AbstractRowsRelationship {
 
   /**
    * Score of this row 2 row relationship
@@ -84,32 +87,28 @@ public interface RowsRelationship {
    *
    * @return the type of this relationship
    */
-  @NotNull
-  String getType();
+  @NotNull String getType();
 
   /**
    * The annotation of this row-2-row relationship
    *
    * @return a string representation of this ralationship
    */
-  @NotNull
-  String getAnnotation();
+  @NotNull String getAnnotation();
 
   /**
    * Row a
    *
    * @return the first row
    */
-  @NotNull
-  FeatureListRow getRowA();
+  @NotNull FeatureListRow getRowA();
 
   /**
    * Row b
    *
    * @return the second row
    */
-  @NotNull
-  FeatureListRow getRowB();
+  @NotNull FeatureListRow getRowB();
 
   default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
     if (getRowA().equals(correlatedRow)) {
@@ -124,7 +123,7 @@ public interface RowsRelationship {
   /**
    * All types of relationships
    */
-  enum Type {
+  enum Type implements UniqueIdSupplier {
     /**
      * MS1 similarity can be same retention time, feature shape correlation, intensity across
      * samples. see {@link CorrelateGroupingTask} and {@link CorrelationGroupingUtils}
@@ -156,15 +155,17 @@ public interface RowsRelationship {
     /**
      *
      */
-    MS2Deepscore,
-    DREAMS,
+    MS2Deepscore, DREAMS,
     /**
-     * {@link
-     * io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search.AnalogSpectralLibrarySearchModule}
-     * Not R2R relationships constructed currently, but we need the enum values for the network
-     * visualizer
+     * {@link AnalogSpectralLibrarySearchModule} Not R2R relationships constructed currently, but we
+     * need the enum values for the network visualizer
      */
     ANALOG_COSINE, ANALOG_DREAMS, ANALOG_MS2DEEPSCORE,
+    /**
+     * Structural (Tanimoto) similarity between the molecular structures of the rows' annotations.
+     * see {@link StructureTanimotoNetworkingTask}
+     */
+    STRUCTURE_TANIMOTO,
     /**
      * External or other undefined
      */
@@ -200,7 +201,28 @@ public interface RowsRelationship {
         case ANALOG_COSINE -> "Analog (Cosine)";
         case ANALOG_DREAMS -> "Analog (DreaMS)";
         case ANALOG_MS2DEEPSCORE -> "Analog (MS2Deepscore)";
+        case STRUCTURE_TANIMOTO -> "Structure (Tanimoto)";
         case OTHER -> "Other";
+      };
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case MS1_FEATURE_CORR -> "ms1_feature_corr";
+        case MS1_MOBILITY_FEATURE_CORR -> "ms1_mobility_feature_corr";
+        case ION_IDENTITY_NET -> "iin";
+        case MS2_COSINE_SIM -> "ms2_cosine";
+        case MS2_NEUTRAL_LOSS_SIM -> "ms2_neutral_loss";
+        case MS2_GNPS_COSINE_SIM -> "ms2_cosine_gnps";
+        case ONLINE_REACTION -> "online_reaction";
+        case MS2Deepscore -> "ms2_deepscore";
+        case DREAMS -> "dreams";
+        case ANALOG_COSINE -> "analog_cosine";
+        case ANALOG_DREAMS -> "analog_dreams";
+        case ANALOG_MS2DEEPSCORE -> "analog_ms2_deepscore";
+        case STRUCTURE_TANIMOTO -> "structure_tanimoto";
+        case OTHER -> "other";
       };
     }
   }

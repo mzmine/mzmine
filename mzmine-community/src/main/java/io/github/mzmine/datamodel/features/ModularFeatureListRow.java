@@ -40,11 +40,10 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataMode
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.OnlineReactionMatch;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibraryMatchesType;
@@ -75,7 +74,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -372,16 +370,6 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     return flist;
   }
 
-  @Override
-  public RowGroup getGroup() {
-    return get(FeatureGroupType.class);
-  }
-
-  @Override
-  public void setGroup(RowGroup group) {
-    set(FeatureGroupType.class, group);
-  }
-
   /**
    * The immutable list of ion identities.
    *
@@ -552,6 +540,7 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
    */
   @Override
   public boolean isIdentified() {
+    // need to override in ModularCompoundRow because getTypes() returns the compound list types there.
     for (DataType dt : getTypes()) {
       if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType
           && !(dt instanceof IonIdentityListType)) {

@@ -319,6 +319,17 @@ application {
 // Bundle external tools directly through jpackage on all operating systems.
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools").asFile.absolutePath
 
+def LINUX_INSTALLER_NAME = APPNAME + "_Linux_installer"
+// installer options valid for both deb and rpm. Type specific options (--linux-deb-*, --linux-rpm-*)
+// must not be mixed as jpackage rejects them since JDK 26 (previously only a warning).
+def LINUX_COMMON_INSTALLER_OPTIONS = [
+        "--vendor", "mzio GmbH",
+        "--linux-package-name", APPNAME,
+        "--linux-shortcut",
+        "--linux-menu-group", APPNAME,
+//      "--license-file", "LICENSE.txt", not required
+]
+
 /*
  * Build the JVM runtime using jlink
  */
@@ -340,7 +351,7 @@ runtime {
             "java.transaction.xa",
             "java.scripting",
             "java.compiler",
-            "jdk.jsobject",
+            // jdk.jsobject was removed in JDK 26; netscape.javascript now ships in the javafx.web jar
             "jdk.jfr",
             "java.security.sasl",
             "java.security.jgss",
@@ -403,22 +414,20 @@ runtime {
             installerName = APPNAME + "_macOS_installer-academia"
         }
         if (OperatingSystem.current().isLinux()) {
-            // leave installer type empty to generate all that match
-            // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
-            // installerType = "deb"
+            // decision: build only the deb here. With an empty installerType the beryx plugin runs
+            // jpackage for rpm and deb with the same installerOptions, which fails on JDK 26 because
+            // --linux-deb-maintainer is not valid for type rpm. The rpm is built by the jpackageRpm
+            // task below from the same app image.
+            // for rpm, rpmbuild and rpm tools need to be installed
+            installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/mzmineIcon.png",
                             "--app-content", EXTERNAL_TOOLS_SRC]
-            installerOptions = [
-                    "--vendor", "mzio GmbH",
-                    "--linux-package-name", APPNAME,
-                    "--linux-shortcut",
-                    "--linux-menu-group", APPNAME,
-//                  "--license-file", "LICENSE.txt", not required
+            installerOptions = LINUX_COMMON_INSTALLER_OPTIONS + [
                     "--linux-deb-maintainer", "plusik@gmail.com"
             ]
 
-            installerName = APPNAME + "_Linux_installer"
+            installerName = LINUX_INSTALLER_NAME
         }
         imageName = APPNAME
         jvmArgs = ["-showversion",
@@ -433,6 +442,38 @@ runtime {
                    "--add-opens=java.logging/java.util.logging=ALL-UNNAMED",
                    "--enable-preview",
         ]
+    }
+}
+
+/*
+ * The rpm package on Linux. The beryx plugin can only pass a single installerOptions list to all
+ * installer types it builds, so the rpm is created here from the app image of jpackageImage.
+ */
+if (OperatingSystem.current().isLinux()) {
+    def jpackageOutputDir = layout.buildDirectory.dir("jpackage")
+    def jpackageExecutable = javaToolchains.launcherFor(java.toolchain).map {
+        it.metadata.installationPath.file("bin/jpackage").asFile.absolutePath
+    }
+
+    def jpackageRpm = tasks.register("jpackageRpm", Exec) {
+        group = "build"
+        description = "Creates the Linux rpm installer from the app image created by jpackageImage."
+        dependsOn(tasks.named("jpackageImage"))
+
+        def outputDir = jpackageOutputDir.get().asFile
+
+        executable = jpackageExecutable.get()
+        args(["--type", "rpm",
+              "--dest", outputDir.absolutePath,
+              "--name", LINUX_INSTALLER_NAME,
+              "--app-version", project.version.toString(),
+              "--app-image", new File(outputDir, APPNAME).absolutePath,
+              *LINUX_COMMON_INSTALLER_OPTIONS])
+    }
+
+    // run after the deb so that both packages end up in build/jpackage
+    tasks.named("jpackage") {
+        finalizedBy(jpackageRpm)
     }
 }
 

@@ -236,8 +236,11 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
   }
 
   protected void makeAndAddMassDetectorSteps(final BatchQueue q) {
-    if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
+    if (isImsActive && (imsInstrumentType == MobilityType.TIMS
+        || imsInstrumentType == MobilityType.TRAVELING_WAVE)) {
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
+      makeAndAddMassDetectionStep(q, 1,
+          SelectedScanTypes.MOBLITY_SCANS); // in theory not needed due to advanced import, but if the file was imported manually it can throw
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
     } else {
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.SCANS);

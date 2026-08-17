@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.PseudoSpectrum;
@@ -55,9 +54,7 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
       @NotNull final PseudoSpectrumType type) {
 
     super(dataFile, -1, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
-        MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        mzValues.length > 0 ? Range.closed(mzValues[0], mzValues[mzValues.length - 1])
-            : Range.singleton(0d));
+        MassSpectrumType.CENTROIDED, polarity, scanDefinition, null);
     // since this is a pseudo spectrum, directly add a mass list. Noise thresholding and every
     // other processing step before this spectrum's creation should have filtered the noise.
     addMassList(new ScanPointerMassList(this));

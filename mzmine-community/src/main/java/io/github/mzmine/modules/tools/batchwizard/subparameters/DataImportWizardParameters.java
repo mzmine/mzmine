@@ -26,13 +26,14 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.ImportSubsetDataMenu;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesWithSideBarControlsParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -59,8 +60,9 @@ public final class DataImportWizardParameters extends WizardStepParameters {
       EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionEmbeddedParameters(),
       false);
 
-  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here");
+  public static final FileNamesWithSideBarControlsParameter fileNames = new FileNamesWithSideBarControlsParameter(
+      "File names", "", ExtensionFilters.MS_RAW_DATA, "Drag & drop your MS data files here",
+      AllSpectralDataImportParameters::validateDistinctPaths, ImportSubsetDataMenu::new);
 
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,

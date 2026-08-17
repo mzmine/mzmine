@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,12 +30,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -157,7 +157,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
     }
 
     // sort
-    IonNetworkLogic.sortIonIdentities(featureList, true);
+    IonNetworkLogic.sortIonIdentities(featureList);
 
     List<IonNetwork> nets = IonNetworkLogic.getAllNetworksList(featureList.getRows(), null, false);
 
@@ -176,7 +176,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
     }
 
     count = IonNetworkLogic.getAllNetworksList(featureList.getRows(), null, false).size();
-    IonNetworkLogic.sortIonIdentities(featureList, true);
+    IonNetworkLogic.sortIonIdentities(featureList);
     LOG.info("Ion identity networks after refinement: " + count);
   }
 

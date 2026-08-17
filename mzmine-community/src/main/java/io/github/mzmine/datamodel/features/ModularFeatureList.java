@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.features;
 
-import static java.util.Objects.requireNonNullElse;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
@@ -38,7 +37,6 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -52,20 +50,18 @@ import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
-import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,7 +92,10 @@ import org.jetbrains.annotations.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   public static final int DEFAULT_ESTIMATED_ROWS = 5000;
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  // DateTimeFormatter instead of SimpleDateFormat: this constant is shared across threads and
+  // SimpleDateFormat is not thread-safe (concurrent use corrupts its internal calendar).
+  public static final DateTimeFormatter DATA_FORMAT = DateTimeFormatter.ofPattern(
+      "yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
@@ -134,8 +133,6 @@ public class ModularFeatureList implements FeatureList {
   @NotNull
   private String nameProperty = "";
   private String dateCreated;
-  // grouping
-  private List<RowGroup> groups;
 
   /**
    * this just counts the mutations of annotationSortConfig to signal change.
@@ -206,7 +203,7 @@ public class ModularFeatureList implements FeatureList {
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
-    dateCreated = DATA_FORMAT.format(new Date());
+    dateCreated = DATA_FORMAT.format(LocalDateTime.now());
     selectedScans = FXCollections.observableMap(new HashMap<>());
     this.memoryMapStorage = storage;
 
@@ -877,18 +874,6 @@ public class ModularFeatureList implements FeatureList {
     }
 
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
-  }
-
-  @Override
-  @NotNull
-  public List<RowGroup> getGroups() {
-    return requireNonNullElse(groups, List.of());
-  }
-
-  @Override
-  public void setGroups(List<RowGroup> groups) {
-    this.groups = groups;
-    CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
   @Override
