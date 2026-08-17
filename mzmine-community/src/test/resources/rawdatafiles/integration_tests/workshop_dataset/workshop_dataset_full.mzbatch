@@ -27,75 +27,29 @@
 <batch mzmine_version="4.10.28">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_media_06.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_01.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_02.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_03.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_04.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_05.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_PA14_06.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_03.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_04.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_05.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_06.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_07.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_QC_08.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_01.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_02.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_03.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_04.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_05.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_M1_06.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_media_02.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_media_03.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_media_04.mzML
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\171103_PMA_TK_media_05.mzML
-          </file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_media_06.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_01.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_02.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_03.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_04.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_05.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_PA14_06.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_03.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_04.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_05.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_06.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_07.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_QC_08.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_01.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_02.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_03.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_04.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_05.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_M1_06.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_media_02.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_media_03.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_media_04.mzML</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\171103_PMA_TK_media_05.mzML</file>
         </parameter>
       <parameter name="Vendor data options">
         <parameter name="Try vendor centroiding">false</parameter>
@@ -191,22 +145,13 @@
             <parameter name="Denormalize fragment scans (traps)">true</parameter>
         </parameter>
         <parameter name="Metadata file" selected="true">
-          <current_file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\metadata_PA.tsv
-          </current_file>
-          <last_file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years
-            mzmine\metadata_PA.tsv
-          </last_file>
+          <current_file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\metadata_PA.tsv</current_file>
+          <last_file>D:\OneDrive - mzio GmbH\Example data - Documents\Thermo\20 years mzmine\metadata_PA.tsv</last_file>
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-          <file>D:\OneDrive - mzio GmbH\Example data -
-            Documents\other_data_libraries_metadata\Spectral
-            libraries\MoNA-export-LC-MS-MS_Spectra.json
-          </file>
-          <file>D:\OneDrive - mzio GmbH\Example data -
-            Documents\other_data_libraries_metadata\Spectral libraries\MassBank_NIST.msp
-          </file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Spectral libraries\MoNA-export-LC-MS-MS_Spectra.json</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Spectral libraries\MassBank_NIST.msp</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
