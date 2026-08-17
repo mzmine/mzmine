@@ -316,6 +316,9 @@ application {
     ]
 }
 
+// batchSpeedTest / batchSpeedReport benchmark tasks
+apply from: "$projectDir/gradle/speed-test.gradle"
+
 // Bundle external tools directly through jpackage on all operating systems.
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools").asFile.absolutePath
 

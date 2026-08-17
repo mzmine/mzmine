@@ -88,6 +88,10 @@ import org.jetbrains.annotations.Nullable;
 public class BatchTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(BatchTask.class.getName());
+  /**
+   * Name of the measurement that covers the whole batch instead of a single step.
+   */
+  public static final String WHOLE_BATCH_NAME = "WHOLE BATCH";
   private final BatchQueue queue;
   // advanced parameters
   private final int stepsPerDataset;
@@ -225,7 +229,7 @@ public class BatchTask extends AbstractTask {
     if (runGCafterBatchStep) {
       System.gc();
     }
-    stepTimes.add(new StepTimeMeasurement(0, "WHOLE BATCH", duration, runGCafterBatchStep));
+    stepTimes.add(new StepTimeMeasurement(0, WHOLE_BATCH_NAME, duration, runGCafterBatchStep));
     printBatchMeasurements();
   }
 
@@ -331,24 +335,29 @@ public class BatchTask extends AbstractTask {
   }
 
   /**
-   * Logs timing and temp file usage of all collected steps as a single CSV, followed by a TOTAL row
-   * that sums the per-step values (live values are the latest snapshot). Pairs {@link #stepTimes}
-   * and {@link #stepStorageStats} by index; a trailing "WHOLE BATCH" timing entry (if present) is
-   * ignored in favor of the computed TOTAL row.
+   * Timing, heap and temp file usage of all collected steps, followed by a
+   * {@link #WHOLE_BATCH_NAME} summary row. Pairs {@link #stepTimes} and {@link #stepStorageStats} by
+   * index. The summary row uses the measured wall clock of the whole batch (which also covers
+   * overhead outside of the steps) and falls back to the sum of the step times while the batch is
+   * still running. Its storage columns are the sums of the per-step deltas, its live columns are the
+   * latest snapshot and therefore not a sum.
+   *
+   * @return an unmodifiable list, empty while no step has finished yet
    */
-  private void printBatchMeasurements() {
+  public @NotNull List<StepMeasurement> getStepMeasurements() {
     final int steps = stepStorageStats.size();
     if (steps == 0) {
-      return;
+      return List.of();
     }
     final List<StepMeasurement> measurements = new ArrayList<>(steps + 1);
     for (int i = 0; i < steps; i++) {
       measurements.add(new StepMeasurement(stepTimes.get(i), stepStorageStats.get(i)));
     }
 
-    // TOTAL row: sum per-step values, round to 3 decimals to keep the CSV clean; live values are
-    // the latest snapshot, not a sum
-    final double totalSeconds = round3(
+    // the trailing WHOLE BATCH timing entry is only added once the batch has finished
+    final StepTimeMeasurement wholeBatch = stepTimes.size() > steps ? stepTimes.get(steps) : null;
+    // round to 3 decimals to keep the CSV clean
+    final double totalSeconds = wholeBatch != null ? wholeBatch.secondsToFinish() : round3(
         stepTimes.stream().limit(steps).mapToDouble(StepTimeMeasurement::secondsToFinish).sum());
     final long totalFiles = stepStorageStats.stream()
         .mapToLong(StepStorageMeasurement::filesCreatedInStep).sum();
@@ -358,10 +367,23 @@ public class BatchTask extends AbstractTask {
         stepStorageStats.stream().mapToDouble(StepStorageMeasurement::usedGBInStep).sum());
 
     final StepStorageMeasurement last = stepStorageStats.getLast();
-    measurements.add(new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, "TOTAL", null),
-        new StepStorageMeasurement(0, "TOTAL", totalFiles, totalReservedGB, totalUsedGB,
-            last.liveFiles(), last.liveUsedGB())));
+    final String heap = wholeBatch != null ? wholeBatch.usedHeapGB() : null;
+    measurements.add(
+        new StepMeasurement(new StepTimeMeasurement(0, totalSeconds, WHOLE_BATCH_NAME, heap),
+            new StepStorageMeasurement(0, WHOLE_BATCH_NAME, totalFiles, totalReservedGB,
+                totalUsedGB, last.liveFiles(), last.liveUsedGB())));
 
+    return List.copyOf(measurements);
+  }
+
+  /**
+   * Logs {@link #getStepMeasurements()} as a single CSV.
+   */
+  private void printBatchMeasurements() {
+    final List<StepMeasurement> measurements = getStepMeasurements();
+    if (measurements.isEmpty()) {
+      return;
+    }
     final String csv = CsvWriter.writeToString(measurements, StepMeasurement.class, '\t', true);
     logger.info("""
         Batch step measurements (timing + temp file usage)
