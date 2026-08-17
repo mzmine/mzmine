@@ -36,8 +36,14 @@ class SampleMetadataExtractionUtilsTest {
 
   private static MetadataRegexMapping mapping(final String regex, final String defaultValue,
       final DropUnmappedMode dropUnmapped, final List<MetadataValueMapping> valueMappings) {
+    return mapping(regex, defaultValue, dropUnmapped, "", valueMappings);
+  }
+
+  private static MetadataRegexMapping mapping(final String regex, final String defaultValue,
+      final DropUnmappedMode dropUnmapped, final String unmappedValue,
+      final List<MetadataValueMapping> valueMappings) {
     return new MetadataRegexMapping(RegexInputSource.FILE_NAME, "type", ExtractColumnType.AUTO,
-        regex, defaultValue, dropUnmapped, valueMappings);
+        regex, defaultValue, dropUnmapped, unmappedValue, valueMappings);
   }
 
   @Test
@@ -92,6 +98,43 @@ class SampleMetadataExtractionUtilsTest {
     final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.DROP_UNMAPPED,
         List.of(new MetadataValueMapping("media", "blank")));
     Assertions.assertNull(SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
+  }
+
+  @Test
+  void remainingValuesAreMappedToUnmappedValue() {
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.MAP_UNMAPPED,
+        "sample", List.of(new MetadataValueMapping("media", "blank")));
+    // mappings are applied first ...
+    Assertions.assertEquals("blank",
+        SampleMetadataExtractionUtils.extractValue(m, "20210610_Media_01.mzML"));
+    // ... then everything else collapses into the fallback value
+    Assertions.assertEquals("sample",
+        SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
+  }
+
+  @Test
+  void remainingValuesMappedToBlankLeaveCellEmpty() {
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.MAP_UNMAPPED, "",
+        List.of(new MetadataValueMapping("media", "blank")));
+    Assertions.assertNull(SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
+  }
+
+  @Test
+  void remainingValueMappingRequiresActiveMappings() {
+    // without any mapping there is no "remaining" value - the extracted value is kept
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.MAP_UNMAPPED,
+        "sample", List.of());
+    Assertions.assertEquals("QC",
+        SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
+  }
+
+  @Test
+  void remainingValueMappingDoesNotApplyWithoutMatch() {
+    // no regex match uses the per-row default, not the remaining-values fallback
+    final MetadataRegexMapping m = mapping("QC_(\\d+)", "unknown", DropUnmappedMode.MAP_UNMAPPED,
+        "sample", List.of(new MetadataValueMapping("media", "blank")));
+    Assertions.assertEquals("unknown",
+        SampleMetadataExtractionUtils.extractValue(m, "20210610_blank_01.mzML"));
   }
 
   @Test

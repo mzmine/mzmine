@@ -158,10 +158,20 @@ public class SampleMetadataExtractionUtils {
       }
     }
 
-    // unmapped value: optionally drop it when mappings are defined
-    if (mapping.dropUnmapped() == DropUnmappedMode.DROP_UNMAPPED && !mapping.activeValueMappings()
-        .isEmpty()) {
-      return null;
+    // remaining (unmapped, non-blank) value: optionally drop it or map it to one fallback value.
+    // only applies while mappings are defined - otherwise nothing was mapped in the first place
+    if (!captured.isBlank() && !mapping.activeValueMappings().isEmpty()) {
+      switch (mapping.dropUnmapped()) {
+        case DROP_UNMAPPED -> {
+          return null;
+        }
+        case MAP_UNMAPPED -> {
+          return blankToNull(mapping.unmappedValue());
+        }
+        // pass the extracted value through unchanged
+        case KEEP_UNMAPPED -> {
+        }
+      }
     }
     return blankToNull(captured);
   }

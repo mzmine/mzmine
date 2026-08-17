@@ -43,6 +43,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -66,6 +67,8 @@ public class MetadataValueMappingEditor extends VBox {
   private final ComboBox<ValueHandlingMode> modeCombo;
   private final Label forColumnLabel = FxLabels.newBoldLabel("");
   private final ComboBox<DropUnmappedMode> dropUnmappedCombo;
+  // fallback value for all remaining values; only shown in the MAP_UNMAPPED mode
+  private final TextField unmappedValueField = new TextField();
   private final VBox fieldsBox = FxLayout.newVBox(Insets.EMPTY);
   // holds the value-mapping controls; only shown in the VALUE_MAPPINGS mode
   private final VBox valueSection;
@@ -90,8 +93,10 @@ public class MetadataValueMappingEditor extends VBox {
     modeCombo.setValue(ValueHandlingMode.EXTRACT_VALUES);
 
     dropUnmappedCombo = FxComboBox.createComboBox("""
-            Keep unmapped values: extracted values not in the mapping list are passed through unchanged.
-            Drop unmapped values: extracted values not in the mapping list are left empty.""",
+            Applied to all values that are not matched by any mapping above.
+            Keep unmapped values: they are passed through unchanged.
+            Drop unmapped values: they are left empty.
+            Map remaining values to: they are all replaced by the value entered next to this option.""",
         List.of(DropUnmappedMode.values()));
     dropUnmappedCombo.setValue(DropUnmappedMode.KEEP_UNMAPPED);
     dropUnmappedCombo.valueProperty().addListener((_, _, mode) -> {
@@ -102,15 +107,34 @@ public class MetadataValueMappingEditor extends VBox {
       }
     });
 
+    unmappedValueField.setPromptText("stored value");
+    unmappedValueField.setTooltip(new Tooltip(
+        "All remaining non-blank extracted values are stored as this value. Leave empty to keep "
+            + "those cells blank."));
+    FxTextFields.autoGrowFitText(unmappedValueField, 10, 25);
+    // the fallback value is only meaningful in the map-remaining mode
+    unmappedValueField.visibleProperty()
+        .bind(dropUnmappedCombo.valueProperty().isEqualTo(DropUnmappedMode.MAP_UNMAPPED));
+    unmappedValueField.managedProperty().bind(unmappedValueField.visibleProperty());
+    unmappedValueField.textProperty().addListener((_, _, value) -> {
+      if (!loading && target != null) {
+        target.setUnmappedValue(value == null ? "" : value);
+        refreshResults();
+        onChange.run();
+      }
+    });
+
     final Button fillButton = FxButtons.createButton("Fill values from files",
         "Add all values matched in the previewed files to the list below.",
         this::autoFillFromFiles);
 
-    final HBox options = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fillButton,
-        dropUnmappedCombo);
+    final HBox options = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, fillButton);
+    // the remaining-values operation is applied after all mappings above, so it is shown below them
+    final HBox remainingRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, dropUnmappedCombo,
+        unmappedValueField);
     valueSection = FxLayout.newVBox(Insets.EMPTY, FxLabels.newItalicLabel(
         "Map extracted values (left) to stored values (right), e.g. media → blank "
-            + "(case-insensitive)"), options, fieldsBox);
+            + "(case-insensitive)"), options, fieldsBox, remainingRow);
     valueSection.managedProperty().bind(valueSection.visibleProperty());
 
     final HBox headerRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, modeCombo,
@@ -156,6 +180,7 @@ public class MetadataValueMappingEditor extends VBox {
         useMaps ? ValueHandlingMode.VALUE_MAPPINGS : ValueHandlingMode.EXTRACT_VALUES);
     valueSection.setVisible(useMaps);
     dropUnmappedCombo.setValue(row.getDropUnmapped());
+    unmappedValueField.setText(row.getUnmappedValue());
     for (final MetadataValueMapping vm : row.getValueMappings()) {
       addFieldRow(vm.from(), vm.to());
     }

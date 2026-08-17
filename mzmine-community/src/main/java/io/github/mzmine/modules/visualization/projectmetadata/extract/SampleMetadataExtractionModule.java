@@ -60,4 +60,5 @@ public class SampleMetadataExtractionModule extends SingleTaskRawDataFilesModule
     return new SampleMetadataExtractionTask(moduleCallDate, parameters,
         SampleMetadataExtractionModule.class, raws);
   }
+
 }

@@ -162,6 +162,7 @@ public class MetadataRegexExtractionParameter implements
       final DropUnmappedMode dropUnmapped = UniqueIdSupplier.parseOrElse(
           mappingEl.getAttribute("dropUnmapped"), DropUnmappedMode.values(),
           DropUnmappedMode.KEEP_UNMAPPED);
+      final String unmappedValue = mappingEl.getAttribute("unmappedValue");
 
       String regex = "";
       final NodeList regexNodes = mappingEl.getElementsByTagName(REGEX_ELEMENT);
@@ -178,7 +179,7 @@ public class MetadataRegexExtractionParameter implements
       }
 
       loaded.add(new MetadataRegexMapping(source, column, type, regex, defaultValue, dropUnmapped,
-          valueMappings));
+          unmappedValue, valueMappings));
     }
     value = loaded;
   }
@@ -193,6 +194,7 @@ public class MetadataRegexExtractionParameter implements
       mappingEl.setAttribute("type", m.type().getUniqueID());
       mappingEl.setAttribute("default", m.defaultValue());
       mappingEl.setAttribute("dropUnmapped", m.dropUnmapped().getUniqueID());
+      mappingEl.setAttribute("unmappedValue", m.unmappedValue());
 
       // regex goes into a child element to avoid attribute-escaping surprises
       final Element regexEl = doc.createElement(REGEX_ELEMENT);

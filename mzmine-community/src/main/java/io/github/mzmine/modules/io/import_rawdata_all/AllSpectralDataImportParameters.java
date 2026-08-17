@@ -32,7 +32,8 @@ import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
-import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionModule;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -87,11 +88,11 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
       ProjectMetadataImportParameters.fileName);
 
-  public static final OptionalModuleParameter<SampleMetadataExtractionEmbeddedParameters> extractMetadata = new OptionalModuleParameter<>(
+  public static final OptionalModuleParameter<SampleMetadataExtractionParameters> extractMetadata = new OptionalModuleParameter<>(
       "Extract sample metadata",
       "Extract sample metadata columns from the file name or path of the imported raw data files using regular expressions. Runs after the metadata file import.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionEmbeddedParameters(),
-      false);
+      EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionParameters(true), false,
+      SampleMetadataExtractionModule.class);
 
   public static final BooleanParameter sortAndRecolor = new BooleanParameter("Sort and color", """
       Apply default sorting and coloring by sample type.
@@ -126,7 +127,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
     final ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this,
         this.getMessage());
     final FileNamesComponent fileNamesComponent = dialog.getComponentForParameter(fileNames);
-    final SampleMetadataExtractionEmbeddedParameters metadataParameters = getParameter(
+    final SampleMetadataExtractionParameters metadataParameters = getParameter(
         extractMetadata).getEmbeddedParameters();
 
     final Subscription fileNameSubscription = fileNamesComponent.textProperty()
@@ -140,7 +141,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   }
 
   private static void updateMetadataSelectedFiles(
-      @NotNull final SampleMetadataExtractionEmbeddedParameters metadataParameters,
+      @NotNull final SampleMetadataExtractionParameters metadataParameters,
       @NotNull final FileNamesComponent fileNamesComponent) {
     metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
   }
@@ -161,7 +162,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public static ParameterSet create(final VendorImportParameters importParam,
       @NotNull final File[] allDataFiles, @Nullable final File metadata,
-      @Nullable final SampleMetadataExtractionEmbeddedParameters metaExtraction,
+      @Nullable final SampleMetadataExtractionParameters metaExtraction,
       @Nullable final File[] allLibraryFiles,
       @Nullable final AdvancedSpectraImportParameters advanced) {
     var params = new AllSpectralDataImportParameters().cloneParameterSet();

@@ -30,6 +30,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
@@ -40,19 +41,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Clone of {@link SampleMetadataExtractionParameters} without the raw data file selection. Used as
  * an embedded parameter set in other modules (e.g. raw data import) that provide the files
- * themselves rather than via a
- * {@link io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter}.
+ * themselves rather than via a {@link RawDataFilesParameter}.
  */
 public class SampleMetadataExtractionEmbeddedParameters extends SimpleParameterSet {
 
-  public static final MetadataRegexExtractionParameter mappings = new MetadataRegexExtractionParameter(
-      SampleMetadataExtractionParameters.mappings.getName(),
-      SampleMetadataExtractionParameters.mappings.getDescription()
-          .replace("each selected", "each imported"));
+  public static final MetadataRegexExtractionParameter mappings = SampleMetadataExtractionParameters.mappings.cloneParameter();
 
-  public static final BooleanParameter overwrite = new BooleanParameter("Overwrite existing values",
-      "If checked, existing metadata values are overwritten. If unchecked, only empty cells are "
-          + "filled and existing values are kept.", true);
+  public static final BooleanParameter overwrite = SampleMetadataExtractionParameters.overwrite.cloneParameter();
 
   public SampleMetadataExtractionEmbeddedParameters() {
     super(overwrite, mappings);
@@ -72,7 +67,8 @@ public class SampleMetadataExtractionEmbeddedParameters extends SimpleParameterS
    * @param raws           the files provided by the parent task
    * @return a runnable extraction task
    */
-  public static SampleMetadataExtractionTask createTask(@NotNull final ParameterSet parameters,
+  public static SampleMetadataExtractionTask createTaskWithDataFiles(
+      @NotNull final ParameterSet parameters,
       @NotNull final Instant moduleCallDate,
       @NotNull final Class<? extends MZmineModule> moduleClass, @NotNull final RawDataFile[] raws) {
     return new SampleMetadataExtractionTask(moduleCallDate, parameters, moduleClass, raws,

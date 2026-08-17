@@ -29,7 +29,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.ImportSubsetDataMenu;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
-import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -54,10 +54,10 @@ public final class DataImportWizardParameters extends WizardStepParameters {
           exporting metadata file (after importing a few data files).""",
           ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN));
 
-  public static final @NotNull OptionalModuleParameter<SampleMetadataExtractionEmbeddedParameters> extractMetadata = new OptionalModuleParameter<>(
+  public static final @NotNull OptionalModuleParameter<SampleMetadataExtractionParameters> extractMetadata = new OptionalModuleParameter<>(
       "Extract sample metadata",
       "Extract sample metadata columns from the file name or path of the imported raw data files using regular expressions. Runs after the metadata file import.",
-      EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionEmbeddedParameters(),
+      EmbeddedComponentOptions.VIEW_IN_WINDOW, new SampleMetadataExtractionParameters(true),
       false);
 
   public static final FileNamesWithSideBarControlsParameter fileNames = new FileNamesWithSideBarControlsParameter(

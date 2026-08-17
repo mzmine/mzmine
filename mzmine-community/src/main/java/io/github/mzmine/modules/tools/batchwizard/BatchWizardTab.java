@@ -50,7 +50,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInt
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
@@ -313,14 +313,14 @@ public class BatchWizardTab extends SimpleTab {
       return;
     }
 
-    final SampleMetadataExtractionEmbeddedParameters metadataParameters = dataImportParameters.getParameter(
+    final SampleMetadataExtractionParameters metadataParameters = dataImportParameters.getParameter(
         DataImportWizardParameters.extractMetadata).getEmbeddedParameters();
     paramPaneSubscriptions.add(fileNamesComponent.textProperty()
         .subscribe(_ -> updateMetadataSelectedFiles(metadataParameters, fileNamesComponent)));
   }
 
   private static void updateMetadataSelectedFiles(
-      @NotNull final SampleMetadataExtractionEmbeddedParameters metadataParameters,
+      @NotNull final SampleMetadataExtractionParameters metadataParameters,
       @NotNull final FileNamesComponent fileNamesComponent) {
     metadataParameters.setSelectedFiles(fileNamesComponent.getValue());
   }

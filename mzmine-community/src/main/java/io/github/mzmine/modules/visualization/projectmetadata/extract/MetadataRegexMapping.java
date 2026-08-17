@@ -43,12 +43,16 @@ import org.jetbrains.annotations.NotNull;
  *                      whole match is used.
  * @param defaultValue  the value used when the regex does not match a file (blank = leave empty)
  * @param dropUnmapped  controls what happens to extracted values not found in the mapping list
+ * @param unmappedValue the value all remaining (non-blank, unmapped) extracted values are mapped to
+ *                      when {@link DropUnmappedMode#MAP_UNMAPPED} is selected; ignored in the other
+ *                      modes
  * @param valueMappings case-insensitive value mappings applied to the extracted value
  */
 public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
                                    @NotNull String columnName, @NotNull ExtractColumnType type,
                                    @NotNull String regex, @NotNull String defaultValue,
                                    @NotNull DropUnmappedMode dropUnmapped,
+                                   @NotNull String unmappedValue,
                                    @NotNull List<MetadataValueMapping> valueMappings) {
 
   public MetadataRegexMapping {
@@ -58,7 +62,25 @@ public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
     regex = regex == null ? "" : regex;
     defaultValue = defaultValue == null ? "" : defaultValue;
     dropUnmapped = dropUnmapped == null ? DropUnmappedMode.KEEP_UNMAPPED : dropUnmapped;
+    unmappedValue = unmappedValue == null ? "" : unmappedValue;
     valueMappings = valueMappings == null ? List.of() : List.copyOf(valueMappings);
+  }
+
+  public MetadataRegexMapping(@NotNull RegexInputSource inputSource, @NotNull String columnName,
+      @NotNull ExtractColumnType type, @NotNull String regex) {
+    this(inputSource, columnName, type, regex, "", DropUnmappedMode.KEEP_UNMAPPED, "", List.of());
+  }
+
+  /**
+   * An instance that maps all unmapped values to a default value. For example the regex captures
+   * media and media_blank and will map all values to the same value
+   */
+  @NotNull
+  public static MetadataRegexMapping createUnmappedDefault(@NotNull RegexInputSource inputSource,
+      @NotNull String columnName, @NotNull ExtractColumnType type, @NotNull String regex,
+      @NotNull String unmappedValue) {
+    return new MetadataRegexMapping(inputSource, columnName, type, regex, "",
+        DropUnmappedMode.MAP_UNMAPPED, unmappedValue, List.of());
   }
 
   /**
@@ -66,7 +88,7 @@ public record MetadataRegexMapping(@NotNull RegexInputSource inputSource,
    */
   public static MetadataRegexMapping createDefault() {
     return new MetadataRegexMapping(RegexInputSource.FILE_NAME, "", ExtractColumnType.AUTO, "", "",
-        DropUnmappedMode.KEEP_UNMAPPED, List.of());
+        DropUnmappedMode.KEEP_UNMAPPED, "", List.of());
   }
 
   /**

@@ -110,6 +110,8 @@ public class MetadataRegexMappingRow {
   // value mapping data lives here; it is edited via the shared MetadataValueMappingEditor
   private final List<MetadataValueMapping> valueMappings = new ArrayList<>();
   private DropUnmappedMode dropUnmapped;
+  // fallback all remaining unmapped values are mapped to in DropUnmappedMode.MAP_UNMAPPED
+  private String unmappedValue;
   // whether the extracted value is mapped (value-mapping mode) or used directly (extract mode)
   private boolean useValueMappings;
 
@@ -161,6 +163,7 @@ public class MetadataRegexMappingRow {
     buttonBox = FxLayout.newIconPane(Orientation.HORIZONTAL, generateButton, removeButton);
 
     this.dropUnmapped = mapping.dropUnmapped();
+    this.unmappedValue = mapping.unmappedValue();
     this.valueMappings.addAll(mapping.activeValueMappings());
     // start in value-mapping mode only if mappings were loaded
     this.useValueMappings = !mapping.activeValueMappings().isEmpty();
@@ -269,6 +272,14 @@ public class MetadataRegexMappingRow {
     this.dropUnmapped = dropUnmapped;
   }
 
+  public @NotNull String getUnmappedValue() {
+    return unmappedValue;
+  }
+
+  public void setUnmappedValue(@NotNull final String unmappedValue) {
+    this.unmappedValue = unmappedValue;
+  }
+
   public boolean isUseValueMappings() {
     return useValueMappings;
   }
@@ -285,7 +296,7 @@ public class MetadataRegexMappingRow {
     final boolean useMaps = useValueMappings;
     return new MetadataRegexMapping(sourceCombo.getValue(), columnField.getText().trim(),
         typeCombo.getValue(), regexField.getText(), defaultField.getText(),
-        useMaps ? dropUnmapped : DropUnmappedMode.KEEP_UNMAPPED,
+        useMaps ? dropUnmapped : DropUnmappedMode.KEEP_UNMAPPED, useMaps ? unmappedValue : "",
         useMaps ? new ArrayList<>(valueMappings) : List.of());
   }
 

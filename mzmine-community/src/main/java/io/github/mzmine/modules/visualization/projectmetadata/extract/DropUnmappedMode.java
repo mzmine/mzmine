@@ -40,7 +40,12 @@ public enum DropUnmappedMode implements UniqueIdSupplier {
   /**
    * Values not found in the mapping list are left empty.
    */
-  DROP_UNMAPPED("Drop unmapped values");
+  DROP_UNMAPPED("Drop unmapped values"),
+  /**
+   * Values not found in the mapping list are all replaced by
+   * {@link MetadataRegexMapping#unmappedValue()}. Only non-blank extracted values are mapped.
+   */
+  MAP_UNMAPPED("Map remaining values to");
 
   private final String label;
 
@@ -58,6 +63,7 @@ public enum DropUnmappedMode implements UniqueIdSupplier {
     return switch (this) {
       case KEEP_UNMAPPED -> "KEEP_UNMAPPED";
       case DROP_UNMAPPED -> "DROP_UNMAPPED";
+      case MAP_UNMAPPED -> "MAP_UNMAPPED";
     };
   }
 }

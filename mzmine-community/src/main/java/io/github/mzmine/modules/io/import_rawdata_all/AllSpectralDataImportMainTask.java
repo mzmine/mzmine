@@ -28,7 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_all;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataTask;
-import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionEmbeddedParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -141,7 +141,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   private Task extractMetadata() {
     final List<RawDataFile> loaded = AllSpectralDataImportParameters.getLoadedRawDataFiles(
         ProjectService.getProject(), parameters);
-    final Task extractTask = SampleMetadataExtractionEmbeddedParameters.createTask(
+    final Task extractTask = SampleMetadataExtractionParameters.createTaskWithDataFiles(
         extractMetadataParameters, moduleCallDate, AllSpectralDataImportModule.class,
         loaded.toArray(RawDataFile[]::new));
     extractTask.run();
