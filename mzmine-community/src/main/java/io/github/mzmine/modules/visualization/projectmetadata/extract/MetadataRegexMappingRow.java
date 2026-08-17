@@ -165,8 +165,9 @@ public class MetadataRegexMappingRow {
     this.dropUnmapped = mapping.dropUnmapped();
     this.unmappedValue = mapping.unmappedValue();
     this.valueMappings.addAll(mapping.activeValueMappings());
-    // start in value-mapping mode only if mappings were loaded
-    this.useValueMappings = !mapping.activeValueMappings().isEmpty();
+    // start in value-mapping mode if mappings or a remaining-values fallback were loaded
+    this.useValueMappings =
+        !mapping.activeValueMappings().isEmpty() || !mapping.unmappedValue().isBlank();
 
     registerListeners();
   }
