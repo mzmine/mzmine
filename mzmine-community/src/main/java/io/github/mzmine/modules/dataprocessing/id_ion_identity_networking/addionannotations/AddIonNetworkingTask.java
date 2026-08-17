@@ -136,12 +136,15 @@ public class AddIonNetworkingTask extends AbstractTask {
     AtomicInteger compared = new AtomicInteger(0);
     AtomicInteger annotPairs = new AtomicInteger(0);
     // for all groups
-    groups.parallelStream().forEach(g -> {
+    // parallelstream with map instead of forEach to block the calling thread until finished
+    final int ignored = groups.parallelStream().mapToInt(g -> {
       if (!this.isCanceled()) {
         annotateGroup(library, g, compared, annotPairs);
         stageProgress.addAndGet(1d / groups.size());
+        return 1;
       }
-    });
+      return 0;
+    }).sum();
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with "
         + annotPairs.get() + " annotation pairs");
 
