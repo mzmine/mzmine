@@ -44,11 +44,10 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLib;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_profile_spectrum_function;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_spectrum_function;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_spectrum_function.Function;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
@@ -192,7 +191,7 @@ public class TDFUtils implements AutoCloseable {
 
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =
-        path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
+        path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath() + '\0';
 
     // UTF8 required to load files from paths with special chars like ü
     // todo: check this is 0 terminated

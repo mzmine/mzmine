@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,9 +35,10 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -61,6 +62,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import testutils.MZmineTestUtil;
 
 public class BrukerTdfTest {
 
@@ -68,14 +70,16 @@ public class BrukerTdfTest {
 
   public static IMSRawDataFile importTestFile() throws IOException, InterruptedException {
     InitJavaFX.init();
+    MZmineTestUtil.startMzmineCore();
 
     MZmineProject project = new MZmineProjectImpl();
-    String str = "D:\\OneDrive - mzio GmbH\\mzio\\Example data\\Bruker\\timsTOF\\20241126 - WWTP Spiked\\pos\\ex_klaer_RA4_6570.d";
+    String str = "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Bruker\\timsTOF\\20241126 - WWTP Spiked\\pos\\ex_klaer_RA4_6570.d";
     File file = new File(str);
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
     AbstractTask importTask = new TDFImportTask(project, file, null, TDFImportModule.class,
-        new TDFImportParameters(), Instant.now());
+        AllSpectralDataImportParameters.create(VendorImportParameters.createDefault(),
+            new File[]{file}, null, null), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });
