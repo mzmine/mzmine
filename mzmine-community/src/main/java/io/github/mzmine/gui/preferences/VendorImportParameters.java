@@ -152,8 +152,7 @@ public class VendorImportParameters extends SimpleParameterSet {
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
     if (!loadedParams.containsKey(applyTimsPressureCompensation.getName())) {
-      ((ComponentWrapperParameter) loadedParams.get(
-          applyTimsPressureCompensation.getName())).getEmbeddedParameter()
+      getParameter(applyTimsPressureCompensation).getEmbeddedParameter()
           .setValue(DEFAULT_PRESSURE_COMPENSATION);
     }
   }
