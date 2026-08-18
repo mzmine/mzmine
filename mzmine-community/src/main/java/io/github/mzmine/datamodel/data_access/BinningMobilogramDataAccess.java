@@ -54,7 +54,6 @@ import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -106,17 +105,15 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     // decision: process the segments starting at the outer end of the mobility axis. The filter
     // below only ever extends the collected values in one direction, so starting anywhere else
-    // silently discards everything a later segment adds beyond the first segment's outer limit.
+    // would silently discard everything a later segment adds beyond the first segment's outer limit.
     // tims mobilities descend with mobility scan number, all other types ascend.
     final List<Frame> orderedFrames = new ArrayList<>(ranges.keySet());
     orderedFrames.sort(mt == MobilityType.TIMS //
         ? Comparator.comparingDouble((Frame f) -> f.getMobilityRange().upperEndpoint()).reversed()
         : Comparator.comparingDouble((Frame f) -> f.getMobilityRange().lowerEndpoint()));
 
-    // find all possible mobility values. read them from the frame instead of its mobility scans:
-    // Frame#getMobilityScans creates a new wrapper object for every mobility scan on every call.
     final DoubleArrayList distinctMobilities = new DoubleArrayList(
-        estimateDistinctMobilityCount(ranges.keySet()));
+        orderedFrames.getFirst().getMobilities().size());
     for (final Frame frame : orderedFrames) {
       final DoubleImmutableList frameMobilities = frame.getMobilities();
       if (frameMobilities == null) {
@@ -177,54 +174,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
       previous = mobilities[i];
     }
 
-    approximateBinSize = deltas / (mobilities.length - 2);
+    approximateBinSize = deltas / (mobilities.length - 2); // - 2 to slightly overestimate
     logger.finest(
         () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
             + rawDataFile.getMobilityType().getUnit() + ")");
-  }
-
-  /**
-   * Estimates the number of distinct mobility values across all mobility segments, so the
-   * collecting list can be pre-sized. The total mobility span divided by the smallest mobility step
-   * is an upper bound that stays small even if every frame has its own mobility segment, whereas
-   * {@code valuesPerFrame * numberOfSegments} grows without bound and can exhaust the heap.
-   * <p>
-   * assumption: the mobility step is nearly constant within a frame (measured at max/min = 1.11 for
-   * timsTOF data), so the smallest step of the first frame is representative. This is only a
-   * capacity hint - the list still grows if the estimate turns out to be too low.
-   *
-   * @param frames One frame per unique mobility range.
-   * @return The estimated number of distinct mobility values, at least 1.
-   */
-  private static int estimateDistinctMobilityCount(@NotNull final Collection<Frame> frames) {
-    double lowest = Double.MAX_VALUE;
-    double highest = -Double.MAX_VALUE;
-
-    // the span only needs the outer values of each segment, which is O(numberOfSegments)
-    for (final Frame frame : frames) {
-      final Range<Double> range = frame.getMobilityRange();
-      lowest = Math.min(lowest, range.lowerEndpoint());
-      highest = Math.max(highest, range.upperEndpoint());
-    }
-    if (frames.isEmpty() || lowest > highest) {
-      return 1;
-    }
-
-    final DoubleImmutableList first = frames.iterator().next().getMobilities();
-    if (first == null || first.size() < 2) {
-      return 1;
-    }
-    double smallestStep = Double.MAX_VALUE;
-    for (int i = 1; i < first.size(); i++) {
-      final double step = Math.abs(first.getDouble(i) - first.getDouble(i - 1));
-      if (step > 0d && step < smallestStep) {
-        smallestStep = step;
-      }
-    }
-    if (smallestStep == Double.MAX_VALUE) {
-      return 1;
-    }
-    return (int) Math.min(Integer.MAX_VALUE, Math.ceil((highest - lowest) / smallestStep) + 1);
   }
 
   /**
@@ -283,18 +236,18 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
           case TIMS ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      AdvancedImsTraceBuilderParameters.timsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  AdvancedImsTraceBuilderParameters.timsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
           case DRIFT_TUBE ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
           case TRAVELING_WAVE, SLIM ->
               advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  AdvancedImsTraceBuilderParameters.twimsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
         };
         break;
       }
@@ -309,18 +262,18 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
           case TIMS ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      RecursiveIMSBuilderAdvancedParameters.timsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  RecursiveIMSBuilderAdvancedParameters.timsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
           case DRIFT_TUBE ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
           case TRAVELING_WAVE, SLIM ->
               advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
                   .getValue() ? advancedParam.getParameter(
-                      RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
-                  .getValue() : getRecommendedBinWidth(imsFile);
+                  RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth).getEmbeddedParameter()
+                                              .getValue() : getRecommendedBinWidth(imsFile);
         };
         break;
       }
@@ -343,7 +296,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final ParameterSet parameterSet = method.getParameters();
         binWidth = parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
             ? parameterSet.getParameter(ImsExpanderParameters.mobilogramBinWidth)
-            .getEmbeddedParameter().getValue() : getRecommendedBinWidth(imsFile);
+              .getEmbeddedParameter().getValue() : getRecommendedBinWidth(imsFile);
         break;
       }
     }
