@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterComponent;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.presets.PresetsButton;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,7 +132,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
     final var addButton = FxButtons.createButton("Add mapping", "Add another column mapping",
         () -> addRow(MetadataRegexMapping.createDefault()));
     final var header = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY,
-        FxLabels.newBoldLabel("Regex column mappings"), addButton);
+        FxLabels.newBoldLabel("Regex column mappings"), addButton, createPresetsButton());
 
     // do not wrap the preview lines; show a horizontal scroll bar instead
     final ScrollPane previewScroll = new ScrollPane(previewBox);
@@ -203,6 +204,17 @@ public class MetadataRegexExtractionComponent extends VBox implements
         grid.add(cells[col], col, row + 1);
       }
     }
+  }
+
+  /**
+   * Presets add one ready-made mapping row (including its value mappings). Saving a preset stores
+   * the currently selected row.
+   */
+  private @NotNull PresetsButton<MetadataRegexMappingPreset> createPresetsButton() {
+    return new PresetsButton<>(true, new MetadataRegexMappingPresetStore(),
+        name -> selected == null ? null
+            : new MetadataRegexMappingPreset(name, selected.toMapping()),
+        preset -> addRow(preset.mapping()));
   }
 
   private @NotNull MetadataRegexMappingRow createRow(@NotNull final MetadataRegexMapping mapping) {

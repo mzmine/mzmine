@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,7 @@ public record MetadataValueMapping(@NotNull String from, @NotNull String to) {
   /**
    * @return true if this mapping defines a non-blank {@link #from()} key and is therefore active.
    */
+  @JsonIgnore
   public boolean isActive() {
     return !from.isBlank();
   }
