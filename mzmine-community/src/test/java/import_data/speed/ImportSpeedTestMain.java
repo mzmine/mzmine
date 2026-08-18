@@ -25,13 +25,17 @@
 
 package import_data.speed;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.WatersLockmassParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
+import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
+import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -39,12 +43,17 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapSnapshot;
+import io.github.mzmine.util.MemoryMapStorageStats;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
@@ -70,6 +79,11 @@ public class ImportSpeedTestMain {
       """.split("\n"));
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
   public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
+  /**
+   * Groups all measurements of this JVM, same as in {@link BatchSpeedTestMain}.
+   */
+  private static final String RUN_ID = UUID.randomUUID().toString().substring(0, 8);
+  private static int iteration = 0;
 
   public static void main(String[] args) {
 
@@ -103,12 +117,23 @@ public class ImportSpeedTestMain {
     var advanced = AdvancedSpectraImportParameters.create(
         MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 1E5, 1E3, Range.closed(100d, 1000d),
         selection, true);
+
+    // same measurements as the batch speed test, see BatchTask
+    final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
+    final double tempDirFreeGB = SpeedIterationStats.tempDirFreeGB();
     TaskResult finished = importFiles(files, 5 * 60, advanced);
 
     if (finished instanceof FINISHED f) {
       System.gc(); // better memory tracking
-      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds(),
+      final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
+      final var time = new StepTimeMeasurement(1, f.getSeconds(), name,
           "%.2f".formatted(ConfigService.getConfiguration().getUsedMemoryGB()));
+      final var storage = new StepStorageMeasurement(1, name, storageBefore, storageAfter);
+
+      var sm = new SpeedMeasurement(Instant.now().toString(), RUN_ID, description, "",
+          SpeedTestPhase.PRODUCTION, ++iteration, TaskStatus.FINISHED.toString(), files.size(),
+          new StepMeasurement(time, storage), SpeedIterationStats.after(tempDirFreeGB, null),
+          SpeedTestEnvironment.detect("all"));
       appendToFile(speedTestFile, sm);
     }
 
@@ -121,7 +146,7 @@ public class ImportSpeedTestMain {
 
     try (var fileWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
         WriterOptions.APPEND.toOpenOption())) {
-      var jsonWriter = new ObjectMapper();
+      var jsonWriter = JsonMapper.builder().addModule(new JavaTimeModule()).build();
       String str = jsonWriter.writeValueAsString(sm);
       fileWriter.append(str).append('\n');
     }

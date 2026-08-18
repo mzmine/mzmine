@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
@@ -90,9 +91,9 @@ public class FileNamesComponent extends BorderPane {
    *                       files and directories matching the filter and the function may apply
    *                       transformation like Bruker path validation
    */
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
       @Nullable String dragPrompt, @NotNull Function<File[], File[]> allFilesMapper) {
-    this(filters, defaultDir, List.of(), dragPrompt, allFilesMapper);
+    this(filters, defaultDir, List.of(), dragPrompt, allFilesMapper, null);
   }
 
   /**
@@ -100,9 +101,21 @@ public class FileNamesComponent extends BorderPane {
    *                       files and directories matching the filter and the function may apply
    *                       transformation like Bruker path validation
    */
-  public FileNamesComponent(List<ExtensionFilter> filters, Path defaultDir,
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
       @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt,
       @NotNull Function<File[], File[]> allFilesMapper) {
+    this(filters, defaultDir, assets, dragPrompt, allFilesMapper, null);
+  }
+
+  /**
+   * @param allFilesMapper this mapper is applied when all * files button is clicked. Input is all
+   *                       files and directories matching the filter and the function may apply
+   *                       transformation like Bruker path validation
+   */
+  public FileNamesComponent(@NotNull List<ExtensionFilter> filters, @Nullable Path defaultDir,
+      @NotNull List<DownloadAsset> assets, @Nullable String dragPrompt,
+      @NotNull Function<File[], File[]> allFilesMapper,
+      @Nullable Function<FileNamesComponent, @Nullable Node> buttonBarTopControlsFactory) {
     this.filters = ImmutableList.copyOf(filters);
     this.defaultDir = defaultDir;
     this.assets = assets;
@@ -137,6 +150,14 @@ public class FileNamesComponent extends BorderPane {
     final GridPane buttonGrid = createButtonGrid(new Insets(0, 0, 0, 5));
 
     int row = 0;
+    final Node buttonBarTopControls =
+        buttonBarTopControlsFactory == null ? null : buttonBarTopControlsFactory.apply(this);
+    if (buttonBarTopControls != null) {
+      buttonGrid.add(buttonBarTopControls, 0, row, 2, 1);
+      GridPane.setHalignment(buttonBarTopControls, HPos.CENTER);
+      row++;
+    }
+
     // add asset button if assets available
     if (!assets.isEmpty()) {
       var downloadButton = new DownloadAssetButton(assets);
