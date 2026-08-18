@@ -61,6 +61,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MetadataValueMappingEditor extends VBox {
 
+  // the editor is sized to its content, so many result chips have to wrap instead of widening it
+  private static final int RESULTS_WRAP_WIDTH = 700;
+
   private final Function<MetadataRegexMapping, List<String>> inputSupplier;
   private final Runnable onChange;
 
@@ -139,6 +142,7 @@ public class MetadataValueMappingEditor extends VBox {
 
     final HBox headerRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, modeCombo,
         forColumnLabel);
+    resultsFlow.setPrefWrapLength(RESULTS_WRAP_WIDTH);
     getChildren().addAll(headerRow, resultsFlow, valueSection);
 
     modeCombo.valueProperty().addListener((_, _, mode) -> {

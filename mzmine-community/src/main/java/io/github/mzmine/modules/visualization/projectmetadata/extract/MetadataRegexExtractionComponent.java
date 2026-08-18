@@ -155,10 +155,22 @@ public class MetadataRegexExtractionComponent extends VBox implements
     final Accordion previewAccordion = FxLayout.newAccordion(true, previewPane);
     VBox.setVgrow(previewAccordion, Priority.ALWAYS);
 
-    getChildren().addAll(header, grid, new Separator(), FxLayout.wrapInBorder(valueEditor),
-        previewAccordion);
+    getChildren().addAll(header, grid, new Separator(), wrapValueEditor(), previewAccordion);
     rebuildGrid();
     refreshPreview();
+  }
+
+  /**
+   * The value editor only needs the width of its own content, so its border does not stretch across
+   * the full dialog width like the grid and the preview do.
+   */
+  private @NotNull Node wrapValueEditor() {
+    valueEditor.setMaxWidth(Region.USE_PREF_SIZE);
+    final Node border = FxLayout.wrapInBorder(valueEditor);
+    if (border instanceof final Region region) {
+      region.setMaxWidth(Region.USE_PREF_SIZE);
+    }
+    return border;
   }
 
   // existing metadata columns (plus the common reserved targets) offered as autocomplete options
