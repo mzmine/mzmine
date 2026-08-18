@@ -199,7 +199,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
     addMenuItem(getContextMenu(), "Reset Zoom", event -> {
       ValueAxis xAxis = getChart().getXYPlot().getDomainAxis();
-      ValueAxis yAxis = getChart().getXYPlot().getDomainAxis();
+      ValueAxis yAxis = getChart().getXYPlot().getRangeAxis();
       xAxis.setAutoRange(true);
       yAxis.setAutoRange(true);
     });

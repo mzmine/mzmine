@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
@@ -49,6 +50,8 @@ import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboard
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
+import io.github.mzmine.modules.dataprocessing.id_nist.NistMatchUtils;
+import io.github.mzmine.modules.dataprocessing.id_nist.NistMatchUtils.NistMatch;
 import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
@@ -70,6 +73,7 @@ import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWin
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -84,15 +88,19 @@ import io.github.mzmine.util.javafx.groupabletreeview.GroupTreeItem;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeCell;
 import io.github.mzmine.util.javafx.groupabletreeview.GroupableTreeView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.mzio.mzmine.gui.workspace.Workspace;
 import io.mzio.mzmine.gui.workspace.WorkspaceMenuHelper;
 import io.mzio.mzmine.gui.workspace.WorkspaceTags;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,6 +113,9 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -123,6 +134,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
@@ -130,11 +142,17 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -149,6 +167,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.apache.commons.collections.CollectionUtils;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
@@ -205,6 +224,7 @@ public class MainWindowController {
   public Tab tabMsData;
   public Tab tabFeatureLists;
   public Tab tabLibraries;
+  public Tab tabNistMatches;
 
   @FXML
   private Scene mainScene;
@@ -214,6 +234,13 @@ public class MainWindowController {
   private GroupableTreeView<FeatureList> featureListsList;
   @FXML
   private ListView<SpectralLibrary> spectralLibraryList;
+  @FXML
+  private TableView<NistMatchSummary> nistMatchesTable;
+  @FXML
+  private Label nistMatchStatusLabel;
+  private RawDataFile nistMatchFilterRawFile;
+  private double nistMatchSelectionRt = Double.NaN;
+  private boolean updatingNistLabelCheckboxes;
 
   @FXML
   private AnchorPane tbRawData;
@@ -325,6 +352,8 @@ public class MainWindowController {
     spectralLibraryList.setEditable(false);
     spectralLibraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+    initNistMatchesTable();
+
     initRawDataList();
     initFeatureListsList();
 
@@ -367,6 +396,360 @@ public class MainWindowController {
     }
     setActiveWorkspace(WorkspaceMenuHelper.getDefaultWorkspaceOrElse(academicWorkspace),
         EnumSet.allOf(WorkspaceTags.class));
+  }
+
+  private void initNistMatchesTable() {
+    TableColumn<NistMatchSummary, Boolean> labelColumn = new TableColumn<>("Chart");
+    labelColumn.setCellValueFactory(cell -> cell.getValue().labelVisible());
+    labelColumn.setCellFactory(CheckBoxTableCell.forTableColumn(labelColumn));
+    labelColumn.setEditable(true);
+    labelColumn.setPrefWidth(52);
+
+    TableColumn<NistMatchSummary, String> sampleColumn = new TableColumn<>("Sample");
+    sampleColumn.setCellValueFactory(
+        cell -> new SimpleStringProperty(cell.getValue().sampleName()));
+    sampleColumn.setPrefWidth(145);
+
+    TableColumn<NistMatchSummary, NistMatchSummary> compoundColumn = new TableColumn<>("NIST match");
+    compoundColumn.setCellValueFactory(cell -> new SimpleObjectProperty<>(cell.getValue()));
+    compoundColumn.setCellFactory(column -> new NistCandidateComboCell());
+    compoundColumn.setPrefWidth(235);
+
+    TableColumn<NistMatchSummary, Number> matchColumn = new TableColumn<>("FMF");
+    matchColumn.setCellValueFactory(
+        cell -> new SimpleIntegerProperty(cell.getValue().forwardMatchFactor()));
+    matchColumn.setPrefWidth(55);
+
+    TableColumn<NistMatchSummary, Number> reverseMatchColumn = new TableColumn<>("RMF");
+    reverseMatchColumn.setCellValueFactory(
+        cell -> new SimpleIntegerProperty(cell.getValue().reverseMatchFactor()));
+    reverseMatchColumn.setPrefWidth(55);
+
+    TableColumn<NistMatchSummary, String> rtColumn = new TableColumn<>("RT");
+    rtColumn.setCellValueFactory(
+        cell -> new SimpleStringProperty("%.3f".formatted(cell.getValue().retentionTime())));
+    rtColumn.setPrefWidth(60);
+
+    TableColumn<NistMatchSummary, Number> hitsColumn = new TableColumn<>("Options");
+    hitsColumn.setCellValueFactory(
+        cell -> new SimpleIntegerProperty(cell.getValue().optionCount()));
+    hitsColumn.setPrefWidth(58);
+
+    nistMatchesTable.getColumns()
+        .setAll(labelColumn, sampleColumn, compoundColumn, matchColumn, reverseMatchColumn, rtColumn,
+            hitsColumn);
+    nistMatchesTable.setEditable(true);
+    nistMatchesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    nistMatchesTable.setPlaceholder(
+        new Label("No NIST matches yet. Run NIST MSPepSearch in batch mode, then refresh."));
+    installNistMatchContextMenu();
+    nistMatchesTable.setOnMouseClicked(event -> {
+      if (event.getClickCount() == 2) {
+        NistMatchSummary selected = nistMatchesTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+          SpectraIdentificationResultsWindowFX results = new SpectraIdentificationResultsWindowFX();
+          results.setFeatureRows(List.of(selected.row()));
+          MZmineCore.getDesktop().addTab(results);
+        }
+      }
+    });
+    tabNistMatches.setOnSelectionChanged(event -> {
+      if (tabNistMatches.isSelected()) {
+        refreshNistMatches();
+      }
+    });
+  }
+
+  private void installNistMatchContextMenu() {
+    final RadioMenuItem vertical = new RadioMenuItem("Vertical chart label");
+    final RadioMenuItem horizontal = new RadioMenuItem("Horizontal chart label");
+    final ToggleGroup orientation = new ToggleGroup();
+    vertical.setToggleGroup(orientation);
+    horizontal.setToggleGroup(orientation);
+
+    vertical.setOnAction(event -> setSelectedNistLabelHorizontal(false));
+    horizontal.setOnAction(event -> setSelectedNistLabelHorizontal(true));
+
+    final ContextMenu menu = new ContextMenu(vertical, horizontal);
+    menu.setOnShowing(event -> {
+      final NistMatchSummary selected = nistMatchesTable.getSelectionModel().getSelectedItem();
+      final boolean disabled = selected == null;
+      vertical.setDisable(disabled);
+      horizontal.setDisable(disabled);
+      if (!disabled && MZmineGUI.isNistMatchLabelHorizontal(
+          selected.rawDataFile(), selected.retentionTime())) {
+        horizontal.setSelected(true);
+      } else {
+        vertical.setSelected(true);
+      }
+    });
+    nistMatchesTable.setContextMenu(menu);
+  }
+
+  private void setSelectedNistLabelHorizontal(boolean horizontal) {
+    final NistMatchSummary selected = nistMatchesTable.getSelectionModel().getSelectedItem();
+    if (selected == null) {
+      return;
+    }
+    MZmineGUI.setNistMatchLabelHorizontal(selected.rawDataFile(),
+        selected.retentionTime(), horizontal);
+    updateNistMatchStatus(selected);
+  }
+
+  @FXML
+  public void handleRefreshNistMatches(ActionEvent event) {
+    refreshNistMatches();
+  }
+
+  private void refreshNistMatches() {
+    final List<NistMatchSummary> combined = new ArrayList<>();
+    for (NistMatch match : NistMatchUtils.findMatches(nistMatchFilterRawFile)) {
+      final NistMatchSummary samePeak = combined.stream().filter(
+          summary -> summary.isSameRtPeak(match)).findFirst().orElse(null);
+      if (samePeak == null) {
+        combined.add(new NistMatchSummary(match,
+            MZmineGUI.isNistMatchLabelVisible(match.rawDataFile(), match.retentionTime())));
+      } else {
+        samePeak.addCandidate(match);
+      }
+    }
+    combined.forEach(NistMatchSummary::finishCandidates);
+    combined.sort(Comparator.comparing(NistMatchSummary::sampleName)
+        .thenComparingDouble(NistMatchSummary::retentionTime)
+        .thenComparing(Comparator.comparingInt(NistMatchSummary::forwardMatchFactor).reversed()));
+    combined.forEach(summary -> summary.labelVisible().addListener(
+        (observable, oldValue, visible) -> setNistChartLabelVisible(summary, visible)));
+    nistMatchesTable.getItems().setAll(combined);
+    selectNistMatchAtCurrentRt();
+  }
+
+  public void refreshNistMatchesFromChart() {
+    refreshNistMatches();
+  }
+
+  private void setNistChartLabelVisible(NistMatchSummary selected, boolean visible) {
+    if (updatingNistLabelCheckboxes) {
+      return;
+    }
+    updatingNistLabelCheckboxes = true;
+    try {
+      MZmineGUI.setNistMatchLabelVisible(selected.rawDataFile(),
+          selected.retentionTime(), visible);
+      updateNistMatchStatus(selected);
+    } finally {
+      updatingNistLabelCheckboxes = false;
+    }
+  }
+
+  public void setNistMatchFilterRawFile(RawDataFile rawDataFile) {
+    nistMatchFilterRawFile = rawDataFile;
+    if (tabNistMatches.isSelected()) {
+      refreshNistMatches();
+    }
+  }
+
+  public void setNistMatchSelection(RawDataFile rawDataFile, double retentionTime) {
+    final boolean rawChanged = !Objects.equals(nistMatchFilterRawFile, rawDataFile);
+    nistMatchFilterRawFile = rawDataFile;
+    nistMatchSelectionRt = retentionTime;
+    if (tabNistMatches.isSelected()) {
+      if (rawChanged) {
+        refreshNistMatches();
+      } else {
+        selectNistMatchAtCurrentRt();
+      }
+    }
+  }
+
+  private void selectNistMatchAtCurrentRt() {
+    if (!Double.isFinite(nistMatchSelectionRt) || nistMatchesTable.getItems().isEmpty()) {
+      if (Double.isFinite(nistMatchSelectionRt)) {
+        nistMatchStatusLabel.setText(
+            "No stored NIST matches for this file near %.3f min.".formatted(nistMatchSelectionRt));
+      }
+      return;
+    }
+    final NistMatchSummary closest = nistMatchesTable.getItems().stream()
+        .min(Comparator.comparingDouble(
+            result -> Math.abs(result.retentionTime() - nistMatchSelectionRt))).orElse(null);
+    if (closest == null || Math.abs(closest.retentionTime() - nistMatchSelectionRt) > 0.15d) {
+      nistMatchesTable.getSelectionModel().clearSelection();
+      nistMatchStatusLabel.setText(closest == null
+          ? "No stored NIST hit near %.3f min.".formatted(nistMatchSelectionRt)
+          : "No stored NIST hit within 0.15 min of %.3f (nearest: %.3f). Not removed by chart trimming."
+              .formatted(nistMatchSelectionRt, closest.retentionTime()));
+      return;
+    }
+    nistMatchesTable.getSelectionModel().select(closest);
+    nistMatchesTable.scrollTo(closest);
+    updateNistMatchStatus(closest);
+  }
+
+  private void updateNistMatchStatus(NistMatchSummary result) {
+    final String orientation = MZmineGUI.isNistMatchLabelHorizontal(
+        result.rawDataFile(), result.retentionTime()) ? "horizontal" : "vertical";
+    nistMatchStatusLabel.setText(
+        "Stored hit at %.3f min: %s (FMF %d, RMF %d, %d options). Chart label %s, %s."
+        .formatted(result.retentionTime(), result.compoundName(), result.forwardMatchFactor(),
+            result.reverseMatchFactor(),
+            result.optionCount(), result.labelVisible().get() ? "shown" : "hidden", orientation));
+  }
+
+  private final class NistCandidateComboCell extends TableCell<NistMatchSummary, NistMatchSummary> {
+
+    private final ComboBox<NistMatch> choices = new ComboBox<>();
+    private boolean updating;
+
+    private NistCandidateComboCell() {
+      choices.setMaxWidth(Double.MAX_VALUE);
+      choices.setVisibleRowCount(12);
+      choices.setConverter(new StringConverter<>() {
+        @Override
+        public String toString(NistMatch match) {
+          return match == null ? "" : "%s (FMF %d, RMF %d)".formatted(match.compoundName(),
+              match.forwardMatchFactor(), match.reverseMatchFactor());
+        }
+
+        @Override
+        public NistMatch fromString(String string) {
+          return null;
+        }
+      });
+      choices.setOnAction(event -> {
+        if (updating || getItem() == null) {
+          return;
+        }
+        final NistMatch selected = choices.getSelectionModel().getSelectedItem();
+        if (selected != null && selected != getItem().selectedMatch()) {
+          getItem().setSelectedMatch(selected);
+          MZmineGUI.setSelectedNistChartMatch(getItem().rawDataFile(), getItem().retentionTime(),
+              selected);
+          nistMatchesTable.refresh();
+          updateNistMatchStatus(getItem());
+        }
+      });
+    }
+
+    @Override
+    protected void updateItem(NistMatchSummary item, boolean empty) {
+      super.updateItem(item, empty);
+      if (empty || item == null) {
+        setGraphic(null);
+        return;
+      }
+      updating = true;
+      choices.setItems(FXCollections.observableArrayList(item.candidates()));
+      choices.getSelectionModel().select(item.selectedMatch());
+      updating = false;
+      setGraphic(choices);
+    }
+  }
+
+  private static final class NistMatchSummary {
+
+    private final RawDataFile rawDataFile;
+    private final String sampleName;
+    private final double peakRetentionTime;
+    private final List<NistMatch> candidates = new ArrayList<>();
+    private final BooleanProperty labelVisible;
+    private NistMatch selectedMatch;
+
+    private NistMatchSummary(NistMatch first, boolean labelVisible) {
+      rawDataFile = first.rawDataFile();
+      sampleName = first.sampleName();
+      peakRetentionTime = first.retentionTime();
+      this.labelVisible = new SimpleBooleanProperty(labelVisible);
+      addCandidate(first);
+    }
+
+    private boolean isSameRtPeak(NistMatch other) {
+      return Objects.equals(rawDataFile, other.rawDataFile())
+          && sampleName.equals(other.sampleName())
+          && NistMatchUtils.isSameChartPeakRetentionTime(peakRetentionTime,
+          other.retentionTime());
+    }
+
+    private void addCandidate(NistMatch candidate) {
+      final String candidateIdentity = identityKey(candidate);
+      for (int index = 0; index < candidates.size(); index++) {
+        final NistMatch existing = candidates.get(index);
+        if (identityKey(existing).equals(candidateIdentity)) {
+          if (candidate.matchFactor() > existing.matchFactor()) {
+            candidates.set(index, candidate);
+          }
+          return;
+        }
+      }
+      candidates.add(candidate);
+    }
+
+    private void finishCandidates() {
+      candidates.sort(Comparator.comparingInt(NistMatch::matchFactor).reversed());
+      final NistMatch previouslySelected = MZmineGUI.getSelectedNistChartMatch(rawDataFile,
+          peakRetentionTime);
+      selectedMatch = previouslySelected != null && candidates.contains(previouslySelected)
+          ? previouslySelected : candidates.getFirst();
+    }
+
+    private void setSelectedMatch(NistMatch selectedMatch) {
+      this.selectedMatch = selectedMatch;
+    }
+
+    private FeatureListRow row() {
+      return selectedMatch.row();
+    }
+
+    private SpectralDBAnnotation match() {
+      return selectedMatch.match();
+    }
+
+    private RawDataFile rawDataFile() {
+      return rawDataFile;
+    }
+
+    private String sampleName() {
+      return sampleName;
+    }
+
+    private String compoundName() {
+      return selectedMatch.compoundName();
+    }
+
+    private int forwardMatchFactor() {
+      return selectedMatch.forwardMatchFactor();
+    }
+
+    private int reverseMatchFactor() {
+      return selectedMatch.reverseMatchFactor();
+    }
+
+    private double retentionTime() {
+      return peakRetentionTime;
+    }
+
+    private int optionCount() {
+      return candidates.size();
+    }
+
+    private List<NistMatch> candidates() {
+      return candidates;
+    }
+
+    private NistMatch selectedMatch() {
+      return selectedMatch;
+    }
+
+    private BooleanProperty labelVisible() {
+      return labelVisible;
+    }
+
+    private static String identityKey(NistMatch result) {
+      final String cas = result.match().getCAS();
+      if (cas != null && !cas.isBlank()) {
+        return "cas:" + cas.replaceAll("[^0-9]", "");
+      }
+      return "name:" + result.compoundName().strip().toLowerCase(Locale.ROOT);
+    }
   }
 
   public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
@@ -482,6 +865,9 @@ public class MainWindowController {
     rawDataList.selectedValuesProperty().addListener((ListChangeListener<RawDataFile>) _ -> {
       FxThread.runLater(() -> {
         final List<RawDataFile> selected = rawDataList.getSelectedValues();
+        if (selected.size() == 1) {
+          setNistMatchFilterRawFile(selected.getFirst());
+        }
         for (MZmineTab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab != null && tab.isSelected() && tab.isUpdateOnSelection()
               && !(CollectionUtils.isEqualCollection(tab.getRawDataFiles(), selected))) {

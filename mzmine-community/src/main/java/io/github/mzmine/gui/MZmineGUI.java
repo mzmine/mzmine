@@ -62,6 +62,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.visualization.rawdataoverview.NistChartLabelState;
+import io.github.mzmine.modules.dataprocessing.id_nist.NistMatchUtils.NistMatch;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettings;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -213,6 +215,62 @@ public class MZmineGUI implements MZmineDesktop, JavaFxDesktop {
         System.gc();
       }
     });
+  }
+
+  /** Filters the persistent NIST matches table to the raw file active in Raw Data Review. */
+  public static void setNistMatchFilterRawFile(@Nullable RawDataFile rawDataFile) {
+    if (mainWindowController != null) {
+      FxThread.runLater(() -> mainWindowController.setNistMatchFilterRawFile(rawDataFile));
+    }
+  }
+
+  /** Selects the NIST result nearest the current Raw Data Review retention time. */
+  public static void setNistMatchSelection(@Nullable RawDataFile rawDataFile,
+      double retentionTime) {
+    if (mainWindowController != null) {
+      FxThread.runLater(
+          () -> mainWindowController.setNistMatchSelection(rawDataFile, retentionTime));
+    }
+  }
+
+  // NIST chart-label state lives in NistChartLabelState rather than in whichever Raw Data Overview
+  // window happened to open last. That keeps each getter consistent with its setter even when no
+  // overview window is open, and lets a change made here repaint every window showing the file.
+
+  public static boolean isNistMatchLabelVisible(@Nullable RawDataFile rawDataFile,
+      double retentionTime) {
+    return NistChartLabelState.isLabelVisible(rawDataFile, retentionTime);
+  }
+
+  public static void setNistMatchLabelVisible(@Nullable RawDataFile rawDataFile,
+      double retentionTime, boolean visible) {
+    NistChartLabelState.setLabelVisible(rawDataFile, retentionTime, visible);
+  }
+
+  public static boolean isNistMatchLabelHorizontal(@Nullable RawDataFile rawDataFile,
+      double retentionTime) {
+    return NistChartLabelState.isLabelHorizontal(rawDataFile, retentionTime);
+  }
+
+  public static void setNistMatchLabelHorizontal(@Nullable RawDataFile rawDataFile,
+      double retentionTime, boolean horizontal) {
+    NistChartLabelState.setLabelHorizontal(rawDataFile, retentionTime, horizontal);
+  }
+
+  public static @Nullable NistMatch getSelectedNistChartMatch(@Nullable RawDataFile rawDataFile,
+      double retentionTime) {
+    return NistChartLabelState.getSelectedMatch(rawDataFile, retentionTime);
+  }
+
+  public static void setSelectedNistChartMatch(@Nullable RawDataFile rawDataFile,
+      double retentionTime, NistMatch match) {
+    NistChartLabelState.setSelectedMatch(rawDataFile, retentionTime, match);
+  }
+
+  public static void refreshNistMatches() {
+    if (mainWindowController != null) {
+      FxThread.runLater(mainWindowController::refreshNistMatchesFromChart);
+    }
   }
 
   public static Stage addWindow(Node node, String title) {

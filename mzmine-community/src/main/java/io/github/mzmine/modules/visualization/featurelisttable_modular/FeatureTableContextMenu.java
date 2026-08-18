@@ -569,10 +569,11 @@ public class FeatureTableContextMenu extends ContextMenu {
         _ -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
             new ArrayList<>(selectedRows), table, Instant.now()));
 
-    final MenuItem nistSearchItem = new ConditionalMenuItem("NIST MS search",
+    final MenuItem nistSearchItem = new ConditionalMenuItem("NIST MSPepSearch (headless EI)",
         () -> selectedRows.size() == 1);
     nistSearchItem.setOnAction(
-        _ -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.getFirst()));
+        _ -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.getFirst(),
+            selectedOrBestFeature));
 
     // submit GNPS MASST search job
     final MenuItem masstSearch = new ConditionalMenuItem(

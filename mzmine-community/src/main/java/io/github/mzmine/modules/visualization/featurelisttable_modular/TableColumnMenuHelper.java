@@ -42,6 +42,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumnBase;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.skin.TableHeaderRow;
 import javafx.scene.control.skin.TableViewSkinBase;
@@ -88,6 +89,8 @@ import org.jetbrains.annotations.NotNull;
  * @author bvissy
  */
 public class TableColumnMenuHelper {
+
+  private static final double COLUMN_MENU_BUTTON_WIDTH = 32d;
 
   protected final Control tableView;
   protected final List<MenuItem> additionalMenuItems = new ArrayList<>();
@@ -177,8 +180,18 @@ public class TableColumnMenuHelper {
       }
     });
 
-    // replace mouse listener on "+" node
-    assert buttonNode != null;
+    // Replace the mouse listener on the "+" node. JavaFX normally makes this only as wide as the
+    // vertical scrollbar, which is unnecessarily difficult to see and click.
+    if (buttonNode == null) {
+      return;
+    }
+    if (buttonNode instanceof Region buttonRegion) {
+      buttonRegion.setMinWidth(COLUMN_MENU_BUTTON_WIDTH);
+      buttonRegion.setPrefWidth(COLUMN_MENU_BUTTON_WIDTH);
+      buttonRegion.setMaxWidth(COLUMN_MENU_BUTTON_WIDTH);
+    }
+    buttonNode.setAccessibleText("Choose visible columns");
+    Tooltip.install(buttonNode, new Tooltip("Choose visible columns"));
     buttonNode.setOnMousePressed(me -> {
       showContextMenu();
       me.consume();

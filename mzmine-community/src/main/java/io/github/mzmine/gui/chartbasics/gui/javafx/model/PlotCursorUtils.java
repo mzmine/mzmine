@@ -31,6 +31,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -40,6 +41,7 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.maths.Precision;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,6 +123,91 @@ public class PlotCursorUtils {
       PlotCursorUtils.findSetCursorPosition(e, viewer.getRenderingInfo(), plot,
           cursorPositionProperty);
     }));
+  }
+
+  /**
+   * Adds timeline-style scrubbing to an XY plot. Pressing selects the closest data point and locks
+   * the drag to that dataset. Horizontal dragging then selects the point nearest the cursor's
+   * domain value, independent of the cursor's vertical position.
+   *
+   * <p>Rectangle zoom is suspended only for the duration of an active scrub and restored on mouse
+   * release. Modifier-assisted chart gestures remain available because scrubbing requires no
+   * modifier key.</p>
+   */
+  public static void addMouseScrubListener(EChartViewer viewer, XYPlot plot,
+      ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty) {
+    viewer.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.ALL_PLOT_AND_DATA,
+            new Event[]{Event.PRESSED, Event.DRAGGED, Event.RELEASED},
+            GestureButton.BUTTON1, Key.NONE), new Consumer<>() {
+      private boolean scrubbing;
+      private boolean wasMouseZoomable;
+      private @Nullable XYDataset scrubDataset;
+
+      @Override
+      public void accept(ChartGestureEvent event) {
+        if (event.checkEvent(Event.PRESSED)) {
+          findSetCursorPosition(event, viewer.getRenderingInfo(), plot, cursorPositionProperty);
+          final PlotCursorPosition position = cursorPositionProperty.get();
+          scrubDataset = position == null ? null : position.getDataset();
+          if (scrubDataset != null) {
+            wasMouseZoomable = viewer.isMouseZoomable();
+            viewer.setMouseZoomable(false);
+            scrubbing = true;
+          }
+        } else if (event.checkEvent(Event.DRAGGED) && scrubbing) {
+          findSetDomainCursorPosition(event, viewer.getRenderingInfo(), plot, scrubDataset,
+              cursorPositionProperty);
+        } else if (event.checkEvent(Event.RELEASED) && scrubbing) {
+          findSetDomainCursorPosition(event, viewer.getRenderingInfo(), plot, scrubDataset,
+              cursorPositionProperty);
+          viewer.setMouseZoomable(wasMouseZoomable);
+          scrubDataset = null;
+          scrubbing = false;
+        }
+      }
+    }));
+  }
+
+  /** Selects the point nearest the mouse's domain coordinate in one dataset. */
+  private static void findSetDomainCursorPosition(ChartGestureEvent event,
+      @Nullable ChartRenderingInfo renderInfo, XYPlot plot, @Nullable XYDataset dataset,
+      ObjectProperty<@Nullable PlotCursorPosition> cursorPositionProperty) {
+    if (renderInfo == null || dataset == null || !isCursorSelectable(dataset)) {
+      return;
+    }
+
+    final double mouseX = event.getMouseEvent().getX();
+    final double mouseY = event.getMouseEvent().getY();
+    final Rectangle2D dataArea = ChartLogicsFX.getDataArea(mouseX, mouseY, renderInfo);
+    final RenderedValueAxis domainAxis = RenderedValueAxis.domainOfDataset(plot, dataset);
+    if (domainAxis == null) {
+      return;
+    }
+
+    final double domainValue = domainAxis.java2DToValue(mouseX, dataArea);
+    int bestIndex = -1;
+    double bestDistance = Double.POSITIVE_INFINITY;
+    double bestX = Double.NaN;
+    double bestY = Double.NaN;
+
+    for (int series = 0; series < dataset.getSeriesCount(); series++) {
+      for (int item = 0; item < dataset.getItemCount(series); item++) {
+        final double itemX = dataset.getXValue(series, item);
+        final double distance = Math.abs(itemX - domainValue);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = item;
+          bestX = itemX;
+          bestY = dataset.getYValue(series, item);
+        }
+      }
+    }
+
+    if (bestIndex >= 0) {
+      cursorPositionProperty.set(new PlotCursorPosition(bestX, bestY, bestIndex, dataset,
+          event.getMouseEvent()));
+    }
   }
 
   /**

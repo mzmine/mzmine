@@ -49,6 +49,9 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.process
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
+import io.github.mzmine.modules.io.import_rawdata_chemstation.ChemStationImportTask;
+import io.github.mzmine.modules.io.import_rawdata_chemstation.ChemStationImportLog;
+import io.github.mzmine.modules.io.import_rawdata_hapsite.HapsiteImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_masslynx.MassLynxImportTaskDelegator;
@@ -174,10 +177,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   public static File validateBrukerPath(File f) {
     final File parent = f.getParentFile();
-    if (parent == null || !parent.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
+    if (parent == null || !parent.getName().toLowerCase().endsWith(BRUKER_FOLDER_SUFFIX)) {
       return f;
-    } else if (f.getName().endsWith(TDF_SUFFIX) || f.getName().endsWith(TSF_SUFFIX) || f.getName()
-        .endsWith(BAF_SUFFIX)) {
+    } else if (RawDataFileTypeDetector.isNamedChemStationMsFile(f)
+        || RawDataFileTypeDetector.isChemStationMsFile(f)) {
+      // Users naturally select DATA.MS in the file chooser. Normalize it to its .D dataset folder
+      // so multiple runs do not all collide under the display name DATA.MS.
+      return parent;
+    } else if (f.getName().toLowerCase().endsWith(TDF_SUFFIX) || f.getName().toLowerCase()
+        .endsWith(TSF_SUFFIX) || f.getName().toLowerCase().endsWith(BAF_SUFFIX)) {
       // refer to the .d folder by default
       return f.getParentFile();
     } else if (f.getName().endsWith(BRUKER_FOLDER_SUFFIX) && f.isFile()) {
@@ -263,24 +271,32 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     File[] selectedFiles = Arrays.stream(
             parameters.getValue(AllSpectralDataImportParameters.fileNames)).filter(Objects::nonNull)
         .toArray(File[]::new);
+    logChemStationCandidates("BATCH_SELECTED", selectedFiles, "selected_files="
+        + selectedFiles.length);
 
     // pre-check first, make sure all files exist
     if (containsMissingFiles(selectedFiles, "MS raw data")) {
+      logChemStationCandidates("BATCH_REJECTED", selectedFiles, "missing input path");
       return ExitCode.ERROR;
     }
     // check for duplicates in the input files
     if (containsDuplicateFiles(selectedFiles, "raw data file names in the import list.")) {
+      logChemStationCandidates("BATCH_REJECTED", selectedFiles,
+          "duplicate raw data names in input list");
       return ExitCode.ERROR;
     }
 
     // for bruker files path might point to D:\datafile.d\datafile.d  where the first is a folder
     // change to the folder
     // skip files that are already loaded
-    final ImportFile[] filesToImport = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(
+    ImportFile[] filesToImport = AllSpectralDataImportParameters.skipAlreadyLoadedFiles(
         project, parameters);
 
     // after skipping already loaded
     if (checkDuplicateFilesInImportListAndProject(project, filesToImport)) {
+      logChemStationCandidates("BATCH_REJECTED",
+          Arrays.stream(filesToImport).map(ImportFile::originalFile).toArray(File[]::new),
+          "duplicate name collides with already loaded data");
       return ExitCode.ERROR;
     }
 
@@ -326,7 +342,29 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
-    // if any is null, the data type was not detected. then error out
+    // A failed/aborted vendor acquisition can leave a .D folder containing only method/control
+    // files. Skip those folders so they neither abort a multi-folder drag-and-drop nor get routed
+    // to MSConvert. There is no spectral payload that any importer could recover from them.
+    final List<ImportFile> incompleteVendorFolders = Arrays.stream(filesToImport)
+        .filter(AllSpectralDataImportModule::isIncompleteVendorDataFolder).toList();
+    if (!incompleteVendorFolders.isEmpty()) {
+      final String files = incompleteVendorFolders.stream()
+          .map(f -> f.originalFile().getAbsolutePath()).collect(Collectors.joining("\n"));
+      final String msg = """
+          Skipped %d incomplete .D folder(s). They do not contain a DATA.MS file, an AcqData
+          directory, or another recognizable spectral payload. No conversion was attempted.
+
+          %s""".formatted(incompleteVendorFolders.size(), files);
+      MZmineCore.getDesktop().displayMessage("Skipped incomplete .D folders", msg);
+      logger.warning(msg);
+      incompleteVendorFolders.forEach(file -> ChemStationImportLog.write("BATCH_SKIPPED",
+          file.originalFile(), "incomplete .D folder; no recognizable spectral payload"));
+      filesToImport = Arrays.stream(filesToImport)
+          .filter(Predicate.not(AllSpectralDataImportModule::isIncompleteVendorDataFolder))
+          .toArray(ImportFile[]::new);
+    }
+
+    // if any remaining type is null, the data type was not detected. then error out
     final List<ImportFile> unknownFileTypes = Arrays.stream(filesToImport)
         .filter(f -> f.type() == null).toList();
     if (!unknownFileTypes.isEmpty()) {
@@ -337,6 +375,19 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       MZmineCore.getDesktop().displayErrorMessage(msg);
       logger.log(Level.SEVERE, "%s.  %s".formatted(msg, files));
       return ExitCode.ERROR;
+    }
+
+    if (filesToImport.length == 0 && tasks.isEmpty()) {
+      // A batch may be intentionally rerun in the same project after inspecting its results. Do
+      // not return early here: AllSpectralDataImportMainTask is still the only thing that imports
+      // the configured metadata file and recolors blanks/QCs, and skipping it would drop both
+      // silently. An empty import list is a supported state for that task, and BatchTask resolves
+      // the already-loaded files into BATCH_LAST_FILES afterwards via
+      // setLastFilesIfAllDataImportStep, so downstream steps still rerun without duplicate imports.
+      logger.info(
+          "All requested MS data files are already loaded; continuing so metadata import and recoloring still run, and downstream batch steps reuse the loaded files");
+      logChemStationCandidates("BATCH_REUSED", selectedFiles,
+          "already loaded; import skipped and downstream batch steps will rerun");
     }
 
     for (int i = 0; i < filesToImport.length; i++) {
@@ -350,6 +401,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
       final RawDataFileType fileType = fileToImport.type();
       logger.finest("File " + fileToImport.originalFile() + " type detected as " + fileType);
+      if (fileType == RawDataFileType.AGILENT_CHEMSTATION_D) {
+        ChemStationImportLog.write("TYPE_DETECTED", fileToImport.originalFile(),
+            "type=" + fileType);
+      }
 
       final Task newTask;//
       if (advancedParam != null) {
@@ -379,6 +434,19 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     tasksToAdd.add(mainTask);
 
     return ExitCode.OK;
+  }
+
+  private static void logChemStationCandidates(String event, File[] files, String details) {
+    Arrays.stream(files).filter(Objects::nonNull)
+        .filter(file -> file.getName().equalsIgnoreCase("DATA.MS")
+            || file.getName().toLowerCase().endsWith(BRUKER_FOLDER_SUFFIX))
+        .forEach(file -> ChemStationImportLog.write(event, file, details));
+  }
+
+  private static boolean isIncompleteVendorDataFolder(ImportFile file) {
+    final File original = file.originalFile();
+    return file.type() == null && original.isDirectory()
+        && original.getName().toLowerCase().endsWith(BRUKER_FOLDER_SUFFIX);
   }
 
   private boolean containsMissingFiles(File[] selectedFiles, String context) {
@@ -434,6 +502,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
+      case AGILENT_CHEMSTATION_D ->
+          new ChemStationImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
+      case INFICON_HAPSITE ->
+          new HapsiteImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
 //      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
       // When adding a new file type, also add to MSConvertImportTask#getSupportedFileTypes()
       case SCIEX_WIFF2, SCIEX_WIFF ->
@@ -485,6 +559,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
+      case AGILENT_CHEMSTATION_D ->
+          new ChemStationImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
+      case INFICON_HAPSITE ->
+          new HapsiteImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
       case WATERS_RAW, WATERS_RAW_IMS ->
           new MassLynxImportTaskDelegator(storage, moduleCallDate, file, scanProcessorConfig,
               project, parameters, module);

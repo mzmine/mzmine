@@ -43,6 +43,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
@@ -76,9 +77,14 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.controlsfx.control.PopOver;
@@ -128,6 +134,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected final PauseTransition spectraDelay = new PauseTransition(Duration.millis(100));
   protected FlowPane pnSpectrumControls;
   protected ChromatogramPlotControlPane pnChromControls;
+  private final StackPane chromatogramToolbarLeft = new StackPane();
   protected BooleanProperty showMassListProperty;
   protected boolean showSpectraOfEveryRawFile;
   // all data files that are selected - filesAndDataSets do not contain all files at all times
@@ -139,6 +146,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   protected ObservableMap<RawDataFile, TICDataSet> filesAndDataSets;
   protected SpectraDataSetCalc currentSpectraDataSetCalc;
   protected FeatureDataSetCalc currentFeatureDataSetCalc;
+  protected boolean automaticEicOverlayEnabled = true;
   // ChromatogramAndSpectraVisualizerParameters
   protected ParameterSet parameters;
 
@@ -184,8 +192,13 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     pnWrapChrom.setBottom(pnChromControls);
     pnChromControls.setParameterListener(this::handleParametersChange);
 
-    HBox hBoxChromSetup = new HBox(10, pnChromControls);
-    hBoxChromSetup.setAlignment(Pos.BASELINE_RIGHT);
+    chromatogramToolbarLeft.setManaged(false);
+    chromatogramToolbarLeft.setVisible(false);
+    final Region chromatogramToolbarSpacer = new Region();
+    HBox.setHgrow(chromatogramToolbarSpacer, Priority.ALWAYS);
+    HBox hBoxChromSetup = new HBox(10, chromatogramToolbarLeft, chromatogramToolbarSpacer,
+        pnChromControls);
+    hBoxChromSetup.setAlignment(Pos.CENTER_LEFT);
     hBoxChromSetup.setPadding(new Insets(0));
 
     TitledPane chromParamPane = FxLayout.newTitledPane("Chromatogram parameters", hBoxChromSetup);
@@ -256,7 +269,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
     chromPlot.setFocusTraversable(true);
     chromPlot.requestFocus();
-    chromPlot.setOnMouseClicked(e -> chromPlot.requestFocus());
+    chromPlot.setOnMouseClicked(e -> {
+      chromPlot.requestFocus();
+      if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2
+          && !e.isControlDown()) {
+        // Run after the generic zoom-history gesture so this reset is the final chart state.
+        Platform.runLater(chromPlot::resetZoomToData);
+      }
+    });
     chromPlot.setOnKeyPressed(e -> {
       if (e.getCode() == KeyCode.LEFT && getChromPosition() != null) {
         logger.finest("Loading previous MS scan in XIC");
@@ -530,6 +550,16 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     return chromPlot;
   }
 
+  /** Adds overview-specific quick controls without changing the existing XIC controls on the right. */
+  public void setChromatogramToolbarLeft(@Nullable Node content) {
+    chromatogramToolbarLeft.getChildren().clear();
+    if (content != null) {
+      chromatogramToolbarLeft.getChildren().add(content);
+    }
+    chromatogramToolbarLeft.setManaged(content != null);
+    chromatogramToolbarLeft.setVisible(content != null);
+  }
+
 
   public SpectraPlot getSpectrumPlot() {
     return spectrumPlot;
@@ -544,6 +574,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param mz
    */
   private void updateFeatureDataSets(final double mz) {
+    if (!automaticEicOverlayEnabled) {
+      return;
+    }
+
     // only do this with smaller sample set size
     var maxSamples = parameters.getValue(
         ChromatogramAndSpectraVisualizerParameters.maxSamplesFeaturePick);
@@ -559,6 +593,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param mz
    */
   private void delayedFeatureDataUpdate(final double mz) {
+    if (!automaticEicOverlayEnabled) {
+      return;
+    }
+
     // mz of the base peak in the selected scan of the selected raw data file.
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
 
@@ -579,6 +617,22 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     }
     currentFeatureDataSetCalc = thread;
     MZmineCore.getTaskController().addTask(thread);
+  }
+
+  /**
+   * Controls the automatic filled EIC that is normally drawn after selecting a scan or spectrum
+   * peak. Explicit XIC plots remain available through the chromatogram controls.
+   */
+  public void setAutomaticEicOverlayEnabled(boolean enabled) {
+    automaticEicOverlayEnabled = enabled;
+    if (!enabled) {
+      chromDelay.stop();
+      if (currentFeatureDataSetCalc != null) {
+        currentFeatureDataSetCalc.setStatus(TaskStatus.CANCELED);
+        currentFeatureDataSetCalc = null;
+      }
+      chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class);
+    }
   }
 
   /**

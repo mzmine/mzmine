@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
@@ -43,9 +45,9 @@ import io.github.mzmine.util.ExitCode;
  */
 public class NistMsSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "NIST MS Search";
+  private static final String MODULE_NAME = "NIST MSPepSearch (headless EI)";
   private static final String MODULE_DESCRIPTION =
-      "This method searches spectra against the NIST library.";
+      "Headless batch search of GC-EI pseudo-spectra or apex scans against locally licensed NIST EI libraries.";
 
   @Override
   public @NotNull String getName() {
@@ -91,12 +93,22 @@ public class NistMsSearchModule implements MZmineProcessingModule {
    * @param row the peak-list row.
    */
   public static void singleRowSearch(final FeatureList peakList, final FeatureListRow row) {
+    singleRowSearch(peakList, row, null);
+  }
+
+  /** Searches one aligned row, preferring the sample-specific feature selected in the table. */
+  public static void singleRowSearch(final FeatureList peakList, final FeatureListRow row,
+      final Feature selectedFeature) {
 
     final ParameterSet parameters =
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
+    parameters.getParameter(NistMsSearchParameters.PEAK_LISTS).setValue(
+        FeatureListsSelectionType.SPECIFIC_FEATURELISTS, new FeatureList[]{peakList});
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, Instant.now()));
+      MZmineCore.getTaskController().addTask(
+          NistMsSearchTask.forSelectedFeature(row, peakList, parameters, Instant.now(),
+              selectedFeature));
     }
   }
 }

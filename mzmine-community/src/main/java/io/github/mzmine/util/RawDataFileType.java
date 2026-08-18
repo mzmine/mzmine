@@ -58,6 +58,8 @@ public enum RawDataFileType {
   SCIEX_WIFF2(ExtensionFilters.WIFF2, false), //
   AGILENT_D(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
   AGILENT_D_IMS(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  AGILENT_CHEMSTATION_D(ExtensionFilters.BRUKER_OR_AGILENT_D, true), //
+  INFICON_HAPSITE(ExtensionFilters.HAPSITE, false), //
   SHIMADZU_LCD(ExtensionFilters.SHIMADZU, false), //
   MBI(ExtensionFilters.MBI, false);
 
@@ -84,8 +86,9 @@ public enum RawDataFileType {
 
     return switch (type) {
       case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
-           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS, WATERS_RAW, WATERS_RAW_IMS,
-           SHIMADZU_LCD, MBI -> List.of();
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D, AGILENT_D_IMS,
+           AGILENT_CHEMSTATION_D, INFICON_HAPSITE, WATERS_RAW, WATERS_RAW_IMS, SHIMADZU_LCD,
+           MBI -> List.of();
       case IMZML -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
         yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));

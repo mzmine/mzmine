@@ -41,6 +41,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
+import java.awt.BasicStroke;
+import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -69,6 +71,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.RangeType;
 
 /**
  * TIC plot.
@@ -104,6 +107,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private int labelsVisible;
   private boolean havePeakLabels;
+  private Color lineColorOverride;
+  private float lineWidth = 1f;
+  private float itemLabelFontSize = 11f;
 
   public TICPlot() {
 
@@ -229,6 +235,55 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public int getDatasetCount() {
     return plot.getDatasetCount();
+  }
+
+  /** Restores the complete chromatogram and anchors its non-negative intensity axis at zero. */
+  public void resetZoomToData() {
+    plot.getDomainAxis().setAutoRange(true);
+    if (plot.getRangeAxis() instanceof NumberAxis intensityAxis) {
+      intensityAxis.setRangeType(RangeType.POSITIVE);
+      intensityAxis.setAutoRangeIncludesZero(true);
+      intensityAxis.setAutoRangeStickyZero(true);
+      intensityAxis.setAutoRange(true);
+    } else {
+      plot.getRangeAxis().setAutoRange(true);
+    }
+  }
+
+  /** Applies a consistent line style to current and subsequently created raw chromatograms. */
+  public void setTicLineStyle(@Nullable Color color, double width) {
+    lineColorOverride = color;
+    lineWidth = (float) Math.max(0.5d, width);
+    for (int index = 0; index < plot.getDatasetCount(); index++) {
+      if (plot.getDataset(index) instanceof TICDataSet) {
+        applyTicStyle(plot.getRenderer(index));
+      }
+    }
+    getChart().fireChartChanged();
+  }
+
+  /** Changes the numeric apex label size for current and future chromatograms. */
+  public void setTicItemLabelFontSize(double size) {
+    itemLabelFontSize = (float) Math.max(6d, size);
+    for (int index = 0; index < plot.getDatasetCount(); index++) {
+      if (plot.getDataset(index) instanceof TICDataSet) {
+        applyTicStyle(plot.getRenderer(index));
+      }
+    }
+    getChart().fireChartChanged();
+  }
+
+  private void applyTicStyle(@Nullable XYItemRenderer renderer) {
+    if (renderer == null) {
+      return;
+    }
+    renderer.setSeriesStroke(0, new BasicStroke(lineWidth));
+    renderer.setDefaultItemLabelFont(
+        new Font(Font.SANS_SERIF, Font.PLAIN, Math.round(itemLabelFontSize)));
+    if (lineColorOverride != null) {
+      renderer.setSeriesPaint(0, lineColorOverride);
+      renderer.setSeriesFillPaint(0, lineColorOverride);
+    }
   }
 
 
@@ -418,6 +473,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
           + "'");
     }
+    applyTicStyle(renderer);
     return addDataSetAndRenderer(dataSet, renderer);
   }
 
@@ -684,6 +740,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private void initializeChromatogramMouseListener() {
     // crosshair is only updated in the draw method - therefore we use a custom CursorPosition
     PlotCursorUtils.addMouseListener(this, plot, plot.cursorPositionProperty());
+    PlotCursorUtils.addMouseScrubListener(this, plot, plot.cursorPositionProperty());
     plot.cursorPositionProperty().subscribe((_, curPos) -> {
       ChromatogramCursorPosition pos = getCurrentCursorPosition(curPos);
       if (pos != null) {

@@ -80,7 +80,9 @@ public class RawDataFileTypeDetector {
   public static final String IMZML_SUFFIX = ".imzml";
   public static final String SCIEX_WIFF_SUFFIX = ".wiff";
   public static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
+  public static final String HAPSITE_SUFFIX = ".hps";
   public static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
+  public static final String CHEMSTATION_MS_FILE = "DATA.MS";
   private static final String MBI_SUFFIX = ".mbi";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
@@ -93,8 +95,25 @@ public class RawDataFileTypeDetector {
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
+      final File[] directoryEntries = fileName.listFiles();
+      if (directoryEntries == null) {
+        return null;
+      }
+      // Legacy Agilent ChemStation GC-MS stores spectra in a root-level DATA.MS file. Detect this
+      // before the other .d layouts so ChemStation folders use the native reader rather than
+      // MSConvert, which targets the newer AcqData layout. Only the conventional DATA.MS name is
+      // decisive here: the header probe in isChemStationMsFile is deliberately permissive (it
+      // accepts any .ms file with a zero pointer at 0x10A) and an unrelated .ms file sitting
+      // beside a modern AcqData tree must not divert the whole folder to the legacy parser.
+      // A ChemStation folder that uses a non-standard payload name is still recognized below,
+      // after the newer vendor layouts have been ruled out.
+      for (File f : directoryEntries) {
+        if (isNamedChemStationMsFile(f)) {
+          return RawDataFileType.AGILENT_CHEMSTATION_D;
+        }
+      }
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
-      for (File f : fileName.listFiles()) {
+      for (File f : directoryEntries) {
         if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
 //          DesktopService.getDesktop().displayMessage("Waters raw data detected",
 //              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
@@ -114,14 +133,22 @@ public class RawDataFileTypeDetector {
         if (f.isFile() && (lowerName.endsWith(BAF_SUFFIX))) {
           return RawDataFileType.BRUKER_BAF;
         }
-        if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
+        if (f.isDirectory() && f.getName().equalsIgnoreCase(AGILENT_ACQDATATA_FOLDER)) {
           if (new File(f, "IMSFrame.bin").exists()) {
             return RawDataFileType.AGILENT_D_IMS;
           }
           return RawDataFileType.AGILENT_D;
         }
       }
-      // We don't recognize any other directory type than Waters and Bruker
+      // No newer vendor layout matched. A ChemStation dataset whose payload was renamed from
+      // DATA.MS is still importable, so fall back to the header probe now that it can no longer
+      // shadow an AcqData, Bruker or Waters folder.
+      for (File f : directoryEntries) {
+        if (isChemStationMsFile(f)) {
+          return RawDataFileType.AGILENT_CHEMSTATION_D;
+        }
+      }
+      // We don't recognize any other directory type than the vendor layouts above.
       return null;
     }
 
@@ -141,6 +168,20 @@ public class RawDataFileTypeDetector {
       }
       if (lowerName.endsWith(SCIEX_WIFF2_SUFFIX)) {
         return RawDataFileType.SCIEX_WIFF2;
+      }
+      if (lowerName.endsWith(HAPSITE_SUFFIX)) {
+        try (FileInputStream input = new FileInputStream(fileName)) {
+          final byte[] header = input.readNBytes(8);
+          if (header.length == 8 && header[4] == 'S' && header[5] == 'P' && header[6] == 'A'
+              && header[7] == 'H') {
+            return RawDataFileType.INFICON_HAPSITE;
+          }
+        }
+        return null;
+      }
+      if (lowerName.endsWith(".ms")
+          && (isNamedChemStationMsFile(fileName) || isChemStationMsFile(fileName))) {
+        return RawDataFileType.AGILENT_CHEMSTATION_D;
       }
       //the suffix is json and have a .aird file with same name
         /*if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
@@ -233,6 +274,32 @@ public class RawDataFileTypeDetector {
 
     return null;
 
+  }
+
+  /** Returns true for the conventional ChemStation DATA.MS payload name. */
+  public static boolean isNamedChemStationMsFile(@Nullable File file) {
+    return file != null && file.isFile() && file.canRead()
+        && file.getName().equalsIgnoreCase(CHEMSTATION_MS_FILE);
+  }
+
+  /** Returns true for a readable legacy ChemStation MS spectral file. */
+  public static boolean isChemStationMsFile(@Nullable File file) {
+    if (file == null || !file.isFile() || !file.getName().toLowerCase().endsWith(".ms")) {
+      return false;
+    }
+    try (var input = new java.io.RandomAccessFile(file, "r")) {
+      if (input.length() < 0x10C) {
+        return false;
+      }
+      final int header = input.readInt();
+      if (header == 0x01320000) {
+        return true;
+      }
+      input.seek(0x10A);
+      return input.readUnsignedShort() == 0;
+    } catch (IOException ignored) {
+      return false;
+    }
   }
 
   /**

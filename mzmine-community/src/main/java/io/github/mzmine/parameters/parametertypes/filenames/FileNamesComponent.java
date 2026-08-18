@@ -37,10 +37,13 @@ import io.github.mzmine.modules.io.download.DownloadAssetButton;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -50,11 +53,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.TransferMode;
@@ -63,12 +73,14 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.controlsfx.control.CheckListView;
 
 public class FileNamesComponent extends BorderPane {
 
@@ -170,6 +182,20 @@ public class FileNamesComponent extends BorderPane {
     buttonGrid.add(btnFileBrowser, 0, row);
     buttonGrid.add(btnClear, 1, row);
     row++;
+    if (acceptsRawDataFolders()) {
+      Button btnFolderBrowser = new Button("Select raw folders");
+      btnFolderBrowser.setMaxWidth(Double.MAX_VALUE);
+      btnFolderBrowser.setTooltip(
+          new Tooltip("Select multiple vendor raw-data folders such as Agilent/Bruker .d or Waters .raw (use Ctrl or Shift)"));
+      btnFolderBrowser.setOnAction(_ -> {
+        final List<File> selectedFolders = showSelectMultiRawFoldersDialog();
+        if (selectedFolders != null) {
+          addFilesSkipDuplicates(selectedFolders);
+        }
+      });
+      buttonGrid.add(btnFolderBrowser, 0, row, 2, 1);
+      row++;
+    }
     buttonGrid.add(useSubFolders, 0, row, 2, 1);
     row++;
 
@@ -201,6 +227,90 @@ public class FileNamesComponent extends BorderPane {
     // main gridpane
     this.setCenter(stack);
     this.setRight(buttonGrid);
+  }
+
+  private boolean acceptsRawDataFolders() {
+    return filters.stream().flatMap(filter -> filter.getExtensions().stream())
+        .map(String::toLowerCase).anyMatch(extension -> extension.equals("*.d")
+            || extension.equals("*.raw"));
+  }
+
+  /**
+   * JavaFX and native Windows folder choosers select only one folder reliably. First choose the
+   * parent directory, then use an in-app checkbox list to select any number of vendor datasets.
+   *
+   * @return selected vendor folders, or {@code null} when the dialog was canceled
+   */
+  private @Nullable List<File> showSelectMultiRawFoldersDialog() {
+    final DirectoryChooser parentChooser = new DirectoryChooser();
+    parentChooser.setTitle("Choose the folder containing the raw-data folders");
+    setInitialDirectory(parentChooser);
+    final File parent = parentChooser.showDialog(getScene() == null ? null : getScene().getWindow());
+    if (parent == null) {
+      return null;
+    }
+
+    final List<File> candidates;
+    try {
+      final int maxDepth = useSubFolders.isSelected() ? Integer.MAX_VALUE : 1;
+      try (Stream<Path> paths = Files.walk(parent.toPath(), maxDepth)) {
+        candidates = paths.skip(1).filter(Files::isDirectory).map(Path::toFile)
+            .filter(this::isVendorRawDataFolder)
+            .sorted(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER)).toList();
+      }
+    } catch (IOException error) {
+      new Alert(AlertType.ERROR, "Could not scan the selected folder:\n" + error.getMessage(),
+          ButtonType.OK).showAndWait();
+      return null;
+    }
+
+    if (candidates.isEmpty()) {
+      new Alert(AlertType.INFORMATION,
+          "No .D or .raw dataset folders were found directly inside:\n" + parent,
+          ButtonType.OK).showAndWait();
+      return List.of();
+    }
+
+    final CheckListView<File> folders = new CheckListView<>(
+        FXCollections.observableArrayList(candidates));
+    folders.setPrefSize(620, Math.min(520, 100 + candidates.size() * 28));
+    folders.getCheckModel().checkAll();
+
+    final Label selectionCount = new Label();
+    final Runnable updateSelectionCount = () -> selectionCount.setText(
+        "%d of %d folders selected".formatted(folders.getCheckModel().getCheckedItems().size(),
+            candidates.size()));
+    folders.getCheckModel().getCheckedItems().addListener(
+        (javafx.collections.ListChangeListener<File>) _ -> updateSelectionCount.run());
+    updateSelectionCount.run();
+
+    final Button selectAll = new Button("Select all");
+    selectAll.setOnAction(_ -> folders.getCheckModel().checkAll());
+    final Button selectNone = new Button("Select none");
+    selectNone.setOnAction(_ -> folders.getCheckModel().clearChecks());
+    final javafx.scene.layout.HBox selectionButtons = new javafx.scene.layout.HBox(8, selectAll,
+        selectNone, selectionCount);
+    selectionButtons.setAlignment(Pos.CENTER_LEFT);
+
+    final VBox content = new VBox(8,
+        new Label("Choose the vendor datasets to add from:\n" + parent.getAbsolutePath()),
+        folders, selectionButtons);
+    final Dialog<List<File>> dialog = new Dialog<>();
+    dialog.setTitle("Select raw-data folders");
+    dialog.setHeaderText("Select any number of .D or .raw datasets");
+    if (getScene() != null) {
+      dialog.initOwner(getScene().getWindow());
+    }
+    dialog.getDialogPane().setContent(content);
+    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+    dialog.setResultConverter(button -> button == ButtonType.OK
+        ? List.copyOf(folders.getCheckModel().getCheckedItems()) : null);
+    return dialog.showAndWait().orElse(null);
+  }
+
+  private boolean isVendorRawDataFolder(File folder) {
+    final String lowerName = folder.getName().toLowerCase();
+    return lowerName.endsWith(".d") || lowerName.endsWith(".raw");
   }
 
   /**
@@ -324,14 +434,22 @@ public class FileNamesComponent extends BorderPane {
    * @param fileChooser target chooser
    */
   private void setInitialDirectory(DirectoryChooser fileChooser) {
+    final File initialDirectory = getInitialDirectory();
+    if (initialDirectory != null) {
+      fileChooser.setInitialDirectory(initialDirectory);
+    }
+  }
+
+  private @Nullable File getInitialDirectory() {
     String[] currentPaths = txtFilename.getText().split("\n");
     if (currentPaths.length > 0) {
       File currentFile = new File(currentPaths[0].trim());
       File currentDir = currentFile.getParentFile();
       if (currentDir != null && currentDir.exists()) {
-        fileChooser.setInitialDirectory(currentDir);
+        return currentDir;
       }
     }
+    return defaultDir != null && defaultDir.toFile().isDirectory() ? defaultDir.toFile() : null;
   }
 
   public File[] getValue() {

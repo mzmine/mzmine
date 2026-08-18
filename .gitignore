@@ -47,3 +47,7 @@ dev-run.sh
 .sdkmanrc
 
 CLAUDE.md
+# NIST MSPepSearch runtime - free download from NIST, not redistributed with mzmine.
+# See external_tools/nist_mspepsearch/README.txt for setup instructions.
+external_tools/nist_mspepsearch/*
+!external_tools/nist_mspepsearch/README.txt

@@ -105,6 +105,8 @@ public class ExtensionFilters {
   // Bruker formats - each format in separate filter to add buttons for each to FileNamesComponent
   public static final ExtensionFilter BRUKER_OR_AGILENT_D = new ExtensionFilter(
       "Bruker .d folders or Agilent .d folders", "*.d");
+  public static final ExtensionFilter CHEMSTATION_MS = new ExtensionFilter(
+      "Agilent ChemStation MS files", "*.ms", "*.MS");
   public static final ExtensionFilter BRUKER_TSF = new ExtensionFilter("Bruker .tsf files",
       "*.tsf");
   public static final ExtensionFilter BRUKER_TDF = new ExtensionFilter("Bruker .tdf files",
@@ -126,11 +128,13 @@ public class ExtensionFilters {
   public static final ExtensionFilter WIFF2 = new ExtensionFilter("wiff2", "*.wiff2");
   public static final ExtensionFilter SHIMADZU = new ExtensionFilter(".lcd", "*.lcd");
   public static final ExtensionFilter MBI = new ExtensionFilter("MOBILion", "*.mbi");
+  public static final ExtensionFilter HAPSITE = new ExtensionFilter("INFICON HAPSITE", "*.hps",
+      "*.HPS");
 
   public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
       "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.tdf", "*.tsf", "*.raw",
       "*.RAW", "*.mzData", "*.netcdf", "*.mzdata", /*"*.aird",*/ "*.wiff", "*.wiff2", "*.lcd",
-      "*.mbi");
+      "*.mbi", "*.hps", "*.HPS", "*.ms", "*.MS");
   public static final List<ExtensionFilter> MS_RAW_DATA = List.of( //
       ALL_MS_DATA_FILTER, //
       MZML, //
@@ -138,6 +142,7 @@ public class ExtensionFilters {
       IMZML, //
       THERMO_OR_WATERS_RAW, //
       BRUKER_OR_AGILENT_D, //
+      CHEMSTATION_MS, //
       BRUKER_TSF, //
       BRUKER_TDF, //
       MZDATA, //
@@ -148,6 +153,7 @@ public class ExtensionFilters {
       WIFF, //
       WIFF2, //
       MBI, //
+      HAPSITE, //
       SHIMADZU, //
       ALL_FILES);
   private static final ExtensionFilter ALL_SPECTRAL_LIBRARY_FILTER = new ExtensionFilter(

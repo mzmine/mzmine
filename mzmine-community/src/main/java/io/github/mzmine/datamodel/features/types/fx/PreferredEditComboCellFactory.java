@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -94,6 +95,7 @@ public class PreferredEditComboCellFactory implements
         getItems().setAll(list);
         super.startEdit();
         if (isEditing() && getGraphic() instanceof ComboBox<?> combo) {
+          configureCandidateCells(combo);
           // needs focus for proper working of esc/enter
           combo.requestFocus();
           combo.show();
@@ -122,13 +124,45 @@ public class PreferredEditComboCellFactory implements
           setGraphic(null);
           setText(null);
         } else {
-          final String formatted = type.getFormattedStringCheckType(item);
-          textValue.setText(formatted);
-          setTooltip(new Tooltip(formatted));
-          setText(formatted);
+          final String selectedName = formatSelectedName(item);
+          textValue.setText(selectedName);
+          setTooltip(new Tooltip(formatCandidate(item)));
+          setText(selectedName);
           setGraphic(null);
         }
         setAlignment(Pos.CENTER);
+      }
+
+      @SuppressWarnings("unchecked")
+      private void configureCandidateCells(ComboBox<?> combo) {
+        final ComboBox<Object> candidateBox = (ComboBox<Object>) combo;
+        candidateBox.setCellFactory(_ -> createCandidateCell(false));
+        candidateBox.setButtonCell(createCandidateCell(true));
+      }
+
+      private ListCell<Object> createCandidateCell(boolean selectedValue) {
+        return new ListCell<>() {
+          @Override
+          protected void updateItem(Object candidate, boolean empty) {
+            super.updateItem(candidate, empty);
+            setText(empty || candidate == null ? null
+                : selectedValue ? formatSelectedName(candidate) : formatCandidate(candidate));
+          }
+        };
+      }
+
+      private String formatSelectedName(Object item) {
+        if (item instanceof FeatureAnnotation annotation) {
+          final String name = annotation.getCompoundName();
+          if (name != null && !name.isBlank()) {
+            return name;
+          }
+        }
+        return type.getFormattedStringCheckType(item);
+      }
+
+      private String formatCandidate(Object item) {
+        return type.getFormattedStringCheckType(item);
       }
     };
   }

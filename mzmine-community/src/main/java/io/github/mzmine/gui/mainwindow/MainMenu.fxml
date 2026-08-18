@@ -459,7 +459,7 @@
         <MenuItem onAction="#runModule"
           text="Lipid Annotation"
           userData="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"/>
-        <MenuItem text="NIST MS search" onAction="#runModule"
+        <MenuItem text="NIST MSPepSearch (headless EI)" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>
         <MenuItem text="Chemical formula prediction"
           onAction="#runModule"

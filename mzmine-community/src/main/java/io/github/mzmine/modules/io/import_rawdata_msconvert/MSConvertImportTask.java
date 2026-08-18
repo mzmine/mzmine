@@ -155,6 +155,8 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
       case SCIEX_WIFF -> true;
       case SCIEX_WIFF2 -> true;
       case AGILENT_D -> true;
+      case AGILENT_CHEMSTATION_D -> false;
+      case INFICON_HAPSITE -> false;
       case MBI -> false;
       case SHIMADZU_LCD -> true;
       case WATERS_RAW_IMS, AGILENT_D_IMS -> false;
