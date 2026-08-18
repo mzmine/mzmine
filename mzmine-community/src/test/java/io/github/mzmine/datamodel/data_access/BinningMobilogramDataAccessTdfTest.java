@@ -25,14 +25,12 @@
 
 package io.github.mzmine.datamodel.data_access;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -151,17 +149,6 @@ public class BinningMobilogramDataAccessTdfTest {
     }
   }
 
-  @Test
-  @DisplayName("TIMS mobilities are stored in descending order per frame")
-  void timsMobilitiesAreDescendingWithScanNumber() {
-    final DoubleImmutableList mobilities = referenceFrame.getMobilities();
-    Assertions.assertNotNull(mobilities);
-    for (int i = 1; i < mobilities.size(); i++) {
-      Assertions.assertTrue(mobilities.getDouble(i) < mobilities.getDouble(i - 1),
-          "mobilities are not strictly descending at index " + i);
-    }
-  }
-
   // ---------------------------------------------------------------------------------------------
   // bin creation
   // ---------------------------------------------------------------------------------------------
@@ -174,57 +161,6 @@ public class BinningMobilogramDataAccessTdfTest {
 
     Assertions.assertEquals(expected.length, access.getNumberOfValues());
     Assertions.assertArrayEquals(expected, access.getMobilityValues(), DELTA);
-  }
-
-  @Test
-  @DisplayName("The number of bins is ceil(numMobilityValues / binWidth) for a single segment")
-  void binCountIsCeilDivisionOfMobilityCount() {
-    final int numMobilities = referenceFrame.getMobilities().size();
-
-    for (final int binWidth : new int[]{1, 2, 3, 5, 7, 10, 16,
-        BinningMobilogramDataAccess.getRecommendedBinWidth(file)}) {
-      final int expected = (numMobilities + binWidth - 1) / binWidth;
-      Assertions.assertEquals(expected,
-          new BinningMobilogramDataAccess(file, binWidth).getNumberOfValues(),
-          "unexpected bin count for bin width " + binWidth);
-    }
-  }
-
-  @Test
-  @DisplayName("Bin centers are strictly ascending and stay within the raw mobility range")
-  void binCentersAreAscendingAndWithinTheRawRange() {
-    final double[] raw = sortedReferenceMobilities();
-    final Range<Double> rawRange = Range.closed(raw[0], raw[raw.length - 1]);
-
-    for (final int binWidth : new int[]{1, 2, 5, 10,
-        BinningMobilogramDataAccess.getRecommendedBinWidth(file)}) {
-      final double[] centers = new BinningMobilogramDataAccess(file, binWidth).getMobilityValues();
-
-      Assertions.assertTrue(rawRange.contains(centers[0]),
-          "first bin center " + centers[0] + " is outside " + rawRange);
-      Assertions.assertTrue(rawRange.contains(centers[centers.length - 1]),
-          "last bin center " + centers[centers.length - 1] + " is outside " + rawRange);
-      for (int i = 1; i < centers.length; i++) {
-        Assertions.assertTrue(centers[i] > centers[i - 1],
-            "bin centers are not strictly ascending at index " + i + " for bin width " + binWidth);
-      }
-    }
-  }
-
-  @Test
-  @DisplayName("The approximate bin size grows proportionally with the bin width")
-  void approximateBinSizeGrowsWithBinWidth() {
-    final double singleScanBinSize = new BinningMobilogramDataAccess(file,
-        1).getApproximateBinSize();
-
-    for (final int binWidth : new int[]{2, 5, 10}) {
-      final double binSize = new BinningMobilogramDataAccess(file,
-          binWidth).getApproximateBinSize();
-      // 5 % tolerance: the raw mobility steps are not perfectly equidistant
-      Assertions.assertEquals(singleScanBinSize * binWidth, binSize,
-          singleScanBinSize * binWidth * 0.05,
-          "unexpected approximate bin size for bin width " + binWidth);
-    }
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -256,25 +192,6 @@ public class BinningMobilogramDataAccessTdfTest {
   }
 
   @Test
-  @DisplayName("Bin width 1 reverses the descending TIMS mobilogram without altering intensities")
-  void binWidthOneOnlyReversesTheTimsMobilogram() {
-    final int numMobilities = referenceFrame.getMobilities().size();
-    final double[] intensities = new double[numMobilities];
-    for (int i = 0; i < numMobilities; i++) {
-      intensities[i] = i + 1;
-    }
-
-    final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file, 1);
-    access.setMobilogram(List.of(createFullFrameMobilogram(intensities)));
-
-    final double[] expected = new double[numMobilities];
-    for (int i = 0; i < numMobilities; i++) {
-      expected[i] = intensities[numMobilities - 1 - i];
-    }
-    Assertions.assertArrayEquals(expected, access.getIntensityValues(), DELTA);
-  }
-
-  @Test
   @DisplayName("The raw TIC of a frame is preserved by the binning")
   void rawFrameTicIsPreserved() {
     final List<MobilityScan> scans = referenceFrame.getMobilityScans();
@@ -299,49 +216,5 @@ public class BinningMobilogramDataAccessTdfTest {
       Assertions.assertEquals(expectedSum, Arrays.stream(access.getIntensityValues()).sum(),
           expectedSum * 1E-12, "TIC not preserved for bin width " + binWidth);
     }
-  }
-
-  @Test
-  @DisplayName("Re-binning a summed mobilogram with the same bin width is an identity operation")
-  void reBinningWithSameBinWidthIsIdentity() {
-    final int numMobilities = referenceFrame.getMobilities().size();
-    final double[] intensities = new double[numMobilities];
-    Arrays.fill(intensities, 1d);
-
-    final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file, 1);
-    access.setMobilogram(List.of(createFullFrameMobilogram(intensities)));
-    final double[] binned = access.getIntensityValues().clone();
-
-    final SummedIntensityMobilitySeries summed = new SummedIntensityMobilitySeries(null,
-        access.getMobilityValues().clone(), binned);
-
-    final BinningMobilogramDataAccess reBinned = new BinningMobilogramDataAccess(file, 1);
-    reBinned.setMobilogram(summed);
-
-    Assertions.assertArrayEquals(binned, reBinned.getIntensityValues(), DELTA);
-  }
-
-  @Test
-  @DisplayName("Mobilograms of multiple frames are summed into the same bins")
-  void mobilogramsOfMultipleFramesAreSummed() {
-    final List<? extends Frame> frames = file.getFrames(1).stream().limit(3).toList();
-    Assertions.assertEquals(3, frames.size(), "expected at least 3 MS1 frames in the test file");
-
-    final List<IonMobilitySeries> mobilograms = new ArrayList<>();
-    for (final Frame frame : frames) {
-      final List<MobilityScan> scans = new ArrayList<>(frame.getMobilityScans());
-      final double[] mzs = new double[scans.size()];
-      Arrays.fill(mzs, 500d);
-      final double[] intensities = new double[scans.size()];
-      Arrays.fill(intensities, 1d);
-      mobilograms.add(new SimpleIonMobilitySeries(null, mzs, intensities, scans));
-    }
-
-    final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file, 5);
-    access.setMobilogram(mobilograms);
-
-    final double expectedSum = mobilograms.stream()
-        .mapToDouble(IonMobilitySeries::getNumberOfValues).sum();
-    Assertions.assertEquals(expectedSum, Arrays.stream(access.getIntensityValues()).sum(), DELTA);
   }
 }

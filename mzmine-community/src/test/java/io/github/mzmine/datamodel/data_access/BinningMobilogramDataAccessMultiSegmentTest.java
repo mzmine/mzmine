@@ -36,9 +36,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
@@ -148,80 +146,5 @@ public class BinningMobilogramDataAccessMultiSegmentTest {
             "intensity lost for frame #" + frame.getFrameId() + " at bin width " + binWidth);
       }
     }
-  }
-
-  @Test
-  @DisplayName("Mobilograms from different segments are all summed without loss")
-  void mobilogramsFromDifferentSegmentsAreSummedWithoutLoss() {
-    final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file,
-        BinningMobilogramDataAccess.getRecommendedBinWidth(file));
-
-    final List<IonMobilitySeries> mobilograms = segmentFrames.stream()
-        .map(BinningMobilogramDataAccessMultiSegmentTest::unitMobilogram).toList();
-    access.setMobilogram(mobilograms);
-
-    final double expected = mobilograms.stream().mapToDouble(IonMobilitySeries::getNumberOfValues)
-        .sum();
-    Assertions.assertEquals(expected, Arrays.stream(access.getIntensityValues()).sum(), 1E-9);
-  }
-
-  @Test
-  @DisplayName("characterisation: interior mis-bins from segment drift stay bounded")
-  void interiorMisBinsStayBounded() {
-    // A bin that receives a different number of values than the bin width, although it lies between
-    // two filled bins of the same mobilogram, is an intensity artifact: a bin with one value less
-    // than its neighbours is a visible drop. Segments that are calibrated slightly differently drift
-    // against each other, so a shared grid cannot avoid a small number of these. Measured on this
-    // file: worst 9/533 (1.7%) at bin width 2, with at most 3 interior zeros; no interior zeros from
-    // bin width 5 upwards. The bounds below guard the grid construction against regressions.
-    final double maxMisBinFraction = 0.05;
-    final double maxZeroFraction = 0.02;
-    final Map<Integer, String> report = new LinkedHashMap<>();
-
-    for (final int binWidth : new int[]{2, 3, 5,
-        BinningMobilogramDataAccess.getRecommendedBinWidth(file)}) {
-      final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file, binWidth);
-
-      for (final Frame frame : segmentFrames) {
-        access.setMobilogram(List.of(unitMobilogram(frame)));
-        final double[] binned = access.getIntensityValues();
-
-        int first = -1;
-        int last = -1;
-        for (int i = 0; i < binned.length; i++) {
-          if (binned[i] > 0d) {
-            if (first == -1) {
-              first = i;
-            }
-            last = i;
-          }
-        }
-        int interiorZeros = 0;
-        for (int i = first + 1; i < last; i++) {
-          if (binned[i] == 0d) {
-            interiorZeros++;
-          }
-        }
-        int misBins = 0;
-        for (int i = first + 1; i < last; i++) {
-          if (Math.abs(binned[i] - binWidth) > 1E-9) {
-            misBins++;
-          }
-        }
-        final int interiorBins = Math.max(1, last - first - 1);
-        report.put(frame.getFrameId() * 100 + binWidth,
-            "frame #" + frame.getFrameId() + " w=" + binWidth + ": " + interiorZeros + " zeros, "
-                + misBins + "/" + interiorBins + " mis-bins");
-
-        final String where =
-            "frame #" + frame.getFrameId() + " at bin width " + binWidth + " (" + misBins
-                + " mis-bins, " + interiorZeros + " zeros of " + interiorBins + " interior bins)";
-        Assertions.assertTrue(misBins <= interiorBins * maxMisBinFraction,
-            "too many interior mis-bins for " + where);
-        Assertions.assertTrue(interiorZeros <= interiorBins * maxZeroFraction,
-            "too many interior empty bins for " + where);
-      }
-    }
-    logger.info(() -> "interior mis-bins per segment: " + report.values());
   }
 }

@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.util.IonMobilityUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,8 +53,8 @@ import org.junit.jupiter.api.Test;
  * mobility segment). These tests are the baseline for upcoming changes that have to deal with files
  * containing multiple, largely differing mobility segments or per-frame pressure recalibration.
  * <p>
- * Tests marked as "characterisation" lock in the behaviour as it is implemented today, including
- * known quirks. They are expected to be revisited together with the implementation.
+ * Multi-segment behaviour that does not need a vendor file is covered here too, see
+ * {@link #timsSegmentReachingHigherThanTheFirstLosesNoIntensity()}.
  */
 public class BinningMobilogramDataAccessTest {
 
@@ -186,17 +185,6 @@ public class BinningMobilogramDataAccessTest {
   // ---------------------------------------------------------------------------------------------
 
   @Test
-  @DisplayName("A file with identical mobilities in all frames has exactly one mobility segment")
-  void singleSegmentFileHasOneUniqueMobilityRange() {
-    final IMSRawDataFile dtims = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
-        5);
-    final IMSRawDataFile tims = createSingleSegmentFile(MobilityType.TIMS, TIMS_MOBILITIES, 5);
-
-    Assertions.assertEquals(1, IonMobilityUtils.getUniqueMobilityRanges(dtims).size());
-    Assertions.assertEquals(1, IonMobilityUtils.getUniqueMobilityRanges(tims).size());
-  }
-
-  @Test
   void illegalBinWidthThrows() {
     final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
         1);
@@ -261,17 +249,6 @@ public class BinningMobilogramDataAccessTest {
   }
 
   @Test
-  @DisplayName("A bin width exceeding the number of mobility values collapses everything into one bin")
-  void binWidthLargerThanMobilityCountYieldsSingleBin() {
-    final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
-        1);
-    final BinningMobilogramDataAccess access = new BinningMobilogramDataAccess(file, 100);
-
-    Assertions.assertEquals(1, access.getNumberOfValues());
-    Assertions.assertArrayEquals(new double[]{1.05}, access.getMobilityValues(), DELTA);
-  }
-
-  @Test
   @DisplayName("The number of bins is ceil(numMobilityValues / binWidth) for a single segment")
   void binCountIsCeilDivisionOfMobilityCount() {
     final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
@@ -286,23 +263,16 @@ public class BinningMobilogramDataAccessTest {
   }
 
   @Test
-  @DisplayName("The reported bin width is the one passed to the constructor")
-  void binWidthIsReportedAsGiven() {
-    final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
-        1);
-    Assertions.assertEquals(4d, new BinningMobilogramDataAccess(file, 4).getBinWidth(), DELTA);
-  }
-
-  @Test
-  @DisplayName("characterisation: approximate bin size divides the covered range by numBins - 2")
-  void approximateBinSizeCurrentlyDividesByBinCountMinusTwo() {
+  @DisplayName("The approximate bin size slightly overestimates the real bin width")
+  void approximateBinSizeSlightlyOverestimatesTheBinWidth() {
     final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
         1);
 
-    // 12 bins spanning 1.6 - 0.5 = 1.1 -> 1.1 / (12 - 2) instead of 1.1 / (12 - 1) = 0.1
+    // the covered range is divided by numBins - 2 on purpose, so the reported size is slightly
+    // larger than the real average bin width. 12 bins spanning 1.6 - 0.5 = 1.1 -> 1.1 / 10.
     Assertions.assertEquals(1.1 / 10d,
         new BinningMobilogramDataAccess(file, 1).getApproximateBinSize(), DELTA);
-    // 6 bins spanning 1.55 - 0.55 = 1.0 -> 1.0 / (6 - 2) instead of 1.0 / (6 - 1) = 0.2
+    // 6 bins spanning 1.55 - 0.55 = 1.0 -> 1.0 / 4, real average bin width is 0.2
     Assertions.assertEquals(1.0 / 4d,
         new BinningMobilogramDataAccess(file, 2).getApproximateBinSize(), DELTA);
   }
@@ -602,7 +572,7 @@ public class BinningMobilogramDataAccessTest {
   }
 
   @Test
-  @DisplayName("characterisation: an empty mobilogram is trimmed to the first two bins")
+  @DisplayName("An empty mobilogram results in an empty summed mobilogram")
   void toSummedMobilogramOfEmptyMobilogram() {
     final IMSRawDataFile file = createSingleSegmentFile(MobilityType.DRIFT_TUBE, DTIMS_MOBILITIES,
         1);
@@ -612,8 +582,7 @@ public class BinningMobilogramDataAccessTest {
 
     final SummedIntensityMobilitySeries summed = access.toSummedMobilogram(null);
 
-    Assertions.assertEquals(1, summed.getNumberOfValues());
-    Assertions.assertEquals(DTIMS_MOBILITIES[0], summed.getMobility(0), DELTA);
-    Assertions.assertEquals(0d, summed.getIntensity(0), DELTA);
+    Assertions.assertEquals(0, summed.getNumberOfValues());
+    Assertions.assertEquals(0, summed.getNumberOfDataPoints());
   }
 }

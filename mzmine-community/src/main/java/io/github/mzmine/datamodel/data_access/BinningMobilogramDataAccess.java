@@ -424,6 +424,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         lastNonZero = i;
       }
     }
+
+    if (firstNonZero == -1) {
+      return new SummedIntensityMobilitySeries(storage, new double[0], new double[0]);
+    }
     // first non zero - 1, include one zero.
     firstNonZero = Math.max(firstNonZero - 1, 0);
     // last non zero + 2 because Arrays.copyOfRange is exclusive, include one zero.
