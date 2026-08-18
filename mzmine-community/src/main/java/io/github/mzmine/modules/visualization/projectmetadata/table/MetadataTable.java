@@ -427,6 +427,10 @@ public class MetadataTable {
 
 
   /**
+   * Matches against all raw data files currently in the project, whereas
+   * {@link #getMatchingFiles(Collection, MetadataColumn, Object)} is limited to a given subset of
+   * files.
+   *
    * @param column The column
    * @param value  The column value to match to.
    * @return A list of files associated to the column value or null, if the column value does not

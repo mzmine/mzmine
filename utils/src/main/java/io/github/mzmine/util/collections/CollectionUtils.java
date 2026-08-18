@@ -63,10 +63,30 @@ public class CollectionUtils {
    * @param list any collection
    * @param <T>  the object to be mapped
    * @return Map object to index in collection. Uses map that is space optimized but does not retain
-   * order of the input sequence
+   * order of the input sequence. Keys without mapping return -1 as index value.
    */
   public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list) {
+    return indexMapUnordered(list, -1);
+  }
+
+  /**
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input
+   * and this makes only sense if the collection has an order.
+   * <p>
+   * The resulting map does not conserve order of its entries compared to the input sequence. The
+   * map is optimized for memory.
+   *
+   * @param list               any collection
+   * @param defaultReturnValue returned for keys that are not in the collection. Use something
+   *                           outside of the valid index range, e.g., -1, so that unknown keys do
+   *                           not silently map to index 0
+   * @param <T>                the object to be mapped
+   * @return Map object to index in collection. Uses map that is space optimized but does not retain
+   * order of the input sequence
+   */
+  public static <T> Object2IntMap<T> indexMapUnordered(Collection<T> list, int defaultReturnValue) {
     Object2IntMap<T> map = new Object2IntOpenHashMap<>(list.size());
+    map.defaultReturnValue(defaultReturnValue);
     int i = 0;
     for (final T value : list) {
       map.put(value, i);

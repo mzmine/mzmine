@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,10 +41,6 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
 
   public static final FeaturesDataTable EMPTY = new FeaturesDataTable(List.of(),
       new FeatureListRowAbundances[0]);
-  /**
-   * Returned by the index maps for keys that are not part of this table
-   */
-  private static final int NO_INDEX = -1;
 
   private final @NotNull List<RawDataFile> dataFiles;
   private final @NotNull FeatureListRowAbundances[] dataRows;
@@ -111,16 +107,12 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
       }
     }
 
-    // index data if needed
+    // index data if needed. reused maps already carry NO_INDEX as they only come from this class
     this.featureRowIndexMap = featureRowIndexMap != null ? featureRowIndexMap
         : CollectionUtils.indexMapUnordered(
             Arrays.stream(dataRows).map(FeatureListRowAbundances::row).toList());
     this.dataFileIndexMap =
         dataFileIndexMap != null ? dataFileIndexMap : CollectionUtils.indexMapUnordered(dataFiles);
-
-    // unknown keys must not silently map to index 0, see getFeatureIndex and getSampleIndex
-    this.featureRowIndexMap.defaultReturnValue(NO_INDEX);
-    this.dataFileIndexMap.defaultReturnValue(NO_INDEX);
   }
 
   /**
@@ -137,7 +129,7 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
    */
   public int getFeatureIndex(FeatureListRow row) {
     final int index = featureRowIndexMap.getInt(row);
-    if (index == NO_INDEX) {
+    if (index == -1) {
       throw new IllegalArgumentException(
           "Feature list row %s is not in this data table (%d rows).".formatted(
               row == null ? "null" : String.valueOf(row.getID()), dataRows.length));
@@ -150,7 +142,7 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
    */
   public int getSampleIndex(RawDataFile dataFile) {
     final int index = dataFileIndexMap.getInt(dataFile);
-    if (index == NO_INDEX) {
+    if (index == -1) {
       throw new IllegalArgumentException(
           "Raw data file %s is not in this data table (%d samples).".formatted(
               dataFile == null ? "null" : dataFile.getName(), dataFiles.size()));

@@ -180,7 +180,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
     // expected if no features in row in group data files -> no data for row
     if (missingPValues > 0) {
       final String msg = """
-          %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups - try a different missing value imputation.""".formatted(
+          %d of %d features have no p-value and are not shown. This usually means the abundances are constant within both groups, for example if there were no detections in the groups and all values are imputed.""".formatted(
           missingPValues, rows.size());
       logger.fine(msg);
     }

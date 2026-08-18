@@ -137,6 +137,13 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
     return groupB;
   }
 
+  public List<RawDataFile> getGroupAFiles() {
+    return groupAData.getRawDataFiles();
+  }
+
+  public List<RawDataFile> getGroupBFiles() {
+    return groupBData.getRawDataFiles();
+  }
   @Override
   public boolean equals(Object obj) {
     if (obj == this) {
