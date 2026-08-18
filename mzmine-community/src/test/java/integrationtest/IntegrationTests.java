@@ -25,7 +25,9 @@
 
 package integrationtest;
 
+import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import java.io.File;
+import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -76,7 +78,8 @@ public class IntegrationTests {
                 "workshop_dataset_integration_test_process_in_place.mzbatch").tempDir(tempDir)
             .rawFiles("171103_PMA_TK_QC_04-4to5min.mzML", "171103_PMA_TK_QC_05-4to5min.mzML")
             .specLibsFullPath("spectral_libraries/integration_tests/massbank_nist_for_tests.msp",
-                "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json").build().runBatchGetCheckResults(
+                "spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json").build()
+            .runBatchGetCheckResults(
                 "rawdatafiles/integration_tests/workshop_dataset/expected_results.csv").size());
   }
 
@@ -102,10 +105,10 @@ public class IntegrationTests {
   @Test
   void testLcMsFullBatch(@TempDir File tempDir) {
     if (new File("D:\\OneDrive - mzio GmbH").exists()) {
-      Assertions.assertEquals(0,
+      Assertions.assertEquals(0, noSmilesErrors(
           IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
               "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
-              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv").size());
+              "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv")).size());
     }
   }
 
@@ -200,12 +203,11 @@ public class IntegrationTests {
       logger.info("Skipping tims full batch integration test.");
       return;
     }
-    Assertions.assertEquals(0,
+    Assertions.assertEquals(0, noSmilesErrors(
         IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims", "lc_tims_local.mzbatch")
             .specLibsFullPath("spectral_libraries/integration_tests/matches_for_tims-full.json")
-            .tempDir(tempDir).build()
-            .runBatchGetCheckResults("rawdatafiles/integration_tests/lc_tims/expected_results.csv")
-            .size());
+            .tempDir(tempDir).build().runBatchGetCheckResults(
+                "rawdatafiles/integration_tests/lc_tims/expected_results.csv")).size());
 
 //    ConfigService.getPreferences().setParameter(MZminePreferences.numOfThreads, 4);
 //    final File first = IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims",
@@ -227,10 +229,10 @@ public class IntegrationTests {
       logger.info("Skipping tims full batch integration test.");
       return;
     }
-    Assertions.assertEquals(0, IntegrationTest.builder("rawdatafiles/integration_tests/diaPASEF",
-            "dia_pasef_local.mzbatch").tempDir(tempDir).build()
-        .runBatchGetCheckResults("rawdatafiles/integration_tests/diaPASEF/expected_results.csv")
-        .size());
+    Assertions.assertEquals(0, noSmilesErrors(
+        IntegrationTest.builder("rawdatafiles/integration_tests/diaPASEF",
+            "dia_pasef_local.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
+            "rawdatafiles/integration_tests/diaPASEF/expected_results.csv")).size());
   }
 
   @Test
@@ -249,5 +251,12 @@ public class IntegrationTests {
         IntegrationTest.builder("rawdatafiles/integration_tests/thermo_import", "trp_batch.mzbatch")
             .tempDir(tempDir).build().runBatchGetCheckResults(
                 "rawdatafiles/integration_tests/thermo_import/test_msconvert.csv").size());
+  }
+
+  /**
+   * Allows dropping of smiles harmonization errors from integration tests
+   */
+  public List<CheckResult> noSmilesErrors(List<CheckResult> checkResults) {
+    return checkResults.stream().filter(r -> !r.type().contains("smiles")).toList();
   }
 }

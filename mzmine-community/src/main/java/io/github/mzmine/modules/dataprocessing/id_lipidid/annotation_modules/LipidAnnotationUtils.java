@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -52,7 +53,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidCl
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidIon;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.scoring.LipidQcScoringUtils.ComponentWeights;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
@@ -71,8 +71,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationUtils {
 
@@ -356,20 +354,16 @@ public class LipidAnnotationUtils {
     }
   }
 
-  public static void addAnnotationsToFeatureList(final @NotNull FeatureListRow row,
-      final @NotNull Set<MatchedLipid> possibleRowAnnotations,
-      final @NotNull LipidAnalysisType lipidAnalysisType, final boolean includeMs2Score,
-      final double minimumOverallQualityScore,
-      final @Nullable ComponentWeights customQcWeights,
+  public static void addCandidateAnnotationsToFeatureList(final @NotNull FeatureListRow row,
+      final @NotNull Set<MatchedLipid> possibleRowAnnotations, final boolean includeMs2Score,
       final @Nullable MZTolerance mzToleranceMS1) {
     //consider previous annotations
     final List<MatchedLipid> previousLipidMatches = row.getLipidMatches();
     if (!previousLipidMatches.isEmpty()) {
       possibleRowAnnotations.addAll(previousLipidMatches);
     }
-    final LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true,
-        includeMs2Score, lipidAnalysisType.hasRetentionTimePattern(),
-        minimumOverallQualityScore, lipidAnalysisType, customQcWeights, mzToleranceMS1);
+    final LipidAnnotationResolver lipidAnnotationResolver = LipidAnnotationResolver.forCandidateCollection(
+        includeMs2Score, mzToleranceMS1);
     List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
         row, possibleRowAnnotations);
 
