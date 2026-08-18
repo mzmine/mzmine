@@ -25,17 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.QcRsdRowBinding;
-import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractQcRsdType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Relative standard deviation (RSD, coefficient of variation) of the {@link AreaType} across all
- * quality control samples of a feature list. Calculated by {@link QcRsdRowBinding}, which is
- * created by {@link AreaType#createDefaultRowBindings()}.
+ * quality control samples of a feature list. The value is computed on demand, see
+ * {@link AbstractQcRsdType}. The type is added to a feature list by
+ * {@link AreaType#createDefaultMappedRowTypes()}.
  */
-public class QcAreaRsdType extends PercentType implements MinSamplesRequirement {
+public class QcAreaRsdType extends AbstractQcRsdType {
 
   public static final String UNIQUE_ID = "qc_area_rsd";
 
@@ -50,7 +51,7 @@ public class QcAreaRsdType extends PercentType implements MinSamplesRequirement 
   }
 
   @Override
-  public boolean getDefaultVisibility() {
-    return false;
+  protected @NotNull DataType<? extends Number> getFeatureType() {
+    return DataTypes.get(AreaType.class);
   }
 }

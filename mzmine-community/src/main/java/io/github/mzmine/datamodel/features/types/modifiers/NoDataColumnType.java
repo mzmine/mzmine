@@ -23,35 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.modifiers;
 
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractQcRsdType;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Relative standard deviation (RSD, coefficient of variation) of the {@link HeightType} across all
- * quality control samples of a feature list. The value is computed on demand, see
- * {@link AbstractQcRsdType}. The type is added to a feature list by
- * {@link HeightType#createDefaultMappedRowTypes()}.
+ * Flag interface for {@link DataType}s that never need a {@link DataColumn} in the data model.
+ * Their values are not stored but computed on demand, usually by implementing {@link MappingType}.
+ * <p>
+ * A {@link ColumnarModularDataModelSchema} still lists such types in
+ * {@link ColumnarModularDataModelSchema#getTypes()}, so that they are visible as columns in the
+ * feature table, but it neither allocates memory for them nor stores any value that is set.
  */
-public class QcHeightRsdType extends AbstractQcRsdType {
+public interface NoDataColumnType {
 
-  public static final String UNIQUE_ID = "qc_height_rsd";
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return UNIQUE_ID;
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "QC RSD (height)";
-  }
-
-  @Override
-  protected @NotNull DataType<? extends Number> getFeatureType() {
-    return DataTypes.get(HeightType.class);
-  }
 }

@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.QcRsdRowBinding;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -83,12 +82,17 @@ public class HeightType extends FloatType {
   @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, BindingsType.MAX),
-        new QcRsdRowBinding(getQcRsdType(), this));
+    return List.of(new SimpleRowBinding(this, BindingsType.MAX));
+  }
+
+  @NotNull
+  @Override
+  public List<DataType> createDefaultMappedRowTypes() {
+    return List.of(getQcRsdType());
   }
 
   /**
-   * @return the row type that holds the RSD of this area type over all QC samples
+   * @return the row type that holds the RSD of this abundance type over all QC samples
    */
   @NotNull
   protected DataType<Float> getQcRsdType() {

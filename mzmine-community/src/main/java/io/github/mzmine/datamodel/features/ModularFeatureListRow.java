@@ -808,4 +808,22 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     }
     return super.get(key);
   }
+
+  @Override
+  public <T> @Nullable T getOrDefault(DataType<T> type, @Nullable T defaultValue) {
+    // mapped types are not stored in the data model, so always use the mapping in #get
+    if (type instanceof MappingType) {
+      final T value = get(type);
+      return value == null ? defaultValue : value;
+    }
+    return super.getOrDefault(type, defaultValue);
+  }
+
+  @Override
+  public <T> @NotNull T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
+    if (type instanceof MappingType) {
+      return Objects.requireNonNullElse(get(type), defaultValue);
+    }
+    return super.getNonNullElse(type, defaultValue);
+  }
 }

@@ -220,6 +220,9 @@ public class ModularFeatureList implements FeatureList {
     featuresSchema.addDataTypesChangeListener((added, removed) -> {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
+        // row types that map their values on demand need no bindings
+        // some feature types auto add row MappingTypes
+        addRowType(dataType.createDefaultMappedRowTypes());
       }
     });
 

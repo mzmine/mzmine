@@ -23,11 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
+import io.github.mzmine.datamodel.features.types.modifiers.NoDataColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.util.MathUtils;
@@ -38,44 +42,39 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Calculates the relative standard deviation (RSD, coefficient of variation) of a numeric feature
  * type, e.g. {@link AreaType}, over all quality control samples of the feature list.
+ * <p>
+ * The value is computed on demand and never stored, therefore this type is a {@link MappingType}
+ * and a {@link NoDataColumnType}. This also means that the RSD always uses the current sample type
+ * metadata.
  */
-public class QcRsdRowBinding implements RowBinding {
-
-  /**
-   * Sample stdev (n-1) needs at least two values, matching {@link MinSamplesRequirement}.
-   */
-  private static final int MIN_QC_SAMPLES = 2;
+public abstract class AbstractQcRsdType extends PercentType implements MappingType<Float>,
+    MinSamplesRequirement, NoDataColumnType {
 
   private static final SampleTypeFilter QC_FILTER = SampleTypeFilter.qc();
 
-  private final @NotNull DataType<Float> rowType;
-  private final @NotNull DataType<? extends Number> featureType;
-
-  public QcRsdRowBinding(@NotNull final DataType<Float> rowType,
-      @NotNull final DataType<? extends Number> featureType) {
-    this.rowType = rowType;
-    this.featureType = featureType;
-  }
+  /**
+   * @return the feature type this RSD is calculated for, e.g. {@link AreaType}
+   */
+  protected abstract @NotNull DataType<? extends Number> getFeatureType();
 
   @Override
-  public void apply(@Nullable final FeatureListRow row) {
-    // row might be null if the feature was not yet added
-    if (row != null) {
-      row.set(rowType, calculateRsd(row));
-    }
+  public @Nullable Float getValue(@NotNull final ModularDataModel model) {
+    // only rows have features over multiple samples to calculate the RSD from
+    return model instanceof FeatureListRow row ? calculateRsd(row) : null;
   }
 
   /**
-   * @return the RSD over all QC samples or null if there are less than {@link #MIN_QC_SAMPLES} QC
+   * @return the RSD over all QC samples or null if there are less than {@link #getMinSamples()} QC
    * samples or if the sum over all QC samples is 0.
    */
   private @Nullable Float calculateRsd(@NotNull final FeatureListRow row) {
-    // not cached so that the RSD always uses the current sample type metadata
     final List<RawDataFile> qcFiles = QC_FILTER.filterFiles(row.getFeatureList().getRawDataFiles());
-    if (qcFiles.size() < MIN_QC_SAMPLES) {
+    // sample stdev (n-1) needs at least two values
+    if (qcFiles.size() < getMinSamples()) {
       return null;
     }
 
+    final DataType<? extends Number> featureType = getFeatureType();
     final double[] values = new double[qcFiles.size()];
     double sum = 0;
     for (int i = 0; i < qcFiles.size(); i++) {
@@ -91,28 +90,11 @@ public class QcRsdRowBinding implements RowBinding {
     if (Double.compare(sum, 0d) == 0 || !Double.isFinite(sum)) {
       return null;
     }
-    return (float) MathUtils.calcRelativeStd(values) * 100f;
+    return (float) MathUtils.calcRelativeStd(values);
   }
 
   @Override
-  public DataType getRowType() {
-    return rowType;
-  }
-
-  @Override
-  public DataType getFeatureType() {
-    return featureType;
-  }
-
-  @Override
-  public void valueChanged(final ModularDataModel dataModel, final DataType type,
-      final Object oldValue, final Object newValue) {
-    if (dataModel instanceof Feature feature) {
-      // change in feature applied to its row
-      apply(feature.getRow());
-    } else {
-      throw new UnsupportedOperationException(
-          "Cannot apply a QcRsdRowBinding if the changed data model is not a Feature");
-    }
+  public boolean getDefaultVisibility() {
+    return false;
   }
 }
