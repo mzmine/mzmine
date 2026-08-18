@@ -158,12 +158,14 @@ public class SampleMetadataExtractionUtils {
       }
     }
 
-    // remaining (unmapped, non-blank) value: optionally drop it or map it to one fallback value.
-    // only applies while mappings are defined - otherwise nothing was mapped in the first place
-    if (!captured.isBlank() && !mapping.activeValueMappings().isEmpty()) {
+    // remaining (unmapped, non-blank) value: optionally drop it or map it to one fallback value
+    if (!captured.isBlank()) {
       switch (mapping.dropUnmapped()) {
+        // dropping only applies while mappings are defined, otherwise everything would be dropped
         case DROP_UNMAPPED -> {
-          return null;
+          if (!mapping.activeValueMappings().isEmpty()) {
+            return null;
+          }
         }
         case MAP_UNMAPPED -> {
           return blankToNull(mapping.unmappedValue());

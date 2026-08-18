@@ -120,10 +120,19 @@ class SampleMetadataExtractionUtilsTest {
   }
 
   @Test
-  void remainingValueMappingRequiresActiveMappings() {
-    // without any mapping there is no "remaining" value - the extracted value is kept
+  void remainingValueMappingWithoutMappingsMapsEveryMatch() {
+    // no mapping list at all: every matched value becomes the fallback value
     final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.MAP_UNMAPPED,
         "sample", List.of());
+    Assertions.assertEquals("sample",
+        SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
+  }
+
+  @Test
+  void dropUnmappedWithoutMappingsKeepsValue() {
+    // dropping without any mapping would empty the whole column, so the value is kept
+    final MetadataRegexMapping m = mapping("_([A-Za-z]+)_", "", DropUnmappedMode.DROP_UNMAPPED,
+        List.of());
     Assertions.assertEquals("QC",
         SampleMetadataExtractionUtils.extractValue(m, "20210610_QC_01.mzML"));
   }

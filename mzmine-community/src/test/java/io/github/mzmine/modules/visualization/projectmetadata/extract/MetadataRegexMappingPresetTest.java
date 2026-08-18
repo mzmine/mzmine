@@ -79,6 +79,21 @@ class MetadataRegexMappingPresetTest {
   }
 
   @Test
+  void pooledQcDefaultMapsEveryMatchToOneValue() {
+    final MetadataRegexMapping pooled = new MetadataRegexMappingPresetStore().createDefaults()
+        .stream().filter(p -> p.name().equals("Pooled QC")).findFirst().orElseThrow().mapping();
+
+    // all spellings of the pooled QC token collapse into the single stored value
+    Assertions.assertEquals("pooled_qc",
+        SampleMetadataExtractionUtils.extractValue(pooled, "20210610_pooledQC_01.mzML"));
+    Assertions.assertEquals("pooled_qc",
+        SampleMetadataExtractionUtils.extractValue(pooled, "20210610_pool_01.mzML"));
+    // no match leaves the cell empty
+    Assertions.assertNull(
+        SampleMetadataExtractionUtils.extractValue(pooled, "20210610_std_01.mzML"));
+  }
+
+  @Test
   void blankQcOrSampleDefaultMapsRemainingValues() {
     final MetadataRegexMapping mapping = new MetadataRegexMappingPresetStore().createDefaults()
         .stream()

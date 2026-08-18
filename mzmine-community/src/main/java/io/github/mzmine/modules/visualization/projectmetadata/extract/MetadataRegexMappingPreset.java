@@ -89,7 +89,7 @@ public record MetadataRegexMappingPreset(@NotNull String name,
       @NotNull final String name, @NotNull final String column,
       @NotNull final ExtractColumnType type, @NotNull final String regex,
       @NotNull final String unmappedValue) {
-    return createMappingPreset(name, column, type, regex, DropUnmappedMode.KEEP_UNMAPPED,
+    return createMappingPreset(name, column, type, regex, DropUnmappedMode.MAP_UNMAPPED,
         unmappedValue, "", List.of());
   }
 

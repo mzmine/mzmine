@@ -35,6 +35,7 @@ import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionUtils.GroupMatch;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.ParameterComponent;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.presets.PresetsButton;
@@ -64,6 +65,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -79,7 +81,7 @@ import org.jetbrains.annotations.Nullable;
  * the selected mapping's matched group highlighted. The first grid column marks the selected row.
  */
 public class MetadataRegexExtractionComponent extends VBox implements
-    ParameterComponent<List<MetadataRegexMapping>> {
+    ParameterComponent<List<MetadataRegexMapping>>, FullColumnComponent {
 
   // limit how many files are rendered in the preview to keep the dialog responsive
   private static final int MAX_PREVIEW_FILES = 1000;
@@ -182,6 +184,10 @@ public class MetadataRegexExtractionComponent extends VBox implements
       if (col == GROW_COLUMN) {
         cc.setHgrow(Priority.ALWAYS);
         cc.setFillWidth(true);
+        cc.setMinWidth(Region.USE_PREF_SIZE);
+      } else {
+        // never squeeze the other columns below their content width
+        cc.setMinWidth(Region.USE_PREF_SIZE);
       }
       grid.getColumnConstraints().add(cc);
     }
@@ -214,7 +220,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
     return new PresetsButton<>(true, new MetadataRegexMappingPresetStore(),
         name -> selected == null ? null
             : new MetadataRegexMappingPreset(name, selected.toMapping()),
-        preset -> addRow(preset.mapping()));
+        preset -> addPresetRow(preset.mapping()));
   }
 
   private @NotNull MetadataRegexMappingRow createRow(@NotNull final MetadataRegexMapping mapping) {
@@ -230,6 +236,17 @@ public class MetadataRegexExtractionComponent extends VBox implements
     });
     row.setOnRemove(this::handleRemove);
     return row;
+  }
+
+  /**
+   * Adds a preset mapping. A trailing row that has no regex yet is replaced instead of leaving an
+   * unused empty row above the preset.
+   */
+  private void addPresetRow(@NotNull final MetadataRegexMapping mapping) {
+    if (!rows.isEmpty() && rows.getLast().toMapping().regex().isBlank()) {
+      rows.removeLast();
+    }
+    addRow(mapping);
   }
 
   private void addRow(@NotNull final MetadataRegexMapping mapping) {
