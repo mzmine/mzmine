@@ -99,7 +99,7 @@ public class VendorImportParameters extends SimpleParameterSet {
           Usually not required in LC-IMS-MS, especially if the file was already recalibrated.
           May lead to more stable mobility values in MALDI-IMS mode.
           """, TdfPressureCompensation.values(), DEFAULT_PRESSURE_COMPENSATION),
-      createJumpToPrefButton("Apply pressure compensation (Bruker IMS)"));
+      createJumpToPrefButton("Pressure compensation (Bruker IMS)"));
 
   public VendorImportParameters() {
     super(applyVendorCentroiding, excludeThermoExceptionMasses, watersLockmass,
