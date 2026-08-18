@@ -572,6 +572,12 @@ public class MZminePreferences extends SimpleParameterSet {
           new ManualProxyConfig(type, address, port, List.of()));
       ProxyUtils.applyConfig(config);
     }
+
+    if (!loadedParams.containsKey(brukerPressureComp.getName())) {
+      ((ComboParameter<TdfPressureCompensation>) loadedParams.get(
+          brukerPressureComp.getName())).setValue(
+          VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
+    }
   }
 
   private void updateSystemProxySettings() {

@@ -30,11 +30,13 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComponentWrapperParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import java.util.Map;
 import java.util.function.Supplier;
 import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
@@ -143,5 +145,16 @@ public class VendorImportParameters extends SimpleParameterSet {
         preferences.getParameter(MZminePreferences.watersLockmass).getEmbeddedParameters(),
         preferences.getValue(MZminePreferences.excludeThermoExceptionMasses),
         preferences.getValue(MZminePreferences.brukerPressureComp));
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (!loadedParams.containsKey(applyTimsPressureCompensation.getName())) {
+      ((ComponentWrapperParameter) loadedParams.get(
+          applyTimsPressureCompensation.getName())).getEmbeddedParameter()
+          .setValue(DEFAULT_PRESSURE_COMPENSATION);
+    }
   }
 }
