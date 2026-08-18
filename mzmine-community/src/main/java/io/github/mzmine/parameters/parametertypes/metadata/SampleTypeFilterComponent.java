@@ -144,13 +144,21 @@ public class SampleTypeFilterComponent extends HBox implements
   private final ObjectProperty<@NotNull SampleTypeFilter> value = new SimpleObjectProperty<>(
       SampleTypeFilter.all());
   /**
-   * True while the filter is {@link Mode#ALL} or {@link Mode#NONE}, where picking individual types
-   * is meaningless. Every item checkbox binds its {@code disableProperty} to this, so the items
-   * re-enable automatically as soon as the mode goes back to {@link Mode#LIST} - no manual
-   * enable/disable bookkeeping that could get out of sync.
+   * True while the filter is {@link Mode#ALL}, where every file matches no matter what the items
+   * say. Item rows bind the visibility (and the disabled state) of their checkbox to this, so in
+   * that mode the list reads as plain labels - boxes that cannot mean anything would only make the
+   * user wonder whether the selection was lost.
+   * <p>
+   * {@link Mode#NONE} deliberately does not count as open ended here: there the boxes stay empty
+   * but editable, because ticking one is the natural way back to {@link Mode#LIST}.
    */
-  private final BooleanBinding openEndedMode = Bindings.createBooleanBinding(
-      () -> value.get().getMode() != Mode.LIST, value);
+  private final BooleanBinding allMode = Bindings.createBooleanBinding(
+      () -> value.get().getMode() == Mode.ALL, value);
+  /**
+   * The last non empty {@link Mode#LIST} selection. Kept in the background so that switching to
+   * all/none and back restores the list the user had picked instead of silently dropping it.
+   */
+  private final Set<String> rememberedValues = new LinkedHashSet<>();
   /**
    * Normalized values the user typed in this component and that are neither predefined nor present
    * in the metadata column. Kept separately so they survive a rebuild of the item list.
@@ -272,6 +280,11 @@ public class SampleTypeFilterComponent extends HBox implements
    * here, which never fires their {@code onAction}, so this cannot loop back into the value.
    */
   private void onValueChanged(@NotNull final SampleTypeFilter filter) {
+    if (filter.getMode() == Mode.LIST && !filter.getValues().isEmpty()) {
+      // remember it, so unchecking all/none later brings exactly this list back
+      rememberedValues.clear();
+      rememberedValues.addAll(filter.getValues());
+    }
     allBox.setSelected(filter.getMode() == Mode.ALL);
     noneBox.setSelected(filter.getMode() == Mode.NONE);
     syncItemChecks(filter);
@@ -286,9 +299,9 @@ public class SampleTypeFilterComponent extends HBox implements
   }
 
   /**
-   * Ticks the item boxes that the filter contains. For the open ended modes every box is shown
-   * ticked ({@link Mode#ALL}) or unticked ({@link Mode#NONE}) - they are disabled anyway through
-   * {@link #openEndedMode}, but the visual state should still say what the filter does.
+   * Ticks the item boxes that the filter contains. In {@link Mode#ALL} every box ends up ticked,
+   * but it is hidden behind the row label anyway (see {@link #allMode}). In {@link Mode#NONE} all
+   * boxes are cleared and stay editable, so ticking one switches back to {@link Mode#LIST}.
    */
   private void syncItemChecks(@NotNull final SampleTypeFilter filter) {
     for (ItemRow row : itemRows) {
@@ -315,10 +328,10 @@ public class SampleTypeFilterComponent extends HBox implements
     noneBox.setTooltip(new Tooltip("Match no sample at all."));
     // setOnAction only reacts to user clicks, unlike a selectedProperty listener, so no guard flag
     // is needed against the programmatic updates in onValueChanged
-    allBox.setOnAction(_ -> value.set(
-        allBox.isSelected() ? SampleTypeFilter.all() : SampleTypeFilter.ofValues(List.of())));
-    noneBox.setOnAction(_ -> value.set(
-        noneBox.isSelected() ? SampleTypeFilter.none() : SampleTypeFilter.ofValues(List.of())));
+    allBox.setOnAction(
+        _ -> value.set(allBox.isSelected() ? SampleTypeFilter.all() : rememberedListFilter()));
+    noneBox.setOnAction(
+        _ -> value.set(noneBox.isSelected() ? SampleTypeFilter.none() : rememberedListFilter()));
 
     final TextField newValueField = new TextField();
     newValueField.setPromptText("Add sample type…");
@@ -389,11 +402,23 @@ public class SampleTypeFilterComponent extends HBox implements
 
   private HBox createRow(@NotNull final String itemValue, @NotNull final Source source,
       final int fileCount) {
-    final CheckBox box = new CheckBox(itemValue);
-    // re-enables automatically when the mode goes back to a plain list
-    box.disableProperty().bind(openEndedMode);
+    // the value is shown by a permanent label instead of the checkbox text, so that the box alone
+    // can be hidden in Mode.ALL while the row still reads the same
+    final CheckBox box = new CheckBox();
+    box.disableProperty().bind(allMode);
+    // stays managed while invisible, so the labels keep their column and the rows do not jump
+    // around when the mode changes
+    box.visibleProperty().bind(allMode.not());
     box.setOnAction(_ -> setSelected(itemValue, box.isSelected()));
     itemRows.add(new ItemRow(itemValue, box));
+
+    final Label name = new Label(itemValue);
+    // checkbox and label were separated so that we can hide the box when ALL. Therefore listen to click
+    name.setOnMouseClicked(_ -> {
+      if (!allMode.get()) {
+        setSelected(itemValue, !box.isSelected());
+      }
+    });
 
     final Label count = new Label(fileCount == 1 ? "1 file" : "%d files".formatted(fileCount));
     count.getStyleClass().add("text-muted");
@@ -427,7 +452,7 @@ public class SampleTypeFilterComponent extends HBox implements
       removeSlot.getChildren().add(remove);
     }
 
-    final HBox row = FxLayout.newHBox(Insets.EMPTY, box, spacer, count, removeSlot);
+    final HBox row = FxLayout.newHBox(Insets.EMPTY, box, name, spacer, count, removeSlot);
     row.setAlignment(Pos.CENTER_LEFT);
     row.setMaxWidth(Double.MAX_VALUE);
     return row;
@@ -436,6 +461,14 @@ public class SampleTypeFilterComponent extends HBox implements
   // ---------------------------------------------------------------------------------------------
   // actions
   // ---------------------------------------------------------------------------------------------
+
+  /**
+   * @return the selection the user had before switching to {@link Mode#ALL} or {@link Mode#NONE}.
+   * An empty list if there never was one, which reads as "None" - the same as before.
+   */
+  private @NotNull SampleTypeFilter rememberedListFilter() {
+    return SampleTypeFilter.ofValues(rememberedValues);
+  }
 
   private void setSelected(@NotNull final String itemValue, final boolean selected) {
     final Set<String> values = new LinkedHashSet<>(getValue().getValues());
@@ -485,6 +518,7 @@ public class SampleTypeFilterComponent extends HBox implements
 
   private void removeCustomValue(@NotNull final String itemValue) {
     customValues.remove(itemValue);
+    rememberedValues.remove(itemValue);
 
     final Set<String> values = new LinkedHashSet<>(getValue().getValues());
     if (values.remove(itemValue)) {
