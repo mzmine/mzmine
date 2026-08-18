@@ -63,7 +63,7 @@ public class SampleMetadataExtractionTask extends AbstractRawDataFileTask {
 
   /**
    * Explicit-values constructor for callers that provide the mappings and files directly (e.g. the
-   * embedded use in raw data import via {@link SampleMetadataExtractionEmbeddedParameters}).
+   * embedded use in raw data import via {@link SampleMetadataExtractionParameters}).
    */
   public SampleMetadataExtractionTask(@NotNull final Instant moduleCallDate,
       @NotNull final ParameterSet parameters,
