@@ -146,7 +146,7 @@ public class MetadataRegexMappingRow {
     regexField = new TextField(mapping.regex());
     regexField.setPromptText("e.g., _([A-Za-z]+)_");
     regexField.setTooltip(new Tooltip(TOOLTIP_REGEX));
-    FxTextFields.autoGrowFitText(regexField, 16, 60);
+    FxTextFields.autoGrowFitText(regexField, 16, 40);
     // let the regex field fill the grid column that grows with the dialog width
     regexField.setMaxWidth(Double.MAX_VALUE);
 

@@ -125,7 +125,7 @@ public class MetadataRegexExtractionComponent extends VBox implements
 
     grid.setHgap(FxLayout.DEFAULT_SPACE);
     grid.setVgap(FxLayout.DEFAULT_SPACE);
-    grid.setMaxWidth(Double.MAX_VALUE);
+//    grid.setMaxWidth(Double.MAX_VALUE);
     setupGridColumns();
 
     valueEditor = new MetadataValueMappingEditor(this::previewInputStrings, this::refreshPreview);
