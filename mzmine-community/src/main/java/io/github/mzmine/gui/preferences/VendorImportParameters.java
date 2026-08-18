@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -50,7 +51,7 @@ public class VendorImportParameters extends SimpleParameterSet {
   public static final boolean DEFAULT_VENDOR_CENTROIDING = true;
   public static final boolean DEFAULT_WATERS_LOCKMASS_ENABLED = true;
   public static final boolean DEFAULT_THERMO_EXCEPTION_SIGNALS = true;
-  public static final boolean DEFAULT_PRESSURE_COMPENSATION = false;
+  public static final TdfPressureCompensation DEFAULT_PRESSURE_COMPENSATION = TdfPressureCompensation.NONE;
 
   private static final String JUMP_TO_PREFERENCE_TOOLTIP = """
       Open the preference dialog, which controls this parameter for the drag & drop import and the mzwizard.
@@ -87,13 +88,15 @@ public class VendorImportParameters extends SimpleParameterSet {
           """.formatted(ScanSignalRemovalModule.MODULE_NAME), DEFAULT_THERMO_EXCEPTION_SIGNALS),
       createJumpToPrefButton("Remove calibrant signals (Thermo)"));
 
-  public static final ComponentWrapperParameter<Boolean, BooleanParameter> applyTimsPressureCompensation = new ComponentWrapperParameter<>(
-      new BooleanParameter("Apply pressure compensation (Bruker IMS)", """
-          Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
+  public static final ComponentWrapperParameter<TdfPressureCompensation, ComboParameter<TdfPressureCompensation>> applyTimsPressureCompensation = new ComponentWrapperParameter<>(
+      new ComboParameter<>("Pressure compensation (Bruker IMS)", """
+          Specifies if mobility values from Bruker timsTOF raw data shall be compensated for pressure changes on import using a Bruker algorithm.
           This compensation is applied during file import and cannot be applied afterwards.
-          Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
+          Will cause additional memory consumption, because every frame might have it's own mobility calibration (in theory).
           In practical cases, this memory consumption is mostly negligible.
-          """, DEFAULT_PRESSURE_COMPENSATION),
+          Usually not required in LC-IMS-MS, especially if the file was already recalibrated. 
+          May lead to more stable mobility values in MALDI-IMS mode.
+          """, TdfPressureCompensation.values(), DEFAULT_PRESSURE_COMPENSATION),
       createJumpToPrefButton("Apply pressure compensation (Bruker IMS)"));
 
   public VendorImportParameters() {
@@ -107,9 +110,9 @@ public class VendorImportParameters extends SimpleParameterSet {
   }
 
   public static VendorImportParameters create(boolean applyCentroiding,
-      MassLynxImportOptions massLynxOption, boolean watersLockmassEnabled,
-      WatersLockmassParameters lockmassParam, boolean removeThermoExceptionMasses,
-      boolean applyBrukerPressureComp) {
+      @NotNull MassLynxImportOptions massLynxOption, boolean watersLockmassEnabled,
+      @NotNull WatersLockmassParameters lockmassParam, boolean removeThermoExceptionMasses,
+      @NotNull TdfPressureCompensation brukerPressureComp) {
     final VendorImportParameters param = (VendorImportParameters) new VendorImportParameters().cloneParameterSet();
 
     param.setParameter(applyVendorCentroiding, applyCentroiding);
@@ -117,7 +120,7 @@ public class VendorImportParameters extends SimpleParameterSet {
     param.getParameter(watersLockmass).setValue(watersLockmassEnabled);
     param.getParameter(watersLockmass).getEmbeddedParameter().setEmbeddedParameters(lockmassParam);
     param.setParameter(excludeThermoExceptionMasses, removeThermoExceptionMasses);
-    param.setParameter(applyTimsPressureCompensation, applyBrukerPressureComp);
+    param.setParameter(applyTimsPressureCompensation, brukerPressureComp);
     return param;
   }
 

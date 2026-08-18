@@ -36,6 +36,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.download.AssetGroup;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
@@ -243,7 +244,7 @@ public class MZminePreferences extends SimpleParameterSet {
       .cloneParameter();
   public static final BooleanParameter excludeThermoExceptionMasses = VendorImportParameters.excludeThermoExceptionMasses.getEmbeddedParameter()
       .cloneParameter();
-  public static final BooleanParameter brukerPressureComp = VendorImportParameters.applyTimsPressureCompensation.getEmbeddedParameter()
+  public static final ComboParameter<TdfPressureCompensation> brukerPressureComp = VendorImportParameters.applyTimsPressureCompensation.getEmbeddedParameter()
       .cloneParameter();
 
 

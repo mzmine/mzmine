@@ -49,6 +49,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsWindowTable;
@@ -122,7 +123,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   private double finishedPercentage;
   private double lastFinishedPercentage;
   private int loadedFrames;
-  private boolean applyPressureComp = VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION;
+  private final TdfPressureCompensation applyPressureComp;
 
   /**
    * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d extension

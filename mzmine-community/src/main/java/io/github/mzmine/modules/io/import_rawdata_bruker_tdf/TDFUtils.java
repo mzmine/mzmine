@@ -40,6 +40,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -93,15 +94,15 @@ public class TDFUtils implements AutoCloseable {
    * the handle of the currently opened file
    **/
   private long handle = 0L;
-  private boolean applyPressureComp = false;
+  private TdfPressureCompensation applyPressureComp = TdfPressureCompensation.NONE;
 
   public TDFUtils() {
     loadLibrary();
   }
 
-  public TDFUtils(boolean perFramePressureComp) {
+  public TDFUtils(TdfPressureCompensation pressureCompensation) {
     this();
-    this.applyPressureComp = perFramePressureComp;
+    this.applyPressureComp = pressureCompensation;
   }
 
   /**
@@ -221,15 +222,13 @@ public class TDFUtils implements AutoCloseable {
       return 0L;
     }
 
-    final int pressureCompensation = applyPressureComp ? 2 : 0;
-
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =
         path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
 
     // UTF8 required to load files from paths with special chars like ü
     final byte[] fileBytes = Native.toByteArray(dirToOpen, StandardCharsets.UTF_8);
-    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, pressureCompensation);
+    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, applyPressureComp.mode());
 
     if (handle == 0) {
       printLastError(0).throwOnError();

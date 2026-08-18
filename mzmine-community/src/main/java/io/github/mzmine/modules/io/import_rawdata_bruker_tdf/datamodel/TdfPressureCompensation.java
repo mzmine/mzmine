@@ -23,31 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.data_access;
-
-import io.github.mzmine.gui.preferences.VendorImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel;
 
 /**
- * Helper to import raw data with an explicit vendor option, so tests do not depend on the current
- * default of {@link VendorImportParameters#applyTimsPressureCompensation}.
+ * pressure compensation for tdf raw data to compensate for pressure changes in the mobility
+ * calibration.
  */
-public final class VendorImportParametersTestUtils {
+public enum TdfPressureCompensation {
+  NONE, GLOBAL, FRAME;
 
-  private VendorImportParametersTestUtils() {
-  }
-
-  /**
-   * @param pressureCompensation Whether Bruker per-frame pressure compensation is applied on
-   *                             import.
-   * @return Default vendor import parameters with the pressure compensation set explicitly.
-   */
-  @NotNull
-  public static VendorImportParameters withPressureCompensation(
-      final @NotNull TdfPressureCompensation pressureCompensation) {
-    final VendorImportParameters params = VendorImportParameters.createDefault();
-    params.setParameter(VendorImportParameters.applyTimsPressureCompensation, pressureCompensation);
-    return params;
+  public int mode() {
+    return switch (this) {
+      case NONE -> 0;
+      case GLOBAL -> 1;
+      case FRAME -> 2;
+    };
   }
 }

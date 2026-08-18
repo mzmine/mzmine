@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
@@ -90,7 +91,8 @@ public class BinningMobilogramDataAccessTdfTest {
     // import without pressure compensation, which would give every frame block its own mobility
     // grid and remove the single-segment premise of every test below
     MZmineTestUtil.importFiles(List.of(TEST_FILE), 360,
-        VendorImportParametersTestUtils.withPressureCompensation(false), null);
+        VendorImportParametersTestUtils.withPressureCompensation(TdfPressureCompensation.NONE),
+        null);
 
     file = (IMSRawDataFile) ProjectService.getProject().getCurrentRawDataFiles().stream()
         .filter(IMSRawDataFile.class::isInstance).findFirst()

@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.util.ArrayList;
@@ -83,7 +84,8 @@ public class BinningMobilogramDataAccessMultiSegmentTest {
     // import without pressure compensation, so the file has exactly the two segments of its own
     // acquisition and the segment count does not depend on the vendor option default
     MZmineTestUtil.importFiles(List.of(TEST_FILE), 360,
-        VendorImportParametersTestUtils.withPressureCompensation(false), null);
+        VendorImportParametersTestUtils.withPressureCompensation(TdfPressureCompensation.NONE),
+        null);
 
     file = (IMSRawDataFile) ProjectService.getProject().getCurrentRawDataFiles().stream()
         .filter(IMSRawDataFile.class::isInstance).findFirst()
