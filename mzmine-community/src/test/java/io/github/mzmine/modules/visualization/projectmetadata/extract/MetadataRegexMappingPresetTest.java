@@ -81,18 +81,26 @@ class MetadataRegexMappingPresetTest {
   @Test
   void blankQcOrSampleDefaultMapsRemainingValues() {
     final MetadataRegexMapping mapping = new MetadataRegexMappingPresetStore().createDefaults()
-        .stream().filter(p -> p.name().equals("Blank, QC, or sample")).findFirst().orElseThrow()
-        .mapping();
+        .stream()
+        .filter(p -> p.name().equals(MetadataRegexMappingPresetStore.SAMPLE_TYPE_PRESET_NAME))
+        .findFirst().orElseThrow().mapping();
 
-    Assertions.assertEquals("blank",
+    Assertions.assertEquals("media",
         SampleMetadataExtractionUtils.extractValue(mapping, "20210610_Media_01.mzML"));
-    Assertions.assertEquals("qc",
+    Assertions.assertEquals("pooled_qc",
         SampleMetadataExtractionUtils.extractValue(mapping, "20210610_pooled_QC_01.mzML"));
+    Assertions.assertEquals("pooled_qc",
+        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_pooledQC_01.mzML"));
+    Assertions.assertEquals("qc",
+        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_QC_01.mzML"));
     // "sample" is not in the mapping list, so the remaining-values fallback applies
     Assertions.assertEquals("sample",
         SampleMetadataExtractionUtils.extractValue(mapping, "20210610_sample_01.mzML"));
-    // no match at all leaves the cell empty (no default value)
-    Assertions.assertNull(
-        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_std_01.mzML"));
+    Assertions.assertEquals("sample",
+        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_01.mzML"));
+    Assertions.assertEquals("sst",
+        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_sst_01.mzML"));
+    Assertions.assertEquals("calibration",
+        SampleMetadataExtractionUtils.extractValue(mapping, "20210610_cal_01.mzML"));
   }
 }

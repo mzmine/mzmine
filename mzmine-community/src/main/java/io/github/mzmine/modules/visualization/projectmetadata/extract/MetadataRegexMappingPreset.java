@@ -50,19 +50,25 @@ public record MetadataRegexMappingPreset(@NotNull String name,
                                          @NotNull MetadataRegexMapping mapping) implements Preset {
 
   /**
-   * @param name    the preset name
-   * @param column  the target metadata column
-   * @param type    the target column type
-   * @param regex   the regex applied to the file name
-   * @param mapping value mappings and remaining-value handling applied to the extracted value
+   * @param name                the preset name
+   * @param column              the target metadata column
+   * @param type                the target column type
+   * @param regex               the regex applied to the file name
+   * @param unmappedValue       the value to use when a match is found but no mapping
+   * @param generalDefaultValue the value to use when no match is found and no unmapped value is
+   *                            specified, even if there is no match
+   * @param mapping             value mappings and remaining-value handling applied to the extracted
+   *                            value
    * @return a preset extracting from {@link RegexInputSource#FILE_NAME}
    */
   public static @NotNull MetadataRegexMappingPreset createMappingPreset(@NotNull final String name,
       @NotNull final String column, @NotNull final ExtractColumnType type,
       @NotNull final String regex, @NotNull final DropUnmappedMode dropUnmapped,
-      @NotNull final String unmappedValue, @NotNull final List<MetadataValueMapping> mapping) {
+      @NotNull final String unmappedValue, @NotNull String generalDefaultValue,
+      @NotNull final List<MetadataValueMapping> mapping) {
     return new MetadataRegexMappingPreset(name,
-        new MetadataRegexMapping(RegexInputSource.FILE_NAME, column, type, regex, "", dropUnmapped,
+        new MetadataRegexMapping(RegexInputSource.FILE_NAME, column, type, regex,
+            generalDefaultValue, dropUnmapped,
             unmappedValue, mapping));
   }
 
@@ -72,7 +78,7 @@ public record MetadataRegexMappingPreset(@NotNull String name,
   public static @NotNull MetadataRegexMappingPreset createExactValuePreset(
       @NotNull final String name, @NotNull final String column,
       @NotNull final ExtractColumnType type, @NotNull final String regex) {
-    return createMappingPreset(name, column, type, regex, DropUnmappedMode.KEEP_UNMAPPED, "",
+    return createMappingPreset(name, column, type, regex, DropUnmappedMode.KEEP_UNMAPPED, "", "",
         List.of());
   }
 
@@ -84,7 +90,7 @@ public record MetadataRegexMappingPreset(@NotNull String name,
       @NotNull final ExtractColumnType type, @NotNull final String regex,
       @NotNull final String unmappedValue) {
     return createMappingPreset(name, column, type, regex, DropUnmappedMode.KEEP_UNMAPPED,
-        unmappedValue, List.of());
+        unmappedValue, "", List.of());
   }
 
   @Override

@@ -44,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
 public class MetadataRegexMappingPresetStore extends
     AbstractJsonPresetStore<MetadataRegexMappingPreset> {
 
+  public static final String SAMPLE_TYPE_PRESET_NAME = "More sample types";
+
   @Override
   public @NotNull PresetCategory getPresetCategory() {
     return PresetCategory.OTHER;
@@ -64,10 +66,10 @@ public class MetadataRegexMappingPresetStore extends
             ".*(?<![a-zA-Z])(pool(?:ed)?(?:[_-]?qc)?)(?![a-zA-Z]).*", "pooled_qc"), //
         // showcases the value mappings and the remaining-values fallback: everything that is not
         // recognized as blank, QC, ... becomes a regular sample
-        createMappingPreset("More sample types", MetadataColumn.SAMPLE_TYPE_HEADER,
+        createMappingPreset(SAMPLE_TYPE_PRESET_NAME, MetadataColumn.SAMPLE_TYPE_HEADER,
             ExtractColumnType.TEXT,
-            ".*(?<![a-zA-Z])(media(?:[_-]?blank)?|blank|blk|pool(?:ed)?(?:[_-]?qc)?|qc|sst|cal|calibration)(?![a-zA-Z]).*",
-            DropUnmappedMode.MAP_UNMAPPED, "sample", List.of(
+            ".*(?<![a-zA-Z])(media(?:[_-]?blank)?|blank|blk|pool(?:ed)?(?:[_-]?qc)?|(?<!pooled[_-]?)qc|sst|cal|calibration)(?![a-zA-Z]).*",
+            DropUnmappedMode.MAP_UNMAPPED, "sample", "sample", List.of(
                 // media
                 new MetadataValueMapping("media", "media"),
                 new MetadataValueMapping("mediablank", "media"),
