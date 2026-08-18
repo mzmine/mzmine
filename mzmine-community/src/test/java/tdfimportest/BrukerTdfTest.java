@@ -74,6 +74,7 @@ public class BrukerTdfTest {
 
     MZmineProject project = new MZmineProjectImpl();
     String str = "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Bruker\\timsTOF\\20241126 - WWTP Spiked\\pos\\ex_klaer_RA4_6570.d";
+//    String str = "F:\\example_data\\200ngHeLaPASEF_2min_compressed.d";
     File file = new File(str);
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
