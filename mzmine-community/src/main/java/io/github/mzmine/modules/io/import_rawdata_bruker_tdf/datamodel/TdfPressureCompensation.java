@@ -39,4 +39,14 @@ public enum TdfPressureCompensation {
       case FRAME -> 2;
     };
   }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case NONE -> "No compensation";
+      case GLOBAL -> "Global (single, file wide)";
+      case FRAME -> "Frame (each frame individually)";
+    };
+  }
 }

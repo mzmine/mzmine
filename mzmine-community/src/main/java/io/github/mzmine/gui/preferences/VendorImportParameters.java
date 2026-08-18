@@ -96,7 +96,7 @@ public class VendorImportParameters extends SimpleParameterSet {
           This compensation is applied during file import and cannot be applied afterwards.
           Will cause additional memory consumption, because every frame might have it's own mobility calibration (in theory).
           In practical cases, this memory consumption is mostly negligible.
-          Usually not required in LC-IMS-MS, especially if the file was already recalibrated. 
+          Usually not required in LC-IMS-MS, especially if the file was already recalibrated.
           May lead to more stable mobility values in MALDI-IMS mode.
           """, TdfPressureCompensation.values(), DEFAULT_PRESSURE_COMPENSATION),
       createJumpToPrefButton("Apply pressure compensation (Bruker IMS)"));
