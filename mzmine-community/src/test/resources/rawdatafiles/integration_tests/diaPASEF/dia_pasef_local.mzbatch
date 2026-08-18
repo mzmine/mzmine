@@ -27,9 +27,7 @@
 <batch mzmine_version="4.10.28">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
-          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Bruker\timsTOF\diaPASEF 32
-            Substances\dia_ce40_50width_3mob_BA2_6302.d
-          </file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Bruker\timsTOF\diaPASEF 32 Substances\dia_ce40_50width_3mob_BA2_6302.d</file>
         </parameter>
       <parameter name="Vendor data options">
         <parameter name="Try vendor centroiding">true</parameter>
@@ -130,10 +128,7 @@
         <parameter name="Metadata file" selected="false"/>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-          <file>D:\OneDrive - mzio GmbH\Example data -
-            Documents\other_data_libraries_metadata\Spectral
-            libraries\32_substances_timstof_lib.json
-          </file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Spectral libraries\32_substances_timstof_lib.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
