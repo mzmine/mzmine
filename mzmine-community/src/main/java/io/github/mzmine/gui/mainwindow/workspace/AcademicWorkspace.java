@@ -195,7 +195,6 @@ public final class AcademicWorkspace extends AbstractWorkspace {
         RowsFilterModule.class, FeatureFilterModule.class, FeatureListBlankSubtractionModule.class,
         ChromatogramBlankSubtractionModule.class, MobilityMzRegionExtractionModule.class,
         NeutralLossFilterModule.class, SplitAlignedFeatureListModule.class);
-    addModuleMenuItems(menu, "Preferences", FeatureListPreferencesModule.class);
     addModuleMenuItems(menu, "Alignment", JoinAlignerModule.class, MergeAlignerModule.class,
         RansacAlignerModule.class, GCAlignerModule.class,
         LcImageAlignerModule.class); // HierarAlignerGcModule, ADAP3AlignerModule (not mit compatible)
@@ -206,6 +205,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
     menu.getItems().add(buildDefaultAnnotationSubMenu());
 
+    addModuleMenuItems(menu, "Preferences", FeatureListPreferencesModule.class);
     addModuleMenuItems(menu, "Statistics", StatsDasboardModule.class, VolcanoPlotModule.class,
         PCAModule.class, AnovaModule.class);
     return menu;
