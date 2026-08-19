@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,7 +53,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private int scanNumber;
   private int msLevel;
   private float retentionTime;
-  private Float correctedRetentionTime;
+  private @Nullable Float correctedRetentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private MassList massList = null;
@@ -90,7 +90,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
       @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange) {
+      @Nullable Range<Double> scanMZRange) {
 
     this(dataFile, scanNumber, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
         spectrumType, polarity, scanDefinition, scanMZRange, null);
@@ -99,7 +99,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
       @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
-      Range<Double> scanMZRange, @Nullable Float injectionTime) {
+      @Nullable Range<Double> scanMZRange, @Nullable Float injectionTime) {
 
     super(dataFile.getMemoryMapStorage(), mzValues, intensityValues);
 

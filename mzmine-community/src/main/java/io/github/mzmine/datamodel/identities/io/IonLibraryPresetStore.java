@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPreset> {
 
@@ -57,7 +58,7 @@ public class IonLibraryPresetStore extends AbstractJsonPresetStore<IonLibraryPre
   }
 
   @Override
-  public FxPresetEditor createPresetEditor() {
+  public @Nullable FxPresetEditor createPresetEditor() {
     return null;
   }
 

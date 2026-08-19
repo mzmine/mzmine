@@ -51,14 +51,22 @@ public class AnovaTest implements RowSignificanceTest {
     this.groupingColumn = groupingColumn;
 
     final MetadataTable metadata = ProjectService.getMetadata();
-    final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
+    // limit to actual raw data files to not select files not in feature table
+    final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(
+        dataTable.getRawDataFiles(), groupingColumn);
+
     // can check conditions here that all groups have at least two values because we impute missing values
     for (var group : fileGrouping.entrySet()) {
       if (group.getValue().size() < 2) {
         throw new IllegalArgumentException(
-            "Group %s has less than two samples which is a requirement for ANOVA.".formatted(
+            "Group %s has less than two samples in the selected feature list which is a requirement for ANOVA.".formatted(
                 group.getKey()));
       }
+    }
+    if (fileGrouping.size() < 2) {
+      throw new IllegalArgumentException(
+          "Column %s defines only %d group(s) in the selected feature list. ANOVA requires at least two groups.".formatted(
+              groupingColumn.getTitle(), fileGrouping.size()));
     }
     groupedFiles = fileGrouping.values().stream().toList();
   }

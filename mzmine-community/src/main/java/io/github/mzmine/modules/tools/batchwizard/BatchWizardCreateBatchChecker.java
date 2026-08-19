@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.DataImportWizard
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataReader;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTableUtils;
@@ -54,7 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -175,8 +175,9 @@ public class BatchWizardCreateBatchChecker {
       return;
     }
 
-    // two files need to match the QC sample type
-    long rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.ofString(f.getName()))
+    // two files need to match the QC sample type. Runs before data and metadata are imported, so
+    // the file name heuristic is all there is - the same one that seeds the metadata column later
+    long rsdFilterMatched = Arrays.stream(dataFiles).map(f -> SampleType.guessFromName(f.getName()))
         .filter(type -> type == SampleType.QC).count();
 
     if (rsdFilterMatched >= 2 || (table != null && checkAtLeastTwoQcSampleInMetadataTable())) {
@@ -245,9 +246,12 @@ public class BatchWizardCreateBatchChecker {
 
     // actually imported raw data files
     final MetadataColumn<String> sampleTypeColumn = table.getSampleTypeColumn();
+    // the metadata value is authoritative - match it exactly (ignoring case), the same way the
+    // RSD filter this check is about will match it
+    final SampleTypeFilter qcFilter = SampleTypeFilter.qc();
     for (RawDataFile raw : nameFileMap.values()) {
       final String value = table.getValue(sampleTypeColumn, raw);
-      if (SampleType.ofString(value) == SampleType.QC) {
+      if (qcFilter.matchesValue(value)) {
         qcSamples++;
       }
       if (qcSamples >= 2) {
