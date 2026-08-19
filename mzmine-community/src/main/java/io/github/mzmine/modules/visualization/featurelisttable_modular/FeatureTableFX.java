@@ -225,6 +225,7 @@ public class FeatureTableFX extends BorderPane {
   }
 
   FeatureTableFX(@NotNull ParameterSet parameters, FeatureTableOwner tableOwner) {
+    FeatureTableFXUtil.addInstance(this);
     setTableOwner(tableOwner);
     dataChangedNotification = new NotificationPane(table);
     setCenter(dataChangedNotification);
