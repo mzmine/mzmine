@@ -26,10 +26,12 @@
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,6 +68,16 @@ public class CompoundDashboardTab extends SimpleTab {
 
   public @Nullable FeatureList getFeatureList() {
     return controller.getFeatureList();
+  }
+
+  /**
+   * Returns the rows highlighted in the dashboard's embedded feature table.
+   *
+   * <p>The dashboard owns a separate table controller, so consumers cannot obtain this selection
+   * from a standalone {@code FeatureTableTab}.</p>
+   */
+  public @NotNull List<FeatureListRow> getSelectedRows() {
+    return List.copyOf(controller.getTableController().selectedRowsProperty().get());
   }
 
   @Override
