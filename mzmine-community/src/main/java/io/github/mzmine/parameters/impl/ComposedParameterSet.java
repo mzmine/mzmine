@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +64,8 @@ public abstract class ComposedParameterSet implements ParameterSet {
   }
 
   @Override
-  public <T extends Parameter<?>> T getParameter(final T parameter) {
-    return getParamSet().getParameter(parameter);
+  public @NotNull <T extends Parameter<?>> Optional<T> tryGetParameter(T parameter) {
+    return getParamSet().tryGetParameter(parameter);
   }
 
   @Override

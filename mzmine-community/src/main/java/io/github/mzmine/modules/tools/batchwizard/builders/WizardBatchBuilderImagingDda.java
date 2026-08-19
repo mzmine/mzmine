@@ -163,7 +163,8 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
       final var param = AllSpectralDataImportParameters.create(
           ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
-          metadataFile.active() ? metadataFile.value() : null, libraries, advancedParam);
+          metadataFile.active() ? metadataFile.value() : null, extractMetadataParams, libraries,
+          advancedParam);
 
       q.add(new MZmineProcessingStepImpl<>(
           MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));

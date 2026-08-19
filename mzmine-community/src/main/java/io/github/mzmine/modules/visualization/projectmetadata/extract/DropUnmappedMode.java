@@ -23,49 +23,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import io.github.mzmine.modules.visualization.projectmetadata.extract.MetadataRegexMappingPreset;
-import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import org.jetbrains.annotations.NotNull;
 
-public enum KnownPresetGroup implements PresetGroup {
+/**
+ * Controls what happens to extracted values that are not listed in the value-mapping table.
+ */
+public enum DropUnmappedMode implements UniqueIdSupplier {
 
   /**
-   * {@link RowTypeFilterPreset}
+   * Values not found in the mapping list are passed through unchanged.
    */
-  ROW_TYPE_FILTER_PRESET,
+  KEEP_UNMAPPED("Keep unmapped values"),
   /**
-   * {@link IonLibrary}
+   * Values not found in the mapping list are left empty.
    */
-  ION_LIBRARY_PRESET, //
+  DROP_UNMAPPED("Drop unmapped values"),
   /**
-   * {@link MetadataRegexMappingPreset}
+   * Values not found in the mapping list are all replaced by
+   * {@link MetadataRegexMapping#unmappedValue()}. Only non-blank extracted values are mapped.
    */
-  METADATA_REGEX_MAPPING_PRESET, //
-  ;
+  MAP_UNMAPPED("Map remaining values to");
 
-  public KnownPresetGroup parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  private final String label;
+
+  DropUnmappedMode(final String label) {
+    this.label = label;
+  }
+
+  @Override
+  public String toString() {
+    return label;
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "feature_table_filters";
-      case ION_LIBRARY_PRESET -> "ion_libraries";
-      case METADATA_REGEX_MAPPING_PRESET -> "metadata_regex_mappings";
-    };
-  }
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case ROW_TYPE_FILTER_PRESET -> "Feature table filters";
-      case ION_LIBRARY_PRESET -> "Ion libraries";
-      case METADATA_REGEX_MAPPING_PRESET -> "Metadata regex mappings";
+      case KEEP_UNMAPPED -> "KEEP_UNMAPPED";
+      case DROP_UNMAPPED -> "DROP_UNMAPPED";
+      case MAP_UNMAPPED -> "MAP_UNMAPPED";
     };
   }
 }

@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -353,6 +354,10 @@ public class FileNamesComponent extends BorderPane {
     }
     txtFilename.setText(Arrays.stream(value).filter(Objects::nonNull).map(File::getPath)
         .collect(Collectors.joining("\n")));
+  }
+
+  public @NotNull StringProperty textProperty() {
+    return txtFilename.textProperty();
   }
 
   public void setToolTipText(String toolTip) {

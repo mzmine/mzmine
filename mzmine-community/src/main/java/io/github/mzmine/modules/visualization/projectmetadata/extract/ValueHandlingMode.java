@@ -23,40 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
-
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * How a mapping turns the extracted regex value into the stored metadata value.
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS, LIBRARIES, OTHER;
+public enum ValueHandlingMode {
 
+  /**
+   * Store the extracted value directly (no value mappings applied).
+   */
+  EXTRACT_VALUES("Extract values"),
+  /**
+   * Map extracted values to other values (case-insensitive), e.g. media → blank.
+   */
+  VALUE_MAPPINGS("Value mappings");
 
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
-  }
+  private final String label;
 
-  public @NotNull String getFolderName() {
-    return getUniqueID();
+  ValueHandlingMode(final String label) {
+    this.label = label;
   }
 
   @Override
   public String toString() {
-    return getUniqueID();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-      case LIBRARIES -> "libraries";
-      case OTHER -> "other";
-    };
+    return label;
   }
 }
