@@ -54,6 +54,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.StringUtils;
 import io.mzio.general.Result;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -120,7 +121,14 @@ public class TDFUtils implements AutoCloseable {
   private OfInt INT_LITTLE_ENDIAN = TDFLib.C_INT.withOrder(ByteOrder.LITTLE_ENDIAN);
   private TdfPressureCompensation applyPressureComp = TdfPressureCompensation.NONE;
 
+  /**
+   * A magic number based on empiric testing that is the threshold between the number of peaks per
+   * mz and the loading speed of the v2 and v3 centroid frame extraction methods.
+   */
+  private double MAGIC_NUMBER_NON_SPARSE_SPECTRUM = 13.42;
+
   public TDFUtils() {
+    setNumThreads(1);
   }
 
   public TDFUtils(TdfPressureCompensation pressureCompensation) {
@@ -418,22 +426,22 @@ public class TDFUtils implements AutoCloseable {
   // ---------------------------------------------------------------------------------------------
   // AVERAGE FRAMES
   // -----------------------------------------------------------------------------------------------
-  private SimpleSpectralArrays extractCentroidsForFrame(final long frameId, final int startScanNum,
-      final int endScanNum) {
+  @NotNull SimpleSpectralArrays extractCentroidsForFrame(final long frameId, final int startScanNum,
+      final int endScanNum, boolean predictedSparse) {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
 
-    AtomicReference<double[]> mzs = new AtomicReference<>();
-    AtomicReference<float[]> intensities = new AtomicReference<>();
-    Function function = new Function() {
+    final AtomicReference<double[]> mzs = new AtomicReference<>();
+    final AtomicReference<float[]> intensities = new AtomicReference<>();
+    final Function function = new Function() {
       @Override
       public void apply(long id, int num_peaks, MemorySegment mz_values, MemorySegment area_values,
           MemorySegment user_data) {
         try {
-          MemorySegment mzSegment = mz_values.reinterpret(
+          final MemorySegment mzSegment = mz_values.reinterpret(
               (long) num_peaks * JAVA_DOUBLE.byteSize());
-          MemorySegment areaSegment = area_values.reinterpret(
+          final MemorySegment areaSegment = area_values.reinterpret(
               (long) num_peaks * JAVA_FLOAT.byteSize());
           mzs.set(mzSegment.toArray(JAVA_DOUBLE));
           intensities.set(areaSegment.toArray(JAVA_FLOAT));
@@ -448,8 +456,15 @@ public class TDFUtils implements AutoCloseable {
 
     try (var arena = Arena.ofShared()) {
       MemorySegment callback = msms_spectrum_function.allocate(function, arena);
-      final long error = TDFLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
-          startScanNum, endScanNum, callback, MemorySegment.NULL);
+
+      final long error = switch (predictedSparse) {
+        case true ->
+            TDFLib.tims_extract_centroided_spectrum_for_frame_v3(handle, frameId, startScanNum,
+                endScanNum, callback, MemorySegment.NULL);
+        case false ->
+            TDFLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId, startScanNum,
+                endScanNum, callback, MemorySegment.NULL);
+      };
 
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
@@ -519,7 +534,9 @@ public class TDFUtils implements AutoCloseable {
     }
 
     // load data after filters applied
-    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans);
+    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans,
+        frameTable.getNumPeaksColumn().get(frameIndex) / RangeUtils.rangeLength(mzRange)
+            < MAGIC_NUMBER_NON_SPARSE_SPECTRUM);
 
     // process data?
     if (scanProcessorConfig.hasProcessors()) {
