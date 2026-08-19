@@ -101,16 +101,19 @@ public class StructureTanimotoNetworkingTask extends AbstractFeatureListTask {
     totalItems = allRows.size();
     finishedItems.set(0);
     final Map<FeatureListRow, List<StructureFingerprint>> fingerprintCache = new ConcurrentHashMap<>();
-    allRows.parallelStream().forEach(row -> {
+
+    // parallelstream with map instead of forEach to block the calling thread until finished
+    final int ignored = allRows.parallelStream().mapToInt(row -> {
       if (isCanceled()) {
-        return;
+        return 0;
       }
       final List<StructureFingerprint> fingerprints = computeRowFingerprints(row);
       if (!fingerprints.isEmpty()) {
         fingerprintCache.put(row, fingerprints);
       }
       incrementFinishedItems();
-    });
+      return 1;
+    }).sum();
 
     if (isCanceled()) {
       return;

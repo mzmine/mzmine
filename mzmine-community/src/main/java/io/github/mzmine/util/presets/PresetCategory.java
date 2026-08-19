@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Defines a category which is the first folder in the presets directory
  */
 public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS, LIBRARIES;
+  MODULES, FILTERS, LIBRARIES, OTHER;
 
 
   @Nullable
@@ -56,6 +56,7 @@ public enum PresetCategory implements UniqueIdSupplier {
       case MODULES -> "modules";
       case FILTERS -> "filters";
       case LIBRARIES -> "libraries";
+      case OTHER -> "other";
     };
   }
 }

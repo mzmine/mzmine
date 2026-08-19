@@ -55,14 +55,13 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +91,10 @@ import org.jetbrains.annotations.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   public static final int DEFAULT_ESTIMATED_ROWS = 5000;
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  // DateTimeFormatter instead of SimpleDateFormat: this constant is shared across threads and
+  // SimpleDateFormat is not thread-safe (concurrent use corrupts its internal calendar).
+  public static final DateTimeFormatter DATA_FORMAT = DateTimeFormatter.ofPattern(
+      "yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
@@ -200,7 +202,7 @@ public class ModularFeatureList implements FeatureList {
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
-    dateCreated = DATA_FORMAT.format(new Date());
+    dateCreated = DATA_FORMAT.format(LocalDateTime.now());
     selectedScans = FXCollections.observableMap(new HashMap<>());
     this.memoryMapStorage = storage;
 

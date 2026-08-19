@@ -1,9 +1,43 @@
-<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="4.7.27">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
+  ~
+  ~ Permission is hereby granted, free of charge, to any person
+  ~ obtaining a copy of this software and associated documentation
+  ~ files (the "Software"), to deal in the Software without
+  ~ restriction, including without limitation the rights to use,
+  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the
+  ~ Software is furnished to do so, subject to the following
+  ~ conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  ~ OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+<batch mzmine_version="4.10.28">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\Bruker\timsTOF\diaPASEF 32 Substances\dia_ce40_50width_3mob_BA2_6302.d</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Bruker\timsTOF\diaPASEF 32 Substances\dia_ce40_50width_3mob_BA2_6302.d</file>
         </parameter>
+      <parameter name="Vendor data options">
         <parameter name="Try vendor centroiding">true</parameter>
+        <parameter name="Remove calibrant signals (Thermo)">true</parameter>
+        <parameter name="Apply lockmass on import (Waters)" selected="true">
+          <parameter name="Positive lockmass">556.276575</parameter>
+          <parameter name="Negative lockmass">554.262022</parameter>
+        </parameter>
+        <parameter name="Waters MassLynx data import">native</parameter>
+      </parameter>
         <parameter name="Advanced import" selected="true">
             <parameter name="Scan filters" selected="true">
                 <parameter name="Scan number"/>
@@ -33,7 +67,15 @@
                     <parameter name="Noise level"/>
                 </module>
                 <module name="Local maxima">
-                    <parameter name="Noise level"/>
+                  <parameter name="Noise level">100.0</parameter>
+                  <parameter name="Minimum non-zero points">3</parameter>
+                  <parameter name="Intensity calculation">Height</parameter>
+                  <parameter name="Smoothing" selected_item="none">
+                    <module name="none"/>
+                    <module name="savitzky_golay">
+                      <parameter name="Width (points)">5</parameter>
+                    </module>
+                  </parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -60,7 +102,15 @@
                     <parameter name="Noise level"/>
                 </module>
                 <module name="Local maxima">
-                    <parameter name="Noise level"/>
+                  <parameter name="Noise level">100.0</parameter>
+                  <parameter name="Minimum non-zero points">3</parameter>
+                  <parameter name="Intensity calculation">Height</parameter>
+                  <parameter name="Smoothing" selected_item="none">
+                    <module name="none"/>
+                    <module name="savitzky_golay">
+                      <parameter name="Width (points)">5</parameter>
+                    </module>
+                  </parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -78,11 +128,14 @@
         <parameter name="Metadata file" selected="false"/>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-            <file>D:\OneDrive - mzio GmbH\mzio\Example data\other_data_libraries_metadata\Spectral libraries\32_substances_timstof_lib.json</file>
+          <file>D:\OneDrive - mzio GmbH\Example data - Documents\Spectral libraries\32_substances_timstof_lib.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
-        <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
+      <parameter name="Raw data files" type="BATCH_LAST_FILES">
+        <by_metadata column="" includeExcludeType="include"/>
+        <by_metadata column="" includeExcludeType="exclude"/>
+      </parameter>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
             <parameter name="Base Filtering Integer"/>
@@ -106,15 +159,23 @@
                 <parameter name="Noise level">2.0</parameter>
             </module>
             <module name="Exact mass">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">0.0</parameter>
             </module>
             <module name="Local maxima">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">200.0</parameter>
+              <parameter name="Minimum non-zero points">3</parameter>
+              <parameter name="Intensity calculation">Height</parameter>
+              <parameter name="Smoothing" selected_item="none">
+                <module name="none"/>
+                <module name="savitzky_golay">
+                  <parameter name="Width (points)">5</parameter>
+                </module>
+              </parameter>
             </module>
             <module name="Recursive threshold">
-                <parameter name="Noise level"/>
-                <parameter name="Min m/z peak width"/>
-                <parameter name="Max m/z peak width"/>
+              <parameter name="Noise level">100.0</parameter>
+              <parameter name="Min m/z peak width">0.005</parameter>
+              <parameter name="Max m/z peak width">0.2</parameter>
             </module>
             <module name="Wavelet transform">
                 <parameter name="Noise level"/>
@@ -124,7 +185,10 @@
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
-        <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
+      <parameter name="Raw data files" type="BATCH_LAST_FILES">
+        <by_metadata column="" includeExcludeType="include"/>
+        <by_metadata column="" includeExcludeType="exclude"/>
+      </parameter>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
             <parameter name="Base Filtering Integer"/>
@@ -148,15 +212,23 @@
                 <parameter name="Noise level">2.0</parameter>
             </module>
             <module name="Exact mass">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">0.0</parameter>
             </module>
             <module name="Local maxima">
-                <parameter name="Noise level"/>
+              <parameter name="Noise level">200.0</parameter>
+              <parameter name="Minimum non-zero points">3</parameter>
+              <parameter name="Intensity calculation">Height</parameter>
+              <parameter name="Smoothing" selected_item="none">
+                <module name="none"/>
+                <module name="savitzky_golay">
+                  <parameter name="Width (points)">5</parameter>
+                </module>
+              </parameter>
             </module>
             <module name="Recursive threshold">
-                <parameter name="Noise level"/>
-                <parameter name="Min m/z peak width"/>
-                <parameter name="Max m/z peak width"/>
+              <parameter name="Noise level">100.0</parameter>
+              <parameter name="Min m/z peak width">0.005</parameter>
+              <parameter name="Max m/z peak width">0.2</parameter>
             </module>
             <module name="Wavelet transform">
                 <parameter name="Noise level"/>
@@ -166,7 +238,10 @@
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule" module_name="Chromatogram builder" parameter_version="1">
-        <parameter name="Raw data files" type="BATCH_LAST_FILES"/>
+      <parameter name="Raw data files" type="BATCH_LAST_FILES">
+        <by_metadata column="" includeExcludeType="include"/>
+        <by_metadata column="" includeExcludeType="exclude"/>
+      </parameter>
         <parameter name="Scan filters" selected="true">
             <parameter name="Scan number"/>
             <parameter name="Base Filtering Integer"/>
@@ -342,13 +417,23 @@
             <parameter name="Polarity">Any</parameter>
             <parameter name="Spectrum type">ANY</parameter>
         </parameter>
-        <parameter name="Minimum feature intensity">1000.0</parameter>
-        <parameter name="Minimum fragment intensity">500.0</parameter>
-        <parameter name="Number of correlated points">5</parameter>
-        <parameter name="Minimum pearson correlation">0.8</parameter>
-        <parameter name="m/z tolerance (scan-to-scan)">
+      <parameter name="Algorithm" selected_item="rt_corr">
+        <module name="rt_corr">
+          <parameter name="Minimum feature intensity">1000.0</parameter>
+          <parameter name="Minimum fragment intensity">500.0</parameter>
+          <parameter name="Number of correlated points">5</parameter>
+          <parameter name="Minimum pearson correlation">0.8</parameter>
+          <parameter name="m/z tolerance (scan-to-scan)">
             <absolutetolerance>0.005</absolutetolerance>
             <ppmtolerance>20.0</ppmtolerance>
+          </parameter>
+          <parameter name="Advanced" selected="false">
+            <parameter name="Relative intensity threshold" selected="false">0.001</parameter>
+          </parameter>
+        </module>
+        <module name="no_corr">
+          <parameter name="Replace existing MS2 spectra">true</parameter>
+        </module>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" module_name="Isotopic peaks finder" parameter_version="1">
@@ -413,12 +498,19 @@
             <abs>1</abs>
             <rel>0.0</rel>
         </parameter>
-        <parameter name="Minimum aligned samples (in group)" selected="false">
+      <parameter name="Minimum aligned samples (in any group)" selected="false">
             <parameter name="Minimum samples">
                 <abs>1</abs>
                 <rel>0.0</rel>
             </parameter>
-            <parameter name="Metadata grouping"/>
+        <parameter name="Metadata grouping">Class</parameter>
+      </parameter>
+      <parameter name="Minimum aligned samples (in one group)" selected="false">
+        <parameter name="Minimum samples">
+          <abs>1</abs>
+          <rel>0.0</rel>
+        </parameter>
+        <parameter column="Class" group="" name="Sample grouping"/>
         </parameter>
         <parameter name="RSD filter" selected="false">
             <parameter name="Abundance measure">Area</parameter>
@@ -433,7 +525,7 @@
             <parameter name="Missing value imputation">GLOBAL_LIMIT_OF_DETECTION</parameter>
             <parameter column="" groupA="" groupB="" name="Metadata selection"/>
             <parameter name="Significance test">WELCHS_T_TEST</parameter>
-            <parameter name="Maximum p-value">0.05</parameter>
+          <parameter name="Maximum p-value" selected="true">0.05</parameter>
             <parameter name="log2(fold-change) threshold">1.0</parameter>
             <parameter name="Fold-change filter">abs_both_sides</parameter>
         </parameter>
@@ -449,7 +541,12 @@
             <parameter name="Exclude isotopes">O</parameter>
         </parameter>
         <parameter name="Remove redundant isotope rows">false</parameter>
-        <parameter name="m/z" selected="false"/>
+      <parameter name="Feature row IDs" selected="false"/>
+      <parameter name="Compound IDs" selected="false"/>
+      <parameter name="m/z" selected="false">
+        <min>500.0</min>
+        <max>1499.6637</max>
+      </parameter>
         <parameter name="Retention time" selected="false"/>
         <parameter name="Chromatographic width" selected="false">
             <min>0.0</min>
@@ -474,6 +571,11 @@
             <parameter name="Charge">1</parameter>
             <parameter name="Divisor">1</parameter>
             <parameter name="Use Remainder of Kendrick mass">false</parameter>
+        </parameter>
+      <parameter name="Flexible filter (e.g., annotation)" selected="false">
+        <parameter name="Matching mode">any</parameter>
+        <parameter name="Type">compound_name</parameter>
+        <parameter name="Search value"/>
         </parameter>
         <parameter name="Only identified?">false</parameter>
         <parameter name="Text in identity" selected="false"/>
@@ -545,7 +647,9 @@
             <parameter name="Simplify for ≥ samples">250</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule" module_name="Ion identity networking" parameter_version="1">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"
+    module_name="Ion identity networking" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="m/z tolerance (intra-sample)">
             <absolutetolerance>0.0015</absolutetolerance>
@@ -553,185 +657,219 @@
         </parameter>
         <parameter name="Check">ALL FEATURES</parameter>
         <parameter name="Min height">0.0</parameter>
-        <parameter name="Ion identity library">
-            <parameter name="Maximum charge">2</parameter>
-            <parameter name="Maximum molecules/cluster">2</parameter>
-            <parameter name="Adducts">
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="-5.4858E-4" mol_formula="" name="e" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="-5.4858E-4" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="22.989218" mol_formula="Na" name="Na" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="22.989218" mol_formula="Na" name="Na" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="-1" mass_difference="0.0" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="1" mass_difference="-5.4858E-4" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="38.963158" mol_formula="K" name="K" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="2" mass_difference="47.96953482" mol_formula="Mg" name="Mg" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="-1" mass_difference="34.969401" mol_formula="Cl" name="Cl" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="22.989218" mol_formula="Na" name="Na" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="-1" mass_difference="44.99820285" mol_formula="HCO2" name="FA" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="2" mass_difference="47.96953482" mol_formula="Mg" name="Mg" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="18.033823" mol_formula="NH4" name="NH4" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="-1" mass_difference="59.013304" mol_formula="C2H3O2" name="Acetate" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="2" mass_difference="55.93384" mol_formula="Fe" name="Fe" type="ADDUCT"/>
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="18.033823" mol_formula="NH4" name="NH4" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="2" mass_difference="39.96149382" mol_formula="Ca" name="Ca" type="ADDUCT"/>
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="22.989218" mol_formula="Na" name="Na" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="-1" mass_difference="78.918886" mol_formula="Br" name="Br" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="38.963158" mol_formula="K" name="K" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="-5.4858E-4" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="1" mass_difference="22.989218" mol_formula="Na" name="Na" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="2" mass_difference="55.93384" mol_formula="Fe" name="Fe" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="-1" mass_difference="5.4858E-4" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="2" mass_difference="39.96149382" mol_formula="Ca" name="Ca" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="1" mass_difference="1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="true">
-                    <subpart charge="-1" mass_difference="-1.007276" mol_formula="H" name="H" type="ADDUCT"/>
-                </adduct_type>
-                <adduct_type selected="false">
-                    <subpart charge="1" mass_difference="0.0" mol_formula="" name="e" type="ADDUCT"/>
-                </adduct_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                    <subpart charge="0" mass_difference="-18.010565" mol_formula="H2O" name="H2O" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-17.026549" mol_formula="NH3" name="NH3" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="15.99491462" mol_formula="O" name="O" type="CLUSTER"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-27.994915" mol_formula="CO" name="CO" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-43.989829" mol_formula="CO2" name="CO2" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="-28.031301" mol_formula="C2H4" name="C2H4" type="NEUTRAL_LOSS"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="46.005479" mol_formula="CHOOH" name="HFA" type="CLUSTER"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="60.021129" mol_formula="CH3COOH" name="HAc" type="CLUSTER"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="32.026215" mol_formula="CH3OH" name="MeOH" type="CLUSTER"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="41.026549" mol_formula="CH3CN" name="ACN" type="CLUSTER"/>
-                </modification_type>
-                <modification_type selected="false">
-                    <subpart charge="0" mass_difference="60.058064" mol_formula="C3H8O" name="IsoProp" type="CLUSTER"/>
-                </modification_type>
-            </parameter>
+    <parameter libraryVersion="2" name="Ion library">
+      <ionLibrary id="548ac92d-10b9-4755-98e7-8b163bc5fd0b">
+        <origin kind="local"/>
+        <name>Legacy library imported</name>
+        <savedDate>2026-08-13T15:57:11.4958623</savedDate>
+        <lastUpdatedDate>2026-08-13T15:56:37.5432062</lastUpdatedDate>
+        <parts>
+          <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
+          <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
+          <parts charge="-1" formula="Cl" id="2" mass="34.96940125990927" name="Cl"/>
+          <parts charge="-1" formula="CHO2" id="3" mass="44.99820285190927" name="FA"/>
+          <parts charge="1" formula="K" id="4" mass="38.96315810009073" name="K"/>
+          <parts charge="1" formula="H4N" id="5" mass="18.03382554809073" name="NH4"/>
+          <parts charge="1" formula="Na" id="6" mass="22.98922070009073" name="Na"/>
+        </parts>
+        <ionTypes>
+          <ionTypes molecules="1">
+            <part count="-1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="-2" id="1"/>
+            <part count="1" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="2"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="3"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="-1" id="0"/>
+            <part count="1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="5"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="1" id="4"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="-1" id="1"/>
+            <part count="2" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="1">
+            <part count="2" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="-1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="-2" id="1"/>
+            <part count="1" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="2"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="3"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="-1" id="0"/>
+            <part count="1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="1"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="5"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="1" id="4"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="-1" id="1"/>
+            <part count="2" id="6"/>
+          </ionTypes>
+          <ionTypes molecules="2">
+            <part count="2" id="1"/>
+          </ionTypes>
+        </ionTypes>
+      </ionLibrary>
         </parameter>
         <parameter name="Annotation refinement" selected="true">
             <parameter name="Minimum size" selected="false">2</parameter>
-            <parameter name="Delete small networks without major ion">true</parameter>
+          <parameter libraryVersion="2" name="Ion library" selected="true">
+            <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
+              <origin kind="builtin"/>
+              <name>mzmine default main ions (+/-)</name>
+              <savedDate>2026-08-13T15:57:11.4968649</savedDate>
+              <lastUpdatedDate>2026-08-13T15:16:11.0719652</lastUpdatedDate>
+              <parts>
+                <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
+                <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
+                <parts charge="-1" id="2" mass="5.4857990927E-4" name="e"/>
+                <parts charge="-1" formula="CHO2" id="3" mass="44.99820285190927" name="CHO2"/>
+                <parts charge="-1" formula="Cl" id="4" mass="34.96940125990927" name="Cl"/>
+                <parts charge="1" formula="K" id="5" mass="38.96315810009073" name="K"/>
+                <parts charge="1" formula="H4N" id="6" mass="18.03382554809073" name="NH4"/>
+                <parts charge="1" formula="Na" id="7" mass="22.98922070009073" name="Na"/>
+              </parts>
+              <ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-2" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-1" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="2"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="4"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="3"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-1" id="0"/>
+                  <part count="-1" id="2"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-1" id="0"/>
+                  <part count="1" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-1" id="2"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="6"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="7"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="1" id="5"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="-2" id="2"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="2" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="1">
+                  <part count="3" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="2">
+                  <part count="-1" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="2">
+                  <part count="1" id="4"/>
+                </ionTypes>
+                <ionTypes molecules="2">
+                  <part count="1" id="1"/>
+                </ionTypes>
+                <ionTypes molecules="2">
+                  <part count="1" id="7"/>
+                </ionTypes>
+              </ionTypes>
+            </ionLibrary>
+          </parameter>
             <parameter name="Delete smaller networks: Link threshold" selected="true">4</parameter>
             <parameter name="Delete networks without monomer">true</parameter>
-            <parameter name="Delete rows witout ion id">false</parameter>
+          <parameter name="Only keep rows with ion ID">false</parameter>
+        </parameter>
+    <parameter name="Compound grouping" selected="true">
+      <parameter name="Componentizer" selected_item="simple_iin_correlation">
+        <module name="simple_iin_correlation">
+          <parameter name="m/z tolerance (intra-sample)">
+            <absolutetolerance>0.001</absolutetolerance>
+            <ppmtolerance>5.0</ppmtolerance>
+          </parameter>
+          <parameter name="RT tolerance" unit="MINUTES">0.03</parameter>
+          <parameter name="Min network density">0.4</parameter>
+        </module>
+        <module name="weighted_graph">
+          <parameter name="m/z tolerance (intra-sample)">
+            <absolutetolerance>0.001</absolutetolerance>
+            <ppmtolerance>5.0</ppmtolerance>
+          </parameter>
+          <parameter name="RT tolerance" unit="MINUTES">0.08</parameter>
+          <parameter name="Weight: RT coherence">2.0</parameter>
+          <parameter name="Weight: shape correlation">1.0</parameter>
+          <parameter name="Weight: ion identity">0.5</parameter>
+          <parameter name="Weight: isotope">0.5</parameter>
+          <parameter name="Weight: annotation">0.5</parameter>
+          <parameter name="Min core density">0.3</parameter>
+          <parameter name="Core merge overlap">0.5</parameter>
+          <parameter name="Assignment confidence">0.6</parameter>
+          <parameter name="Near-tie margin">0.1</parameter>
+          <parameter name="Size penalty threshold">10</parameter>
+          <parameter name="Size penalty">0.3</parameter>
+          <parameter name="RT spread threshold (min)">0.05</parameter>
+          <parameter name="Message-passing rounds">3</parameter>
+          <parameter name="Message-passing damping">0.5</parameter>
+          <parameter name="Split on annotation conflict">true</parameter>
+        </module>
+      </parameter>
+      <parameter name="Representative row" selected_item="prefer_annotated">
+        <module name="prefer_annotated"/>
+        <module name="ion_type_ranking"/>
+      </parameter>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingModule" module_name="Spectral / Molecular Networking" parameter_version="2">
@@ -757,7 +895,7 @@
                             <ppmtolerance>25.0</ppmtolerance>
                         </parameter>
                         <parameter name="Merge">
-                            <selected>Across samples</selected>
+                          <selected>across_samples</selected>
                         </parameter>
                         <parameter name="Intensity merge mode">MAXIMUM</parameter>
                     </module>
@@ -794,7 +932,7 @@
                             <ppmtolerance>25.0</ppmtolerance>
                         </parameter>
                         <parameter name="Merge">
-                            <selected>Across samples</selected>
+                          <selected>across_samples</selected>
                         </parameter>
                         <parameter name="Intensity merge mode">MAXIMUM</parameter>
                     </module>
@@ -837,7 +975,7 @@
                             <ppmtolerance>25.0</ppmtolerance>
                         </parameter>
                         <parameter name="Merge">
-                            <selected>Across samples</selected>
+                          <selected>across_samples</selected>
                         </parameter>
                         <parameter name="Intensity merge mode">MAXIMUM</parameter>
                     </module>
@@ -852,6 +990,11 @@
                 </parameter>
                 <parameter name="Batch size">32</parameter>
             </module>
+          <module name="Structure similarity (Tanimoto)">
+            <parameter name="Fingerprint">ecfp4_2048</parameter>
+            <parameter name="Min similarity">0.7</parameter>
+            <parameter name="Max structures per row">3</parameter>
+          </module>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule" module_name="Spectral library search" parameter_version="3">
@@ -872,7 +1015,7 @@
                     <ppmtolerance>20.0</ppmtolerance>
                 </parameter>
                 <parameter name="Merge">
-                    <selected>Across samples</selected>
+                  <selected>across_samples</selected>
                 </parameter>
                 <parameter name="Intensity merge mode">MAXIMUM</parameter>
             </module>
@@ -904,9 +1047,10 @@
             </module>
         </parameter>
         <parameter name="Advanced" selected="false">
-            <parameter name="Retention time tolerance" selected="false"/>
-            <parameter name="Retention index tolerance" selected="false"/>
-            <parameter name="Skip library entries without RIs">false</parameter>
+          <parameter name="Retention time tolerance" selected="false" unit="MINUTES">0.2</parameter>
+          <parameter columnType="NONPOLAR" matchWithoutRi="false" name="Retention index tolerance"
+            selected="false">50.0
+          </parameter>
             <parameter name="CCS tolerance [%]" selected="false">0.05</parameter>
             <parameter name="13C deisotoping" selected="false">
                 <parameter name="m/z tolerance">
@@ -920,8 +1064,11 @@
             <parameter name="Crop spectra to m/z overlap">false</parameter>
         </parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule" module_name="Lipid Annotation" parameter_version="2">
+  <batchstep
+    method="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"
+    module_name="Lipid Annotation" parameter_version="3">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+    <parameter name="Lipid analysis type">lc_reversed_phase</parameter>
         <parameter name="Lipid classes">
             <item>Fatty Acyls</item>
             <item>Fatty acids and Conjugates</item>
@@ -1028,6 +1175,18 @@
             <absolutetolerance>0.004</absolutetolerance>
             <ppmtolerance>8.0</ppmtolerance>
         </parameter>
+    <parameter name="Minimum overall quality score [%]">0.6</parameter>
+    <parameter name="Override quality score weights" selected="false">
+      <parameter name="MS1 accuracy weight">40</parameter>
+      <parameter name="MS2 evidence weight">100</parameter>
+      <parameter name="Adduct weight (match)">10</parameter>
+      <parameter name="Adduct weight (missing ion identity)">10</parameter>
+      <parameter name="Adduct weight (mismatch)">50</parameter>
+      <parameter name="Isotope similarity weight">20</parameter>
+      <parameter name="Interference weight">5</parameter>
+      <parameter name="Elution-order weight (no trend support)">30</parameter>
+      <parameter name="Elution-order weight (trend support)">10</parameter>
+    </parameter>
         <parameter name="Search for lipid class specific fragments in MS/MS spectra" selected="true">
             <parameter name="Merge &amp; select fragment scans" selected_item="input_scans">
                 <module name="simple_merged">
@@ -1044,7 +1203,7 @@
                         <ppmtolerance>25.0</ppmtolerance>
                     </parameter>
                     <parameter name="Merge">
-                        <selected>Across samples</selected>
+                      <selected>across_samples</selected>
                     </parameter>
                     <parameter name="Intensity merge mode">MAXIMUM</parameter>
                 </module>
@@ -1056,7 +1215,6 @@
                 <absolutetolerance>0.005</absolutetolerance>
                 <ppmtolerance>20.0</ppmtolerance>
             </parameter>
-            <parameter name="Explained intensity [%]:">0.6</parameter>
             <parameter name="Keep unconfirmed annotations">false</parameter>
         </parameter>
         <parameter name="Search for custom lipid class" selected="false">
@@ -1128,6 +1286,7 @@
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule" module_name="Export to CSV file (modular)" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+      <parameter name="Row selection">all_major_ions</parameter>
         <parameter name="Filename">
             <current_file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\diaPASEF\expected_results.csv</current_file>
             <last_file>C:\Users\Steffen\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\diaPASEF\expected_results.csv</last_file>
