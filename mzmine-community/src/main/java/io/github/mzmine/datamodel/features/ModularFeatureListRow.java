@@ -178,9 +178,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
 
       if (copyFeatures) {
-        // Copy the features.
+        // Copy the features. Row bindings are not applied per feature: each apply aggregates over
+        // all features already present, making a full row copy O(features^2) - dominating list
+        // copies of aligned lists with many samples.
+        // assumption: all row values were already copied above, and ModularFeatureList#addRow
+        // applies the row bindings once for the whole row.
         row.streamFeatures().forEach(feature -> this.addFeature(feature.getRawDataFile(),
-            new ModularFeature(flist, feature)));
+            new ModularFeature(flist, feature), false));
       }
     }
   }

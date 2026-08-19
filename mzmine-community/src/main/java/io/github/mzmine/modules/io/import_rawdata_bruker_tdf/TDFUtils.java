@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
 
 import com.google.common.collect.Range;
-import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -41,6 +40,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -65,13 +65,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -97,11 +94,16 @@ public class TDFUtils implements AutoCloseable {
    * the handle of the currently opened file
    **/
   private long handle = 0L;
+  private TdfPressureCompensation applyPressureComp = TdfPressureCompensation.NONE;
 
   public TDFUtils() {
     loadLibrary();
   }
 
+  public TDFUtils(TdfPressureCompensation pressureCompensation) {
+    this();
+    this.applyPressureComp = pressureCompensation;
+  }
 
   /**
    * Creates an array of the given size and populates it with numbers from 1 to size
@@ -220,19 +222,13 @@ public class TDFUtils implements AutoCloseable {
       return 0L;
     }
 
-    final Boolean applyPressureComp = false;
-    // currently disabled as it's not working as expected ~SteffenHeu
-    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
-        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
-    final int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
-
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =
         path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
 
     // UTF8 required to load files from paths with special chars like ü
     final byte[] fileBytes = Native.toByteArray(dirToOpen, StandardCharsets.UTF_8);
-    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, pressureCompensation);
+    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, applyPressureComp.mode());
 
     if (handle == 0) {
       printLastError(0).throwOnError();

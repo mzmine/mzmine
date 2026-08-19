@@ -275,6 +275,18 @@ tasks.withType(Test).configureEach {
     ]
     useJUnitPlatform()
 
+    // forward -Dmzmine.test.* properties from the gradle CLI into the test JVM,
+    // used to scale up performance tests, e.g. -Dmzmine.test.dupfilter.files=1000
+    System.properties.each { key, value ->
+        if (key.toString().startsWith("mzmine.test.")) {
+            systemProperty key.toString(), value
+        }
+    }
+    // scaled up performance tests may need more heap than the gradle default
+    if (System.getProperty("mzmine.test.maxHeap") != null) {
+        maxHeapSize = System.getProperty("mzmine.test.maxHeap")
+    }
+
     // Below can be added for extensive logs to debug failing tests
 //    beforeTest { descriptor ->
 //        logger.lifecycle("Running test: " + descriptor)
