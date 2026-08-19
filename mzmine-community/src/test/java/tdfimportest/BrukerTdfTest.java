@@ -37,10 +37,8 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDa
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -48,7 +46,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -60,8 +57,6 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
 
 public class BrukerTdfTest {
@@ -178,37 +173,5 @@ public class BrukerTdfTest {
         }
       }
     }
-  }
-
-  @DisabledOnOs(OS.MAC)
-  @Test
-  public void testCachedConversion() {
-    TDFUtils utils = new TDFUtils();
-
-    final URL resource = this.getClass()
-        .getResource("/rawdatafiles/additional/lc-tims-ms-pasef-a.d");
-    final long handle = utils.openFile(new File(resource.getFile()));
-
-    final List<SimpleSpectralArrays> f1v1 = utils.loadDataPointsForFrame(1, 660, 818);
-    final List<SimpleSpectralArrays> f2v1 = utils.loadDataPointsForFrame(2, 660, 818);
-
-    final List<SimpleSpectralArrays> f1v2 = utils.loadDataPointsForFrame_v2(1, 660, 818);
-    final List<SimpleSpectralArrays> f2v2 = utils.loadDataPointsForFrame_v2(2, 660, 818);
-
-//    Assertions.assertEquals(f1v1.size(), f1v2.size());
-//    Assertions.assertEquals(f2v1.size(), f2v2.size());
-//    for (int i = 0; i < f1v1.size(); i++) {
-//      final SimpleSpectralArrays v1 = f1v1.get(i);
-//      final SimpleSpectralArrays v2 = f1v2.get(i);
-//      Assertions.assertEquals(v1, v2);
-//
-//      final SimpleSpectralArrays d1 = f2v1.get(i);
-//      final SimpleSpectralArrays d2 = f2v2.get(i);
-//      Assertions.assertEquals(d1, d2);
-//    }
-
-    Assertions.assertEquals(f1v1, f1v2);
-    Assertions.assertEquals(f2v1, f2v2);
-    utils.close();
   }
 }

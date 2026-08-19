@@ -58,11 +58,8 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.StringUtils;
 import io.mzio.general.Result;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -105,20 +102,44 @@ public class TDFUtils implements AutoCloseable {
   public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+
+  private static final OfInt INT_LITTLE_ENDIAN = TDFLib.C_INT.withOrder(ByteOrder.LITTLE_ENDIAN);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final Int2DoubleMap indexToMzBuffer = new Int2DoubleOpenHashMap();
-  private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
   private final Arena offHeap = Arena.ofAuto();
+
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private File file;
-  private MemorySegment mzIndexDoubleBuffer = offHeap.allocate(0);
-  private MemorySegment mobScanMzDoubleBuffer = offHeap.allocate(0);
+  /**
+   * buffer to store our scans. allocation takes time, so we want to reuse it cannot be final, since
+   * we might have to increase the buffer size on the run we don't just take a huge buffer, because
+   * clearing it takes time, too
+   */
+  private MemorySegment mobScanBuffer = offHeap.allocate(BUFFER_SIZE,
+      INT_LITTLE_ENDIAN.byteAlignment());
+  /**
+   * Before indices can be converted to mzs, they need to be converted to doubles. This buffer holds
+   * the integer index values as doubles.
+   */
+  private MemorySegment mzIndexInputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Before indices can be converted to mzs, they need to be converted to doubles. This buffer holds
+   * the converted mz values as doubles.
+   */
+  private MemorySegment mobScanMzOutputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Contains the input for conversion of scan numbers to mobility values. (double)
+   */
+  private MemorySegment mobilitiesInputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Contains the output for conversion of scan numbers to mobility values. (double)
+   */
+  private MemorySegment mobilitiesOutputDoubleBuffer = offHeap.allocate(0);
 
   /**
    * the handle of the currently opened file
    **/
   private long handle = 0L;
-  private OfInt INT_LITTLE_ENDIAN = TDFLib.C_INT.withOrder(ByteOrder.LITTLE_ENDIAN);
   private TdfPressureCompensation applyPressureComp = TdfPressureCompensation.NONE;
 
   /**
@@ -246,75 +267,7 @@ public class TDFUtils implements AutoCloseable {
   }
 
   /**
-   * use {@link #loadDataPointsForFrame_v2(long, int, int)}
-   *
-   * @param frameId   The id of the frame. See {@link TDFFrameTable}
-   * @param scanBegin The first scan index (starting with 0)
-   * @param scanEnd   The last scan index
-   * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
-   */
-  @Deprecated
-  public List<SimpleSpectralArrays> loadDataPointsForFrame(final long frameId, final int scanBegin,
-      final int scanEnd) {
-    if (handle == 0L) {
-      throw new IllegalStateException("No tdf data file opened yet.");
-    }
-
-    final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
-
-    // buffer to store our scans. allocation takes time, so we want to reuse it
-    // cannot be final, since we might have to increase the buffer size on the run
-    // we don't just take a huge buffer, because clearing it takes time, too
-    MemorySegment buffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
-
-    // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
-    int start = scanBegin;
-    while (start < scanEnd) {
-      // start is inclusive, end is exclusive
-      final int end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
-      final int numScans = (int) (end - start);
-
-//      synchronized (tdfLib) {
-      final long lastError = TDFLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
-          (int) buffer.byteSize());
-      if (lastError > BUFFER_SIZE) {
-        BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
-        buffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
-        continue;
-      } else if (lastError == 0) {
-        printLastError(lastError).throwOnError();
-      }
-//      }
-
-      start = start + SCAN_PACKAGE_SIZE;
-
-      // check out the layout of scanBuffer:
-      // - the first numScan integers specify the number of peaks for each scan
-      // - the next integers are pairs of (x,y) values for the scans. The x values are not masses
-      // but index values
-      int d = numScans;
-      for (int i = 0; i < numScans; i++) {
-        final int numPeaks = buffer.getAtIndex(INT_LITTLE_ENDIAN, i);
-        final int[] indices = buffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN);
-        d += numPeaks;
-        final double[] intensities = ConversionUtils.convertIntsToDoubles(
-            buffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN));
-        d += numPeaks;
-
-//        synchronized (tdfLib) {
-        // todo - we should be able to pass the memory segment slice here
-        final double[] masses = convertIndicesToMZ(handle, frameId, indices);
-        dataPoints.add(new SimpleSpectralArrays(masses, intensities));
-//        }
-      }
-      buffer.fill((byte) 0);
-    }
-    return dataPoints;
-  }
-
-  /**
-   * Extracts mobility scans for the given range of scan numbers. Uses a caching functionality to be
-   * faster.
+   * Extracts mobility scans for the given range of scan numbers.
    *
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
@@ -326,16 +279,7 @@ public class TDFUtils implements AutoCloseable {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
-    // the buffer is only valid for one frame,
-    // otherwise the index -> mz mapping may change due to temperature compensation
-    indexToMzBuffer.clear();
-
     final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
-
-    // buffer to store our scans. allocation takes time, so we want to reuse it
-    // cannot be final, since we might have to increase the buffer size on the run
-    // we don't just take a huge buffer, because clearing it takes time, too
-    MemorySegment buffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
 
     // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
     int start = scanBegin;
@@ -344,17 +288,15 @@ public class TDFUtils implements AutoCloseable {
       final int end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
       final int numScans = (int) (end - start);
 
-//      synchronized (tdfLib) {
-      final long lastError = TDFLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
-          (int) buffer.byteSize());
+      final long lastError = TDFLib.tims_read_scans_v2(handle, frameId, start, end, mobScanBuffer,
+          (int) mobScanBuffer.byteSize());
       if (lastError > BUFFER_SIZE) {
         BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
-        buffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
+        mobScanBuffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
         continue;
       } else if (lastError == 0) {
         printLastError(lastError).throwOnError();
       }
-//      }
 
       start = start + SCAN_PACKAGE_SIZE;
 
@@ -364,21 +306,17 @@ public class TDFUtils implements AutoCloseable {
       // but index values
       int d = numScans;
       for (int i = 0; i < numScans; i++) {
-        final int numPeaks = buffer.getAtIndex(INT_LITTLE_ENDIAN, i);
-//        final int[] indices = buffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN);
-        final MemorySegment indices = buffer.asSlice(d * 4L, 4L * numPeaks);
+        final int numPeaks = mobScanBuffer.getAtIndex(INT_LITTLE_ENDIAN, i);
+        final MemorySegment indices = mobScanBuffer.asSlice(d * 4L, 4L * numPeaks);
         d += numPeaks;
         final double[] intensities = ConversionUtils.convertIntsToDoubles(
-            buffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN));
+            mobScanBuffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN));
         d += numPeaks;
 
-//        synchronized (tdfLib) {
-        // todo we should be able to pass the memory segment slice directly
         final double[] masses = convertIndicesToMZ_v3(handle, frameId, indices);
         dataPoints.add(new SimpleSpectralArrays(masses, intensities));
-//        }
       }
-      buffer.fill((byte) 0);
+//      mobScanBuffer.fill((byte) 0);
     }
     return dataPoints;
   }
@@ -545,8 +483,7 @@ public class TDFUtils implements AutoCloseable {
     // finally set data and mobilities
     frame.setDataPoints(data.mzs(), data.intensities());
 
-    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArrayFrom1(numScans));
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId, numScans);
     frame.setMobilities(mobilities);
 
     return frame;
@@ -562,7 +499,7 @@ public class TDFUtils implements AutoCloseable {
       public void apply(long id, int num_points, MemorySegment intensity_values,
           MemorySegment user_data) {
         MemorySegment intensitySegment = intensity_values.reinterpret(
-            num_points * JAVA_DOUBLE.byteSize());
+            num_points * TDFLib.C_INT.byteSize());
         intensities.set(intensitySegment.toArray(JAVA_INT));
       }
     };
@@ -658,8 +595,7 @@ public class TDFUtils implements AutoCloseable {
     // finally set data and mobilities
     frame.setDataPoints(data.mzs(), data.intensities());
 
-    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArrayFrom1(numScans));
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId, numScans);
     frame.setMobilities(mobilities);
 
     return frame;
@@ -682,79 +618,28 @@ public class TDFUtils implements AutoCloseable {
     return buffer.toArray(JAVA_DOUBLE);
   }
 
-  /**
-   * Converts extracted indices to mz values while employing a cache to limit the number and size of
-   * API calls. Indices may only belong to a single frame. This method uses caching to convert
-   * indices faster.
-   */
-  private double[] convertIndicesToMZ_v2(final long handle, final long frameId,
-      final int[] indices) {
-
-    DoubleList unknownIndices = null;
-    final double[] mzs = new double[indices.length];
-
-    indicesToIndexMap.clear();
-
-    for (int i = 0; i < indices.length; i++) {
-      final double mz = indexToMzBuffer.get(indices[i]);
-      if (mz != 0) {
-        mzs[i] = mz;
-      } else {
-        if (unknownIndices == null) {
-          unknownIndices = new DoubleArrayList(indices.length / 2);
-        }
-        indicesToIndexMap.put(indices[i], i);
-        unknownIndices.add(indices[i]);
-      }
-    }
-
-    if (unknownIndices != null) {
-      unknownIndices.toDoubleArray();
-
-      final MemorySegment buffer = offHeap.allocate(JAVA_DOUBLE, unknownIndices.size());
-      final long error = TDFLib.tims_index_to_mz(handle, frameId,
-          offHeap.allocateFrom(JAVA_DOUBLE, unknownIndices.toDoubleArray()), buffer,
-          unknownIndices.size());
-
-      if (error == 0) {
-        logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
-        printLastError(error).throwOnError();
-      }
-
-      // index in the newly converted mz buffer
-      for (int i = 0; i < unknownIndices.size(); i++) {
-        final int peakIndex = (int) unknownIndices.getDouble(i);
-        indexToMzBuffer.put(peakIndex, buffer.getAtIndex(JAVA_DOUBLE, i));
-        mzs[indicesToIndexMap.get(peakIndex)] = buffer.getAtIndex(JAVA_DOUBLE, i);
-      }
-    }
-
-    Arrays.sort(mzs);
-    return mzs;
-  }
-
   private double[] convertIndicesToMZ_v3(final long handle, final long frameId,
       final MemorySegment intIndices) {
     // reusing the buffers saves ~4s on a file with 3000 frames and 1000 mobility scans
 
-    if (intIndices.byteSize() > mzIndexDoubleBuffer.byteSize() / 2) {
+    if (intIndices.byteSize() > mzIndexInputDoubleBuffer.byteSize() / 2) {
       // ensure buffer capacity
-      mzIndexDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
+      mzIndexInputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
           intIndices.byteSize() / JAVA_INT.byteSize());
-      mobScanMzDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
+      mobScanMzOutputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
           intIndices.byteSize() / JAVA_INT.byteSize());
     }
     for (int i = 0; i < intIndices.byteSize() / JAVA_INT.byteSize(); i++) {
-      mzIndexDoubleBuffer.setAtIndex(JAVA_DOUBLE, i, intIndices.getAtIndex(JAVA_INT, i));
+      mzIndexInputDoubleBuffer.setAtIndex(JAVA_DOUBLE, i, intIndices.getAtIndex(JAVA_INT, i));
     }
 
-    final long error = TDFLib.tims_index_to_mz(handle, frameId, mzIndexDoubleBuffer,
-        mobScanMzDoubleBuffer, (int) (intIndices.byteSize() / JAVA_INT.byteSize()));
+    final long error = TDFLib.tims_index_to_mz(handle, frameId, mzIndexInputDoubleBuffer,
+        mobScanMzOutputDoubleBuffer, (int) (intIndices.byteSize() / JAVA_INT.byteSize()));
     if (error == 0) {
       printLastError(error).throwOnError();
       logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
-    return mobScanMzDoubleBuffer.asSlice(0, intIndices.byteSize() * 2).toArray(JAVA_DOUBLE);
+    return mobScanMzOutputDoubleBuffer.asSlice(0, intIndices.byteSize() * 2).toArray(JAVA_DOUBLE);
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -762,24 +647,32 @@ public class TDFUtils implements AutoCloseable {
   // -----------------------------------------------------------------------------------------------
 
   public double[] convertScanNumsToOneOverK0(final long handle, final long frameId,
-      final int[] scanNums) {
-    MemorySegment buffer = offHeap.allocate(JAVA_DOUBLE, scanNums.length);
+      final int numScans) {
+    // scan numbers always start at 1, so we only need to re-populate the buffer if the new number
+    //  of scans is greater than the current buffer size. For a different frame we may get different
+    //  mobilities due to pressure compensation.
+    if (mobilitiesInputDoubleBuffer.byteSize() < numScans * JAVA_DOUBLE.byteSize()) {
+      mobilitiesInputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE, numScans);
+      mobilitiesOutputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE, numScans);
+      for (int i = 0; i < numScans; i++) {
+        mobilitiesInputDoubleBuffer.setAtIndex(JAVA_DOUBLE, i, i + 1);
+      }
+    }
 
-    long error = TDFLib.tims_scannum_to_oneoverk0(handle, frameId,
-        offHeap.allocateFrom(TDFLib.C_DOUBLE, Arrays.stream(scanNums).asDoubleStream().toArray()),
-        buffer, scanNums.length);
+    long error = TDFLib.tims_scannum_to_oneoverk0(handle, frameId, mobilitiesInputDoubleBuffer,
+        mobilitiesOutputDoubleBuffer, numScans);
     if (error == 0) {
       logger.warning(() -> "Could not convert scan nums to 1/K0 for frame " + frameId);
       printLastError(error).throwOnError();
     }
-    return buffer.toArray(JAVA_DOUBLE);
+    return mobilitiesOutputDoubleBuffer.toArray(JAVA_DOUBLE);
   }
 
   // ---------------------------------------------------------------------------------------------
   // UTILITY FUNCTIONS
   // -----------------------------------------------------------------------------------------------
 
-  public Float calculateCCS(double ook0, int charge, double mz) {
+  public static @Nullable Float calculateCCS(double ook0, int charge, double mz) {
     try {
       return (float) TDFLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
     } catch (Exception e) {
@@ -787,7 +680,7 @@ public class TDFUtils implements AutoCloseable {
     }
   }
 
-  public Float calculateOok0(double ccs, int charge, double mz) {
+  public static @Nullable Float calculateOok0(double ccs, int charge, double mz) {
     try {
       return (float) TDFLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
     } catch (Exception e) {
@@ -841,7 +734,7 @@ public class TDFUtils implements AutoCloseable {
     return Result.ok();
   }
 
-  private void setNumThreads(int numThreads) {
+  private static void setNumThreads(int numThreads) {
     try {
       if (numThreads >= 1) {
 //      logger.finest(() -> "Setting number of threads per file to " + numThreads);
