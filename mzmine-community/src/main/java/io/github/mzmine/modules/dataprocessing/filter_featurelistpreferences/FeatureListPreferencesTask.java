@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -60,6 +61,23 @@ public class FeatureListPreferencesTask extends AbstractFeatureListTask {
     flist.setPreferences(preferences);
     // derived columns like the RSD are computed on demand, therefore refresh the visible cells
     FeatureTableFXUtil.updateCellsForFeatureList(flist);
+  }
+
+  @Override
+  protected void addAppliedMethod() {
+    // this module only redefines preferences and may be applied repeatedly. Avoid stacking up
+    // redundant steps by dropping a trailing preferences step before the new one is added
+    for (final FeatureList featureList : getProcessedFeatureLists()) {
+      final List<FeatureListAppliedMethod> appliedMethods = featureList.getAppliedMethods();
+      if (appliedMethods.isEmpty()) {
+        continue;
+      }
+      final FeatureListAppliedMethod last = appliedMethods.getLast();
+      if (last.getModule().getClass().equals(getModuleClass())) {
+        appliedMethods.removeLast();
+      }
+    }
+    super.addAppliedMethod();
   }
 
   @Override
