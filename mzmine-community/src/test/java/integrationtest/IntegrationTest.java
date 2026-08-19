@@ -57,7 +57,7 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     final File batchExportedFile = runBatchGetCsvFile();
 
     // This is used to overwrite each expected results csv with the actual processing results
-//    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
+    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
 
     // compare
     return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
@@ -68,7 +68,7 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
       File batchExportedFile) {
     try {
       // add local resources path to overwrite files
-      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
+      final String localResPath = "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
       Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
           StandardCopyOption.REPLACE_EXISTING);
 
