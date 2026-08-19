@@ -57,7 +57,7 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
     final File batchExportedFile = runBatchGetCsvFile();
 
     // This is used to overwrite each expected results csv with the actual processing results
-    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
+//    overwriteResultFileSHOULD_BE_COMMENTED_OUT(expectedResultsFullPath, batchExportedFile);
 
     // compare
     return IntegrationTestUtils.getCsvComparisonResults(expectedResultsFullPath, batchExportedFile,
