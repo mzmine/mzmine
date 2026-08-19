@@ -45,6 +45,6 @@ public class NormalizedAreaType extends AreaType {
 
   @Override
   protected @NotNull DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcNormalizedAreaRsdType.class);
+    return DataTypes.get(NormalizedAreaRsdType.class);
   }
 }

@@ -27,18 +27,18 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractQcRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Relative standard deviation (RSD, coefficient of variation) of the {@link NormalizedAreaType}
- * across all quality control samples of a feature list. The value is computed on demand, see
- * {@link AbstractQcRsdType}. The type is added to a feature list by
- * {@link NormalizedAreaType#createDefaultMappedRowTypes()}.
+ * Relative standard deviation (RSD, coefficient of variation) of the {@link AreaType} across all
+ * quality control samples of a feature list. The value is computed on demand, see
+ * {@link AbstractRsdType}. The type is added to a feature list by
+ * {@link AreaType#createDefaultMappedRowTypes()}.
  */
-public class QcNormalizedAreaRsdType extends QcAreaRsdType {
+public class AreaRsdType extends AbstractRsdType {
 
-  public static final String UNIQUE_ID = "qc_area_norm_rsd";
+  public static final String UNIQUE_ID = "area_rsd";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -47,11 +47,11 @@ public class QcNormalizedAreaRsdType extends QcAreaRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "QC RSD (norm. area)";
+    return "RSD (area)";
   }
 
   @Override
   protected @NotNull DataType<? extends Number> getFeatureType() {
-    return DataTypes.get(NormalizedAreaType.class);
+    return DataTypes.get(AreaType.class);
   }
 }

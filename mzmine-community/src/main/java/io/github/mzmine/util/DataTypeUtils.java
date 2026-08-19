@@ -45,20 +45,20 @@ import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.QcAreaRsdType;
-import io.github.mzmine.datamodel.features.types.numbers.QcHeightRsdType;
-import io.github.mzmine.datamodel.features.types.numbers.QcNormalizedAreaRsdType;
-import io.github.mzmine.datamodel.features.types.numbers.QcNormalizedHeightRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -85,8 +85,8 @@ public class DataTypeUtils {
       RTType.class, RTRangeType.class, //
       MZType.class, MZRangeType.class, //
       HeightType.class, AreaType.class, //
-      QcHeightRsdType.class, QcNormalizedHeightRsdType.class, //
-      QcAreaRsdType.class, QcNormalizedAreaRsdType.class, //
+      HeightRsdType.class, NormalizedHeightRsdType.class, //
+      AreaRsdType.class, NormalizedAreaRsdType.class, //
       // added CommentType as default in 4.8 to transition away from ManualAnnotationType
       CommentType.class, FeatureShapeType.class, AreaBoxPlotType.class, HeightBoxPlotType.class);
 

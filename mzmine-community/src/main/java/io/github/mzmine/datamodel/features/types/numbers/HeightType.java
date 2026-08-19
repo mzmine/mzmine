@@ -96,7 +96,7 @@ public class HeightType extends FloatType {
    */
   @NotNull
   protected DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcHeightRsdType.class);
+    return DataTypes.get(HeightRsdType.class);
   }
 
   @Override

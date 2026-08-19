@@ -26,14 +26,15 @@
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
 import io.github.mzmine.datamodel.features.types.modifiers.NoDataColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.util.MathUtils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -46,11 +47,12 @@ import org.jetbrains.annotations.Nullable;
  * The value is computed on demand and never stored, therefore this type is a {@link MappingType}
  * and a {@link NoDataColumnType}. This also means that the RSD always uses the current sample type
  * metadata.
+ * <p>
+ * The sample types used for the calculation are defined by the feature list preferences, see
+ * {@link FeatureListPreferences#getRsdFiles(List)}.
  */
-public abstract class AbstractQcRsdType extends PercentType implements MappingType<Float>,
+public abstract class AbstractRsdType extends PercentType implements MappingType<Float>,
     MinSamplesRequirement, NoDataColumnType {
-
-  private static final SampleTypeFilter QC_FILTER = SampleTypeFilter.qc();
 
   /**
    * @return the feature type this RSD is calculated for, e.g. {@link AreaType}
@@ -68,7 +70,8 @@ public abstract class AbstractQcRsdType extends PercentType implements MappingTy
    * samples or if the sum over all QC samples is 0.
    */
   private @Nullable Float calculateRsd(@NotNull final FeatureListRow row) {
-    final List<RawDataFile> qcFiles = QC_FILTER.filterFiles(row.getFeatureList().getRawDataFiles());
+    final FeatureList flist = row.getFeatureList();
+    final List<RawDataFile> qcFiles = flist.getPreferences().getRsdFiles(flist.getRawDataFiles());
     // sample stdev (n-1) needs at least two values
     if (qcFiles.size() < getMinSamples()) {
       return null;

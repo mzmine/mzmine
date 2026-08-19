@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import static io.github.mzmine.modules.visualization.projectmetadata.table.colum
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.SAMPLE_TYPE_HEADER;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
@@ -52,6 +53,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -65,6 +67,11 @@ public class MetadataTable {
 
   private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
+  /**
+   * Counts all mutations of this table so that consumers can cache values derived from the metadata
+   * and invalidate them on change, see {@link FeatureListPreferences}.
+   */
+  private final AtomicLong version = new AtomicLong(0);
   // enable auto detection is on in project metadata but off during import
   private final boolean enableAutoDetection;
 
@@ -87,6 +94,16 @@ public class MetadataTable {
   }
 
 
+  /**
+   * Modification counter that is incremented on every change of columns or values. Allows consumers
+   * to cache derived values and invalidate them once the metadata changes.
+   *
+   * @return the current version as modification counter
+   */
+  public long getVersion() {
+    return version.get();
+  }
+
   public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
     return data;
   }
@@ -96,6 +113,7 @@ public class MetadataTable {
    */
   public void clearData() {
     data.clear();
+    version.incrementAndGet();
   }
 
   /**
@@ -105,6 +123,7 @@ public class MetadataTable {
    */
   public void addColumn(MetadataColumn<?> column) {
     data.putIfAbsent(column, new ConcurrentHashMap<>());
+    version.incrementAndGet();
   }
 
   /**
@@ -114,6 +133,7 @@ public class MetadataTable {
    */
   public void removeColumn(MetadataColumn<?> column) {
     data.remove(column);
+    version.incrementAndGet();
   }
 
   /**
@@ -123,6 +143,7 @@ public class MetadataTable {
    */
   public void removeColumn(String name) {
     data.keySet().removeIf(key -> key.getTitle().equals(name));
+    version.incrementAndGet();
   }
 
   /**
@@ -185,6 +206,7 @@ public class MetadataTable {
     for (var param : data.keySet()) {
       data.get(param).remove(file);
     }
+    version.incrementAndGet();
   }
 
   /**
@@ -266,6 +288,8 @@ public class MetadataTable {
     } else {
       data.get(column).put(file, value);
     }
+    // increment after the change so that caches never store a value with the new version
+    version.incrementAndGet();
   }
 
   /**

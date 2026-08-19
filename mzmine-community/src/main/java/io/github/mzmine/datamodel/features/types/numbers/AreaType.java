@@ -58,7 +58,7 @@ public class AreaType extends HeightType {
   @Override
   @NotNull
   protected DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcAreaRsdType.class);
+    return DataTypes.get(AreaRsdType.class);
   }
 
   @Override

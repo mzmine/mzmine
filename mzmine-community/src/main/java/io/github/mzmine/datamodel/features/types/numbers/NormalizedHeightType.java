@@ -45,6 +45,6 @@ public class NormalizedHeightType extends HeightType {
 
   @Override
   protected @NotNull DataType<Float> getQcRsdType() {
-    return DataTypes.get(QcNormalizedHeightRsdType.class);
+    return DataTypes.get(NormalizedHeightRsdType.class);
   }
 }

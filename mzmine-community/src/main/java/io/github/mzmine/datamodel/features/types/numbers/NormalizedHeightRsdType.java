@@ -27,18 +27,18 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractQcRsdType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Relative standard deviation (RSD, coefficient of variation) of the {@link NormalizedHeightType}
  * across all quality control samples of a feature list. The value is computed on demand, see
- * {@link AbstractQcRsdType}. The type is added to a feature list by
+ * {@link AbstractRsdType}. The type is added to a feature list by
  * {@link NormalizedHeightType#createDefaultMappedRowTypes()}.
  */
-public class QcNormalizedHeightRsdType extends QcHeightRsdType {
+public class NormalizedHeightRsdType extends HeightRsdType {
 
-  public static final String UNIQUE_ID = "qc_height_norm_rsd";
+  public static final String UNIQUE_ID = "height_norm_rsd";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -47,7 +47,7 @@ public class QcNormalizedHeightRsdType extends QcHeightRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "QC RSD (norm. height)";
+    return "RSD (norm. height)";
   }
 
   @Override
