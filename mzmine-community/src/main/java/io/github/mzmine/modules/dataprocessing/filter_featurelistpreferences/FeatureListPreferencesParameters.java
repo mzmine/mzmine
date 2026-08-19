@@ -26,40 +26,37 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureListPreferencesParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final CheckComboParameter<SampleType> qcRsdSampleTypes = new CheckComboParameter<>(
+  public static final SampleTypeFilterParameter rsdSampleTypes = new SampleTypeFilterParameter(
       "Samples for RSD columns", """
       Select all sample types (in %s metadata column) that are used to calculate the relative standard deviation (RSD)
       columns, e.g., the area RSD. The sample type is defined by the sample type column in the
-      metadata (CTRL/CMD + M).""".formatted(MetadataColumn.SAMPLE_TYPE_HEADER), SampleType.values(),
-      List.copyOf(SampleTypeFilter.qc().getTypes()));
+      metadata (CTRL/CMD + M).""".formatted(MetadataColumn.SAMPLE_TYPE_HEADER),
+      SampleTypeFilter.qc(), true);
 
   public FeatureListPreferencesParameters() {
-    super(flists, qcRsdSampleTypes);
+    super(flists, rsdSampleTypes);
   }
 
   public @NotNull FeatureListPreferences toPreferences() {
-    return new FeatureListPreferences(SampleTypeFilter.of(getValue(qcRsdSampleTypes)));
+    return new FeatureListPreferences(getValue(rsdSampleTypes));
   }
 
   public static @NotNull FeatureListPreferencesParameters fromPreferences(
       @NotNull final FeatureListPreferences preferences) {
     final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
-    param.setParameter(qcRsdSampleTypes,
-        List.copyOf(preferences.getQcRsdSampleTypeFilter().getTypes()));
+    param.setParameter(rsdSampleTypes, preferences.getRsdSampleTypeFilter());
     return param;
   }
 

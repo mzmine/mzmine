@@ -56,7 +56,6 @@ import io.github.mzmine.datamodel.features.types.identifiers.UsiType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
@@ -64,7 +63,6 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
@@ -72,15 +70,14 @@ import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
-import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RIRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.SampleRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import java.io.IOException;
@@ -234,9 +231,8 @@ public class DataTypes {
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
         NormalizedHeightType.class,
-        // relative standard deviations
-        AreaRsdType.class, HeightRsdType.class, NormalizedAreaRsdType.class,
-        NormalizedHeightRsdType.class,
+        // main type of all relative standard deviations, they are its sub columns
+        SampleRsdType.class,
         //
         IntensityRangeType.class, ChargeType.class, FragmentScanNumbersType.class,
         IsotopePatternType.class, TailingFactorType.class, AsymmetryFactorType.class,

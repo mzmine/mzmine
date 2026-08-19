@@ -28,21 +28,20 @@ package io.github.mzmine.datamodel.features.preferences;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * User defined preferences of a single {@link FeatureList} that are not tied to a specific
@@ -57,8 +56,8 @@ import org.w3c.dom.Element;
  */
 public final class FeatureListPreferences {
 
-  private static final Logger logger = Logger.getLogger(FeatureListPreferences.class.getName());
-  private static final String XML_QC_RSD_SAMPLE_TYPES_ATTR = "qc_rsd_sample_types";
+  private static final String XML_RSD_MODE_ATTR = "rsd_sample_types_mode";
+  private static final String XML_RSD_SAMPLE_TYPE_ELEMENT = "rsd_sample_type";
 
   private final @NotNull SampleTypeFilter rsdSampleTypeFilter;
 
@@ -87,7 +86,7 @@ public final class FeatureListPreferences {
   /**
    * @return the sample types used to calculate the RSD in {@link AbstractRsdType}
    */
-  public @NotNull SampleTypeFilter getQcRsdSampleTypeFilter() {
+  public @NotNull SampleTypeFilter getRsdSampleTypeFilter() {
     return rsdSampleTypeFilter;
   }
 
@@ -152,9 +151,15 @@ public final class FeatureListPreferences {
   }
 
   public void saveToXML(@NotNull final Element element) {
-    element.setAttribute(XML_QC_RSD_SAMPLE_TYPES_ATTR,
-        rsdSampleTypeFilter.getTypes().stream().map(SampleType::name)
-            .collect(Collectors.joining(",")));
+    element.setAttribute(XML_RSD_MODE_ATTR, rsdSampleTypeFilter.getMode().getUniqueID());
+
+    // one element per value so that group names containing a separator char stay intact
+    final Document document = element.getOwnerDocument();
+    for (final String value : rsdSampleTypeFilter.getValues()) {
+      final Element valueElement = document.createElement(XML_RSD_SAMPLE_TYPE_ELEMENT);
+      valueElement.setTextContent(value);
+      element.appendChild(valueElement);
+    }
   }
 
   /**
@@ -164,39 +169,37 @@ public final class FeatureListPreferences {
    */
   @Nullable
   public static FeatureListPreferences loadFromXML(@Nullable final Element element) {
-    if (element == null || !element.hasAttribute(XML_QC_RSD_SAMPLE_TYPES_ATTR)) {
+    if (element == null || !element.hasAttribute(XML_RSD_MODE_ATTR)) {
       return null;
     }
 
-    final String types = element.getAttribute(XML_QC_RSD_SAMPLE_TYPES_ATTR);
-    // an empty attribute is a valid empty filter, only unknown values fall back to the default
-    if (StringUtils.isBlank(types)) {
-      return new FeatureListPreferences(SampleTypeFilter.of(List.of()));
-    }
-
-    final List<SampleType> parsed = new ArrayList<>();
-    for (final String type : types.split(",")) {
-      try {
-        parsed.add(SampleType.valueOf(type.trim()));
-      } catch (IllegalArgumentException e) {
-        logger.log(Level.WARNING,
-            "Unknown sample type %s in feature list preferences. Skipping this type.".formatted(
-                type), e);
-      }
-    }
-    return new FeatureListPreferences(SampleTypeFilter.of(parsed));
+    final Mode mode = UniqueIdSupplier.parseOrElse(element.getAttribute(XML_RSD_MODE_ATTR),
+        Mode.values(), Mode.LIST);
+    return new FeatureListPreferences(switch (mode) {
+      case ALL -> SampleTypeFilter.all();
+      case NONE -> SampleTypeFilter.none();
+      case LIST -> SampleTypeFilter.ofValues(loadValuesFromXML(element));
+    });
   }
 
-  // SampleTypeFilter has no equals, therefore compare the types it allows
+  private static @NotNull List<String> loadValuesFromXML(@NotNull final Element element) {
+    final NodeList valueElements = element.getElementsByTagName(XML_RSD_SAMPLE_TYPE_ELEMENT);
+    final List<String> values = new ArrayList<>(valueElements.getLength());
+    for (int i = 0; i < valueElements.getLength(); i++) {
+      values.add(valueElements.item(i).getTextContent());
+    }
+    return values;
+  }
+
   @Override
   public boolean equals(final Object o) {
-    return o instanceof FeatureListPreferences other && rsdSampleTypeFilter.getTypes()
-        .equals(other.rsdSampleTypeFilter.getTypes());
+    return o instanceof FeatureListPreferences other && rsdSampleTypeFilter.equals(
+        other.rsdSampleTypeFilter);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(rsdSampleTypeFilter.getTypes());
+    return Objects.hashCode(rsdSampleTypeFilter);
   }
 
   @Override

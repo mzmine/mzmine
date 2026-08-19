@@ -46,8 +46,8 @@ class FeatureListPreferencesTest {
 
   @Test
   void testDefaultIsQcOnly() {
-    Assertions.assertEquals(SampleTypeFilter.qc().getTypes(),
-        FeatureListPreferences.createDefault().getQcRsdSampleTypeFilter().getTypes());
+    Assertions.assertEquals(SampleTypeFilter.qc(),
+        FeatureListPreferences.createDefault().getRsdSampleTypeFilter());
   }
 
   @Test
@@ -70,24 +70,41 @@ class FeatureListPreferencesTest {
     preferences.saveToXML(element);
 
     final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
-    Assertions.assertTrue(loaded.getQcRsdSampleTypeFilter().isEmpty());
+    Assertions.assertTrue(loaded.getRsdSampleTypeFilter().isEmpty());
     Assertions.assertEquals(preferences, loaded);
+  }
+
+  @Test
+  void testXmlRoundTripCustomValues() throws ParserConfigurationException {
+    // group names mzmine does not know are kept, they may contain any character
+    final FeatureListPreferences preferences = new FeatureListPreferences(
+        SampleTypeFilter.ofValues("qc", "my group, with comma"));
+
+    final Element element = newElement();
+    preferences.saveToXML(element);
+
+    Assertions.assertEquals(preferences, FeatureListPreferences.loadFromXML(element));
+  }
+
+  @Test
+  void testXmlRoundTripOpenEndedModes() throws ParserConfigurationException {
+    for (final SampleTypeFilter filter : List.of(SampleTypeFilter.all(), SampleTypeFilter.none())) {
+      final FeatureListPreferences preferences = new FeatureListPreferences(filter);
+
+      final Element element = newElement();
+      preferences.saveToXML(element);
+
+      final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
+      Assertions.assertEquals(filter.getMode(), loaded.getRsdSampleTypeFilter().getMode());
+      Assertions.assertEquals(preferences, loaded);
+    }
   }
 
   @Test
   void testMissingElementIsNull() throws ParserConfigurationException {
     // null signals that the feature list keeps its default preferences
     Assertions.assertNull(FeatureListPreferences.loadFromXML(null));
-    // element without the attribute, e.g. from a project saved before preferences existed
+    // element without any attribute, e.g. from a project saved before preferences existed
     Assertions.assertNull(FeatureListPreferences.loadFromXML(newElement()));
-  }
-
-  @Test
-  void testUnknownTypesAreSkipped() throws ParserConfigurationException {
-    final Element element = newElement();
-    element.setAttribute("qc_rsd_sample_types", "QC,NOT_A_TYPE");
-
-    Assertions.assertEquals(SampleTypeFilter.qc().getTypes(),
-        FeatureListPreferences.loadFromXML(element).getQcRsdSampleTypeFilter().getTypes());
   }
 }

@@ -88,15 +88,8 @@ public class HeightType extends FloatType {
   @NotNull
   @Override
   public List<DataType> createDefaultMappedRowTypes() {
-    return List.of(getQcRsdType());
-  }
-
-  /**
-   * @return the row type that holds the RSD of this abundance type over all QC samples
-   */
-  @NotNull
-  protected DataType<Float> getQcRsdType() {
-    return DataTypes.get(HeightRsdType.class);
+    // the RSD of all abundance types are sub columns of this single main type
+    return List.of(DataTypes.get(SampleRsdType.class));
   }
 
   @Override

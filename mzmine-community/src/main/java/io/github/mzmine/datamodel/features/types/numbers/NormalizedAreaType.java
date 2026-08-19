@@ -25,8 +25,6 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import org.jetbrains.annotations.NotNull;
 
 public class NormalizedAreaType extends AreaType {
@@ -41,10 +39,5 @@ public class NormalizedAreaType extends AreaType {
   @Override
   public @NotNull String getHeaderString() {
     return "Norm. area";
-  }
-
-  @Override
-  protected @NotNull DataType<Float> getQcRsdType() {
-    return DataTypes.get(NormalizedAreaRsdType.class);
   }
 }

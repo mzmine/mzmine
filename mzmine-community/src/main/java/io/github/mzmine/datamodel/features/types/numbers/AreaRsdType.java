@@ -33,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Relative standard deviation (RSD, coefficient of variation) of the {@link AreaType} across all
  * quality control samples of a feature list. The value is computed on demand, see
- * {@link AbstractRsdType}. The type is added to a feature list by
- * {@link AreaType#createDefaultMappedRowTypes()}.
+ * {@link AbstractRsdType}. The type is a sub column of {@link SampleRsdType}, which is added
+ * to a feature list by {@link HeightType#createDefaultMappedRowTypes()}.
  */
 public class AreaRsdType extends AbstractRsdType {
 

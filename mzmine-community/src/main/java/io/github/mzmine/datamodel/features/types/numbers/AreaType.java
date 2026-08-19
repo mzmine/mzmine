@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -50,15 +49,6 @@ public class AreaType extends HeightType {
   @Override
   public @NotNull String getHeaderString() {
     return "Area";
-  }
-
-  /**
-   * @return the row type that holds the RSD of this area type over all QC samples
-   */
-  @Override
-  @NotNull
-  protected DataType<Float> getQcRsdType() {
-    return DataTypes.get(AreaRsdType.class);
   }
 
   @Override
