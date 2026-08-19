@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -124,6 +125,18 @@ public enum AbundanceMeasure implements UniqueIdSupplier {
     return (float) (value * normalizationFunction.getNormalizationFactor(mz, rt));
   }
 
+
+  /**
+   * @return the normalized counterpart of this raw measure or null if this measure is already
+   * normalized
+   */
+  public @Nullable AbundanceMeasure normalizedVariant() {
+    return switch (this) {
+      case Height -> NORMALIZED_HEIGHT;
+      case Area -> NORMALIZED_AREA;
+      case NORMALIZED_HEIGHT, NORMALIZED_AREA -> null;
+    };
+  }
 
   /**
    * @return true if normalized

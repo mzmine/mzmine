@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -25,19 +26,20 @@
 package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.javafx.components.factories.FxCheckBox;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import io.github.mzmine.project.ProjectService;
-import java.util.Objects;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.Priority;
@@ -57,6 +59,12 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> selectedColumn = new SimpleObjectProperty<>();
   private final PauseTransition delay = new PauseTransition(Duration.millis(100));
+  /**
+   * State of the optional header check box. Only meaningful if a check box label was given and
+   * {@link #checkBoxVisibleProperty()} is true.
+   */
+  private final BooleanProperty checkBoxSelected = new SimpleBooleanProperty(true);
+  private final BooleanProperty checkBoxVisible = new SimpleBooleanProperty(false);
 
   public MetadataHeaderColumn(@NotNull DataType<?> dataType,
       @Nullable MetadataColumn<?> defaultColumn) {
@@ -70,8 +78,15 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
 
     final VBox header = FxLayout.newVBox(Pos.CENTER);
     header.setFillWidth(true);
-    final Label title = new Label(dataType.getHeaderString());
-    header.getChildren().add(title);
+
+    final Label title = FxLabels.newLabel(checkBoxSelected.and(checkBoxVisible)
+        .map(normalized -> (normalized ? "Norm. " : "") + dataType.getHeaderString()));
+
+    final CheckBox normCheckBox = FxCheckBox.newCheckBox("", checkBoxSelected);
+    normCheckBox.visibleProperty().bind(checkBoxVisible);
+    normCheckBox.managedProperty().bind(checkBoxVisible);
+
+    header.getChildren().add(FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, 4, normCheckBox, title));
 
     // using a combobox here causes the virtual flow to fail. This lead to the feature table not
     // jumping to/selecting the row if a loading was selected in the stats dashboard scores plot
@@ -93,5 +108,25 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
 
   public ObjectProperty<@Nullable MetadataColumn<?>> selectedColumnProperty() {
     return selectedColumn;
+  }
+
+  public BooleanProperty checkBoxSelectedProperty() {
+    return checkBoxSelected;
+  }
+
+  public boolean isCheckBoxSelected() {
+    return checkBoxSelected.get();
+  }
+
+  public BooleanProperty checkBoxVisibleProperty() {
+    return checkBoxVisible;
+  }
+
+  public boolean isCheckBoxVisible() {
+    return checkBoxVisible.get();
+  }
+
+  public void setCheckBoxVisible(final boolean visible) {
+    checkBoxVisible.set(visible);
   }
 }

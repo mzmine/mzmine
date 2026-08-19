@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,11 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -59,9 +63,29 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
     MinSamplesRequirement {
 
   private final AbundanceMeasure abundanceMeasure;
+  private final @NotNull AbundanceMeasure normalizedAbundanceMeasure;
 
   protected AbstractBoxPlotType(AbundanceMeasure abundanceMeasure) {
+    // only allow height and area type
     this.abundanceMeasure = abundanceMeasure;
+    this.normalizedAbundanceMeasure = Objects.requireNonNull(abundanceMeasure.normalizedVariant());
+  }
+
+  /**
+   * @return the normalized measure used by this box plot if the user enables it in the header
+   */
+  public @NotNull AbundanceMeasure getNormalizedAbundanceMeasure() {
+    return normalizedAbundanceMeasure;
+  }
+
+  /**
+   * @return the normalized measure if the header check box is shown and selected, otherwise the raw
+   * measure
+   */
+  private @NotNull AbundanceMeasure getEffectiveAbundanceMeasure(
+      @NotNull MetadataHeaderColumn<?, ?> col) {
+    return col.isCheckBoxVisible() && col.isCheckBoxSelected() ? normalizedAbundanceMeasure
+        : abundanceMeasure;
   }
 
   @Override
@@ -83,10 +107,14 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
     final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
         ProjectService.getMetadata().getSampleTypeColumn());
 
+    final ObservableValue<AbundanceMeasure> measure = Bindings.createObjectBinding(
+        () -> getEffectiveAbundanceMeasure(col), col.checkBoxSelectedProperty(),
+        col.checkBoxVisibleProperty());
+
     // define observable
     col.setCellFactory(new CountingRowChartCellFactory(
         (id) -> (TreeTableCell) new AbundanceBoxPlotCell(id, col.selectedColumnProperty(),
-            abundanceMeasure)));
+            measure)));
 //    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
     col.setCellValueFactory(cdf -> new ReadOnlyObjectWrapper<>(cdf.getValue().getValue()));
     return col;
@@ -108,13 +136,19 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
 
         final ColumnID colId = new ColumnID(this, ColumnType.ROW_TYPE, null, -1);
         final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> map = table.getNewColumnMap();
-        final MetadataColumn<?> selectedColumn = map.entrySet().stream()
+        final MetadataHeaderColumn<?, ?> headerColumn = map.entrySet().stream()
             .filter(entry -> entry.getValue().getUniqueIdString().equals(colId.getUniqueIdString()))
-            .findFirst().map(entry -> ((MetadataHeaderColumn) entry.getKey()).getSelectedColumn())
-            .orElse(ProjectService.getMetadata().getSampleTypeColumn());
+            .map(Entry::getKey).filter(MetadataHeaderColumn.class::isInstance)
+            .map(c -> (MetadataHeaderColumn<?, ?>) c).findFirst().orElse(null);
+
+        final MetadataColumn<?> selectedColumn =
+            headerColumn != null ? headerColumn.getSelectedColumn()
+                : ProjectService.getMetadata().getSampleTypeColumn();
 
         tab.getController().groupingColumnProperty().set(selectedColumn);
-        tab.getController().abundanceMeasureProperty().set(abundanceMeasure);
+        // carry over the normalized state of the column header
+        tab.getController().abundanceMeasureProperty().set(
+            headerColumn != null ? getEffectiveAbundanceMeasure(headerColumn) : abundanceMeasure);
         // master is complex dashboard - open in other window
         if (masterTableOwner.isOtherComplexDashboard()) {
           new MZmineWindow().addTab(tab);
