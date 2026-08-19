@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ import javafx.scene.control.ListView;
 public record Dependencies(List<Dependency> dependencies) {
 
   private static final List<Dependency> other = List.of(
-      new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG", "3.3.6.2",
+      new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG", "5.0.4",
           List.of(), List.of(new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)",
           "https://mzio.io/wp-content/uploads/2025/09/tdf_THIRD-PARTY-LICENSE-README.txt"))),
       new Dependency("Baf2Sql Software Development Kit, Bruker Daltonics GmbH & Co.KG", "2.9.0",
