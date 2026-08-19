@@ -23,40 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * A single case-insensitive value mapping, e.g. extracted value {@code media} -> stored value
+ * {@code blank}. Matching is done case-insensitively against {@link #from()}.
+ *
+ * @param from the extracted value to match (case-insensitive, trimmed)
+ * @param to   the value that should be stored instead
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS, LIBRARIES, OTHER;
+public record MetadataValueMapping(@NotNull String from, @NotNull String to) {
 
-
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  public MetadataValueMapping {
+    from = from == null ? "" : from;
+    to = to == null ? "" : to;
   }
 
-  public @NotNull String getFolderName() {
-    return getUniqueID();
+  /**
+   * @return true if this mapping defines a non-blank {@link #from()} key and is therefore active.
+   */
+  @JsonIgnore
+  public boolean isActive() {
+    return !from.isBlank();
   }
 
-  @Override
-  public String toString() {
-    return getUniqueID();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-      case LIBRARIES -> "libraries";
-      case OTHER -> "other";
-    };
+  /**
+   * @param value the extracted value
+   * @return true if the given value matches this mapping's {@link #from()} key (case-insensitive,
+   * trimmed)
+   */
+  public boolean matches(@Nullable final String value) {
+    return value != null && isActive() && from.trim().equalsIgnoreCase(value.trim());
   }
 }

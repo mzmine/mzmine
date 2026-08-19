@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,13 +211,13 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends Parameter<?>> T getParameter(T parameter) {
+  public @NotNull <T extends Parameter<?>> Optional<T> tryGetParameter(T parameter) {
     for (Parameter<?> p : parameters) {
       if (p.getName().equals(parameter.getName())) {
-        return (T) p;
+        return Optional.of((T) p);
       }
     }
-    throw new IllegalArgumentException("Parameter " + parameter.getName() + " does not exist");
+    return Optional.empty();
   }
 
   @Override

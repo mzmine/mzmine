@@ -23,40 +23,68 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.presets;
+package io.github.mzmine.modules.visualization.projectmetadata.extract;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Defines a category which is the first folder in the presets directory
+ * Target type of a metadata column created by the extraction. {@link #AUTO} lets the extraction
+ * detect the most appropriate type from all extracted values of the whole column (see
+ * {@link AvailableTypes#castToMostAppropriateType}).
  */
-public enum PresetCategory implements UniqueIdSupplier {
-  MODULES, FILTERS, LIBRARIES, OTHER;
+public enum ExtractColumnType implements UniqueIdSupplier {
 
+  /**
+   * Detect the type automatically from all extracted values of the column.
+   */
+  AUTO("Auto"),
+  /**
+   * Numbers parsed as double.
+   */
+  NUMBER("Number"),
+  /**
+   * Date/time parsed as {@link java.time.LocalDateTime}.
+   */
+  DATE("Date"),
+  /**
+   * Plain text.
+   */
+  TEXT("Text");
 
-  @Nullable
-  public static PresetCategory parse(String name) {
-    return UniqueIdSupplier.parseOrElse(name, values(), null);
+  private final String label;
+
+  ExtractColumnType(final String label) {
+    this.label = label;
   }
 
-  public @NotNull String getFolderName() {
-    return getUniqueID();
+  /**
+   * @return the matching {@link AvailableTypes} or {@code null} for {@link #AUTO} (type is detected
+   * from the data).
+   */
+  public @Nullable AvailableTypes toAvailableType() {
+    return switch (this) {
+      case AUTO -> null;
+      case NUMBER -> AvailableTypes.NUMBER;
+      case DATE -> AvailableTypes.DATETIME;
+      case TEXT -> AvailableTypes.TEXT;
+    };
   }
 
   @Override
   public String toString() {
-    return getUniqueID();
+    return label;
   }
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
-      case MODULES -> "modules";
-      case FILTERS -> "filters";
-      case LIBRARIES -> "libraries";
-      case OTHER -> "other";
+      case AUTO -> "AUTO";
+      case NUMBER -> "NUMBER";
+      case DATE -> "DATE";
+      case TEXT -> "TEXT";
     };
   }
 }
