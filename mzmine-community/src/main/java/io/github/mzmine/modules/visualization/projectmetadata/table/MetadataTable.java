@@ -433,19 +433,39 @@ public class MetadataTable {
 
 
   /**
+   * Matches against all raw data files currently in the project, whereas
+   * {@link #getMatchingFiles(Collection, MetadataColumn, Object)} is limited to a given subset of
+   * files.
+   *
    * @param column The column
    * @param value  The column value to match to.
    * @return A list of files associated to the column value or null, if the column value does not
    * exist.
    */
-  public <T> List<RawDataFile> getMatchingFiles(@NotNull MetadataColumn<T> column, @NotNull T value)
+  public <T> List<RawDataFile> getMatchingProjectFiles(@NotNull MetadataColumn<T> column,
+      @NotNull T value)
       throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
-    final Map<T, List<RawDataFile>> valueFilesMap = groupFilesByColumn(column);
+    final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
+    return getMatchingFiles(allFiles, column, value);
+  }
+
+  /**
+   * @param raws   The list of files to search in
+   * @param column The column
+   * @param value  The column value to match to.
+   * @return A list of files associated to the column value or null, if the column value does not
+   * exist.
+   */
+  public <T> List<RawDataFile> getMatchingFiles(@NotNull Collection<RawDataFile> raws,
+      @NotNull MetadataColumn<T> column, @NotNull T value)
+      throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
+    final Map<T, List<RawDataFile>> valueFilesMap = groupFilesByColumn(raws, column);
     final List<RawDataFile> files = valueFilesMap.get(value);
     if (files == null) {
       throw new MetadataValueDoesNotExistException(column, value.toString());
     }
-    return groupFilesByColumn(column).get(value);
+    // must be the files of the raws subset, not of the whole project
+    return files;
   }
 
   /**

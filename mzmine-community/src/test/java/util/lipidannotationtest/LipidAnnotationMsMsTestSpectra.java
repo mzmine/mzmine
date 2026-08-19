@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -118,6 +118,16 @@ public class LipidAnnotationMsMsTestSpectra {
 
   public LipidAnnotationMsMsTestResource getTG_16_O_18_2_22_6MPlusNH4() {
     return TG_16_O_18_2_22_6MPlusNH4;
+  }
+
+  private final LipidAnnotationMsMsTestResource TG_18_1_18_2_22_0MPlusNH4 = new LipidAnnotationMsMsTestResource(
+      new double[]{958.8790173626105, 601.5175701185358, 661.6125261487455, 659.5964404653499}, //
+      IonizationType.AMMONIUM, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.TRIACYLGLYCEROLS,
+          new int[]{18, 18, 22}, new int[]{1, 2, 0}, new int[]{0, 0, 0}));
+
+  public LipidAnnotationMsMsTestResource getTG_18_1_18_2_22_0MPlusNH4() {
+    return TG_18_1_18_2_22_0MPlusNH4;
   }
 
   private final LipidAnnotationMsMsTestResource TG_16_O_18_2_22_6MPlusNa = new LipidAnnotationMsMsTestResource(

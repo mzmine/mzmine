@@ -54,7 +54,15 @@ class StructureParserTest {
       , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "C(=O)[O-]", -1) //
       , new Case("[12CH](=O)[O-]", "[CHO2]-", "[12CH](=O)[O-]", "[12CH](=O)[O-]", -1) //
       , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "[13CH](=O)[O-]", "[13CH](=O)[O-]", -1) //
-  );
+      , new Case("C(=CCCC(C2)(C)Oc(c(C2)1)c(cc(O)c(C)1)C)(C)CCC=C(C)CCC=C(C)C", "C28H42O2",
+          "CC(=CCCC(=CCCC(=CCCC1(C)CCC2=C(C)C(=CC(=C2O1)C)O)C)C)C",
+          "CC(C)=CCCC(C)=CCCC(C)=CCCC1(C)CCC2=C(C)C(=CC(C)=C2O1)O", 0),
+      new Case("C(CCCCCC)=CCC=CCC=CCC=CCCC(OC(COP(O)(=O)OCCN)COC=CCCCCCCCCCCCCCC)=O", "C41H74NO7P",
+          "CCCCCCC=CCC=CCC=CCC=CCCC(=O)OC(COC=CCCCCCCCCCCCCCC)COP(=O)(O)OCCN",
+          "CCCCCCC=CCC=CCC=CCC=CCCC(=O)OC(COC=CCCCCCCCCCCCCCC)COP(O)(=O)OCCN", 0),
+      new Case("CC(C)CC(C(=O)NC(CC(C)C)C(=O)NC(CC1=CC=C(C=C1)O)C(=O)O)N", "C21H33N3O5",
+          "CC(C)CC(C(=O)NC(CC(C)C)C(=O)NC(CC1=CC=C(C=C1)O)C(=O)O)N",
+          "CC(C)CC(C(NC(CC(C)C)C(NC(CC1=CC=C(C=C1)O)C(O)=O)=O)=O)N", 0));
 
   @ParameterizedTest
   @FieldSource(value = "cases")

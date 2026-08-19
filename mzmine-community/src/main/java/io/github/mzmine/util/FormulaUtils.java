@@ -49,10 +49,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -707,6 +706,29 @@ public class FormulaUtils {
   }
 
   /**
+   * Subtracts {@code sub} from a clone of {@code result}, or returns an empty optional if the
+   * subtraction would require more atoms of an element than are available.
+   * <p>
+   * Isotope removal follows the same rules as {@link #subtractFormula(IMolecularFormula,
+   * IMolecularFormula)}: an isotope with a defined mass number is removed exactly first and then
+   * falls back to another isotope of the same element. Neither input formula is modified.
+   */
+  public static @NotNull Optional<IMolecularFormula> subtractFormulaIfPossible(
+      final @Nullable IMolecularFormula result, final @Nullable IMolecularFormula sub) {
+    if (result == null || sub == null) {
+      return Optional.empty();
+    }
+
+    for (final IIsotope isotopeToRemove : sub.isotopes()) {
+      final String element = isotopeToRemove.getSymbol();
+      if (countElement(result, element) < countElement(sub, element)) {
+        return Optional.empty();
+      }
+    }
+    return Optional.of(subtractFormula(result, sub, 1, true));
+  }
+
+  /**
    *
    * @param result                        the resulting formula
    * @param isotopeToChange               the isotope to remove. May have undefined massNumber or
@@ -836,31 +858,6 @@ public class FormulaUtils {
     final Integer subtractCharge = requireNonNullElse(add.getCharge(), 0) * addMultiplier;
     result.setCharge(resultCharge + subtractCharge);
     return result;
-  }
-
-  /**
-   * Checks if {@code sub} can be subtracted from {@code result} without creating negative element
-   * counts.
-   */
-  public static boolean canSubtractFormula(@Nullable final IMolecularFormula result,
-      @Nullable final IMolecularFormula sub) {
-    if (result == null || sub == null) {
-      return false;
-    }
-
-    final Set<String> handledSymbols = new HashSet<>();
-    for (final IIsotope isotope : sub.isotopes()) {
-      final String symbol = isotope.getSymbol();
-      if (!handledSymbols.add(symbol)) {
-        continue;
-      }
-      final int required = countElement(sub, symbol);
-      final int available = countElement(result, symbol);
-      if (available < required) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

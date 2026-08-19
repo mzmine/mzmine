@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2026 The mzmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -50,19 +50,22 @@
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
         </rowConstraints>
          <children>
             <Label fx:id="lbFeatureListName" alignment="TOP_CENTER" styleClass="bold-title-label" text="Label" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
             <Label fx:id="lbNumRows" styleClass="title-label" text="Number of Rows" GridPane.rowIndex="2" />
-            <Label fx:id="lbAppliedMethods" styleClass="title-label" text="Applied methods log:" GridPane.rowIndex="3" />
-            <ListView fx:id="lvAppliedMethods" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="4" />
-            <TextArea fx:id="tvParameterValues" editable="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <Label fx:id="lbNumAnnotated" styleClass="title-label" text="Annotated rows" GridPane.rowIndex="3" />
+            <TextField fx:id="tfNumAnnotated" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label fx:id="lbAppliedMethods" styleClass="title-label" text="Applied methods log:" GridPane.rowIndex="4" />
+            <ListView fx:id="lvAppliedMethods" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="5" />
+            <TextArea fx:id="tvParameterValues" editable="false" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
             <TextField fx:id="tfNumRows" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <Label styleClass="title-label" text="Date created" GridPane.rowIndex="1" />
             <TextField fx:id="tfCreated" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-           <ButtonBar GridPane.columnIndex="1" GridPane.rowIndex="3">
+           <ButtonBar GridPane.columnIndex="1" GridPane.rowIndex="4">
            <buttons>
             <Button fx:id="btnOpenInBatchQueue" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setAsBatchQueue" text="Open in batch queue"/>
             <Button fx:id="exportfeature" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#exportRecord" text="Export"/>
