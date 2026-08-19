@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,6 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.AbstractRtCorrectionFunction;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.previewpane.AbstractPreviewPane;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
@@ -127,8 +126,7 @@ public class ScanRtCorrectionPreviewPane extends AbstractPreviewPane<List<Featur
     final var calibrationModuleParameters = calibrationMethod.parameters();
     final var calibrationModule = calibrationMethod.value().getModuleInstance();
 
-    var sampleTypeFilter = new SampleTypeFilter(
-        parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue());
+    var sampleTypeFilter = parameters.getParameter(RTCorrectionParameters.sampleTypes).getValue();
 
     final List<String> errorMessages = new ArrayList<>();
     if (!parameters.checkParameterValues(errorMessages)) {

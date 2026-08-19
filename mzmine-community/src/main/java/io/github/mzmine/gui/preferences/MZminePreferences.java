@@ -574,8 +574,7 @@ public class MZminePreferences extends SimpleParameterSet {
     }
 
     if (!loadedParams.containsKey(brukerPressureComp.getName())) {
-      ((ComboParameter<TdfPressureCompensation>) loadedParams.get(
-          brukerPressureComp.getName())).setValue(
+      getParameter(brukerPressureComp).setValue(
           VendorImportParameters.DEFAULT_PRESSURE_COMPENSATION);
     }
   }
