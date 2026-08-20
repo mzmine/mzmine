@@ -706,8 +706,11 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     return qualityCtrl;
   }
 
-  @SuppressWarnings("unused")
-  FxFeatureTableController getTableController() {
+  /**
+   * Exposes the embedded table through the same controller contract used by other linked
+   * dashboards. Consumers can synchronize selected rows without reaching into the scene graph.
+   */
+  public @NotNull FxFeatureTableController getTableController() {
     return tableCtrl;
   }
 
