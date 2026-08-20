@@ -23,24 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import java.util.List;
+import io.github.mzmine.modules.order.ModuleOrderRule;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Interface representing a data processing method that produces new data. Modules implementing this
- * interface can be executed in a batch.
- */
-public interface MZmineProcessingModule extends MZmineRunnableModule {
+record ModuleOrderRuleEvaluation(@NotNull ModuleOrderRule rule,
+                                 @NotNull ModuleOrderRuleStatus status,
+                                 @NotNull String ruleDescription,
+                                 boolean requiredStepMissing) {
 
-  /**
-   * Describes alternative valid or recommended positions of this module in a processing pipeline.
-   * If any applicable recommendation is satisfied, the module placement is accepted. Modules
-   * without ordering requirements do not need to override this method.
-   */
-  default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of();
+  ModuleOrderRuleEvaluation {
+    Objects.requireNonNull(rule);
+    Objects.requireNonNull(status);
+    Objects.requireNonNull(ruleDescription);
   }
 }

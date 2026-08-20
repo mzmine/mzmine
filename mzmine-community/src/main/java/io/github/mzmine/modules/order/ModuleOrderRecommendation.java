@@ -23,24 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.order;
 
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface representing a data processing method that produces new data. Modules implementing this
- * interface can be executed in a batch.
+ * One possible placement of a module for a specific use case. All recommendations returned by a
+ * module are alternatives, and one passing applicable recommendation accepts the placement.
+ *
+ * @param useCase   short label shown in parameter dialogs and validation messages
+ * @param rationale explanation of why the placement matters
+ * @param rule      ordering rule for this use case
  */
-public interface MZmineProcessingModule extends MZmineRunnableModule {
+public record ModuleOrderRecommendation(@NotNull String useCase, @NotNull String rationale,
+                                        @NotNull ModuleOrderRule rule) {
 
-  /**
-   * Describes alternative valid or recommended positions of this module in a processing pipeline.
-   * If any applicable recommendation is satisfied, the module placement is accepted. Modules
-   * without ordering requirements do not need to override this method.
-   */
-  default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of();
+  public ModuleOrderRecommendation {
+    Objects.requireNonNull(useCase);
+    Objects.requireNonNull(rationale);
+    Objects.requireNonNull(rule);
+    if (useCase.isBlank()) {
+      throw new IllegalArgumentException("The use case must not be blank");
+    }
+    if (rationale.isBlank()) {
+      throw new IllegalArgumentException("The rationale must not be blank");
+    }
   }
 }

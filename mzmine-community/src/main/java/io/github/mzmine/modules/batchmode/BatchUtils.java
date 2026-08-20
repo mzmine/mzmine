@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -48,12 +50,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BatchUtils {
+
+  private static final Logger logger = Logger.getLogger(BatchUtils.class.getName());
 
   private static final Set<String> modulesToExculdeInRawFileChecks = Set.of(
       FeatureListBlankSubtractionModule.class.getName());
@@ -63,13 +68,44 @@ public class BatchUtils {
   /**
    * While all parameters may be valid, some choices might not make sense.
    */
-  public static String checkBatchParameters(@NotNull final BatchQueue batch) {
+  public static @Nullable String checkBatchParameters(@NotNull final BatchQueue batch) {
     @NotNull final List<@Nullable String> errors = new ArrayList<>();
     errors.add(checkMinSamplesFilter(batch));
     errors.add(checkRawAndFlistParameterSettings(batch));
+    errors.add(checkModuleOrder(batch));
 
     final List<@NotNull String> nonNullErrors = errors.stream().filter(Objects::nonNull).toList();
     return nonNullErrors.isEmpty() ? null : String.join("\n", nonNullErrors);
+  }
+
+  /**
+   * @return grouped module order warnings, or null if all recommendations are satisfied
+   */
+  public static @Nullable String checkModuleOrder(@NotNull final BatchQueue batch) {
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(batch);
+    return result.hasIssues() ? result.formatMessage() : null;
+  }
+
+  /**
+   * Shows one confirmation before a programmatically started GUI batch. Headless execution logs the
+   * warning and continues because no interactive confirmation is possible.
+   *
+   * @return false only if a GUI user declines to continue
+   */
+  public static boolean confirmModuleOrderWarnings(@NotNull final BatchQueue batch) {
+    final String warning = checkModuleOrder(batch);
+    if (warning == null) {
+      return true;
+    }
+
+    logger.warning(warning);
+    if (!DesktopService.isGUI()) {
+      return true;
+    }
+    return DialogLoggerUtil.showDialogYesNo("Processing order warnings", """
+        %s
+        
+        Continue with this batch?""".formatted(warning));
   }
 
   /**
