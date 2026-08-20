@@ -2544,7 +2544,7 @@
         },
         {
             "moduleName": "org.controlsfx:controlsfx",
-            "moduleVersion": "11.2.2",
+            "moduleVersion": "11.2.4",
             "moduleUrls": [
                 "http://www.controlsfx.org/"
             ],

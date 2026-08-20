@@ -55,17 +55,15 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -93,7 +91,10 @@ import org.jetbrains.annotations.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   public static final int DEFAULT_ESTIMATED_ROWS = 5000;
-  public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  // DateTimeFormatter instead of SimpleDateFormat: this constant is shared across threads and
+  // SimpleDateFormat is not thread-safe (concurrent use corrupts its internal calendar).
+  public static final DateTimeFormatter DATA_FORMAT = DateTimeFormatter.ofPattern(
+      "yyyy/MM/dd HH:mm:ss");
   private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
@@ -201,7 +202,7 @@ public class ModularFeatureList implements FeatureList {
     this.dataFiles = dataFiles;
     this.readOnlyRawDataFiles = Collections.unmodifiableList(dataFiles);
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
-    dateCreated = DATA_FORMAT.format(new Date());
+    dateCreated = DATA_FORMAT.format(LocalDateTime.now());
     selectedScans = FXCollections.observableMap(new HashMap<>());
     this.memoryMapStorage = storage;
 
@@ -497,7 +498,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public ModularFeature getFeature(int row, RawDataFile raw) {
-    return ((ModularFeatureListRow) featureListRows.get(row)).getFilesFeatures().get(raw);
+    return ((ModularFeatureListRow) featureListRows.get(row)).getFeature(raw);
   }
 
   /**
@@ -530,28 +531,30 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setRowsApplySort(FeatureListRow... rows) {
-    Set<RawDataFile> fileSet = new HashSet<>();
+    // a row reports the files of its own feature list, so rows of this list never need validation.
     for (FeatureListRow row : rows) {
-      if (!(row instanceof ModularFeatureListRow)) {
-        throw new IllegalArgumentException(
-            "Can not add non-modular feature list row to modular feature list");
-      }
-      fileSet.addAll(row.getRawDataFiles());
+      requireRowAssertions(row);
     }
 
-    // check that all files are represented
-    final List<RawDataFile> rawFiles = getRawDataFiles();
-    for (var raw : fileSet) {
-      if (!rawFiles.contains(raw)) {
-        throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
-      }
-    }
-//    logger.log(Level.FINEST, "SET ALL ROWS");
     featureListRows.setAll(rows);
     applyRowBindings();
 
     // sorting
     applyDefaultRowsSorting();
+  }
+
+  /// Checks that this row is actually member of this {@link FeatureList} and is of type
+  /// {@link ModularFeatureListRow}
+  private void requireRowAssertions(FeatureListRow row) {
+    if (row.getFeatureList() != this) {
+      throw new IllegalArgumentException(
+          "Row %d is not member of this feature list (%s) but belongs to feature list (%s)".formatted(
+              row.getID(), this.getName(), row.getFeatureList().getName()));
+    }
+    if (!(row instanceof ModularFeatureListRow)) {
+      throw new IllegalArgumentException(
+          "Can not add non-modular feature list row to modular feature list");
+    }
   }
 
   @Override
@@ -583,21 +586,9 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void addRow(FeatureListRow row) {
-    if (!(row instanceof ModularFeatureListRow modularRow)) {
-      throw new IllegalArgumentException(
-          "Can not add non-modular feature list row to modular feature list");
-    }
-
-    List<RawDataFile> myFiles = this.getRawDataFiles();
-    for (RawDataFile testFile : modularRow.getRawDataFiles()) {
-      if (!myFiles.contains(testFile)) {
-        throw (new IllegalArgumentException(
-            "Data file " + testFile + " is not in this feature list"));
-      }
-    }
-    //    logger.finest("ADD ROW");
-    featureListRows.add(modularRow);
-    applyRowBindings(modularRow);
+    requireRowAssertions(row);
+    featureListRows.add(row);
+    applyRowBindings(row);
   }
 
   /**

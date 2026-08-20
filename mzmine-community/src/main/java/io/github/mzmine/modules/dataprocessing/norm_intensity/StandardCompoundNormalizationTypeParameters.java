@@ -31,16 +31,17 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -61,12 +62,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class StandardCompoundNormalizationTypeParameters extends SimpleParameterSet {
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+  // defaults to "all sample types" instead of listing every known type, so that a batch does not
+  // silently exclude custom or newly added sample types
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      """, SampleType.values(), List.of(SampleType.values()));
+      Any custom group name of the mzmine_sample_type column can be selected, not just the
+      predefined types.
+      """, SampleTypeFilter.all());
 
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<>(
       "Normalization type", "Normalize intensities using", StandardUsageType.values());
@@ -197,7 +202,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull StandardCompoundNormalizationMode selectedMode) {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.sampleTypes,
-        selectedSampleTypes);
+        SampleTypeFilter.of(selectedSampleTypes));
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardUsageType,
         selectedStandardUsageType);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.mzVsRtBalance,

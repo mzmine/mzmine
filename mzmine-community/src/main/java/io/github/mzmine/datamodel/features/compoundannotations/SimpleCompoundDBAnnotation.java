@@ -129,7 +129,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
         Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
-        id.put(typeForId, o);
+        if (o != null) {
+          id.put(typeForId, o);
+        }
       }
       i++;
 
