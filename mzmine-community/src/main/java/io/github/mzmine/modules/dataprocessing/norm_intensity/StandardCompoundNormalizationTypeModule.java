@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -229,6 +230,7 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       @NotNull final List<@NotNull RawDataFile> referenceFiles,
       @NotNull final AbundanceMeasure abundanceMeasure) {
     int detectedInReferences = 0;
+    int estimatedFeatures = 0;
     double summedAbundance = 0d;
 
     for (final RawDataFile referenceFile : referenceFiles) {
@@ -243,9 +245,13 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       }
       detectedInReferences++;
       summedAbundance += abundance;
+      if (feature.getFeatureStatus() == FeatureStatus.ESTIMATED) {
+        estimatedFeatures++;
+      }
     }
 
-    return new StandardCompoundMatch(row, annotation, detectedInReferences, summedAbundance);
+    return new StandardCompoundMatch(row, annotation, detectedInReferences, summedAbundance,
+        estimatedFeatures);
   }
 
   /**
@@ -313,12 +319,16 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
    * A standard annotation matched to a feature list row, together with how well that row is covered
    * by the reference samples. See {@link #findBestStandardMatch}.
    *
-   * @param detectedInReferences number of reference samples with a usable abundance
+   * @param detectedInReferences number of reference samples with a usable abundance (detected and
+   *                             estimated)
    * @param summedAbundance      sum of those abundances
+   * @param estimatedFeatures    number of reference samples with {@link FeatureStatus#ESTIMATED}
+   *                             (gap-filled)
    */
   private record StandardCompoundMatch(@NotNull FeatureListRow row,
                                        @NotNull CompoundDBAnnotation annotation,
-                                       int detectedInReferences, double summedAbundance) {
+                                       int detectedInReferences, double summedAbundance,
+                                       int estimatedFeatures) {
 
     /**
      * Highest detection rate wins, ties are broken by the highest summed abundance, then by the
@@ -327,6 +337,9 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
     boolean isBetterThan(@NotNull final StandardCompoundMatch other) {
       if (detectedInReferences != other.detectedInReferences) {
         return detectedInReferences > other.detectedInReferences;
+      }
+      if (estimatedFeatures != other.estimatedFeatures) {
+        return estimatedFeatures < other.estimatedFeatures;
       }
       if (Double.compare(summedAbundance, other.summedAbundance) != 0) {
         return summedAbundance > other.summedAbundance;

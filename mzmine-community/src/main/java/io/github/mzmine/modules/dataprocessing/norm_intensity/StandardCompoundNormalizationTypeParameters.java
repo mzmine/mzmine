@@ -138,7 +138,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
    * old batch files still load. Instance field on purpose: the static parameter instances are
    * shared between all parameter sets.
    */
-  private static final BooleanParameter legacyRequireAllStandards = new BooleanParameter(
+  private final BooleanParameter legacyRequireAllStandards = new BooleanParameter(
       "Require all standards",
       "If enabled, all selected standards must be present in each raw file for normalization",
       true);
@@ -154,7 +154,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
     // the boolean "Require all standards" parameter was replaced by the mode combo parameter.
     // types differ, so load the old value into the legacy parameter and map it in
     // handleLoadedParameters
-    map.put(legacyRequireAllStandards.getName(), legacyRequireAllStandards.cloneParameter());
+    map.put(legacyRequireAllStandards.getName(), legacyRequireAllStandards);
     return map;
   }
 
