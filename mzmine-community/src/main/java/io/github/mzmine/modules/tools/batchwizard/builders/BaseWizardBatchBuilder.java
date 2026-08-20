@@ -187,8 +187,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters.MetadataFileFormat;
@@ -1210,7 +1210,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     scanRtParams.setParameter(RTCorrectionParameters.RTTolerance,
         new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES));
     scanRtParams.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight * 5);
-    scanRtParams.setParameter(RTCorrectionParameters.sampleTypes, List.of(SampleType.QC));
+    scanRtParams.setParameter(RTCorrectionParameters.sampleTypes, SampleTypeFilter.qc());
     scanRtParams.setParameter(RTCorrectionParameters.rtMeasure, RTMeasure.MEDIAN);
     ParameterSet optionParameters = scanRtParams.getParameter(
             RTCorrectionParameters.calibrationFunctionModule)
