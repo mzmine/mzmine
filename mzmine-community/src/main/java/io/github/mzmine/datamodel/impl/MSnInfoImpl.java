@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,8 +76,13 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
     int currentMsLevel = 2;
     for (var precursorElement : precursorElements) {
-      DDAMsMsInfo info = DDAMsMsInfoImpl.fromMzML(precursorElement, currentMsLevel);
-      precursors.add(info);
+      MsMsInfo info = MsMsInfo.fromMzML(precursorElement, currentMsLevel);
+      if (!(info instanceof DDAMsMsInfo dda)) {
+        throw new IllegalStateException(
+            "The precursor information for the MSn event is not sufficient and does not contain an isolation mz: "
+                + precursorElement);
+      }
+      precursors.add(dda);
       currentMsLevel++;
     }
     return new MSnInfoImpl(precursors);

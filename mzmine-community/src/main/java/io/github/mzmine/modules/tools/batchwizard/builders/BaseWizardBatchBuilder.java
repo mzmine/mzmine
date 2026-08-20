@@ -187,6 +187,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
@@ -248,6 +249,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // input
   protected final File[] dataFiles;
   protected final OptionalValue<File> metadataFile;
+  protected final @Nullable SampleMetadataExtractionParameters extractMetadataParams;
   // annotation
   protected final File[] libraries;
   //filter
@@ -291,6 +293,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, DataImportWizardParameters.fileNames);
     metadataFile = getOptional(params, DataImportWizardParameters.metadataFile);
+    extractMetadataParams = getOptionalParameters(params,
+        DataImportWizardParameters.extractMetadata).orElse(null);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -1039,7 +1043,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final var param = AllSpectralDataImportParameters.create(
         ConfigService.getPreferences().getVendorImportParameters(), dataFiles,
-        metadataFile.active() ? metadataFile.value() : null, libraries, advancedParameters);
+        metadataFile.active() ? metadataFile.value() : null, extractMetadataParams, libraries,
+        advancedParameters);
 
     param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
 
@@ -1204,7 +1209,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     scanRtParams.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
     scanRtParams.setParameter(RTCorrectionParameters.RTTolerance,
         new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES));
-    scanRtParams.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
+    scanRtParams.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight * 5);
     scanRtParams.setParameter(RTCorrectionParameters.sampleTypes, List.of(SampleType.QC));
     scanRtParams.setParameter(RTCorrectionParameters.rtMeasure, RTMeasure.MEDIAN);
     ParameterSet optionParameters = scanRtParams.getParameter(

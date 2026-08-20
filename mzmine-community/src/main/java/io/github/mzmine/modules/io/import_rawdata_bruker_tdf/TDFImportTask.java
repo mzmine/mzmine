@@ -43,10 +43,13 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.DiaFrameMsMsWindowTable;
@@ -120,6 +123,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
   private double finishedPercentage;
   private double lastFinishedPercentage;
   private int loadedFrames;
+  private final TdfPressureCompensation applyPressureComp;
 
   /**
    * Bruker tims format: - Folder - contains multiple files - one folder per analysis - .d extension
@@ -146,6 +150,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
     this.scanProcessorConfig = scanProcessorConfig;
     this.module = module;
     this.parameters = parameters;
+    this.applyPressureComp = parameters.getParameter(AllSpectralDataImportParameters.vendorOptions)
+        .getEmbeddedParameters().getValue(VendorImportParameters.applyTimsPressureCompensation);
     setDescription("Importing raw data file %s".formatted(file.getName()));
   }
 
@@ -263,7 +269,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       return;
     }
 
-    try (final TDFUtils tdfUtils = new TDFUtils()) {
+    try (final TDFUtils tdfUtils = new TDFUtils(applyPressureComp)) {
 
       logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
       final long handle = tdfUtils.openFile(tdfBin);

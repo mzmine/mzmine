@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,8 +58,10 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -83,6 +85,9 @@ public class DuplicateFilterTask extends AbstractTask {
   private int processedRows;
   private int totalRows;
 
+  // collects all FeatureListRow that were changed and need row bindings update
+  private final Set<FeatureListRow> requireRowBindingsUpdate;
+
   public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet params, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
@@ -95,6 +100,7 @@ public class DuplicateFilterTask extends AbstractTask {
     filteredPeakList = null;
     totalRows = 0;
     processedRows = 0;
+    requireRowBindingsUpdate = HashSet.newHashSet(Math.max(15, list.getNumberOfRows() / 5));
   }
 
   @Override
@@ -195,11 +201,13 @@ public class DuplicateFilterTask extends AbstractTask {
               peakListRows, rowCount);
       case NEW_AVERAGE ->
           applyNewMergingFilter(mzTolerance, rtTolerance, mobilityTolerance, requireSameId,
-              newPeakList, peakListRows, rowCount, rawFiles);
+              newPeakList, peakListRows, rowCount);
       case SINGLE_FEATURE ->
           applySingleFeatureMergingFilter(mzTolerance, rtTolerance, mobilityTolerance,
               requireSameId, newPeakList, peakListRows, rowCount, rawFiles);
     };
+
+    applyRowBinding(newPeakList);
 
     // finalize
     if (!isCanceled()) {
@@ -214,6 +222,17 @@ public class DuplicateFilterTask extends AbstractTask {
     }
 
     return newPeakList;
+  }
+
+  private void applyRowBinding(ModularFeatureList newPeakList) {
+    // each row binding aggregates over all features of the row, so applying them per added
+    // feature is O(features^2) per merge. Once per merged row gives the same result and is
+    // required here because the alignment scores below and the next duplicate candidate read
+    // the aggregated row values.
+    for (var row : requireRowBindingsUpdate) {
+      newPeakList.applyRowBindings(row);
+    }
+    requireRowBindingsUpdate.clear();
   }
 
   /**
@@ -278,7 +297,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
   private int applyNewMergingFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
       MobilityTolerance mobilityTolerance, boolean requireSameId, ModularFeatureList newPeakList,
-      ModularFeatureListRow[] peakListRows, int rowCount, RawDataFile[] rawFiles) {
+      ModularFeatureListRow[] peakListRows, int rowCount) {
     // sort by mz to limit number of iterations
     Arrays.sort(peakListRows,
         new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
@@ -330,7 +349,7 @@ public class DuplicateFilterTask extends AbstractTask {
               // copy all detected features of row2 into row1
               // to exchange gap-filled against detected
               // features
-              createConsensusFirstRow(newPeakList, rawFiles, firstRow, secondRow);
+              createConsensusFirstRow(newPeakList, firstRow, secondRow);
               // second row deleted
               n++;
               peakListRows[secondRowIndex] = null;
@@ -415,7 +434,7 @@ public class DuplicateFilterTask extends AbstractTask {
               // copy all detected features of row2 into row1
               // to exchange gap-filled against detected
               // features
-              createConsensusFirstRow(newPeakList, rawFiles, firstRow, secondRow);
+              createConsensusFirstRow(newPeakList, firstRow, secondRow);
               // second row deleted
               n++;
               peakListRows[secondRowIndex] = null;
@@ -431,33 +450,30 @@ public class DuplicateFilterTask extends AbstractTask {
   /**
    * Turns firstRow to consensus row. With all features with highest FeatureStatus:
    * DETECTED>ESTIMATED>UNKNOWN Or the highest feature when comparing two ESTIMATED features
-   *
-   * @param rawFiles
-   * @param firstRow
-   * @param secondRow
    */
-  private void createConsensusFirstRow(ModularFeatureList flist, RawDataFile[] rawFiles,
-      FeatureListRow firstRow, FeatureListRow secondRow) {
-    for (RawDataFile raw : rawFiles) {
-      Feature f2 = secondRow.getFeature(raw);
-      if (f2 == null) {
-        continue;
-      }
+  private void createConsensusFirstRow(ModularFeatureList flist, FeatureListRow firstRow,
+      FeatureListRow secondRow) {
 
-      Feature f1 = firstRow.getFeature(raw);
-      FeatureStatus status1 = f1 != null ? f1.getFeatureStatus() : UNKNOWN;
+    // only iterate the features that are actually present in the second row
+    for (final Feature f2 : secondRow.getFeatures()) {
+      final RawDataFile raw = f2.getRawDataFile();
+      final Feature f1 = firstRow.getFeature(raw);
+      final FeatureStatus status1 = f1 != null ? f1.getFeatureStatus() : UNKNOWN;
       switch (f2.getFeatureStatus()) {
         case DETECTED:
           // DETECTED over all - both detected use heighest feature
           if (status1 != DETECTED || f1.getHeight() < f2.getHeight()) {
-            firstRow.addFeature(raw, new ModularFeature(flist, f2));
+            // row bindings are applied once after all features were merged, see below
+            firstRow.addFeature(raw, new ModularFeature(flist, f2), false);
+            requireRowBindingsUpdate.add(firstRow);
           }
           break;
         case ESTIMATED:
           // ESTIMATED over UNKNOWN or
           // BOTH ESTIMATED? take the highest
           if (status1 == UNKNOWN || (status1 == ESTIMATED && f1.getHeight() < f2.getHeight())) {
-            firstRow.addFeature(raw, new ModularFeature(flist, f2));
+            firstRow.addFeature(raw, new ModularFeature(flist, f2), false);
+            requireRowBindingsUpdate.add(firstRow);
           }
           break;
       }
