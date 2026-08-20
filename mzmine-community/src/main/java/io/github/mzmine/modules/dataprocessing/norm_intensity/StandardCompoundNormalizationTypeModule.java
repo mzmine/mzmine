@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -97,8 +98,8 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
             StandardCompoundNormalizationTypeParameters.mobilityTolerance) : null;
     final AbundanceMeasure abundanceMeasure = mainParameters.getValue(
         IntensityNormalizerParameters.featureMeasurementType);
-    final StandardCompoundNormalizationMode mode = moduleSpecificParameters.getValue(
-        StandardCompoundNormalizationTypeParameters.mode);
+    final StandardCompoundNormalizationRequirement requirement = moduleSpecificParameters.getValue(
+        StandardCompoundNormalizationTypeParameters.requirement);
 
     final List<CompoundDBAnnotation> standardAnnotations = loadStandardAnnotations(
         moduleSpecificParameters);
@@ -112,7 +113,7 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = new HashMap<>();
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(summary,
-          rawFile, standardMatches, abundanceMeasure, mode);
+          rawFile, standardMatches, abundanceMeasure, requirement);
       if (referencePoints.isEmpty()) {
         // only reachable in SKIP_FILES_WITHOUT_STANDARD mode. Leaving the file out of the result
         // means it is normalized by interpolation between the neighboring reference samples
@@ -263,9 +264,9 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile rawFile,
       @NotNull final List<StandardCompoundMatch> standardMatches,
       @NotNull final AbundanceMeasure abundanceMeasure,
-      @NotNull final StandardCompoundNormalizationMode mode) {
+      @NotNull final StandardCompoundNormalizationRequirement requirement) {
     final boolean requireAllStandards =
-        mode == StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
+        requirement.mode() == StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
     final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>(
         standardMatches.size());
     for (final StandardCompoundMatch standardMatch : standardMatches) {
@@ -307,11 +308,8 @@ public class StandardCompoundNormalizationTypeModule extends NormalizationTypeWi
       referencePoints.add(
           new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance));
     }
-    if (referencePoints.isEmpty()
-        && mode != StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD) {
-      throw new IllegalStateException(
-          "No intensity normalization standards found for file: " + rawFile.getName());
-    }
+    // throw exception if minimum requirements are not met
+    requirement.assertMinReferencePoints(standardMatches.size(), referencePoints.size(), rawFile);
     return referencePoints;
   }
 

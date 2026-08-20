@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * in a reference sample.
  * <p>
  * Replaces the legacy boolean "Require all standards" parameter: {@code true} maps to
- * {@link #REQUIRE_ALL_IN_ALL_SAMPLES} and {@code false} to {@link #REQUIRE_ONE_PER_SAMPLE}.
+ * {@link #REQUIRE_ALL_IN_ALL_SAMPLES} and {@code false} to {@link #REQUIRE_N_SAMPLES}.
  */
 public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
 
@@ -43,10 +43,10 @@ public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
    */
   REQUIRE_ALL_IN_ALL_SAMPLES,
   /**
-   * Missing standards are skipped, but each sample needs at least one usable standard. A sample
+   * Missing standards are skipped, but each sample needs at least N usable standard. A sample
    * without any standard fails the normalization.
    */
-  REQUIRE_ONE_PER_SAMPLE,
+  REQUIRE_N_SAMPLES,
   /**
    * Missing standards are skipped and samples without any usable standard are skipped as well. Such
    * samples are then normalized by interpolation between the neighboring reference samples.
@@ -61,7 +61,7 @@ public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
   public String toString() {
     return switch (this) {
       case REQUIRE_ALL_IN_ALL_SAMPLES -> "Require all standards in all samples (default)";
-      case REQUIRE_ONE_PER_SAMPLE -> "Require at least one standard in each sample";
+      case REQUIRE_N_SAMPLES -> "Require at least N standard in each sample";
       case SKIP_FILES_WITHOUT_STANDARD -> "Skip files without standard";
     };
   }
@@ -70,7 +70,7 @@ public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
   public @NotNull String getUniqueID() {
     return switch (this) {
       case REQUIRE_ALL_IN_ALL_SAMPLES -> "require_all_in_all_samples";
-      case REQUIRE_ONE_PER_SAMPLE -> "require_one_per_sample";
+      case REQUIRE_N_SAMPLES -> "require_n_per_sample";
       case SKIP_FILES_WITHOUT_STANDARD -> "skip_files_without_standard";
     };
   }
