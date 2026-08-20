@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -213,8 +213,10 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         final ModularFeatureListRow featureListRow = new ModularFeatureListRow(
             notBackgroundAlignedFeaturesList, originalRow.getID(),
             (ModularFeatureListRow) originalRow, false);
+        // row bindings aggregate over all features, so applying them per feature is O(features^2).
+        // the rows are added to the feature list below, which applies the bindings once
         featuresToKeep.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
-            new ModularFeature(notBackgroundAlignedFeaturesList, f)));
+            new ModularFeature(notBackgroundAlignedFeaturesList, f), false));
 
         if (this.createDeletedFeatureList) {
           final StringBuilder sb = new StringBuilder();
@@ -249,7 +251,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
             backgroundAlignedFeaturesList, originalRow.getID(), (ModularFeatureListRow) originalRow,
             false);
         featuresToRemove.forEach(f -> featureListRow.addFeature(f.getRawDataFile(),
-            new ModularFeature(backgroundAlignedFeaturesList, f)));
+            new ModularFeature(backgroundAlignedFeaturesList, f), false));
 
         final StringBuilder sb = new StringBuilder();
         sb.append(String.format(

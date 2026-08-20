@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.github.mzmine.datamodel.identities.io.IonLibraryPreset;
 import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.modules.visualization.projectmetadata.extract.MetadataRegexMappingPreset;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +52,8 @@ import org.jetbrains.annotations.Nullable;
     // map names to classes
     @JsonSubTypes.Type(value = RowTypeFilterPreset.class, name = "row_type_filter"), //
     @JsonSubTypes.Type(value = IonLibraryPreset.class, name = "ion_library"), //
-    @JsonSubTypes.Type(value = ModulePreset.class, name = "module_preset") //
+    @JsonSubTypes.Type(value = ModulePreset.class, name = "module_preset"), //
+    @JsonSubTypes.Type(value = MetadataRegexMappingPreset.class, name = "metadata_regex_mapping") //
 })
 public interface Preset extends Comparable<Preset> {
 

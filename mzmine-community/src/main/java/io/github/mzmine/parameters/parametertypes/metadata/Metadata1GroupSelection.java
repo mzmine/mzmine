@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.metadata;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.util.StringUtils;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,7 @@ public record Metadata1GroupSelection(@NotNull String columnName,
 
   /**
    * @return Checks if the current metadata table contains the specified column and the specified
-   * value. Case sensitive.
+   * value. Case insensitive, see {@link #matchesValue(Object)}.
    */
   @Override
   public boolean isValid() {
@@ -58,9 +59,13 @@ public record Metadata1GroupSelection(@NotNull String columnName,
     return columnValues.values().stream().anyMatch(this::matchesValue);
   }
 
+  /**
+   * Matches ignoring case and surrounding whitespace, so that a metadata column holding {@code QC}
+   * and a selection of {@code qc} refer to the same group.
+   */
   @Override
   public boolean matchesValue(@Nullable Object value) {
-    return value != null && value.toString().equals(groupStr);
+    return value != null && StringUtils.equalStrippedIgnoreCase(value, groupStr);
   }
 
 }

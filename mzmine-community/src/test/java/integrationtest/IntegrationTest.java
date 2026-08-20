@@ -44,6 +44,9 @@ import org.jetbrains.annotations.Nullable;
 public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
                               @Nullable File[] rawFiles, @Nullable File[] specLibs) {
 
+  private static List<String> mzminePaths = List.of("D:\\git\\mzmine3\\",
+      "C:\\Users\\Steffen\\git\\mzmine3\\");
+
   public static Builder builder(final @NotNull String baseDirectory, @NotNull String batchFile) {
     return new Builder(baseDirectory, batchFile);
   }
@@ -68,9 +71,18 @@ public record IntegrationTest(@NotNull File batchFile, @Nullable File tempDir,
       File batchExportedFile) {
     try {
       // add local resources path to overwrite files
-      final String localResPath = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\resources";
-      Files.copy(batchExportedFile.toPath(), Path.of(localResPath, expectedResultsFullPath),
-          StandardCopyOption.REPLACE_EXISTING);
+      Path localResPath = null;
+      for (String mzminePath : mzminePaths) {
+        Path candidatePath = Path.of(mzminePath, "mzmine-community\\src\\test\\resources");
+        if (Files.exists(candidatePath)) {
+          localResPath = candidatePath;
+          break;
+        }
+      }
+      if (localResPath != null) {
+        Files.copy(batchExportedFile.toPath(), localResPath.resolve(expectedResultsFullPath),
+            StandardCopyOption.REPLACE_EXISTING);
+      }
 
       // copy to res folder and also to out/resources folder so that test succeeds first time
       Files.copy(batchExportedFile.toPath(), urlToFile(IntegrationTestUtils.class.getClassLoader()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
@@ -148,6 +149,11 @@ public class MetadataTable {
     }
   }
 
+  /**
+   * Writes the default sample type guessed from the file name. The user may overwrite it with any
+   * group name afterwards - from then on the column value is authoritative, see
+   * {@link SampleTypeFilter}.
+   */
   private void assignSampleType(RawDataFile newFile) {
     final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
@@ -427,19 +433,39 @@ public class MetadataTable {
 
 
   /**
+   * Matches against all raw data files currently in the project, whereas
+   * {@link #getMatchingFiles(Collection, MetadataColumn, Object)} is limited to a given subset of
+   * files.
+   *
    * @param column The column
    * @param value  The column value to match to.
    * @return A list of files associated to the column value or null, if the column value does not
    * exist.
    */
-  public <T> List<RawDataFile> getMatchingFiles(@NotNull MetadataColumn<T> column, @NotNull T value)
+  public <T> List<RawDataFile> getMatchingProjectFiles(@NotNull MetadataColumn<T> column,
+      @NotNull T value)
       throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
-    final Map<T, List<RawDataFile>> valueFilesMap = groupFilesByColumn(column);
+    final List<RawDataFile> allFiles = ProjectService.getProject().getCurrentRawDataFiles();
+    return getMatchingFiles(allFiles, column, value);
+  }
+
+  /**
+   * @param raws   The list of files to search in
+   * @param column The column
+   * @param value  The column value to match to.
+   * @return A list of files associated to the column value or null, if the column value does not
+   * exist.
+   */
+  public <T> List<RawDataFile> getMatchingFiles(@NotNull Collection<RawDataFile> raws,
+      @NotNull MetadataColumn<T> column, @NotNull T value)
+      throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
+    final Map<T, List<RawDataFile>> valueFilesMap = groupFilesByColumn(raws, column);
     final List<RawDataFile> files = valueFilesMap.get(value);
     if (files == null) {
       throw new MetadataValueDoesNotExistException(column, value.toString());
     }
-    return groupFilesByColumn(column).get(value);
+    // must be the files of the raws subset, not of the whole project
+    return files;
   }
 
   /**
@@ -475,15 +501,32 @@ public class MetadataTable {
   }
 
   /**
-   * @param sampleType a sample type to filter for
-   * @return list of raw data files that match type in type column
+   * @param sampleType a predefined sample type to filter for
+   * @return list of raw data files that match the type in the sample type column, matched ignoring
+   * case and surrounding whitespace
    */
   public List<RawDataFile> getFilesOfSampleType(final SampleType sampleType) {
-    var sampleTypeColumn = getSampleTypeColumn();
+    return getFilesOfSampleType(sampleType.toString());
+  }
+
+  /**
+   * @param sampleType a sample type value, either a predefined {@link SampleType} or a custom group
+   *                   name the user defined in the metadata
+   * @return list of raw data files that match the value in the sample type column, matched ignoring
+   * case and surrounding whitespace. Empty list if nothing matches.
+   */
+  public List<RawDataFile> getFilesOfSampleType(final String sampleType) {
+    final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     if (sampleTypeColumn == null) {
       return List.of();
     }
-    return getMatchingFiles(sampleTypeColumn, sampleType.toString());
+    final SampleTypeFilter filter = SampleTypeFilter.ofValues(sampleType);
+    final Map<RawDataFile, Object> columnData = getColumnData(sampleTypeColumn);
+    if (columnData == null) {
+      return List.of();
+    }
+    return columnData.entrySet().stream().filter(e -> filter.matchesValue(e.getValue()))
+        .map(Entry::getKey).toList();
   }
 
   public StringMetadataColumn createDataFileColumn() {
