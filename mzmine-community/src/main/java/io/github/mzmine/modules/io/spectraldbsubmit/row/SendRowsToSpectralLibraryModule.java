@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.row;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationSubParameters;
@@ -72,8 +73,10 @@ public class SendRowsToSpectralLibraryModule implements MZmineModule {
     final List<SpectralLibrary> lastLibraries = lastSelectedLib.getMatchingLibraries();
     // suggest the feature list name as library name
     final String suggestedName = rows.getFirst().getFeatureList().getName();
-    final SpectralLibrarySelectionDialog libDialog = new SpectralLibrarySelectionDialog(rows.size(), lastLibraries,
-        suggestedName);
+    final SpectralLibrarySelectionDialog libDialog = new SpectralLibrarySelectionDialog(rows.size(),
+        lastLibraries, suggestedName);
+    ConfigService.getPreferences().getThemeConfig()
+        .apply(libDialog.getDialogPane().getStylesheets());
     final Optional<SpectralLibrary> libResult = libDialog.showAndWait();
 
     if (libResult.isEmpty() || libResult.get() == null) {

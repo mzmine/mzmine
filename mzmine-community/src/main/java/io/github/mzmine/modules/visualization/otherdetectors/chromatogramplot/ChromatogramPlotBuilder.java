@@ -184,9 +184,8 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
       if (!show) {
         return;
       }
-      chart.applyWithNotifyChanges(false,
-          () -> model.getDatasetRenderers().values()
-              .forEach(r -> applySeriesLabel(r, seriesLabelGenerator, tooltipGenerator)));
+      chart.applyWithNotifyChanges(false, () -> model.getDatasetRenderers().values()
+          .forEach(r -> applySeriesLabel(r, seriesLabelGenerator, tooltipGenerator)));
     });
   }
 
@@ -246,8 +245,8 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
     // Re-apply strokes when the selection changes or new datasets land.
     model.selectedDatasetProperty().subscribe(_ -> applySelectedDatasetHighlight(chart));
-    model.datasetRenderersProperty().addListener(
-        (MapChangeListener<XYDataset, XYItemRenderer>) _ -> {
+    model.datasetRenderersProperty()
+        .addListener((MapChangeListener<XYDataset, XYItemRenderer>) _ -> {
           // If the selected dataset was removed, clear the selection.
           final XYDataset selected = model.getSelectedDataset();
           if (selected != null && !model.getDatasetRenderers().containsKey(selected)) {

@@ -74,7 +74,7 @@ public class IntegrationPlotModel {
   private final BooleanProperty showTitle = new SimpleBooleanProperty(true);
   private final BooleanProperty showControls = new SimpleBooleanProperty(true);
   private final BooleanProperty showAxisTitles = new SimpleBooleanProperty(true);
-  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(false);
+  private final BooleanProperty useSampleColor = new SimpleBooleanProperty(true);
   private final BooleanProperty useTextlessButtons = new SimpleBooleanProperty(false);
   private final ObjectProperty<@Nullable BinningMobilogramDataAccess> binningMobilogramDataAccess = new SimpleObjectProperty<>(
       null);

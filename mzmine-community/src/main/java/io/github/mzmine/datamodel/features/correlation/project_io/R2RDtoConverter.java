@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
+import io.github.mzmine.datamodel.features.correlation.R2RStructureSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -111,6 +112,9 @@ final class R2RDtoConverter {
       case OnlineReactionMatch s ->
           new R2RRelationshipDto.OnlineReactionMatchDto(idA, idB, s.getReaction(),
               s.getRowA() != s.getEductRow(), s.getTypeOfThisRow());
+      case R2RStructureSimilarity s ->
+          new R2RRelationshipDto.StructureSimilarityDto(idA, idB, s.getFingerprintType(),
+              s.getInchiA(), s.getInchiB(), (float) s.getScore());
       case SimpleRowsRelationship s ->
           new R2RRelationshipDto.SimpleRelationshipDto(idA, idB, s.getScore(), s.getType(),
               s.getAnnotation());
@@ -183,6 +187,9 @@ final class R2RDtoConverter {
       case R2RRelationshipDto.SimpleCorrelationDto s ->
           new R2RSimpleCorrelationData(a, b, s.totalSim(), s.heightSim(), s.avgShapeSim(),
               s.minShapeSim(), s.maxShapeSim(), s.avgDPcount());
+      case R2RRelationshipDto.StructureSimilarityDto s ->
+          new R2RStructureSimilarity(a, b, s.fingerprintType(), s.inchiA(), s.inchiB(),
+              s.similarity());
     };
   }
 

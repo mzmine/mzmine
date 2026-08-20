@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -117,13 +116,11 @@ public class IonNetworkLogic {
    * @param row
    * @return list of annotations or null
    */
-  public static List<IonIdentity> sortIonIdentities(FeatureListRow row, boolean useGroup) {
+  public static List<IonIdentity> sortIonIdentities(FeatureListRow row) {
     List<IonIdentity> ident = row.getIonIdentities();
     if (ident == null || ident.isEmpty()) {
       return null;
     }
-
-    RowGroup group = useGroup ? row.getGroup() : null;
 
     // best is first
     final List<IonIdentity> sorted = ident.stream().sorted(
@@ -139,9 +136,9 @@ public class IonNetworkLogic {
    * @param pkl
    * @return
    */
-  public static void sortIonIdentities(FeatureList pkl, boolean useGroup) {
+  public static void sortIonIdentities(FeatureList pkl) {
     for (FeatureListRow r : pkl.getRows()) {
-      sortIonIdentities(r, useGroup);
+      sortIonIdentities(r);
     }
   }
 

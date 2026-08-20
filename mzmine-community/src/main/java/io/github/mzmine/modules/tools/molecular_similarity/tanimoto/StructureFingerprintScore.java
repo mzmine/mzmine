@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,43 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package io.github.mzmine.modules.tools.molecular_similarity.tanimoto;
 
-package io.github.mzmine.datamodel.features.types;
-
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Level of feature grouping
+ * Result of a {@link TanimotoSimilarity#maxTanimoto} comparison: the two
+ * {@link StructureFingerprint}s that produced the highest pairwise similarity and the similarity
+ * value itself.
+ *
+ * @param a          fingerprint from the first row
+ * @param b          fingerprint from the second row
+ * @param similarity Tanimoto similarity (0–1)
  */
-public class FeatureGroupType extends DataType<RowGroup> {
+public record StructureFingerprintScore(@NotNull StructureFingerprint a,
+                                        @NotNull StructureFingerprint b, float similarity) {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "feature_group";
-  }
-
-  @Override
-  @NotNull
-  public String getHeaderString() {
-    return "Group";
-  }
-
-  @Override
-  public ObjectProperty<RowGroup> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<RowGroup> getValueClass() {
-    return RowGroup.class;
-  }
-
-  public enum GroupType {
-    CORRELATED, ISOTOPES, ION_ADDUCTS
-  }
 }

@@ -117,6 +117,15 @@ public class ModularCompoundRow extends ModularFeatureListRow implements Compoun
   }
 
   /**
+   *
+   * @return
+   */
+  @Override
+  public boolean isIdentified() {
+    return getPreferredRow().isIdentified();
+  }
+
+  /**
    * Schema-direct read of this compound row's own compound feature for {@code raw}, bypassing the
    * representative-feature fallback in {@link #getFeature(RawDataFile)}. Returns null when the
    * compound row never wrote a feature for that file.

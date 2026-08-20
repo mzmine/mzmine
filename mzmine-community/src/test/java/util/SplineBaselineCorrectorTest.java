@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineDataBuffer;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.collections.IndexRange;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -129,5 +130,45 @@ public class SplineBaselineCorrectorTest {
     buffer.removeRangesFromArray(List.of());
 
     check(buffer, 10, new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, new int[]{0, 9});
+  }
+
+  /**
+   * Regression test: when a single buffer (i.e. a reused baseline corrector) processes a trace with
+   * no removed ranges and then another trace with removed ranges, the "removed peaks" buffers must
+   * not alias the main buffers. Previously the empty-ranges branch did
+   * {@code xBufferRemovedPeaks = xBuffer}, so the subsequent compaction wrote into the main buffers,
+   * destroying the original signal that {@code subSampleAndCorrect} still needs as the data to
+   * correct. This only surfaced in the task (one corrector reused across multiple traces with peak
+   * exclusion enabled), never in the preview (fresh corrector per trace).
+   */
+  @Test
+  public void testReusedBufferAfterEmptyRangesDoesNotCorruptMainBuffers() {
+    // trace A: no ranges removed -> must not alias the removed-peaks buffers to the main buffers
+    buffer.removeRangesFromArray(List.of());
+
+    // trace B: re-extract into the SAME buffer. Same length -> capacity is not reallocated, so any
+    // alias established by trace A would still be in place here.
+    final double[] srcB = IntStream.range(0, 10).mapToDouble(v -> (double) v).toArray();
+    final var dataB = new SimpleOtherTimeSeries(null, ArrayUtils.doubleToFloat(srcB), srcB, "testB",
+        otherData);
+    buffer.extractDataIntoBuffer(dataB);
+
+    // snapshot the original (main) buffers before removing ranges
+    final double[] xMainBefore = Arrays.copyOf(buffer.xBuffer(), buffer.xBuffer().length);
+    final double[] yMainBefore = Arrays.copyOf(buffer.yBuffer(), buffer.yBuffer().length);
+
+    // trace B: remove a middle range
+    buffer.removeRangesFromArray(List.of(IndexRange.ofInclusive(4, 6)));
+
+    // the removed-peaks buffers must be distinct instances from the main buffers ...
+    Assertions.assertNotSame(buffer.xBuffer(), buffer.xBufferRemovedPeaks());
+    Assertions.assertNotSame(buffer.yBuffer(), buffer.yBufferRemovedPeaks());
+
+    // ... so removing ranges must not have mutated the original signal in the main buffers
+    Assertions.assertArrayEquals(xMainBefore, buffer.xBuffer());
+    Assertions.assertArrayEquals(yMainBefore, buffer.yBuffer());
+
+    // and the compacted data ends up in the removed-peaks buffer as usual
+    check(buffer, 7, new double[]{0, 1, 2, 3, 7, 8, 9, 0, 0, 0}, new int[]{0, 3, 4, 6});
   }
 }
