@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -165,19 +165,22 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
   }
 
   public FeatureListRow convertToAlignmentRow(int ID) {
-    FeatureListRow newRow = new ModularFeatureListRow(
-        (ModularFeatureList) this.getPeak(0).getFeatureList(), ID);
+    final ModularFeatureList flist = (ModularFeatureList) this.getPeak(0).getFeatureList();
+    FeatureListRow newRow = new ModularFeatureListRow(flist, ID);
     try {
       for (FeatureListRow row : this.peaks) {
         if (row != null) {
           for (Feature peak : row.getFeatures()) {
-            newRow.addFeature(peak.getRawDataFile(), peak);
+            // row bindings aggregate over all features, so applying them per feature is
+            // O(features^2). Applied once below
+            newRow.addFeature(peak.getRawDataFile(), peak, false);
           }
         }
       }
     } catch (NullPointerException e) {
       e.printStackTrace();
     }
+    flist.applyRowBindings(newRow);
     return newRow;
   }
 

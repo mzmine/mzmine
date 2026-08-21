@@ -1,6 +1,6 @@
 [versions]
-jdk = { strictly = "25" }
-javafx = { strictly = "24.0.2" }
+jdk = { strictly = "26" }
+javafx = { strictly = "26" }
 javafx-plugin = "0.1.0"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
@@ -15,7 +15,7 @@ okhttp = "2.7.5"
 slf4j = '2.0.17'
 poi = '5.0.0'
 batik = { require = "1.19" }
-controlsfx = '11.2.2'
+controlsfx = '11.2.4'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
 junit = '5.14.0'

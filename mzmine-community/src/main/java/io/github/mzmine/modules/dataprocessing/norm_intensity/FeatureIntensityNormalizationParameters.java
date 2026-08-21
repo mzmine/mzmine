@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,20 +26,23 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureIntensityNormalizationParameters extends SimpleParameterSet {
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      """, SampleType.values(), List.of(SampleType.QC));
+      Any custom group name of the mzmine_sample_type column can be selected, not just the
+      predefined types.
+      """, SampleTypeFilter.of(SampleType.QC));
 
   public static final ComboParameter<FeatureIntensityNormalizationMode> mode = new ComboParameter<>(
       "Normalize by feature abundances", """
@@ -51,6 +55,12 @@ public class FeatureIntensityNormalizationParameters extends SimpleParameterSet 
 
   public static @NotNull FeatureIntensityNormalizationParameters create(
       final @NotNull List<SampleType> selectedSampleTypes,
+      final @NotNull FeatureIntensityNormalizationMode selectedMode) {
+    return create(SampleTypeFilter.of(selectedSampleTypes), selectedMode);
+  }
+
+  public static @NotNull FeatureIntensityNormalizationParameters create(
+      final @NotNull SampleTypeFilter selectedSampleTypes,
       final @NotNull FeatureIntensityNormalizationMode selectedMode) {
     final FeatureIntensityNormalizationParameters parameters = (FeatureIntensityNormalizationParameters) new FeatureIntensityNormalizationParameters().cloneParameterSet();
     parameters.setParameter(FeatureIntensityNormalizationParameters.sampleTypes,
