@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -142,6 +143,12 @@ public class ModularFeatureList implements FeatureList {
   private int annotationSortConfigVersion = 0;
   private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
 
+  /**
+   * User defined preferences, never null, defaults to
+   * {@link FeatureListPreferences#createDefault()}
+   */
+  private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
+
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
   private volatile CompoundList compoundList;
@@ -221,6 +228,9 @@ public class ModularFeatureList implements FeatureList {
     featuresSchema.addDataTypesChangeListener((added, removed) -> {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
+        // row types that map their values on demand need no bindings
+        // some feature types auto add row MappingTypes
+        addRowType(dataType.createDefaultMappedRowTypes());
       }
     });
 
@@ -1077,6 +1087,16 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public int getAnnotationSortConfigVersion() {
     return annotationSortConfigVersion;
+  }
+
+  @Override
+  public @NotNull FeatureListPreferences getPreferences() {
+    return preferences;
+  }
+
+  @Override
+  public void setPreferences(@NotNull final FeatureListPreferences preferences) {
+    this.preferences = preferences;
   }
 
   @Override

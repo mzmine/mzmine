@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.SampleRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -424,6 +425,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   private void excludeSubTypesFromMain(DataType mainType, Set<DataType> typesList) {
+    if (mainType instanceof SampleRsdType rsdType) {
+      // the value of this type is the row itself, so the loop above added all row types as sub
+      // types. Only the RSD types are actually sub columns of it
+      typesList.retainAll(rsdType.getSubDataTypes());
+    }
     if (mainType instanceof PreferredAnnotationType) {
       // preferred annotation type inherits many sub types from CompoundDB, SpectralLibrary etc.
       // remove the main types because otherwise we get duplicates here
