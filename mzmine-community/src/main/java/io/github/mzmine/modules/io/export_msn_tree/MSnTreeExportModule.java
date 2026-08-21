@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,15 @@ package io.github.mzmine.modules.io.export_msn_tree;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.order.MassDetectionCondition;
+import io.github.mzmine.modules.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +58,13 @@ public class MSnTreeExportModule implements MZmineProcessingModule {
   @Override
   public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation("MSn tree export",
+        "MSn tree export reads centroid mass lists from all exported scans",
+        ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
   }
 
   @Override

@@ -34,8 +34,10 @@ execution.
   alignment, compound representation, correlation-dependent ion networking, and ion-network formula
   processing. Mass-list consumers use a shared custom condition that accepts earlier standalone mass
   detection or an earlier advanced data import with either MS1 or MSn mass detection enabled in the
-  same inferred pipeline. Other parameter-dependent checks and rules targeting a broad module family
-  remain undeclared until the rule model can express their applicability without false positives.
+  same inferred pipeline. Feature-list blank subtraction requires any earlier alignment-category
+  module, while chromatogram blank subtraction must precede any `FeatureResolverModule`. Other
+  parameter-dependent checks remain undeclared until the rule model can express their applicability
+  without false positives.
 
 Scientific ordering policies remain in the individual processing modules; the framework does not
 define global module relationships.

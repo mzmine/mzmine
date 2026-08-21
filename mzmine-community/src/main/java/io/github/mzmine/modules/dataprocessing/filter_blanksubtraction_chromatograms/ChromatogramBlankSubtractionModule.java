@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,15 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction_chromato
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
+import io.github.mzmine.modules.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +53,13 @@ public class ChromatogramBlankSubtractionModule extends SingleTaskFeatureListsMo
             Subtracts blank chromatograms from samples. Uses the maximum intensity of m/z chromatogram across all blanks.
             This results in blank subtracted extracted ion chromatograms as input to any feature resolver.
             Feature resolving then describes the minimum height and other feature constraints.""");
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation("Chromatogram processing",
+        "Blank chromatograms must be subtracted before chromatograms are resolved into features",
+        ModuleOrderRule.mustRunBefore(FeatureResolverModule.class)));
   }
 
   @Override
