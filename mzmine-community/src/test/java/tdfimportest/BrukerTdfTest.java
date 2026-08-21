@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,10 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
-import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -47,19 +46,18 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
+import testutils.MZmineTestUtil;
 
 public class BrukerTdfTest {
 
@@ -67,15 +65,17 @@ public class BrukerTdfTest {
 
   public static IMSRawDataFile importTestFile() throws IOException, InterruptedException {
     InitJavaFX.init();
+    MZmineTestUtil.startMzmineCore();
 
     MZmineProject project = new MZmineProjectImpl();
-    String str = BrukerTdfTest.class.getClassLoader()
-        .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
+    String str = "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Bruker\\timsTOF\\20241126 - WWTP Spiked\\pos\\ex_klaer_RA4_6570.d";
+//    String str = "F:\\example_data\\200ngHeLaPASEF_2min_compressed.d";
     File file = new File(str);
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
     AbstractTask importTask = new TDFImportTask(project, file, null, TDFImportModule.class,
-        new TDFImportParameters(), Instant.now());
+        AllSpectralDataImportParameters.create(VendorImportParameters.createDefault(),
+            new File[]{file}, null, null), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });
@@ -98,7 +98,6 @@ public class BrukerTdfTest {
     return (IMSRawDataFile) project.getCurrentRawDataFiles().getFirst();
   }
 
-  @Disabled("Needs test file?")
   @Test
   public void testFile() {
     IMSRawDataFile file = null;
@@ -117,29 +116,35 @@ public class BrukerTdfTest {
         file.getFrame(0).getMobilityScans().get(0).getMobilityType());
     Assert.assertEquals(MobilityType.TIMS,
         file.getFrame(0).getMobilityScans().get(0).getMobilityType());
-    Assert.assertEquals(671, file.getFrame(507).getMobilityScans().size());
+    Assert.assertEquals(1065, file.getFrame(507).getMobilityScans().size());
 
     Frame frame18 = file.getFrame(17);
-    Assert.assertEquals(21616, frame18.getNumberOfDataPoints());
-    Assert.assertEquals(599.3259, frame18.getBasePeakMz(), 0.001d);
-    Assert.assertEquals(555437, frame18.getBasePeakIntensity(), 1d);
-    Assert.assertEquals((double) 3.0823007E7, frame18.getTIC(), 2d);
-    Assert.assertEquals(40.044052, frame18.getRetentionTime(), 0.00001f);
-    Assert.assertEquals(Range.closed(100d, 1700d), frame18.getScanningMZRange());
+    Assert.assertEquals(2481, frame18.getNumberOfDataPoints());
+    Assert.assertEquals(338.3410293649397, frame18.getBasePeakMz(), 0.001d);
+//    Assert.assertEquals(17702.0, frame18.getBasePeakIntensity(), 1d);
+//    Assert.assertEquals((double) 217944.0, frame18.getTIC(), 2d);
+    Assert.assertEquals(0.03988863f, frame18.getRetentionTime(), 0.00001f);
+    Assert.assertEquals(Range.closed(20.000132, 1300d), frame18.getScanningMZRange());
+    Assertions.assertTrue(IntStream.range(0, frame18.getNumberOfDataPoints())
+        .allMatch(i -> frame18.getIntensityValue(i) == (double) ((int) frame18.getIntensityValue(i))));
 
-    MobilityScan mobilityScan425 = frame18.getMobilityScans().get(425);
-    Assert.assertEquals(291, mobilityScan425.getBasePeakIndex().intValue());
-    Assert.assertEquals(17238.0, mobilityScan425.getBasePeakIntensity(), 0.0001d);
-    Assert.assertEquals(599.3258165182417, mobilityScan425.getBasePeakMz(), 0.00000001d);
-    Assert.assertEquals(0.9038559019326673, mobilityScan425.getMobility(), 0.00000001d);
+    MobilityScan mobilityScan425 = frame18.getMobilityScans().get(676);
+    Assert.assertEquals(5, mobilityScan425.getBasePeakIndex().intValue());
+    Assert.assertEquals(811.0, mobilityScan425.getBasePeakIntensity(), 0.0001d);
+    Assert.assertEquals(257.24809278048906, mobilityScan425.getBasePeakMz(), 0.00000001d);
+    Assert.assertEquals(0.8434466339447616, mobilityScan425.getMobility(), 0.00000001d);
     Assert.assertEquals(18, mobilityScan425.getFrame().getFrameId(), 0.00000001d);
-    Assert.assertEquals(833, mobilityScan425.getNumberOfDataPoints(), 0.00000001d);
-    Assert.assertEquals(Range.closed(246.15697362418837, 1422.918606530885),
+    Assert.assertEquals(23, mobilityScan425.getNumberOfDataPoints(), 0.00000001d);
+    Assert.assertEquals(Range.closed(177.16509017225775, 437.81270544125056),
         mobilityScan425.getDataPointMZRange());
-//    Assert.assertEquals(107494.0, mobilityScan425.getTIC(), 0.0001d);
+    Assert.assertEquals(2105.0, mobilityScan425.getTIC(), 0.0001d);
+    Assertions.assertEquals(215673.0,
+        frame18.getMobilityScans().stream().mapToDouble(s -> s.getTIC()).sum());
+    Assertions.assertTrue(frame18.getMobilityScans().stream()
+        .noneMatch(s -> s.getTIC() != (double) (s.getTIC().intValue())));
   }
 
-  @Disabled("Needs test file?")
+  @Disabled
   @Test
   public void testMobilogramScanDataAccess()
       throws IOException, InterruptedException, MissingMassListException {
@@ -168,37 +173,5 @@ public class BrukerTdfTest {
         }
       }
     }
-  }
-
-  @DisabledOnOs(OS.MAC)
-  @Test
-  public void testCachedConversion() {
-    TDFUtils utils = new TDFUtils();
-
-    final URL resource = this.getClass()
-        .getResource("/rawdatafiles/additional/lc-tims-ms-pasef-a.d");
-    final long handle = utils.openFile(new File(resource.getFile()));
-
-    final List<SimpleSpectralArrays> f1v1 = utils.loadDataPointsForFrame(1, 660L, 818L);
-    final List<SimpleSpectralArrays> f2v1 = utils.loadDataPointsForFrame(2, 660L, 818L);
-
-    final List<SimpleSpectralArrays> f1v2 = utils.loadDataPointsForFrame_v2(1, 660L, 818L);
-    final List<SimpleSpectralArrays> f2v2 = utils.loadDataPointsForFrame_v2(2, 660L, 818L);
-
-//    Assertions.assertEquals(f1v1.size(), f1v2.size());
-//    Assertions.assertEquals(f2v1.size(), f2v2.size());
-//    for (int i = 0; i < f1v1.size(); i++) {
-//      final SimpleSpectralArrays v1 = f1v1.get(i);
-//      final SimpleSpectralArrays v2 = f1v2.get(i);
-//      Assertions.assertEquals(v1, v2);
-//
-//      final SimpleSpectralArrays d1 = f2v1.get(i);
-//      final SimpleSpectralArrays d2 = f2v2.get(i);
-//      Assertions.assertEquals(d1, d2);
-//    }
-
-    Assertions.assertEquals(f1v1, f1v2);
-    Assertions.assertEquals(f2v1, f2v2);
-    utils.close();
   }
 }
