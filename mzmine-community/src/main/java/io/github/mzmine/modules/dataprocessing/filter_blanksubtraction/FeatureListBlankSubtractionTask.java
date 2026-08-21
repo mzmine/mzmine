@@ -307,12 +307,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   }
 
   private double getFeatureQuantifier(Feature f, AbundanceMeasure quantType) {
-    if (quantType == AbundanceMeasure.Height) {
-      return f.getHeight();
-    } else if (quantType == AbundanceMeasure.Area) {
-      return f.getArea();
-    }
-    throw new RuntimeException("Unknown parameter");
+    final Float abundance = quantType.getOrNaN((ModularFeature) f);
+    return Float.isFinite(abundance) ? abundance : 0d;
   }
 
   private double getAbundance(List<Feature> features, AbundanceMeasure quantType,

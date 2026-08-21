@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.features.types.AbstractBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaBoxPlotType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -67,6 +69,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.compoundlist.CompoundIdType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
+import io.github.mzmine.datamodel.features.types.fx.MetadataHeaderColumn;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.CompoundHierarchyTreeTableRow;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.MinSamplesRequirement;
@@ -1027,6 +1030,14 @@ public class FeatureTableFX extends BorderPane {
       setupExpandableColumn(dataType, col, ColumnType.ROW_TYPE, null);
     }
 
+    // only offer the normalized option in the box plot header if this feature list has the
+    // normalized feature type - the box plots use the per sample feature values
+    if (col instanceof MetadataHeaderColumn<?, ?> metadataHeader
+        && dataType instanceof AbstractBoxPlotType boxPlotType) {
+      final AbundanceMeasure normalized = boxPlotType.getNormalizedAbundanceMeasure();
+      metadataHeader.setNormVisible(getFeatureList().hasFeatureType(normalized.type()));
+    }
+
     // Add row column
     rowCol.getColumns().add(col);
 
@@ -1354,8 +1365,7 @@ public class FeatureTableFX extends BorderPane {
   @Nullable
   public ModularFeatureListRow getSelectedRow() {
     return table.getSelectionModel().getSelectedItem() != null ? table.getSelectionModel()
-                                                                 .getSelectedItem().getValue()
-        : null;
+        .getSelectedItem().getValue() : null;
   }
 
   /**

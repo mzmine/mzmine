@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -45,12 +46,13 @@ public class AbundanceBoxPlotCell extends
 
   public AbundanceBoxPlotCell(int id,
       @NotNull ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn,
-      AbundanceMeasure abundanceMeasure) {
+      @NotNull ObservableValue<AbundanceMeasure> abundanceMeasure) {
     super(id);
 
     boxPlot = new RowsBoxplotController();
     setMinHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    boxPlot.abundanceMeasureProperty().set(abundanceMeasure);
+    // the measure may switch between raw and normalized values in the column header
+    boxPlot.abundanceMeasureProperty().bind(abundanceMeasure);
     boxPlot.groupingColumnProperty().bindBidirectional(groupingColumn);
 
     boxPlot.showCategoryAxisLabelProperty().set(false);

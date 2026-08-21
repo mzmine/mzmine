@@ -119,11 +119,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
   /**
    * @param compoundRowSelection
-   * @param featureLists   feature lists to export
-   * @param fileName       export file name
-   * @param fieldSeparator separation of columns
-   * @param idSeparator    identity field separation
-   * @param rowFilter      Row filter
+   * @param featureLists         feature lists to export
+   * @param fileName             export file name
+   * @param fieldSeparator       separation of columns
+   * @param idSeparator          identity field separation
+   * @param rowFilter            Row filter
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator, String idSeparator, FeatureListRowsFilter rowFilter,
@@ -355,6 +355,12 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       for (int i = 0; i < definedSubTypes; i++) {
         // check if we keep the "static" sub types
         DataType subType = subFactory.getType(i);
+
+        if (subType.equals(subFactory)) {
+          // never remove the main type
+          typesList.add(subType);
+          continue;
+        }
         if (!filterType(subType) || (removeEmptyCols && !typeContainData(mainType, rows, false,
             i))) {
           continue;

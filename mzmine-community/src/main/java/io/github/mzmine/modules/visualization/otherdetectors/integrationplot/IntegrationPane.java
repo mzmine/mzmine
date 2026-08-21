@@ -235,6 +235,8 @@ public class IntegrationPane extends BorderPane {
         plot.setIntegratedFeatures(
             ts.getFeatureData().getTimeSeriesData().getProcessedFeaturesForTrace(ts).stream()
                 .map(OtherFeature::getFeatureData).toList());
+        plot.setTitle(rawFile.map(RawDataFile::getName).map(name -> name + " - ").getValue()
+            + ts.getFeatureData().getName());
       }
       saveAllowedProperty.set(isPlotFeaturesMatchSavedFeatures());
     });

@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.annotations.AnalogSpectralLibra
 import io.github.mzmine.datamodel.features.types.annotations.AnnotationMethodType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
@@ -619,6 +620,7 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
         case MatchingSignalsType _ -> this.getSimilarity().getOverlap();
         case MzPpmDifferenceType _ -> this.getMzPpmError(); // not added as type so needs mapping
         case AnnotationMethodType _ -> getAnnotationMethodName(); // not in map so need method call
+        case DatabaseNameType _ -> getDatabase();
         default -> null; // just return null here as type is just unknown to this match
       };
     } catch (Exception e) {
