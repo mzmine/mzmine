@@ -164,6 +164,9 @@ public final class FeatureListPreferences {
 
     FeatureListPreferencesDtoParameters parameters = FeatureListPreferencesDtoParameters.loadFromXML(
         element);
+    if (parameters == null) {
+      return null;
+    }
     return parameters.toPreferences();
   }
 

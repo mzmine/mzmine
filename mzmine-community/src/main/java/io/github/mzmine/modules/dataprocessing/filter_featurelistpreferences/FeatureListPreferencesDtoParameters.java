@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
@@ -47,10 +47,18 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
     super(rsdSampleTypes);
   }
 
+  @Nullable
   public static FeatureListPreferencesDtoParameters loadFromXML(@Nullable Element element) {
-    final ParameterSet params = new FeatureListPreferencesDtoParameters().cloneParameterSet();
+    if (element == null || !element.getTagName().equals(CONST.XML_FLIST_PREFERENCES_ELEMENT)) {
+      return null;
+    }
+
+    // the default so that all parameters that are not loaded are set to the actual default
+    // like new parameters added later
+    final FeatureListPreferencesDtoParameters params = FeatureListPreferencesDtoParameters.fromPreferences(
+        FeatureListPreferences.createDefault());
     params.loadValuesFromXML(element);
-    return (FeatureListPreferencesDtoParameters) params;
+    return params;
   }
 
   public @NotNull FeatureListPreferences toPreferences() {
