@@ -77,6 +77,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredi
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_pubchemsearch.gui.PubChemResultsController;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
@@ -569,7 +570,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         _ -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
             new ArrayList<>(selectedRows), table, Instant.now()));
 
-    final MenuItem nistSearchItem = new ConditionalMenuItem("NIST MS search",
+    final MenuItem nistPepSearchItem = new ConditionalMenuItem("NIST MSPepSearch",
+        () -> selectedRows.size() == 1);
+    nistPepSearchItem.setOnAction(
+        _ -> NistPepSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.getFirst()));
+
+    final MenuItem nistSearchItem = new ConditionalMenuItem("NIST MS search (deprecated)",
         () -> selectedRows.size() == 1);
     nistSearchItem.setOnAction(
         _ -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.getFirst()));
@@ -630,7 +636,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
 
-    searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
+    searchMenu.getItems().addAll(spectralDbSearchItem, nistPepSearchItem, nistSearchItem,
+        new SeparatorMenuItem(),
         formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
         new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
         siriusSubMenu);
