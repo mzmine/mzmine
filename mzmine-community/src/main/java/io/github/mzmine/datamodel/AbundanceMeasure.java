@@ -127,14 +127,12 @@ public enum AbundanceMeasure implements UniqueIdSupplier {
 
 
   /**
-   * @return the normalized counterpart of this raw measure or null if this measure is already
-   * normalized
+   * @return the normalized variant. If already normalized returns itself
    */
-  public @Nullable AbundanceMeasure normalizedVariant() {
+  public @NotNull AbundanceMeasure normalizedVariant() {
     return switch (this) {
-      case Height -> NORMALIZED_HEIGHT;
-      case Area -> NORMALIZED_AREA;
-      case NORMALIZED_HEIGHT, NORMALIZED_AREA -> null;
+      case Height, NORMALIZED_HEIGHT -> NORMALIZED_HEIGHT;
+      case Area, NORMALIZED_AREA -> NORMALIZED_AREA;
     };
   }
 

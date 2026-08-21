@@ -1035,7 +1035,7 @@ public class FeatureTableFX extends BorderPane {
     if (col instanceof MetadataHeaderColumn<?, ?> metadataHeader
         && dataType instanceof AbstractBoxPlotType boxPlotType) {
       final AbundanceMeasure normalized = boxPlotType.getNormalizedAbundanceMeasure();
-      metadataHeader.setCheckBoxVisible(getFeatureList().hasFeatureType(normalized.type()));
+      metadataHeader.setNormVisible(getFeatureList().hasFeatureType(normalized.type()));
     }
 
     // Add row column

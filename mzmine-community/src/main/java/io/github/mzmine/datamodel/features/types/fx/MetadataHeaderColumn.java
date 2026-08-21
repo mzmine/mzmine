@@ -25,26 +25,26 @@
 
 package io.github.mzmine.datamodel.features.types.fx;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,16 +58,15 @@ import org.jetbrains.annotations.Nullable;
 public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
 
   private final ObjectProperty<@Nullable MetadataColumn<?>> selectedColumn = new SimpleObjectProperty<>();
-  private final PauseTransition delay = new PauseTransition(Duration.millis(100));
   /**
    * State of the optional header check box. Only meaningful if a check box label was given and
-   * {@link #checkBoxVisibleProperty()} is true.
+   * {@link #normVisibleProperty()} is true.
    */
-  private final BooleanProperty checkBoxSelected = new SimpleBooleanProperty(true);
-  private final BooleanProperty checkBoxVisible = new SimpleBooleanProperty(false);
+  private final BooleanProperty normActive = new SimpleBooleanProperty(true);
+  private final BooleanProperty normVisible = new SimpleBooleanProperty(false);
 
   public MetadataHeaderColumn(@NotNull DataType<?> dataType,
-      @Nullable MetadataColumn<?> defaultColumn) {
+      @Nullable MetadataColumn<?> defaultColumn, @NotNull AbundanceMeasure rawAbundanceMeasure) {
     super();
 
     setUserData(dataType);
@@ -79,14 +78,16 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
     final VBox header = FxLayout.newVBox(Pos.CENTER);
     header.setFillWidth(true);
 
-    final Label title = FxLabels.newLabel(checkBoxSelected.and(checkBoxVisible)
-        .map(normalized -> (normalized ? "Norm. " : "") + dataType.getHeaderString()));
+    final ButtonBase toggle = FxIconUtil.newIconButton(FxIcons.TOGGLE_SWITCH,
+        FxIconUtil.LIST_ICON_SIZE, () -> normActive.set(!normActive.get()));
+    final Label title = FxLabels.newLabel(normActive.and(normVisible).map(
+        normalized -> (normalized ? "Normalized " + rawAbundanceMeasure.toString().toLowerCase()
+            : rawAbundanceMeasure.toString())));
 
-    final CheckBox normCheckBox = FxCheckBox.newCheckBox("", checkBoxSelected);
-    normCheckBox.visibleProperty().bind(checkBoxVisible);
-    normCheckBox.managedProperty().bind(checkBoxVisible);
+    toggle.visibleProperty().bind(normVisible);
+    toggle.managedProperty().bind(normVisible);
 
-    header.getChildren().add(FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, 4, normCheckBox, title));
+    header.getChildren().add(FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, 4, toggle, title));
 
     // using a combobox here causes the virtual flow to fail. This lead to the feature table not
     // jumping to/selecting the row if a loading was selected in the stats dashboard scores plot
@@ -110,23 +111,23 @@ public class MetadataHeaderColumn<S, T> extends TreeTableColumn<S, T> {
     return selectedColumn;
   }
 
-  public BooleanProperty checkBoxSelectedProperty() {
-    return checkBoxSelected;
+  public BooleanProperty normActiveProperty() {
+    return normActive;
   }
 
-  public boolean isCheckBoxSelected() {
-    return checkBoxSelected.get();
+  public boolean isNormActiveSelected() {
+    return normActive.get();
   }
 
-  public BooleanProperty checkBoxVisibleProperty() {
-    return checkBoxVisible;
+  public BooleanProperty normVisibleProperty() {
+    return normVisible;
   }
 
-  public boolean isCheckBoxVisible() {
-    return checkBoxVisible.get();
+  public boolean isNormVisible() {
+    return normVisible.get();
   }
 
-  public void setCheckBoxVisible(final boolean visible) {
-    checkBoxVisible.set(visible);
+  public void setNormVisible(final boolean visible) {
+    normVisible.set(visible);
   }
 }

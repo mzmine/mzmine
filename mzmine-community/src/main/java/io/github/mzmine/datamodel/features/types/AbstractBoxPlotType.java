@@ -84,7 +84,7 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
    */
   private @NotNull AbundanceMeasure getEffectiveAbundanceMeasure(
       @NotNull MetadataHeaderColumn<?, ?> col) {
-    return col.isCheckBoxVisible() && col.isCheckBoxSelected() ? normalizedAbundanceMeasure
+    return col.isNormVisible() && col.isNormActiveSelected() ? normalizedAbundanceMeasure
         : abundanceMeasure;
   }
 
@@ -105,11 +105,11 @@ public abstract class AbstractBoxPlotType extends LinkedGraphicalType implements
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
 
     final MetadataHeaderColumn<ModularFeatureListRow, Object> col = new MetadataHeaderColumn<>(this,
-        ProjectService.getMetadata().getSampleTypeColumn());
+        ProjectService.getMetadata().getSampleTypeColumn(), abundanceMeasure);
 
     final ObservableValue<AbundanceMeasure> measure = Bindings.createObjectBinding(
-        () -> getEffectiveAbundanceMeasure(col), col.checkBoxSelectedProperty(),
-        col.checkBoxVisibleProperty());
+        () -> getEffectiveAbundanceMeasure(col), col.normActiveProperty(),
+        col.normVisibleProperty());
 
     // define observable
     col.setCellFactory(new CountingRowChartCellFactory(
