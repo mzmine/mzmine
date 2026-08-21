@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,9 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_splitaligned;
 
-import static io.github.mzmine.util.StringUtils.inQuotes;
-
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
@@ -34,7 +35,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
 
@@ -42,10 +45,13 @@ public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MetadataGroupingParameter> grouping = new OptionalParameter<>(
       new MetadataGroupingParameter("Split by metadata group",
-          "If selected, files of the same metadata group will be split into the same feature list. Otherwise, each file will create an individual feature list."), false);
+          "If selected, files of the same metadata group will be split into the same feature list. Otherwise, each file will create an individual feature list."),
+      false);
 
   public SplitAlignedFeatureListParameters() {
-    super("https://mzmine.github.io/mzmine_documentation/module_docs/filter_splitaligned/split_aligned_feature_list.html", flists, grouping);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_splitaligned/split_aligned_feature_list.html",
+        flists, grouping);
   }
 
   @Override
@@ -68,5 +74,12 @@ public class SplitAlignedFeatureListParameters extends SimpleParameterSet {
     }
 
     return superCheck;
+  }
+
+  @Override
+  public @Nullable Region getMessage() {
+    return FxTextFlows.newTextFlowInAccordion("Information", true, FxTexts.text("""
+        This module will remove all annotations from the feature list, because current annotations \
+        are based on evidence merged across multiple files."""));
   }
 }

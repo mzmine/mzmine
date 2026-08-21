@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,15 +29,14 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AbundanceMeasureParameter;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import java.awt.geom.Point2D;
@@ -58,8 +57,10 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
       "Select the domain PC to build the plot.");
   public static final AbundanceMeasureParameter abundance = new AbundanceMeasureParameter(
       "Abundance", "Select the abundance measure.", AbundanceMeasure.values());
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
-      "Sample types", "Select the sample types for the PCA.", SampleType.values());
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
+      "Sample types",
+      "Select the sample types for the PCA. Any custom group name of the mzmine_sample_type metadata column can be selected.",
+      SampleTypeFilter.all());
   public static final RegionsParameter regions = new RegionsParameter();
 
   public PCALoadingsExtractionParameters() {
@@ -78,7 +79,7 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
     param.setParameter(domainPc, pcaModel.getDomainPc());
     param.setParameter(rangePc, pcaModel.getRangePc());
     param.setParameter(abundance, pcaModel.getAbundance());
-    param.setParameter(sampleTypes, List.copyOf(pcaModel.getSampleTypeFilter().getTypes()));
+    param.setParameter(sampleTypes, pcaModel.getSampleTypeFilter());
     param.setParameter(PCALoadingsExtractionParameters.regions, regions);
 
     return param;
@@ -92,7 +93,7 @@ public class PCALoadingsExtractionParameters extends SimpleParameterSet {
     pcaModel.setDomainPc(getValue(domainPc));
     pcaModel.setRangePc(getValue(rangePc));
     pcaModel.setAbundance(getValue(abundance));
-    pcaModel.setSampleTypeFilter(new SampleTypeFilter(getValue(sampleTypes)));
+    pcaModel.setSampleTypeFilter(getValue(sampleTypes));
     return pcaModel;
   }
 

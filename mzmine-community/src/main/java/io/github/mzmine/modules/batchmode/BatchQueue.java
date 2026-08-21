@@ -39,10 +39,13 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +55,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Batch steps queue
@@ -206,6 +212,25 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       errorMessages.add(1, "Check all steps and parameters carefully; then save the batch again.");
     }
     return queue;
+  }
+
+  /**
+   * Load from file
+   *
+   * @return {@link BatchQueue} and error messages from loading
+   * @throws ParserConfigurationException
+   * @throws IOException
+   * @throws SAXException
+   */
+  public static @NonNull LoadedBatchQueue loadFromFile(File batchFile)
+      throws ParserConfigurationException, IOException, SAXException {
+    logger.info("Loading batch from file " + batchFile);
+    final Document parsedBatchXML = XMLUtils.load(batchFile);
+
+    List<String> errorMessages = new ArrayList<>();
+    // fail on missing modules - here its usually run from the command line - fail it
+    BatchQueue newQueue = loadFromXml(parsedBatchXML.getDocumentElement(), errorMessages, false);
+    return new LoadedBatchQueue(errorMessages, newQueue);
   }
 
   @Override

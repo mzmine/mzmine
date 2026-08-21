@@ -629,6 +629,7 @@ public class FeatureListLoadTask extends AbstractTask {
       throw new IllegalStateException("Row ids do not match.");
     }
 
+    boolean featuresParsed = false;
     while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
         .equals(CONST.XML_ROW_ELEMENT)) && reader.hasNext()) {
       if (reader.next() == XMLEvent.START_ELEMENT) {
@@ -642,6 +643,7 @@ public class FeatureListLoadTask extends AbstractTask {
             continue;
           }
           parseFeature(reader, storage, project, flist, row, file);
+          featuresParsed = true;
         } else if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
           DataType type = DataTypes.getTypeForId(
               reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
@@ -659,6 +661,12 @@ public class FeatureListLoadTask extends AbstractTask {
           }
         }
       }
+    }
+
+    if (featuresParsed) {
+      // features were added without updating the row bindings - update once for the whole row.
+      // rows without features keep the loaded values, as before
+      flist.applyRowBindings(row);
     }
     rowCounter.getAndIncrement();
   }
@@ -698,6 +706,10 @@ public class FeatureListLoadTask extends AbstractTask {
     }
 
     DataTypeUtils.applyFeatureSpecificGraphicalTypes(feature);
-    row.addFeature(originalFile, feature);
+    // each row binding aggregates over all features of the row, so applying them per feature makes
+    // loading a row O(features^2). parseRow applies them once after all features were parsed.
+    // assumption: FeatureListSaveTask#writeRow writes all row data types before the features, so
+    // the loaded row values are overwritten by the bindings either way
+    row.addFeature(originalFile, feature, false);
   }
 }
