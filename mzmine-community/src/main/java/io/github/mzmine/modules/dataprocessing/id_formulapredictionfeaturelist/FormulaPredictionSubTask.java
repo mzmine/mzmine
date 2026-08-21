@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -288,15 +288,15 @@ class FormulaPredictionSubTask extends AbstractTask {
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     IsotopePattern predictedIsotopePattern = null;
     Float isotopeScore = null;
-    if ((checkIsotopes) && (detectedPattern != null)) {
-
-      final IMolecularFormula clonedFormula = FormulaUtils.cloneFormula(cdkFormula);
-      ionType.ionizeFormula(clonedFormula);
+    // empty if the ionization cannot be applied to this formula, then no isotope score
+    final IMolecularFormula ionFormula =
+        checkIsotopes ? ionType.ionizeFormula(cdkFormula).orElse(null) : null;
+    if ((checkIsotopes) && (detectedPattern != null) && ionFormula != null) {
 
       final double detectedPatternHeight = detectedPattern.getBasePeakIntensity();
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
+      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
           minPredictedAbundance, ionType.getCharge(), ionType.getPolarity());
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,

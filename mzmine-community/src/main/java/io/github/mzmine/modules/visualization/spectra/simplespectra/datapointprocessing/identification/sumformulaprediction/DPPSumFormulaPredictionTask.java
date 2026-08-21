@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -314,8 +314,11 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       IsotopePattern detectedPattern) {
 
     IsotopePattern predictedIsotopePattern = null;
-    final IMolecularFormula clonedFormula = FormulaUtils.cloneFormula(cdkFormula);
-    ionType.ionizeFormula(clonedFormula);
+    // empty if the ionization cannot be applied to this formula, then no isotope score
+    final IMolecularFormula ionFormula = ionType.ionizeFormula(cdkFormula).orElse(null);
+    if (ionFormula == null) {
+      return 0f;
+    }
 
     Integer isotopeBasePeak = detectedPattern.getBasePeakIndex();
     if (isotopeBasePeak == null) {
@@ -325,7 +328,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-    predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(clonedFormula,
+    predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
         minPredictedAbundance, charge, ionType.getPolarity());
 
     return IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,

@@ -57,7 +57,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
 
@@ -250,12 +249,13 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
       formula.setWrapText(true);
       panelOther.getChildren().addAll(formula);
 
+      // no m/z shown if the ionization cannot be applied to the lipid formula
+      final String ionMz = matchedLipid.getIonizationType()
+          .ionizeFormula(matchedLipid.getLipidAnnotation().getMolecularFormula()).map(
+              ionFormula -> MZmineCore.getConfiguration().getMZFormat()
+                  .format(FormulaUtils.calculateMzRatio(ionFormula))).orElse("NA");
       Label ion = new Label(
-          "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " "
-              + MZmineCore.getConfiguration().getMZFormat().format(FormulaUtils.calculateMzRatio(
-              FormulaUtils.ionizeFormula(FormulaUtils.getFormulaString(
-                      matchedLipid.getLipidAnnotation().getMolecularFormula()),
-                  matchedLipid.getIonizationType()))));
+          "Ion notation: " + matchedLipid.getIonizationType().getAdductName() + " " + ionMz);
       ion.setWrapText(true);
       panelOther.getChildren().addAll(ion);
 

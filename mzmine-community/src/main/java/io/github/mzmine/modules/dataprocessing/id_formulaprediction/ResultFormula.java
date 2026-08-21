@@ -206,8 +206,9 @@ public class ResultFormula extends MolecularFormulaIdentity {
             }
           }
 
-          var ionized = ionType.addToFormula(formula, true);
-          c.accept(new ResultFormula(ionized, row));
+          // skip formulas that the ion type cannot be applied to
+          ionType.addToFormula(formula, true)
+              .ifPresent(ionized -> c.accept(new ResultFormula(ionized, row)));
         }).toList(); // keep only unique formula
 
     if (dropDuplicates) {

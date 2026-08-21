@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.ILipidAnnotation;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class LipidFragmentFactory implements ILipidFragmentFactory {
@@ -207,13 +209,12 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
 
   private List<LipidFragment> checkForOnlyPrecursor(LipidFragmentationRule rule,
       ILipidAnnotation lipidAnnotation, Scan msMsScan) {
-    IMolecularFormula lipidFormula;
-    try {
-      lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-    } catch (CloneNotSupportedException e) {
-      throw new RuntimeException(e);
+    // empty if the ionization cannot be applied to the lipid formula
+    final IMolecularFormula lipidFormula = rule.getIonizationType()
+        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return List.of();
     }
-    rule.getIonizationType().ionizeFormula(lipidFormula);
     return findLipidFragmentFromIonFormula(rule, lipidAnnotation, msMsScan, lipidFormula);
   }
 
@@ -228,15 +229,15 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       ILipidAnnotation lipidAnnotation, Scan msMsScan) {
     IMolecularFormula formulaNL = FormulaUtils.createMajorIsotopeMolFormulaWithCharge(
         rule.getMolecularFormula());
-    final IMolecularFormula lipidFormula;
-    try {
-      lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-    } catch (CloneNotSupportedException e) {
-      throw new RuntimeException(e);
+    // empty if the ionization cannot be applied to the lipid formula
+    final IMolecularFormula lipidFormula = rule.getIonizationType()
+        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return List.of();
     }
-    rule.getIonizationType().ionizeFormula(lipidFormula);
-    final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-        lipidFormula, formulaNL);
+    // is already cloned in first step above
+    final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
+        formulaNL, false);
     if (fragmentFormula.isEmpty()) {
       return List.of();
     }
@@ -251,8 +252,12 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
           onlySearchForEvenChains);
       List<LipidFragment> matchedFragments = new ArrayList<>();
       for (ILipidChain lipidChain : fattyAcylChains) {
-        IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
-        IonizationType.NEGATIVE_HYDROGEN.ionizeFormula(lipidChainFormula);
+        // empty if the ionization cannot be applied to the chain formula
+        final IMolecularFormula lipidChainFormula = IonTypes.H_MINUS.asIonType()
+            .addToFormula(lipidChain.getChainMolecularFormula(), true).orElse(null);
+        if (lipidChainFormula == null) {
+          continue;
+        }
         addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
             lipidChainFormula);
       }
@@ -306,14 +311,16 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     final List<LipidFragment> matchedFragments = new ArrayList<>();
     for (final ILipidChain lipidChain : chains) {
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-          lipidChain.getChainMolecularFormula(), modificationFormula);
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(
+          lipidChain.getChainMolecularFormula(), modificationFormula, true);
       if (fragmentFormula.isEmpty()) {
         continue;
       }
       final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
-          fragmentFormula.get(),
-          rule.getPolarityType());
+          fragmentFormula.get(), rule.getPolarityType());
+      if (ionizedFragmentFormula == null) {
+        continue;
+      }
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
           ionizedFragmentFormula);
     }
@@ -346,22 +353,21 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         rule.getMolecularFormula());
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(chainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
+    // empty if the ionization cannot be applied to the lipid formula
+    final IMolecularFormula lipidFormula = rule.getIonizationType()
+        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return List.of();
+    }
     final List<LipidFragment> matchedFragments = new ArrayList<>();
     for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidFormula;
-      try {
-        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
-      }
-      rule.getIonizationType().ionizeFormula(lipidFormula);
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-          lipidChain.getChainMolecularFormula(), modificationFormula);
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(
+          lipidChain.getChainMolecularFormula(), modificationFormula, true);
       if (fragmentFormula.isEmpty()) {
         continue;
       }
-      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-          lipidFormula, fragmentFormula.get());
+      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormula(
+          lipidFormula, fragmentFormula.get(), true);
       if (lipidMinusFragmentFormula.isEmpty()) {
         continue;
       }
@@ -387,6 +393,9 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       final IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(
           fragmentFormula,
           rule.getPolarityType());
+      if (ionizedFragmentFormula == null) {
+        continue;
+      }
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
           ionizedFragmentFormula);
     }
@@ -407,6 +416,9 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
           modificationFormula);
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
+      if (ionizedFragmentFormula == null) {
+        continue;
+      }
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact);
       if (bestDataPoint.fragmentMatched()) {
@@ -433,6 +445,9 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(lipidChainFormula,
           rule.getPolarityType());
+      if (ionizedFragmentFormula == null) {
+        continue;
+      }
       addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
           ionizedFragmentFormula);
     }
@@ -444,17 +459,16 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       ILipidAnnotation lipidAnnotation, Scan msMsScan, LipidChainType lipidChainType) {
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
+    // empty if the ionization cannot be applied to the lipid formula
+    final IMolecularFormula lipidFormula = rule.getIonizationType()
+        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return List.of();
+    }
     final List<LipidFragment> matchedFragments = new ArrayList<>();
     for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidFormula;
-      try {
-        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
-      }
-      rule.getIonizationType().ionizeFormula(lipidFormula);
-      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-          lipidFormula, lipidChain.getChainMolecularFormula());
+      final Optional<IMolecularFormula> fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
+          lipidChain.getChainMolecularFormula(), true);
       if (fragmentFormula.isEmpty()) {
         continue;
       }
@@ -472,21 +486,20 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
         rule.getMolecularFormula());
     final List<ILipidChain> chains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(lipidChainType,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
+    // empty if the ionization cannot be applied to the lipid formula
+    final IMolecularFormula lipidFormula = rule.getIonizationType()
+        .ionizeFormula(lipidAnnotation.getMolecularFormula()).orElse(null);
+    if (lipidFormula == null) {
+      return List.of();
+    }
     final List<LipidFragment> matchedFragments = new ArrayList<>();
     for (final ILipidChain lipidChain : chains) {
-      final IMolecularFormula lipidFormula;
-      try {
-        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
-      }
-      rule.getIonizationType().ionizeFormula(lipidFormula);
       final IMolecularFormula lipidChainFormula = FormulaUtils.cloneFormula(
           lipidChain.getChainMolecularFormula());
       final IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
           modificationFormula);
-      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormulaIfPossible(
-          lipidFormula, fragmentFormula);
+      final Optional<IMolecularFormula> lipidMinusFragmentFormula = FormulaUtils.subtractFormula(
+          lipidFormula, fragmentFormula, true);
       if (lipidMinusFragmentFormula.isEmpty()) {
         continue;
       }
@@ -496,14 +509,15 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
     return matchedFragments;
   }
 
-  protected IMolecularFormula ionizeFragmentBasedOnPolarity(IMolecularFormula formula,
-      PolarityType polarityType) {
+  /**
+   * @return the ionized fragment formula or null if the ionization cannot be applied to formula
+   */
+  protected @Nullable IMolecularFormula ionizeFragmentBasedOnPolarity(
+      @NotNull IMolecularFormula formula, @NotNull PolarityType polarityType) {
     if (polarityType.equals(PolarityType.NEGATIVE)) {
-      IonizationType.NEGATIVE.ionizeFormula(formula);
-      return formula;
+      return IonTypes.M_MINUS.asIonType().addToFormula(formula, true).orElse(null);
     } else if (polarityType.equals(PolarityType.POSITIVE)) {
-      IonizationType.POSITIVE.ionizeFormula(formula);
-      return formula;
+      return IonTypes.M_PLUS.asIonType().addToFormula(formula, true).orElse(null);
     }
     return formula;
   }

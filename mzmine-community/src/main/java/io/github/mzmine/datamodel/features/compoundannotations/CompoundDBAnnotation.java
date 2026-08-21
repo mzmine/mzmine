@@ -704,8 +704,12 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
       if (majorIsotopeMolFormula == null) {
         continue;
       }
-      final IMolecularFormula majorIsotopeIon;
-      majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true);
+      // skip if the adduct cannot be applied to this formula
+      final IMolecularFormula majorIsotopeIon = adduct.addToFormula(majorIsotopeMolFormula, true)
+          .orElse(null);
+      if (majorIsotopeIon == null) {
+        continue;
+      }
 
       // skip pattern calculation if not needed
       // check ion as ionization might be Cl- or Br- with strong influence on isotope pattern
