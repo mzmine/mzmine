@@ -34,12 +34,12 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import java.text.NumberFormat;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.chart.JFreeChart;
 
 public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
     SelectedRowsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
@@ -97,6 +97,10 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
 
   public BooleanProperty showColumnAxisLabelsProperty() {
     return model.showCategoryAxisColumnLabelsProperty();
+  }
+
+  public ObjectProperty<NumberFormat> abundanceNumberFormatProperty() {
+    return model.abundanceNumberFormatProperty();
   }
 
   public EChartViewer getChart() {
