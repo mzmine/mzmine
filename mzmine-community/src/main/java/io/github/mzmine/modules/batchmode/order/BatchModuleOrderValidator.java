@@ -23,24 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.order.CustomModuleOrderRule;
-import io.github.mzmine.modules.order.ModuleOrderAnchorRequirement;
-import io.github.mzmine.modules.order.ModuleOrderEvaluationContext;
-import io.github.mzmine.modules.order.ModuleOrderLevel;
-import io.github.mzmine.modules.order.ModuleOrderPosition;
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.order.ModuleOrderRule;
-import io.github.mzmine.modules.order.ModuleOrderTextFormatter;
-import io.github.mzmine.modules.order.RelativeModuleOrderRule;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Validates module order recommendations independently within inferred batch queue segments.
@@ -50,8 +43,12 @@ public final class BatchModuleOrderValidator {
   private BatchModuleOrderValidator() {
   }
 
-  public static @NotNull BatchModuleOrderValidationResult validate(
-      @NotNull final BatchQueue batchQueue) {
+  public static @Nullable String validateAndFormat(@NotNull final BatchQueue batchQueue) {
+    final BatchModuleOrderValidationResult result = validate(batchQueue);
+    return result.hasIssues() ? result.formatMessage() : null;
+  }
+
+  static @NotNull BatchModuleOrderValidationResult validate(@NotNull final BatchQueue batchQueue) {
     final List<BatchModuleOrderIssue> issues = new ArrayList<>();
     final List<IndexRange> segments = BatchQueueSegmenter.split(batchQueue);
     for (int segmentIndex = 0; segmentIndex < segments.size(); segmentIndex++) {
@@ -94,8 +91,9 @@ public final class BatchModuleOrderValidator {
 
     // decision: Alternatives are ordered by the least severe user-facing problem.
     final ModuleOrderRecommendationEvaluation selectedViolation = violations.stream().min(
-        Comparator.comparingInt(
-            evaluation -> severityRank(evaluation.ruleEvaluation().rule().level()))).orElse(null);
+            Comparator.comparingInt(
+                evaluation -> severityRank(ModuleOrderRules.level(evaluation.ruleEvaluation().rule()))))
+        .orElse(null);
     if (selectedViolation == null) {
       return;
     }
@@ -111,18 +109,18 @@ public final class BatchModuleOrderValidator {
         module.getName(), segmentIndex + 1, recommendation.useCase(), ruleDescription, rationale,
         missingText);
     issues.add(
-        new BatchModuleOrderIssue(selectedRule.level(), segmentIndex, stepIndex, module.getName(),
-            recommendation, selectedRule, message));
+        new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
+            module.getName(), recommendation, selectedRule, message));
   }
 
   private static @NotNull ModuleOrderRuleEvaluation evaluateRule(
       @NotNull final BatchQueue batchQueue, @NotNull final IndexRange segment, final int stepIndex,
       @NotNull final ModuleOrderRule rule) {
     return switch (rule) {
-      case RelativeModuleOrderRule relativeRule -> evaluateRelativeRule(batchQueue, segment,
-          stepIndex, relativeRule);
-      case CustomModuleOrderRule customRule -> evaluateCustomRule(batchQueue, segment, stepIndex,
-          customRule);
+      case RelativeModuleOrderRule relativeRule ->
+          evaluateRelativeRule(batchQueue, segment, stepIndex, relativeRule);
+      case CustomModuleOrderRule customRule ->
+          evaluateCustomRule(batchQueue, segment, stepIndex, customRule);
     };
   }
 
@@ -165,8 +163,9 @@ public final class BatchModuleOrderValidator {
       @NotNull final CustomModuleOrderRule rule) {
     final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
         segment, stepIndex);
-    final ModuleOrderRuleStatus status = rule.condition().isSatisfied(context)
-        ? ModuleOrderRuleStatus.PASS : ModuleOrderRuleStatus.VIOLATION;
+    final ModuleOrderRuleStatus status =
+        rule.condition().isSatisfied(context) ? ModuleOrderRuleStatus.PASS
+            : ModuleOrderRuleStatus.VIOLATION;
     return new ModuleOrderRuleEvaluation(rule, status,
         ModuleOrderTextFormatter.describeRule(rule, null), false);
   }

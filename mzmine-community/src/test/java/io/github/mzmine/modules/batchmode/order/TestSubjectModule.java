@@ -23,23 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A queue-aware ordering condition for requirements that cannot be expressed relative to one module
- * class.
- */
-public interface ModuleOrderCondition {
+class TestSubjectModule extends TestOrderModule {
 
-  /**
-   * Human-readable condition appended to the rule level, for example "run after ...".
-   */
-  @NotNull String description();
+  private final List<ModuleOrderRecommendation> recommendations;
 
-  /**
-   * Evaluates the condition for the module at {@link ModuleOrderEvaluationContext#stepIndex()}.
-   */
-  boolean isSatisfied(@NotNull ModuleOrderEvaluationContext context);
+  TestSubjectModule(@NotNull final ModuleOrderRecommendation... recommendations) {
+    super("Subject");
+    this.recommendations = List.of(recommendations);
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return recommendations;
+  }
 }

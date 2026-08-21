@@ -31,6 +31,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.order.BatchModuleOrderValidator;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
@@ -82,8 +83,7 @@ public class BatchUtils {
    * @return grouped module order warnings, or null if all recommendations are satisfied
    */
   public static @Nullable String checkModuleOrder(@NotNull final BatchQueue batch) {
-    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(batch);
-    return result.hasIssues() ? result.formatMessage() : null;
+    return BatchModuleOrderValidator.validateAndFormat(batch);
   }
 
   /**

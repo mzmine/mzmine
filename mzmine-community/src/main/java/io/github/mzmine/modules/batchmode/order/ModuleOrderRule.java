@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface ModuleOrderRule permits CustomModuleOrderRule, RelativeModuleOrderRule {
 
-  @NotNull ModuleOrderLevel level();
+  default @NotNull String description() {
+    return ModuleOrderTextFormatter.describeRule(this);
+  }
 
   public static @NotNull ModuleOrderRule mustRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {

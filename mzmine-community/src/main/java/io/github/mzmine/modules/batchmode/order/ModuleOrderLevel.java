@@ -23,23 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-
-class TestSubjectModule extends TestOrderModule {
-
-  private final List<ModuleOrderRecommendation> recommendations;
-
-  TestSubjectModule(@NotNull final ModuleOrderRecommendation... recommendations) {
-    super("Subject");
-    this.recommendations = List.of(recommendations);
-  }
-
-  @Override
-  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return recommendations;
-  }
+/**
+ * Importance of a module ordering rule. Both levels are confirmable warnings in batch mode.
+ */
+enum ModuleOrderLevel {
+  MUST, SHOULD
 }

@@ -23,31 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One possible placement of a module for a specific use case. All recommendations returned by a
- * module are alternatives, and one passing applicable recommendation accepts the placement.
- *
- * @param useCase   short label shown in parameter dialogs and validation messages
- * @param rationale explanation of why the placement matters
- * @param rule      ordering rule for this use case
+ * A queue-aware ordering condition for requirements that cannot be expressed relative to one module
+ * class.
  */
-public record ModuleOrderRecommendation(@NotNull String useCase, @NotNull String rationale,
-                                        @NotNull ModuleOrderRule rule) {
+public interface ModuleOrderCondition {
 
-  public ModuleOrderRecommendation {
-    Objects.requireNonNull(useCase);
-    Objects.requireNonNull(rationale);
-    Objects.requireNonNull(rule);
-    if (useCase.isBlank()) {
-      throw new IllegalArgumentException("The use case must not be blank");
-    }
-    if (rationale.isBlank()) {
-      throw new IllegalArgumentException("The rationale must not be blank");
-    }
-  }
+  /**
+   * Human-readable condition appended to the rule level, for example "run after ...".
+   */
+  @NotNull String description();
+
+  /**
+   * Evaluates the condition for the module at {@link ModuleOrderEvaluationContext#stepIndex()}.
+   */
+  boolean isSatisfied(@NotNull ModuleOrderEvaluationContext context);
 }

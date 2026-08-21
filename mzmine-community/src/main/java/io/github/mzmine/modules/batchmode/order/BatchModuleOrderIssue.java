@@ -23,24 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
-import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface representing a data processing method that produces new data. Modules implementing this
- * interface can be executed in a batch.
+ * A violated module order recommendation. Step and segment indices are zero based.
  */
-public interface MZmineProcessingModule extends MZmineRunnableModule {
+record BatchModuleOrderIssue(@NotNull ModuleOrderLevel level, int segmentIndex, int stepIndex,
+                             @NotNull String moduleName,
+                             @NotNull ModuleOrderRecommendation recommendation,
+                             @NotNull ModuleOrderRule selectedRule, @NotNull String message) {
 
-  /**
-   * Describes alternative valid or recommended positions of this module in a processing pipeline.
-   * If any applicable recommendation is satisfied, the module placement is accepted. Modules
-   * without ordering requirements do not need to override this method.
-   */
-  default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of();
+  BatchModuleOrderIssue {
+    Objects.requireNonNull(level);
+    Objects.requireNonNull(moduleName);
+    Objects.requireNonNull(recommendation);
+    Objects.requireNonNull(selectedRule);
+    Objects.requireNonNull(message);
   }
 }

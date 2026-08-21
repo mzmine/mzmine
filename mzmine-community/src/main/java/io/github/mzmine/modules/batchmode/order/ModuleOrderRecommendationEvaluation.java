@@ -23,9 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
-public enum ModuleOrderPosition {
-  BEFORE,
-  AFTER
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+
+record ModuleOrderRecommendationEvaluation(@NotNull ModuleOrderRecommendation recommendation,
+                                           @NotNull ModuleOrderRuleEvaluation ruleEvaluation) {
+
+  ModuleOrderRecommendationEvaluation {
+    Objects.requireNonNull(recommendation);
+    Objects.requireNonNull(ruleEvaluation);
+  }
 }

@@ -23,18 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-
-record ModuleOrderRecommendationEvaluation(
-    @NotNull ModuleOrderRecommendation recommendation,
-    @NotNull ModuleOrderRuleEvaluation ruleEvaluation) {
-
-  ModuleOrderRecommendationEvaluation {
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(ruleEvaluation);
-  }
+enum ModuleOrderRuleStatus {
+  PASS, VIOLATION, NOT_APPLICABLE
 }

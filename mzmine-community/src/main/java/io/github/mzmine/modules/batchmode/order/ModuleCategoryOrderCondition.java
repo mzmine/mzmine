@@ -23,22 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineModuleCategory;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Positions a module relative to any module in a processing category.
  */
-public record ModuleCategoryOrderCondition(@NotNull MZmineModuleCategory category,
-                                           @NotNull ModuleOrderPosition position) implements
-    ModuleOrderCondition {
+public final class ModuleCategoryOrderCondition implements ModuleOrderCondition {
 
-  public ModuleCategoryOrderCondition {
-    Objects.requireNonNull(category);
-    Objects.requireNonNull(position);
+  private final MZmineModuleCategory category;
+  private final ModuleOrderPosition position;
+
+  private ModuleCategoryOrderCondition(@NotNull final MZmineModuleCategory category,
+      @NotNull final ModuleOrderPosition position) {
+    this.category = Objects.requireNonNull(category);
+    this.position = Objects.requireNonNull(position);
   }
 
   public static @NotNull ModuleCategoryOrderCondition before(
@@ -64,5 +67,16 @@ public record ModuleCategoryOrderCondition(@NotNull MZmineModuleCategory categor
       case AFTER -> context.stepsBefore().stream()
           .anyMatch(step -> step.getModule().getModuleCategory() == category);
     };
+  }
+
+  @Override
+  public boolean equals(@Nullable final Object obj) {
+    return obj instanceof ModuleCategoryOrderCondition other && category == other.category
+        && position == other.position;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(category, position);
   }
 }

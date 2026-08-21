@@ -23,27 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.order.ModuleOrderLevel;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public record BatchModuleOrderValidationResult(
-    @NotNull List<@NotNull BatchModuleOrderIssue> issues) {
+final class BatchModuleOrderValidationResult {
 
-  public BatchModuleOrderValidationResult {
-    Objects.requireNonNull(issues);
-    issues = List.copyOf(issues);
+  private final List<BatchModuleOrderIssue> issues;
+
+  BatchModuleOrderValidationResult(@NotNull final List<@NotNull BatchModuleOrderIssue> issues) {
+    this.issues = List.copyOf(Objects.requireNonNull(issues));
   }
 
   public boolean hasIssues() {
     return !issues.isEmpty();
   }
 
-  public @NotNull List<@NotNull BatchModuleOrderIssue> issues(
+  @NotNull List<@NotNull BatchModuleOrderIssue> issues() {
+    return issues;
+  }
+
+  private @NotNull List<@NotNull BatchModuleOrderIssue> issues(
       @NotNull final ModuleOrderLevel level) {
     return issues.stream().filter(issue -> issue.level() == level).toList();
   }

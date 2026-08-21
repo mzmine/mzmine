@@ -23,11 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-class TestOtherAnchorModule extends TestOrderModule {
+import io.github.mzmine.modules.MZmineProcessingModule;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
-  TestOtherAnchorModule() {
-    super("Other anchor");
+/**
+ * Positions the declaring module relative to another module class.
+ */
+record RelativeModuleOrderRule(@NotNull Class<? extends MZmineProcessingModule> anchorModule,
+                               @NotNull ModuleOrderPosition position,
+                               @NotNull ModuleOrderAnchorRequirement anchorRequirement,
+                               @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
+
+  RelativeModuleOrderRule {
+    Objects.requireNonNull(anchorModule);
+    Objects.requireNonNull(position);
+    Objects.requireNonNull(anchorRequirement);
+    Objects.requireNonNull(level);
   }
 }

@@ -23,51 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import java.time.Instant;
-import java.util.Collection;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.util.collections.IndexRange;
+import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-class TestOrderModule implements MZmineProcessingModule {
+/**
+ * Batch state available to a custom module-order condition.
+ */
+public record ModuleOrderEvaluationContext(@NotNull BatchQueue batchQueue,
+                                           @NotNull IndexRange segment, int stepIndex) {
 
-  private final String name;
-
-  TestOrderModule(@NotNull final String name) {
-    this.name = name;
+  public ModuleOrderEvaluationContext {
+    Objects.requireNonNull(batchQueue);
+    Objects.requireNonNull(segment);
+    if (!segment.contains(stepIndex) || segment.maxExclusive() > batchQueue.size()) {
+      throw new IllegalArgumentException("The evaluated step must be inside the batch segment");
+    }
   }
 
-  @Override
-  public @NotNull String getName() {
-    return name;
+  public @NotNull List<MZmineProcessingStep<MZmineProcessingModule>> stepsBefore() {
+    return batchQueue.subList(segment.min(), stepIndex);
   }
 
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
+  public @NotNull List<MZmineProcessingStep<MZmineProcessingModule>> stepsAfter() {
+    return batchQueue.subList(stepIndex + 1, segment.maxExclusive());
   }
 
-  @Override
-  public @NotNull String getDescription() {
-    return name;
-  }
-
-  @Override
-  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
-      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
-      @NotNull final Instant moduleCallDate) {
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELIST;
+  public @NotNull List<MZmineProcessingStep<MZmineProcessingModule>> segmentSteps() {
+    return segment.sublist(batchQueue);
   }
 }

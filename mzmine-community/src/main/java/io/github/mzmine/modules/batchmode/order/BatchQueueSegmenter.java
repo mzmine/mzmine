@@ -23,11 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule;
 import io.github.mzmine.util.collections.IndexRange;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Finds independently evaluable processing pipelines in concatenated batch queues.
  */
-public final class BatchQueueSegmenter {
+final class BatchQueueSegmenter {
 
   private static final Set<Class<? extends MZmineProcessingModule>> CHROMATOGRAM_BUILDERS = Set.of(
       ModularADAPChromatogramBuilderModule.class, ChromatogramBuilderModule.class);
@@ -56,7 +57,7 @@ public final class BatchQueueSegmenter {
    * Recursively splits first at repeated imports and then at repeated chromatogram builders inside
    * each import segment. A single occurrence of a split step does not split a queue.
    */
-  public static @NotNull List<@NotNull IndexRange> split(@NotNull final BatchQueue batchQueue) {
+  static @NotNull List<@NotNull IndexRange> split(@NotNull final BatchQueue batchQueue) {
     if (batchQueue.isEmpty()) {
       return List.of();
     }

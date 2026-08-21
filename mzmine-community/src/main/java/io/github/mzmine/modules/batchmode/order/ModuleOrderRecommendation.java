@@ -23,28 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.order.ModuleOrderLevel;
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.order.ModuleOrderRule;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A violated module order recommendation. Step and segment indices are zero based.
+ * One possible placement of a module for a specific use case. All recommendations returned by a
+ * module are alternatives, and one passing applicable recommendation accepts the placement.
+ *
+ * @param useCase   short label shown in parameter dialogs and validation messages
+ * @param rationale explanation of why the placement matters
+ * @param rule      ordering rule for this use case
  */
-public record BatchModuleOrderIssue(@NotNull ModuleOrderLevel level, int segmentIndex,
-                                    int stepIndex, @NotNull String moduleName,
-                                    @NotNull ModuleOrderRecommendation recommendation,
-                                    @NotNull ModuleOrderRule selectedRule,
-                                    @NotNull String message) {
+public record ModuleOrderRecommendation(@NotNull String useCase, @NotNull String rationale,
+                                        @NotNull ModuleOrderRule rule) {
 
-  public BatchModuleOrderIssue {
-    Objects.requireNonNull(level);
-    Objects.requireNonNull(moduleName);
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(selectedRule);
-    Objects.requireNonNull(message);
+  public ModuleOrderRecommendation {
+    Objects.requireNonNull(useCase);
+    Objects.requireNonNull(rationale);
+    Objects.requireNonNull(rule);
+    if (useCase.isBlank()) {
+      throw new IllegalArgumentException("The use case must not be blank");
+    }
+    if (rationale.isBlank()) {
+      throw new IllegalArgumentException("The rationale must not be blank");
+    }
   }
 }

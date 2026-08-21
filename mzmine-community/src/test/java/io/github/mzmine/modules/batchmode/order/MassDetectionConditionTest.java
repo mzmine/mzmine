@@ -23,13 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.batchmode.BatchModuleOrderValidationResult;
-import io.github.mzmine.modules.batchmode.BatchModuleOrderValidator;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
@@ -46,27 +43,27 @@ class MassDetectionConditionTest {
   @Test
   void standaloneMassDetectionBeforeConsumerSatisfiesCondition() {
     final BatchQueue queue = queue(step(new MassDetectionModule(), null),
-        step(new ModularADAPChromatogramBuilderModule(), null));
+        step(massListConsumer(), null));
 
     Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
   }
 
   @Test
   void standaloneMassDetectionAfterConsumerViolatesCondition() {
-    final BatchQueue queue = queue(step(new ModularADAPChromatogramBuilderModule(), null),
+    final BatchQueue queue = queue(step(massListConsumer(), null),
         step(new MassDetectionModule(), null));
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
     Assertions.assertEquals(1, result.issues().size());
-    Assertions.assertEquals(ModularADAPChromatogramBuilderModule.class,
+    Assertions.assertEquals(TestSubjectModule.class,
         queue.get(result.issues().getFirst().stepIndex()).getModule().getClass());
   }
 
   @Test
   void advancedImportMassDetectionSatisfiesCondition() {
-    final BatchQueue ms1Queue = importThenChromatogramBuilder(true, false);
-    final BatchQueue msnQueue = importThenChromatogramBuilder(false, true);
+    final BatchQueue ms1Queue = importThenMassListConsumer(true, false);
+    final BatchQueue msnQueue = importThenMassListConsumer(false, true);
 
     Assertions.assertFalse(BatchModuleOrderValidator.validate(ms1Queue).hasIssues());
     Assertions.assertFalse(BatchModuleOrderValidator.validate(msnQueue).hasIssues());
@@ -74,7 +71,7 @@ class MassDetectionConditionTest {
 
   @Test
   void advancedImportWithoutMassDetectionViolatesCondition() {
-    final BatchQueue queue = importThenChromatogramBuilder(false, false);
+    final BatchQueue queue = importThenMassListConsumer(false, false);
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
@@ -87,7 +84,7 @@ class MassDetectionConditionTest {
     final BatchQueue queue = queue(
         step(new AllSpectralDataImportModule(), importParameters(true, false)),
         step(new AllSpectralDataImportModule(), importParameters(false, false)),
-        step(new ModularADAPChromatogramBuilderModule(), null));
+        step(massListConsumer(), null));
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
@@ -95,11 +92,16 @@ class MassDetectionConditionTest {
     Assertions.assertEquals(1, result.issues().getFirst().segmentIndex());
   }
 
-  private static @NotNull BatchQueue importThenChromatogramBuilder(final boolean ms1MassDetection,
+  private static @NotNull BatchQueue importThenMassListConsumer(final boolean ms1MassDetection,
       final boolean msnMassDetection) {
     return queue(step(new AllSpectralDataImportModule(),
-            importParameters(ms1MassDetection, msnMassDetection)),
-        step(new ModularADAPChromatogramBuilderModule(), null));
+        importParameters(ms1MassDetection, msnMassDetection)), step(massListConsumer(), null));
+  }
+
+  private static @NotNull TestSubjectModule massListConsumer() {
+    return new TestSubjectModule(
+        new ModuleOrderRecommendation("Mass-list input", "The test module requires mass lists",
+            ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
   }
 
   private static @NotNull ParameterSet importParameters(final boolean ms1MassDetection,

@@ -23,24 +23,51 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import java.util.Objects;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Positions the declaring module relative to another module class.
- */
-public record RelativeModuleOrderRule(@NotNull Class<? extends MZmineProcessingModule> anchorModule,
-                                      @NotNull ModuleOrderPosition position,
-                                      @NotNull ModuleOrderAnchorRequirement anchorRequirement,
-                                      @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
+class TestOrderModule implements MZmineProcessingModule {
 
-  public RelativeModuleOrderRule {
-    Objects.requireNonNull(anchorModule);
-    Objects.requireNonNull(position);
-    Objects.requireNonNull(anchorRequirement);
-    Objects.requireNonNull(level);
+  private final String name;
+
+  TestOrderModule(@NotNull final String name) {
+    this.name = name;
+  }
+
+  @Override
+  public @NotNull String getName() {
+    return name;
+  }
+
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return null;
+  }
+
+  @Override
+  public @NotNull String getDescription() {
+    return name;
+  }
+
+  @Override
+  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
+      @NotNull final Instant moduleCallDate) {
+    return ExitCode.OK;
+  }
+
+  @Override
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.FEATURELIST;
   }
 }

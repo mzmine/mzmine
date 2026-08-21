@@ -23,15 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.order.ModuleOrderLevel;
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.order.ModuleOrderRule;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

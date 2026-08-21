@@ -23,24 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules;
+package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+class TestOtherAnchorModule extends TestOrderModule {
 
-/**
- * Interface representing a data processing method that produces new data. Modules implementing this
- * interface can be executed in a batch.
- */
-public interface MZmineProcessingModule extends MZmineRunnableModule {
-
-  /**
-   * Describes alternative valid or recommended positions of this module in a processing pipeline.
-   * If any applicable recommendation is satisfied, the module placement is accepted. Modules
-   * without ordering requirements do not need to override this method.
-   */
-  default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of();
+  TestOtherAnchorModule() {
+    super("Other anchor");
   }
 }

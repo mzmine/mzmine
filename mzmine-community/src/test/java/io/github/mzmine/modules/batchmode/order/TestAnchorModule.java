@@ -23,8 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-enum ModuleOrderRuleStatus {
-  PASS, VIOLATION, NOT_APPLICABLE
+class TestAnchorModule extends TestOrderModule {
+
+  TestAnchorModule() {
+    super("Anchor");
+  }
 }

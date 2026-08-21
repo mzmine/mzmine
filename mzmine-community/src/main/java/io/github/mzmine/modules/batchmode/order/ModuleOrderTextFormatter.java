@@ -23,31 +23,44 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ModuleOrderTextFormatter {
+final class ModuleOrderTextFormatter {
 
   private ModuleOrderTextFormatter() {
   }
 
-  public static @NotNull String describeRule(@NotNull final ModuleOrderRule rule,
+  static @NotNull String describeRule(@NotNull final ModuleOrderRule rule) {
+    final String anchorName = switch (rule) {
+      case RelativeModuleOrderRule relativeRule -> {
+        final MZmineProcessingModule anchor = MZmineCore.getModuleInstance(
+            relativeRule.anchorModule());
+        yield anchor == null ? relativeRule.anchorModule().getSimpleName() : anchor.getName();
+      }
+      case CustomModuleOrderRule ignored -> null;
+    };
+    return describeRule(rule, anchorName);
+  }
+
+  static @NotNull String describeRule(@NotNull final ModuleOrderRule rule,
       @Nullable final String anchorName) {
-    final String level = rule.level() == ModuleOrderLevel.MUST ? "MUST" : "SHOULD";
+    final String level = ModuleOrderRules.level(rule) == ModuleOrderLevel.MUST ? "MUST" : "SHOULD";
     return switch (rule) {
-      case RelativeModuleOrderRule relativeRule -> describeRelativeRule(relativeRule,
-          Objects.requireNonNull(anchorName), level);
-      case CustomModuleOrderRule customRule -> "%s %s".formatted(level,
-          customRule.condition().description());
+      case RelativeModuleOrderRule relativeRule ->
+          describeRelativeRule(relativeRule, Objects.requireNonNull(anchorName), level);
+      case CustomModuleOrderRule customRule ->
+          "%s %s".formatted(level, customRule.condition().description());
     };
   }
 
-  private static @NotNull String describeRelativeRule(
-      @NotNull final RelativeModuleOrderRule rule, @NotNull final String anchorName,
-      @NotNull final String level) {
+  private static @NotNull String describeRelativeRule(@NotNull final RelativeModuleOrderRule rule,
+      @NotNull final String anchorName, @NotNull final String level) {
     return switch (rule.anchorRequirement()) {
       case REQUIRED -> "%s run %s %s".formatted(level, positionText(rule.position()), anchorName);
       case IF_PRESENT -> "If %s is present, %s run %s it".formatted(anchorName, level,

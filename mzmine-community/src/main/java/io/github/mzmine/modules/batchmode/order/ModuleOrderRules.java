@@ -23,12 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
-/**
- * Controls whether the module referenced by an ordering rule must occur in the same pipeline.
- */
-public enum ModuleOrderAnchorRequirement {
-  REQUIRED,
-  IF_PRESENT
+import org.jetbrains.annotations.NotNull;
+
+final class ModuleOrderRules {
+
+  private ModuleOrderRules() {
+  }
+
+  static @NotNull ModuleOrderLevel level(@NotNull final ModuleOrderRule rule) {
+    return switch (rule) {
+      case CustomModuleOrderRule customRule -> customRule.level();
+      case RelativeModuleOrderRule relativeRule -> relativeRule.level();
+    };
+  }
 }

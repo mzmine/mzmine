@@ -23,11 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.batchmode;
+package io.github.mzmine.modules.batchmode.order;
 
-class TestAnchorModule extends TestOrderModule {
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
-  TestAnchorModule() {
-    super("Anchor");
+record ModuleOrderRuleEvaluation(@NotNull ModuleOrderRule rule,
+                                 @NotNull ModuleOrderRuleStatus status,
+                                 @NotNull String ruleDescription, boolean requiredStepMissing) {
+
+  ModuleOrderRuleEvaluation {
+    Objects.requireNonNull(rule);
+    Objects.requireNonNull(status);
+    Objects.requireNonNull(ruleDescription);
   }
 }

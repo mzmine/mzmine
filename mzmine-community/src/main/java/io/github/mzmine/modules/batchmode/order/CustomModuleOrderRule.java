@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.order;
+package io.github.mzmine.modules.batchmode.order;
 
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +31,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Evaluates a custom condition against the batch queue and current inferred pipeline.
  */
-public record CustomModuleOrderRule(@NotNull ModuleOrderCondition condition,
-                                    @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
+record CustomModuleOrderRule(@NotNull ModuleOrderCondition condition,
+                             @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
 
-  public CustomModuleOrderRule {
+  CustomModuleOrderRule {
     Objects.requireNonNull(condition);
     Objects.requireNonNull(level);
   }

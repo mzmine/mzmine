@@ -30,11 +30,8 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.order.CustomModuleOrderRule;
-import io.github.mzmine.modules.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.order.ModuleOrderRule;
-import io.github.mzmine.modules.order.ModuleOrderTextFormatter;
-import io.github.mzmine.modules.order.RelativeModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,16 +76,7 @@ public final class ModuleOrderRecommendationMessageFactory {
       messageNodes.add(FxTexts.boldText(recommendation.useCase()));
       messageNodes.add(FxTexts.text("\n" + recommendation.rationale() + "\n"));
       final ModuleOrderRule rule = recommendation.rule();
-      final String anchorName = switch (rule) {
-        case RelativeModuleOrderRule relativeRule -> {
-          final MZmineProcessingModule anchor = MZmineCore.getModuleInstance(
-              relativeRule.anchorModule());
-          yield anchor == null ? relativeRule.anchorModule().getSimpleName() : anchor.getName();
-        }
-        case CustomModuleOrderRule ignored -> null;
-      };
-      messageNodes.add(FxTexts.text(
-          "\u2022 " + ModuleOrderTextFormatter.describeRule(rule, anchorName) + "\n"));
+      messageNodes.add(FxTexts.text("\u2022 " + rule.description() + "\n"));
       if (i + 1 < recommendations.size()) {
         messageNodes.add(FxTexts.linebreak());
       }
