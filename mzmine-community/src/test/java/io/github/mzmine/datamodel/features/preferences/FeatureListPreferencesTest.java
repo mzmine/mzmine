@@ -25,23 +25,64 @@
 
 package io.github.mzmine.datamodel.features.preferences;
 
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.XMLUtils;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+/**
+ * {@link FeatureListPreferences} is saved and loaded through
+ * {@link FeatureListPreferencesDtoParameters}, therefore the xml is a regular parameter set inside
+ * the {@link CONST#XML_FLIST_PREFERENCES_ELEMENT} element written by the project save task.
+ */
 class FeatureListPreferencesTest {
 
-  private static Element newElement() throws ParserConfigurationException {
+  /**
+   * @return an element with the tag name used by the project save task
+   */
+  private static Element newPreferencesElement() throws ParserConfigurationException {
+    return newElement(CONST.XML_FLIST_PREFERENCES_ELEMENT);
+  }
+
+  private static Element newElement(final String tagName) throws ParserConfigurationException {
     final Document document = XMLUtils.newDocument();
-    final Element element = document.createElement("preferences");
+    final Element element = document.createElement(tagName);
     document.appendChild(element);
     return element;
+  }
+
+  /**
+   * Saves and loads through the parameter set, like the project save and load tasks do.
+   */
+  private static FeatureListPreferences saveAndLoad(final FeatureListPreferences preferences)
+      throws ParserConfigurationException {
+    final Element element = newPreferencesElement();
+    preferences.saveToXML(element);
+    return FeatureListPreferences.loadFromXML(element);
+  }
+
+  private static List<Arguments> filters() {
+    return List.of(Arguments.of("default qc", SampleTypeFilter.qc()), Arguments.of("multiple types",
+            SampleTypeFilter.of(List.of(SampleType.QC, SampleType.SAMPLE))),
+        // an empty list is not the same as the none mode, both must survive the round trip
+        Arguments.of("empty list", SampleTypeFilter.of(List.of())),
+        Arguments.of("all mode", SampleTypeFilter.all()),
+        Arguments.of("none mode", SampleTypeFilter.none()),
+        // group names mzmine does not know are kept, they may contain any character
+        Arguments.of("custom group names",
+            SampleTypeFilter.ofValues("qc", "my group, with comma")));
   }
 
   @Test
@@ -50,61 +91,58 @@ class FeatureListPreferencesTest {
         FeatureListPreferences.createDefault().getRsdSampleTypeFilter());
   }
 
-  @Test
-  void testXmlRoundTrip() throws ParserConfigurationException {
-    final FeatureListPreferences preferences = new FeatureListPreferences(
-        SampleTypeFilter.of(List.of(SampleType.QC, SampleType.SAMPLE)));
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("filters")
+  void testXmlRoundTrip(final String name, final SampleTypeFilter filter)
+      throws ParserConfigurationException {
+    final FeatureListPreferences preferences = new FeatureListPreferences(filter);
 
-    final Element element = newElement();
-    preferences.saveToXML(element);
+    final FeatureListPreferences loaded = saveAndLoad(preferences);
 
-    Assertions.assertEquals(preferences, FeatureListPreferences.loadFromXML(element));
-  }
-
-  @Test
-  void testXmlRoundTripEmptyFilter() throws ParserConfigurationException {
-    final FeatureListPreferences preferences = new FeatureListPreferences(
-        SampleTypeFilter.of(List.of()));
-
-    final Element element = newElement();
-    preferences.saveToXML(element);
-
-    final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
-    Assertions.assertTrue(loaded.getRsdSampleTypeFilter().isEmpty());
     Assertions.assertEquals(preferences, loaded);
+    // mode and values are checked separately, equals may only compare one of them
+    Assertions.assertEquals(filter.getMode(), loaded.getRsdSampleTypeFilter().getMode());
+    Assertions.assertEquals(filter.getValues(), loaded.getRsdSampleTypeFilter().getValues());
   }
 
   @Test
-  void testXmlRoundTripCustomValues() throws ParserConfigurationException {
-    // group names mzmine does not know are kept, they may contain any character
-    final FeatureListPreferences preferences = new FeatureListPreferences(
-        SampleTypeFilter.ofValues("qc", "my group, with comma"));
+  void testSavedXmlIsParameterSetShape() throws ParserConfigurationException {
+    final Element element = newPreferencesElement();
+    new FeatureListPreferences(SampleTypeFilter.qc()).saveToXML(element);
 
-    final Element element = newElement();
-    preferences.saveToXML(element);
-
-    Assertions.assertEquals(preferences, FeatureListPreferences.loadFromXML(element));
+    final NodeList parameters = element.getElementsByTagName(SimpleParameterSet.parameterElement);
+    Assertions.assertEquals(1, parameters.getLength());
+    Assertions.assertEquals(FeatureListPreferencesDtoParameters.rsdSampleTypes.getName(),
+        ((Element) parameters.item(0)).getAttribute(SimpleParameterSet.nameAttribute));
   }
 
   @Test
-  void testXmlRoundTripOpenEndedModes() throws ParserConfigurationException {
-    for (final SampleTypeFilter filter : List.of(SampleTypeFilter.all(), SampleTypeFilter.none())) {
-      final FeatureListPreferences preferences = new FeatureListPreferences(filter);
+  void testSaveDoesNotModifySharedParameter() throws ParserConfigurationException {
+    // the dto parameter set holds a static parameter, saving must work on clones only
+    final SampleTypeFilter before = FeatureListPreferencesDtoParameters.rsdSampleTypes.getValue();
 
-      final Element element = newElement();
-      preferences.saveToXML(element);
+    saveAndLoad(new FeatureListPreferences(SampleTypeFilter.ofValues("some other group")));
 
-      final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
-      Assertions.assertEquals(filter.getMode(), loaded.getRsdSampleTypeFilter().getMode());
-      Assertions.assertEquals(preferences, loaded);
-    }
+    Assertions.assertEquals(before, FeatureListPreferencesDtoParameters.rsdSampleTypes.getValue());
   }
 
   @Test
-  void testMissingElementIsNull() throws ParserConfigurationException {
+  void testMissingElementIsNull() {
     // null signals that the feature list keeps its default preferences
     Assertions.assertNull(FeatureListPreferences.loadFromXML(null));
-    // element without any attribute, e.g. from a project saved before preferences existed
-    Assertions.assertNull(FeatureListPreferences.loadFromXML(newElement()));
+  }
+
+  @Test
+  void testWrongElementIsNull() throws ParserConfigurationException {
+    // guards against loading a different element of the feature list xml
+    Assertions.assertNull(FeatureListPreferences.loadFromXML(newElement("something_else")));
+  }
+
+  @Test
+  void testEmptyElementFallsBackToDefaults() throws ParserConfigurationException {
+    // parameters that are missing in the xml, e.g. added after the project was saved, keep the
+    // default value instead of failing the load
+    Assertions.assertEquals(FeatureListPreferences.createDefault(),
+        FeatureListPreferences.loadFromXML(newPreferencesElement()));
   }
 }
