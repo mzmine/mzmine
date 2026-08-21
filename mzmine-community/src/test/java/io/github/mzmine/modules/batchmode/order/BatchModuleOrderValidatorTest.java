@@ -61,6 +61,29 @@ class BatchModuleOrderValidatorTest {
   }
 
   @Test
+  void recommendedRuleCanRequireAnAnchor() {
+    final TestSubjectModule beforeSubject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.shouldRunBefore(TestAnchorModule.class)));
+    final TestSubjectModule afterSubject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.shouldRunAfter(TestAnchorModule.class)));
+
+    Assertions.assertFalse(
+        BatchModuleOrderValidator.validate(queue(beforeSubject, new TestAnchorModule()))
+            .hasIssues());
+    Assertions.assertFalse(
+        BatchModuleOrderValidator.validate(queue(new TestAnchorModule(), afterSubject))
+            .hasIssues());
+
+    final BatchModuleOrderValidationResult missingAnchorResult = BatchModuleOrderValidator.validate(
+        queue(beforeSubject));
+    Assertions.assertEquals(1, missingAnchorResult.issues().size());
+    Assertions.assertEquals(ModuleOrderLevel.SHOULD,
+        missingAnchorResult.issues().getFirst().level());
+    Assertions.assertTrue(
+        missingAnchorResult.issues().getFirst().message().contains("required step is missing"));
+  }
+
+  @Test
   void conditionalRuleIsIgnoredWhenAnchorIsAbsent() {
     final TestSubjectModule subject = new TestSubjectModule(
         recommendation(ModuleOrderRule.ifPresentShouldRunAfter(TestAnchorModule.class)));

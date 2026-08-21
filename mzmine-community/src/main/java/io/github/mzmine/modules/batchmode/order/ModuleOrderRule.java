@@ -49,6 +49,18 @@ public sealed interface ModuleOrderRule permits CustomModuleOrderRule, RelativeM
         ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.MUST);
   }
 
+  public static @NotNull ModuleOrderRule shouldRunBefore(
+      @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
+    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,
+        ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.SHOULD);
+  }
+
+  public static @NotNull ModuleOrderRule shouldRunAfter(
+      @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
+    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.AFTER,
+        ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.SHOULD);
+  }
+
   public static @NotNull ModuleOrderRule ifPresentMustRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
     return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
 import io.github.mzmine.parameters.ParameterSet;
