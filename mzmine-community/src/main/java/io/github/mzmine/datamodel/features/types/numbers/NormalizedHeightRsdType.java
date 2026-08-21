@@ -47,7 +47,7 @@ public class NormalizedHeightRsdType extends HeightRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RSD (norm. height)";
+    return "Norm. height";
   }
 
   @Override

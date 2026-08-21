@@ -28,20 +28,16 @@ package io.github.mzmine.datamodel.features.preferences;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter.Mode;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * User defined preferences of a single {@link FeatureList} that are not tied to a specific
@@ -56,11 +52,10 @@ import org.w3c.dom.NodeList;
  */
 public final class FeatureListPreferences {
 
-  private static final String XML_RSD_MODE_ATTR = "rsd_sample_types_mode";
-  private static final String XML_RSD_SAMPLE_TYPE_ELEMENT = "rsd_sample_type";
-
+  // from parameters
   private final @NotNull SampleTypeFilter rsdSampleTypeFilter;
 
+  // cached fields not from parameters
   /**
    * Guards all cache fields below. The resolved files are requested for every cell of the RSD
    * columns, therefore the result is cached until either the source files or the project metadata
@@ -151,15 +146,9 @@ public final class FeatureListPreferences {
   }
 
   public void saveToXML(@NotNull final Element element) {
-    element.setAttribute(XML_RSD_MODE_ATTR, rsdSampleTypeFilter.getMode().getUniqueID());
-
-    // one element per value so that group names containing a separator char stay intact
-    final Document document = element.getOwnerDocument();
-    for (final String value : rsdSampleTypeFilter.getValues()) {
-      final Element valueElement = document.createElement(XML_RSD_SAMPLE_TYPE_ELEMENT);
-      valueElement.setTextContent(value);
-      element.appendChild(valueElement);
-    }
+    final FeatureListPreferencesDtoParameters params = FeatureListPreferencesDtoParameters.fromPreferences(
+        this);
+    params.saveValuesToXML(element);
   }
 
   /**
@@ -169,26 +158,13 @@ public final class FeatureListPreferences {
    */
   @Nullable
   public static FeatureListPreferences loadFromXML(@Nullable final Element element) {
-    if (element == null || !element.hasAttribute(XML_RSD_MODE_ATTR)) {
+    if (element == null) {
       return null;
     }
 
-    final Mode mode = UniqueIdSupplier.parseOrElse(element.getAttribute(XML_RSD_MODE_ATTR),
-        Mode.values(), Mode.LIST);
-    return new FeatureListPreferences(switch (mode) {
-      case ALL -> SampleTypeFilter.all();
-      case NONE -> SampleTypeFilter.none();
-      case LIST -> SampleTypeFilter.ofValues(loadValuesFromXML(element));
-    });
-  }
-
-  private static @NotNull List<String> loadValuesFromXML(@NotNull final Element element) {
-    final NodeList valueElements = element.getElementsByTagName(XML_RSD_SAMPLE_TYPE_ELEMENT);
-    final List<String> values = new ArrayList<>(valueElements.getLength());
-    for (int i = 0; i < valueElements.getLength(); i++) {
-      values.add(valueElements.item(i).getTextContent());
-    }
-    return values;
+    FeatureListPreferencesDtoParameters parameters = FeatureListPreferencesDtoParameters.loadFromXML(
+        element);
+    return parameters.toPreferences();
   }
 
   @Override

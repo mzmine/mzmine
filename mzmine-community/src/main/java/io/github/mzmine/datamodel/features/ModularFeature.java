@@ -46,7 +46,6 @@ import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
@@ -604,32 +603,5 @@ public class ModularFeature extends ColumnarModularDataModelRow implements Featu
   @Override
   public boolean isMrm() {
     return get(MrmTransitionListType.class) != null;
-  }
-
-
-  @Override
-  public <T> @Nullable T get(DataType<T> key) {
-    if (key instanceof MappingType<?> mt) {
-      return (T) mt.getValue(this);
-    }
-    return super.get(key);
-  }
-
-  @Override
-  public <T> @Nullable T getOrDefault(DataType<T> type, @Nullable T defaultValue) {
-    // mapped types are not stored in the data model, so always use the mapping in #get
-    if (type instanceof MappingType) {
-      final T value = get(type);
-      return value == null ? defaultValue : value;
-    }
-    return super.getOrDefault(type, defaultValue);
-  }
-
-  @Override
-  public <T> @NotNull T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
-    if (type instanceof MappingType) {
-      return Objects.requireNonNullElse(get(type), defaultValue);
-    }
-    return super.getNonNullElse(type, defaultValue);
   }
 }

@@ -47,7 +47,7 @@ public class HeightRsdType extends AbstractRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RSD (height)";
+    return "Height";
   }
 
   @Override

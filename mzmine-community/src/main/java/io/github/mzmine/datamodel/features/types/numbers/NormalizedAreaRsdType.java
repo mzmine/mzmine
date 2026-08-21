@@ -47,7 +47,7 @@ public class NormalizedAreaRsdType extends AreaRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RSD (norm. area)";
+    return "Norm. area";
   }
 
   @Override

@@ -47,7 +47,7 @@ public class AreaRsdType extends AbstractRsdType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "RSD (area)";
+    return "Area";
   }
 
   @Override

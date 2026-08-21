@@ -86,12 +86,6 @@ public class SampleRsdType extends DataType<ModularDataModel> implements SubColu
     return ModularDataModel.class;
   }
 
-  @Override
-  public boolean getDefaultVisibility() {
-    // the visibility of the sub columns is only applied if this main column is visible
-    return true;
-  }
-
   /**
    * @return the model itself, the sub types map their values from it on demand
    */
