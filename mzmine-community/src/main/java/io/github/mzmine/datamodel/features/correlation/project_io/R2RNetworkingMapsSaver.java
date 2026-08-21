@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.correlation.project_io;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.util.io.JsonUtils;
 import java.io.IOException;
@@ -44,6 +45,11 @@ public final class R2RNetworkingMapsSaver {
   public static void save(@NotNull final R2RNetworkingMaps maps, @NotNull final OutputStream out)
       throws IOException {
     final R2RNetworkingMapsDto dto = R2RDtoConverter.toDto(maps);
-    JsonUtils.MAPPER.writeValue(out, dto);
+    // The shared ObjectMapper closes the target by default; keep the shared ZipOutputStream open so
+    // callers can write further entries after this one.
+    try (final JsonGenerator gen = JsonUtils.MAPPER.getFactory().createGenerator(out)
+        .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+      JsonUtils.MAPPER.writeValue(gen, dto);
+    }
   }
 }

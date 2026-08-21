@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,41 +25,18 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public enum MsOtherCorrelationType implements UniqueIdSupplier {
-  /**
-   * The correlation was set manually in the dashboard.
-   */
-  MANUAL,
-  /**
-   * The correlation was calculated (Pearson score above threshold).
-   */
-  CALCULATED,
-  /**
-   * The other-detector trace is aligned into this raw file, but the file's MS feature did not
-   * correlate to it (below threshold, no RT overlap, or no MS feature). This is a derived status: it
-   * is never stored, only computed at render time for files that lack a real correlation entry.
-   */
-  ALIGNED;
+/**
+ * The correlation of one MS feature to one other-detector feature within a single raw data file.
+ * Presence of a {@code (RawDataFile -> PerFileCorrelation)} entry in an {@link OtherCorrelationLink}
+ * means the MS feature in that file actually correlated to that file's peak of the aligned
+ * other-row; absence means it did not (no peak, below threshold, or manually removed).
+ *
+ * @param origin  whether the correlation was calculated or set manually in the dashboard
+ * @param pearson the Pearson correlation coefficient, or null for manual links without a score
+ */
+public record PerFileCorrelation(@NotNull MsOtherCorrelationType origin, @Nullable Float pearson) {
 
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case MANUAL -> "Manual";
-      case CALCULATED -> "Calculated";
-      case ALIGNED -> "Aligned";
-    };
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return switch (this) {
-      case MANUAL -> "MANUAL";
-      case CALCULATED -> "CALCULATED";
-      case ALIGNED -> "ALIGNED";
-    };
-  }
 }

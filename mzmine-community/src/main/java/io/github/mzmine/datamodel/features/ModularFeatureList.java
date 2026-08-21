@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -128,6 +129,13 @@ public class ModularFeatureList implements FeatureList {
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
   private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
+
+  /**
+   * Aligned other-detector (UV/DAD, CAD, …) features, produced by the other-detector alignment step
+   * and stored as a sub-object of this MS feature list. May be null if no such alignment was run. The
+   * MS-to-other correlations live on this object ({@link OtherFeatureList#getMsOtherCorrelationMaps()}).
+   */
+  private @Nullable OtherFeatureList alignedOtherFeatures;
 
   @NotNull
   private String nameProperty = "";
@@ -869,6 +877,23 @@ public class ModularFeatureList implements FeatureList {
   @NotNull
   public R2RNetworkingMaps getRowMaps() {
     return r2rNetworkingMaps;
+  }
+
+  /**
+   * @return the aligned other-detector features stored on this feature list, or null if the
+   * other-detector alignment step was not run.
+   */
+  @Nullable
+  public OtherFeatureList getAlignedOtherFeatures() {
+    return alignedOtherFeatures;
+  }
+
+  /**
+   * Attaches an aligned other-detector list (which carries its own MS-to-other correlations). A new
+   * alignment therefore replaces the previous correlations wholesale.
+   */
+  public void setAlignedOtherFeatures(@Nullable final OtherFeatureList alignedOtherFeatures) {
+    this.alignedOtherFeatures = alignedOtherFeatures;
   }
 
   @Override

@@ -10,15 +10,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.MrmTransitionListType;
-import io.github.mzmine.datamodel.features.types.otherdectectors.MsOtherCorrelationResultType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFileType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.PolarityTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransition;
 import io.github.mzmine.datamodel.otherdetectors.MrmTransitionList;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationResult;
-import io.github.mzmine.datamodel.otherdetectors.MsOtherCorrelationType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
@@ -110,29 +107,10 @@ public class OtherDataTest {
         ChromatogramType.ABSORPTION);
   }
 
-  @Test
-  void testMsOtherCorrelationResultType() {
-    final MsOtherCorrelationResult resultA = new MsOtherCorrelationResult(featureA,
-        MsOtherCorrelationType.CALCULATED, 0.988f);
-    final MsOtherCorrelationResult resultB = new MsOtherCorrelationResult(featureB,
-        MsOtherCorrelationType.MANUAL, null);
-    List<MsOtherCorrelationResult> results = List.of(resultA, resultB);
-
-    DataTypeTestUtils.testSaveLoad(new MsOtherCorrelationResultType(), results, proj, flist, row,
-        feature, file);
-    DataTypeTestUtils.testSaveLoad(new MsOtherCorrelationResultType(), null, proj, flist, row,
-        feature, file);
-    Assertions.assertNull(
-        DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), List.of(), proj, flist,
-            row, feature, file));
-
-    Assertions.assertNull(
-        DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), List.of(), proj, flist,
-            row, null, null));
-    Assertions.assertNull(
-        DataTypeTestUtils.saveAndLoad(new MsOtherCorrelationResultType(), null, proj, flist, row,
-            null, null));
-  }
+  // Note: MsOtherCorrelationResultType is now a derived (MappingType) column resolved from
+  // MsOtherCorrelationMaps + the aligned OtherFeatureList - it is not stored/serialized directly, so
+  // the former save/load test no longer applies. A resolver-based test belongs with the correlation
+  // map / alignment tests.
 
   @Test
   void testMsChromatogramPolarity() {
