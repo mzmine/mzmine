@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -45,24 +46,26 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.PatternAnchor;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.RatioAggregation;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskController;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.util.IsotopesUtils;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -71,7 +74,10 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
- *
+ * Detects isotope patterns and charge states per feature. Starts at the feature m/z, searches the
+ * most intense MS1 (or best mobility) scan bidirectionally, selects the most probable charge via the
+ * {@link IsotopeFinderEngine}, and optionally refines the pattern across the scans within the
+ * feature FWHM.
  */
 class IsotopeFinderTask extends AbstractTask {
 
@@ -84,22 +90,52 @@ class IsotopeFinderTask extends AbstractTask {
   private final int isotopeMaxCharge;
   private final List<Element> isotopeElements;
   private final String isotopes;
-  private final ScanRange scanRange;
-  private int processedRows, totalRows;
 
+  private final IsotopeFinderEngine engine;
 
-  IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  // FWHM cross-scan refinement
+  private final boolean fwhmRefineEnabled;
+  private final MZTolerance refineMzTolerance;
+  private final RatioAggregation ratioAggregation;
+  private final int minScansPresent;
+
+  private final AtomicLong processedRows = new AtomicLong(0);
+  private long totalRows;
+  // guard against log spam: the charge/pattern disagreement below is a bug signal, one line is enough
+  private final AtomicBoolean chargeMismatchLogged = new AtomicBoolean(false);
+  // first error of any sample thread, stops all other threads and errors the task
+  private final AtomicReference<String> errorMessage = new AtomicReference<>();
+
+  /**
+   * @param parameters    the top-level {@link IsotopeFinderParameters}, only stored as the applied
+   *                      method of the feature list.
+   * @param algo          the full detection setup this task runs with.
+   * @param algorithmName name of the algorithm that created this task, only used for reporting.
+   */
+  IsotopeFinderTask(@NotNull MZmineProject project, @NotNull ModularFeatureList featureList,
+      @NotNull ParameterSet parameters, @NotNull CarbonAveragineAlgorithmParameters algo,
+      @NotNull String algorithmName, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
 
     this.featureList = featureList;
     this.parameters = parameters;
 
-    isotopeElements = parameters.getValue(IsotopeFinderParameters.elements);
-    scanRange = parameters.getValue(IsotopeFinderParameters.scanRange);
-    isotopeMaxCharge = parameters.getValue(IsotopeFinderParameters.maxCharge);
-    isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
+    isotopeElements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
+    isotopeMaxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
+    isoMzTolerance = algo.getValue(CarbonAveragineAlgorithmParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
+
+    // build the detection engine (envelope model, charge scoring, element auto-detection) from the
+    // algorithm parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
+    this.engine = IsotopeFinderEngineFactory.create(algo, algorithmName, false);
+
+    // FWHM refinement parameters
+    this.fwhmRefineEnabled = algo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine);
+    final ParameterSet refineParams = algo.getParameter(
+        CarbonAveragineAlgorithmParameters.fwhmRefine).getEmbeddedParameters();
+    this.refineMzTolerance = refineParams.getValue(FwhmRefineParameters.refineMzTolerance);
+    this.ratioAggregation = refineParams.getValue(FwhmRefineParameters.ratioAggregation);
+    this.minScansPresent = refineParams.getValue(FwhmRefineParameters.minScansPresent);
   }
 
   @Override
@@ -112,7 +148,7 @@ class IsotopeFinderTask extends AbstractTask {
     if (totalRows == 0) {
       return 0.0d;
     }
-    return (double) processedRows / (double) totalRows;
+    return (double) processedRows.get() / (double) totalRows;
   }
 
   @Override
@@ -120,150 +156,32 @@ class IsotopeFinderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running isotope pattern finder on " + featureList);
 
-    // We assume source peakList contains one datafile
-    if (featureList.getRawDataFiles().size() > 1) {
-      setErrorMessage("Cannot perform isotope finder on aligned feature list.");
-      setStatus(TaskStatus.ERROR);
-      return;
-    }
-
-    // Update isotopesMzDiffs
-    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
-        isotopeElements, isotopeMaxCharge);
-    if (isoMzDiffsForCharge.length == 0 || isoMzDiffsForCharge[0].isEmpty()) {
+    if (!engine.hasIsotopeDiffs()) {
       setErrorMessage("No isotopes found for elements: " + isotopes);
       setStatus(TaskStatus.ERROR);
       return;
     }
-    // get maximum difference per charge state
-    double[] maxIsoMzDiff = new double[isotopeMaxCharge];
-    for (int i = 0; i < isotopeMaxCharge; i++) {
-      for (double diff : isoMzDiffsForCharge[i]) {
-        if (diff > maxIsoMzDiff[i]) {
-          maxIsoMzDiff[i] = diff;
-        }
-      }
-      // add some to the max diff to include more search space
-      maxIsoMzDiff[i] += 10 * isoMzTolerance.getMzToleranceForMass(maxIsoMzDiff[i]);
+
+    // start processing, all samples are processed in parallel
+    final List<RawDataFile> raws = featureList.getRawDataFiles();
+    totalRows = (long) featureList.getNumberOfRows() * raws.size();
+    processedRows.set(0);
+
+    final long detected = raws.parallelStream().mapToLong(this::processRawDataFile).sum();
+
+    if (isCanceled()) {
+      return;
     }
-
-    // start processing
-    totalRows = featureList.getNumberOfRows();
-    processedRows = 0;
-    RawDataFile raw = featureList.getRawDataFile(0);
-
-    // Loop through all rows
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
-        featureList.getSeletedScans(raw));
-
-    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
-
-    int missingValues = 0;
-    int detected = 0;
-
-    try {
-      // find for all rows the isotope pattern
-      for (FeatureListRow row : featureList.getRows()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        // start at max intensity signal
-        Feature feature = row.getFeature(raw);
-        Scan scan = feature.getRepresentativeScan();
-        // no MS1 scan available
-        if (scan == null) {
-          continue;
-        }
-
-        double mz = feature.getMZ();
-        scan = findBestScanOrMobilityScan(scans, mobScans, feature);
-
-        IsotopeFinderResult result = findBestIstotopePattern(isoMzDiffsForCharge, maxIsoMzDiff, mz,
-            feature, scan);
-        if (result == null && mobScans != null) {
-          // for ims features, do a second attempt in the frame if we don't find something
-          // in the mobility scan
-          scan = findBestScanOrMobilityScan(scans, null, feature);
-          result = findBestIstotopePattern(isoMzDiffsForCharge, maxIsoMzDiff, mz, feature, scan);
-          if (result == null) {
-            continue;
-          }
-        } else if(result == null) {
-          continue;
-        }
-
-        if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
-          // add isotope pattern and charge
-          feature.setIsotopePattern(result.pattern());
-          feature.setCharge(result.bestCharge());
-          //Final CCS Calculation
-          RawDataFile data = feature.getRawDataFile();
-          Float mobility = feature.getMobility();
-          MobilityType mobilityType = feature.getMobilityUnit();
-          if (data instanceof IMSRawDataFile imsfile) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null
-                && result.bestCharge() > 0 && mobilityType != null) {
-              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, result.bestCharge(),
-                  imsfile);
-              if (ccs != null) {
-                feature.setCCS(ccs);
-              }
-            }
-          }//end
-          detected++;
-        } else {
-          // find pattern in FWHM
-          //      Float fwhmDiff = feature.getFWHM();
-          //      if (fwhmDiff != null) {
-          //        fwhmDiff /= 2f;
-          //
-          //        if (candidates.size() > 1) {
-          //          int next = 1;
-          //          while (scanIndex + next < totalScans || scanIndex - next >= 0) {
-          //            if (scanIndex + next < totalScans) {
-          //              scans.jumpToIndex(scanIndex + next);
-          //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
-          //                checkCandidatesInScan(scans, candidates);
-          //              }
-          //            }
-          //            if (scanIndex - next >= 0) {
-          //              scans.jumpToIndex(scanIndex - next);
-          //              if (checkRetentionTime(scans.getCurrentScan(), maxRT, fwhmDiff)) {
-          //                checkCandidatesInScan(scans, candidates);
-          //              }
-          //            }
-          //            next++;
-          //          }
-          //        }
-          //        // all scans in FWHMN checked... add isotope pattern
-          //        if (candidates.size() > 1) {
-          //          feature.setIsotopePattern(new SimpleIsotopePattern(
-          //              candidates.stream().map(d -> new SimpleDataPoint(d.getMZ(), d.getIntensity()))
-          //                  .toArray(DataPoint[]::new), IsotopePatternStatus.DETECTED, "Pattern finder"));
-          //          detected++;
-          //        }
-          //      } else {
-          //        // missing FWHM
-          //        missingValues++;
-          //      }
-        }
-        processedRows++;
-      }
-    } catch (Exception ex) {
-      logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
+    final String error = errorMessage.get();
+    if (error != null) {
+      setErrorMessage(error);
       setStatus(TaskStatus.ERROR);
       return;
     }
 
-    if (missingValues > 0) {
-      logger.info(String.format("There were %d missing FWHM values in %d features", missingValues,
-          totalRows));
-    }
     if (detected > 0) {
       logger.info(String.format("Found %d isotope pattern in %s", detected, featureList));
     }
-    // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Isotope finder module", IsotopeFinderModule.class,
             parameters, getModuleCallDate()));
@@ -272,85 +190,129 @@ class IsotopeFinderTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private @Nullable IsotopeFinderResult findBestIstotopePattern(
-      DoubleArrayList[] isoMzDiffsForCharge, double[] maxIsoMzDiff, double mz, Feature feature,
-      Scan scan) {
-    // find candidate isotope pattern in max scan
-    // for each charge state to determine best charge
-    // merge afterward to get one isotope patten with all possible isotopes
-    int maxFoundIsotopes = 0;
-    int bestCharge = 0;
-    IsotopePattern pattern = null;
+  /**
+   * Detects isotope patterns for all features of a single sample. Runs on its own thread with its
+   * own data access, so nothing here may be shared with other samples.
+   *
+   * @return the number of features with a detected isotope pattern.
+   */
+  private long processRawDataFile(@NotNull final RawDataFile raw) {
+    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
+        featureList.getSeletedScans(raw));
+    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
 
-    for (int i = 0; i < isotopeMaxCharge; i++) {
-      // charge is zero indexed but always starts at 1 -> max charge
-      final int charge = i + 1;
-      final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
-      final double currentMaxDiff = maxIsoMzDiff[i];
-      final SimpleDataPoint featureDp = new SimpleDataPoint(mz, feature.getHeight());
-      List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
-          currentMaxDiff, isoMzTolerance, scan, featureDp);
+    long detected = 0;
 
-      if (scan instanceof MobilityScan && !candidates.isEmpty()) {
-        candidates = normalizeImsIntensities(candidates, scan, featureDp);
-      }
-
-      if (candidates.size() > 1) { // feature itself is always in cadidates
-        IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
-            charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
-        if (pattern == null) {
-          pattern = newPattern;
-        } else if (pattern instanceof SimpleIsotopePattern) {
-          // combine 2 isotope pattern
-          pattern = new MultiChargeStateIsotopePattern(pattern, newPattern);
-        } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
-          // add next patterns
-          multi.addPattern(newPattern);
-        } else {
-          throw new IllegalStateException("Isotope pattern type is not handled.");
+    try {
+      for (FeatureListRow row : featureList.getRows()) {
+        // another sample may have failed already, then stop early
+        if (isCanceled() || errorMessage.get() != null) {
+          return detected;
         }
 
-        if (candidates.size() > maxFoundIsotopes) {
-          maxFoundIsotopes = candidates.size();
-          // charge is zero indexed but always starts at 1 -> max charge
-          bestCharge = charge;
+        final Feature feature = row.getFeature(raw);
+        if (feature == null || feature.getRepresentativeScan() == null) {
+          processedRows.incrementAndGet();
+          continue;
         }
+
+        final double mz = feature.getMZ();
+        final Float heightValue = feature.getHeight();
+        final double height = heightValue == null ? 0d : heightValue;
+        PolarityType polarity = feature.getRepresentativePolarity();
+        if (polarity == null) {
+          polarity = PolarityType.UNKNOWN;
+        }
+
+        Scan spectrum = findBestScanOrMobilityScan(scans, mobScans, feature);
+        DetectionResult result = engine.detect(spectrum, mz, height, polarity);
+        if (result == null && mobScans != null) {
+          // for IMS features, do a second attempt in the frame if nothing was found in mobility
+          spectrum = findBestScanOrMobilityScan(scans, null, feature);
+          result = engine.detect(spectrum, mz, height, polarity);
+        }
+        if (result == null) {
+          processedRows.incrementAndGet();
+          continue;
+        }
+
+        List<IsotopePattern> patterns = result.patterns();
+        // refine across FWHM scans (LC-MS only for now)
+        if (fwhmRefineEnabled && feature.getMobility() == null) {
+          final List<MassSpectrum> fwhmScans = collectFwhmMassLists(feature);
+          if (fwhmScans.size() > 1) {
+            final List<IsotopePattern> refined = new ArrayList<>(patterns.size());
+            final List<PatternAnchor> anchors = result.anchors();
+            for (int i = 0; i < patterns.size(); i++) {
+              // the anchor lets the refiner reject recovered offsets the envelope does not predict
+              final PatternAnchor anchor = i < anchors.size() ? anchors.get(i) : null;
+              refined.add(CrossScanRefiner.refine(patterns.get(i), fwhmScans, refineMzTolerance,
+                  ratioAggregation, minScansPresent, anchor));
+            }
+            patterns = refined;
+          }
+        }
+
+        final IsotopePattern assembled = IsotopeFinderEngine.assemble(patterns);
+        // the feature charge and the preferred pattern's charge must agree - downstream consumers
+        // (formula prediction, CCS) read one or the other. Log instead of throwing so a single odd
+        // feature cannot abort the whole run.
+        if (assembled.getCharge() != result.bestCharge() && chargeMismatchLogged.compareAndSet(false,
+            true)) {
+          logger.warning(String.format(
+              "Isotope finder: preferred pattern charge %d disagrees with the selected charge %d "
+                  + "(feature m/z %.4f). Further occurrences are not logged.", assembled.getCharge(),
+              result.bestCharge(), mz));
+        }
+        feature.setIsotopePattern(assembled);
+        feature.setCharge(result.bestCharge());
+
+        // CCS calculation for IMS features using the selected charge
+        final RawDataFile data = feature.getRawDataFile();
+        final Float mobility = feature.getMobility();
+        final MobilityType mobilityType = feature.getMobilityUnit();
+        if (data instanceof IMSRawDataFile imsfile && CCSUtils.hasValidMobilityType(imsfile)
+            && mobility != null && result.bestCharge() > 0 && mobilityType != null) {
+          final Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, result.bestCharge(),
+              imsfile);
+          if (ccs != null) {
+            feature.setCCS(ccs);
+          }
+        }
+        detected++;
+        processedRows.incrementAndGet();
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error in isotope finder " + ex.getMessage(), ex);
+      // only keep the first error, all other sample threads stop on it
+      errorMessage.compareAndSet(null,
+          "Error in isotope finder on %s: %s".formatted(raw.getName(), ex.getMessage()));
+    }
+    return detected;
+  }
+
+  /**
+   * @return the mass lists of all scans of the feature within +/- FWHM/2 of the apex RT (or all
+   * feature scans if no FWHM is available).
+   */
+  private @NotNull List<MassSpectrum> collectFwhmMassLists(@NotNull final Feature feature) {
+    final List<MassSpectrum> result = new ArrayList<>();
+    final Float rt = feature.getRT();
+    if (rt == null) {
+      return result;
+    }
+    final Float fwhm = feature.getFWHM();
+    final float halfWidth = fwhm != null ? fwhm / 2f : Float.MAX_VALUE;
+    for (final Scan scan : feature.getScanNumbers()) {
+      if (scan == null || Math.abs(scan.getRetentionTime() - rt) > halfWidth) {
+        continue;
+      }
+      final MassList massList = scan.getMassList();
+      if (massList != null && massList.getNumberOfDataPoints() > 0) {
+        result.add(massList);
       }
     }
-    if (pattern == null) {
-      // no pattern found
-      return null;
-    }
-    IsotopeFinderResult result = new IsotopeFinderResult(bestCharge, pattern);
     return result;
-  }
-
-  private record IsotopeFinderResult(int bestCharge, IsotopePattern pattern) {
-
-  }
-
-  private List<DataPoint> normalizeImsIntensities(List<DataPoint> candidates, Scan scan,
-      SimpleDataPoint featureDp) {
-    final int i = scan.binarySearch(featureDp.getMZ(), DefaultTo.CLOSEST_VALUE);
-    if (i < 0) {
-      // did not find the expected feature data point
-      return candidates;
-    }
-
-    final double intensity = scan.getIntensityValue(i);
-    final double normalisationFactor = featureDp.getIntensity() / intensity;
-
-    final List<DataPoint> newCandidates = new ArrayList<>(candidates.size());
-    for (DataPoint candidate : candidates) {
-      if (!candidate.equals(featureDp)) {
-        newCandidates.add(
-            new SimpleDataPoint(candidate.getMZ(), candidate.getIntensity() * normalisationFactor));
-      } else {
-        newCandidates.add(featureDp);
-      }
-    }
-
-    return newCandidates;
   }
 
   @NotNull
@@ -379,32 +341,5 @@ class IsotopeFinderTask extends AbstractTask {
         raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
             ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
             (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
-  }
-
-  private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,
-      double maxIsoMzDiff) {
-    double lastMZ = candidates.get(candidates.size() - 1).getMZ() + maxIsoMzDiff;
-    double mz = 0;
-    int index = 0;
-    double currentMZ = candidates.get(index).getMZ();
-    for (int dp = 0; dp < scans.getNumberOfDataPoints() && mz <= lastMZ; dp++) {
-      mz = scans.getMzValue(dp);
-      if (isoMzTolerance.checkWithinTolerance(mz, currentMZ)) {
-        // check intensity and
-        // use relative height
-      }
-    }
-  }
-
-  /**
-   * Check if scan within fwhm difference
-   *
-   * @param scan     the current scan
-   * @param maxRT    retention time of highest data point of feature
-   * @param fwhmDiff the half of FWHM
-   * @return true if within range
-   */
-  private boolean checkRetentionTime(Scan scan, float maxRT, Float fwhmDiff) {
-    return scan != null && Math.abs(scan.getRetentionTime() - maxRT) <= fwhmDiff;
   }
 }

@@ -118,6 +118,24 @@ public class MZTolerance {
     return dist <= mzTolerance || dist <= mz1 / MILLION * ppmTolerance;
   }
 
+  /**
+   * Like {@link #checkWithinTolerance(double, double)} but widens (or tightens) both the absolute
+   * and the relative tolerance by {@code factor}. Useful when a neighbouring heavy isotope (e.g.
+   * 37Cl/81Br) merges with the expected 13C signal and pulls the observed centroid a few mDa off
+   * the exact grid, so a nominal-tolerance check would wrongly report a missing peak.
+   *
+   * @param mz1    the reference m/z (the relative tolerance is computed on this value).
+   * @param mz2    the tested m/z.
+   * @param factor multiplier applied to both the absolute and the relative tolerance (&gt; 1
+   *               widens, &lt; 1 tightens).
+   * @return whether {@code mz2} lies within the factor-scaled tolerance of {@code mz1}.
+   */
+  public boolean checkWithinTolerance(final double mz1, final double mz2, final double factor) {
+    final double dist = Math.abs(mz1 - mz2);
+    // absolute then relative tolerance check, both scaled by the factor
+    return dist <= mzTolerance * factor || dist <= mz1 / MILLION * ppmTolerance * factor;
+  }
+
   @Override
   public String toString() {
     return mzTolerance + " m/z or " + ppmTolerance + " ppm";
