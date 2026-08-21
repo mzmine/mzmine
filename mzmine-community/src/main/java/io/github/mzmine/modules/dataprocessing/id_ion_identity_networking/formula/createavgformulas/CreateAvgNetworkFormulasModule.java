@@ -67,7 +67,7 @@ public class CreateAvgNetworkFormulasModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Ion-network formula aggregation",
+    return List.of(new ModuleOrderRecommendation(
         "Average network formulas require annotation networks created by ion identity networking",
         ModuleOrderRule.mustRunAfter(IonNetworkingModule.class)));
   }

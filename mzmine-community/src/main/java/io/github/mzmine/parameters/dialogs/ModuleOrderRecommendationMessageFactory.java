@@ -71,10 +71,11 @@ public final class ModuleOrderRecommendationMessageFactory {
       @NotNull final MZmineProcessingModule module) {
     final List<Node> messageNodes = new ArrayList<>();
     final List<ModuleOrderRecommendation> recommendations = module.getModuleOrderRecommendations();
+    messageNodes.add(FxTexts.boldText(module.getName()));
+    messageNodes.add(FxTexts.linebreak());
     for (int i = 0; i < recommendations.size(); i++) {
       final ModuleOrderRecommendation recommendation = recommendations.get(i);
-      messageNodes.add(FxTexts.boldText(recommendation.useCase()));
-      messageNodes.add(FxTexts.text("\n" + recommendation.rationale() + "\n"));
+      messageNodes.add(FxTexts.text(recommendation.rationale() + "\n"));
       final ModuleOrderRule rule = recommendation.rule();
       messageNodes.add(FxTexts.text("\u2022 " + rule.description() + "\n"));
       if (i + 1 < recommendations.size()) {

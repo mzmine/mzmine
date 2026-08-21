@@ -105,9 +105,8 @@ public final class BatchModuleOrderValidator {
     final String missingText =
         ruleEvaluation.requiredStepMissing() ? " The required step is missing." : "";
     final String rationale = asSentence(recommendation.rationale());
-    final String message = "Step %d (%s), pipeline %d, %s: %s. %s%s".formatted(stepIndex + 1,
-        module.getName(), segmentIndex + 1, recommendation.useCase(), ruleDescription, rationale,
-        missingText);
+    final String message = "Step %d, pipeline %d, %s: %s. %s%s".formatted(stepIndex + 1,
+        segmentIndex + 1, module.getName(), ruleDescription, rationale, missingText);
     issues.add(
         new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
             module.getName(), recommendation, selectedRule, message));

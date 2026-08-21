@@ -60,7 +60,7 @@ public class AddIonNetworkingModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Ion identity networking",
+    return List.of(new ModuleOrderRecommendation(
         "Adding ion identities to networks requires feature groups from correlation grouping",
         ModuleOrderRule.mustRunAfter(CorrelateGroupingModule.class)));
   }

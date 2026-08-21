@@ -57,7 +57,7 @@ public class ChromatogramBlankSubtractionModule extends SingleTaskFeatureListsMo
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Chromatogram processing",
+    return List.of(new ModuleOrderRecommendation(
         "Blank chromatograms should be subtracted before chromatograms are resolved into features",
         ModuleOrderRule.mustRunBefore(FeatureResolverModule.class)));
   }

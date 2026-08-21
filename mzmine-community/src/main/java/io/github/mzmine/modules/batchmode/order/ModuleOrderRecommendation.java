@@ -29,23 +29,17 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One possible placement of a module for a specific use case. All recommendations returned by a
- * module are alternatives, and one passing applicable recommendation accepts the placement.
+ * One possible placement of a module. All recommendations returned by a module are alternatives,
+ * and one passing applicable recommendation accepts the placement.
  *
- * @param useCase   short label shown in parameter dialogs and validation messages
  * @param rationale explanation of why the placement matters
- * @param rule      ordering rule for this use case
+ * @param rule      ordering rule for this placement
  */
-public record ModuleOrderRecommendation(@NotNull String useCase, @NotNull String rationale,
-                                        @NotNull ModuleOrderRule rule) {
+public record ModuleOrderRecommendation(@NotNull String rationale, @NotNull ModuleOrderRule rule) {
 
   public ModuleOrderRecommendation {
-    Objects.requireNonNull(useCase);
     Objects.requireNonNull(rationale);
     Objects.requireNonNull(rule);
-    if (useCase.isBlank()) {
-      throw new IllegalArgumentException("The use case must not be blank");
-    }
     if (rationale.isBlank()) {
       throw new IllegalArgumentException("The rationale must not be blank");
     }

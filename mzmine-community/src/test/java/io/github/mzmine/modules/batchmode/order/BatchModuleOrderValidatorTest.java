@@ -47,6 +47,7 @@ class BatchModuleOrderValidatorTest {
 
     Assertions.assertEquals(1, result.issues().size());
     Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
+    Assertions.assertTrue(result.issues().getFirst().message().contains("Subject:"));
     Assertions.assertTrue(
         result.issues().getFirst().message().contains("required step is missing"));
   }
@@ -174,11 +175,11 @@ class BatchModuleOrderValidatorTest {
   }
 
   private static ModuleOrderRecommendation recommendation(final ModuleOrderRule rule) {
-    return new ModuleOrderRecommendation("Test use case", "Test rationale", rule);
+    return new ModuleOrderRecommendation("Test rationale", rule);
   }
 
   private static ModuleOrderRecommendation otherRecommendation(final ModuleOrderRule rule) {
-    return new ModuleOrderRecommendation("Other use case", "Other rationale", rule);
+    return new ModuleOrderRecommendation("Other rationale", rule);
   }
 
   private static BatchQueue queue(final MZmineProcessingModule... modules) {

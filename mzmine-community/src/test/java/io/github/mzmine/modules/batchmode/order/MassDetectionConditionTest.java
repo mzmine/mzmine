@@ -100,7 +100,7 @@ class MassDetectionConditionTest {
 
   private static @NotNull TestSubjectModule massListConsumer() {
     return new TestSubjectModule(
-        new ModuleOrderRecommendation("Mass-list input", "The test module requires mass lists",
+        new ModuleOrderRecommendation("The test module requires mass lists",
             ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
   }
 

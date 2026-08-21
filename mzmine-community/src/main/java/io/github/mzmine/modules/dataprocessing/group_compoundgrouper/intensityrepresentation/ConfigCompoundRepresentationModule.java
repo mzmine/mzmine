@@ -63,7 +63,7 @@ public class ConfigCompoundRepresentationModule implements MZmineProcessingModul
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Compound-list processing",
+    return List.of(new ModuleOrderRecommendation(
         "Compound representations can only be configured after a compound list was created",
         ModuleOrderRule.mustRunAfter(CompoundGrouperModule.class)));
   }

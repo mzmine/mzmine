@@ -58,7 +58,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Chromatogram building",
+    return List.of(new ModuleOrderRecommendation(
         "Chromatogram building requires centroided and noise filtered data",
         ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
   }

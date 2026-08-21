@@ -62,7 +62,7 @@ public class IonNetworkingModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Ion identity networking",
+    return List.of(new ModuleOrderRecommendation(
         "Ion identity networking operates on feature groups created by correlation grouping",
         ModuleOrderRule.mustRunAfter(CorrelateGroupingModule.class)));
   }

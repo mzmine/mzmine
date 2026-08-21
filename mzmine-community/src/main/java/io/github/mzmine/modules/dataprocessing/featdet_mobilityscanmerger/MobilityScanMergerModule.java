@@ -67,7 +67,7 @@ public class MobilityScanMergerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Mobility processing",
+    return List.of(new ModuleOrderRecommendation(
         "Mobility scan merging reads centroid mass lists from the mobility scans",
         ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
   }

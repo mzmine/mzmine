@@ -50,7 +50,7 @@ public class GCAlignerModule extends SingleTaskFeatureListsModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("GC processing",
+    return List.of(new ModuleOrderRecommendation(
         "GC alignment requires the pseudo-MS2 spectra created by spectral deconvolution",
         ModuleOrderRule.mustRunAfter(SpectralDeconvolutionGCModule.class)));
   }

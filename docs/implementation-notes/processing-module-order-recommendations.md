@@ -10,14 +10,15 @@ execution.
 
 - `MZmineProcessingModule#getModuleOrderRecommendations()` returns alternative valid placements.
   If any applicable recommendation passes, the module placement is accepted.
+- A recommendation only stores its rationale and rule. User-facing messages obtain the declaring
+  module's name directly instead of maintaining a separate use-case label.
 - A rule positions the module before or after a specific module class. The anchor can either be
   required or checked only if it is present in the same pipeline.
 - Rules are sealed into relative-module and custom-condition variants. Custom conditions receive
   the complete batch queue, the inferred pipeline `IndexRange`, and the evaluated step index.
 - Declarations, conditions, segmentation, and validation are colocated in
   `io.github.mzmine.modules.batchmode.order`. Only declaration and condition types plus the
-  validator
-  facade are public; concrete rules and evaluation details remain package-private.
+  validator facade are public; concrete rules and evaluation details remain package-private.
 - `MUST` and `SHOULD` both produce confirmable warnings. They are grouped separately to communicate
   importance; neither blocks execution.
 - Applicability is inferred from the `BatchQueue`. A conditional rule with no matching anchor is not

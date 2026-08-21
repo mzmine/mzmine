@@ -67,7 +67,7 @@ public class FormulaPredictionIonNetworkModule implements MZmineProcessingModule
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Ion-network formula prediction",
+    return List.of(new ModuleOrderRecommendation(
         "Formula prediction requires annotation networks created by ion identity networking",
         ModuleOrderRule.mustRunAfter(IonNetworkingModule.class)));
   }

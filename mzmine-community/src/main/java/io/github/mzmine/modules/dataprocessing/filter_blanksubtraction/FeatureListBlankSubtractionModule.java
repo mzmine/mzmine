@@ -64,7 +64,7 @@ public class FeatureListBlankSubtractionModule implements MZmineProcessingModule
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Aligned feature-list processing",
+    return List.of(new ModuleOrderRecommendation(
         "Feature-list blank subtraction requires a feature list containing all aligned samples",
         ModuleOrderRule.mustSatisfy(
             ModuleCategoryOrderCondition.after(MZmineModuleCategory.ALIGNMENT))));
