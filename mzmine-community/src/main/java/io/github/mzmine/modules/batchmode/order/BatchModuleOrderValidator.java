@@ -65,26 +65,28 @@ public final class BatchModuleOrderValidator {
   static @NotNull BatchModuleOrderValidationResult validate(@NotNull final BatchQueue batchQueue) {
     final List<BatchModuleOrderIssue> issues = new ArrayList<>();
     final List<IndexRange> segments = BatchQueueSegmenter.split(batchQueue);
+    final boolean showPipelineIndex = segments.size() > 1;
     for (int segmentIndex = 0; segmentIndex < segments.size(); segmentIndex++) {
       final IndexRange segment = segments.get(segmentIndex);
-      validateSegment(batchQueue, segment, segmentIndex, issues);
+      validateSegment(batchQueue, segment, segmentIndex, showPipelineIndex, issues);
     }
     return new BatchModuleOrderValidationResult(issues);
   }
 
   private static void validateSegment(@NotNull final BatchQueue batchQueue,
-      @NotNull final IndexRange segment, final int segmentIndex,
+      @NotNull final IndexRange segment, final int segmentIndex, final boolean showPipelineIndex,
       @NotNull final List<BatchModuleOrderIssue> issues) {
     for (int stepIndex = segment.min(); stepIndex < segment.maxExclusive(); stepIndex++) {
       final MZmineProcessingModule module = batchQueue.get(stepIndex).getModule();
-      validateRecommendations(batchQueue, segment, segmentIndex, stepIndex, module,
+      validateRecommendations(batchQueue, segment, segmentIndex, showPipelineIndex, stepIndex,
+          module,
           module.getModuleOrderRecommendations(), issues);
     }
   }
 
   private static void validateRecommendations(@NotNull final BatchQueue batchQueue,
-      @NotNull final IndexRange segment, final int segmentIndex, final int stepIndex,
-      @NotNull final MZmineProcessingModule module,
+      @NotNull final IndexRange segment, final int segmentIndex, final boolean showPipelineIndex,
+      final int stepIndex, @NotNull final MZmineProcessingModule module,
       @NotNull final List<@NotNull ModuleOrderRecommendation> recommendations,
       @NotNull final List<BatchModuleOrderIssue> issues) {
     final List<ModuleOrderRecommendationEvaluation> violations = new ArrayList<>();
@@ -123,8 +125,10 @@ public final class BatchModuleOrderValidator {
       }
     } : "";
     final String rationale = asSentence(recommendation.rationale());
-    final String message = "Step %d, pipeline %d, %s: %s. %s%s".formatted(stepIndex + 1,
-        segmentIndex + 1, module.getName(), ruleDescription, rationale, missingText);
+    final String pipelineText =
+        showPipelineIndex ? "pipeline %d, ".formatted(segmentIndex + 1) : "";
+    final String message = "Step %d, %s%s: %s. %s%s".formatted(stepIndex + 1, pipelineText,
+        module.getName(), ruleDescription, rationale, missingText);
     issues.add(
         new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
             module.getName(), recommendation, selectedRule, message));

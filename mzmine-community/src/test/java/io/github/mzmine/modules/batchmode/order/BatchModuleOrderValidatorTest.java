@@ -76,6 +76,21 @@ class BatchModuleOrderValidatorTest {
   }
 
   @Test
+  void pipelineIndexIsOnlyShownForConcatenatedBatches() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)));
+
+    final String singlePipelineMessage = BatchModuleOrderValidator.validate(queue(subject)).issues()
+        .getFirst().message();
+    final String secondPipelineMessage = BatchModuleOrderValidator.validate(
+        queue(new AllSpectralDataImportModule(), new TestOrderModule("First pipeline"),
+            new AllSpectralDataImportModule(), subject)).issues().getFirst().message();
+
+    Assertions.assertFalse(singlePipelineMessage.contains("pipeline 1"));
+    Assertions.assertTrue(secondPipelineMessage.contains("pipeline 2"));
+  }
+
+  @Test
   void recommendedRuleCanRequireAnAnchor() {
     final TestSubjectModule beforeSubject = new TestSubjectModule(
         recommendation(ModuleOrderRule.shouldRunBefore(TestAnchorModule.class)));
