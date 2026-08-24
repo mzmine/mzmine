@@ -23,21 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.modifiers;
 
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
+import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
+import io.github.mzmine.datamodel.features.types.DataType;
 
-public class NormalizedHeightType extends HeightType {
+/**
+ * Flag interface for {@link DataType}s that never need a {@link DataColumn} in the data model.
+ * Their values are not stored but computed on demand, usually by implementing {@link MappingType}.
+ * <p>
+ * A {@link ColumnarModularDataModelSchema} still lists such types in
+ * {@link ColumnarModularDataModelSchema#getTypes()}, so that they are visible as columns in the
+ * feature table, but it neither allocates memory for them nor stores any value that is set.
+ */
+public interface NoDataColumnType {
 
-  public static final String UNIQUE_ID = "height_norm";
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return UNIQUE_ID;
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Norm. height";
-  }
 }

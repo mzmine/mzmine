@@ -598,6 +598,7 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
    */
   @Override
   public <T> @Nullable T get(DataType<T> type) {
+    // super handles MappingType
     T value = super.get(type);
     if (value != null) {
       return value;

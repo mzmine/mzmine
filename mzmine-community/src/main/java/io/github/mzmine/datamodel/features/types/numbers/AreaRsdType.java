@@ -25,11 +25,20 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.AbstractRsdType;
 import org.jetbrains.annotations.NotNull;
 
-public class NormalizedHeightType extends HeightType {
+/**
+ * Relative standard deviation (RSD, coefficient of variation) of the {@link AreaType} across all
+ * quality control samples of a feature list. The value is computed on demand, see
+ * {@link AbstractRsdType}. The type is a sub column of {@link SampleRsdType}, which is added
+ * to a feature list by {@link HeightType#createDefaultMappedRowTypes()}.
+ */
+public class AreaRsdType extends AbstractRsdType {
 
-  public static final String UNIQUE_ID = "height_norm";
+  public static final String UNIQUE_ID = "area_rsd";
 
   @Override
   public @NotNull String getUniqueID() {
@@ -38,6 +47,11 @@ public class NormalizedHeightType extends HeightType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Norm. height";
+    return "Area";
+  }
+
+  @Override
+  protected @NotNull DataType<? extends Number> getFeatureType() {
+    return DataTypes.get(AreaType.class);
   }
 }
