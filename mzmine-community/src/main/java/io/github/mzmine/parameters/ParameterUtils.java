@@ -215,15 +215,6 @@ public class ParameterUtils {
   }
 
   /**
-   * Compares two processing steps by their module and parameter values. Processing-step objects
-   * retain identity equality so equal configurations can coexist in a batch queue.
-   */
-  public static boolean equalValues(@NotNull final MZmineProcessingStep<?> a,
-      @NotNull final MZmineProcessingStep<?> b) {
-    return equalValues(a, b, false, false);
-  }
-
-  /**
    * Compares two processing steps by their module and parameter values.
    *
    * @param skipFileParameters        whether values of file-name parameters are ignored

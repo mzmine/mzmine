@@ -56,7 +56,7 @@ class MZmineProcessingStepEqualityTest {
         module, massDetectionParameters(1));
 
     Assertions.assertNotEquals(first, second);
-    Assertions.assertTrue(ParameterUtils.equalValues(first, second));
+    Assertions.assertTrue(ParameterUtils.equalValues(first, second, false, false));
 
     final BatchQueue queue = new BatchQueue();
     queue.addAll(first, second);
@@ -90,7 +90,7 @@ class MZmineProcessingStepEqualityTest {
     final MZmineProcessingStep<MZmineProcessingModule> ms2 = new MZmineProcessingStepImpl<>(module,
         massDetectionParameters(2));
 
-    Assertions.assertFalse(ParameterUtils.equalValues(ms1, ms2));
+    Assertions.assertFalse(ParameterUtils.equalValues(ms1, ms2, false, false));
   }
 
   @Test
@@ -101,7 +101,7 @@ class MZmineProcessingStepEqualityTest {
     final MZmineProcessingStep<MZmineProcessingModule> importStep = new MZmineProcessingStepImpl<>(
         massDetectionModule(), massDetectionParameters(2));
 
-    Assertions.assertFalse(ParameterUtils.equalValues(massDetection, importStep));
+    Assertions.assertFalse(ParameterUtils.equalValues(massDetection, importStep, false, false));
   }
 
   @Test

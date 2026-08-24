@@ -149,7 +149,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     }
 
     for (int i = 0; i < value.size(); i++) {
-      if (!ParameterUtils.equalValues(value.get(i), thatValue.get(i))) {
+      if (!ParameterUtils.equalValues(value.get(i), thatValue.get(i), false, false)) {
         return false;
       }
     }
