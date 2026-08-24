@@ -214,6 +214,19 @@ public class ParameterUtils {
     return equalValues(a, b, true, true);
   }
 
+  /**
+   * Compares two processing steps by their module and parameter values.
+   *
+   * @param skipFileParameters        whether values of file-name parameters are ignored
+   * @param skipRawDataFileParameters whether raw-data-file and file-name parameters are ignored
+   */
+  public static boolean equalValues(@NotNull final MZmineProcessingStep<?> a,
+      @NotNull final MZmineProcessingStep<?> b, final boolean skipFileParameters,
+      final boolean skipRawDataFileParameters) {
+    return a == b || (a.getModule().equals(b.getModule()) && equalValues(a.getParameterSet(),
+        b.getParameterSet(), skipFileParameters, skipRawDataFileParameters));
+  }
+
 
   /**
    * Checks if all parameters in a equal in value to b and vice versa. So the parameters need to
