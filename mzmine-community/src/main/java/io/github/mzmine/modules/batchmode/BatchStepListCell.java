@@ -47,7 +47,7 @@ final class BatchStepListCell extends
   BatchStepListCell(@NotNull final IntFunction<@Nullable String> validationMessageProvider) {
     this.validationMessageProvider = validationMessageProvider;
     infoIcon = FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE, FxIconUtil.LIST_ICON_SIZE,
-        ConfigService.getDefaultColorPalette().getPositiveColor());
+        ConfigService.getDefaultColorPalette().getNeutralColor());
     validationTooltip.setWrapText(true);
     validationTooltip.setMaxWidth(600);
   }
