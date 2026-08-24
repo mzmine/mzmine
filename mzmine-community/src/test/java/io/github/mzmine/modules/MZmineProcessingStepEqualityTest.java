@@ -25,25 +25,35 @@
 
 package io.github.mzmine.modules;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.batchmode.BatchQueueParameter;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import testutils.MZmineTestUtil;
 
 class MZmineProcessingStepEqualityTest {
 
+  @BeforeAll
+  static void initMzmine() {
+    MZmineTestUtil.startMzmineCore();
+  }
+
   @Test
   void duplicateConfigurationsRetainObjectIdentity() {
-    final MZmineProcessingModule module = Mockito.mock(MZmineProcessingModule.class);
+    final MZmineProcessingModule module = massDetectionModule();
     final MZmineProcessingStep<MZmineProcessingModule> first = new MZmineProcessingStepImpl<>(
-        module, new SimpleParameterSet());
+        module, massDetectionParameters(1));
     final MZmineProcessingStep<MZmineProcessingModule> second = new MZmineProcessingStepImpl<>(
-        module, new SimpleParameterSet());
+        module, massDetectionParameters(1));
 
     Assertions.assertNotEquals(first, second);
     Assertions.assertTrue(ParameterUtils.equalValues(first, second));
@@ -58,11 +68,11 @@ class MZmineProcessingStepEqualityTest {
 
   @Test
   void batchQueueParametersCompareStepValues() {
-    final MZmineProcessingModule module = Mockito.mock(MZmineProcessingModule.class);
+    final MZmineProcessingModule module = massDetectionModule();
     final BatchQueue firstQueue = new BatchQueue();
-    firstQueue.add(new MZmineProcessingStepImpl<>(module, new SimpleParameterSet()));
+    firstQueue.add(new MZmineProcessingStepImpl<>(module, massDetectionParameters(1)));
     final BatchQueue secondQueue = new BatchQueue();
-    secondQueue.add(new MZmineProcessingStepImpl<>(module, new SimpleParameterSet()));
+    secondQueue.add(new MZmineProcessingStepImpl<>(module, massDetectionParameters(1)));
 
     final BatchQueueParameter first = new BatchQueueParameter();
     first.setValue(firstQueue);
@@ -70,6 +80,54 @@ class MZmineProcessingStepEqualityTest {
     second.setValue(secondQueue);
 
     Assertions.assertTrue(first.valueEquals(second));
+  }
+
+  @Test
+  void differentParameterValuesDoNotCompareEqual() {
+    final MZmineProcessingModule module = massDetectionModule();
+    final MZmineProcessingStep<MZmineProcessingModule> ms1 = new MZmineProcessingStepImpl<>(module,
+        massDetectionParameters(1));
+    final MZmineProcessingStep<MZmineProcessingModule> ms2 = new MZmineProcessingStepImpl<>(module,
+        massDetectionParameters(2));
+
+    Assertions.assertFalse(ParameterUtils.equalValues(ms1, ms2));
+  }
+
+  @Test
+  void differentModulesDoNotCompareEqual() {
+    final ParameterSet parameters = massDetectionParameters(1);
+    final MZmineProcessingStep<MZmineProcessingModule> massDetection = new MZmineProcessingStepImpl<>(
+        massDetectionModule(), parameters);
+    final MZmineProcessingStep<MZmineProcessingModule> importStep = new MZmineProcessingStepImpl<>(
+        massDetectionModule(), massDetectionParameters(2));
+
+    Assertions.assertFalse(ParameterUtils.equalValues(massDetection, importStep));
+  }
+
+  @Test
+  void batchQueueParametersWithDifferentStepValuesDoNotCompareEqual() {
+    final MZmineProcessingModule module = massDetectionModule();
+    final BatchQueue firstQueue = new BatchQueue();
+    firstQueue.add(new MZmineProcessingStepImpl<>(module, massDetectionParameters(1)));
+    final BatchQueue secondQueue = new BatchQueue();
+    secondQueue.add(new MZmineProcessingStepImpl<>(module, massDetectionParameters(2)));
+
+    final BatchQueueParameter first = new BatchQueueParameter();
+    first.setValue(firstQueue);
+    final BatchQueueParameter second = new BatchQueueParameter();
+    second.setValue(secondQueue);
+
+    Assertions.assertFalse(first.valueEquals(second));
+  }
+
+  private static ParameterSet massDetectionParameters(final int msLevel) {
+    final ParameterSet parameters = new MassDetectionParameters().cloneParameterSet();
+    parameters.setParameter(MassDetectionParameters.scanSelection, new ScanSelection(msLevel));
+    return parameters;
+  }
+
+  private static MZmineProcessingModule massDetectionModule() {
+    return MZmineCore.getModuleInstance(MassDetectionModule.class);
   }
 
 }

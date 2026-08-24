@@ -103,8 +103,11 @@ class RawDataSavingUtilsTest {
     Assertions.assertInstanceOf(MassDetectionModule.class, merged.get(2).getModule());
     Assertions.assertEquals(Set.of(file1, file2, file3), Set.of(
         merged.get(0).getParameterSet().getValue(AllSpectralDataImportParameters.fileNames)));
+    // steps are ordered by module call date, so the MS1 detection must precede the MS2 detection.
     assertSelectedRawFiles(merged.get(1).getParameterSet());
+    assertMsLevel(merged.get(1).getParameterSet(), 1);
     assertSelectedRawFiles(merged.get(2).getParameterSet());
+    assertMsLevel(merged.get(2).getParameterSet(), 2);
   }
 
   @Test
@@ -171,6 +174,12 @@ class RawDataSavingUtilsTest {
             parameters.getValue(MassDetectionParameters.dataFiles).getMatchingRawDataFiles())
         .collect(Collectors.toSet());
     Assertions.assertEquals(expected, actual);
+  }
+
+  private void assertMsLevel(final ParameterSet parameters, final Integer expectedMsLevel) {
+    final Integer actualMsLevel = parameters.getValue(MassDetectionParameters.scanSelection)
+        .getMsLevelFilter().getSingleMsLevelOrNull();
+    Assertions.assertEquals(expectedMsLevel, actualMsLevel);
   }
 
   private static RawDataFile createRawDataFile(final File file) {
