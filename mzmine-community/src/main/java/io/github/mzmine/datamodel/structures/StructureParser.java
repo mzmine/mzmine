@@ -25,10 +25,15 @@
 
 package io.github.mzmine.datamodel.structures;
 
+import static io.github.mzmine.datamodel.structures.StructureInputType.INCHI;
+import static java.util.Objects.requireNonNullElse;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import io.github.mzmine.util.StringUtils;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -147,8 +152,51 @@ public class StructureParser {
     return SMILES_SPECIAL_CHARS.matcher(input).find();
   }
 
+  /**
+   * Parse with cache activated to cache input and clean smiles inchi to structure.
+   *
+   * @return the structure or null
+   */
   @Nullable
   public MolecularStructure parseStructure(@Nullable String structure,
+      @NotNull StructureInputType inputType) {
+    if (StringUtils.isBlank(structure)) {
+      return null;
+    }
+
+    // Cache lookup — raw first (smaller, more likely to hit on repeated identical inputs),
+    // then clean (hits when the caller already passes a canonical form, e.g. an inchikey).
+    MolecularStructure cached = lookupCaches(structure);
+    if (cached != null) {
+      return cached;
+    }
+
+    final MolecularStructure mol = parseStructureWithoutCache(structure, inputType);
+    if (mol == null) {
+      return null;
+    }
+
+    // Populate CLEAN_CACHE with all derivable clean keys → same MolecularStructure instance.
+    // Each generator can fail independently; cache whatever succeeds.
+    final HashSet<String> cleanKeys = new HashSet<>(4);
+    putClean(cleanKeys, mol,
+        StructureUtils.getSmiles(StructureUtils.SmilesFlavor.CANONICAL, mol.structure()));
+    putClean(cleanKeys, mol,
+        StructureUtils.getSmiles(StructureUtils.SmilesFlavor.ISOMERIC, mol.structure()));
+    final InchiStructure inchiStruct = StructureUtils.getInchiStructure(mol.structure());
+    if (inchiStruct != null) {
+      putClean(cleanKeys, mol, inchiStruct.inchi());
+      putClean(cleanKeys, mol, inchiStruct.inchiKey());
+    }
+
+    // Populate RAW_CACHE with the original caller inputs — skip if the input string already
+    // appears in CLEAN_CACHE (avoids redundant storage of already-canonical inputs).
+    putRaw(cleanKeys, mol, structure);
+    return mol;
+  }
+
+  @Nullable
+  public MolecularStructure parseStructureWithoutCache(@Nullable String structure,
       @NotNull StructureInputType inputType) {
     if (structure == null || structure.isBlank() || structure.equalsIgnoreCase("n/a")
         || structure.equalsIgnoreCase("na")) {
@@ -162,8 +210,28 @@ public class StructureParser {
                 .getAtomContainer();
       };
 
-      return molecule == null || molecule.getAtomCount() == 0 ? null
-          : new SimpleMolecularStructure(molecule);
+      if (molecule == null || molecule.getAtomCount() == 0) {
+        return null;
+      }
+
+      // Suppress the hydrogens once before generating clean forms / caching
+      try {
+        AtomContainerManipulator.suppressHydrogens(molecule);
+      } catch (Exception exception) {
+        logger.log(Level.WARNING,
+            "Failed to suppress hydrogens for %s: %s".formatted(inputType, structure),
+            exception.getMessage());
+      }
+
+      final SimpleMolecularStructure molStructure = new SimpleMolecularStructure(molecule);
+
+      if (inputType == StructureInputType.SMILES) {
+        // if input was smiles also apply inchi structure harmonization to get the same result for
+        // smiles and inchi
+        return requireNonNullElse(parseStructureWithoutCache(molStructure.inchi(), INCHI),
+            molStructure);
+      }
+      return molStructure;
     } catch (CDKException e) {
       String message = "Cannot parse 'structure' %s as %s".formatted(structure, inputType);
       if (verbose) {
@@ -219,41 +287,12 @@ public class StructureParser {
       return cached;
     }
 
-    // Miss everywhere — parse. Try smiles first, fall back to inchi.
-    MolecularStructure mol = parseStructure(smiles, StructureInputType.SMILES);
+    // Miss everywhere — parse. since 4.11 switched from smiles then inchi to
+    // inchi then smiles. inchi applies another hamonization like tautomerization of CC(=O)N to CC(=N)O
+    MolecularStructure mol = parseStructure(inchi, INCHI);
     if (mol == null) {
-      mol = parseStructure(inchi, StructureInputType.INCHI);
+      mol = parseStructure(smiles, StructureInputType.SMILES);
     }
-    if (mol == null) {
-      // do not cache failed/blank parses
-      return null;
-    }
-
-    // Suppress the hydrogens once before generating clean forms / caching
-    try {
-      AtomContainerManipulator.suppressHydrogens(mol.structure());
-    } catch (Exception exception) {
-      logger.log(Level.WARNING, "Failed to suppress hydrogens for smiles %s   inchi %s".formatted(
-          smiles != null ? smiles : "", inchi != null ? inchi : ""), exception.getMessage());
-    }
-
-    // Populate CLEAN_CACHE with all derivable clean keys → same MolecularStructure instance.
-    // Each generator can fail independently; cache whatever succeeds.
-    final HashSet<String> cleanKeys = new HashSet<>(4);
-    putClean(cleanKeys, mol,
-        StructureUtils.getSmiles(StructureUtils.SmilesFlavor.CANONICAL, mol.structure()));
-    putClean(cleanKeys, mol,
-        StructureUtils.getSmiles(StructureUtils.SmilesFlavor.ISOMERIC, mol.structure()));
-    final InchiStructure inchiStruct = StructureUtils.getInchiStructure(mol.structure());
-    if (inchiStruct != null) {
-      putClean(cleanKeys, mol, inchiStruct.inchi());
-      putClean(cleanKeys, mol, inchiStruct.inchiKey());
-    }
-
-    // Populate RAW_CACHE with the original caller inputs — skip if the input string already
-    // appears in CLEAN_CACHE (avoids redundant storage of already-canonical inputs).
-    putRaw(cleanKeys, mol, smiles);
-    putRaw(cleanKeys, mol, inchi);
 
     return mol;
   }
@@ -270,8 +309,8 @@ public class StructureParser {
     return CLEAN_CACHE.getIfPresent(input);
   }
 
-  private static void putClean(@NotNull java.util.Set<String> cleanKeys,
-      @NotNull MolecularStructure mol, @Nullable String key) {
+  private static void putClean(@NotNull Set<String> cleanKeys, @NotNull MolecularStructure mol,
+      @Nullable String key) {
     if (key == null || key.isBlank()) {
       return;
     }
@@ -279,8 +318,8 @@ public class StructureParser {
     cleanKeys.add(key);
   }
 
-  private static void putRaw(@NotNull java.util.Set<String> cleanKeys,
-      @NotNull MolecularStructure mol, @Nullable String key) {
+  private static void putRaw(@NotNull Set<String> cleanKeys, @NotNull MolecularStructure mol,
+      @Nullable String key) {
     if (key == null || key.isBlank() || cleanKeys.contains(key)) {
       return;
     }

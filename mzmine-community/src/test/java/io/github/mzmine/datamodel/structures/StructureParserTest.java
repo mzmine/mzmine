@@ -29,6 +29,7 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
@@ -228,4 +229,109 @@ class StructureParserTest {
         "InChI=1S/C20H32O3/c1-2-3-13-16-19(21)17-14-11-9-7-5-4-6-8-10-12-15-18-20(22)23/h4-5,8-11,14,17,19,21H,2-3,6-7,12-13,15-16,18H2,1H3,(H,22,23)/b5-4-,10-8-,11-9-,17-14+/i4D,5D,8D,9D,10D,11D,17D,19D",
         structure.inchi());
   }
+
+  record SourceEquivalence(String smiles, String inchi, boolean equal) {
+
+    static SourceEquivalence equal(String smiles, String inchi) {
+      return new SourceEquivalence(smiles, inchi, true);
+    }
+
+    static SourceEquivalence different(String smiles, String inchi) {
+      return new SourceEquivalence(smiles, inchi, false);
+    }
+
+  }
+
+  static List<SourceEquivalence> inchismiles = List.of(
+      SourceEquivalence.equal("CCCCCCCCC=CCCCCCCCCCCCC(N)=O",
+          "InChI=1S/C22H43NO/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22(23)24/h9-10H,2-8,11-21H2,1H3,(H2,23,24)"),
+      SourceEquivalence.equal("CCCCCCCCC=CCCCCCCCCCCCC(=N)O",
+          "InChI=1S/C22H43NO/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22(23)24/h9-10H,2-8,11-21H2,1H3,(H2,23,24)"),
+      SourceEquivalence.equal("CCCCCCCC/C=C\\CCCCCCCCCCCC(=O)N",
+          "InChI=1S/C22H43NO/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22(23)24/h9-10H,2-8,11-21H2,1H3,(H2,23,24)/b10-9-"),
+      SourceEquivalence.equal("CCCCCCCC/C=C\\CCCCCCCCCCCC(=N)O",
+          "InChI=1S/C22H43NO/c1-2-3-4-5-6-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22(23)24/h9-10H,2-8,11-21H2,1H3,(H2,23,24)/b10-9-")
+      //
+  );
+
+  @ParameterizedTest
+  @FieldSource(value = "inchismiles")
+  void checkEqualitySmilesInchi(SourceEquivalence c) {
+
+    final MolecularStructure strSmi = StructureParser.silent()
+        .parseStructureWithoutCache(c.smiles(), StructureInputType.SMILES);
+    final MolecularStructure strInchi = StructureParser.silent()
+        .parseStructureWithoutCache(c.inchi(), StructureInputType.INCHI);
+
+    Assertions.assertNotNull(strSmi);
+    Assertions.assertNotNull(strInchi);
+
+    String input = """
+        
+        For input smiles: %s
+             input inchi: %s
+        expected is smiles result and actual is inchi result.""".formatted(c.smiles(), c.inchi());
+    if (c.equal()) {
+      Assertions.assertEquals(strSmi.inchi(), strInchi.inchi(), input);
+      Assertions.assertEquals(strSmi.inchiKey(), strInchi.inchiKey(), input);
+      Assertions.assertEquals(strSmi.isomericSmiles(), strInchi.isomericSmiles(), input);
+    } else {
+      Assertions.assertNotEquals(strSmi.inchi(), strInchi.inchi(), input);
+      Assertions.assertNotEquals(strSmi.isomericSmiles(), strInchi.isomericSmiles(), input);
+    }
+  }
+
+  /// only for generating tests
+  @Test
+  @Disabled
+  void generateInchiSmilesTestCases() {
+
+    var smiles = List.of("CCCCCCCCC=CCCCCCCCCCCCC(N)=O", "CCCCCCCCC=CCCCCCCCCCCCC(=N)O",
+        "CCCCCCCC/C=C\\CCCCCCCCCCCC(=O)N", "CCCCCCCC/C=C\\CCCCCCCCCCCC(=N)O");
+
+    StringBuilder sb = new StringBuilder("New Lines\n");
+    for (String s : smiles) {
+      final String inchi = StructureParser.silent()
+          .parseStructureWithoutCache(s, StructureInputType.SMILES).inchi();
+
+      sb.append(", SourceEquivalence.equal(\"%s\", \"%s\")".formatted(
+          s.replace("\\", "\\\\").replace("\"", "\\\""),
+          inchi.replace("\\", "\\\\").replace("\"", "\\\"")));
+    }
+
+    logger.info(sb.toString());
+  }
+
+  /// inchi applies a standardization that is not done through smiles parser. So smiles -> inchi ->
+  /// smiles may differ. We will try to always use inchi parser for now. Like converting smiles to
+  /// inchi and then back to smiles.
+  @Test
+  @Disabled
+  void checkOutputs() {
+    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(N)=O";
+//    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(=N)O";
+    MolecularStructure mol = StructureParser.silent()
+        .parseStructureWithoutCache(inSmiles, StructureInputType.SMILES);
+
+    final MolecularStructure molInchi = StructureParser.silent()
+        .parseStructureWithoutCache(mol.inchi(), StructureInputType.INCHI);
+
+    logger.info("""
+        
+        from smiles
+        iso: %s
+        can: %s
+        inc: %s
+        key: %s
+        
+        from inchi
+        iiso: %s
+        ican: %s
+        iinc: %s
+        ikey: %s
+        """.formatted(mol.isomericSmiles(), mol.canonicalSmiles(), mol.inchi(), mol.inchiKey(), //
+        molInchi.isomericSmiles(), molInchi.canonicalSmiles(), molInchi.inchi(),
+        molInchi.inchiKey()));
+  }
+
 }
