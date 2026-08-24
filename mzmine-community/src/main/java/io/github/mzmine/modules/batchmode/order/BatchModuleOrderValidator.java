@@ -165,14 +165,28 @@ public final class BatchModuleOrderValidator {
           ModuleOrderTextFormatter.describeRule(rule, anchorName), true);
     }
 
-    final boolean correctOrder = anchorIndices.stream()
-        .anyMatch(anchorIndex -> switch (rule.position()) {
-          case BEFORE -> stepIndex < anchorIndex;
-          case AFTER -> stepIndex > anchorIndex;
-        });
+    // decision: Relative rules define a pipeline boundary. Every matching anchor must be on the
+    // requested side so that sequences such as alignment -> resolving -> alignment are rejected.
+    final Integer violatingAnchorIndex = anchorIndices.stream()
+        .filter(anchorIndex -> !isCorrectlyOrdered(stepIndex, anchorIndex, rule.position()))
+        .min(Comparator.comparingInt(anchorIndex -> Math.abs(anchorIndex - stepIndex)))
+        .orElse(null);
+    final boolean correctOrder = violatingAnchorIndex == null;
+    if (violatingAnchorIndex != null) {
+      final String violatingAnchorName = batchQueue.get(violatingAnchorIndex).getModule().getName();
+      anchorName = "%s (step %d)".formatted(violatingAnchorName, violatingAnchorIndex + 1);
+    }
     return new ModuleOrderRuleEvaluation(rule,
         correctOrder ? ModuleOrderRuleStatus.PASS : ModuleOrderRuleStatus.VIOLATION,
         ModuleOrderTextFormatter.describeRule(rule, anchorName), false);
+  }
+
+  private static boolean isCorrectlyOrdered(final int stepIndex, final int anchorIndex,
+      @NotNull final ModuleOrderPosition position) {
+    return switch (position) {
+      case BEFORE -> stepIndex < anchorIndex;
+      case AFTER -> stepIndex > anchorIndex;
+    };
   }
 
   private static int severityRank(@NotNull final ModuleOrderLevel level) {

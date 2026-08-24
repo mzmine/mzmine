@@ -13,7 +13,9 @@ execution.
 - A recommendation only stores its rationale and rule. User-facing messages obtain the declaring
   module's name directly instead of maintaining a separate use-case label.
 - A rule positions the module before or after a specific module class. The anchor can either be
-  required or checked only if it is present in the same pipeline.
+  required or checked only if it is present in the same pipeline. Every matching anchor must be on
+  the requested side: `before` defines a boundary before the first match, while `after` defines a
+  boundary after the last match.
 - Relative rules own direction, severity, and whether an anchor is required or only evaluated when
   present. Anchor conditions identify matching batch steps, allowing class-, category-, and
   parameter-sensitive anchors to use the same `before`/`after` rule factories. Conditions may use

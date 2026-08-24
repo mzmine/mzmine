@@ -132,6 +132,31 @@ class BatchModuleOrderValidatorTest {
   }
 
   @Test
+  void everyMatchingAnchorMustBeOnTheCorrectSide() {
+    final TestSubjectModule beforeSubject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.mustRunBefore(TestAnchorModule.class)));
+    final TestSubjectModule afterSubject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)));
+
+    final BatchModuleOrderValidationResult beforeBetweenAnchors = BatchModuleOrderValidator.validate(
+        queue(new TestAnchorModule(), beforeSubject, new TestAnchorModule()));
+    final BatchModuleOrderValidationResult afterBetweenAnchors = BatchModuleOrderValidator.validate(
+        queue(new TestAnchorModule(), afterSubject, new TestAnchorModule()));
+
+    Assertions.assertEquals(1, beforeBetweenAnchors.issues().size());
+    Assertions.assertTrue(
+        beforeBetweenAnchors.issues().getFirst().message().contains("Anchor (step 1)"));
+    Assertions.assertEquals(1, afterBetweenAnchors.issues().size());
+    Assertions.assertTrue(
+        afterBetweenAnchors.issues().getFirst().message().contains("Anchor (step 3)"));
+
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(
+        queue(beforeSubject, new TestAnchorModule(), new TestAnchorModule())).hasIssues());
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(
+        queue(new TestAnchorModule(), new TestAnchorModule(), afterSubject)).hasIssues());
+  }
+
+  @Test
   void leastSevereViolationIsSelectedWhenMultipleRulesFail() {
     final TestSubjectModule subject = new TestSubjectModule(
         recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)),
