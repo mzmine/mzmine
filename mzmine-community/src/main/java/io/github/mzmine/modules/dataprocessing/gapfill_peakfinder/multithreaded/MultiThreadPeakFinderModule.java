@@ -93,6 +93,6 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
                 ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))),
         new ModuleOrderRecommendation(
             "Gap filling/Secondary feature finding should run before duplicate filtering.",
-            ModuleOrderRule.mustRunBefore(DuplicateFilterModule.class)));
+            ModuleOrderRule.ifPresentMustRunBefore(DuplicateFilterModule.class)));
   }
 }
