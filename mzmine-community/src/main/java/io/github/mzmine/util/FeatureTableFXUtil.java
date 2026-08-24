@@ -35,6 +35,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,8 +58,13 @@ public class FeatureTableFXUtil {
    * All tables that currently exist, so that derived values like the RSD columns can be refreshed
    * in every table that shows a feature list - not only in those that live in their own
    * {@link FeatureTableTab} but also in the tables embedded in the statistics or compound
-   * dashboard. Weakly referenced and only accessed on the JavaFX thread, see
-   * {@link #getTablesFor(FeatureList)}.
+   * dashboard. Tables are weakly referenced so a closed table does not keep its feature list
+   * alive.
+   * <p>
+   * Tables are created on the JavaFX thread but {@link #getTablesFor(FeatureList)} may be called
+   * from any thread, therefore every access must hold the monitor of this set. A read write lock
+   * would not help: {@link WeakHashMap} expunges garbage collected entries during reads, so even
+   * concurrent reads mutate the backing map and would all need the write lock.
    */
   private static final Set<FeatureTableFX> instances = Collections.newSetFromMap(
       new WeakHashMap<>());
@@ -349,16 +355,26 @@ public class FeatureTableFXUtil {
   /**
    * @param flist the feature list to look for
    * @return all existing tables that show this feature list, including tables that are embedded in
-   * a dashboards. Call on the JavaFX thread.
+   * dashboards. Safe to call from any thread.
    */
   public static @NotNull List<FeatureTableFX> getTablesFor(@Nullable final FeatureList flist) {
     if (flist == null) {
       return List.of();
     }
-    return instances.stream().filter(table -> table.getFeatureList() == flist).toList();
+    // copy under the monitor so that a table created on the JavaFX thread cannot cause a
+    // ConcurrentModificationException here. Filtering then happens outside the lock because
+    // getFeatureList may touch JavaFX properties.
+    final FeatureTableFX[] snapshot;
+    synchronized (instances) {
+      snapshot = instances.toArray(FeatureTableFX[]::new);
+    }
+
+    return Arrays.stream(snapshot).filter(table -> table.getFeatureList() == flist).toList();
   }
 
   public static void addInstance(FeatureTableFX table) {
-    instances.add(table);
+    synchronized (instances) {
+      instances.add(table);
+    }
   }
 }
