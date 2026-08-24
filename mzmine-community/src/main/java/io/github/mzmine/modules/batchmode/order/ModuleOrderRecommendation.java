@@ -29,8 +29,8 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One possible placement of a module. All recommendations returned by a module are alternatives,
- * and one passing applicable recommendation accepts the placement.
+ * One placement recommendation for a module. All applicable recommendations returned by a module
+ * are evaluated independently.
  *
  * @param rationale explanation of why the placement matters
  * @param rule      ordering rule for this placement

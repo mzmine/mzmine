@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
 public interface MZmineProcessingModule extends MZmineRunnableModule {
 
   /**
-   * Describes alternative valid or recommended positions of this module in a processing pipeline.
-   * If any applicable recommendation is satisfied, the module placement is accepted. Modules
+   * Describes valid or recommended positions of this module in a processing pipeline. Every
+   * applicable recommendation is evaluated independently, and any violation is reported. Modules
    * without ordering requirements do not need to override this method.
    */
   default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {

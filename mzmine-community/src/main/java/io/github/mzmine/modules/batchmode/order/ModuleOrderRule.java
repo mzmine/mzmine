@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * One ordering requirement for a processing module.
  */
-public sealed interface ModuleOrderRule permits CustomModuleOrderRule, RelativeModuleOrderRule {
+public sealed interface ModuleOrderRule permits RelativeModuleOrderRule {
 
   default @NotNull String description() {
     return ModuleOrderTextFormatter.describeRule(this);
@@ -39,59 +39,89 @@ public sealed interface ModuleOrderRule permits CustomModuleOrderRule, RelativeM
 
   public static @NotNull ModuleOrderRule mustRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,
+    return mustRunBefore(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule mustRunBefore(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.BEFORE,
         ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.MUST);
   }
 
   public static @NotNull ModuleOrderRule mustRunAfter(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.AFTER,
+    return mustRunAfter(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule mustRunAfter(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.AFTER,
         ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.MUST);
   }
 
   public static @NotNull ModuleOrderRule shouldRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,
+    return shouldRunBefore(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule shouldRunBefore(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.BEFORE,
         ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.SHOULD);
   }
 
   public static @NotNull ModuleOrderRule shouldRunAfter(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.AFTER,
+    return shouldRunAfter(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule shouldRunAfter(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.AFTER,
         ModuleOrderAnchorRequirement.REQUIRED, ModuleOrderLevel.SHOULD);
   }
 
   public static @NotNull ModuleOrderRule ifPresentMustRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,
+    return ifPresentMustRunBefore(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule ifPresentMustRunBefore(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.BEFORE,
         ModuleOrderAnchorRequirement.IF_PRESENT, ModuleOrderLevel.MUST);
   }
 
   public static @NotNull ModuleOrderRule ifPresentMustRunAfter(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.AFTER,
+    return ifPresentMustRunAfter(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule ifPresentMustRunAfter(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.AFTER,
         ModuleOrderAnchorRequirement.IF_PRESENT, ModuleOrderLevel.MUST);
   }
 
   public static @NotNull ModuleOrderRule ifPresentShouldRunBefore(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.BEFORE,
+    return ifPresentShouldRunBefore(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule ifPresentShouldRunBefore(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.BEFORE,
         ModuleOrderAnchorRequirement.IF_PRESENT, ModuleOrderLevel.SHOULD);
   }
 
   public static @NotNull ModuleOrderRule ifPresentShouldRunAfter(
       @NotNull final Class<? extends MZmineProcessingModule> anchorModule) {
-    return new RelativeModuleOrderRule(anchorModule, ModuleOrderPosition.AFTER,
+    return ifPresentShouldRunAfter(new ModuleClassOrderCondition(anchorModule));
+  }
+
+  public static @NotNull ModuleOrderRule ifPresentShouldRunAfter(
+      @NotNull final ModuleOrderCondition anchorCondition) {
+    return new RelativeModuleOrderRule(anchorCondition, ModuleOrderPosition.AFTER,
         ModuleOrderAnchorRequirement.IF_PRESENT, ModuleOrderLevel.SHOULD);
-  }
-
-  public static @NotNull ModuleOrderRule mustSatisfy(
-      @NotNull final ModuleOrderCondition condition) {
-    return new CustomModuleOrderRule(condition, ModuleOrderLevel.MUST);
-  }
-
-  public static @NotNull ModuleOrderRule shouldSatisfy(
-      @NotNull final ModuleOrderCondition condition) {
-    return new CustomModuleOrderRule(condition, ModuleOrderLevel.SHOULD);
   }
 }

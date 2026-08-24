@@ -25,21 +25,33 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A queue-aware ordering condition for requirements that cannot be expressed relative to one module
- * class.
+ * Identifies batch steps that can act as anchors for a relative module-order rule.
  */
 public interface ModuleOrderCondition {
 
   /**
-   * Human-readable condition appended to the rule level, for example "run after ...".
+   * Human-readable description of the matching anchor, without an ordering direction.
    */
   @NotNull String description();
 
   /**
-   * Evaluates the condition for the module at {@link ModuleOrderEvaluationContext#stepIndex()}.
+   * Describes the anchor for a concrete step in an inferred batch pipeline. By default, the first
+   * matching module name is used when an anchor is present.
    */
-  boolean isSatisfied(@NotNull ModuleOrderEvaluationContext context);
+  default @NotNull String description(@NotNull final ModuleOrderEvaluationContext context) {
+    return Stream.concat(context.stepsBefore().stream(), context.stepsAfter().stream())
+        .filter(this::matches).map(step -> step.getModule().getName()).findFirst()
+        .orElseGet(this::description);
+  }
+
+  /**
+   * Tests whether a batch step is an anchor for this condition.
+   */
+  boolean matches(@NotNull MZmineProcessingStep<? extends MZmineProcessingModule> step);
 }

@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.batchmode.order;
 
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,47 +38,34 @@ import org.jetbrains.annotations.Nullable;
 public final class ModuleCategoryOrderCondition implements ModuleOrderCondition {
 
   private final MZmineModuleCategory category;
-  private final ModuleOrderPosition position;
 
-  private ModuleCategoryOrderCondition(@NotNull final MZmineModuleCategory category,
-      @NotNull final ModuleOrderPosition position) {
+  private ModuleCategoryOrderCondition(@NotNull final MZmineModuleCategory category) {
     this.category = Objects.requireNonNull(category);
-    this.position = Objects.requireNonNull(position);
   }
 
-  public static @NotNull ModuleCategoryOrderCondition before(
+  public static @NotNull ModuleCategoryOrderCondition of(
       @NotNull final MZmineModuleCategory category) {
-    return new ModuleCategoryOrderCondition(category, ModuleOrderPosition.BEFORE);
-  }
-
-  public static @NotNull ModuleCategoryOrderCondition after(
-      @NotNull final MZmineModuleCategory category) {
-    return new ModuleCategoryOrderCondition(category, ModuleOrderPosition.AFTER);
+    return new ModuleCategoryOrderCondition(category);
   }
 
   @Override
   public @NotNull String description() {
-    return "run %s a module in the %s category".formatted(position.name().toLowerCase(), category);
+    return "a module in the %s category".formatted(category);
   }
 
   @Override
-  public boolean isSatisfied(@NotNull final ModuleOrderEvaluationContext context) {
-    return switch (position) {
-      case BEFORE -> context.stepsAfter().stream()
-          .anyMatch(step -> step.getModule().getModuleCategory() == category);
-      case AFTER -> context.stepsBefore().stream()
-          .anyMatch(step -> step.getModule().getModuleCategory() == category);
-    };
+  public boolean matches(
+      @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
+    return step.getModule().getModuleCategory() == category;
   }
 
   @Override
   public boolean equals(@Nullable final Object obj) {
-    return obj instanceof ModuleCategoryOrderCondition other && category == other.category
-        && position == other.position;
+    return obj instanceof ModuleCategoryOrderCondition other && category == other.category;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(category, position);
+    return Objects.hash(category);
   }
 }

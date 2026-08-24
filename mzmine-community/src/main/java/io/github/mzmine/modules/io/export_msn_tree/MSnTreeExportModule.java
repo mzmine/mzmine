@@ -64,7 +64,7 @@ public class MSnTreeExportModule implements MZmineProcessingModule {
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(new ModuleOrderRecommendation(
         "MSn tree export requires centroided and noise filtered MS2 data",
-        ModuleOrderRule.mustSatisfy(MassDetectionCondition.INSTANCE)));
+        ModuleOrderRule.mustRunAfter(MassDetectionCondition.INSTANCE)));
   }
 
   @Override

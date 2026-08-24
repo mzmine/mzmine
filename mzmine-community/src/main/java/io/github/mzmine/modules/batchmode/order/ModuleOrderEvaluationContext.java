@@ -34,7 +34,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Batch state available to a custom module-order condition.
+ * Batch state available when describing an anchor condition for a concrete module-order rule.
  */
 public record ModuleOrderEvaluationContext(@NotNull BatchQueue batchQueue,
                                            @NotNull IndexRange segment, int stepIndex) {

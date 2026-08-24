@@ -31,7 +31,9 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,18 @@ public final class BatchModuleOrderValidator {
   public static @Nullable String validateAndFormat(@NotNull final BatchQueue batchQueue) {
     final BatchModuleOrderValidationResult result = validate(batchQueue);
     return result.hasIssues() ? result.formatMessage() : null;
+  }
+
+  /**
+   * @return validation messages keyed by their zero-based batch step index
+   */
+  public static @NotNull Map<Integer, String> validateAndFormatByStep(
+      @NotNull final BatchQueue batchQueue) {
+    final Map<Integer, String> messages = new LinkedHashMap<>();
+    for (final BatchModuleOrderIssue issue : validate(batchQueue).issues()) {
+      messages.merge(issue.stepIndex(), issue.message(), (first, second) -> first + "\n" + second);
+    }
+    return Map.copyOf(messages);
   }
 
   static @NotNull BatchModuleOrderValidationResult validate(@NotNull final BatchQueue batchQueue) {
@@ -79,17 +93,15 @@ public final class BatchModuleOrderValidator {
       final ModuleOrderRuleEvaluation evaluation = evaluateRule(batchQueue, segment, stepIndex,
           rule);
       switch (evaluation.status()) {
-        case PASS -> {
-          return;
-        }
         case VIOLATION ->
             violations.add(new ModuleOrderRecommendationEvaluation(recommendation, evaluation));
-        case NOT_APPLICABLE -> {
+        case PASS, NOT_APPLICABLE -> {
         }
       }
     }
 
-    // decision: Alternatives are ordered by the least severe user-facing problem.
+    // decision: A passing rule never suppresses another rule's violation. Only failed rules are
+    // ranked to select the least severe user-facing problem.
     final ModuleOrderRecommendationEvaluation selectedViolation = violations.stream().min(
             Comparator.comparingInt(
                 evaluation -> severityRank(ModuleOrderRules.level(evaluation.ruleEvaluation().rule()))))
@@ -102,8 +114,14 @@ public final class BatchModuleOrderValidator {
     final ModuleOrderRuleEvaluation ruleEvaluation = selectedViolation.ruleEvaluation();
     final ModuleOrderRule selectedRule = ruleEvaluation.rule();
     final String ruleDescription = ruleEvaluation.ruleDescription();
-    final String missingText =
-        ruleEvaluation.requiredStepMissing() ? " The required step is missing." : "";
+    final String missingText = ruleEvaluation.requiredStepMissing() ? switch (selectedRule) {
+      case RelativeModuleOrderRule relativeRule -> {
+        final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
+            segment, stepIndex);
+        final String anchorDescription = relativeRule.anchorCondition().description(context);
+        yield " " + asSentence(capitalizeFirst(anchorDescription) + " needs to be added");
+      }
+    } : "";
     final String rationale = asSentence(recommendation.rationale());
     final String message = "Step %d, pipeline %d, %s: %s. %s%s".formatted(stepIndex + 1,
         segmentIndex + 1, module.getName(), ruleDescription, rationale, missingText);
@@ -118,22 +136,22 @@ public final class BatchModuleOrderValidator {
     return switch (rule) {
       case RelativeModuleOrderRule relativeRule ->
           evaluateRelativeRule(batchQueue, segment, stepIndex, relativeRule);
-      case CustomModuleOrderRule customRule ->
-          evaluateCustomRule(batchQueue, segment, stepIndex, customRule);
     };
   }
 
   private static @NotNull ModuleOrderRuleEvaluation evaluateRelativeRule(
       @NotNull final BatchQueue batchQueue, @NotNull final IndexRange segment, final int stepIndex,
       @NotNull final RelativeModuleOrderRule rule) {
+    final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
+        segment, stepIndex);
     final List<Integer> anchorIndices = new ArrayList<>();
-    String anchorName = rule.anchorModule().getSimpleName();
+    String anchorName = rule.anchorCondition().description(context);
     for (int i = segment.min(); i < segment.maxExclusive(); i++) {
       if (i == stepIndex) {
         continue;
       }
       final MZmineProcessingStep<MZmineProcessingModule> candidate = batchQueue.get(i);
-      if (rule.anchorModule().isInstance(candidate.getModule())) {
+      if (rule.anchorCondition().matches(candidate)) {
         anchorIndices.add(i);
         anchorName = candidate.getModule().getName();
       }
@@ -157,18 +175,6 @@ public final class BatchModuleOrderValidator {
         ModuleOrderTextFormatter.describeRule(rule, anchorName), false);
   }
 
-  private static @NotNull ModuleOrderRuleEvaluation evaluateCustomRule(
-      @NotNull final BatchQueue batchQueue, @NotNull final IndexRange segment, final int stepIndex,
-      @NotNull final CustomModuleOrderRule rule) {
-    final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
-        segment, stepIndex);
-    final ModuleOrderRuleStatus status =
-        rule.condition().isSatisfied(context) ? ModuleOrderRuleStatus.PASS
-            : ModuleOrderRuleStatus.VIOLATION;
-    return new ModuleOrderRuleEvaluation(rule, status,
-        ModuleOrderTextFormatter.describeRule(rule, null), false);
-  }
-
   private static int severityRank(@NotNull final ModuleOrderLevel level) {
     return switch (level) {
       case SHOULD -> 0;
@@ -181,6 +187,10 @@ public final class BatchModuleOrderValidator {
       case '.', '!', '?' -> text;
       default -> text + ".";
     };
+  }
+
+  private static @NotNull String capitalizeFirst(@NotNull final String text) {
+    return Character.toUpperCase(text.charAt(0)) + text.substring(1);
   }
 
 }

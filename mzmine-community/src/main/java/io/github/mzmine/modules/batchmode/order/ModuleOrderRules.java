@@ -34,7 +34,6 @@ final class ModuleOrderRules {
 
   static @NotNull ModuleOrderLevel level(@NotNull final ModuleOrderRule rule) {
     return switch (rule) {
-      case CustomModuleOrderRule customRule -> customRule.level();
       case RelativeModuleOrderRule relativeRule -> relativeRule.level();
     };
   }

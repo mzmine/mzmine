@@ -25,17 +25,28 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Evaluates a custom condition against the batch queue and current inferred pipeline.
- */
-record CustomModuleOrderRule(@NotNull ModuleOrderCondition condition,
-                             @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
+record ModuleClassOrderCondition(
+    @NotNull Class<? extends MZmineProcessingModule> anchorModule) implements ModuleOrderCondition {
 
-  CustomModuleOrderRule {
-    Objects.requireNonNull(condition);
-    Objects.requireNonNull(level);
+  ModuleClassOrderCondition {
+    Objects.requireNonNull(anchorModule);
+  }
+
+  @Override
+  public @NotNull String description() {
+    final MZmineProcessingModule module = MZmineCore.getModuleInstance(anchorModule);
+    return module == null ? anchorModule.getSimpleName() : module.getName();
+  }
+
+  @Override
+  public boolean matches(
+      @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
+    return anchorModule.isInstance(step.getModule());
   }
 }

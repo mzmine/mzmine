@@ -25,20 +25,19 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.MZmineProcessingModule;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Positions the declaring module relative to another module class.
+ * Positions the declaring module relative to steps matching an anchor condition.
  */
-record RelativeModuleOrderRule(@NotNull Class<? extends MZmineProcessingModule> anchorModule,
+record RelativeModuleOrderRule(@NotNull ModuleOrderCondition anchorCondition,
                                @NotNull ModuleOrderPosition position,
                                @NotNull ModuleOrderAnchorRequirement anchorRequirement,
                                @NotNull ModuleOrderLevel level) implements ModuleOrderRule {
 
   RelativeModuleOrderRule {
-    Objects.requireNonNull(anchorModule);
+    Objects.requireNonNull(anchorCondition);
     Objects.requireNonNull(position);
     Objects.requireNonNull(anchorRequirement);
     Objects.requireNonNull(level);

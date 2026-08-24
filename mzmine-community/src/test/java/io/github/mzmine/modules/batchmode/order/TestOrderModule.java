@@ -39,9 +39,15 @@ import org.jetbrains.annotations.Nullable;
 class TestOrderModule implements MZmineProcessingModule {
 
   private final String name;
+  private final MZmineModuleCategory category;
 
   TestOrderModule(@NotNull final String name) {
+    this(name, MZmineModuleCategory.FEATURELIST);
+  }
+
+  TestOrderModule(@NotNull final String name, @NotNull final MZmineModuleCategory category) {
     this.name = name;
+    this.category = category;
   }
 
   @Override
@@ -68,6 +74,6 @@ class TestOrderModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELIST;
+    return category;
   }
 }

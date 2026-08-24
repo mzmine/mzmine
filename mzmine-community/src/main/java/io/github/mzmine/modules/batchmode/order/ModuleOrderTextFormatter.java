@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingModule;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,12 +36,7 @@ final class ModuleOrderTextFormatter {
 
   static @NotNull String describeRule(@NotNull final ModuleOrderRule rule) {
     final String anchorName = switch (rule) {
-      case RelativeModuleOrderRule relativeRule -> {
-        final MZmineProcessingModule anchor = MZmineCore.getModuleInstance(
-            relativeRule.anchorModule());
-        yield anchor == null ? relativeRule.anchorModule().getSimpleName() : anchor.getName();
-      }
-      case CustomModuleOrderRule ignored -> null;
+      case RelativeModuleOrderRule relativeRule -> relativeRule.anchorCondition().description();
     };
     return describeRule(rule, anchorName);
   }
@@ -54,8 +47,6 @@ final class ModuleOrderTextFormatter {
     return switch (rule) {
       case RelativeModuleOrderRule relativeRule ->
           describeRelativeRule(relativeRule, Objects.requireNonNull(anchorName), level);
-      case CustomModuleOrderRule customRule ->
-          "%s %s".formatted(level, customRule.condition().description());
     };
   }
 

@@ -32,6 +32,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +50,7 @@ class BatchModuleOrderValidatorTest {
     Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
     Assertions.assertTrue(result.issues().getFirst().message().contains("Subject:"));
     Assertions.assertTrue(
-        result.issues().getFirst().message().contains("required step is missing"));
+        result.issues().getFirst().message().contains("TestAnchorModule needs to be added"));
   }
 
   @Test
@@ -59,6 +60,19 @@ class BatchModuleOrderValidatorTest {
     final BatchQueue queue = queue(new TestAnchorModule(), subject);
 
     Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
+  }
+
+  @Test
+  void validationMessagesAreAvailableByStepIndex() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)));
+    final BatchQueue queue = queue(subject, new TestOrderModule("Unaffected"));
+
+    final Map<Integer, String> messages = BatchModuleOrderValidator.validateAndFormatByStep(queue);
+
+    Assertions.assertEquals(1, messages.size());
+    Assertions.assertTrue(messages.get(0).contains("Subject:"));
+    Assertions.assertFalse(messages.containsKey(1));
   }
 
   @Test
@@ -80,8 +94,8 @@ class BatchModuleOrderValidatorTest {
     Assertions.assertEquals(1, missingAnchorResult.issues().size());
     Assertions.assertEquals(ModuleOrderLevel.SHOULD,
         missingAnchorResult.issues().getFirst().level());
-    Assertions.assertTrue(
-        missingAnchorResult.issues().getFirst().message().contains("required step is missing"));
+    Assertions.assertTrue(missingAnchorResult.issues().getFirst().message()
+        .contains("TestAnchorModule needs to be added"));
   }
 
   @Test
@@ -105,17 +119,20 @@ class BatchModuleOrderValidatorTest {
   }
 
   @Test
-  void onePassingRecommendationAcceptsThePlacement() {
+  void passingRecommendationDoesNotSuppressAnotherViolation() {
     final TestSubjectModule subject = new TestSubjectModule(
         recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)),
         otherRecommendation(ModuleOrderRule.ifPresentShouldRunBefore(TestOtherAnchorModule.class)));
-    final BatchQueue queue = queue(new TestAnchorModule(), subject, new TestOtherAnchorModule());
+    final BatchQueue queue = queue(subject, new TestAnchorModule(), new TestOtherAnchorModule());
 
-    Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
+
+    Assertions.assertEquals(1, result.issues().size());
+    Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
   }
 
   @Test
-  void leastSevereViolationIsSelectedWhenAllAlternativesFail() {
+  void leastSevereViolationIsSelectedWhenMultipleRulesFail() {
     final TestSubjectModule subject = new TestSubjectModule(
         recommendation(ModuleOrderRule.mustRunAfter(TestAnchorModule.class)),
         otherRecommendation(ModuleOrderRule.ifPresentShouldRunAfter(TestOtherAnchorModule.class)));

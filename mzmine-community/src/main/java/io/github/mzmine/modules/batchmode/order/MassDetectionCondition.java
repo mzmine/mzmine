@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
@@ -41,14 +42,13 @@ public enum MassDetectionCondition implements ModuleOrderCondition {
 
   @Override
   public @NotNull String description() {
-    return "run after standalone mass detection or advanced data import with mass detection enabled";
+    return "standalone mass detection or advanced data import with mass detection enabled";
   }
 
   @Override
-  public boolean isSatisfied(@NotNull final ModuleOrderEvaluationContext context) {
-    return context.stepsBefore().stream().anyMatch(
-        step -> step.getModule() instanceof MassDetectionModule || hasAdvancedImportMassDetection(
-            step));
+  public boolean matches(
+      @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
+    return step.getModule() instanceof MassDetectionModule || hasAdvancedImportMassDetection(step);
   }
 
   private static boolean hasAdvancedImportMassDetection(
