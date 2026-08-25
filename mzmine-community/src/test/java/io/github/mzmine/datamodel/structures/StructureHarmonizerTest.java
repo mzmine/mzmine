@@ -194,6 +194,17 @@ class StructureHarmonizerTest {
     Assertions.assertEquals(82.0031, structure.monoIsotopicMass(), MASS_TOLERANCE);
   }
 
+  @Test
+  @DisplayName("KEEP_FRAGMENTS keeps the ion pair and keeps it charge balanced")
+  void neutralizeSalt() {
+    final MolecularStructure structure = parse("CC(=O)[O-].[Na+]", StructureInputType.SMILES,
+        HarmonizationOptions.DEFAULT);
+    Assertions.assertNotNull(structure);
+    Assertions.assertEquals("C2H4O2", structure.formulaString());
+    Assertions.assertEquals(0, structure.totalFormalCharge());
+    Assertions.assertEquals(60.0211, structure.monoIsotopicMass(), MASS_TOLERANCE);
+  }
+
   // ------------------------------------------------------------ protonation
 
   record ChargeCase(String name, String smiles, String expectedFormula, int expectedCharge,
@@ -207,6 +218,7 @@ class StructureHarmonizerTest {
       new ChargeCase("phenoxide", "[O-]c1ccccc1", "C6H6O", 0, 94.0419),
       new ChargeCase("thiolate", "CC[S-]", "C2H6S", 0, 62.0190),
       new ChargeCase("ethylammonium", "CC[NH3+]", "C2H7N", 0, 45.0578),
+      new ChargeCase("tetra methyl amine stays charged", "C[N+](C)(C)(C)", "[C4H12N]+", 1, 74.0970),
       new ChargeCase("guanidinium", "NC(N)=[NH2+]", "CH5N3", 0, 59.0483),
       new ChargeCase("ATP tetraanion",
           "Nc1ncnc2c1ncn2C1OC(COP([O-])(=O)OP([O-])(=O)OP([O-])([O-])=O)C(O)C1O", "C10H16N5O13P3",
@@ -215,9 +227,12 @@ class StructureHarmonizerTest {
       new ChargeCase("betaine stays a zwitterion", "C[N+](C)(C)CC(=O)[O-]", "C5H11NO2", 0,
           117.0790),
       new ChargeCase("choline stays a cation", "C[N+](C)(C)CCO", "[C5H14NO]+", 1, 104.1075),
+      new ChargeCase("Phosphatidylcholine stays a cation", "C[N+](C)(C)CCOP(=O)(O)OCC(COC=O)OC=O",
+          "[C10H21NO8P]+", 1, 314.1005),
       new ChargeCase("nitro stays charge separated", "C[N+](=O)[O-]", "CH3NO2", 0, 61.0164),
       new ChargeCase("amine oxide stays charge separated", "C[N+](C)(C)[O-]", "C3H9NO", 0, 75.0684),
       new ChargeCase("azide stays charge separated", "[N-]=[N+]=N", "HN3", 0, 43.0170),
+      new ChargeCase("Cs split away", "[Cs+].[O-]C(=O)[O-].[Cs+]", "CH2O3", 0, 62.0004),
       // a carbanion cannot take a proton without changing the species
       new ChargeCase("carbanion is left alone", "[CH3-]", "[CH3]-", -1, 15.0235));
 
