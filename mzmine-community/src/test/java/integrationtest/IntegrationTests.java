@@ -254,9 +254,10 @@ public class IntegrationTests {
   }
 
   /**
-   * Allows dropping of smiles harmonization errors from integration tests
+   * Allows dropping of smiles harmonization errors from integration tests. skipping smiles column
    */
   public List<CheckResult> noSmilesErrors(List<CheckResult> checkResults) {
-    return checkResults.stream().filter(r -> !r.type().contains("smiles")).toList();
+    return checkResults;
+//    return checkResults.stream().filter(r -> !r.type().contains("smiles")).toList();
   }
 }

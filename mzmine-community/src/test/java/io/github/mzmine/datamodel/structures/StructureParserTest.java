@@ -50,11 +50,15 @@ class StructureParserTest {
 
   }
 
+  // since the switch from the inchi round trip to StructureHarmonizer the protonation state is
+  // neutralized by default, so a deprotonated acid is reported as the neutral molecule. That is the
+  // mass adduct and m/z calculations need. Use HarmonizationOptions.KEEP_CHARGES to keep the input
+  // state, see StructureHarmonizerTest.
   final static List<Case> cases = List.of( //
       new Case("CC(=O)O", "C2H4O2", "CC(=O)O", "CC(O)=O", 0) //
-      , new Case("C(=O)[O-]", "[CHO2]-", "C(=O)[O-]", "C(=O)[O-]", -1) //
-      , new Case("[12CH](=O)[O-]", "[CHO2]-", "[12CH](=O)[O-]", "[12CH](=O)[O-]", -1) //
-      , new Case("[13CH](=O)[O-]", "[[13]CHO2]-", "[13CH](=O)[O-]", "[13CH](=O)[O-]", -1) //
+      , new Case("C(=O)[O-]", "CH2O2", "C(=O)O", "C(O)=O", 0) //
+      , new Case("[12CH](=O)[O-]", "CH2O2", "[12CH](=O)O", "[12CH](O)=O", 0) //
+      , new Case("[13CH](=O)[O-]", "[13]CH2O2", "[13CH](=O)O", "[13CH](O)=O", 0) //
       , new Case("C(=CCCC(C2)(C)Oc(c(C2)1)c(cc(O)c(C)1)C)(C)CCC=C(C)CCC=C(C)C", "C28H42O2",
           "CC(=CCCC(=CCCC(=CCCC1(C)CCC2=C(C)C(=CC(=C2O1)C)O)C)C)C",
           "CC(C)=CCCC(C)=CCCC(C)=CCCC1(C)CCC2=C(C)C(=CC(C)=C2O1)O", 0),
@@ -308,7 +312,8 @@ class StructureParserTest {
   @Test
   @Disabled
   void checkOutputs() {
-    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(N)=O";
+    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(N)=O.[Na]";
+//    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(N[Na])=O";
 //    final String inSmiles = "CCCCCCCCC=CCCCCCCCCCCCC(=N)O";
     MolecularStructure mol = StructureParser.silent()
         .parseStructureWithoutCache(inSmiles, StructureInputType.SMILES);
