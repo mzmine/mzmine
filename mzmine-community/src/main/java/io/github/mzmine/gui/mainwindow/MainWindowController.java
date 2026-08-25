@@ -100,6 +100,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -371,9 +372,13 @@ public class MainWindowController {
 
   public void setActiveWorkspace(@NotNull Workspace workspace, EnumSet<WorkspaceTags> tags) {
     logger.fine("Setting active workspace to " + workspace.getName());
-    activeWorkspace = workspace;
-    // rebuild the menu here, needed for updates after user changes
-    mainPane.setTop(workspace.buildMainMenu(tags));
+    // config load sets user on virtual thread and triggers workspace change
+    // run directly on platform to make sure its fx thread
+    Platform.runLater(() -> {
+      activeWorkspace = workspace;
+      // rebuild the menu here, needed for updates after user changes
+      mainPane.setTop(workspace.buildMainMenu(tags));
+    });
   }
 
   public Workspace getActiveWorkspace() {
