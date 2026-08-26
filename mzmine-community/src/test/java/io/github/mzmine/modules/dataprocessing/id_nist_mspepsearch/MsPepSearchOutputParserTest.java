@@ -69,11 +69,13 @@ class MsPepSearchOutputParserTest {
     assertEquals("C17H10O4", first.formula());
     assertEquals("38183129", first.cas());
     assertEquals("136172", first.nistNumber());
+    // the InChIKey column, not the empty uInChIKey of the query that precedes it
     assertEquals("ZFKJVJIDPQDDFY-UHFFFAOYSA-N", first.inChIKey());
     assertEquals(278.058, first.exactMass());
     assertEquals(278, first.nominalMw());
 
-    // MF, not DotProd (999) and not R.Match
+    // MF, not DotProd (999) and not the newMF (983) of the "NewMF" build. /MinMF filters on MF, so
+    // that is the number mzmine has to report as the score.
     assertEquals(980, first.matchFactor());
     assertEquals(980, first.revMatchFactor());
     assertEquals(999, first.dotProduct());
@@ -115,6 +117,7 @@ class MsPepSearchOutputParserTest {
     assertEquals(114, first.matchFactor());
     assertEquals(254, first.dotProduct());
     assertEquals(999, first.revMatchFactor());
+    // NumMP, not the o.NumMP (0) that follows it
     assertEquals(1, first.numMatchedPeaks());
 
     // the library precursor m/z, not the search spectrum's 267.19
@@ -128,8 +131,9 @@ class MsPepSearchOutputParserTest {
   @DisplayName("Unrecognised columns do not shift the recognised ones")
   void unknownColumnsAreIgnored() throws Exception {
 
-    // this fixture carries RI and uRI columns, which mzmine does not use, between NumMP and
-    // Num.Peaks - header driven parsing has to find Num.Peaks at its actual position
+    // This is the output of a /RI search, so it carries four columns mzmine does not use - Match no
+    // RI, uRI, RI and RI_np - between NumMP and Num.Peaks. Header driven parsing has to find
+    // Num.Peaks at its actual position rather than at a fixed index.
     final NistPepSearchResult result = parseFixture("mspepsearch_ei_extra_columns.tsv");
 
     assertTrue(result.warnings().isEmpty(), () -> "unexpected warnings: " + result.warnings());

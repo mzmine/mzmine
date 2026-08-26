@@ -1,6 +1,8 @@
-> MSPepSearch 0.9.7.5
-> D:\NIST26\MSPepSearch\MSPepSearch64.exe maivzhG /ZPPM 20 /MPPM 40 /LIB D:\NIST26\hr_msms_nist /HITS 20 /MinMF 400
-Num	Unknown	Rank	Library	Id	Name	Formula	CAS	Precursor m/z	Lib Precursor m/z	Prec.Type	Charge	CE	Instr.Type	Score	Dot Product	Rev-Dot	NumMP	Num.Peaks
-1	Desipramine	1	hr_msms_nist	418822	Desipramine	C18H22N2	50475	267.19	267.1856	[M+H]+	1	30	Q-TOF	114	254	999	1	3
-2	Imipramine	1	hr_msms_nist	418930	Imipramine	C19H24N2	50497	281.2	281.2012	[M+H]+	1	NCE=65% 34eV	HCD	873	901	962	14	21
-> Completed. 2 spectra searched, 2 hits.
+> MSPepSearch ver. 0.9.7.5 (Glycopep+bug fixes+MP+NewMF) build Tue Jan 27 13:20:31 2026. Started 08/14/26 at 15:54:02. Command line:
+> "X:\NIST26\MSPepSearch\MSPepSearch64.exe" mailG /Z 0.5 /M 0.02 /LIB X:\NIST26\hr_msms_nist /WRK C:\tmp /INP X:\NIST26\msms_spectrum.MSP /OUTTAB C:\tmp\out_msms2.tsv /HITS 5 /MinMF 100 /OutSpecNum 1 /OutPrecursorMZ /OutDeltaPrecursorMZ /OutPrecursorType /OutChemForm /OutIK /OutNumMP /OutRevMF /OutInstrType /OutCE /OutNumPk /OutNISTrn /OutCASrn
+>
+Num	Unknown	uInChIKey	Precursor m/z	Rank	Library	Id	Mass	Delta(m/z)	Lib Precursor m/z	Score	Dot Product	Prob(%)	Rev-Dot	NumMP	o.NumMP	Num.Peaks	Name	Charge	Formula	Prec.Type	CE	Instr.Type	CAS	NIST r.n.	InChIKey
+1	Desipramine		267.19	1	hr_msms_nist	18045	266.178	-0.0044	267.1856	114	254	12.7	999	1	0	9	Desipramine	1	C18H22N2	[M+H]+	30	Q-TOF	50475	1072559	HCYAFALTSJYZDH-UHFFFAOYSA-N
+1	Desipramine		267.19	2	hr_msms_nist	77106	266.163	-0.0197	267.1703	114	254	12.7	999	1	0	42	Atenolol	1	C14H22N2O3	[M+H]+	NCE=65% 34eV	HCD	29122687	1183894	METKIMKYRPQLGS-UHFFFAOYSA-N
+>
+> Completed. 1 spectra in 0.023 sec, process time = 0.025 sec (read 0.000s print 0.000s init pio 0.000s aux 0.000s sp 0.000s, search only: 0.000s+0.023s=0.023s, 44.1987 spec/s) 43.1166 spec/s Compared 3905 spec (168370 spec/s), No spectra compared 0, No hits 0, peaks/spec 6.00

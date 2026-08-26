@@ -1,4 +1,5 @@
-> MSPepSearch 0.9.7.5
-> D:\NIST26\MSPepSearch\MSPepSearch64.exe dvI /MAIN D:\NIST26\mainlib /HITS 20 /MinMF 400
-> Searching...
-> Completed. 3 spectra searched, 0 hits.
+> MSPepSearch ver. 0.9.7.5 (Glycopep+bug fixes+MP+NewMF) build Tue Jan 27 13:20:31 2026. Started 08/14/26 at 15:53:41. Command line:
+> "X:\NIST26\MSPepSearch\MSPepSearch64.exe" maizhG /ZPPM 20 /MPPM 40 /LIB X:\NIST26\hr_msms_nist /WRK C:\tmp /INP X:\NIST26\msms_spectrum.MSP /OUTTAB C:\tmp\out_msms.tsv /HITS 5 /MinMF 300 /OutSpecNum 1 /OutPrecursorMZ /OutDeltaPrecursorMZ /OutPrecursorType /OutChemForm /OutIK /OutNumMP /OutRevMF /OutInstrType /OutCE /OutNumPk /OutNISTrn /OutCASrn
+>
+>
+> Completed. 1 spectra in 0.002 sec, process time = 0.003 sec (read 0.000s print 0.000s init pio 0.000s aux 0.000s sp 0.000s, search only: 0.000s+0.002s=0.002s, 654.75 spec/s) 577.467 spec/s Compared 80 spec (46197.4 spec/s), No spectra compared 0, No hits 0, peaks/spec 6.00
