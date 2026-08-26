@@ -46,9 +46,11 @@ import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.StringUtils;
+import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.date.LocalDateTimeParser;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -167,7 +169,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
         final List<SimpleScan> scans = new ArrayList<>();
         final String startTimestamp = sample.getStartTimestamp();
-        rawDataFile.setStartTimeStamp(LocalDateTimeParser.parseAnyFirstDate(startTimestamp));
+        rawDataFile.setStartTimeStamp(DateTimeUtils.parseOrElse(startTimestamp, null));
 
         final List<Experiment> experiments = access.getExperiments(sample);
         for (Experiment experiment : experiments) {
