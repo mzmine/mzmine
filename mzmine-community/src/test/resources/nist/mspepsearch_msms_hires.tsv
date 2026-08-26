@@ -1,0 +1,6 @@
+> MSPepSearch 0.9.7.5
+> D:\NIST26\MSPepSearch\MSPepSearch64.exe maivzhG /ZPPM 20 /MPPM 40 /LIB D:\NIST26\hr_msms_nist /HITS 20 /MinMF 400
+Num	Unknown	Rank	Library	Id	Name	Formula	CAS	Precursor m/z	Lib Precursor m/z	Prec.Type	Charge	CE	Instr.Type	Score	Dot Product	Rev-Dot	NumMP	Num.Peaks
+1	Desipramine	1	hr_msms_nist	418822	Desipramine	C18H22N2	50475	267.19	267.1856	[M+H]+	1	30	Q-TOF	114	254	999	1	3
+2	Imipramine	1	hr_msms_nist	418930	Imipramine	C19H24N2	50497	281.2	281.2012	[M+H]+	1	NCE=65% 34eV	HCD	873	901	962	14	21
+> Completed. 2 spectra searched, 2 hits.

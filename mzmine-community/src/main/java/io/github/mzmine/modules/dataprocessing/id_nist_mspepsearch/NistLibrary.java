@@ -42,12 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * @param dir  the directory itself. MSPepSearch is handed the absolute path.
  * @param kind determines whether the library goes to {@code /MAIN}, {@code /REPL} or {@code /LIB}.
  */
-public record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibraryKind kind) {
-
-  /**
-   * MSPepSearch accepts at most one main and one replicate library, and 16 libraries in total.
-   */
-  public static final int MAX_LIBRARIES = 16;
+record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibraryKind kind) {
 
   /**
    * Name index files. The extension also tells the library format apart: {@code .in6} is the NIST
@@ -67,7 +62,7 @@ public record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull Nist
    * @return the libraries found, sorted with the main and replicate libraries first, or an empty
    * list if the directory is null, missing or holds no library.
    */
-  public static @NotNull List<NistLibrary> discover(@Nullable final File nistRoot) {
+  static @NotNull List<NistLibrary> discover(@Nullable final File nistRoot) {
 
     if (nistRoot == null || !nistRoot.isDirectory()) {
       return List.of();

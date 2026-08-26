@@ -25,10 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,36 +34,6 @@ import org.jetbrains.annotations.NotNull;
  * @param hits     every hit row, in file order.
  * @param warnings anything that could not be interpreted. Reported to the user but never fatal.
  */
-public record NistPepSearchResult(@NotNull List<NistHit> hits, @NotNull List<String> warnings) {
+record NistPepSearchResult(@NotNull List<NistHit> hits, @NotNull List<String> warnings) {
 
-  /**
-   * Groups the hits by the search spectrum they belong to, keyed on the 1-based
-   * {@code /OutSpecNum} ordinal. Hits without an ordinal are dropped - use {@link #byUnknownName()}
-   * for those.
-   */
-  public @NotNull Map<Integer, List<NistHit>> bySpecNum() {
-
-    final Map<Integer, List<NistHit>> grouped = new LinkedHashMap<>();
-    for (final NistHit hit : hits) {
-      if (hit.specNum() > 0) {
-        grouped.computeIfAbsent(hit.specNum(), _ -> new ArrayList<>()).add(hit);
-      }
-    }
-    return grouped;
-  }
-
-  /**
-   * Groups the hits by the {@code Name:} of the submitted MSP entry. The fallback mapping for when
-   * the {@code Num} column is absent.
-   */
-  public @NotNull Map<String, List<NistHit>> byUnknownName() {
-
-    final Map<String, List<NistHit>> grouped = new LinkedHashMap<>();
-    for (final NistHit hit : hits) {
-      if (hit.unknownName() != null) {
-        grouped.computeIfAbsent(hit.unknownName(), _ -> new ArrayList<>()).add(hit);
-      }
-    }
-    return grouped;
-  }
 }

@@ -32,7 +32,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
  * <p>
  * The declaration order is also the sort order of the library selection list.
  */
-public enum NistLibraryKind {
+enum NistLibraryKind {
 
   /**
    * The NIST main library ({@code .in6} name index), passed as {@code /MAIN}. At most one.
@@ -57,7 +57,7 @@ public enum NistLibraryKind {
   /**
    * @return the MSPepSearch command line switch for this kind of library.
    */
-  public String getArgument() {
+  String getArgument() {
     return argument;
   }
 }

@@ -25,13 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistEiSearchParameters.NistRetentionIndexParameters;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistEiSearchParameters.RIPenaltyRate;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistMsMsSearchParameters.HiResThreshold;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchAdvancedParameters.Presearch;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.RIColumn;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +45,19 @@ import org.jetbrains.annotations.Nullable;
  *       either as {@code /LIB} fails with the same error. See {@link NistLibraryKind}.</li>
  * </ul>
  * The search options form a single concatenated leading token, in the order the MSPepSearch help
- * declares them: {@code [{sdfmk}][aijnopqrvx][{uyz}][{leh}][{IQSHLMPGD}]}.
+ * declares them: {@code [{sdfmk}][aijnopqrvx][{uyz}][{leh}][{IQSHLMPGD}]}. Only the presets mzmine
+ * offers are built, so most of those slots are fixed:
+ * <ul>
+ *   <li>presearch {@code d} for the EI searches and {@code m} - the precursor m/z window, which the
+ *       MS Search user interface calls the default for MS/MS;</li>
+ *   <li>{@code a} alternative peak matching and {@code i} ignore precursor region for MS/MS, both
+ *       recommended by NIST;</li>
+ *   <li>{@code v} to get the reverse match factor column;</li>
+ *   <li>{@code z} to restrict MS/MS hits to library entries with a matching precursor m/z;</li>
+ *   <li>{@code h} for the high MS/MS score threshold.</li>
+ * </ul>
  */
-public final class MsPepSearchCommand {
+final class MsPepSearchCommand {
 
   /**
    * The output columns mzmine needs to build an annotation. Requested for every search so that the
@@ -79,7 +83,7 @@ public final class MsPepSearchCommand {
   /**
    * Builds the command line for one search run.
    *
-   * @param parameters the module parameters.
+   * @param config     the search configuration.
    * @param executable the MSPepSearch executable.
    * @param queryFile  the MSP file holding the query spectra.
    * @param outputFile the tab delimited file to write the hits to.
@@ -89,24 +93,22 @@ public final class MsPepSearchCommand {
    * @return the command, ready for {@link ProcessBuilder}. Every path is a separate element, so
    * paths containing spaces need no quoting.
    */
-  public static @NotNull List<String> build(@NotNull final ParameterSet parameters,
+  static @NotNull List<String> build(@NotNull final NistSearchConfig config,
       @NotNull final File executable, @NotNull final File queryFile,
       @NotNull final File outputFile, @NotNull final File workDir,
       @Nullable final Integer mwForLoss) {
 
-    final NistSearchMode mode = parameters.getValue(NistPepSearchParameters.searchMode);
-    final ParameterSet advanced = parameters.getParameter(NistPepSearchParameters.advanced)
-        .getEmbeddedParameters();
+    final NistSearchMode mode = config.mode();
 
     final List<String> command = new ArrayList<>();
     command.add(executable.getAbsolutePath());
-    command.add(buildOptionToken(parameters, mode, advanced));
+    command.add(buildOptionToken(mode));
 
-    // search parameters
+    // search parameters. The EI searches take none: /RI is never emitted because retention indices
+    // are not used for matching, and everything else the mode implies is in the option token.
     if (mode.isHighResolution()) {
-      addToleranceArguments(command, parameters);
-    } else {
-      addRetentionIndexArguments(command, parameters);
+      addTolerance(command, "/Z", config.precursorTolerance());
+      addTolerance(command, "/M", config.fragmentTolerance());
     }
     if (mode.needsMolecularWeight() && mwForLoss != null) {
       command.add("/MwForLoss");
@@ -114,7 +116,7 @@ public final class MsPepSearchCommand {
     }
 
     // libraries, always as absolute paths and never behind /PATH
-    for (final NistLibrary library : libraries(parameters)) {
+    for (final NistLibrary library : config.libraries()) {
       command.add(library.kind().getArgument());
       command.add(library.dir().getAbsolutePath());
     }
@@ -128,9 +130,9 @@ public final class MsPepSearchCommand {
     command.add(outputFile.getAbsolutePath());
 
     command.add("/HITS");
-    command.add(String.valueOf(parameters.getValue(NistPepSearchParameters.maxHits)));
+    command.add(String.valueOf(NistSearchConfig.MAX_HITS));
     command.add("/MinMF");
-    command.add(String.valueOf(parameters.getValue(NistPepSearchParameters.minMatchFactor)));
+    command.add(String.valueOf(config.minMatchFactor()));
 
     // output columns
     command.add("/OutSpecNum");
@@ -141,75 +143,36 @@ public final class MsPepSearchCommand {
     // progress messages on stderr, used to drive the task progress bar
     command.add("/PROGRESSNS");
 
-    if (advanced.getValue(NistPepSearchAdvancedParameters.librariesInMemory)) {
-      command.add("/LibInMem");
-    }
-    if (advanced.getValue(NistPepSearchAdvancedParameters.elevatedPriority)) {
-      command.add("/HiPri");
-    }
-
-    final String extra = advanced.getValue(NistPepSearchAdvancedParameters.extraArguments);
-    if (extra != null && !extra.isBlank()) {
-      command.addAll(List.of(extra.trim().split("\\s+")));
-    }
-
     return command;
   }
 
   /**
-   * Builds the leading concatenated option token, e.g. {@code dvI} or {@code maizhG}.
+   * Builds the leading concatenated option token: {@code dvI}, {@code dvS} or {@code dvH} for the EI
+   * searches and {@code maivzhG} for MS/MS.
+   * <p>
+   * MSPepSearch's "penalize rare compounds" flag {@code p} is deliberately never emitted. Its help
+   * states it only applies to the main and replicate libraries of 2020 or earlier plus NIST 23, and
+   * against a NIST 26 installation it terminates the process with an access violation (exit code
+   * 0xC0000005) instead of reporting an error.
    */
-  private static String buildOptionToken(final ParameterSet parameters, final NistSearchMode mode,
-      final ParameterSet advanced) {
+  private static String buildOptionToken(final NistSearchMode mode) {
 
     final StringBuilder token = new StringBuilder();
 
-    final boolean matchPrecursor = mode.isHighResolution() && parameters.getParameter(
-            NistPepSearchParameters.msmsParameters).getEmbeddedParameters()
-        .getValue(NistMsMsSearchParameters.matchPrecursor);
-
-    // presearch
-    final Presearch presearch = advanced.getValue(NistPepSearchAdvancedParameters.presearch);
-    char presearchLetter = presearch.getLetter(mode.isHighResolution());
-    if (mode.isHighResolution() && !matchPrecursor && (presearchLetter == 'm'
-        || presearchLetter == 'k')) {
-      // MSPepSearch rejects the precursor window presearch m and the InChIKey presearch k when the
-      // precursor is not matched: "Presearch type 'm' is not compatible with High Resolution search
-      // option 'u'". Fall back to the standard pre-indexed presearch.
-      presearchLetter = 'd';
-    }
-    token.append(presearchLetter);
-
-    // search flags, in the order the help declares them: a i ... r v
     if (mode.isHighResolution()) {
-
-      final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-          .getEmbeddedParameters();
-      if (msms.getValue(NistMsMsSearchParameters.alternativePeakMatching)) {
-        token.append('a');
-      }
-      if (msms.getValue(NistMsMsSearchParameters.ignorePrecursorRegion)) {
-        token.append('i');
-      }
-    }
-
-    if (advanced.getValue(NistPepSearchAdvancedParameters.reverseSearch)) {
-      token.append('r');
+      // m is the precursor m/z window presearch, only compatible with the precursor matching z
+      // below; a and i are the peak matching options NIST recommends for MS/MS
+      token.append("mai");
+    } else {
+      token.append('d');
     }
 
     // always request the reverse match factor column
     token.append('v');
 
     if (mode.isHighResolution()) {
-
-      final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-          .getEmbeddedParameters();
-
-      // precursor handling: z matches the precursor, u does not
-      token.append(matchPrecursor ? 'z' : 'u');
-
-      final HiResThreshold threshold = msms.getValue(NistMsMsSearchParameters.threshold);
-      token.append(threshold.getLetter());
+      // z restricts hits to library entries whose precursor m/z matches, h is the high threshold
+      token.append("zh");
     }
 
     // the search type is always last
@@ -219,21 +182,11 @@ public final class MsPepSearchCommand {
   }
 
   /**
-   * Adds the precursor and fragment tolerances of a high resolution search.
+   * Adds one m/z tolerance of a high resolution search.
    * <p>
    * MSPepSearch takes either a ppm or an absolute tolerance, never the maximum of both the way
    * {@link MZTolerance} does, so the ppm value wins when it is set.
    */
-  private static void addToleranceArguments(final List<String> command,
-      final ParameterSet parameters) {
-
-    final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-        .getEmbeddedParameters();
-
-    addTolerance(command, "/Z", msms.getValue(NistMsMsSearchParameters.precursorTolerance));
-    addTolerance(command, "/M", msms.getValue(NistMsMsSearchParameters.fragmentTolerance));
-  }
-
   private static void addTolerance(final List<String> command, final String argument,
       @Nullable final MZTolerance tolerance) {
 
@@ -248,98 +201,6 @@ public final class MsPepSearchCommand {
       command.add(argument);
       command.add(trimTrailingZeros(tolerance.getMzTolerance()));
     }
-  }
-
-  /**
-   * Adds {@code /RI} when the EI search is configured to use retention indices.
-   */
-  private static void addRetentionIndexArguments(final List<String> command,
-      final ParameterSet parameters) {
-
-    final ParameterSet ei = parameters.getParameter(NistPepSearchParameters.eiParameters)
-        .getEmbeddedParameters();
-
-    if (!ei.getValue(NistEiSearchParameters.retentionIndex)) {
-      return;
-    }
-
-    final ParameterSet ri = ei.getParameter(NistEiSearchParameters.retentionIndex)
-        .getEmbeddedParameters();
-
-    // /RI {nsp}[o][a][u][d][x][tNNrXX] - a single token, no spaces
-    final StringBuilder token = new StringBuilder();
-    token.append(columnLetter(ri.getValue(NistRetentionIndexParameters.column)));
-
-    if (ri.getValue(NistRetentionIndexParameters.overrideFromSpectrum)) {
-      token.append('o');
-    }
-    if (ri.getValue(NistRetentionIndexParameters.useOtherNonPolar)) {
-      token.append('a');
-    }
-    if (ri.getValue(NistRetentionIndexParameters.assumeUnspecified)) {
-      token.append('u');
-    }
-
-    if (ri.getValue(NistRetentionIndexParameters.penalty)) {
-      // tNNrXX makes MSPepSearch reduce the match factor of hits outside the tolerance
-      final RIPenaltyRate rate = ri.getParameter(NistRetentionIndexParameters.penalty)
-          .getEmbeddedParameter().getValue();
-      token.append('t').append(ri.getValue(NistRetentionIndexParameters.tolerance)).append('r')
-          .append(rate.getCode());
-    } else {
-      // x reports the retention indices without letting them change the score
-      token.append('x');
-    }
-
-    command.add("/RI");
-    command.add(token.toString());
-  }
-
-  /**
-   * The MSPepSearch column type letter of an RI column.
-   */
-  private static char columnLetter(@Nullable final RIColumn column) {
-    return switch (column) {
-      case NONPOLAR -> 'n';
-      case POLAR -> 'p';
-      case null, default -> 's';
-    };
-  }
-
-  /**
-   * The selected libraries, with at most one main and one replicate library because MSPepSearch
-   * accepts only one of each.
-   */
-  private static List<NistLibrary> libraries(final ParameterSet parameters) {
-
-    final List<NistLibrary> selected =
-        parameters instanceof NistPepSearchParameters nist ? nist.getSelectedLibraries()
-            : List.of();
-
-    final List<NistLibrary> result = new ArrayList<>();
-    boolean mainUsed = false;
-    boolean replicateUsed = false;
-
-    for (final NistLibrary library : selected) {
-      switch (library.kind()) {
-        case MAIN -> {
-          if (!mainUsed) {
-            result.add(library);
-            mainUsed = true;
-          }
-        }
-        case REPLICATE -> {
-          if (!replicateUsed) {
-            result.add(library);
-            replicateUsed = true;
-          }
-        }
-        case USER -> result.add(library);
-      }
-    }
-
-    return result.size() > NistLibrary.MAX_LIBRARIES ? result.subList(0, NistLibrary.MAX_LIBRARIES)
-        : result;
   }
 
   /**

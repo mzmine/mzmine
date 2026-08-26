@@ -62,9 +62,8 @@ import org.jetbrains.annotations.Nullable;
  * @param charge        the library entry's charge.
  * @param collisionEnergy collision energy as free text, e.g. {@code 30} or {@code NCE=65% 34eV}.
  * @param instrumentType instrument type, e.g. {@code Q-TOF} or {@code HCD}.
- * @param retentionIndex the {@code RI} column as MSPepSearch formats it, e.g. {@code 2480-S}.
  */
-public record NistHit(int specNum, @Nullable String unknownName, int rank, @NotNull String name,
+record NistHit(int specNum, @Nullable String unknownName, int rank, @NotNull String name,
                       @Nullable String libraryName, @Nullable String entryId,
                       @Nullable String nistNumber, @Nullable String cas, @Nullable String inChIKey,
                       @Nullable String formula, @Nullable Double exactMass,
@@ -73,15 +72,14 @@ public record NistHit(int specNum, @Nullable String unknownName, int rank, @NotN
                       @Nullable Double probability, @Nullable Integer numMatchedPeaks,
                       @Nullable Integer numPeaks, @Nullable Double precursorMz,
                       @Nullable String precursorType, @Nullable Integer charge,
-                      @Nullable String collisionEnergy, @Nullable String instrumentType,
-                      @Nullable String retentionIndex) {
+                      @Nullable String collisionEnergy, @Nullable String instrumentType) {
 
   /**
    * The match factor scaled to mzmine's 0-1 similarity score.
    *
    * @return the score, or {@link Double#NaN} if MSPepSearch reported no match factor.
    */
-  public double score0to1() {
+  double score0to1() {
     return matchFactor == null ? Double.NaN : matchFactor / 1000.0;
   }
 }

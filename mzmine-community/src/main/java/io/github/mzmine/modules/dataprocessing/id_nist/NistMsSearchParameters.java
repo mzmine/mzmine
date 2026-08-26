@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2025 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
@@ -29,134 +30,174 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.italicText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchConfig;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchMode;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds NIST MS Search parameters.
- *
- * @author $Author$
- * @version 2.0
+ * Parameters of the NIST MS search module.
+ * <p>
+ * Deliberately small: a search type picks one of the presets NIST recommends and everything the
+ * preset implies is fixed in {@link NistSearchConfig} and the command builder rather than exposed
+ * here.
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
   /**
-   * Feature lists to operate on.
+   * The search types offered. The hybrid search is left out - it needs the molecular weight of the
+   * unknown, which MSPepSearch only accepts as a single global value.
    */
+  private static final NistSearchMode[] SEARCH_MODES = {NistSearchMode.GC_EI_IDENTITY,
+      NistSearchMode.GC_EI_SIMILARITY, NistSearchMode.MSMS_HIRES};
+
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
-  /**
-   * NIST MS Search path.
-   */
-  public static final DirectoryParameter NIST_MS_SEARCH_DIR = new DirectoryParameter(
-      "NIST MS Search directory",
-      "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
+  public static final DirectoryParameter NIST_DIRECTORY = new DirectoryParameter(
+      "NIST installation directory", """
+      The NIST installation directory, for example D:\\NIST26.
+      It must contain the MSPepSearch sub directory with MSPepSearch64.exe, and the library sub \
+      directories such as mainlib, replib or hr_msms_nist.""");
 
-  /**
-   * Match factor cut-off.
-   */
-  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
-      "The minimum cosine similarity score (dot product) for identification",
-      MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
+  public static final CheckComboParameter<String> LIBRARIES = new CheckComboParameter<>("Libraries",
+      """
+          The libraries to search, discovered in the installation directory above. Select at least \
+          one and at most 16.
+          Reopen this dialog after changing the installation directory to refresh the list.
+          Use the EI libraries (mainlib, replib) for GC-EI searches and the tandem libraries \
+          (hr_msms_nist, lr_msms_nist, apci_msms_nist) for MS/MS searches.""", List.of(), List.of(),
+      true);
+
+  public static final ComboParameter<NistSearchMode> SEARCH_MODE = new ComboParameter<>(
+      "Search type", """
+      The NIST search preset to use.
+      The GC-EI searches work on unit mass EI spectra and use the NIST main and replicate \
+      libraries; identity finds the compound itself, similarity also finds related compounds that \
+      are not in the library. MS/MS works on accurate mass spectra and uses the tandem libraries.""",
+      SEARCH_MODES, NistSearchMode.MSMS_HIRES);
 
   public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
 
   /**
-   * Optional MZ rounding.
+   * Kept under its original name so that saved batches keep their value. MSPepSearch filters on the
+   * NIST match factor, which is this score times 1000.
    */
+  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
+      """
+          The minimum similarity score of a reported hit, on mzmine's 0 to 1 scale.
+          This is the NIST match factor divided by 1000 (MSPepSearch /MinMF): 0.7 and above is \
+          usually considered a good match, 0.9 and above an excellent one.""",
+      MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
+
+  public static final MZToleranceParameter PRECURSOR_TOLERANCE = new MZToleranceParameter(
+      "Precursor m/z tolerance", """
+      MS/MS only. MSPepSearch /Z or /ZPPM: the precursor ion m/z uncertainty.
+      MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
+      is greater than zero it is used, otherwise the absolute value is.""", 0.005, 20);
+
+  public static final MZToleranceParameter FRAGMENT_TOLERANCE = new MZToleranceParameter(
+      "Fragment m/z tolerance", """
+      MS/MS only. MSPepSearch /M or /MPPM: the product ion m/z uncertainty.
+      MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
+      is greater than zero it is used, otherwise the absolute value is.""", 0.01, 40);
+
   public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
-      new ComboParameter<>("Integer m/z", "Merging mode for fractional m/z to unit mass",
-          IntegerMode.values()), false);
+      new ComboParameter<>("Integer m/z", """
+          GC-EI only. Merge fractional m/z to unit mass before searching, as the NIST EI libraries \
+          are unit mass.
+          Only needed if your spectra are not already centroided to unit mass.""",
+          IntegerMode.values(), IntegerMode.SUM), false);
 
-  /**
-   * Spectrum import option: Overwrite or Append.
-   */
-  public static final ComboParameter<ImportOption> IMPORT_PARAMETER = new ComboParameter<>(
-      "Spectrum Import",
-      "Select if the spectra shall be added to the NIST search history (Append) or if the search history shall be overwritten (Overwrite).",
-      ImportOption.values(), ImportOption.OVERWRITE);
-
-  // NIST MS Search executable.
-  private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
-
-  /**
-   * Construct the parameter set.
-   */
   public NistMsSearchParameters() {
     super(
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html",
-        PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, spectraMergeSelect, INTEGER_MZ,
-        IMPORT_PARAMETER);
+        PEAK_LISTS, NIST_DIRECTORY, LIBRARIES, SEARCH_MODE, spectraMergeSelect, DOT_PRODUCT,
+        PRECURSOR_TOLERANCE, FRAGMENT_TOLERANCE, INTEGER_MZ);
   }
 
   /**
-   * Is this a Windows OS?
-   *
-   * @return true/false if the os.name property does/doesn't contain "Windows".
+   * @return the search configuration these parameters describe.
    */
-  private static boolean isWindows() {
+  public @NotNull NistSearchConfig toConfig() {
 
-    return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
+    final List<String> selected = getValue(LIBRARIES);
+    final Double minSimilarity = getValue(DOT_PRODUCT);
+    final IntegerMode integerMz = Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? getParameter(
+        INTEGER_MZ).getEmbeddedParameter().getValue() : null;
+
+    final NistSearchMode mode = getValue(SEARCH_MODE);
+
+    return new NistSearchConfig(getValue(NIST_DIRECTORY),
+        selected == null ? List.of() : List.copyOf(selected),
+        mode == null ? NistSearchMode.MSMS_HIRES : mode,
+        // MSPepSearch filters on the match factor, which is the score on a 0 to 999 scale
+        minSimilarity == null ? 0 : (int) Math.round(minSimilarity * 1000),
+        getValue(PRECURSOR_TOLERANCE), getValue(FRAGMENT_TOLERANCE), integerMz);
+  }
+
+  @Override
+  public ExitCode showSetupDialog(final boolean valueCheckRequired) {
+
+    // Prefill the installation directory and populate the library list before the dialog opens, so
+    // that the choices always reflect the installation that is actually configured.
+    if (getValue(NIST_DIRECTORY) == null) {
+      final File discovered = NistSearchConfig.discoverInstallation();
+      if (discovered != null) {
+        getParameter(NIST_DIRECTORY).setValue(discovered);
+      }
+    }
+    refreshLibraryChoices();
+
+    return super.showSetupDialog(valueCheckRequired);
+  }
+
+  /**
+   * Rediscovers the libraries of the configured installation and offers them as choices, keeping any
+   * selection that still exists.
+   */
+  public void refreshLibraryChoices() {
+
+    final List<String> names = NistSearchConfig.discoverLibraryNames(getValue(NIST_DIRECTORY));
+    getParameter(LIBRARIES).setChoices(names.toArray(String[]::new));
+
+    final List<String> selected = getValue(LIBRARIES);
+    if (selected != null && !selected.isEmpty()) {
+      getParameter(LIBRARIES).setValue(selected.stream().filter(names::contains).toList());
+    }
   }
 
   @Override
   public boolean checkParameterValues(final Collection<String> errorMessages) {
 
-    // Unsupported OS.
-    if (!isWindows()) {
-      errorMessages.add("NIST MS Search is only supported on Windows operating systems.");
-      return false;
-    }
+    final boolean valid = super.checkParameterValues(errorMessages);
 
-    boolean result = super.checkParameterValues(errorMessages);
+    // the installation, library and search type rules all live on the config
+    final List<String> problems = toConfig().validate();
+    errorMessages.addAll(problems);
 
-    // NIST MS Search home directory and executable.
-    final File executable = getNistMsSearchExecutable();
-
-    // Executable missing.
-    if (executable == null || !executable.exists()) {
-
-      errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
-          + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
-      result = false;
-    }
-
-    return result;
-  }
-
-  /**
-   * Gets the full path to the NIST MS Search executable.
-   *
-   * @return the path.
-   */
-  public File getNistMsSearchExecutable() {
-
-    final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
-    return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
+    return valid && problems.isEmpty();
   }
 
   @Override
   public int getVersion() {
-    return 3;
+    return 4;
   }
 
   @Override
@@ -168,26 +209,23 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
       case 3 -> "Improved spectral merging options. Please reconfigure the NIST MS search step.";
+      case 4 -> """
+          NIST MS search now runs NIST's command line program MSPepSearch instead of the MS Search \
+          user interface. Please set the NIST installation directory and select the libraries to \
+          search.""";
       default -> null;
     };
   }
 
   @Override
   public @Nullable Region getMessage() {
-    return FxTextFlows.newTextFlowInAccordion("Information", true, boldText("Deprecated: "),
-        text("this module drives the NIST MS Search user interface, one spectrum at a time, and "
-            + "cannot run without a visible MS Search window. Prefer "),
-        italicText("NIST MSPepSearch"),
-        text(", which searches all spectra in a single headless run.\n\n"), text("""
-            You must have a valid NIST library installation and the "Automation" check box under"""),
-        italicText(" Options"), text(" -> "), italicText("Library search options"), text(" -> "),
-        italicText("Other options"), text(" -> "), italicText("Automation"),
-        text(" must be enabled."),
-        text("\nThis search may take longer than spectral library searches in mzmine."),
-        text("\nWe recommend to "), boldText("not interact"),
-        text(" with the MS Search interface during the search."),
-        text("\nWith "), italicText("Spectrum Import = Append"),
-        text(" the MS Search spec list keeps growing, which makes every search slower - "),
-        italicText("Overwrite"), text(" is recommended."));
+    return FxTextFlows.newTextFlowInAccordion("Information", true,
+        text("This module runs NIST's command line search program "), italicText("MSPepSearch"),
+        text(", which needs no visible NIST MS Search window and therefore also works in batch mode "
+            + "and on a headless machine. All spectra are written to a single query file and "
+            + "searched in one run.\n"), boldText("Requires a licensed NIST library installation"),
+        text(" - MSPepSearch ships with NIST 17 and newer.\n"), text(
+            "NIST does not return the library spectra themselves, so the mirror plot of a hit stays "
+                + "empty. Open the compound in NIST MS Search to inspect the reference spectrum."));
   }
 }

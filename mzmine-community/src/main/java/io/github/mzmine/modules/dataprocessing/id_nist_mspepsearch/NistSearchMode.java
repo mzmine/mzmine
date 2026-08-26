@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 /**
- * The MSPepSearch search types exposed by this module.
+ * The MSPepSearch search types mzmine can run.
  * <p>
  * The letter is the search type character of the leading MSPepSearch option token. Low resolution
  * types ({@code I}, {@code S}, {@code H}) work on unit mass EI spectra and use the NIST main and
@@ -47,13 +47,17 @@ public enum NistSearchMode {
    * Low resolution hybrid similarity search. Needs the nominal molecular weight of the unknown
    * ({@code /MwForLoss}), which MSPepSearch only accepts as a single global value, so queries have
    * to be grouped by molecular weight.
+   * <p>
+   * No module offers this mode: the molecular weight of the unknown is rarely known well enough for
+   * it to be useful, and the grouping makes the search considerably slower. The engine keeps it so
+   * that offering it stays a parameter change rather than a rewrite.
    */
   GC_EI_HYBRID("GC-EI hybrid similarity", 'H', false),
   /**
    * High resolution generic MS/MS search - the standard LC-MS/MS workflow. "Generic" rather than
    * "peptide" so that no peptide peak annotation or weighting is applied.
    */
-  MSMS_HIRES("High resolution MS/MS", 'G', true);
+  MSMS_HIRES("MS/MS", 'G', true);
 
   private final String label;
   private final char searchTypeLetter;
@@ -68,7 +72,7 @@ public enum NistSearchMode {
   /**
    * @return the MSPepSearch search type character.
    */
-  public char getSearchTypeLetter() {
+  char getSearchTypeLetter() {
     return searchTypeLetter;
   }
 
@@ -84,7 +88,7 @@ public enum NistSearchMode {
    * @return true if this mode needs {@code /MwForLoss}, which forces queries to be grouped by
    * nominal molecular weight.
    */
-  public boolean needsMolecularWeight() {
+  boolean needsMolecularWeight() {
     return this == GC_EI_HYBRID;
   }
 

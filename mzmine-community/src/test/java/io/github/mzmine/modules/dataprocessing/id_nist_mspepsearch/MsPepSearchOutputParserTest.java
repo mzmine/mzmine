@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -85,11 +84,10 @@ class MsPepSearchOutputParserTest {
 
     // no high resolution columns in this mode
     assertNull(first.precursorType());
-    assertNull(first.retentionIndex());
 
-    // 16 spectra were searched
-    assertEquals(16, result.bySpecNum().size());
-    assertEquals(5, result.bySpecNum().get(1).size());
+    // 16 spectra were searched, the first one has 5 hits
+    assertEquals(16, result.hits().stream().map(NistHit::specNum).distinct().count());
+    assertEquals(5, result.hits().stream().filter(hit -> hit.specNum() == 1).count());
   }
 
   @Test
@@ -127,25 +125,21 @@ class MsPepSearchOutputParserTest {
   }
 
   @Test
-  @DisplayName("/RI output is picked up and keeps the NIST column class suffix")
-  void eiWithRetentionIndex() throws Exception {
+  @DisplayName("Unrecognised columns do not shift the recognised ones")
+  void unknownColumnsAreIgnored() throws Exception {
 
-    final NistPepSearchResult result = parseFixture("mspepsearch_ei_identity_ri.tsv");
+    // this fixture carries RI and uRI columns, which mzmine does not use, between NumMP and
+    // Num.Peaks - header driven parsing has to find Num.Peaks at its actual position
+    final NistPepSearchResult result = parseFixture("mspepsearch_ei_extra_columns.tsv");
 
     assertTrue(result.warnings().isEmpty(), () -> "unexpected warnings: " + result.warnings());
     assertFalse(result.hits().isEmpty());
 
     final NistHit first = result.hits().getFirst();
     assertEquals("mzmine_101_0", first.unknownName());
-    assertEquals("2480-S", first.retentionIndex());
-
-    // the RI columns shift Num.Peaks to the right - header driven parsing must still find it
     assertEquals(74, first.numPeaks());
     assertEquals(73, first.numMatchedPeaks());
     assertEquals(980, first.matchFactor());
-
-    // AI predicted RI of another spectrum
-    assertEquals("2464-V", result.byUnknownName().get("mzmine_102_0").getFirst().retentionIndex());
   }
 
   @Test
@@ -162,10 +156,12 @@ class MsPepSearchOutputParserTest {
   @DisplayName("The mzmine mapping key survives the round trip through the Unknown column")
   void mapsByUnknownName() throws Exception {
 
-    final NistPepSearchResult result = parseFixture("mspepsearch_ei_identity_ri.tsv");
+    final NistPepSearchResult result = parseFixture("mspepsearch_ei_extra_columns.tsv");
 
-    assertTrue(result.byUnknownName().containsKey("mzmine_101_0"));
-    assertEquals(3, result.byUnknownName().get("mzmine_101_0").size());
+    // the task maps hits back to their query by the Unknown column when the Num column is absent,
+    // so every hit of a query has to carry the name mzmine submitted
+    assertEquals(3,
+        result.hits().stream().filter(hit -> "mzmine_101_0".equals(hit.unknownName())).count());
   }
 
   @Test

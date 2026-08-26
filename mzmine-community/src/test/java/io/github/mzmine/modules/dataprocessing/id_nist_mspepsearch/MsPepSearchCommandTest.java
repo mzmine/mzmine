@@ -29,13 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistEiSearchParameters.NistRetentionIndexParameters;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistEiSearchParameters.RIPenaltyRate;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistMsMsSearchParameters.HiResThreshold;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchAdvancedParameters.Presearch;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.RIColumn;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,10 +48,12 @@ import org.junit.jupiter.api.io.TempDir;
  */
 class MsPepSearchCommandTest {
 
+  private static final MZTolerance PRECURSOR_PPM = new MZTolerance(0.005, 20);
+  private static final MZTolerance FRAGMENT_PPM = new MZTolerance(0.01, 40);
+
   @TempDir
   Path root;
 
-  private NistPepSearchParameters parameters;
   private File executable;
   private File queryFile;
   private File outputFile;
@@ -77,38 +73,15 @@ class MsPepSearchCommandTest {
 
     queryFile = root.resolve("query.msp").toFile();
     outputFile = root.resolve("out.tsv").toFile();
-
-    // the static parameter objects are shared between instances, so every value the tests rely on
-    // is set explicitly here
-    parameters = new NistPepSearchParameters();
-    parameters.setParameter(NistPepSearchParameters.nistDirectory, root.toFile());
-    parameters.setParameter(NistPepSearchParameters.minMatchFactor, 400);
-    parameters.setParameter(NistPepSearchParameters.maxHits, 10);
-
-    final ParameterSet advanced = parameters.getParameter(NistPepSearchParameters.advanced)
-        .getEmbeddedParameters();
-    advanced.setParameter(NistPepSearchAdvancedParameters.presearch, Presearch.DEFAULT);
-    advanced.setParameter(NistPepSearchAdvancedParameters.reverseSearch, false);
-    advanced.setParameter(NistPepSearchAdvancedParameters.librariesInMemory, false);
-    advanced.setParameter(NistPepSearchAdvancedParameters.elevatedPriority, false);
-    advanced.setParameter(NistPepSearchAdvancedParameters.extraArguments, "");
-
-    final ParameterSet ei = parameters.getParameter(NistPepSearchParameters.eiParameters)
-        .getEmbeddedParameters();
-    ei.getParameter(NistEiSearchParameters.retentionIndex).setValue(false);
-
-    final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-        .getEmbeddedParameters();
-    msms.setParameter(NistMsMsSearchParameters.matchPrecursor, true);
-    msms.setParameter(NistMsMsSearchParameters.alternativePeakMatching, true);
-    msms.setParameter(NistMsMsSearchParameters.ignorePrecursorRegion, true);
-    msms.setParameter(NistMsMsSearchParameters.threshold, HiResThreshold.HIGH);
-    msms.setParameter(NistMsMsSearchParameters.precursorTolerance, new MZTolerance(0.005, 20));
-    msms.setParameter(NistMsMsSearchParameters.fragmentTolerance, new MZTolerance(0.01, 40));
   }
 
-  private List<String> build(final Integer mwForLoss) {
-    return MsPepSearchCommand.build(parameters, executable, queryFile, outputFile, root.toFile(),
+  private NistSearchConfig config(final NistSearchMode mode, final String... libraries) {
+    return new NistSearchConfig(root.toFile(), List.of(libraries), mode, 400, PRECURSOR_PPM,
+        FRAGMENT_PPM, null);
+  }
+
+  private List<String> build(final NistSearchConfig config, final Integer mwForLoss) {
+    return MsPepSearchCommand.build(config, executable, queryFile, outputFile, root.toFile(),
         mwForLoss);
   }
 
@@ -124,10 +97,8 @@ class MsPepSearchCommandTest {
   @DisplayName("GC-EI identity: option token dvI, libraries as absolute paths, no /PATH")
   void eiIdentity() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib", "replib"));
-
-    final List<String> command = build(null);
+    final List<String> command = build(
+        config(NistSearchMode.GC_EI_IDENTITY, "mainlib", "replib"), null);
 
     assertEquals(executable.getAbsolutePath(), command.getFirst());
     assertEquals("dvI", command.get(1));
@@ -140,7 +111,7 @@ class MsPepSearchCommandTest {
 
     assertEquals(queryFile.getAbsolutePath(), valueAfter(command, "/INP"));
     assertEquals(outputFile.getAbsolutePath(), valueAfter(command, "/OUTTAB"));
-    assertEquals("10", valueAfter(command, "/HITS"));
+    assertEquals("20", valueAfter(command, "/HITS"));
     assertEquals("400", valueAfter(command, "/MinMF"));
     assertEquals("1", valueAfter(command, "/OutSpecNum"));
 
@@ -154,63 +125,21 @@ class MsPepSearchCommandTest {
   }
 
   @Test
-  @DisplayName("GC-EI identity with /RI builds the sut10rAV token")
-  void eiIdentityWithRetentionIndex() {
+  @DisplayName("/RI is never emitted - retention indices are not used for matching")
+  void retentionIndexIsNeverRequested() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib", "nist_ri"));
+    for (final NistSearchMode mode : NistSearchMode.values()) {
 
-    final ParameterSet ei = parameters.getParameter(NistPepSearchParameters.eiParameters)
-        .getEmbeddedParameters();
-    ei.getParameter(NistEiSearchParameters.retentionIndex).setValue(true);
-
-    final ParameterSet ri = ei.getParameter(NistEiSearchParameters.retentionIndex)
-        .getEmbeddedParameters();
-    ri.setParameter(NistRetentionIndexParameters.column, RIColumn.SEMIPOLAR);
-    ri.setParameter(NistRetentionIndexParameters.tolerance, 10);
-    ri.setParameter(NistRetentionIndexParameters.overrideFromSpectrum, false);
-    ri.setParameter(NistRetentionIndexParameters.useOtherNonPolar, false);
-    ri.setParameter(NistRetentionIndexParameters.assumeUnspecified, true);
-    ri.getParameter(NistRetentionIndexParameters.penalty).setValue(true);
-    ri.getParameter(NistRetentionIndexParameters.penalty).getEmbeddedParameter()
-        .setValue(RIPenaltyRate.AVERAGE);
-
-    final List<String> command = build(null);
-
-    assertEquals("sut10rAV", valueAfter(command, "/RI"));
-    assertEquals(root.resolve("nist_ri").toFile().getAbsolutePath(), valueAfter(command, "/LIB"));
+      final List<String> command = build(config(mode, "mainlib", "nist_ri"), 278);
+      assertFalse(command.contains("/RI"), () -> "unexpected /RI for " + mode + ": " + command);
+    }
   }
 
   @Test
-  @DisplayName("Without an RI penalty the token ends in x so the score is not changed")
-  void retentionIndexWithoutPenalty() {
-
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
-    final ParameterSet ei = parameters.getParameter(NistPepSearchParameters.eiParameters)
-        .getEmbeddedParameters();
-    ei.getParameter(NistEiSearchParameters.retentionIndex).setValue(true);
-
-    final ParameterSet ri = ei.getParameter(NistEiSearchParameters.retentionIndex)
-        .getEmbeddedParameters();
-    ri.setParameter(NistRetentionIndexParameters.column, RIColumn.NONPOLAR);
-    ri.setParameter(NistRetentionIndexParameters.overrideFromSpectrum, false);
-    ri.setParameter(NistRetentionIndexParameters.useOtherNonPolar, false);
-    ri.setParameter(NistRetentionIndexParameters.assumeUnspecified, false);
-    ri.getParameter(NistRetentionIndexParameters.penalty).setValue(false);
-
-    assertEquals("nx", valueAfter(build(null), "/RI"));
-  }
-
-  @Test
-  @DisplayName("High resolution MS/MS: option token maivzhG with ppm tolerances")
+  @DisplayName("MS/MS: option token maivzhG with ppm tolerances")
   void msmsHiRes() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.MSMS_HIRES);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("hr_msms_nist"));
-
-    final List<String> command = build(null);
+    final List<String> command = build(config(NistSearchMode.MSMS_HIRES, "hr_msms_nist"), null);
 
     // verified against MSPepSearch 0.9.7.5: presearch m, alternative peak matching a, ignore
     // precursor region i, reverse match column v, match precursor z, high threshold h, generic G
@@ -232,15 +161,10 @@ class MsPepSearchCommandTest {
   @DisplayName("An absolute tolerance uses /Z and /M instead of the ppm form")
   void absoluteTolerances() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.MSMS_HIRES);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("hr_msms_nist"));
+    final NistSearchConfig config = new NistSearchConfig(root.toFile(), List.of("hr_msms_nist"),
+        NistSearchMode.MSMS_HIRES, 400, new MZTolerance(0.5, 0), new MZTolerance(0.02, 0), null);
 
-    final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-        .getEmbeddedParameters();
-    msms.setParameter(NistMsMsSearchParameters.precursorTolerance, new MZTolerance(0.5, 0));
-    msms.setParameter(NistMsMsSearchParameters.fragmentTolerance, new MZTolerance(0.02, 0));
-
-    final List<String> command = build(null);
+    final List<String> command = build(config, null);
 
     assertEquals("0.5", valueAfter(command, "/Z"));
     assertEquals("0.02", valueAfter(command, "/M"));
@@ -248,31 +172,10 @@ class MsPepSearchCommandTest {
   }
 
   @Test
-  @DisplayName("Not matching the precursor uses u, and the presearch falls back from m to d")
-  void withoutPrecursorMatching() {
-
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.MSMS_HIRES);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("hr_msms_nist"));
-
-    final ParameterSet msms = parameters.getParameter(NistPepSearchParameters.msmsParameters)
-        .getEmbeddedParameters();
-    msms.setParameter(NistMsMsSearchParameters.matchPrecursor, false);
-    msms.setParameter(NistMsMsSearchParameters.ignorePrecursorRegion, false);
-    msms.setParameter(NistMsMsSearchParameters.threshold, HiResThreshold.LOW);
-
-    // MSPepSearch fails with "Presearch type 'm' is not compatible with High Resolution search
-    // option 'u'", so the default presearch has to become d here rather than m
-    assertEquals("davulG", build(null).get(1));
-  }
-
-  @Test
   @DisplayName("The hybrid search passes /MwForLoss and uses the H search type")
   void hybrid() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_HYBRID);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
-    final List<String> command = build(278);
+    final List<String> command = build(config(NistSearchMode.GC_EI_HYBRID, "mainlib"), 278);
 
     assertEquals("dvH", command.get(1));
     assertEquals("278", valueAfter(command, "/MwForLoss"));
@@ -282,10 +185,7 @@ class MsPepSearchCommandTest {
   @DisplayName("Similarity uses the S search type and no /MwForLoss")
   void similarity() {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_SIMILARITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
-    final List<String> command = build(278);
+    final List<String> command = build(config(NistSearchMode.GC_EI_SIMILARITY, "mainlib"), 278);
 
     assertEquals("dvS", command.get(1));
     assertFalse(command.contains("/MwForLoss"));
@@ -295,67 +195,52 @@ class MsPepSearchCommandTest {
   @DisplayName("The p flag is never emitted - it crashes MSPepSearch on NIST 26 libraries")
   void penalizeRareCompoundsIsNeverEmitted() {
 
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
     for (final NistSearchMode mode : NistSearchMode.values()) {
-      parameters.setParameter(NistPepSearchParameters.searchMode, mode);
-      final String token = build(278).get(1);
+      final String token = build(config(mode, "mainlib"), 278).get(1);
       assertFalse(token.contains("p"),
           () -> "the option token must not contain p, was " + token + " for " + mode);
     }
   }
 
   @Test
-  @DisplayName("Presearch off maps to s for both resolutions")
-  void presearchOff() {
+  @DisplayName("At most one main and one replicate library, and at most 16 in total")
+  void librariesAreReducedToWhatMsPepSearchAccepts() throws IOException {
 
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-    parameters.getParameter(NistPepSearchParameters.advanced).getEmbeddedParameters()
-        .setParameter(NistPepSearchAdvancedParameters.presearch, Presearch.OFF);
+    // a second main library and 20 user libraries on top of the ones created in setUp
+    Files.createDirectory(root.resolve("mainlib2"));
+    Files.createFile(root.resolve("mainlib2").resolve("alphanam.in6"));
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    assertEquals("svI", build(null).get(1));
+    final List<String> names = new java.util.ArrayList<>(
+        List.of("mainlib", "mainlib2", "replib", "nist_ri", "hr_msms_nist"));
+    for (int i = 0; i < 20; i++) {
+      final String name = "user" + i;
+      Files.createDirectory(root.resolve(name));
+      Files.createFile(root.resolve(name).resolve("ALPHANAM.INU"));
+      names.add(name);
+    }
 
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("hr_msms_nist"));
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.MSMS_HIRES);
-    assertEquals("saivzhG", build(null).get(1));
-  }
+    final NistSearchConfig config = new NistSearchConfig(root.toFile(), names,
+        NistSearchMode.GC_EI_IDENTITY, 400, PRECURSOR_PPM, FRAGMENT_PPM, null);
 
-  @Test
-  @DisplayName("Extra arguments are appended and flags are emitted")
-  void advancedFlags() {
+    final List<String> command = build(config, null);
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
-    final ParameterSet advanced = parameters.getParameter(NistPepSearchParameters.advanced)
-        .getEmbeddedParameters();
-    advanced.setParameter(NistPepSearchAdvancedParameters.librariesInMemory, true);
-    advanced.setParameter(NistPepSearchAdvancedParameters.elevatedPriority, true);
-    advanced.setParameter(NistPepSearchAdvancedParameters.reverseSearch, true);
-    advanced.setParameter(NistPepSearchAdvancedParameters.extraArguments, "/MinInt 5 /OnlyFound");
-
-    final List<String> command = build(null);
-
-    assertEquals("drvI", command.get(1));
-    assertTrue(command.contains("/LibInMem"));
-    assertTrue(command.contains("/HiPri"));
-    assertEquals("5", valueAfter(command, "/MinInt"));
-    assertTrue(command.contains("/OnlyFound"));
+    assertEquals(1, command.stream().filter("/MAIN"::equals).count());
+    assertEquals(1, command.stream().filter("/REPL"::equals).count());
+    assertEquals(NistSearchConfig.MAX_LIBRARIES,
+        command.stream().filter(arg -> arg.startsWith("/MAIN") || arg.startsWith("/REPL")
+            || arg.equals("/LIB")).count());
   }
 
   @Test
   @DisplayName("A path with spaces stays one command line element")
   void pathsWithSpacesAreSeparateElements() throws IOException {
 
-    parameters.setParameter(NistPepSearchParameters.searchMode, NistSearchMode.GC_EI_IDENTITY);
-    parameters.setParameter(NistPepSearchParameters.libraries, List.of("mainlib"));
-
     final File spaced = Files.createDirectory(root.resolve("with space")).toFile();
     final File spacedQuery = new File(spaced, "query file.msp");
 
-    final List<String> command = MsPepSearchCommand.build(parameters, executable, spacedQuery,
-        outputFile, spaced, null);
+    final List<String> command = MsPepSearchCommand.build(
+        config(NistSearchMode.GC_EI_IDENTITY, "mainlib"), executable, spacedQuery, outputFile,
+        spaced, null);
 
     assertTrue(command.contains(spacedQuery.getAbsolutePath()));
     assertEquals(spacedQuery.getAbsolutePath(), valueAfter(command, "/INP"));

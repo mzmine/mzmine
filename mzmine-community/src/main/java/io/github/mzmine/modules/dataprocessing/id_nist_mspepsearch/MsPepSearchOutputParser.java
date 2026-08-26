@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  * without a header row means "no hits" - MSPepSearch writes only its {@code >} prefixed banner and
  * footer when nothing was found.
  */
-public final class MsPepSearchOutputParser {
+final class MsPepSearchOutputParser {
 
   /**
    * Lines MSPepSearch uses for its banner, the echoed command line and the closing summary. They
@@ -89,8 +89,7 @@ public final class MsPepSearchOutputParser {
       Map.entry(Column.PRECURSOR_TYPE, List.of("prec.type", "precursor type")),
       Map.entry(Column.CHARGE, List.of("charge")),
       Map.entry(Column.COLLISION_ENERGY, List.of("ce", "collision energy")),
-      Map.entry(Column.INSTRUMENT_TYPE, List.of("instr.type", "instrument type")),
-      Map.entry(Column.RETENTION_INDEX, List.of("ri")));
+      Map.entry(Column.INSTRUMENT_TYPE, List.of("instr.type", "instrument type")));
 
   private MsPepSearchOutputParser() {
   }
@@ -101,7 +100,7 @@ public final class MsPepSearchOutputParser {
    * @param file the {@code /OUTTAB} file. A missing file is reported as a warning, not an error,
    *             because MSPepSearch does not create it when it finds nothing at all.
    */
-  public static @NotNull NistPepSearchResult parse(@NotNull final File file) throws IOException {
+  static @NotNull NistPepSearchResult parse(@NotNull final File file) throws IOException {
 
     if (!file.isFile()) {
       return new NistPepSearchResult(List.of(),
@@ -116,7 +115,7 @@ public final class MsPepSearchOutputParser {
   /**
    * Parses MSPepSearch output from a reader.
    */
-  public static @NotNull NistPepSearchResult parse(@NotNull final Reader reader) throws IOException {
+  static @NotNull NistPepSearchResult parse(@NotNull final Reader reader) throws IOException {
 
     final BufferedReader buffered =
         reader instanceof BufferedReader b ? b : new BufferedReader(reader);
@@ -230,8 +229,7 @@ public final class MsPepSearchOutputParser {
         decimal(cells, indices, Column.PRECURSOR_MZ),
         string(cells, indices, Column.PRECURSOR_TYPE), integer(cells, indices, Column.CHARGE),
         string(cells, indices, Column.COLLISION_ENERGY),
-        string(cells, indices, Column.INSTRUMENT_TYPE),
-        string(cells, indices, Column.RETENTION_INDEX));
+        string(cells, indices, Column.INSTRUMENT_TYPE));
   }
 
   /**
@@ -292,7 +290,6 @@ public final class MsPepSearchOutputParser {
   private enum Column {
     SPEC_NUM, UNKNOWN, RANK, LIBRARY, ID, NAME, FORMULA, CAS, NIST_RN, INCHIKEY, EXACT_MASS,
     NOMINAL_MW, MATCH_FACTOR, REV_MATCH_FACTOR, DOT_PRODUCT, PROBABILITY, NUM_MATCHED_PEAKS,
-    NUM_PEAKS, PRECURSOR_MZ, PRECURSOR_TYPE, CHARGE, COLLISION_ENERGY, INSTRUMENT_TYPE,
-    RETENTION_INDEX
+    NUM_PEAKS, PRECURSOR_MZ, PRECURSOR_TYPE, CHARGE, COLLISION_ENERGY, INSTRUMENT_TYPE
   }
 }

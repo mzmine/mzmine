@@ -33,15 +33,12 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectModuleOptions;
-import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistEiSearchParameters.NistRetentionIndexParameters;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.RITolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.RIColumn;
-import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
@@ -80,7 +77,7 @@ import org.jetbrains.annotations.Nullable;
  * are mapped back to the query by the 1-based ordinal MSPepSearch echoes in its {@code Num} column,
  * falling back to the {@code Name:} of the MSP entry.
  */
-public class NistPepSearchTask extends AbstractTask {
+public final class NistPepSearchTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(NistPepSearchTask.class.getName());
 
@@ -93,15 +90,22 @@ public class NistPepSearchTask extends AbstractTask {
    */
   private static final String QUERY_NAME_PREFIX = "mzmine_";
 
+  /**
+   * MSPepSearch is killed if it has not finished within this time. Generous enough for a whole
+   * feature list against several libraries, short enough that a hung process does not block the
+   * task list forever.
+   */
+  private static final long TIMEOUT_MS = 60L * 60L * 1000L;
+
   private final FeatureList featureList;
   private final FeatureListRow singleRow;
-  private final ParameterSet parameters;
+  private final NistSearchConfig config;
+  private final Class<? extends MZmineModule> appliedModule;
+  private final ParameterSet appliedParameters;
   private final NistSearchMode mode;
   private final File executable;
   private final FragmentScanSelection fragmentScanSelection;
   private final IntegerMode integerMz;
-  private final RITolerance riTolerance;
-  private final long timeoutMs;
 
   private Process process;
 
@@ -113,52 +117,35 @@ public class NistPepSearchTask extends AbstractTask {
   private int missingMassLists;
   private int unmappedHits;
 
-  public NistPepSearchTask(final FeatureList featureList, final ParameterSet parameters,
-      @NotNull final Instant moduleCallDate) {
-    this(null, featureList, parameters, moduleCallDate);
-  }
-
-  public NistPepSearchTask(@Nullable final FeatureListRow row, final FeatureList featureList,
-      final ParameterSet parameters, @NotNull final Instant moduleCallDate) {
+  /**
+   * @param config            what to search and how.
+   * @param featureList       the feature list to annotate.
+   * @param row               a single row to search, or null for the whole feature list.
+   * @param mergeSelect       how the fragment spectra of a row are merged and selected.
+   * @param appliedModule     the module recorded in the applied methods of the feature list.
+   * @param appliedParameters the parameters recorded there. These are the parameters of
+   *                          {@code appliedModule}, not the config above, so that reprocessing a
+   *                          feature list reproduces the search.
+   */
+  public NistPepSearchTask(@NotNull final NistSearchConfig config,
+      @NotNull final FeatureList featureList, @Nullable final FeatureListRow row,
+      @NotNull final SpectraMergeSelectParameter mergeSelect,
+      @NotNull final Class<? extends MZmineModule> appliedModule,
+      @NotNull final ParameterSet appliedParameters, @NotNull final Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = featureList;
     this.singleRow = row;
-    this.parameters = parameters;
-    this.mode = parameters.getValue(NistPepSearchParameters.searchMode);
-    this.executable = ((NistPepSearchParameters) parameters).getExecutable();
+    this.config = config;
+    this.appliedModule = appliedModule;
+    this.appliedParameters = appliedParameters;
+    this.mode = config.mode();
+    this.executable = config.executable();
 
-    final SpectraMergeSelectModuleOptions mergeSelect = parameters.getValue(
-        NistPepSearchParameters.spectraMergeSelect);
-    this.fragmentScanSelection = mergeSelect.createFragmentScanSelection(getMemoryMapStorage(),
-        mergeSelect.getModuleParameters());
+    this.fragmentScanSelection = mergeSelect.createFragmentScanSelection(getMemoryMapStorage());
 
-    final ParameterSet ei = parameters.getParameter(NistPepSearchParameters.eiParameters)
-        .getEmbeddedParameters();
-    this.integerMz = !mode.isHighResolution() && ei.getValue(NistEiSearchParameters.integerMz)
-        ? ei.getParameter(NistEiSearchParameters.integerMz).getEmbeddedParameter().getValue() : null;
-    this.riTolerance = createRiTolerance(ei);
-
-    final ParameterSet advanced = parameters.getParameter(NistPepSearchParameters.advanced)
-        .getEmbeddedParameters();
-    this.timeoutMs =
-        advanced.getValue(NistPepSearchAdvancedParameters.timeout) * 60L * 1000L;
-  }
-
-  /**
-   * The tolerance used to compute the delta RI of an annotation. Only set when the EI search is
-   * configured to use retention indices.
-   */
-  private static @Nullable RITolerance createRiTolerance(final ParameterSet ei) {
-
-    if (!ei.getValue(NistEiSearchParameters.retentionIndex)) {
-      return null;
-    }
-
-    final ParameterSet ri = ei.getParameter(NistEiSearchParameters.retentionIndex)
-        .getEmbeddedParameters();
-    return new RITolerance(ri.getValue(NistRetentionIndexParameters.tolerance),
-        ri.getValue(NistRetentionIndexParameters.column), false);
+    // the NIST EI libraries are unit mass, so rounding only ever applies to those searches
+    this.integerMz = mode.isHighResolution() ? null : config.integerMz();
   }
 
   @Override
@@ -195,7 +182,7 @@ public class NistPepSearchTask extends AbstractTask {
       }
 
       featureList.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(NistPepSearchModule.class, parameters,
+          new SimpleFeatureListAppliedMethod(appliedModule, appliedParameters,
               getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
 
@@ -210,6 +197,13 @@ public class NistPepSearchTask extends AbstractTask {
   }
 
   private void search() throws IOException, InterruptedException {
+
+    // A batch can point at an installation that has been moved or uninstalled since it was saved,
+    // in which case the setup dialog never had a chance to complain about it.
+    final List<String> problems = config.validate();
+    if (!problems.isEmpty()) {
+      throw new IOException(String.join(" ", problems));
+    }
 
     final List<QuerySpectrum> queries = collectQueries();
     logSkippedSpectra();
@@ -290,7 +284,7 @@ public class NistPepSearchTask extends AbstractTask {
     try {
       writeQueryFile(queryFile, queries);
 
-      final List<String> command = MsPepSearchCommand.build(parameters, executable, queryFile,
+      final List<String> command = MsPepSearchCommand.build(config, executable, queryFile,
           outputFile, FileAndPathUtil.getTempDir(), mwForLoss);
 
       execute(command);
@@ -332,13 +326,13 @@ public class NistPepSearchTask extends AbstractTask {
     final Thread outDrain = drain(running.getInputStream(), stdout);
     final Thread errDrain = drain(running.getErrorStream(), stderr);
 
-    final boolean finished = running.waitFor(timeoutMs, TimeUnit.MILLISECONDS);
+    final boolean finished = running.waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
     if (!finished) {
       running.destroy();
       throw new IOException(
-          "MSPepSearch did not finish within %d minutes. Increase the timeout in the advanced parameters, or reduce the number of spectra or libraries.".formatted(
-              timeoutMs / 60_000));
+          "MSPepSearch did not finish within %d minutes. Reduce the number of spectra or libraries.".formatted(
+              TIMEOUT_MS / 60_000));
     }
 
     outDrain.join(1_000);
@@ -564,46 +558,38 @@ public class NistPepSearchTask extends AbstractTask {
    */
   private SpectralDBAnnotation toAnnotation(final NistHit hit, final QuerySpectrum query) {
 
-    // A HashMap, not Map.of: most of these fields are absent depending on the search mode.
-    final Map<DBEntryField, Object> fields = new HashMap<>();
-    putIfNotNull(fields, DBEntryField.NAME, hit.name());
-    putIfNotNull(fields, DBEntryField.ENTRY_ID, hit.entryId());
-    putIfNotNull(fields, DBEntryField.FORMULA, hit.formula());
-    putIfNotNull(fields, DBEntryField.CAS, hit.cas());
-    putIfNotNull(fields, DBEntryField.INCHIKEY, hit.inChIKey());
-    putIfNotNull(fields, DBEntryField.EXACT_MASS, hit.exactMass());
-    putIfNotNull(fields, DBEntryField.MOLWEIGHT,
+    // MSPepSearch does not return the library spectrum, so the entry carries no peaks and the
+    // mirror plot of the match stays empty. Which fields a hit has depends on the search mode, so
+    // they all go in through putIfNotNull.
+    final SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0]);
+    entry.putIfNotNull(DBEntryField.NAME, hit.name());
+    entry.putIfNotNull(DBEntryField.ENTRY_ID, hit.entryId());
+    entry.putIfNotNull(DBEntryField.FORMULA, hit.formula());
+    entry.putIfNotNull(DBEntryField.CAS, hit.cas());
+    entry.putIfNotNull(DBEntryField.INCHIKEY, hit.inChIKey());
+    entry.putIfNotNull(DBEntryField.EXACT_MASS, hit.exactMass());
+    entry.putIfNotNull(DBEntryField.MOLWEIGHT,
         hit.nominalMw() == null ? null : hit.nominalMw().doubleValue());
-    putIfNotNull(fields, DBEntryField.PRECURSOR_MZ, hit.precursorMz());
-    putIfNotNull(fields, DBEntryField.ION_TYPE, hit.precursorType());
-    putIfNotNull(fields, DBEntryField.CHARGE, hit.charge());
-    putIfNotNull(fields, DBEntryField.INSTRUMENT_TYPE, hit.instrumentType());
-    putIfNotNull(fields, DBEntryField.NUM_PEAKS, hit.numPeaks());
-    fields.put(DBEntryField.SOFTWARE, SEARCH_METHOD);
-
-    final RIRecord libraryRi = parseRetentionIndex(hit.retentionIndex());
-    putIfNotNull(fields, DBEntryField.RETENTION_INDEX, libraryRi);
+    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, hit.precursorMz());
+    entry.putIfNotNull(DBEntryField.ION_TYPE, hit.precursorType());
+    entry.putIfNotNull(DBEntryField.CHARGE, hit.charge());
+    entry.putIfNotNull(DBEntryField.INSTRUMENT_TYPE, hit.instrumentType());
+    entry.putIfNotNull(DBEntryField.NUM_PEAKS, hit.numPeaks());
+    entry.putIfNotNull(DBEntryField.SOFTWARE, SEARCH_METHOD);
 
     // COLLISION_ENERGY is a numeric field but NIST reports free text such as "NCE=65% 34eV", so it
     // only goes in when it actually parses and is kept in the comment otherwise.
     final Object collisionEnergy = hit.collisionEnergy() == null ? null
         : DBEntryField.COLLISION_ENERGY.tryConvertValue(hit.collisionEnergy());
-    putIfNotNull(fields, DBEntryField.COLLISION_ENERGY, collisionEnergy);
+    entry.putIfNotNull(DBEntryField.COLLISION_ENERGY, collisionEnergy);
 
-    fields.put(DBEntryField.COMMENT, buildComment(hit, collisionEnergy == null));
-
-    // MSPepSearch does not return the library spectrum, so the entry carries no peaks and the
-    // mirror plot of the match stays empty.
-    final SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[0], new double[0],
-        fields);
+    entry.putIfNotNull(DBEntryField.COMMENT, buildComment(hit, collisionEnergy == null));
 
     final SpectralSimilarity similarity = new SpectralSimilarity(scoreName(),
         hit.score0to1(), hit.numMatchedPeaks() == null ? 0 : hit.numMatchedPeaks(), Double.NaN);
 
-    final Float riDiff = computeRiDiff(query.row(), libraryRi);
-
     return new SpectralDBAnnotation(entry, similarity, query.scan(), null,
-        query.row().getAverageMZ(), query.row().getAverageRT(), riDiff);
+        query.row().getAverageMZ(), query.row().getAverageRT(), null);
   }
 
   /**
@@ -640,60 +626,6 @@ public class NistPepSearchTask extends AbstractTask {
     parts.add("Searched with " + SEARCH_METHOD + " (" + mode + ")");
 
     return String.join("; ", parts);
-  }
-
-  /**
-   * Converts an MSPepSearch retention index into an {@link RIRecord}.
-   * <p>
-   * MSPepSearch formats the RI column as value and column class, e.g. {@code 2480-S}, which
-   * {@link RIRecord#fromString(String)} does not understand - it expects the {@code s=}, {@code n=},
-   * {@code p=} or {@code a=} prefixes of the spectral library RI field.
-   */
-  static @Nullable RIRecord parseRetentionIndex(@Nullable final String value) {
-
-    if (value == null || value.isBlank()) {
-      return null;
-    }
-
-    final int separator = value.lastIndexOf('-');
-    if (separator < 0) {
-      // a plain number is the default column
-      return RIRecord.fromString(value.trim());
-    }
-
-    final String number = value.substring(0, separator).trim();
-    final String columnClass = value.substring(separator + 1).trim().toUpperCase(Locale.ROOT);
-
-    final RIColumn column = switch (columnClass) {
-      case "S" -> RIColumn.SEMIPOLAR;
-      case "N" -> RIColumn.NONPOLAR;
-      case "P" -> RIColumn.POLAR;
-      // A = any, U = unspecified, V = AI predicted
-      default -> RIColumn.DEFAULT;
-    };
-
-    return RIRecord.fromString(column.getShortDefinition() + "=" + number);
-  }
-
-  /**
-   * The difference between the measured and the library retention index, or null if either is
-   * unknown or retention indices are not in use.
-   */
-  private @Nullable Float computeRiDiff(final FeatureListRow row,
-      @Nullable final RIRecord libraryRi) {
-
-    if (riTolerance == null || libraryRi == null || row.getAverageRI() == null) {
-      return null;
-    }
-    return riTolerance.getRiDifference(row.getAverageRI(), libraryRi);
-  }
-
-  private static void putIfNotNull(final Map<DBEntryField, Object> fields, final DBEntryField field,
-      @Nullable final Object value) {
-
-    if (value != null) {
-      fields.put(field, value);
-    }
   }
 
   private void logSkippedSpectra() {
