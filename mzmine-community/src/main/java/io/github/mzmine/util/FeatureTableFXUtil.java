@@ -369,7 +369,8 @@ public class FeatureTableFXUtil {
       snapshot = instances.toArray(FeatureTableFX[]::new);
     }
 
-    return Arrays.stream(snapshot).filter(table -> table.getFeatureList() == flist).toList();
+    return Arrays.stream(snapshot).filter(table -> table != null && table.getFeatureList() == flist)
+        .toList();
   }
 
   public static void addInstance(FeatureTableFX table) {
