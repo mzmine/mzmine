@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureL
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowUtils;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
@@ -64,7 +65,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -142,6 +142,12 @@ public class ModularFeatureList implements FeatureList {
    */
   private int annotationSortConfigVersion = 0;
   private @NotNull AnnotationSummarySortConfig annotationSortConfig = AnnotationSummarySortConfig.DEFAULT;
+
+  /**
+   * User defined preferences, never null, defaults to
+   * {@link FeatureListPreferences#createDefault()}
+   */
+  private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -222,6 +228,9 @@ public class ModularFeatureList implements FeatureList {
     featuresSchema.addDataTypesChangeListener((added, removed) -> {
       for (DataType dataType : added) {
         addRowBinding(dataType.createDefaultRowBindings());
+        // row types that map their values on demand need no bindings
+        // some feature types auto add row MappingTypes
+        addRowType(dataType.createDefaultMappedRowTypes());
       }
     });
 
@@ -499,7 +508,7 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public ModularFeature getFeature(int row, RawDataFile raw) {
-    return ((ModularFeatureListRow) featureListRows.get(row)).getFilesFeatures().get(raw);
+    return ((ModularFeatureListRow) featureListRows.get(row)).getFeature(raw);
   }
 
   /**
@@ -532,28 +541,30 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setRowsApplySort(FeatureListRow... rows) {
-    Set<RawDataFile> fileSet = new HashSet<>();
+    // a row reports the files of its own feature list, so rows of this list never need validation.
     for (FeatureListRow row : rows) {
-      if (!(row instanceof ModularFeatureListRow)) {
-        throw new IllegalArgumentException(
-            "Can not add non-modular feature list row to modular feature list");
-      }
-      fileSet.addAll(row.getRawDataFiles());
+      requireRowAssertions(row);
     }
 
-    // check that all files are represented
-    final List<RawDataFile> rawFiles = getRawDataFiles();
-    for (var raw : fileSet) {
-      if (!rawFiles.contains(raw)) {
-        throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
-      }
-    }
-//    logger.log(Level.FINEST, "SET ALL ROWS");
     featureListRows.setAll(rows);
     applyRowBindings();
 
     // sorting
     applyDefaultRowsSorting();
+  }
+
+  /// Checks that this row is actually member of this {@link FeatureList} and is of type
+  /// {@link ModularFeatureListRow}
+  private void requireRowAssertions(FeatureListRow row) {
+    if (row.getFeatureList() != this) {
+      throw new IllegalArgumentException(
+          "Row %d is not member of this feature list (%s) but belongs to feature list (%s)".formatted(
+              row.getID(), this.getName(), row.getFeatureList().getName()));
+    }
+    if (!(row instanceof ModularFeatureListRow)) {
+      throw new IllegalArgumentException(
+          "Can not add non-modular feature list row to modular feature list");
+    }
   }
 
   @Override
@@ -585,21 +596,9 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void addRow(FeatureListRow row) {
-    if (!(row instanceof ModularFeatureListRow modularRow)) {
-      throw new IllegalArgumentException(
-          "Can not add non-modular feature list row to modular feature list");
-    }
-
-    List<RawDataFile> myFiles = this.getRawDataFiles();
-    for (RawDataFile testFile : modularRow.getRawDataFiles()) {
-      if (!myFiles.contains(testFile)) {
-        throw (new IllegalArgumentException(
-            "Data file " + testFile + " is not in this feature list"));
-      }
-    }
-    //    logger.finest("ADD ROW");
-    featureListRows.add(modularRow);
-    applyRowBindings(modularRow);
+    requireRowAssertions(row);
+    featureListRows.add(row);
+    applyRowBindings(row);
   }
 
   /**
@@ -1088,6 +1087,16 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public int getAnnotationSortConfigVersion() {
     return annotationSortConfigVersion;
+  }
+
+  @Override
+  public @NotNull FeatureListPreferences getPreferences() {
+    return preferences;
+  }
+
+  @Override
+  public void setPreferences(@NotNull final FeatureListPreferences preferences) {
+    this.preferences = preferences;
   }
 
   @Override

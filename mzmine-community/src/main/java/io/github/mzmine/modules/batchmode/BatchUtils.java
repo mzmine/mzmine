@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -205,10 +205,7 @@ public class BatchUtils {
    */
   @NotNull
   public static MZmineProcessingStep<MZmineProcessingModule> cloneStep(
-      @NotNull MZmineProcessingStep<MZmineProcessingModule> step) {
-    if (step.getParameterSet() == null) {
-      return new MZmineProcessingStepImpl<>(step.getModule(), null);
-    }
+      @NotNull final MZmineProcessingStep<MZmineProcessingModule> step) {
     final ParameterSet clonedParams = step.getParameterSet().cloneParameterSet();
     return new MZmineProcessingStepImpl<>(step.getModule(), clonedParams);
   }

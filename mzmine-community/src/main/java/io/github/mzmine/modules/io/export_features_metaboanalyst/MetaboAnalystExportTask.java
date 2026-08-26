@@ -161,7 +161,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private boolean checkFeatureList(FeatureList featureList) {
     var raws = new HashSet<>(featureList.getRawDataFiles());
     // Check if each sample group has at least 3 samples
-    Map<RawDataFile, Object> data = metadata.getData().get(metadataColumn);
+    Map<RawDataFile, Object> data = metadata.getColumnData(metadataColumn);
     Map<Object, Integer> counts = data.entrySet().stream().filter(e -> raws.contains(e.getKey()))
         .map(Entry::getValue).collect(Collectors.toMap(v -> v, value -> 1, Math::addExact));
 

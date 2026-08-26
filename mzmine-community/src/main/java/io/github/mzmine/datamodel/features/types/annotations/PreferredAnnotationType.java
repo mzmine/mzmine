@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.abstr.SimpleSubColumnsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.fx.PreferredEditComboCellFactory;
@@ -81,7 +82,8 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
       new MolecularStructureType(), //
       new ScoreType(), //
       new PrecursorMZType(), //
-      new AnnotationMethodType() //
+      new AnnotationMethodType(), //
+      new DatabaseNameType() //
   );
 
   @Override
@@ -151,6 +153,10 @@ public class PreferredAnnotationType extends SimpleSubColumnsType<FeatureAnnotat
   public @Nullable Object getSubColValue(DataType sub, Object value) {
     if (!(value instanceof FeatureAnnotation a)) {
       return null;
+    }
+    if (this.equals(sub)) {
+      // mainly needed for the export
+      return a;
     }
     return CompoundAnnotationUtils.getTypeValue(a, sub);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -50,6 +51,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   private T embeddedParameters;
   private boolean value;
   private final boolean openHidden;
+  private final Class<? extends MZmineModule> moduleForPresets;
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters) {
     this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters);
@@ -68,17 +70,24 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal, boolean openHidden) {
     this(name, description, EmbeddedComponentOptions.VIEW_IN_PANEL, embeddedParameters, defaultVal,
-        openHidden);
+        openHidden, null);
   }
 
   public OptionalModuleParameter(String name, String description,
       EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal) {
-    this(name, description, componentViewOption, embeddedParameters, defaultVal, true);
+    this(name, description, componentViewOption, embeddedParameters, defaultVal, null);
   }
 
   public OptionalModuleParameter(String name, String description,
       EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal,
-      boolean openHidden) {
+      @Nullable final Class<? extends MZmineModule> moduleForPresets) {
+    this(name, description, componentViewOption, embeddedParameters, defaultVal, true,
+        moduleForPresets);
+  }
+
+  public OptionalModuleParameter(String name, String description,
+      EmbeddedComponentOptions componentViewOption, T embeddedParameters, boolean defaultVal,
+      boolean openHidden, @Nullable final Class<? extends MZmineModule> moduleForPresets) {
     this.name = name;
     this.description = description;
     this.componentViewOption = componentViewOption;
@@ -86,6 +95,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     this.embeddedParameters = (T) embeddedParameters.cloneParameterSet();
     value = defaultVal;
     this.openHidden = openHidden;
+    this.moduleForPresets = moduleForPresets;
   }
 
   public T getEmbeddedParameters() {
@@ -114,7 +124,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   @Override
   public OptionalModuleComponent createEditingComponent() {
     return new OptionalModuleComponent(embeddedParameters, componentViewOption, "", false, value,
-        openHidden);
+        openHidden, moduleForPresets);
   }
 
   @Override
@@ -131,7 +141,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
     return new OptionalModuleParameter<>(name, description, componentViewOption,
-        embeddedParametersClone, getValue(), openHidden);
+        embeddedParametersClone, getValue(), openHidden, moduleForPresets);
   }
 
   @Override

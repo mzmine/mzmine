@@ -28,6 +28,8 @@ package integrationtest;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -259,6 +261,7 @@ public class IntegrationTests {
    */
   public List<CheckResult> filterErrors(List<CheckResult> checkResults) {
     return checkResults;
-//    return checkResults.stream().filter(r -> !r.type().contains("smiles")).toList();
+//    return checkResults.stream()
+//        .filter(r -> !Objects.requireNonNullElse(r.type(), "").contains("smiles")).toList();
   }
 }
