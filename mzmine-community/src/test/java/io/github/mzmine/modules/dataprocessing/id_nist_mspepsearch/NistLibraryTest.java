@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -57,6 +59,11 @@ class NistLibraryTest {
     }
   }
 
+  private <T> Map<String, T> discover(final Function<NistLibrary, T> property) {
+    return NistLibrary.discover(root.toFile()).stream()
+        .collect(Collectors.toMap(NistLibrary::name, property));
+  }
+
   @Test
   @DisplayName("Libraries are classified the way MSPepSearch needs them")
   void discoversAndClassifies() throws IOException {
@@ -64,16 +71,16 @@ class NistLibraryTest {
     // the index files these libraries actually contain in a NIST 26 installation
     library("mainlib", "alphanam.in6", "nist.db", "LIBSIGN.MSD");
     library("replib", "contrib.inr", "inchikey.inr", "LIBSIGN.MSD");
-    library("hr_msms_nist", "ALPHANAM.INU", "PEAK.DBU", "LIBSIGN.MSD");
-    library("lr_msms_nist", "ALPHANAM.INU", "LIBSIGN.MSD");
+    library("hr_msms_nist", "ALPHANAM.INU", "PEAK.DBU", "PEAK_PM0.INU", "LIBSIGN.MSD");
+    library("lr_msms_nist", "ALPHANAM.INU", "precmz.inu", "LIBSIGN.MSD");
     // nist_ri is user format but also ships a few .inr files - the user format has to win
-    library("nist_ri", "ALPHANAM.INU", "deriv.inr", "USER.DBU", "LIBSIGN.MSD");
+    library("nist_ri", "ALPHANAM.INU", "deriv.inr", "USER.DBU", "ri.idx", "riref.idx",
+        "ri_spec.idx", "LIBSIGN.MSD");
     // not a library
     library("MSPepSearch", "MSPepSearch64.exe", "nistdl64a.dll");
     library("test-files", "readme.txt");
 
-    final Map<String, NistLibraryKind> kinds = NistLibrary.discover(root.toFile()).stream()
-        .collect(java.util.stream.Collectors.toMap(NistLibrary::name, NistLibrary::kind));
+    final Map<String, NistLibraryKind> kinds = discover(NistLibrary::kind);
 
     assertEquals(5, kinds.size(), () -> "unexpected libraries: " + kinds);
     assertEquals(NistLibraryKind.MAIN, kinds.get("mainlib"));
@@ -81,6 +88,29 @@ class NistLibraryTest {
     assertEquals(NistLibraryKind.USER, kinds.get("hr_msms_nist"));
     assertEquals(NistLibraryKind.USER, kinds.get("lr_msms_nist"));
     assertEquals(NistLibraryKind.USER, kinds.get("nist_ri"));
+  }
+
+  @Test
+  @DisplayName("A precursor m/z index marks a library as MS/MS, the retention index files as empty")
+  void classifiesContent() throws IOException {
+
+    library("mainlib", "alphanam.in6");
+    library("replib", "contrib.inr");
+    // the two precursor m/z indices of the tandem libraries, either one is enough
+    library("hr_msms_nist", "ALPHANAM.INU", "PEAK_PM0.INU");
+    library("lr_msms_nist", "ALPHANAM.INU", "precmz.inu");
+    library("nist_ri", "ALPHANAM.INU", "ri.idx", "riref.idx", "ri_spec.idx");
+    // a custom EI library built with Lib2NIST has neither, and is searched with the EI libraries
+    library("my_gc_library", "ALPHANAM.INU", "PEAK.DBU");
+
+    final Map<String, NistLibraryContent> content = discover(NistLibrary::content);
+
+    assertEquals(NistLibraryContent.EI, content.get("mainlib"));
+    assertEquals(NistLibraryContent.EI, content.get("replib"));
+    assertEquals(NistLibraryContent.MSMS, content.get("hr_msms_nist"));
+    assertEquals(NistLibraryContent.MSMS, content.get("lr_msms_nist"));
+    assertEquals(NistLibraryContent.NON_SPECTRAL, content.get("nist_ri"));
+    assertEquals(NistLibraryContent.EI, content.get("my_gc_library"));
   }
 
   @Test

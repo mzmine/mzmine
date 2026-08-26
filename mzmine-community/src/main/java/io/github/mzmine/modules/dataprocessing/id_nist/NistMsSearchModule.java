@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,9 +48,8 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "NIST MS search";
   private static final String MODULE_DESCRIPTION =
-      "Searches spectra against NIST libraries with NIST's command line search program "
-          + "MSPepSearch. Supports GC-EI and MS/MS searches of small molecules, runs headless and "
-          + "searches all spectra in a single run.";
+      "Searches GC-EI or MS/MS spectra against the libraries of a licensed NIST installation, "
+          + "using NIST's command line program MSPepSearch.";
 
   @Override
   public @NotNull String getName() {

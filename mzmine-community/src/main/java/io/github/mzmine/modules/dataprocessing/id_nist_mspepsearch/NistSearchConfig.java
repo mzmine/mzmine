@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,23 +42,22 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * This is the public entry point of the package: the module that offers the search builds a config
  * and hands it to {@link NistPepSearchTask}, so that nothing else of the engine has to be visible.
- * The static helpers exist for the same reason - they let a parameter set discover an installation
- * and its libraries without seeing {@link NistLibrary}.
+ * The libraries are not part of it - they follow from the search type, see {@link #libraries()}.
  *
- * @param nistDirectory     the NIST installation directory, e.g. {@code D:\NIST26}.
- * @param libraryNames      the names of the library sub directories to search, as returned by
- *                          {@link #discoverLibraryNames(File)}.
- * @param mode              the search type.
- * @param minMatchFactor    the minimum NIST match factor of a reported hit, 0-999
- *                          ({@code /MinMF}).
- * @param precursorTolerance precursor m/z tolerance, only used by {@link NistSearchMode#MSMS_HIRES}.
- * @param fragmentTolerance fragment m/z tolerance, only used by {@link NistSearchMode#MSMS_HIRES}.
- * @param integerMz         merge fractional m/z to unit mass before searching, or null to submit
- *                          the spectra as they are. Only meaningful for the unit mass EI searches.
+ * @param nistDirectory      the NIST installation directory, e.g. {@code D:\NIST26}.
+ * @param mode               the search type, which also decides which libraries are searched.
+ * @param minMatchFactor     the minimum NIST match factor of a reported hit, 0-999
+ *                           ({@code /MinMF}).
+ * @param precursorTolerance precursor m/z tolerance, only used by
+ *                           {@link NistSearchMode#MSMS_HIRES}.
+ * @param fragmentTolerance  fragment m/z tolerance, only used by
+ *                           {@link NistSearchMode#MSMS_HIRES}.
+ * @param integerMz          merge fractional m/z to unit mass before searching, or null to submit
+ *                           the spectra as they are. Only meaningful for the unit mass EI
+ *                           searches.
  */
-public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<String> libraryNames,
-                               @NotNull NistSearchMode mode, int minMatchFactor,
-                               @Nullable MZTolerance precursorTolerance,
+public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearchMode mode,
+                               int minMatchFactor, @Nullable MZTolerance precursorTolerance,
                                @Nullable MZTolerance fragmentTolerance,
                                @Nullable IntegerMode integerMz) {
 
@@ -81,51 +79,67 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
       "MSPepSearch/MSPepSearch.exe"};
 
   /**
-   * @return true if the os.name property contains "Windows". MSPepSearch ships as a Windows
-   * executable only.
+   * The name the NIST installer gives its directory: NIST followed by the two digit version, e.g.
+   * NIST23 or NIST26.
    */
-  static boolean isWindows() {
-    return System.getProperty("os.name").toUpperCase(Locale.ROOT).contains("WINDOWS");
-  }
+  private static final Pattern VERSIONED_DIRECTORY = Pattern.compile("NIST(\\d{2})",
+      Pattern.CASE_INSENSITIVE);
 
   /**
-   * Looks for a NIST installation in the usual places, so that the directory can be prefilled the
-   * first time a setup dialog is opened.
+   * Looks for a NIST installation, so that the directory can be prefilled and the auto detect
+   * button of the setup dialog has something to do.
+   * <p>
+   * Searched are the roots of all drives, which is where the installer puts it ({@code C:\NIST26},
+   * {@code D:\NIST26}), and the two program folders. The newest version wins.
    *
    * @return the installation directory, or null if none was found.
    */
   public static @Nullable File discoverInstallation() {
 
-    if (!isWindows()) {
+    if (!com.sun.jna.Platform.isWindows()) {
       return null;
     }
 
-    final List<File> roots = new ArrayList<>();
-    for (final File fileSystemRoot : File.listRoots()) {
-      roots.add(fileSystemRoot);
-      roots.add(new File(fileSystemRoot, "Program Files"));
-      roots.add(new File(fileSystemRoot, "Program Files (x86)"));
+    final List<File> candidates = new ArrayList<>();
+    for (final File root : File.listRoots()) {
+      addInstallationCandidates(candidates, root);
+      addInstallationCandidates(candidates, new File(root, "Program Files"));
+      addInstallationCandidates(candidates, new File(root, "Program Files (x86)"));
     }
 
-    for (final File root : roots) {
+    // newest version first: NIST26 before NIST23, and a versioned name before an unversioned one
+    candidates.sort(Comparator.comparingInt(NistSearchConfig::installationVersion).reversed()
+        .thenComparing(File::getName, String.CASE_INSENSITIVE_ORDER));
 
-      final File[] candidates = root.listFiles(
-          file -> file.isDirectory() && file.getName().toUpperCase(Locale.ROOT).startsWith("NIST"));
-      if (candidates == null) {
-        continue;
-      }
-
-      // newest installation first: NIST26 before NIST23
-      Arrays.sort(candidates, Comparator.comparing(File::getName).reversed());
-
-      for (final File candidate : candidates) {
-        if (findExecutable(candidate) != null) {
-          return candidate;
-        }
+    for (final File candidate : candidates) {
+      if (findExecutable(candidate) != null) {
+        return candidate;
       }
     }
 
     return null;
+  }
+
+  /**
+   * Adds the sub directories of the given parent that could be a NIST installation.
+   */
+  private static void addInstallationCandidates(@NotNull final List<File> candidates,
+      @NotNull final File parent) {
+
+    final File[] found = parent.listFiles(
+        file -> file.isDirectory() && file.getName().toUpperCase(Locale.ROOT).startsWith("NIST"));
+    if (found != null) {
+      candidates.addAll(List.of(found));
+    }
+  }
+
+  /**
+   * @return the two digit version of a {@code NISTxx} directory, or 0 for any other name.
+   */
+  private static int installationVersion(@NotNull final File directory) {
+
+    final Matcher matcher = VERSIONED_DIRECTORY.matcher(directory.getName());
+    return matcher.matches() ? Integer.parseInt(matcher.group(1)) : 0;
   }
 
   /**
@@ -148,16 +162,6 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
   }
 
   /**
-   * The names of the libraries of an installation, main and replicate first and the rest
-   * alphabetically.
-   *
-   * @return the names, or an empty list if the directory is null, missing or holds no library.
-   */
-  public static @NotNull List<String> discoverLibraryNames(@Nullable final File nistDirectory) {
-    return NistLibrary.discover(nistDirectory).stream().map(NistLibrary::name).toList();
-  }
-
-  /**
    * Everything that stops this configuration from being searched.
    * <p>
    * The single source of these rules: the setup dialog reports them while the user can still fix
@@ -168,43 +172,24 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
    */
   public @NotNull List<String> validate() {
 
-    if (!isWindows()) {
+    if (!com.sun.jna.Platform.isWindows()) {
       return List.of("NIST MS search is only available on Windows.");
     }
 
-    final List<String> problems = new ArrayList<>();
-
     if (findExecutable(nistDirectory) == null) {
-      problems.add("MSPepSearch was not found in " + nistDirectory + ". Expected " + EXECUTABLES[0]
-          + " inside the NIST installation directory.");
+      return List.of(
+          "MSPepSearch was not found in " + nistDirectory + ". Expected " + EXECUTABLES[0]
+              + " inside the NIST installation directory.");
     }
 
-    if (libraryNames.isEmpty()) {
-      problems.add("Select at least one NIST library to search.");
-      return problems;
-    }
-    if (libraryNames.size() > MAX_LIBRARIES) {
-      problems.add("MSPepSearch can search at most " + MAX_LIBRARIES + " libraries at once, but "
-          + libraryNames.size() + " are selected.");
+    if (libraries().isEmpty()) {
+      return List.of(
+          "No %s library was found in %s. The %s search needs a library such as %s.".formatted(
+              mode.requiredLibraryContent(), nistDirectory, mode,
+              mode.isHighResolution() ? "hr_msms_nist" : "mainlib"));
     }
 
-    // The EI libraries and the tandem libraries are not interchangeable, and mixing them wastes a
-    // lot of time rather than failing outright, so complain about it up front.
-    final Set<String> eiLibraries = NistLibrary.discover(nistDirectory).stream()
-        .filter(library -> library.kind() != NistLibraryKind.USER).map(NistLibrary::name)
-        .collect(Collectors.toUnmodifiableSet());
-    final boolean anyEi = libraryNames.stream().anyMatch(eiLibraries::contains);
-    final boolean anyOther = libraryNames.stream().anyMatch(name -> !eiLibraries.contains(name));
-
-    if (mode.isHighResolution() && anyEi && !anyOther) {
-      problems.add("The MS/MS search needs a tandem library such as hr_msms_nist, but only the EI "
-          + "libraries are selected.");
-    } else if (!mode.isHighResolution() && anyOther && !anyEi) {
-      problems.add("The GC-EI searches need an EI library such as mainlib or replib, but none is "
-          + "selected.");
-    }
-
-    return problems;
+    return List.of();
   }
 
   /**
@@ -215,11 +200,16 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
   }
 
   /**
-   * The selected libraries, resolved against the installation and reduced to what MSPepSearch
+   * The libraries of the installation that fit the search type, reduced to what MSPepSearch
    * accepts: at most one main library, at most one replicate library and at most
    * {@link #MAX_LIBRARIES} in total.
+   * <p>
+   * Not cached: the installation directory can be changed in the setup dialog, and a batch can be
+   * run against an installation that has been updated since the batch was saved.
    */
   @NotNull List<NistLibrary> libraries() {
+
+    final NistLibraryContent required = mode.requiredLibraryContent();
 
     final List<NistLibrary> result = new ArrayList<>();
     boolean mainUsed = false;
@@ -227,7 +217,7 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
 
     for (final NistLibrary library : NistLibrary.discover(nistDirectory)) {
 
-      if (!libraryNames.contains(library.name())) {
+      if (library.content() != required) {
         continue;
       }
 
@@ -253,5 +243,13 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull List<Strin
     }
 
     return result;
+  }
+
+  /**
+   * @return the names of the libraries that {@link #libraries()} searches, for the log and the
+   * setup dialog.
+   */
+  public @NotNull List<String> libraryNames() {
+    return libraries().stream().map(NistLibrary::name).toList();
   }
 }

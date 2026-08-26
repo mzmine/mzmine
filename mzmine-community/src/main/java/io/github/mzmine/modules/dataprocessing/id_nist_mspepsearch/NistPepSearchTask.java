@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -204,6 +204,10 @@ public final class NistPepSearchTask extends AbstractTask {
     if (!problems.isEmpty()) {
       throw new IOException(String.join(" ", problems));
     }
+
+    // the libraries follow from the search type, so log which ones the installation contributed
+    logger.info(() -> "NIST %s search against %s".formatted(mode,
+        String.join(", ", config.libraryNames())));
 
     final List<QuerySpectrum> queries = collectQueries();
     logSkippedSpectra();

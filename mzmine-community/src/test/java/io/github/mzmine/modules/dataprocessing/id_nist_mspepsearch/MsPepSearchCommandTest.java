@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,26 +58,35 @@ class MsPepSearchCommandTest {
   private File queryFile;
   private File outputFile;
 
+  /**
+   * Creates a fake library directory holding the given index files.
+   */
+  private void library(final String name, final String... files) throws IOException {
+
+    final Path dir = Files.createDirectory(root.resolve(name));
+    for (final String file : files) {
+      Files.createFile(dir.resolve(file));
+    }
+  }
+
   @BeforeEach
   void setUp() throws IOException {
 
     Files.createDirectories(root.resolve("MSPepSearch"));
     executable = Files.createFile(root.resolve("MSPepSearch/MSPepSearch64.exe")).toFile();
 
-    for (final String[] library : new String[][]{{"mainlib", "alphanam.in6"},
-        {"replib", "contrib.inr"}, {"nist_ri", "ALPHANAM.INU"},
-        {"hr_msms_nist", "ALPHANAM.INU"}}) {
-      Files.createDirectory(root.resolve(library[0]));
-      Files.createFile(root.resolve(library[0]).resolve(library[1]));
-    }
+    library("mainlib", "alphanam.in6");
+    library("replib", "contrib.inr");
+    library("hr_msms_nist", "ALPHANAM.INU", "precmz.inu");
+    // holds no spectra, so it must never end up on the command line
+    library("nist_ri", "ALPHANAM.INU", "ri.idx", "riref.idx", "ri_spec.idx");
 
     queryFile = root.resolve("query.msp").toFile();
     outputFile = root.resolve("out.tsv").toFile();
   }
 
-  private NistSearchConfig config(final NistSearchMode mode, final String... libraries) {
-    return new NistSearchConfig(root.toFile(), List.of(libraries), mode, 400, PRECURSOR_PPM,
-        FRAGMENT_PPM, null);
+  private NistSearchConfig config(final NistSearchMode mode) {
+    return new NistSearchConfig(root.toFile(), mode, 400, PRECURSOR_PPM, FRAGMENT_PPM, null);
   }
 
   private List<String> build(final NistSearchConfig config, final Integer mwForLoss) {
@@ -97,8 +106,7 @@ class MsPepSearchCommandTest {
   @DisplayName("GC-EI identity: option token dvI, libraries as absolute paths, no /PATH")
   void eiIdentity() {
 
-    final List<String> command = build(
-        config(NistSearchMode.GC_EI_IDENTITY, "mainlib", "replib"), null);
+    final List<String> command = build(config(NistSearchMode.GC_EI_IDENTITY), null);
 
     assertEquals(executable.getAbsolutePath(), command.getFirst());
     assertEquals("dvI", command.get(1));
@@ -107,6 +115,7 @@ class MsPepSearchCommandTest {
     assertFalse(command.contains("/PATH"), () -> "/PATH must never be emitted: " + command);
     assertEquals(root.resolve("mainlib").toFile().getAbsolutePath(), valueAfter(command, "/MAIN"));
     assertEquals(root.resolve("replib").toFile().getAbsolutePath(), valueAfter(command, "/REPL"));
+    // the tandem and retention index libraries are not part of an EI search
     assertFalse(command.contains("/LIB"));
 
     assertEquals(queryFile.getAbsolutePath(), valueAfter(command, "/INP"));
@@ -130,8 +139,10 @@ class MsPepSearchCommandTest {
 
     for (final NistSearchMode mode : NistSearchMode.values()) {
 
-      final List<String> command = build(config(mode, "mainlib", "nist_ri"), 278);
+      final List<String> command = build(config(mode), 278);
       assertFalse(command.contains("/RI"), () -> "unexpected /RI for " + mode + ": " + command);
+      assertFalse(command.contains(root.resolve("nist_ri").toFile().getAbsolutePath()),
+          () -> "the retention index library holds no spectra: " + command);
     }
   }
 
@@ -139,7 +150,7 @@ class MsPepSearchCommandTest {
   @DisplayName("MS/MS: option token maivzhG with ppm tolerances")
   void msmsHiRes() {
 
-    final List<String> command = build(config(NistSearchMode.MSMS_HIRES, "hr_msms_nist"), null);
+    final List<String> command = build(config(NistSearchMode.MSMS_HIRES), null);
 
     // verified against MSPepSearch 0.9.7.5: presearch m, alternative peak matching a, ignore
     // precursor region i, reverse match column v, match precursor z, high threshold h, generic G
@@ -151,6 +162,10 @@ class MsPepSearchCommandTest {
 
     assertEquals(root.resolve("hr_msms_nist").toFile().getAbsolutePath(),
         valueAfter(command, "/LIB"));
+    // the EI libraries are not part of an MS/MS search
+    assertFalse(command.contains("/MAIN"));
+    assertFalse(command.contains("/REPL"));
+
     assertTrue(command.containsAll(
         List.of("/OutPrecursorMZ", "/OutDeltaPrecursorMZ", "/OutPrecursorType", "/OutInstrType",
             "/OutCE")));
@@ -161,8 +176,8 @@ class MsPepSearchCommandTest {
   @DisplayName("An absolute tolerance uses /Z and /M instead of the ppm form")
   void absoluteTolerances() {
 
-    final NistSearchConfig config = new NistSearchConfig(root.toFile(), List.of("hr_msms_nist"),
-        NistSearchMode.MSMS_HIRES, 400, new MZTolerance(0.5, 0), new MZTolerance(0.02, 0), null);
+    final NistSearchConfig config = new NistSearchConfig(root.toFile(), NistSearchMode.MSMS_HIRES,
+        400, new MZTolerance(0.5, 0), new MZTolerance(0.02, 0), null);
 
     final List<String> command = build(config, null);
 
@@ -175,7 +190,7 @@ class MsPepSearchCommandTest {
   @DisplayName("The hybrid search passes /MwForLoss and uses the H search type")
   void hybrid() {
 
-    final List<String> command = build(config(NistSearchMode.GC_EI_HYBRID, "mainlib"), 278);
+    final List<String> command = build(config(NistSearchMode.GC_EI_HYBRID), 278);
 
     assertEquals("dvH", command.get(1));
     assertEquals("278", valueAfter(command, "/MwForLoss"));
@@ -185,7 +200,7 @@ class MsPepSearchCommandTest {
   @DisplayName("Similarity uses the S search type and no /MwForLoss")
   void similarity() {
 
-    final List<String> command = build(config(NistSearchMode.GC_EI_SIMILARITY, "mainlib"), 278);
+    final List<String> command = build(config(NistSearchMode.GC_EI_SIMILARITY), 278);
 
     assertEquals("dvS", command.get(1));
     assertFalse(command.contains("/MwForLoss"));
@@ -196,7 +211,7 @@ class MsPepSearchCommandTest {
   void penalizeRareCompoundsIsNeverEmitted() {
 
     for (final NistSearchMode mode : NistSearchMode.values()) {
-      final String token = build(config(mode, "mainlib"), 278).get(1);
+      final String token = build(config(mode), 278).get(1);
       assertFalse(token.contains("p"),
           () -> "the option token must not contain p, was " + token + " for " + mode);
     }
@@ -206,23 +221,13 @@ class MsPepSearchCommandTest {
   @DisplayName("At most one main and one replicate library, and at most 16 in total")
   void librariesAreReducedToWhatMsPepSearchAccepts() throws IOException {
 
-    // a second main library and 20 user libraries on top of the ones created in setUp
-    Files.createDirectory(root.resolve("mainlib2"));
-    Files.createFile(root.resolve("mainlib2").resolve("alphanam.in6"));
-
-    final List<String> names = new java.util.ArrayList<>(
-        List.of("mainlib", "mainlib2", "replib", "nist_ri", "hr_msms_nist"));
+    // a second main library and 20 custom EI libraries on top of the ones created in setUp
+    library("mainlib2", "alphanam.in6");
     for (int i = 0; i < 20; i++) {
-      final String name = "user" + i;
-      Files.createDirectory(root.resolve(name));
-      Files.createFile(root.resolve(name).resolve("ALPHANAM.INU"));
-      names.add(name);
+      library("user" + i, "ALPHANAM.INU");
     }
 
-    final NistSearchConfig config = new NistSearchConfig(root.toFile(), names,
-        NistSearchMode.GC_EI_IDENTITY, 400, PRECURSOR_PPM, FRAGMENT_PPM, null);
-
-    final List<String> command = build(config, null);
+    final List<String> command = build(config(NistSearchMode.GC_EI_IDENTITY), null);
 
     assertEquals(1, command.stream().filter("/MAIN"::equals).count());
     assertEquals(1, command.stream().filter("/REPL"::equals).count());
@@ -238,9 +243,8 @@ class MsPepSearchCommandTest {
     final File spaced = Files.createDirectory(root.resolve("with space")).toFile();
     final File spacedQuery = new File(spaced, "query file.msp");
 
-    final List<String> command = MsPepSearchCommand.build(
-        config(NistSearchMode.GC_EI_IDENTITY, "mainlib"), executable, spacedQuery, outputFile,
-        spaced, null);
+    final List<String> command = MsPepSearchCommand.build(config(NistSearchMode.GC_EI_IDENTITY),
+        executable, spacedQuery, outputFile, spaced, null);
 
     assertTrue(command.contains(spacedQuery.getAbsolutePath()));
     assertEquals(spacedQuery.getAbsolutePath(), valueAfter(command, "/INP"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,8 +42,9 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Tests {@link NistSearchConfig#validate()}, which is the single source of the rules that both the
- * setup dialog and {@link NistPepSearchTask} enforce.
+ * Tests how {@link NistSearchConfig} picks the libraries of an installation and
+ * {@link NistSearchConfig#validate()}, which is the single source of the rules that both the setup
+ * dialog and {@link NistPepSearchTask} enforce.
  * <p>
  * Windows only, because MSPepSearch is a Windows executable and validate() says so before it looks
  * at anything else.
@@ -55,33 +55,91 @@ class NistSearchConfigTest {
   @TempDir
   Path root;
 
+  /**
+   * Creates a fake library directory holding the given index files.
+   */
+  private void library(final String name, final String... files) throws IOException {
+
+    final Path dir = Files.createDirectory(root.resolve(name));
+    for (final String file : files) {
+      Files.createFile(dir.resolve(file));
+    }
+  }
+
   @BeforeEach
   void setUp() throws IOException {
 
     Files.createDirectories(root.resolve("MSPepSearch"));
     Files.createFile(root.resolve("MSPepSearch/MSPepSearch64.exe"));
 
-    for (final String[] library : new String[][]{{"mainlib", "alphanam.in6"},
-        {"replib", "contrib.inr"}, {"hr_msms_nist", "ALPHANAM.INU"}}) {
-      Files.createDirectory(root.resolve(library[0]));
-      Files.createFile(root.resolve(library[0]).resolve(library[1]));
-    }
+    library("mainlib", "alphanam.in6");
+    library("replib", "contrib.inr");
+    library("hr_msms_nist", "ALPHANAM.INU", "PEAK_PM0.INU");
+    library("lr_msms_nist", "ALPHANAM.INU", "precmz.inu");
+    // holds no spectra and must never be searched
+    library("nist_ri", "ALPHANAM.INU", "ri.idx", "riref.idx", "ri_spec.idx");
   }
 
-  private NistSearchConfig config(final File nistDirectory, final NistSearchMode mode,
-      final List<String> libraries) {
-    return new NistSearchConfig(nistDirectory, libraries, mode, 400, new MZTolerance(0.005, 20),
+  private NistSearchConfig config(final File nistDirectory, final NistSearchMode mode) {
+    return new NistSearchConfig(nistDirectory, mode, 400, new MZTolerance(0.005, 20),
         new MZTolerance(0.01, 40), null);
+  }
+
+  private List<String> librariesOf(final NistSearchMode mode) {
+    return config(root.toFile(), mode).libraryNames();
+  }
+
+  @Test
+  @DisplayName("The GC-EI searches use every EI library and nothing else")
+  void eiSearchesUseTheEiLibraries() {
+
+    assertEquals(List.of("mainlib", "replib"), librariesOf(NistSearchMode.GC_EI_IDENTITY));
+    assertEquals(List.of("mainlib", "replib"), librariesOf(NistSearchMode.GC_EI_SIMILARITY));
+  }
+
+  @Test
+  @DisplayName("The MS/MS search uses every tandem library and nothing else")
+  void msmsUsesTheTandemLibraries() {
+    assertEquals(List.of("hr_msms_nist", "lr_msms_nist"), librariesOf(NistSearchMode.MSMS_HIRES));
+  }
+
+  @Test
+  @DisplayName("A custom user library is searched with the EI libraries")
+  void customLibrariesAreSearchedWithTheEiLibraries() throws IOException {
+
+    library("my_gc_library", "ALPHANAM.INU", "PEAK.DBU");
+
+    assertEquals(List.of("mainlib", "replib", "my_gc_library"),
+        librariesOf(NistSearchMode.GC_EI_IDENTITY));
+  }
+
+  @Test
+  @DisplayName("At most one main and one replicate library are passed")
+  void onlyOneMainAndOneReplicateLibrary() throws IOException {
+
+    library("mainlib_2020", "alphanam.in6");
+    library("replib_2020", "contrib.inr");
+
+    assertEquals(List.of("mainlib", "replib"), librariesOf(NistSearchMode.GC_EI_IDENTITY));
+  }
+
+  @Test
+  @DisplayName("No more libraries than MSPepSearch accepts are passed")
+  void atMostSixteenLibraries() throws IOException {
+
+    for (int i = 0; i < 20; i++) {
+      library("user_msms_" + i, "ALPHANAM.INU", "precmz.inu");
+    }
+
+    assertEquals(NistSearchConfig.MAX_LIBRARIES, librariesOf(NistSearchMode.MSMS_HIRES).size());
   }
 
   @Test
   @DisplayName("A complete configuration has no problems")
   void validConfiguration() {
 
-    assertTrue(config(root.toFile(), NistSearchMode.GC_EI_IDENTITY,
-        List.of("mainlib", "replib")).validate().isEmpty());
-    assertTrue(config(root.toFile(), NistSearchMode.MSMS_HIRES,
-        List.of("hr_msms_nist")).validate().isEmpty());
+    assertTrue(config(root.toFile(), NistSearchMode.GC_EI_IDENTITY).validate().isEmpty());
+    assertTrue(config(root.toFile(), NistSearchMode.MSMS_HIRES).validate().isEmpty());
   }
 
   @Test
@@ -89,7 +147,7 @@ class NistSearchConfigTest {
   void missingExecutable() {
 
     final List<String> problems = config(new File(root.toFile(), "not-an-install"),
-        NistSearchMode.MSMS_HIRES, List.of("hr_msms_nist")).validate();
+        NistSearchMode.MSMS_HIRES).validate();
 
     assertEquals(1, problems.size());
     assertTrue(problems.getFirst().contains("MSPepSearch was not found"),
@@ -99,69 +157,35 @@ class NistSearchConfigTest {
   @Test
   @DisplayName("A null directory is reported rather than throwing")
   void nullDirectory() {
-    assertTrue(config(null, NistSearchMode.MSMS_HIRES, List.of("hr_msms_nist")).validate().stream()
+    assertTrue(config(null, NistSearchMode.MSMS_HIRES).validate().stream()
         .anyMatch(problem -> problem.contains("MSPepSearch was not found")));
   }
 
   @Test
-  @DisplayName("Selecting no library is reported, and stops the later checks")
-  void noLibraries() {
+  @DisplayName("An installation without a library for the search type is reported")
+  void noMatchingLibrary() throws IOException {
 
-    final List<String> problems = config(root.toFile(), NistSearchMode.MSMS_HIRES,
-        List.of()).validate();
+    final Path eiOnly = Files.createDirectory(root.resolve("ei-only-install"));
+    Files.createDirectories(eiOnly.resolve("MSPepSearch"));
+    Files.createFile(eiOnly.resolve("MSPepSearch/MSPepSearch64.exe"));
+    Files.createDirectory(eiOnly.resolve("mainlib"));
+    Files.createFile(eiOnly.resolve("mainlib/alphanam.in6"));
+
+    final List<String> problems = config(eiOnly.toFile(), NistSearchMode.MSMS_HIRES).validate();
 
     assertEquals(1, problems.size());
-    assertTrue(problems.getFirst().contains("at least one NIST library"),
+    assertTrue(problems.getFirst().contains("No MS/MS library was found"),
         () -> "unexpected problem: " + problems);
+    assertTrue(config(eiOnly.toFile(), NistSearchMode.GC_EI_IDENTITY).validate().isEmpty());
   }
 
   @Test
-  @DisplayName("More than 16 libraries is reported")
-  void tooManyLibraries() throws IOException {
+  @DisplayName("The retention index library is never searched - it holds no spectra")
+  void retentionIndexLibraryIsNeverSearched() {
 
-    final List<String> names = new ArrayList<>(List.of("hr_msms_nist"));
-    for (int i = 0; i < 20; i++) {
-      final String name = "user" + i;
-      Files.createDirectory(root.resolve(name));
-      Files.createFile(root.resolve(name).resolve("ALPHANAM.INU"));
-      names.add(name);
+    for (final NistSearchMode mode : NistSearchMode.values()) {
+      assertTrue(!librariesOf(mode).contains("nist_ri"),
+          () -> "nist_ri must not be searched by " + mode);
     }
-
-    assertTrue(config(root.toFile(), NistSearchMode.MSMS_HIRES, names).validate().stream()
-        .anyMatch(problem -> problem.contains("at most " + NistSearchConfig.MAX_LIBRARIES)));
-  }
-
-  @Test
-  @DisplayName("MS/MS against only the EI libraries is reported")
-  void msmsNeedsATandemLibrary() {
-
-    final List<String> problems = config(root.toFile(), NistSearchMode.MSMS_HIRES,
-        List.of("mainlib", "replib")).validate();
-
-    assertEquals(1, problems.size());
-    assertTrue(problems.getFirst().contains("needs a tandem library"),
-        () -> "unexpected problem: " + problems);
-  }
-
-  @Test
-  @DisplayName("GC-EI against only a tandem library is reported")
-  void eiNeedsAnEiLibrary() {
-
-    final List<String> problems = config(root.toFile(), NistSearchMode.GC_EI_IDENTITY,
-        List.of("hr_msms_nist")).validate();
-
-    assertEquals(1, problems.size());
-    assertTrue(problems.getFirst().contains("need an EI library"),
-        () -> "unexpected problem: " + problems);
-  }
-
-  @Test
-  @DisplayName("Mixing an EI and a tandem library is allowed - only one sided selections warn")
-  void mixedLibrariesAreAllowed() {
-
-    assertTrue(config(root.toFile(), NistSearchMode.MSMS_HIRES,
-        List.of("mainlib", "hr_msms_nist")).validate().isEmpty());
-    assertTrue(config(root.toFile(), NistSearchMode.GC_EI_IDENTITY,
-        List.of("mainlib", "hr_msms_nist")).validate().isEmpty());
   }
 }

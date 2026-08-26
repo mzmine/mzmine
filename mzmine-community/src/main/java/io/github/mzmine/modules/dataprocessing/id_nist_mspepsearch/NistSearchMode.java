@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,8 @@
  */
 
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The MSPepSearch search types mzmine can run.
@@ -82,6 +84,17 @@ public enum NistSearchMode {
    */
   public boolean isHighResolution() {
     return highResolution;
+  }
+
+  /**
+   * The libraries this search type runs against. Every library of that content in the installation
+   * is searched, so that no library has to be picked by hand.
+   *
+   * @return {@link NistLibraryContent#MSMS} for the accurate mass MS/MS search and
+   * {@link NistLibraryContent#EI} for the unit mass EI searches.
+   */
+  public @NotNull NistLibraryContent requiredLibraryContent() {
+    return highResolution ? NistLibraryContent.MSMS : NistLibraryContent.EI;
   }
 
   /**

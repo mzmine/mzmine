@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,34 +26,48 @@
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A NIST mass spectral library: one sub directory of a NIST installation.
  *
- * @param name the directory name, which is what the user selects and what is stored in the batch
- *             file.
- * @param dir  the directory itself. MSPepSearch is handed the absolute path.
- * @param kind determines whether the library goes to {@code /MAIN}, {@code /REPL} or {@code /LIB}.
+ * @param name    the directory name, which is what is written to the log.
+ * @param dir     the directory itself. MSPepSearch is handed the absolute path.
+ * @param kind    determines whether the library goes to {@code /MAIN}, {@code /REPL} or
+ *                {@code /LIB}.
+ * @param content decides for which search type the library can be used.
  */
-record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibraryKind kind) {
+record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibraryKind kind,
+                   @NotNull NistLibraryContent content) {
 
   /**
-   * Name index files. The extension also tells the library format apart: {@code .in6} is the NIST
-   * main library format, {@code .inr} the replicate format and {@code .INU} the user format used by
+   * Name index extensions, which also tell the library format apart: {@code .in6} is the NIST main
+   * library format, {@code .inr} the replicate format and {@code .INU} the user format used by
    * every other shipped library (MS/MS, RI, APCI).
    */
-  private static final FilenameFilter INDEX_FILTER = (dir, name) -> {
-    final String lower = name.toLowerCase(Locale.ROOT);
-    return lower.endsWith(".in6") || lower.endsWith(".inr") || lower.endsWith(".inu")
-        || lower.equals("libsign.msd");
-  };
+  private static final Set<String> INDEX_EXTENSIONS = Set.of(".in6", ".inr", ".inu");
+
+  /**
+   * Index file name prefixes that only a library of MS/MS spectra has, because only those entries
+   * carry a precursor m/z. Present in hr_msms_nist, lr_msms_nist and apci_msms_nist and absent from
+   * every EI library.
+   */
+  private static final Set<String> PRECURSOR_INDEX_PREFIXES = Set.of("precmz", "peak_pm");
+
+  /**
+   * Files that only the NIST retention index library has. It ships in the same format as the tandem
+   * libraries but holds no spectra, so it must never be searched.
+   */
+  private static final Set<String> RETENTION_INDEX_FILES = Set.of("ri.idx", "riref.idx",
+      "ri_spec.idx");
 
   /**
    * Finds the libraries of a NIST installation.
@@ -76,43 +90,53 @@ record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibrary
     final List<NistLibrary> libraries = new ArrayList<>();
     for (final File candidate : candidates) {
 
-      final NistLibraryKind kind = determineKind(candidate);
+      final String[] files = candidate.list();
+      if (files == null) {
+        continue;
+      }
+
+      // lower cased once, both classifications below are case insensitive
+      final Set<String> lowerCase = Arrays.stream(files).map(file -> file.toLowerCase(Locale.ROOT))
+          .collect(Collectors.toUnmodifiableSet());
+
+      final NistLibraryKind kind = determineKind(lowerCase);
       if (kind != null) {
-        libraries.add(new NistLibrary(candidate.getName(), candidate, kind));
+        libraries.add(new NistLibrary(candidate.getName(), candidate, kind,
+            determineContent(kind, lowerCase)));
       }
     }
 
     // main and replicate first, then alphabetically: matches how users think about the libraries
-    // and puts the two libraries that need a dedicated switch at the top of the selection list.
+    // and puts the two libraries that need a dedicated switch at the top.
     libraries.sort(Comparator.comparingInt((NistLibrary l) -> l.kind().ordinal())
         .thenComparing(NistLibrary::name, String.CASE_INSENSITIVE_ORDER));
     return libraries;
   }
 
   /**
-   * Classifies a directory by the name index files it contains.
+   * Classifies the format of a directory by the name index files it contains.
    *
+   * @param files the lower cased file names of the directory.
    * @return the kind, or null if the directory is not a NIST library.
    */
-  private static @Nullable NistLibraryKind determineKind(final File dir) {
-
-    final String[] indexFiles = dir.list(INDEX_FILTER);
-    if (indexFiles == null || indexFiles.length == 0) {
-      return null;
-    }
+  private static @Nullable NistLibraryKind determineKind(@NotNull final Set<String> files) {
 
     boolean main = false;
     boolean replicate = false;
     boolean user = false;
 
-    for (final String indexFile : indexFiles) {
-      final String lower = indexFile.toLowerCase(Locale.ROOT);
-      if (lower.endsWith(".in6")) {
-        main = true;
-      } else if (lower.endsWith(".inr")) {
-        replicate = true;
-      } else if (lower.endsWith(".inu")) {
-        user = true;
+    for (final String file : files) {
+
+      final int dot = file.lastIndexOf('.');
+      final String extension = dot < 0 ? "" : file.substring(dot);
+      if (!INDEX_EXTENSIONS.contains(extension)) {
+        continue;
+      }
+
+      switch (extension) {
+        case ".in6" -> main = true;
+        case ".inr" -> replicate = true;
+        default -> user = true;
       }
     }
 
@@ -128,6 +152,36 @@ record NistLibrary(@NotNull String name, @NotNull File dir, @NotNull NistLibrary
       return NistLibraryKind.REPLICATE;
     }
     return null;
+  }
+
+  /**
+   * Classifies what a library holds, so that a search type can pick the libraries that fit it.
+   * <p>
+   * The main and replicate libraries are EI by definition. Everything else is in the user format
+   * and is told apart by its index files: a precursor m/z index means MS/MS spectra, the retention
+   * index files mean no spectra at all, and anything else is taken to be an EI library so that
+   * custom libraries built with Lib2NIST are searched as well.
+   *
+   * @param files the lower cased file names of the directory.
+   */
+  private static @NotNull NistLibraryContent determineContent(@NotNull final NistLibraryKind kind,
+      @NotNull final Set<String> files) {
+
+    if (kind != NistLibraryKind.USER) {
+      return NistLibraryContent.EI;
+    }
+
+    for (final String file : files) {
+      if (PRECURSOR_INDEX_PREFIXES.stream().anyMatch(file::startsWith)) {
+        return NistLibraryContent.MSMS;
+      }
+    }
+
+    if (files.containsAll(RETENTION_INDEX_FILES)) {
+      return NistLibraryContent.NON_SPECTRAL;
+    }
+
+    return NistLibraryContent.EI;
   }
 
   @Override
