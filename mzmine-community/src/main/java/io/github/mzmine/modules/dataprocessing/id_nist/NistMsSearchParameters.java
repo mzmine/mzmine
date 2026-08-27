@@ -35,8 +35,10 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchConfig;
 import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchMode;
+import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -45,6 +47,8 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
@@ -167,6 +171,70 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         getValue(PRECURSOR_TOLERANCE), getValue(FRAGMENT_TOLERANCE), integerMz);
   }
 
+  /**
+   * The two presets NIST's own workflows come down to: unit mass EI spectra against the EI
+   * libraries, and accurate mass MS/MS spectra against the tandem libraries. They are offered by
+   * the presets button of the setup dialog.
+   */
+  @Override
+  public @NotNull List<ModulePreset> createDefaultPresets() {
+
+    return List.of( //
+        new ModulePreset("GC-EI (low resolution)", NistMsSearchModule.UNIQUE_ID,
+            createPreset(NistSearchMode.GC_EI_IDENTITY, 0.75, MZTolerance.UNIT_MASS_TOLERANCE,
+                MZTolerance.UNIT_MASS_TOLERANCE, IntegerMode.SUM,
+                SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, MZTolerance.UNIT_MASS_TOLERANCE)), //
+        new ModulePreset("MS/MS (high resolution)", NistMsSearchModule.UNIQUE_ID,
+            createPreset(NistSearchMode.MSMS_HIRES, 0.7, MZTolerance.WIDE_25_PPM_OR_10_MDA,
+                new MZTolerance(0.01, 40), null, SpectraMergeSelectPresets.REPRESENTATIVE_SCANS,
+                MZTolerance.WIDE_25_PPM_OR_10_MDA)));
+  }
+
+  /**
+   * Builds one default preset on top of the current values, so that applying a preset keeps the
+   * installation directory, which belongs to the machine rather than to the preset. The feature
+   * list selection is reset instead: carrying the lists of whatever project the preset happened to
+   * be created in would only overwrite the selection of the next one.
+   *
+   * @param mode               the search type, which also picks the libraries.
+   * @param minSimilarity      the minimum similarity on mzmine's 0 to 1 scale.
+   * @param precursorTolerance precursor m/z tolerance, ignored by the GC-EI searches.
+   * @param fragmentTolerance  fragment m/z tolerance, ignored by the GC-EI searches.
+   * @param integerMz          the unit mass merging to switch on, or null to leave it off.
+   * @param mergePreset        how the spectra of a row are merged and selected.
+   * @param mergeTolerance     the m/z tolerance used while merging.
+   */
+  private @NotNull NistMsSearchParameters createPreset(@NotNull final NistSearchMode mode,
+      final double minSimilarity, @NotNull final MZTolerance precursorTolerance,
+      @NotNull final MZTolerance fragmentTolerance, @Nullable final IntegerMode integerMz,
+      @NotNull final SpectraMergeSelectPresets mergePreset,
+      @NotNull final MZTolerance mergeTolerance) {
+
+    final NistMsSearchParameters preset = (NistMsSearchParameters) cloneParameterSet();
+
+    // a preset is shared between machines, so fall back to whatever installation this one has
+    if (preset.getValue(NIST_DIRECTORY) == null) {
+      preset.setParameter(NIST_DIRECTORY, NistSearchConfig.discoverInstallation());
+    }
+
+    // back to the default: the lists selected in the GUI, or whatever the batch step sets
+    preset.setParameter(PEAK_LISTS, new FeatureListsSelection());
+
+    preset.setParameter(SEARCH_MODE, mode);
+    preset.setParameter(DOT_PRODUCT, minSimilarity);
+    preset.setParameter(PRECURSOR_TOLERANCE, precursorTolerance);
+    preset.setParameter(FRAGMENT_TOLERANCE, fragmentTolerance);
+
+    preset.setParameter(INTEGER_MZ, integerMz != null);
+    if (integerMz != null) {
+      preset.getParameter(INTEGER_MZ).getEmbeddedParameter().setValue(integerMz);
+    }
+
+    preset.getParameter(spectraMergeSelect).setSimplePreset(mergePreset, mergeTolerance);
+
+    return preset;
+  }
+
   @Override
   public ExitCode showSetupDialog(final boolean valueCheckRequired) {
 
@@ -229,6 +297,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         text("Runs NIST's command line program "), italicText("MSPepSearch"),
         text(", so the search also works in batch mode and on a headless machine. "),
         boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer.\n"),
+        text("The "), boldText("Presets"), text(
+            " button fills in defaults for GC-EI (low resolution) and for MS/MS (high resolution).\n"),
         text("NIST returns no library spectra, so the mirror plot of a hit stays empty."));
   }
 }

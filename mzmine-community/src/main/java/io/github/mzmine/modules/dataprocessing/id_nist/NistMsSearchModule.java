@@ -46,6 +46,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NistMsSearchModule implements MZmineProcessingModule {
 
+  /**
+   * The default unique ID of a module is its simple class name. Spelled out here so that the
+   * presets of {@link NistMsSearchParameters#createDefaultPresets()} can name their group without a
+   * module lookup - the value has to stay as it is, saved configurations refer to it.
+   */
+  public static final String UNIQUE_ID = "NistMsSearchModule";
+
   private static final String MODULE_NAME = "NIST MS search";
   private static final String MODULE_DESCRIPTION =
       "Searches GC-EI or MS/MS spectra against the libraries of a licensed NIST installation, "
@@ -54,6 +61,11 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   @Override
   public @NotNull String getName() {
     return MODULE_NAME;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return UNIQUE_ID;
   }
 
   @Override

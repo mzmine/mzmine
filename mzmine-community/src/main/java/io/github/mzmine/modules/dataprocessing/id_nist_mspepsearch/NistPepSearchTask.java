@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -80,6 +81,10 @@ import org.jetbrains.annotations.Nullable;
  * is what MSPepSearch is designed for: it reports one block of hits per submitted spectrum. Results
  * are mapped back to the query by the 1-based ordinal MSPepSearch echoes in its {@code Num} column,
  * falling back to the {@code Name:} of the MSP entry.
+ * <p>
+ * Currently this task is only here for internal testing and referencing, it has too many parameters
+ * and we have a simpler alternative in the {@link NistMsSearchModule} which now also uses
+ * MSPepSearch as the engine. Legacy batches still work there.
  */
 public final class NistPepSearchTask extends AbstractTask {
 
@@ -545,8 +550,9 @@ public final class NistPepSearchTask extends AbstractTask {
         // A precursor m/z only means something for the accurate mass MS/MS searches; the EI
         // searches ignore it.
         if (mode.isHighResolution()) {
-          final Double precursorMz = query.scan().getPrecursorMz() != null
-              ? query.scan().getPrecursorMz().doubleValue() : query.row().getAverageMZ();
+          final Double precursorMz =
+              query.scan().getPrecursorMz() != null ? query.scan().getPrecursorMz().doubleValue()
+                  : query.row().getAverageMZ();
           if (precursorMz != null) {
             writer.write("PrecursorMZ: " + precursorMz);
             writer.newLine();
@@ -682,8 +688,8 @@ public final class NistPepSearchTask extends AbstractTask {
 
     entry.putIfNotNull(DBEntryField.COMMENT, buildComment(hit, collisionEnergy == null));
 
-    final SpectralSimilarity similarity = new SpectralSimilarity(scoreName(),
-        hit.score0to1(), hit.numMatchedPeaks() == null ? 0 : hit.numMatchedPeaks(), Double.NaN);
+    final SpectralSimilarity similarity = new SpectralSimilarity(scoreName(), hit.score0to1(),
+        hit.numMatchedPeaks() == null ? 0 : hit.numMatchedPeaks(), Double.NaN);
 
     return new SpectralDBAnnotation(entry, similarity, query.scan(), null,
         query.row().getAverageMZ(), query.row().getAverageRT(), null);
@@ -739,7 +745,7 @@ public final class NistPepSearchTask extends AbstractTask {
 
   /**
    * One spectrum submitted to MSPepSearch.
-   *
+   * <p>
    * The position in the list handed to {@link #runSearch(List, Integer)} is the {@code Num}
    * MSPepSearch echoes, so it is deliberately not stored here - see {@link #applyHits}.
    *
