@@ -358,16 +358,11 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     return switch (version) {
       case 3 -> "Improved spectral merging options. Please reconfigure the NIST MS search step.";
       case 4 -> """
-          NIST MS search now runs NIST's command line program MSPepSearch instead of the MS Search \
-          user interface, so it also works in batch mode and on a headless machine.
-          Set the NIST installation directory, for example C:\\NIST26, rather than the MSSEARCH \
-          directory below it. The libraries are no longer selected by hand: the new search type \
-          decides which libraries of the installation are searched, all EI libraries for GC-EI and \
-          all tandem libraries for MS/MS.
+          NIST MS search now runs NIST's command line program MSPepSearch.
+          Set the NIST installation directory, for example C:\\NIST26.
           The search type was set to automatic, which runs the GC-EI identity search on feature \
-          lists that went through spectral deconvolution and the MS/MS search on all others. \
-          Please check it and the new m/z tolerances, which were guessed from the old parameters. \
-          The Presets button fills in the recommended settings of either workflow.""";
+          lists with spectral deconvolution and the MS/MS search on all others.
+          The Presets button has new presets for GC-EI and MS/MS workflows.""";
       default -> null;
     };
   }
@@ -375,15 +370,11 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   @Override
   public @Nullable Region getMessage() {
     return FxTextFlows.newTextFlowInAccordion("Information", true,
-        text("Runs NIST's command line program "), italicText("MSPepSearch"),
-        text(", so the search also works in batch mode and on a headless machine. "),
-        boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer. "),
+        text("Runs NIST's command line program "), italicText("MSPepSearch. "),
+        boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer."),
         text("\nContact mzio to obtain the latest NIST library ("),
         hyperlinkText("mzio.io/contact", "https://mzio.io/contact/"), text(")."), text("\nThe "),
-        boldText("Presets"), text(
-            " button fills in defaults for GC-EI (low resolution) and for MS/MS (high resolution). "),
-        text("The automatic search type picks GC-EI for feature lists that went through spectral "
-            + "deconvolution and MS/MS for all others, and writes the effective type to the log.\n"),
-        text("NIST returns no library spectra, so the mirror plot of a hit stays empty."));
+        text(
+            "NIST returns no library spectra or structures, so the mirror plot only shows the input spectrum."));
   }
 }
