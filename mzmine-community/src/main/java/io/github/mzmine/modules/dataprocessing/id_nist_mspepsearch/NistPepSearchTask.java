@@ -49,6 +49,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -60,10 +61,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -97,6 +101,17 @@ public final class NistPepSearchTask extends AbstractTask {
    */
   private static final long TIMEOUT_MS = 60L * 60L * 1000L;
 
+  /**
+   * The line MSPepSearch prints on stderr when {@code /PROGRESS} is set and it starts the presearch
+   * of the next spectrum. Counting those lines is the only way to drive the progress bar, because a
+   * whole feature list is searched in a single run of the executable.
+   * <p>
+   * The percentage matters: MSPepSearch reports the presearch of one spectrum in several steps
+   * ({@code 0%}, {@code 50%}, ...), so only the {@code 0%} line means a new spectrum. Verified
+   * against MSPepSearch 0.9.7.5, where it appears exactly once per searched spectrum.
+   */
+  private static final String PROGRESS_MARKER = "Finding possible matching spectra. 0% complete.";
+
   private final FeatureList featureList;
   private final FeatureListRow singleRow;
   private final NistSearchConfig config;
@@ -107,15 +122,29 @@ public final class NistPepSearchTask extends AbstractTask {
   private final FragmentScanSelection fragmentScanSelection;
   private final IntegerMode integerMz;
 
-  private Process process;
+  // read by cancel() from another thread, so it must not be cached in a register
+  private volatile Process process;
 
-  private int progressMax;
-  private int progress;
-  private int annotatedRows;
+  /**
+   * Spectra MSPepSearch reported as searched, counted by the stderr reader thread.
+   */
+  private final AtomicInteger searchedSpectra = new AtomicInteger();
+
+  /**
+   * Rows that received at least one hit. A set rather than a counter because the hybrid search
+   * splits the queries into several runs and a row can be annotated by more than one of them.
+   */
+  private final Set<FeatureListRow> annotatedRows = new LinkedHashSet<>();
+
+  private volatile int progressMax;
+  // queries of the groups that already finished, the fallback if /PROGRESS reports nothing
+  private volatile int completedQueries;
+
   private int totalHits;
   private int emptySpectra;
   private int missingMassLists;
   private int unmappedHits;
+  private int hitsWithoutScore;
 
   /**
    * @param config            what to search and how.
@@ -155,7 +184,15 @@ public final class NistPepSearchTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
+
+    final int max = progressMax;
+    if (max == 0) {
+      return 0.0;
+    }
+
+    // whichever is further along: what MSPepSearch reported, or the groups that are done
+    final int done = Math.max(completedQueries, searchedSpectra.get());
+    return Math.min(1.0, (double) done / (double) max);
   }
 
   @Override
@@ -186,12 +223,12 @@ public final class NistPepSearchTask extends AbstractTask {
               getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
 
-      logger.info(
-          () -> "NIST MSPepSearch completed: %d hits on %d rows".formatted(totalHits, annotatedRows));
+      logger.info(() -> "NIST MSPepSearch completed: %d hits on %d rows".formatted(totalHits,
+          annotatedRows.size()));
 
     } catch (Throwable t) {
       logger.log(Level.SEVERE, "NIST MSPepSearch error", t);
-      setErrorMessage(t.getMessage());
+      setErrorMessage(t.getMessage() != null ? t.getMessage() : t.toString());
       setStatus(TaskStatus.ERROR);
     }
   }
@@ -222,7 +259,7 @@ public final class NistPepSearchTask extends AbstractTask {
     // The hybrid search needs the nominal molecular weight of the unknown, and MSPepSearch only
     // accepts it as a single global /MwForLoss value, so those queries have to be grouped by
     // molecular weight and searched one group at a time. Every other mode is a single run.
-    progress = 0;
+    completedQueries = 0;
     progressMax = queries.size();
 
     for (final Map.Entry<Integer, List<QuerySpectrum>> group : groupQueries(queries).entrySet()) {
@@ -232,12 +269,16 @@ public final class NistPepSearchTask extends AbstractTask {
       }
 
       runSearch(group.getValue(), group.getKey());
-      progress += group.getValue().size();
+      completedQueries += group.getValue().size();
     }
 
     if (unmappedHits > 0) {
       logger.warning(() -> unmappedHits
           + " hits could not be mapped back to a query spectrum and were ignored.");
+    }
+    if (hitsWithoutScore > 0) {
+      logger.warning(() -> hitsWithoutScore
+          + " hits were ignored because MSPepSearch reported no match factor for them.");
     }
   }
 
@@ -320,30 +361,36 @@ public final class NistPepSearchTask extends AbstractTask {
     final ProcessBuilder builder = new ProcessBuilder(command).directory(
         executable.getParentFile());
 
-    process = builder.start();
-    final Process running = process;
+    final Process running = builder.start();
+    process = running;
 
     // Drain both streams on their own threads. Reading them from one thread risks blocking on a
-    // full pipe buffer, and stderr carries the /PROGRESSNS messages and any error text.
+    // full pipe buffer, and stderr carries the /PROGRESS messages and any error text.
     final StringBuilder stdout = new StringBuilder();
     final StringBuilder stderr = new StringBuilder();
-    final Thread outDrain = drain(running.getInputStream(), stdout);
-    final Thread errDrain = drain(running.getErrorStream(), stderr);
 
-    final boolean finished = running.waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    final int exitCode;
+    try {
+      final Thread outDrain = drain(running.getInputStream(), stdout, false);
+      final Thread errDrain = drain(running.getErrorStream(), stderr, true);
 
-    if (!finished) {
-      running.destroy();
-      throw new IOException(
-          "MSPepSearch did not finish within %d minutes. Reduce the number of spectra or libraries.".formatted(
-              TIMEOUT_MS / 60_000));
+      final boolean finished = running.waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+      if (!finished) {
+        running.destroy();
+        throw new IOException(
+            "MSPepSearch did not finish within %d minutes. Reduce the number of spectra or libraries.".formatted(
+                TIMEOUT_MS / 60_000));
+      }
+
+      outDrain.join(1_000);
+      errDrain.join(1_000);
+
+      exitCode = running.exitValue();
+    } finally {
+      // always clear it, so that a later cancel() does not destroy a handle that is already gone
+      process = null;
     }
-
-    outDrain.join(1_000);
-    errDrain.join(1_000);
-
-    final int exitCode = running.exitValue();
-    process = null;
 
     if (isCanceled()) {
       return;
@@ -358,15 +405,28 @@ public final class NistPepSearchTask extends AbstractTask {
     logger.finest(() -> "MSPepSearch finished: " + tail(stderr));
   }
 
-  private static Thread drain(final InputStream stream, final StringBuilder target) {
+  /**
+   * Starts a thread that reads one process stream to its end.
+   *
+   * @param countProgress whether {@link #PROGRESS_MARKER} lines on this stream advance the progress
+   *                      bar. Only stderr carries them.
+   */
+  private Thread drain(final InputStream stream, final StringBuilder target,
+      final boolean countProgress) {
 
+    // Read by lines: the marker has to be matched as a whole, which a fixed size character buffer
+    // would split at arbitrary places. MSPepSearch separates its progress messages with a bare
+    // carriage return to overwrite them in a console, which readLine() treats as a line terminator
+    // just like a line feed - so the captured text is also easier to read in an error message.
     final Thread thread = new Thread(() -> {
-      try (var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-        final char[] buffer = new char[4096];
-        int read;
-        while ((read = reader.read(buffer)) >= 0) {
+      try (var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        String line;
+        while ((line = reader.readLine()) != null) {
           synchronized (target) {
-            target.append(buffer, 0, read);
+            target.append(line).append(System.lineSeparator());
+          }
+          if (countProgress && line.contains(PROGRESS_MARKER)) {
+            searchedSpectra.incrementAndGet();
           }
         }
       } catch (IOException e) {
@@ -417,9 +477,8 @@ public final class NistPepSearchTask extends AbstractTask {
           continue;
         }
 
-        queries.add(
-            new QuerySpectrum(queries.size() + 1, queryName(row, queryIndex++), row, scan,
-                dataPoints, nominalMw(row, dataPoints)));
+        queries.add(new QuerySpectrum(queryName(row, queryIndex++), row, scan, dataPoints,
+            nominalMw(row, dataPoints)));
       }
     }
 
@@ -519,15 +578,44 @@ public final class NistPepSearchTask extends AbstractTask {
   }
 
   /**
+   * Finds the query a hit belongs to.
+   * <p>
+   * MSPepSearch numbers the spectra of <em>every</em> run from 1, in submission order, so the
+   * {@code Num} column is a position within the list submitted to that run - never a list wide
+   * ordinal. Reading it as the latter maps the hits of the second and later runs of a grouped
+   * search to the wrong rows.
+   *
+   * @param specNum         the {@code Num} column of the hit, or -1 if the output had none.
+   * @param unknownName     the {@code Unknown} column, the fallback key.
+   * @param queryCount      how many spectra were submitted to this run.
+   * @param positionsByName the position of every query by its lower cased name.
+   * @return the 0-based position in the submitted list, or -1 if the hit cannot be mapped.
+   */
+  static int resolveQueryPosition(final int specNum, @Nullable final String unknownName,
+      final int queryCount, @NotNull final Map<String, Integer> positionsByName) {
+
+    if (specNum >= 1 && specNum <= queryCount) {
+      return specNum - 1;
+    }
+
+    if (unknownName != null) {
+      final Integer position = positionsByName.get(unknownName.toLowerCase(Locale.ROOT));
+      if (position != null) {
+        return position;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
    * Maps the hits back to their query spectra and adds them to the rows.
    */
   private void applyHits(final List<QuerySpectrum> queries, final NistPepSearchResult result) {
 
-    final Map<Integer, QuerySpectrum> bySpecNum = new HashMap<>();
-    final Map<String, QuerySpectrum> byName = new HashMap<>();
-    for (final QuerySpectrum query : queries) {
-      bySpecNum.put(query.specNum(), query);
-      byName.put(query.name().toLowerCase(Locale.ROOT), query);
+    final Map<String, Integer> positionsByName = new HashMap<>();
+    for (int i = 0; i < queries.size(); i++) {
+      positionsByName.put(queries.get(i).name().toLowerCase(), i);
     }
 
     // collect per row so that all hits of a row are added and sorted in one go
@@ -535,16 +623,21 @@ public final class NistPepSearchTask extends AbstractTask {
 
     for (final NistHit hit : result.hits()) {
 
-      QuerySpectrum query = bySpecNum.get(hit.specNum());
-      if (query == null && hit.unknownName() != null) {
-        query = byName.get(hit.unknownName().toLowerCase(Locale.ROOT));
+      // a hit without a match factor has no score to rank or filter it by, and a NaN score would
+      // make the sorting below undefined
+      if (hit.matchFactor() == null) {
+        hitsWithoutScore++;
+        continue;
       }
 
-      if (query == null) {
+      final int position = resolveQueryPosition(hit.specNum(), hit.unknownName(), queries.size(),
+          positionsByName);
+      if (position < 0) {
         unmappedHits++;
         continue;
       }
 
+      final QuerySpectrum query = queries.get(position);
       matchesByRow.computeIfAbsent(query.row(), _ -> new ArrayList<>())
           .add(toAnnotation(hit, query));
     }
@@ -552,7 +645,7 @@ public final class NistPepSearchTask extends AbstractTask {
     matchesByRow.forEach((row, matches) -> {
       row.addSpectralLibraryMatches(matches);
       SortSpectralMatchesTask.sortIdentities(row);
-      annotatedRows++;
+      annotatedRows.add(row);
       totalHits += matches.size();
     });
   }
@@ -647,13 +740,14 @@ public final class NistPepSearchTask extends AbstractTask {
   /**
    * One spectrum submitted to MSPepSearch.
    *
-   * @param specNum    1-based submission ordinal, which MSPepSearch echoes in its {@code Num}
-   *                   column.
-   * @param name       the {@code Name:} written to the query file, the fallback mapping key.
-   * @param nominalMw  nominal molecular weight, only needed by the hybrid search.
+   * The position in the list handed to {@link #runSearch(List, Integer)} is the {@code Num}
+   * MSPepSearch echoes, so it is deliberately not stored here - see {@link #applyHits}.
+   *
+   * @param name      the {@code Name:} written to the query file, the fallback mapping key.
+   * @param nominalMw nominal molecular weight, only needed by the hybrid search.
    */
-  private record QuerySpectrum(int specNum, String name, FeatureListRow row, Scan scan,
-                               DataPoint[] dataPoints, @Nullable Integer nominalMw) {
+  private record QuerySpectrum(String name, FeatureListRow row, Scan scan, DataPoint[] dataPoints,
+                               @Nullable Integer nominalMw) {
 
   }
 }

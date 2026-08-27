@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -157,8 +158,14 @@ class NistSearchConfigTest {
   @Test
   @DisplayName("A null directory is reported rather than throwing")
   void nullDirectory() {
-    assertTrue(config(null, NistSearchMode.MSMS_HIRES).validate().stream()
-        .anyMatch(problem -> problem.contains("MSPepSearch was not found")));
+
+    final List<String> problems = config(null, NistSearchMode.MSMS_HIRES).validate();
+
+    // the message must name the unset directory, not print "null" as if it were a path
+    assertTrue(problems.stream().anyMatch(problem -> problem.contains("is not set")),
+        () -> "unexpected problems: " + problems);
+    assertFalse(problems.stream().anyMatch(problem -> problem.contains("null")),
+        () -> "no message may contain a literal null: " + problems);
   }
 
   @Test

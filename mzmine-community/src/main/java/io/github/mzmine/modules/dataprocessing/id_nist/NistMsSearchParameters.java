@@ -160,8 +160,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
     return new NistSearchConfig(getValue(NIST_DIRECTORY),
         mode == null ? NistSearchMode.MSMS_HIRES : mode,
-        // MSPepSearch filters on the match factor, which is the score on a 0 to 999 scale
-        minSimilarity == null ? 0 : (int) Math.round(minSimilarity * 1000),
+        // MSPepSearch filters on the match factor, which is the score on a 0 to 999 scale. Capped
+        // at 999, because a score of 1.0 would otherwise ask for a match factor no hit can reach.
+        minSimilarity == null ? 0
+            : Math.min(NistSearchConfig.MAX_MATCH_FACTOR, (int) Math.round(minSimilarity * 1000)),
         getValue(PRECURSOR_TOLERANCE), getValue(FRAGMENT_TOLERANCE), integerMz);
   }
 
@@ -183,6 +185,11 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public boolean checkParameterValues(final Collection<String> errorMessages) {
 
     final boolean valid = super.checkParameterValues(errorMessages);
+
+    // super already reports a missing directory so return here before config
+    if (getValue(NIST_DIRECTORY) == null) {
+      return false;
+    }
 
     // the installation and library rules all live on the config
     final List<String> problems = toConfig().validate();

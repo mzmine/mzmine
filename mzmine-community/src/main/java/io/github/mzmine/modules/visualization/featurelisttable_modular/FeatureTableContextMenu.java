@@ -630,8 +630,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     siriusSubMenu.getItems().addAll(sendToSirius, runFingerId, rankUsingFingerId);
 
-    searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem,
-        new SeparatorMenuItem(),
+    searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
         formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch,
         new SeparatorMenuItem(), searchMassPubChem, searchFormulaPubChem, new SeparatorMenuItem(),
         siriusSubMenu);

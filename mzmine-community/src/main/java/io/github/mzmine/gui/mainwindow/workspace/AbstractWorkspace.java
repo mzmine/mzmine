@@ -320,8 +320,7 @@ public abstract class AbstractWorkspace implements Workspace {
         BioTransformerModule.class);
     addModuleMenuItems(menu, "Search spectra", SpectralLibrarySearchModule.class,
         AnalogSpectralLibrarySearchModule.class, LipidAnnotationModule.class,
-        NistMsSearchModule.class, FormulaPredictionFeatureListModule.class,
-        Ms2SearchModule.class);
+        NistMsSearchModule.class, FormulaPredictionFeatureListModule.class, Ms2SearchModule.class);
     addModuleMenuItems(menu, "EC-MS workflow", CalcEcmsPotentialModule.class);
     menu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(menu, ClearFeatureAnnotationsModule.class,

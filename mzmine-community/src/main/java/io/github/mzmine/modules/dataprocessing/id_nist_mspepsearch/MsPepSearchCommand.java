@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -140,8 +140,9 @@ final class MsPepSearchCommand {
     command.addAll(COMMON_OUTPUT_COLUMNS);
     command.addAll(mode.isHighResolution() ? MSMS_OUTPUT_COLUMNS : EI_OUTPUT_COLUMNS);
 
-    // progress messages on stderr, used to drive the task progress bar
-    command.add("/PROGRESSNS");
+    // Per spectrum progress messages on stderr, counted to drive the task progress bar.
+    // /PROGRESSNS is not an alternative: it only reports the number of input spectra, once.
+    command.add("/PROGRESS");
 
     return command;
   }

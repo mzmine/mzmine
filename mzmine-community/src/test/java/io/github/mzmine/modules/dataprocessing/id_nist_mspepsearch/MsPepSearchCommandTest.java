@@ -237,6 +237,20 @@ class MsPepSearchCommandTest {
   }
 
   @Test
+  @DisplayName("/PROGRESS is requested so the task can count the searched spectra")
+  void perSpectrumProgressIsRequested() {
+
+    for (final NistSearchMode mode : NistSearchMode.values()) {
+      final List<String> command = build(config(mode), 278);
+
+      assertTrue(command.contains("/PROGRESS"),
+          () -> "/PROGRESS drives the progress bar and must be requested for " + mode);
+      // /PROGRESSNS only reports the number of input spectra, once, so it cannot drive a bar
+      assertFalse(command.contains("/PROGRESSNS"));
+    }
+  }
+
+  @Test
   @DisplayName("A path with spaces stays one command line element")
   void pathsWithSpacesAreSeparateElements() throws IOException {
 

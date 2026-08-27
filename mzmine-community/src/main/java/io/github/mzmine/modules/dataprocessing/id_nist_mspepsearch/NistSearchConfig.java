@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
+import com.sun.jna.Platform;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
@@ -72,6 +73,12 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   static final int MAX_HITS = 20;
 
   /**
+   * The highest NIST match factor there is. A {@code /MinMF} above this can never be met, so a
+   * minimum similarity of 1.0 has to be capped here rather than becoming 1000.
+   */
+  public static final int MAX_MATCH_FACTOR = 999;
+
+  /**
    * Relative location of the search executable inside a NIST installation. The 64 bit build is
    * preferred; the 32 bit build is the fallback for older installations.
    */
@@ -96,7 +103,7 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
    */
   public static @Nullable File discoverInstallation() {
 
-    if (!com.sun.jna.Platform.isWindows()) {
+    if (!Platform.isWindows()) {
       return null;
     }
 
@@ -172,8 +179,12 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
    */
   public @NotNull List<String> validate() {
 
-    if (!com.sun.jna.Platform.isWindows()) {
+    if (!Platform.isWindows()) {
       return List.of("NIST MS search is only available on Windows.");
+    }
+
+    if (nistDirectory == null) {
+      return List.of("The NIST installation directory is not set.");
     }
 
     if (findExecutable(nistDirectory) == null) {
