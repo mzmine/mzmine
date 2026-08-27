@@ -187,10 +187,40 @@ class NistSearchConfigTest {
   }
 
   @Test
+  @DisplayName("The automatic search type accepts an installation that only fits one workflow")
+  void automaticModeValidatesAgainstBothWorkflows() throws IOException {
+
+    // the search type is only decided once the feature list is known, so an EI only installation
+    // must not be rejected just because it cannot run the MS/MS search
+    final Path eiOnly = Files.createDirectory(root.resolve("ei-only-install"));
+    Files.createDirectories(eiOnly.resolve("MSPepSearch"));
+    Files.createFile(eiOnly.resolve("MSPepSearch/MSPepSearch64.exe"));
+    Files.createDirectory(eiOnly.resolve("mainlib"));
+    Files.createFile(eiOnly.resolve("mainlib/alphanam.in6"));
+
+    assertTrue(config(root.toFile(), NistSearchMode.AUTO).validate().isEmpty());
+    assertTrue(config(eiOnly.toFile(), NistSearchMode.AUTO).validate().isEmpty());
+
+    // an installation without any spectral library is still reported, once per workflow
+    final Path empty = Files.createDirectory(root.resolve("no-library-install"));
+    Files.createDirectories(empty.resolve("MSPepSearch"));
+    Files.createFile(empty.resolve("MSPepSearch/MSPepSearch64.exe"));
+
+    final List<String> problems = config(empty.toFile(), NistSearchMode.AUTO).validate();
+
+    assertEquals(2, problems.size(), () -> "unexpected problems: " + problems);
+    assertTrue(problems.stream().anyMatch(problem -> problem.contains("No EI library was found")),
+        () -> "unexpected problems: " + problems);
+    assertTrue(
+        problems.stream().anyMatch(problem -> problem.contains("No MS/MS library was found")),
+        () -> "unexpected problems: " + problems);
+  }
+
+  @Test
   @DisplayName("The retention index library is never searched - it holds no spectra")
   void retentionIndexLibraryIsNeverSearched() {
 
-    for (final NistSearchMode mode : NistSearchMode.values()) {
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
       assertTrue(!librariesOf(mode).contains("nist_ri"),
           () -> "nist_ri must not be searched by " + mode);
     }

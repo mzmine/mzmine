@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 import com.sun.jna.Platform;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
@@ -47,6 +48,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param nistDirectory      the NIST installation directory, e.g. {@code D:\NIST26}.
  * @param mode               the search type, which also decides which libraries are searched.
+ *                           {@link NistSearchMode#AUTO} has to be resolved against the feature
+ *                           list before the search runs, see {@link #resolveMode(FeatureList)}.
  * @param minMatchFactor     the minimum NIST match factor of a reported hit, 0-999
  *                           ({@code /MinMF}).
  * @param precursorTolerance precursor m/z tolerance, only used by
@@ -84,6 +87,13 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
    */
   private static final String[] EXECUTABLES = {"MSPepSearch/MSPepSearch64.exe",
       "MSPepSearch/MSPepSearch.exe"};
+
+  /**
+   * The search types {@link NistSearchMode#AUTO} resolves to. Validation has to accept an
+   * installation that only holds the libraries of one of them.
+   */
+  private static final NistSearchMode[] AUTO_CANDIDATES = {NistSearchMode.GC_EI_IDENTITY,
+      NistSearchMode.MSMS_HIRES};
 
   /**
    * The name the NIST installer gives its directory: NIST followed by the two digit version, e.g.
@@ -169,6 +179,30 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   }
 
   /**
+   * Maps a directory somewhere inside a NIST installation to the installation directory itself.
+   * <p>
+   * Used when loading parameters that were saved while mzmine still drove the MS Search user
+   * interface: those point at the MSSEARCH sub directory, which holds nistms$.exe, while
+   * MSPepSearch needs the installation directory above it.
+   *
+   * @param directory the directory to start from, may be null.
+   * @return the first directory at or above the given one that contains MSPepSearch, or null if
+   * there is none.
+   */
+  public static @Nullable File toInstallation(@Nullable File directory) {
+
+    // MSSEARCH sits one level below the installation, allow one more for unusual layouts
+    for (int level = 0; level <= 2 && directory != null; level++) {
+      if (findExecutable(directory) != null) {
+        return directory;
+      }
+      directory = directory.getParentFile();
+    }
+
+    return null;
+  }
+
+  /**
    * Everything that stops this configuration from being searched.
    * <p>
    * The single source of these rules: the setup dialog reports them while the user can still fix
@@ -193,6 +227,18 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
               + " inside the NIST installation directory.");
     }
 
+    // the automatic type is only decided once the feature list is known, so the installation is
+    // accepted as long as one of the two workflows could run on it
+    if (mode.isAutomatic()) {
+
+      final List<String> problems = new ArrayList<>();
+      for (final NistSearchMode candidate : AUTO_CANDIDATES) {
+        problems.addAll(withMode(candidate).validate());
+      }
+
+      return problems.size() < AUTO_CANDIDATES.length ? List.of() : problems;
+    }
+
     if (libraries().isEmpty()) {
       return List.of(
           "No %s library was found in %s. The %s search needs a library such as %s.".formatted(
@@ -201,6 +247,25 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
     }
 
     return List.of();
+  }
+
+  /**
+   * @return this configuration with another search type. Everything else of it belongs to the
+   * installation or to the search settings and stays as it is.
+   */
+  public @NotNull NistSearchConfig withMode(@NotNull final NistSearchMode mode) {
+    return this.mode == mode ? this
+        : new NistSearchConfig(nistDirectory, mode, minMatchFactor, precursorTolerance,
+            fragmentTolerance, integerMz);
+  }
+
+  /**
+   * @return this configuration with {@link NistSearchMode#AUTO} replaced by the search type the
+   * feature list calls for, see {@link NistSearchMode#resolve(FeatureList)}. Every other search
+   * type is kept, so an explicitly chosen one is never overridden.
+   */
+  public @NotNull NistSearchConfig resolveMode(@Nullable final FeatureList featureList) {
+    return withMode(mode.resolve(featureList));
   }
 
   /**

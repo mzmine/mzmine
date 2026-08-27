@@ -137,7 +137,7 @@ class MsPepSearchCommandTest {
   @DisplayName("/RI is never emitted - retention indices are not used for matching")
   void retentionIndexIsNeverRequested() {
 
-    for (final NistSearchMode mode : NistSearchMode.values()) {
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
 
       final List<String> command = build(config(mode), 278);
       assertFalse(command.contains("/RI"), () -> "unexpected /RI for " + mode + ": " + command);
@@ -210,7 +210,7 @@ class MsPepSearchCommandTest {
   @DisplayName("The p flag is never emitted - it crashes MSPepSearch on NIST 26 libraries")
   void penalizeRareCompoundsIsNeverEmitted() {
 
-    for (final NistSearchMode mode : NistSearchMode.values()) {
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
       final String token = build(config(mode), 278).get(1);
       assertFalse(token.contains("p"),
           () -> "the option token must not contain p, was " + token + " for " + mode);
@@ -240,7 +240,7 @@ class MsPepSearchCommandTest {
   @DisplayName("/PROGRESS is requested so the task can count the searched spectra")
   void perSpectrumProgressIsRequested() {
 
-    for (final NistSearchMode mode : NistSearchMode.values()) {
+    for (final NistSearchMode mode : NistSearchMode.searchTypes()) {
       final List<String> command = build(config(mode), 278);
 
       assertTrue(command.contains("/PROGRESS"),

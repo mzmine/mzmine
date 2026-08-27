@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,8 @@ import org.jetbrains.annotations.Nullable;
  * to the start of the day 00:00:00.
  * <p>
  * ZonedDataTime will be converted to UTC times. The format {@link #ZONED_MODIFIED_ISO_DATE_TIME} is
- * adapted for file paths: 2025-12-24T05:50:55_CET or * 2025-12-24T05:50:55_+0230 for +2:30
+ * adapted for file paths: 2025-12-24T05:50:55_CET or
+ * 2025-12-24T05:50:55_+0230 for +2:30
  */
 public enum LocalDateTimeParser {
   // uses (?!\d) as look ahead to make date followed by another number illegal.

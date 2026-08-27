@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,8 @@ class LocalDateTimeParserTest {
         LocalDateTimeParser.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15adjwkfajal"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
         LocalDateTimeParser.parseAnyFirstDate("dawfahwsldk2020-05-20_08-50-15_5adjwkfajal"));
+    assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
+        LocalDateTimeParser.parseAnyFirstDate("dawfahwsldk2020-05-20T08:50:15_5adjwkfajal"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),
         LocalDateTimeParser.parseAnyFirstDate("2020-05-20T08-50-15"));
     assertEquals(LocalDateTime.of(2020, 5, 20, 8, 50, 15),

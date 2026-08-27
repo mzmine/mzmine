@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.italicText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
@@ -35,10 +36,10 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
-import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.options.SpectraMergeSelectPresets;
 import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchConfig;
 import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchMode;
 import io.github.mzmine.modules.presets.ModulePreset;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -48,13 +49,14 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,8 +74,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * The search types offered. The hybrid search is left out - it needs the molecular weight of the
    * unknown, which MSPepSearch only accepts as a single global value.
    */
-  private static final NistSearchMode[] SEARCH_MODES = {NistSearchMode.GC_EI_IDENTITY,
-      NistSearchMode.GC_EI_SIMILARITY, NistSearchMode.MSMS_HIRES};
+  private static final NistSearchMode[] SEARCH_MODES = {NistSearchMode.AUTO,
+      NistSearchMode.GC_EI_IDENTITY, NistSearchMode.GC_EI_SIMILARITY, NistSearchMode.MSMS_HIRES};
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
@@ -90,8 +92,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       The GC-EI searches run on unit mass EI spectra against all EI libraries of the installation \
       (mainlib, replib); identity finds the compound itself, similarity also finds related \
       compounds that are not in the library. MS/MS runs on accurate mass spectra against all \
-      tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).""", SEARCH_MODES,
-      NistSearchMode.MSMS_HIRES);
+      tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).
+      Automatic uses the GC-EI identity search if the feature list was built by a spectral \
+      deconvolution module and the MS/MS search otherwise. The effective search type is written to \
+      the log and shown in the task description.""", SEARCH_MODES, NistSearchMode.AUTO);
 
   public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
 
@@ -163,7 +167,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     final NistSearchMode mode = getValue(SEARCH_MODE);
 
     return new NistSearchConfig(getValue(NIST_DIRECTORY),
-        mode == null ? NistSearchMode.MSMS_HIRES : mode,
+        // the automatic type is resolved by the task, which knows the feature list
+        mode == null ? NistSearchMode.AUTO : mode,
         // MSPepSearch filters on the match factor, which is the score on a 0 to 999 scale. Capped
         // at 999, because a score of 1.0 would otherwise ask for a match factor no hit can reach.
         minSimilarity == null ? 0
@@ -179,15 +184,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   @Override
   public @NotNull List<ModulePreset> createDefaultPresets() {
 
-    return List.of( //
-        new ModulePreset("GC-EI (low resolution)", NistMsSearchModule.UNIQUE_ID,
-            createPreset(NistSearchMode.GC_EI_IDENTITY, 0.75, MZTolerance.UNIT_MASS_TOLERANCE,
-                MZTolerance.UNIT_MASS_TOLERANCE, IntegerMode.SUM,
-                SpectraMergeSelectPresets.SINGLE_MERGED_SCAN, MZTolerance.UNIT_MASS_TOLERANCE)), //
-        new ModulePreset("MS/MS (high resolution)", NistMsSearchModule.UNIQUE_ID,
-            createPreset(NistSearchMode.MSMS_HIRES, 0.7, MZTolerance.WIDE_25_PPM_OR_10_MDA,
-                new MZTolerance(0.01, 40), null, SpectraMergeSelectPresets.REPRESENTATIVE_SCANS,
-                MZTolerance.WIDE_25_PPM_OR_10_MDA)));
+    return Arrays.stream(NistSearchDefaults.values()).map(
+        defaults -> new ModulePreset(defaults.presetName(), NistMsSearchModule.UNIQUE_ID,
+            createPreset(defaults))).toList();
   }
 
   /**
@@ -195,20 +194,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * installation directory, which belongs to the machine rather than to the preset. The feature
    * list selection is reset instead: carrying the lists of whatever project the preset happened to
    * be created in would only overwrite the selection of the next one.
-   *
-   * @param mode               the search type, which also picks the libraries.
-   * @param minSimilarity      the minimum similarity on mzmine's 0 to 1 scale.
-   * @param precursorTolerance precursor m/z tolerance, ignored by the GC-EI searches.
-   * @param fragmentTolerance  fragment m/z tolerance, ignored by the GC-EI searches.
-   * @param integerMz          the unit mass merging to switch on, or null to leave it off.
-   * @param mergePreset        how the spectra of a row are merged and selected.
-   * @param mergeTolerance     the m/z tolerance used while merging.
    */
-  private @NotNull NistMsSearchParameters createPreset(@NotNull final NistSearchMode mode,
-      final double minSimilarity, @NotNull final MZTolerance precursorTolerance,
-      @NotNull final MZTolerance fragmentTolerance, @Nullable final IntegerMode integerMz,
-      @NotNull final SpectraMergeSelectPresets mergePreset,
-      @NotNull final MZTolerance mergeTolerance) {
+  private @NotNull NistMsSearchParameters createPreset(@NotNull final NistSearchDefaults defaults) {
 
     final NistMsSearchParameters preset = (NistMsSearchParameters) cloneParameterSet();
 
@@ -220,19 +207,29 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     // back to the default: the lists selected in the GUI, or whatever the batch step sets
     preset.setParameter(PEAK_LISTS, new FeatureListsSelection());
 
-    preset.setParameter(SEARCH_MODE, mode);
-    preset.setParameter(DOT_PRODUCT, minSimilarity);
-    preset.setParameter(PRECURSOR_TOLERANCE, precursorTolerance);
-    preset.setParameter(FRAGMENT_TOLERANCE, fragmentTolerance);
-
-    preset.setParameter(INTEGER_MZ, integerMz != null);
-    if (integerMz != null) {
-      preset.getParameter(INTEGER_MZ).getEmbeddedParameter().setValue(integerMz);
-    }
-
-    preset.getParameter(spectraMergeSelect).setSimplePreset(mergePreset, mergeTolerance);
+    preset.setParameter(SEARCH_MODE, defaults.mode());
+    preset.setParameter(DOT_PRODUCT, defaults.minSimilarity());
+    preset.setParameter(PRECURSOR_TOLERANCE, defaults.precursorTolerance());
+    preset.setParameter(FRAGMENT_TOLERANCE, defaults.fragmentTolerance());
+    preset.setIntegerMz(defaults.integerMz());
+    preset.getParameter(spectraMergeSelect)
+        .setSimplePreset(defaults.mergePreset(), defaults.mergeTolerance());
 
     return preset;
+  }
+
+  /**
+   * Switches the optional unit mass merging on or off in one call.
+   *
+   * @param integerMz the merging mode to use, or null to switch it off.
+   */
+  private void setIntegerMz(@Nullable final IntegerMode integerMz) {
+
+    if (integerMz == null) {
+      setParameter(INTEGER_MZ, false);
+    } else {
+      setParameter(INTEGER_MZ, true, integerMz);
+    }
   }
 
   @Override
@@ -268,7 +265,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 5;
+    return 4;
   }
 
   @Override
@@ -277,16 +274,100 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   }
 
   @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+
+    // renamed in version 4: the MS Search user interface was started from its own MSSEARCH
+    // directory, MSPepSearch is addressed through the installation directory above it
+    map.put("NIST MS Search directory", getParameter(NIST_DIRECTORY));
+
+    return map;
+  }
+
+  /**
+   * Fills in what a parameter set saved before version 4 cannot carry.
+   * <p>
+   * The search type and the two tolerances did not exist while mzmine drove the MS Search user
+   * interface, and the installation directory means something else than it did. The search type
+   * becomes {@link NistSearchMode#AUTO}, everything else is filled from the workflow the old
+   * parameters point at. Only parameters that were not in the file are touched, so that a newer
+   * batch keeps whatever it was saved with.
+   */
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    if (loadedVersion >= 4) {
+      return;
+    }
+
+    // Integer m/z was the only GC-EI specific option the old parameters had, so switching it on is
+    // the one hint they give about which of the two workflows was set up.
+    // assumption: everything else was an MS/MS search, which is what the old default was.
+    final NistSearchDefaults defaults =
+        Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? NistSearchDefaults.GC_EI
+            : NistSearchDefaults.MSMS;
+
+    // decision: the old parameters do not say which workflow they were set up for, so the search
+    // type is left to the automatic detection rather than guessed from Integer m/z. The tolerances
+    // below have no such fallback and do use the guess.
+    if (!loadedParams.containsKey(SEARCH_MODE.getName())) {
+      setParameter(SEARCH_MODE, NistSearchMode.AUTO);
+    }
+    if (!loadedParams.containsKey(PRECURSOR_TOLERANCE.getName())) {
+      setParameter(PRECURSOR_TOLERANCE, defaults.precursorTolerance());
+    }
+    if (!loadedParams.containsKey(FRAGMENT_TOLERANCE.getName())) {
+      setParameter(FRAGMENT_TOLERANCE, defaults.fragmentTolerance());
+    }
+    if (!loadedParams.containsKey(INTEGER_MZ.getName())) {
+      setIntegerMz(defaults.integerMz());
+    }
+    // version 2 and older merged with a different parameter that cannot be mapped
+    if (!loadedParams.containsKey(spectraMergeSelect.getName())) {
+      getParameter(spectraMergeSelect).setSimplePreset(defaults.mergePreset(),
+          defaults.mergeTolerance());
+    }
+
+    migrateInstallationDirectory();
+  }
+
+  /**
+   * Turns the directory of the MS Search executable into the installation directory MSPepSearch is
+   * addressed through.
+   */
+  private void migrateInstallationDirectory() {
+
+    final File loaded = getValue(NIST_DIRECTORY);
+    final File installation = NistSearchConfig.toInstallation(loaded);
+
+    if (installation != null) {
+      setParameter(NIST_DIRECTORY, installation);
+    } else if (loaded == null) {
+      setParameter(NIST_DIRECTORY, NistSearchConfig.discoverInstallation());
+    }
+    // decision: an unresolvable path is kept rather than replaced. The batch may have been saved
+    // on, or be carried to, a machine that has the installation; checkParameterValues reports it.
+  }
+
+  @Override
   public @Nullable String getVersionMessage(int version) {
     return switch (version) {
       case 3 -> "Improved spectral merging options. Please reconfigure the NIST MS search step.";
       case 4 -> """
           NIST MS search now runs NIST's command line program MSPepSearch instead of the MS Search \
-          user interface. Please set the NIST installation directory.""";
-      case 5 -> """
-          The NIST libraries are no longer selected by hand. The search type now decides which \
-          libraries of the installation are searched: all EI libraries for GC-EI and all tandem \
-          libraries for MS/MS.""";
+          user interface, so it also works in batch mode and on a headless machine.
+          Set the NIST installation directory, for example C:\\NIST26, rather than the MSSEARCH \
+          directory below it. The libraries are no longer selected by hand: the new search type \
+          decides which libraries of the installation are searched, all EI libraries for GC-EI and \
+          all tandem libraries for MS/MS.
+          The search type was set to automatic, which runs the GC-EI identity search on feature \
+          lists that went through spectral deconvolution and the MS/MS search on all others. \
+          Please check it and the new m/z tolerances, which were guessed from the old parameters. \
+          The Presets button fills in the recommended settings of either workflow.""";
       default -> null;
     };
   }
@@ -296,9 +377,13 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     return FxTextFlows.newTextFlowInAccordion("Information", true,
         text("Runs NIST's command line program "), italicText("MSPepSearch"),
         text(", so the search also works in batch mode and on a headless machine. "),
-        boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer.\n"),
-        text("The "), boldText("Presets"), text(
-            " button fills in defaults for GC-EI (low resolution) and for MS/MS (high resolution).\n"),
+        boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer. "),
+        text("\nContact mzio to obtain the latest NIST library ("),
+        hyperlinkText("mzio.io/contact", "https://mzio.io/contact/"), text(")."), text("\nThe "),
+        boldText("Presets"), text(
+            " button fills in defaults for GC-EI (low resolution) and for MS/MS (high resolution). "),
+        text("The automatic search type picks GC-EI for feature lists that went through spectral "
+            + "deconvolution and MS/MS for all others, and writes the effective type to the log.\n"),
         text("NIST returns no library spectra, so the mirror plot of a hit stays empty."));
   }
 }

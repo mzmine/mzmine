@@ -122,6 +122,14 @@ public final class NistPepSearchTask extends AbstractTask {
   private final NistSearchConfig config;
   private final Class<? extends MZmineModule> appliedModule;
   private final ParameterSet appliedParameters;
+  /**
+   * The search type the parameters asked for, which may be {@link NistSearchMode#AUTO}. Only kept
+   * to tell the user whether {@link #mode} was chosen or detected.
+   */
+  private final NistSearchMode requestedMode;
+  /**
+   * The search type that is actually run, never {@link NistSearchMode#AUTO}.
+   */
   private final NistSearchMode mode;
   private final File executable;
   private final FragmentScanSelection fragmentScanSelection;
@@ -152,7 +160,9 @@ public final class NistPepSearchTask extends AbstractTask {
   private int hitsWithoutScore;
 
   /**
-   * @param config            what to search and how.
+   * @param config            what to search and how. {@link NistSearchMode#AUTO} is resolved here
+   *                          against the feature list, so that everything below works on the
+   *                          effective search type.
    * @param featureList       the feature list to annotate.
    * @param row               a single row to search, or null for the whole feature list.
    * @param mergeSelect       how the fragment spectra of a row are merged and selected.
@@ -170,11 +180,13 @@ public final class NistPepSearchTask extends AbstractTask {
 
     this.featureList = featureList;
     this.singleRow = row;
-    this.config = config;
+    // resolved once here so that the libraries, the command and every message use the same type
+    this.config = config.resolveMode(featureList);
     this.appliedModule = appliedModule;
     this.appliedParameters = appliedParameters;
-    this.mode = config.mode();
-    this.executable = config.executable();
+    this.requestedMode = config.mode();
+    this.mode = this.config.mode();
+    this.executable = this.config.executable();
 
     this.fragmentScanSelection = mergeSelect.createFragmentScanSelection(getMemoryMapStorage());
 
@@ -184,7 +196,15 @@ public final class NistPepSearchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Running NIST MSPepSearch for " + featureList;
+    return "Running NIST MSPepSearch %s search for %s".formatted(describeMode(), featureList);
+  }
+
+  /**
+   * @return the effective search type, marked as detected if it was chosen by
+   * {@link NistSearchMode#AUTO} rather than set in the parameters.
+   */
+  private @NotNull String describeMode() {
+    return requestedMode.isAutomatic() ? mode + " (auto detected)" : mode.toString();
   }
 
   @Override
@@ -228,8 +248,9 @@ public final class NistPepSearchTask extends AbstractTask {
               getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
 
-      logger.info(() -> "NIST MSPepSearch completed: %d hits on %d rows".formatted(totalHits,
-          annotatedRows.size()));
+      logger.info(
+          () -> "NIST MSPepSearch %s search completed: %d hits on %d rows".formatted(describeMode(),
+              totalHits, annotatedRows.size()));
 
     } catch (Throwable t) {
       logger.log(Level.SEVERE, "NIST MSPepSearch error", t);
@@ -247,8 +268,17 @@ public final class NistPepSearchTask extends AbstractTask {
       throw new IOException(String.join(" ", problems));
     }
 
+    // which type the automatic mode settled on, and why, so that a surprising result can be traced
+    if (requestedMode.isAutomatic()) {
+      logger.info(
+          () -> "NIST search type is set to %s and was detected as %s: %s.".formatted(requestedMode,
+              mode, mode == NistSearchMode.GC_EI_IDENTITY
+                  ? "the feature list was built by a spectral deconvolution module"
+                  : "the feature list did not go through spectral deconvolution"));
+    }
+
     // the libraries follow from the search type, so log which ones the installation contributed
-    logger.info(() -> "NIST %s search against %s".formatted(mode,
+    logger.info(() -> "NIST %s search against %s".formatted(describeMode(),
         String.join(", ", config.libraryNames())));
 
     final List<QuerySpectrum> queries = collectQueries();
