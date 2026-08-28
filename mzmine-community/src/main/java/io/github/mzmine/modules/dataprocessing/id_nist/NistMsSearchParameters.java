@@ -373,7 +373,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         text("Runs NIST's command line program "), italicText("MSPepSearch. "),
         boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer."),
         text("\nContact mzio to obtain the latest NIST library ("),
-        hyperlinkText("mzio.io/contact", "https://mzio.io/contact/"), text(")."), text("\nThe "),
+        hyperlinkText("mzio.io/nist", "https://mzio.io/nist/"), text(")."), text("\nThe "),
         text(
             "NIST returns no library spectra or structures, so the mirror plot only shows the input spectrum."));
   }
