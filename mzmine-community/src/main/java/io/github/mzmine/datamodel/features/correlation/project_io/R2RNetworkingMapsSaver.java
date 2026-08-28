@@ -25,18 +25,21 @@
 
 package io.github.mzmine.datamodel.features.correlation.project_io;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.StreamWriteFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.util.io.JsonUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Writes a {@link R2RNetworkingMaps} as JSON via the shared {@link JsonUtils#MAPPER}. Does not
- * close the stream so the caller can keep writing to the same
- * {@link java.util.zip.ZipOutputStream}.
+ * Writes a {@link R2RNetworkingMaps} as JSON without closing the caller-owned output stream.
  */
 public final class R2RNetworkingMapsSaver {
+
+  private static final ObjectMapper MAPPER = new ObjectMapper(
+      JsonFactory.builder().disable(StreamWriteFeature.AUTO_CLOSE_TARGET).build());
 
   private R2RNetworkingMapsSaver() {
   }
@@ -44,6 +47,6 @@ public final class R2RNetworkingMapsSaver {
   public static void save(@NotNull final R2RNetworkingMaps maps, @NotNull final OutputStream out)
       throws IOException {
     final R2RNetworkingMapsDto dto = R2RDtoConverter.toDto(maps);
-    JsonUtils.MAPPER.writeValue(out, dto);
+    MAPPER.writeValue(out, dto);
   }
 }
