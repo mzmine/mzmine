@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
 import io.github.mzmine.main.MZmineCore;
@@ -64,7 +65,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private final @NotNull MetadataTable metadata;
   private final MetadataColumn<?> metadataColumn;
   private final String grouping;
-  private final AbundanceMeasure FEATURE_INTENSITY;
+  private final AbundanceMeasure abundanceMeasure;
   private final CompoundRowSelection rowSelection;
   private int processedRows = 0, totalRows = 0;
 
@@ -78,7 +79,7 @@ class MetaboAnalystExportTask extends AbstractTask {
         .getMatchingFeatureLists();
 
     fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
-    FEATURE_INTENSITY=parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
+    abundanceMeasure = parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
     rowSelection = parameters.getValue(MetaboAnalystExportParameters.compoundRowSelection);
 //    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
     grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
@@ -121,6 +122,13 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
+
+      if (!featureList.hasFeatureType(abundanceMeasure.type())) {
+        error("Feature list %s has no %s values.".formatted(featureList.getName(),
+            abundanceMeasure.toString()) + (!abundanceMeasure.isNormalized() ? ""
+            : " did you run normalization?"));
+        return;
+      }
 
       // Filename
       File curFile = fileName;
@@ -221,14 +229,7 @@ class MetaboAnalystExportTask extends AbstractTask {
 
         Feature feature = featureListRow.getFeature(dataFile);
         if (feature != null) {
-          if(FEATURE_INTENSITY==AbundanceMeasure.Area){
-            final double area = feature.getArea();
-            writer.append(String.valueOf(area));
-          }else{
-            final double height = feature.getHeight();
-            writer.append(String.valueOf(height));
-          }
-
+          writer.append(String.valueOf(abundanceMeasure.getOrNaN((ModularDataModel) feature)));
         }
       }
 
