@@ -67,10 +67,6 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
     textField.setTooltip(new Tooltip(toolTip));
   }
 
-  private boolean checkBounds(final int number) {
-    return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
-  }
-
   /**
    * Sets the number of columns in this TextField.
    */
@@ -98,8 +94,9 @@ public class IntegerComponent extends FlowPane implements ValueChangeDecorator,
       return null;
     }
     try {
+      // just check if we can parse
       final int parsed = Integer.parseInt(newText);
-      return checkBounds(parsed) ? change : null;
+      return change;
     } catch (NumberFormatException ex) {
       return null;
     }
