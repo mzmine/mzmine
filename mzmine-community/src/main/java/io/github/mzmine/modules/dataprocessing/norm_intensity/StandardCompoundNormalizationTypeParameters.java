@@ -64,8 +64,10 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
+      The standards are only searched in those samples and only they define the standard levels.
       The recalibration of all other samples will be based on the acquisition order, which is
-      determined by the acquisition type column in the metadata (CTRL/CMD + M).
+      determined by the acquisition type column in the metadata (CTRL/CMD + M), no matter whether
+      they contain a standard or not.
       """, SampleType.values(), List.of(SampleType.values()));
 
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<>(
@@ -122,11 +124,13 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
 
   public static final ComboParameter<StandardCompoundNormalizationMode> mode = new ComboParameter<>(
       "Mode", """
-      Defines how samples without all standards are handled.
-      %s: all selected standards must be detected in each raw file, otherwise normalization fails.
-      %s: raw files need at least one detected standard, missing standards are skipped.
-      %s: raw files without any detected standard are skipped and normalized by interpolation \
-      between the neighboring reference samples.""".formatted(
+      Defines how reference samples without all standards are handled. Files that are not reference \
+      samples are never checked and are always normalized by interpolation.
+      %s: all selected standards must be detected in each reference sample, otherwise normalization \
+      fails.
+      %s: reference samples need at least one detected standard, missing standards are skipped.
+      %s: reference samples without any detected standard are skipped and normalized by \
+      interpolation between the neighboring reference samples.""".formatted(
       StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
       StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
       StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD),

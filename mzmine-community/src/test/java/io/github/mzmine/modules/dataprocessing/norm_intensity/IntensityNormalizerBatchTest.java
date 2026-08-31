@@ -360,10 +360,17 @@ class IntensityNormalizerBatchTest {
 
     final ModularFeatureList out = outputList(project, "norm_allsteps");
 
-    // normalized intensities
-    double[] row0 = new double[]{2.1777596473693848, 1.1977678537368774, 1.1977678537368774,
-        1.0162878036499023, 0.580735981464386};
-    double[] row1 = new double[]{21.777597427368164, 21.777597427368164, 11.977678298950195, 21.777597427368164, 21.777597427368164};
+    // The IS step normalizes to the median IS level over all reference samples instead of dividing
+    // by the absolute IS abundance. After the metadata step the IS abundances are
+    // 0.5, 0.55, 0.3, 0.14, 0.16, so the median level is 0.3. Every file is scaled by that same
+    // level, the relative corrections between the files are unchanged.
+    final double isReferenceLevel = 0.3d;
+    double[] row0 = new double[]{2.1777596473693848 * isReferenceLevel,
+        1.1977678537368774 * isReferenceLevel, 1.1977678537368774 * isReferenceLevel,
+        1.0162878036499023 * isReferenceLevel, 0.580735981464386 * isReferenceLevel};
+    double[] row1 = new double[]{21.777597427368164 * isReferenceLevel,
+        21.777597427368164 * isReferenceLevel, 11.977678298950195 * isReferenceLevel,
+        21.777597427368164 * isReferenceLevel, 21.777597427368164 * isReferenceLevel};
 
     for (int i = 0; i < allFiles.size(); i++) {
       final RawDataFile file = allFiles.get(i);
@@ -372,6 +379,11 @@ class IntensityNormalizerBatchTest {
       assertEquals(row0[i], norm0, 1e-3f, "isNorm should be equal");
       assertEquals(row1[i], norm1, 1e-3f, "isNorm should be equal");
     }
+
+    // the standards are resolved once for the whole feature list, not once per batch, so the
+    // matched row must carry exactly one annotation even though there are two batches
+    assertEquals(1, out.getRow(0).getCompoundAnnotations().size(),
+        "IS row must be annotated once, not once per batch");
 
     // The IS row (index 0) has different normalized values — just verify it is set and positive.
     for (RawDataFile file : allFiles) {

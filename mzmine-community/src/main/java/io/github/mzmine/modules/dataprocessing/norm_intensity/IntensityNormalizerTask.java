@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedAreaType;
 import io.github.mzmine.datamodel.features.types.numbers.NormalizedHeightType;
+import io.github.mzmine.modules.dataprocessing.norm_intensity.StandardCompoundNormalizationTypeModule.StandardCompoundSelection;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,6 +54,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,6 +89,11 @@ class IntensityNormalizerTask extends AbstractTask {
   private final NormalizationType internalStandardNormalizer;
   private final boolean internalStandardEnabled;
   private final ParameterSet internalStandardParams;
+  /**
+   * Standard rows resolved once for the whole feature list, before the samples are split into
+   * batches. Null if the internal standard normalizer does not support a precomputed selection.
+   */
+  private @Nullable StandardCompoundSelection internalStandardSelection;
 
   // Batch-aware main normalization
   private final @Nullable String batchIdColumn;
@@ -166,7 +173,6 @@ class IntensityNormalizerTask extends AbstractTask {
 
     final MetadataTable metadata = ProjectService.getMetadata();
 
-
     // ── Pass 1: pre-normalization by metadata column (dilution factor, sample weight, …) ──
     // should happen before separating samples into batches because factor may be scaled to median
     // and this should happen for all samples together and not within batches
@@ -177,6 +183,15 @@ class IntensityNormalizerTask extends AbstractTask {
       }
     }
 
+    // ── Standard selection: once for the whole feature list, before batching ──
+    // all batches have to use the same rows and the same reference levels, otherwise the same
+    // standard may be represented by a different row in each batch
+    if (internalStandardEnabled) {
+      selectInternalStandards(summary);
+      if (isCanceled()) {
+        return;
+      }
+    }
 
     // split samples into batches so that the QC of 2nd batch does not influence the first batch
     final @NotNull List<SamplesBatch> sampleBatches = splitSampleBatches(metadata);
@@ -202,6 +217,13 @@ class IntensityNormalizerTask extends AbstractTask {
 
     // finally apply the normalization functions
     applyFunctionsToFeatures(normalizedFeatureList, summary.functions());
+
+    // report what the individual steps did, also stored in the applied method and shown in the
+    // feature list summary
+    for (final String message : summary.messages()) {
+      logger.log(message.contains(IntensityNormalizationSummary.WARNING_MARKER) ? Level.WARNING
+          : Level.INFO, message);
+    }
 
     final ParameterSet appliedMethodParameters = mainParameters.cloneParameterSet(true);
     appliedMethodParameters.setParameter(IntensityNormalizerParameters.hiddenNormalizationSummary,
@@ -288,8 +310,20 @@ class IntensityNormalizerTask extends AbstractTask {
       try {
         // Use normalized abundances as base for IS metric computation if pass 1 already ran.
         final NormalizationTypeModule isNormalizer = internalStandardNormalizer.getModuleInstance();
-        isNormalizer.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
-            samplesBatch, metadata, mainParameters, internalStandardParams);
+        if (isNormalizer instanceof InternalStandardSelectingNormalizer standardModule) {
+          if (internalStandardSelection == null) {
+            throw new IllegalStateException(
+                "Resolved internal standards were null. It seems this module does not handle internal standards.");
+          }
+          // reuse the standard rows that were resolved for the whole feature list
+          standardModule.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
+              samplesBatch, metadata, mainParameters, internalStandardParams,
+              internalStandardSelection);
+        } else {
+          throw new IllegalStateException(
+              "Seems like internal standard module %s is not handled.".formatted(
+                  isNormalizer.getName()));
+        }
         processedFiles += samplesBatch.size();
       } catch (IllegalStateException e) {
         error("Pre-normalization internal standards: " + e.getMessage());
@@ -313,7 +347,32 @@ class IntensityNormalizerTask extends AbstractTask {
     }
   }
 
-  private void normalizeByMetadataColumn(IntensityNormalizationSearchableSummary summary, MetadataTable metadata) {
+  /**
+   * Resolves the internal standards to feature list rows once for the whole feature list. Has to
+   * run after the metadata pre-normalization, because the standard levels are computed on the
+   * already normalized abundances, and before the samples are split into batches, so that every
+   * batch uses the same rows and the same reference levels.
+   */
+  private void selectInternalStandards(IntensityNormalizationSearchableSummary summary) {
+    if (!(internalStandardNormalizer.getModuleInstance() instanceof InternalStandardSelectingNormalizer standardModule)) {
+      // other normalizers resolve their references per batch
+      return;
+    }
+
+    try {
+      final List<RawDataFile> referenceFiles = NormalizationFunctionUtils.getReferenceSamplesOrThrow(
+          false, new SamplesBatch(normalizedFeatureList.getRawDataFiles()),
+          internalStandardParams.getValue(StandardCompoundNormalizationTypeParameters.sampleTypes));
+
+      internalStandardSelection = standardModule.selectStandards(summary, normalizedFeatureList,
+          referenceFiles, mainParameters, internalStandardParams);
+    } catch (IllegalStateException e) {
+      error("Pre-normalization internal standards: " + e.getMessage());
+    }
+  }
+
+  private void normalizeByMetadataColumn(IntensityNormalizationSearchableSummary summary,
+      MetadataTable metadata) {
     final MetadataColumnNormalizationTypeModule metadataModule = new MetadataColumnNormalizationTypeModule();
     final MetadataColumnNormalizationTypeParameters metadataModuleParams = MetadataColumnNormalizationTypeParameters.create(
         byMetadataColumn);
@@ -321,7 +380,8 @@ class IntensityNormalizerTask extends AbstractTask {
     try {
       // use all raw data files here, batching not needed
       metadataModule.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
-          new SamplesBatch(normalizedFeatureList.getRawDataFiles()), metadata, mainParameters, metadataModuleParams);
+          new SamplesBatch(normalizedFeatureList.getRawDataFiles()), metadata, mainParameters,
+          metadataModuleParams);
 
       processedFiles += normalizedFeatureList.getNumberOfRawDataFiles();
     } catch (IllegalStateException e) {

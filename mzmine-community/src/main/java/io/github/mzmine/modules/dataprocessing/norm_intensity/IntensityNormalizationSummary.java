@@ -41,6 +41,14 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
   public static final @NotNull IntensityNormalizationSummary EMPTY = new IntensityNormalizationSummary(
       List.of(), List.of());
 
+  /**
+   * Messages are plain strings so that they stay easy to save and to read. A message that reports a
+   * problem the user should look at contains this marker, usually as part of a step specific prefix
+   * like {@code "IS warning: "}. Used to count and highlight them in {@link #toString()} and to log
+   * them at the right level.
+   */
+  public static final @NotNull String WARNING_MARKER = "warning: ";
+
   @NotNull
   public IntensityNormalizationSummary copy() {
     return new IntensityNormalizationSummary(List.copyOf(functions), List.copyOf(messages));
@@ -72,5 +80,28 @@ public record IntensityNormalizationSummary(@NotNull List<RawFileNormalizationFu
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
     }
     return functions.get(index);
+  }
+
+  /**
+   * Rendered in the applied methods pane of the feature list summary, see
+   * {@code FeatureListSummaryController.parameterToString}. Reports what the individual
+   * normalization steps did, e.g. skipped internal standards or skipped files.
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder(
+        "%d normalized files, %d messages, %d of them warnings".formatted(functions.size(),
+            messages.size(), countWarnings()));
+    for (final String message : messages) {
+      sb.append("\n").append(message);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * @return number of messages that report a problem, see {@link #WARNING_MARKER}
+   */
+  public long countWarnings() {
+    return messages.stream().filter(msg -> msg.contains(WARNING_MARKER)).count();
   }
 }
