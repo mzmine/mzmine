@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,13 @@ import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowType
 import static io.github.mzmine.parameters.parametertypes.row_type_filter.RowTypeFilterPreset.createPreset;
 
 import io.github.mzmine.util.presets.AbstractJsonPresetStore;
+import io.github.mzmine.util.presets.FxPresetEditor;
 import io.github.mzmine.util.presets.KnownPresetGroup;
 import io.github.mzmine.util.presets.PresetCategory;
 import io.github.mzmine.util.presets.PresetGroup;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFilterPreset> {
 
@@ -78,7 +80,7 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
 
 
   @Override
-  public RowTypeFilterPresetEditor createPresetEditor() {
+  public @Nullable FxPresetEditor createPresetEditor() {
     return new RowTypeFilterPresetEditor(this);
   }
 

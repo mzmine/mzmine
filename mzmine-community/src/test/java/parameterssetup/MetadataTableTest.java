@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,39 +89,39 @@ class MetadataTableTest {
   }
 
   @Test
-  void getData() {
-    Assertions.assertTrue(emptyMetadataTable.getData().isEmpty());
-    Assertions.assertEquals(filledMetadataTable.getData().size(), 3);
+  void columnsOfConstructedTable() {
+    Assertions.assertTrue(emptyMetadataTable.getColumns().isEmpty());
+    Assertions.assertEquals(filledMetadataTable.getColumns().size(), 3);
   }
 
   @Test
   void clearData() {
-    Assertions.assertFalse(filledMetadataTable.getData().isEmpty());
+    Assertions.assertFalse(filledMetadataTable.getColumns().isEmpty());
     filledMetadataTable.clearData();
-    Assertions.assertTrue(filledMetadataTable.getData().isEmpty());
+    Assertions.assertTrue(filledMetadataTable.getColumns().isEmpty());
   }
 
   @Test
   void addColumn() {
     // add a column into an empty table
-    Assertions.assertTrue(emptyMetadataTable.getData().isEmpty());
+    Assertions.assertTrue(emptyMetadataTable.getColumns().isEmpty());
     emptyMetadataTable.addColumn(columnNew);
-    Assertions.assertEquals(emptyMetadataTable.getData().size(), 1);
+    Assertions.assertEquals(emptyMetadataTable.getColumns().size(), 1);
     // add a column into a filled table
-    Assertions.assertFalse(filledMetadataTable.getData().isEmpty());
+    Assertions.assertFalse(filledMetadataTable.getColumns().isEmpty());
     filledMetadataTable.addColumn(columnNew);
-    Assertions.assertEquals(filledMetadataTable.getData().size(), 4);
+    Assertions.assertEquals(filledMetadataTable.getColumns().size(), 4);
   }
 
   @Test
   void removeColumn() {
     // removing an unreal column will have no affect
     emptyMetadataTable.removeColumn(columnNew);
-    Assertions.assertTrue(emptyMetadataTable.getData().isEmpty());
+    Assertions.assertTrue(emptyMetadataTable.getColumns().isEmpty());
     // removing a real column
-    Assertions.assertEquals(filledMetadataTable.getData().size(), 3);
+    Assertions.assertEquals(filledMetadataTable.getColumns().size(), 3);
     filledMetadataTable.removeColumn(column1);
-    Assertions.assertEquals(filledMetadataTable.getData().size(), 2);
+    Assertions.assertEquals(filledMetadataTable.getColumns().size(), 2);
   }
 
   @Test
@@ -166,5 +167,123 @@ class MetadataTableTest {
     Assertions.assertEquals(filledMetadataTable.getValue(column1, rawDataFile1), columnValue1);
     filledMetadataTable.setValue(column1, rawDataFile1, columnValueNew);
     Assertions.assertEquals(filledMetadataTable.getValue(column1, rawDataFile1), columnValueNew);
+  }
+
+  @Test
+  void dataIsOnlyExposedAsUnmodifiableView() {
+    final Map<RawDataFile, Object> columnData = filledMetadataTable.getColumnData(column1);
+    Assertions.assertThrows(UnsupportedOperationException.class,
+        () -> columnData.put(rawDataFile2, columnValueNew));
+    Assertions.assertThrows(UnsupportedOperationException.class, columnData::clear);
+    Assertions.assertThrows(UnsupportedOperationException.class,
+        () -> filledMetadataTable.getColumns().remove(column1));
+    Assertions.assertThrows(UnsupportedOperationException.class,
+        () -> filledMetadataTable.getColumns().clear());
+
+    // the table is unchanged
+    Assertions.assertEquals(3, filledMetadataTable.getColumns().size());
+    Assertions.assertEquals(columnValue1, filledMetadataTable.getValue(column1, rawDataFile1));
+  }
+
+  @Test
+  void viewsReflectLaterChanges() {
+    final Set<MetadataColumn<?>> columns = emptyMetadataTable.getColumns();
+    Assertions.assertTrue(columns.isEmpty());
+
+    emptyMetadataTable.setValue(column1, rawDataFile1, columnValue1);
+    // the column view is live, the caller does not have to fetch it again
+    Assertions.assertEquals(Set.of(column1), columns);
+
+    final Map<RawDataFile, Object> columnData = emptyMetadataTable.getColumnData(column1);
+    emptyMetadataTable.setValue(column1, rawDataFile2, columnValueNew);
+    Assertions.assertEquals(columnValueNew, columnData.get(rawDataFile2));
+  }
+
+  @Test
+  void constructorCopiesTheInputData() {
+    final Map<RawDataFile, Object> row = new ConcurrentHashMap<>();
+    row.put(rawDataFile1, columnValue1);
+    final Map<MetadataColumn<?>, Map<RawDataFile, Object>> input = new HashMap<>();
+    input.put(column1, row);
+
+    final MetadataTable table = new MetadataTable(input);
+    // changing the input afterwards must not change the table
+    row.put(rawDataFile2, columnValueNew);
+    input.remove(column1);
+
+    Assertions.assertEquals(1, table.getColumns().size());
+    Assertions.assertEquals(columnValue1, table.getValue(column1, rawDataFile1));
+    Assertions.assertNull(table.getValue(column1, rawDataFile2));
+  }
+
+  @Test
+  void setValuesAppliesAllAndCountsAsOneChange() {
+    final long version = emptyMetadataTable.getVersion();
+    final Map<RawDataFile, String> values = new HashMap<>();
+    values.put(rawDataFile1, columnValue1);
+    values.put(rawDataFile2, columnValueNew);
+    emptyMetadataTable.setValues(column1, values);
+
+    Assertions.assertEquals(version + 1, emptyMetadataTable.getVersion());
+    Assertions.assertEquals(columnValue1, emptyMetadataTable.getValue(column1, rawDataFile1));
+    Assertions.assertEquals(columnValueNew, emptyMetadataTable.getValue(column1, rawDataFile2));
+
+    // null values remove the entry, the column is kept
+    final Map<RawDataFile, String> removals = new HashMap<>();
+    removals.put(rawDataFile1, null);
+    emptyMetadataTable.setValues(column1, removals);
+    Assertions.assertNull(emptyMetadataTable.getValue(column1, rawDataFile1));
+    Assertions.assertTrue(emptyMetadataTable.hasColumn(column1));
+  }
+
+  @Test
+  void batchUpdateIncrementsVersionOnce() {
+    final long version = filledMetadataTable.getVersion();
+    filledMetadataTable.batchUpdate(() -> {
+      filledMetadataTable.setValue(column1, rawDataFile1, columnValueNew);
+      filledMetadataTable.addColumn(columnNew);
+      filledMetadataTable.removeColumn(column2);
+    });
+
+    Assertions.assertEquals(version + 1, filledMetadataTable.getVersion());
+    Assertions.assertEquals(columnValueNew, filledMetadataTable.getValue(column1, rawDataFile1));
+    Assertions.assertTrue(filledMetadataTable.hasColumn(columnNew));
+    Assertions.assertFalse(filledMetadataTable.hasColumn(column2));
+  }
+
+  @Test
+  void batchUpdateWithoutChangesKeepsVersion() {
+    final long version = filledMetadataTable.getVersion();
+    filledMetadataTable.batchUpdate(() -> filledMetadataTable.getColumns().size());
+    Assertions.assertEquals(version, filledMetadataTable.getVersion());
+  }
+
+  @Test
+  void removeFilesAndColumnsCountAsOneChange() {
+    long version = filledMetadataTable.getVersion();
+    filledMetadataTable.removeFiles(List.of(rawDataFile1, rawDataFile2));
+    Assertions.assertEquals(version + 1, filledMetadataTable.getVersion());
+    Assertions.assertNull(filledMetadataTable.getValue(column1, rawDataFile1));
+    Assertions.assertNull(filledMetadataTable.getValue(column2, rawDataFile2));
+    // columns are kept, only the values are removed
+    Assertions.assertEquals(3, filledMetadataTable.getColumns().size());
+
+    version = filledMetadataTable.getVersion();
+    filledMetadataTable.removeColumns(List.of(column1, column2));
+    Assertions.assertEquals(version + 1, filledMetadataTable.getVersion());
+    Assertions.assertEquals(Set.of(column3), filledMetadataTable.getColumns());
+  }
+
+  @Test
+  void setDataReplacesEverything() {
+    final Map<MetadataColumn<?>, Map<RawDataFile, Object>> newData = new HashMap<>();
+    newData.put(columnNew, Map.of(rawDataFile1, columnValueNew));
+
+    final long version = filledMetadataTable.getVersion();
+    filledMetadataTable.setData(newData);
+
+    Assertions.assertEquals(version + 1, filledMetadataTable.getVersion());
+    Assertions.assertEquals(Set.of(columnNew), filledMetadataTable.getColumns());
+    Assertions.assertEquals(columnValueNew, filledMetadataTable.getValue(columnNew, rawDataFile1));
   }
 }

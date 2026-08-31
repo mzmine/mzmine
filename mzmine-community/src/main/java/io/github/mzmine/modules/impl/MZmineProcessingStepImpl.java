@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,6 @@ package io.github.mzmine.modules.impl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -41,15 +39,18 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
   private final ModuleType module;
   private final ParameterSet parameters;
 
-  public MZmineProcessingStepImpl(ModuleType module, ParameterSet parameters) {
+  public MZmineProcessingStepImpl(@NotNull final ModuleType module,
+      @NotNull final ParameterSet parameters) {
     this.module = module;
     this.parameters = parameters;
   }
 
+  @Override
   public @NotNull ModuleType getModule() {
     return module;
   }
 
+  @Override
   public @NotNull ParameterSet getParameterSet() {
     return parameters;
   }
@@ -57,20 +58,5 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
   @Override
   public String toString() {
     return module.getName();
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getModule(), parameters.getClass());
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof MZmineProcessingStep that)) {
-      return false;
-    }
-
-    return getModule().equals(that.getModule()) && ParameterUtils.equalValues(parameters,
-        that.getParameterSet(), false, false);
   }
 }

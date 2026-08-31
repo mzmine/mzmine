@@ -26,15 +26,19 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -61,14 +65,16 @@ import org.jetbrains.annotations.NotNull;
 
 public class StandardCompoundNormalizationTypeParameters extends SimpleParameterSet {
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+  // defaults to "all sample types" instead of listing every known type, so that a batch does not
+  // silently exclude custom or newly added sample types
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The standards are only searched in those samples and only they define the standard levels.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M), no matter whether
       they contain a standard or not.
-      """, SampleType.values(), List.of(SampleType.values()));
+      """, SampleTypeFilter.all());
 
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<>(
       "Normalization type", "Normalize intensities using", StandardUsageType.values());
@@ -122,34 +128,34 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       "Maximum allowed mobility difference when matching imported standards to feature list rows.",
       new MobilityTolerance(0.01f));
 
-  public static final ComboParameter<StandardCompoundNormalizationMode> mode = new ComboParameter<>(
-      "Mode", """
+
+  public static final StandardCompoundNormalizationRequirementParameter requirement = new StandardCompoundNormalizationRequirementParameter(
+      "Requirement", """
       Defines how reference samples without all standards are handled. Files that are not reference \
       samples are never checked and are always normalized by interpolation.
-      %s: all selected standards must be detected in each reference sample, otherwise normalization \
-      fails.
+      %s: all selected standards must be detected in each reference sample, otherwise normalization fails.
       %s: reference samples need at least one detected standard, missing standards are skipped.
-      %s: reference samples without any detected standard are skipped and normalized by \
-      interpolation between the neighboring reference samples.""".formatted(
+      %s: reference samples without any detected standard are skipped and normalized by interpolation \
+      between the neighboring reference samples.""".formatted(
       StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
-      StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
+      StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
       StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD),
-      StandardCompoundNormalizationMode.values(), StandardCompoundNormalizationMode.getDefault());
+      StandardCompoundNormalizationMode.values(), StandardCompoundNormalizationRequirement.DEFAULT);
 
   /**
-   * Only used to read the value of the legacy boolean parameter that {@link #mode} replaced. Never
-   * added to {@link #getParameters()}, only registered in {@link #getNameParameterMap()} so that
-   * old batch files still load. Instance field on purpose: the static parameter instances are
+   * Only used to read the value of the legacy boolean parameter that {@link #requirement} replaced.
+   * Never added to {@link #getParameters()}, only registered in {@link #getNameParameterMap()} so
+   * that old batch files still load. Instance field on purpose: the static parameter instances are
    * shared between all parameter sets.
    */
-  private static final BooleanParameter legacyRequireAllStandards = new BooleanParameter(
+  private final BooleanParameter legacyRequireAllStandards = new BooleanParameter(
       "Require all standards",
       "If enabled, all selected standards must be present in each raw file for normalization",
       true);
 
   public StandardCompoundNormalizationTypeParameters() {
     super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompoundsFile, fieldSeparator,
-        standardCompounds, mzTolerance, rtTolerance, mobilityTolerance, mode);
+        standardCompounds, mzTolerance, rtTolerance, mobilityTolerance, requirement);
   }
 
   @Override
@@ -158,7 +164,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
     // the boolean "Require all standards" parameter was replaced by the mode combo parameter.
     // types differ, so load the old value into the legacy parameter and map it in
     // handleLoadedParameters
-    map.put(legacyRequireAllStandards.getName(), legacyRequireAllStandards.cloneParameter());
+    map.put(legacyRequireAllStandards.getName(), legacyRequireAllStandards);
     return map;
   }
 
@@ -168,11 +174,13 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
     super.handleLoadedParameters(loadedParams, loadedVersion);
 
     final Parameter<?> oldRequireAllParam = loadedParams.get(legacyRequireAllStandards.getName());
-    if (oldRequireAllParam != null && !loadedParams.containsKey(mode.getName())) {
+    if (oldRequireAllParam != null && !loadedParams.containsKey(requirement.getName())) {
       // old parameter set: true was "all standards in all samples", false only required one standard
-      setParameter(mode, oldRequireAllParam.getValue() == Boolean.FALSE
-          ? StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE
-          : StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES);
+      final StandardCompoundNormalizationMode mode = oldRequireAllParam.getValue() == Boolean.FALSE
+          ? StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES
+          : StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
+
+      setParameter(requirement, new StandardCompoundNormalizationRequirement(mode, 1));
     }
   }
 
@@ -201,7 +209,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull StandardCompoundNormalizationMode selectedMode) {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.sampleTypes,
-        selectedSampleTypes);
+        SampleTypeFilter.of(selectedSampleTypes));
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.standardUsageType,
         selectedStandardUsageType);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.mzVsRtBalance,
@@ -218,7 +226,8 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
         selectedRtTolerance);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.mobilityTolerance,
         selectedMobilityTolerance);
-    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mode, selectedMode);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
+        new StandardCompoundNormalizationRequirement(selectedMode, 1));
     return parameters;
   }
 

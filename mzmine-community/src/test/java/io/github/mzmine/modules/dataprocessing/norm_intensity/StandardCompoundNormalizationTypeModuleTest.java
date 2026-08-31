@@ -47,6 +47,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -69,6 +70,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 class StandardCompoundNormalizationTypeModuleTest {
+
+  /**
+   * Number of required standards written as embedded value of the requirement parameter in
+   * {@link #createParametersElement(String, String)}. Deliberately different from the default so
+   * that loading the embedded value is actually verified.
+   */
+  private static final int MANUAL_STANDARDS_IN_XML = 3;
 
   @TempDir
   Path tempDir;
@@ -125,7 +133,7 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 0f, null, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Weighted, StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
+        StandardUsageType.Weighted, StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
         standardRow);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
@@ -134,7 +142,8 @@ class StandardCompoundNormalizationTypeModuleTest {
         () -> createReferenceFunctions(module, summary, List.of(fileA), featureList,
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("No intensity normalization standards found for file: file_a",
+    assertEquals(
+        "Intensity normalization required 1 internal standards but detected only 0/1 for file: file_a",
         exception.getMessage());
   }
 
@@ -266,7 +275,7 @@ class StandardCompoundNormalizationTypeModuleTest {
         101d, 5f, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
         standardRow1, standardRow2);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
@@ -525,9 +534,11 @@ class StandardCompoundNormalizationTypeModuleTest {
 
   @Test
   void loadValuesFromXmlMapsLegacyRequireAllStandardsToMode() throws Exception {
-    assertEquals(StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1),
         loadModeFromLegacyXml("true"));
-    assertEquals(StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES, 1),
         loadModeFromLegacyXml("false"));
   }
 
@@ -536,28 +547,30 @@ class StandardCompoundNormalizationTypeModuleTest {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.loadValuesFromXML(createParametersElement(null, null));
 
-    assertEquals(StandardCompoundNormalizationMode.getDefault(),
-        parameters.getValue(StandardCompoundNormalizationTypeParameters.mode));
+    assertEquals(StandardCompoundNormalizationRequirement.DEFAULT,
+        parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
   }
 
   @Test
   void loadValuesFromXmlPrefersNewModeOverLegacyParameter() throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     // set something else to see that its actually loaded
-    parameters.setParameter(StandardCompoundNormalizationTypeParameters.mode,
-        StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
+        new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1));
     parameters.loadValuesFromXML(createParametersElement("true",
         StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD.getUniqueID()));
 
-    assertEquals(StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD,
-        parameters.getValue(StandardCompoundNormalizationTypeParameters.mode));
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD, MANUAL_STANDARDS_IN_XML),
+        parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
   }
 
-  private static @NotNull StandardCompoundNormalizationMode loadModeFromLegacyXml(
+  private static @NotNull StandardCompoundNormalizationRequirement loadModeFromLegacyXml(
       final @NotNull String legacyValue) throws Exception {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.loadValuesFromXML(createParametersElement(legacyValue, null));
-    return parameters.getValue(StandardCompoundNormalizationTypeParameters.mode);
+    return parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement);
   }
 
   private static @NotNull Element createParametersElement(final @Nullable String legacyValue,
@@ -571,18 +584,23 @@ class StandardCompoundNormalizationTypeModuleTest {
       appendParameter(document, root, "Require all standards", legacyValue);
     }
     if (modeValue != null) {
-      appendParameter(document, root, StandardCompoundNormalizationTypeParameters.mode.getName(),
-          modeValue);
+      // the combo with input parameter stores the selected mode as attribute and the number of
+      // required standards as text content
+      final Element element = appendParameter(document, root,
+          StandardCompoundNormalizationTypeParameters.requirement.getName(),
+          String.valueOf(MANUAL_STANDARDS_IN_XML));
+      element.setAttribute("selected", modeValue);
     }
     return root;
   }
 
-  private static void appendParameter(final @NotNull Document document, final @NotNull Element root,
-      final @NotNull String name, final @NotNull String value) {
+  private static @NotNull Element appendParameter(final @NotNull Document document,
+      final @NotNull Element root, final @NotNull String name, final @NotNull String value) {
     final Element element = document.createElement(SimpleParameterSet.parameterElement);
     element.setAttribute(SimpleParameterSet.nameAttribute, name);
     element.setTextContent(value);
     root.appendChild(element);
+    return element;
   }
 
   @Test
@@ -668,7 +686,7 @@ class StandardCompoundNormalizationTypeModuleTest {
         new SamplesBatch(featureList.getRawDataFiles()), new MetadataTable(false),
         functions, createMainParameters(AbundanceMeasure.Height),
         createModuleParametersWithoutStandards(StandardUsageType.Nearest,
-            StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE));
+            StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES));
 
     var result = summary.get(targetFile);
     assertNotNull(result);

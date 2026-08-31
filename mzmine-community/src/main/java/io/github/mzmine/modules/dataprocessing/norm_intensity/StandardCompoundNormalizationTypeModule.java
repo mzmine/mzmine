@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -36,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -158,8 +160,8 @@ public class StandardCompoundNormalizationTypeModule extends
         StandardCompoundNormalizationTypeParameters.mzVsRtBalance);
     final AbundanceMeasure abundanceMeasure = mainParameters.getValue(
         IntensityNormalizerParameters.featureMeasurementType);
-    final StandardCompoundNormalizationMode mode = moduleSpecificParameters.getValue(
-        StandardCompoundNormalizationTypeParameters.mode);
+    final StandardCompoundNormalizationRequirement requirement = moduleSpecificParameters.getValue(
+        StandardCompoundNormalizationTypeParameters.requirement);
 
     final List<String> skippedStandardMessages = new ArrayList<>();
     final List<String> skippedFiles = new ArrayList<>();
@@ -167,7 +169,7 @@ public class StandardCompoundNormalizationTypeModule extends
     final Map<@NotNull RawDataFile, @NotNull NormalizationFunction> fileToFunction = new HashMap<>();
     for (final RawDataFile rawFile : referenceFiles) {
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(summary,
-          rawFile, selection.matches(), abundanceMeasure, mode, skippedStandardMessages);
+          rawFile, selection.matches(), abundanceMeasure, requirement, skippedStandardMessages);
       if (referencePoints.isEmpty()) {
         // only reachable in SKIP_FILES_WITHOUT_STANDARD mode. Leaving the file out of the result
         // means it is normalized by interpolation between the neighboring reference samples
@@ -369,10 +371,15 @@ public class StandardCompoundNormalizationTypeModule extends
       @NotNull final List<@NotNull RawDataFile> otherFiles,
       @NotNull final AbundanceMeasure abundanceMeasure) {
     final Map<RawDataFile, Double> referenceAbundances = new LinkedHashMap<>();
+    int estimatedFeatures = 0;
+
     for (final RawDataFile referenceFile : referenceFiles) {
       final double abundance = getUsableAbundance(summary, row, referenceFile, abundanceMeasure);
       if (!Double.isNaN(abundance)) {
         referenceAbundances.put(referenceFile, abundance);
+        if (row.getFeature(referenceFile).getFeatureStatus() == FeatureStatus.ESTIMATED) {
+          estimatedFeatures++;
+        }
       }
     }
 
@@ -383,8 +390,9 @@ public class StandardCompoundNormalizationTypeModule extends
       }
     }
 
+
     return new StandardCompoundMatch(row, annotation, referenceAbundances, referenceFiles.size(),
-        detectedInOtherFiles, otherFiles.size());
+        detectedInOtherFiles, otherFiles.size(), estimatedFeatures);
   }
 
   /**
@@ -413,10 +421,10 @@ public class StandardCompoundNormalizationTypeModule extends
       @NotNull IntensityNormalizationSearchableSummary summary, @NotNull final RawDataFile rawFile,
       @NotNull final List<StandardCompoundMatch> standardMatches,
       @NotNull final AbundanceMeasure abundanceMeasure,
-      @NotNull final StandardCompoundNormalizationMode mode,
+      @NotNull final StandardCompoundNormalizationRequirement requirement,
       @NotNull final List<String> skippedStandardMessages) {
     final boolean requireAllStandards =
-        mode == StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
+        requirement.mode() == StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
     final List<StandardCompoundReferencePoint> referencePoints = new ArrayList<>(
         standardMatches.size());
     for (final StandardCompoundMatch standardMatch : standardMatches) {
@@ -483,11 +491,8 @@ public class StandardCompoundNormalizationTypeModule extends
           new StandardCompoundReferencePoint(standardMz, standardRt, standardAbundance,
               referenceAbundance));
     }
-    if (referencePoints.isEmpty()
-        && mode != StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD) {
-      throw new IllegalStateException(
-          "No intensity normalization standards found for file: " + rawFile.getName());
-    }
+    // throw exception if minimum requirements are not met
+    requirement.assertMinReferencePoints(standardMatches.size(), referencePoints.size(), rawFile);
     return referencePoints;
   }
 
@@ -539,12 +544,14 @@ public class StandardCompoundNormalizationTypeModule extends
    *                             are not contained
    * @param detectedInOtherFiles number of non reference files with a usable abundance, only
    *                             reported and never used for normalization
+   * @param estimatedFeatures    number of reference samples with {@link FeatureStatus#ESTIMATED}
+   *                             (gap-filled)
    */
   record StandardCompoundMatch(@NotNull FeatureListRow row,
                                @NotNull CompoundDBAnnotation annotation,
                                @NotNull Map<RawDataFile, Double> referenceAbundances,
                                int totalReferenceFiles, int detectedInOtherFiles,
-                               int totalOtherFiles) {
+                               int totalOtherFiles, int estimatedFeatures) {
 
     StandardCompoundMatch {
       referenceAbundances = Map.copyOf(referenceAbundances);
@@ -557,6 +564,9 @@ public class StandardCompoundNormalizationTypeModule extends
     boolean isBetterThan(@NotNull final StandardCompoundMatch other) {
       if (detectedInReferences() != other.detectedInReferences()) {
         return detectedInReferences() > other.detectedInReferences();
+      }
+      if (estimatedFeatures != other.estimatedFeatures) {
+        return estimatedFeatures < other.estimatedFeatures;
       }
       final double summed = summedAbundance();
       final double otherSummed = other.summedAbundance();

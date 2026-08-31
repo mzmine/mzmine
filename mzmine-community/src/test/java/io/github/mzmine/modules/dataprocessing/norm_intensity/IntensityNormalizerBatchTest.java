@@ -340,7 +340,7 @@ class IntensityNormalizerBatchTest {
         List.of(SampleType.values()), StandardUsageType.Nearest, 1.0d,
         writeStandardsFile(isRow), ",", new MZTolerance(0.25, 0d),
         new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f),
-        StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE);
+        StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
 
     // Step 3: QC drift correction (MEDIAN) + batch correction
     final ParameterSet qcParams = createFeatureIntensityParameters(
