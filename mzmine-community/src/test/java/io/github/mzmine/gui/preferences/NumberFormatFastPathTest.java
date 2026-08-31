@@ -37,21 +37,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Guards the assumption that mzmine's shared {@link NumberFormat} instances may be used from
- * multiple threads.
- * <p>
- * {@link DecimalFormat} is documented as not thread safe, but its general formatting route
- * ({@code digitList.set(...)} plus {@code subformat(...)}) is wrapped in
- * {@code synchronized (digitList)} in the JDK, so concurrent {@code format(...)} calls on one
- * instance are serialized and correct. Its optimized fast path for doubles is <b>not</b>
- * synchronized: it writes into a shared {@code char[]} container held in the instance, so
- * concurrent calls interleave and silently produce wrong strings.
- * <p>
- * The fast path is only entered by formats that match the shape of a default
- * {@code NumberFormat.getInstance()} - grouping with a group size of 3 being the most visible
- * condition. Every format mzmine configures is grouping free and therefore takes the synchronized
- * route. This test fails if that ever stops being true, e.g. because a default pattern gains
- * grouping.
+ * Guards that mzmine's shared {@link NumberFormat} instances stay safe to use from multiple
+ * threads. The JDK guards the general {@link DecimalFormat} formatting route with
+ * {@code synchronized (digitList)}, but not its fast path for doubles, which writes into a
+ * {@code char[]} held by the instance. Only formats shaped like a default
+ * {@code NumberFormat.getInstance()} take that fast path, grouping being the most visible
+ * condition, and no mzmine format uses grouping. This test fails if that ever changes.
  */
 class NumberFormatFastPathTest {
 

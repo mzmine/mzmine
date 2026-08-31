@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.function.Function;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class NumberFormatsTest {
@@ -61,5 +64,34 @@ class NumberFormatsTest {
 
   private static void isZero(final NumberFormat form, final double number, final boolean result) {
     assertEquals(result, IsZero(form.format(number), form));
+  }
+
+  /**
+   * A copy must be a separate instance but produce the exact same output.
+   */
+  @Test
+  void testCreateCopy() {
+    final NumberFormats original = new NumberFormats(new DecimalFormat("0.0000"),
+        new DecimalFormat("0.00"), new DecimalFormat("0.000"), new DecimalFormat("0.0"),
+        new DecimalFormat("0.0E0"), new DecimalFormat("0.0"), new DecimalFormat("0.0%"),
+        new DecimalFormat("0.000"), UnitFormat.DIVIDE);
+    final NumberFormats copy = original.createCopy();
+
+    final List<Function<NumberFormats, NumberFormat>> accessors = List.of(NumberFormats::mzFormat,
+        NumberFormats::rtFormat, NumberFormats::mobilityFormat, NumberFormats::ccsFormat,
+        NumberFormats::intensityFormat, NumberFormats::ppmFormat, NumberFormats::percentFormat,
+        NumberFormats::scoreFormat);
+    final double[] values = {0d, 1.23456789, 1234.5678, 1e6, -42.42};
+
+    for (final Function<NumberFormats, NumberFormat> accessor : accessors) {
+      final NumberFormat originalFormat = accessor.apply(original);
+      final NumberFormat copiedFormat = accessor.apply(copy);
+      Assertions.assertNotSame(originalFormat, copiedFormat);
+      for (final double value : values) {
+        Assertions.assertEquals(originalFormat.format(value), copiedFormat.format(value));
+      }
+    }
+    // UnitFormat is an enum and therefore shared
+    Assertions.assertSame(original.unitFormat(), copy.unitFormat());
   }
 }
