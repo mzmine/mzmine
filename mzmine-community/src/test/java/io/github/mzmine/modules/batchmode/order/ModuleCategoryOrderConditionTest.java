@@ -44,7 +44,7 @@ class ModuleCategoryOrderConditionTest {
 
     final Map<Integer, String> messages = BatchModuleOrderValidator.validateAndFormatByStep(queue);
 
-    Assertions.assertTrue(messages.get(0).contains("MUST run after Test alignment"));
+    Assertions.assertTrue(messages.get(0).contains("Subject MUST run after Test alignment"));
   }
 
   @Test
@@ -90,7 +90,8 @@ class ModuleCategoryOrderConditionTest {
     final Map<Integer, String> messages = BatchModuleOrderValidator.validateAndFormatByStep(queue);
 
     Assertions.assertTrue(
-        messages.get(0).contains("If Test alignment (step 2) is present, SHOULD run after it"));
+        messages.get(0)
+            .contains("Subject should run after Test alignment (step 2) (if present)"));
   }
 
   private static TestSubjectModule subjectAfterAlignment() {

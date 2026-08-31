@@ -29,9 +29,11 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -65,7 +67,8 @@ public class ConfigCompoundRepresentationModule implements MZmineProcessingModul
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(new ModuleOrderRecommendation(
         "Compound representations can only be configured after a compound list was created",
-        ModuleOrderRule.mustRunAfter(CompoundGrouperModule.class)));
+        ModuleOrderRule.mustRunAfter(
+            ModuleOrderCondition.anyOf(CompoundGrouperModule.class, IonNetworkingModule.class))));
   }
 
   @Override

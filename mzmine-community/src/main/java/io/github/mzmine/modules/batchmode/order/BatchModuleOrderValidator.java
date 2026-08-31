@@ -127,8 +127,8 @@ public final class BatchModuleOrderValidator {
     final String rationale = asSentence(recommendation.rationale());
     final String pipelineText =
         showPipelineIndex ? "pipeline %d, ".formatted(segmentIndex + 1) : "";
-    final String message = "Step %d, %s%s: %s. %s%s".formatted(stepIndex + 1, pipelineText,
-        module.getName(), ruleDescription, rationale, missingText);
+    final String message = "Step %d, %s%s. %s%s".formatted(stepIndex + 1, pipelineText,
+        ruleDescription, rationale, missingText);
     issues.add(
         new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
             module.getName(), recommendation, selectedRule, message));
@@ -148,6 +148,7 @@ public final class BatchModuleOrderValidator {
       @NotNull final RelativeModuleOrderRule rule) {
     final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
         segment, stepIndex);
+    final String selfName = batchQueue.get(stepIndex).getModule().getName();
     final List<Integer> anchorIndices = new ArrayList<>();
     String anchorName = rule.anchorCondition().description(context);
     for (int i = segment.min(); i < segment.maxExclusive(); i++) {
@@ -166,7 +167,7 @@ public final class BatchModuleOrderValidator {
           rule.anchorRequirement() == ModuleOrderAnchorRequirement.REQUIRED
               ? ModuleOrderRuleStatus.VIOLATION : ModuleOrderRuleStatus.NOT_APPLICABLE;
       return new ModuleOrderRuleEvaluation(rule, status,
-          ModuleOrderTextFormatter.describeRule(rule, anchorName), true);
+          ModuleOrderTextFormatter.describeRule(rule, selfName, anchorName), true);
     }
 
     // decision: Relative rules define a pipeline boundary. Every matching anchor must be on the
@@ -182,7 +183,7 @@ public final class BatchModuleOrderValidator {
     }
     return new ModuleOrderRuleEvaluation(rule,
         correctOrder ? ModuleOrderRuleStatus.PASS : ModuleOrderRuleStatus.VIOLATION,
-        ModuleOrderTextFormatter.describeRule(rule, anchorName), false);
+        ModuleOrderTextFormatter.describeRule(rule, selfName, anchorName), false);
   }
 
   private static boolean isCorrectlyOrdered(final int stepIndex, final int anchorIndex,

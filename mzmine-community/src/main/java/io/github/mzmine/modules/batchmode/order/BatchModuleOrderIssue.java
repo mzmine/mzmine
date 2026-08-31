@@ -36,11 +36,4 @@ record BatchModuleOrderIssue(@NotNull ModuleOrderLevel level, int segmentIndex, 
                              @NotNull ModuleOrderRecommendation recommendation,
                              @NotNull ModuleOrderRule selectedRule, @NotNull String message) {
 
-  BatchModuleOrderIssue {
-    Objects.requireNonNull(level);
-    Objects.requireNonNull(moduleName);
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(selectedRule);
-    Objects.requireNonNull(message);
-  }
 }

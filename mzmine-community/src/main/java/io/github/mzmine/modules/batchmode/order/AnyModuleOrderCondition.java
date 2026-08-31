@@ -25,15 +25,37 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-enum ModuleOrderPosition {
-  BEFORE, AFTER;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Matches a batch step that satisfies any of the wrapped conditions. Used to anchor a rule against
+ * several interchangeable modules, e.g. two modules that both produce the required feature list.
+ */
+record AnyModuleOrderCondition(@NotNull List<ModuleOrderCondition> conditions)
+    implements ModuleOrderCondition {
+
+  AnyModuleOrderCondition {
+    Objects.requireNonNull(conditions);
+    if (conditions.size() < 2) {
+      throw new IllegalArgumentException("anyOf requires at least two conditions");
+    }
+    conditions = List.copyOf(conditions);
+  }
 
   @Override
-  public String toString() {
-    return switch (this) {
-      case BEFORE -> "before";
-      case AFTER -> "after";
-    };
+  public @NotNull String description() {
+    return conditions.stream().map(ModuleOrderCondition::description)
+        .collect(Collectors.joining(" or "));
+  }
+
+  @Override
+  public boolean matches(
+      @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
+    return conditions.stream().anyMatch(condition -> condition.matches(step));
   }
 }

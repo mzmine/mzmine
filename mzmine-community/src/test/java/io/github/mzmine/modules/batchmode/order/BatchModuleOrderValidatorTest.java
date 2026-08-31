@@ -48,7 +48,8 @@ class BatchModuleOrderValidatorTest {
 
     Assertions.assertEquals(1, result.issues().size());
     Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
-    Assertions.assertTrue(result.issues().getFirst().message().contains("Subject:"));
+    Assertions.assertTrue(
+        result.issues().getFirst().message().contains("Subject MUST run after TestAnchorModule"));
     Assertions.assertTrue(
         result.issues().getFirst().message().contains("TestAnchorModule needs to be added"));
   }
@@ -71,7 +72,7 @@ class BatchModuleOrderValidatorTest {
     final Map<Integer, String> messages = BatchModuleOrderValidator.validateAndFormatByStep(queue);
 
     Assertions.assertEquals(1, messages.size());
-    Assertions.assertTrue(messages.get(0).contains("Subject:"));
+    Assertions.assertTrue(messages.get(0).contains("Subject MUST run after TestAnchorModule"));
     Assertions.assertFalse(messages.containsKey(1));
   }
 
@@ -229,6 +230,46 @@ class BatchModuleOrderValidatorTest {
 
     Assertions.assertEquals(1, result.issues().size());
     Assertions.assertEquals(1, result.issues().getFirst().segmentIndex());
+  }
+
+  @Test
+  void anyOfAnchorIsSatisfiedByEitherModule() {
+    final TestSubjectModule subject = new TestSubjectModule(recommendation(
+        ModuleOrderRule.mustRunAfter(
+            ModuleOrderCondition.anyOf(TestAnchorModule.class, TestOtherAnchorModule.class))));
+
+    Assertions.assertFalse(
+        BatchModuleOrderValidator.validate(queue(new TestAnchorModule(), subject)).hasIssues());
+    Assertions.assertFalse(
+        BatchModuleOrderValidator.validate(queue(new TestOtherAnchorModule(), subject))
+            .hasIssues());
+  }
+
+  @Test
+  void anyOfAnchorReportsAllAlternativesWhenMissing() {
+    final TestSubjectModule subject = new TestSubjectModule(recommendation(
+        ModuleOrderRule.mustRunAfter(
+            ModuleOrderCondition.anyOf(TestAnchorModule.class, TestOtherAnchorModule.class))));
+
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(
+        queue(subject));
+
+    Assertions.assertEquals(1, result.issues().size());
+    Assertions.assertTrue(result.issues().getFirst().message()
+        .contains("TestAnchorModule or TestOtherAnchorModule"));
+  }
+
+  @Test
+  void anyOfAnchorEnforcesOrderAgainstEveryPresentAlternative() {
+    final TestSubjectModule subject = new TestSubjectModule(recommendation(
+        ModuleOrderRule.mustRunAfter(
+            ModuleOrderCondition.anyOf(TestAnchorModule.class, TestOtherAnchorModule.class))));
+
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(
+        queue(new TestAnchorModule(), subject, new TestOtherAnchorModule()));
+
+    Assertions.assertEquals(1, result.issues().size());
+    Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
   }
 
   private static ModuleOrderRecommendation recommendation(final ModuleOrderRule rule) {

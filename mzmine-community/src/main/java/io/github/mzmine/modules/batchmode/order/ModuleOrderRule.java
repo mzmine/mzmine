@@ -33,8 +33,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface ModuleOrderRule permits RelativeModuleOrderRule {
 
-  default @NotNull String description() {
-    return ModuleOrderTextFormatter.describeRule(this);
+  default @NotNull String description(@NotNull final String selfName) {
+    return ModuleOrderTextFormatter.describeRule(this, selfName);
   }
 
   public static @NotNull ModuleOrderRule mustRunBefore(

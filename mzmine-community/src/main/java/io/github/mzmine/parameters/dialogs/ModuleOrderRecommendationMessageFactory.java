@@ -77,7 +77,7 @@ public final class ModuleOrderRecommendationMessageFactory {
       final ModuleOrderRecommendation recommendation = recommendations.get(i);
       messageNodes.add(FxTexts.text(recommendation.rationale() + "\n"));
       final ModuleOrderRule rule = recommendation.rule();
-      messageNodes.add(FxTexts.text("\u2022 " + rule.description() + "\n"));
+      messageNodes.add(FxTexts.text("• " + rule.description(module.getName()) + "\n"));
       if (i + 1 < recommendations.size()) {
         messageNodes.add(FxTexts.linebreak());
       }

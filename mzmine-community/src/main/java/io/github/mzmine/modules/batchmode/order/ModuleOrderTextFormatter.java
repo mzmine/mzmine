@@ -34,35 +34,32 @@ final class ModuleOrderTextFormatter {
   private ModuleOrderTextFormatter() {
   }
 
-  static @NotNull String describeRule(@NotNull final ModuleOrderRule rule) {
+  static @NotNull String describeRule(@NotNull final ModuleOrderRule rule,
+      @NotNull final String selfName) {
     final String anchorName = switch (rule) {
       case RelativeModuleOrderRule relativeRule -> relativeRule.anchorCondition().description();
     };
-    return describeRule(rule, anchorName);
+    return describeRule(rule, selfName, anchorName);
   }
 
   static @NotNull String describeRule(@NotNull final ModuleOrderRule rule,
-      @Nullable final String anchorName) {
-    final String level = ModuleOrderRules.level(rule) == ModuleOrderLevel.MUST ? "MUST" : "SHOULD";
+      @NotNull final String selfName, @Nullable final String anchorName) {
+    final String level = ModuleOrderRules.level(rule).toString();
     return switch (rule) {
-      case RelativeModuleOrderRule relativeRule ->
-          describeRelativeRule(relativeRule, Objects.requireNonNull(anchorName), level);
+      case RelativeModuleOrderRule relativeRule -> describeRelativeRule(relativeRule, selfName,
+          Objects.requireNonNull(anchorName), level);
     };
   }
 
   private static @NotNull String describeRelativeRule(@NotNull final RelativeModuleOrderRule rule,
-      @NotNull final String anchorName, @NotNull final String level) {
+      @NotNull final String selfName, @NotNull final String anchorName,
+      @NotNull final String level) {
+    final String base = "%s %s run %s %s".formatted(selfName, level, rule.position().toString(),
+        anchorName);
     return switch (rule.anchorRequirement()) {
-      case REQUIRED -> "%s run %s %s".formatted(level, positionText(rule.position()), anchorName);
-      case IF_PRESENT -> "If %s is present, %s run %s it".formatted(anchorName, level,
-          positionText(rule.position()));
+      case REQUIRED -> base;
+      case IF_PRESENT -> base + " (if present)";
     };
   }
 
-  private static @NotNull String positionText(@NotNull final ModuleOrderPosition position) {
-    return switch (position) {
-      case BEFORE -> "before";
-      case AFTER -> "after";
-    };
-  }
 }

@@ -36,6 +36,25 @@ import org.jetbrains.annotations.NotNull;
 public interface ModuleOrderCondition {
 
   /**
+   * Anchors a rule against any of the given modules. A step matches when it is an instance of at
+   * least one of them, e.g. two modules that both produce the required feature list.
+   */
+  @SafeVarargs
+  static @NotNull ModuleOrderCondition anyOf(
+      @NotNull final Class<? extends MZmineProcessingModule>... anchorModules) {
+    return anyOf(Stream.of(anchorModules).map(ModuleClassOrderCondition::new)
+        .toArray(ModuleOrderCondition[]::new));
+  }
+
+  /**
+   * Anchors a rule against any of the given conditions. A step matches when it satisfies at least
+   * one of them.
+   */
+  static @NotNull ModuleOrderCondition anyOf(@NotNull final ModuleOrderCondition... conditions) {
+    return new AnyModuleOrderCondition(Stream.of(conditions).toList());
+  }
+
+  /**
    * Human-readable description of the matching anchor, without an ordering direction.
    */
   @NotNull String description();

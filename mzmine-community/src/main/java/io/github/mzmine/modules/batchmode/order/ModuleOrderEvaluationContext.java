@@ -36,10 +36,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Batch state available when describing an anchor condition for a concrete module-order rule.
  */
-public record ModuleOrderEvaluationContext(@NotNull BatchQueue batchQueue,
-                                           @NotNull IndexRange segment, int stepIndex) {
+record ModuleOrderEvaluationContext(@NotNull BatchQueue batchQueue, @NotNull IndexRange segment,
+                                    int stepIndex) {
 
-  public ModuleOrderEvaluationContext {
+  ModuleOrderEvaluationContext {
     Objects.requireNonNull(batchQueue);
     Objects.requireNonNull(segment);
     if (!segment.contains(stepIndex) || segment.maxExclusive() > batchQueue.size()) {
@@ -53,9 +53,5 @@ public record ModuleOrderEvaluationContext(@NotNull BatchQueue batchQueue,
 
   public @NotNull List<MZmineProcessingStep<MZmineProcessingModule>> stepsAfter() {
     return batchQueue.subList(stepIndex + 1, segment.maxExclusive());
-  }
-
-  public @NotNull List<MZmineProcessingStep<MZmineProcessingModule>> segmentSteps() {
-    return segment.sublist(batchQueue);
   }
 }

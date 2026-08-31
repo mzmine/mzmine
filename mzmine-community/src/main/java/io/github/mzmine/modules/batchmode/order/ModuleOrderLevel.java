@@ -29,5 +29,14 @@ package io.github.mzmine.modules.batchmode.order;
  * Importance of a module ordering rule. Both levels are confirmable warnings in batch mode.
  */
 enum ModuleOrderLevel {
-  MUST, SHOULD
+  MUST, SHOULD;
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case MUST -> "MUST";
+      case SHOULD -> "should";
+    };
+  }
 }
