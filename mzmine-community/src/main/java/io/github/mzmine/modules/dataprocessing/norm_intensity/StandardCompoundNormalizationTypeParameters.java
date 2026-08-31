@@ -134,7 +134,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       Defines how reference samples without all standards are handled. Files that are not reference \
       samples are never checked and are always normalized by interpolation.
       %s: all selected standards must be detected in each reference sample, otherwise normalization fails.
-      %s: reference samples need at least one detected standard, missing standards are skipped.
+      %s: reference samples need at least the configured number of detected standards, missing standards are skipped.
       %s: reference samples without any detected standard are skipped and normalized by interpolation \
       between the neighboring reference samples.""".formatted(
       StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,

@@ -211,7 +211,7 @@ class StandardCompoundNormalizationTypeModuleTest {
     addRow(featureList, 2, fileA, 100f, fileB, null, 200d, 20f, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ONE_PER_SAMPLE,
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
         "mz,rt,name\n100,5,strong_standard\n200,20,weak_standard\n");
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(

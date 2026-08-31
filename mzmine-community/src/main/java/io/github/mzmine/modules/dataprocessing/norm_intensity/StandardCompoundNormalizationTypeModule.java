@@ -171,7 +171,8 @@ public class StandardCompoundNormalizationTypeModule extends
       final List<StandardCompoundReferencePoint> referencePoints = createReferencePoints(summary,
           rawFile, selection.matches(), abundanceMeasure, requirement, skippedStandardMessages);
       if (referencePoints.isEmpty()) {
-        // only reachable in SKIP_FILES_WITHOUT_STANDARD mode. Leaving the file out of the result
+        // reachable when the requirement tolerates a file without standards, e.g. in
+        // SKIP_FILES_WITHOUT_STANDARD mode. Leaving the file out of the result
         // means it is normalized by interpolation between the neighboring reference samples
         skippedFiles.add(rawFile.getName());
         continue;
