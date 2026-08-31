@@ -708,11 +708,13 @@ public class FeatureListUtils {
    */
   public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
     List<RawDataFile> allDataFiles = new ArrayList<>();
+    // set lookup: a linear contains check is O(files^2) when aligning many samples
+    Set<RawDataFile> seen = new HashSet<>();
     for (FeatureList featureList : flists) {
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
         // Each data file can only have one column in aligned feature
         // list
-        if (allDataFiles.contains(dataFile)) {
+        if (!seen.add(dataFile)) {
           throw new IllegalArgumentException(
               "File " + dataFile + " is present in multiple feature lists");
         }
@@ -903,7 +905,8 @@ public class FeatureListUtils {
   }
 
   /**
-   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   * Transfer selected scans, applied methods, annotation sort config, preferences, row and feature
+   * types
    *
    * @param source        copy from
    * @param target        copy to
@@ -934,6 +937,7 @@ public class FeatureListUtils {
     }
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
+    target.setPreferences(source.getPreferences().copy());
   }
 
   /**

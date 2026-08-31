@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -132,7 +133,8 @@ class IntensityNormalizerBatchTest {
     metadata.addColumn(dilutionCol);
 
     // IS row: added first (row ID 1)
-    isRow = addRow(flist, 1, allFiles, List.of(1f, 1.1f, 1.2f, 1.4f, 1.6f));
+    // distinct m/z so the internal standard row is the only match within the m/z tolerance
+    isRow = addRow(flist, 1, allFiles, List.of(1f, 1.1f, 1.2f, 1.4f, 1.6f), 200.0, 5.0f);
     addRow(flist, 2, allFiles, List.of(10f, 20f, 12f, 30f, 60f));
     addRow(flist, 3, allFiles, List.of(10f, 20f, 12f, 30f, 60f));
 
@@ -338,7 +340,7 @@ class IntensityNormalizerBatchTest {
         List.of(SampleType.values()), StandardUsageType.Nearest, 1.0d,
         writeStandardsFile(isRow), ",", new MZTolerance(0.25, 0d),
         new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f),
-        /*requireAllStandards=*/ false);
+        StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
 
     // Step 3: QC drift correction (MEDIAN) + batch correction
     final ParameterSet qcParams = createFeatureIntensityParameters(

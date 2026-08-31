@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,6 +44,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -54,11 +58,23 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 class StandardCompoundNormalizationTypeModuleTest {
+
+  /**
+   * Number of required standards written as embedded value of the requirement parameter in
+   * {@link #createParametersElement(String, String)}. Deliberately different from the default so
+   * that loading the embedded value is actually verified.
+   */
+  private static final int MANUAL_STANDARDS_IN_XML = 3;
 
   @TempDir
   Path tempDir;
@@ -71,7 +87,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureList featureList = new ModularFeatureList("flist", null, file);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, true, "mz,rt,name\n500,50,missing_standard\n");
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,name\n500,50,missing_standard\n");
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -94,7 +111,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 200f, fileB, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Nearest, true, standardRow);
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        standardRow);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -115,7 +133,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 0f, null, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Weighted, false, standardRow);
+        StandardUsageType.Weighted, StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
+        standardRow);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -124,7 +143,8 @@ class StandardCompoundNormalizationTypeModuleTest {
             new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
             createMainParameters(AbundanceMeasure.Height), moduleParameters));
 
-    assertEquals("No intensity normalization standards found for file: file_a",
+    assertEquals(
+        "Intensity normalization required 1 internal standards but detected only 0/1 for file: file_a",
         exception.getMessage());
   }
 
@@ -137,7 +157,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 0f, null, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Nearest, true, standardRow);
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        standardRow);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -159,7 +180,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 200f, fileB, 100f);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Nearest, true, standardRow);
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        standardRow);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -178,10 +200,10 @@ class StandardCompoundNormalizationTypeModuleTest {
   }
 
   private @NotNull StandardCompoundNormalizationTypeParameters createModuleParameters(
-      final @NotNull StandardUsageType usageType, final boolean requireAllStandards,
+      final @NotNull StandardUsageType usageType,
+      final @NotNull StandardCompoundNormalizationMode mode,
       final @NotNull ModularFeatureListRow... standardRows) throws IOException {
-    return createModuleParametersFromCsv(usageType, requireAllStandards,
-        createStandardsCsv(standardRows));
+    return createModuleParametersFromCsv(usageType, mode, createStandardsCsv(standardRows));
   }
 
   @Test
@@ -196,7 +218,8 @@ class StandardCompoundNormalizationTypeModuleTest {
         101d, 5f, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
-        StandardUsageType.Nearest, false, standardRow1, standardRow2);
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
+        standardRow1, standardRow2);
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -223,7 +246,8 @@ class StandardCompoundNormalizationTypeModuleTest {
         100.01d, 5.01f, null);
 
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, true, "mz,rt,name\n100,5,best_only\n");
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,name\n100,5,best_only\n");
 
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
@@ -242,9 +266,198 @@ class StandardCompoundNormalizationTypeModuleTest {
   }
 
   @Test
+  void createReferenceFunctionsPrefersHighestDetectionRateOverSmallestDeviation()
+      throws IOException {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    // closest to the user defined m/z and RT and much more intense, but only detected in one file
+    final ModularFeatureListRow closestButRarelyDetected = addRow(featureList, 1, fileA, 1000f,
+        fileB, null, 100.01d, 5.01f, null);
+    // larger deviation but detected in all reference files
+    final ModularFeatureListRow fullyDetected = addRow(featureList, 2, fileA, 100f, fileB, 100f,
+        100.08d, 5.08f, null);
+
+    final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,name\n100,5,fully_detected\n");
+
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        summary, List.of(fileA, fileB), featureList,
+        new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), moduleParameters);
+
+    final StandardCompoundNormalizationFunction functionA = assertInstanceOf(
+        StandardCompoundNormalizationFunction.class, functions.get(fileA));
+    assertEquals(1d / 100d, functionA.getNormalizationFactor(100d, 5f), 1e-12);
+    assertTrue(closestButRarelyDetected.getCompoundAnnotations().isEmpty());
+    assertEquals("fully_detected",
+        fullyDetected.getCompoundAnnotations().getFirst().getCompoundName());
+  }
+
+  @Test
+  void createReferenceFunctionsBreaksDetectionRateTieByHighestIntensity() throws IOException {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    // both rows are detected in both reference files, so the summed intensity decides
+    final ModularFeatureListRow closestButWeaker = addRow(featureList, 1, fileA, 100f, fileB, 100f,
+        100.01d, 5.01f, null);
+    final ModularFeatureListRow moreIntense = addRow(featureList, 2, fileA, 500f, fileB, 500f,
+        100.08d, 5.08f, null);
+
+    final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,name\n100,5,most_intense\n");
+
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        summary, List.of(fileA, fileB), featureList,
+        new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), moduleParameters);
+
+    final StandardCompoundNormalizationFunction functionA = assertInstanceOf(
+        StandardCompoundNormalizationFunction.class, functions.get(fileA));
+    assertEquals(1d / 500d, functionA.getNormalizationFactor(100d, 5f), 1e-12);
+    assertTrue(closestButWeaker.getCompoundAnnotations().isEmpty());
+    assertEquals("most_intense", moreIntense.getCompoundAnnotations().getFirst().getCompoundName());
+  }
+
+  @Test
+  void createReferenceFunctionsSkipsFilesWithoutStandard() throws IOException {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+    final RawDataFileImpl fileC = createRawFile("file_c", LocalDateTime.of(2026, 1, 1, 10, 10));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null,
+        List.of(fileA, fileB, fileC));
+    // standard is missing in file_b
+    final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 200f, fileC, 400f);
+
+    final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD,
+        standardRow);
+
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
+        summary, List.of(fileA, fileB, fileC), featureList,
+        new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
+        createMainParameters(AbundanceMeasure.Height), moduleParameters);
+
+    assertEquals(Set.of(fileA, fileC), functions.keySet());
+    assertNull(summary.get(fileB));
+  }
+
+  @Test
+  void createReferenceFunctionsThrowsIfNoFileHasAStandardInSkipMode() throws IOException {
+    final StandardCompoundNormalizationTypeModule module = new StandardCompoundNormalizationTypeModule();
+    final RawDataFileImpl fileA = createRawFile("file_a", LocalDateTime.of(2026, 1, 1, 10, 0));
+    final RawDataFileImpl fileB = createRawFile("file_b", LocalDateTime.of(2026, 1, 1, 10, 5));
+
+    final ModularFeatureList featureList = new ModularFeatureList("flist", null, fileA, fileB);
+    // the row is only detected in file_a, which is not a reference file
+    final ModularFeatureListRow standardRow = addRow(featureList, 1, fileA, 200f, fileB, null);
+
+    final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParameters(
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD,
+        standardRow);
+
+    final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
+        featureList.getNumberOfRawDataFiles());
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> module.createReferenceFunctions(summary, List.of(fileB), featureList,
+            new SamplesBatch(featureList.getRawDataFiles(), null), new MetadataTable(false),
+            createMainParameters(AbundanceMeasure.Height), moduleParameters));
+
+    assertEquals("No internal standard was detected in any of the reference samples.",
+        exception.getMessage());
+  }
+
+  @Test
+  void loadValuesFromXmlMapsLegacyRequireAllStandardsToMode() throws Exception {
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1),
+        loadModeFromLegacyXml("true"));
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES, 1),
+        loadModeFromLegacyXml("false"));
+  }
+
+  @Test
+  void loadValuesFromXmlKeepsDefaultModeWithoutLegacyParameter() throws Exception {
+    final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
+    parameters.loadValuesFromXML(createParametersElement(null, null));
+
+    assertEquals(StandardCompoundNormalizationRequirement.DEFAULT,
+        parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
+  }
+
+  @Test
+  void loadValuesFromXmlPrefersNewModeOverLegacyParameter() throws Exception {
+    final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
+    // set something else to see that its actually loaded
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
+        new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES, 1));
+    parameters.loadValuesFromXML(createParametersElement("true",
+        StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD.getUniqueID()));
+
+    assertEquals(new StandardCompoundNormalizationRequirement(
+            StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD, MANUAL_STANDARDS_IN_XML),
+        parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement));
+  }
+
+  private static @NotNull StandardCompoundNormalizationRequirement loadModeFromLegacyXml(
+      final @NotNull String legacyValue) throws Exception {
+    final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
+    parameters.loadValuesFromXML(createParametersElement(legacyValue, null));
+    return parameters.getValue(StandardCompoundNormalizationTypeParameters.requirement);
+  }
+
+  private static @NotNull Element createParametersElement(final @Nullable String legacyValue,
+      final @Nullable String modeValue) throws Exception {
+    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        .newDocument();
+    final Element root = document.createElement("batchstep");
+    document.appendChild(root);
+
+    if (legacyValue != null) {
+      appendParameter(document, root, "Require all standards", legacyValue);
+    }
+    if (modeValue != null) {
+      // the combo with input parameter stores the selected mode as attribute and the number of
+      // required standards as text content
+      final Element element = appendParameter(document, root,
+          StandardCompoundNormalizationTypeParameters.requirement.getName(),
+          String.valueOf(MANUAL_STANDARDS_IN_XML));
+      element.setAttribute("selected", modeValue);
+    }
+    return root;
+  }
+
+  private static @NotNull Element appendParameter(final @NotNull Document document,
+      final @NotNull Element root, final @NotNull String name, final @NotNull String value) {
+    final Element element = document.createElement(SimpleParameterSet.parameterElement);
+    element.setAttribute(SimpleParameterSet.nameAttribute, name);
+    element.setTextContent(value);
+    root.appendChild(element);
+    return element;
+  }
+
+  @Test
   void checkParameterValuesRequiresMzAndRtTypes() throws IOException {
     final StandardCompoundNormalizationTypeParameters moduleParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, true, "mz,rt,name\n100,5,standard\n");
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,name\n100,5,standard\n");
     moduleParameters.getValue(StandardCompoundNormalizationTypeParameters.standardCompounds)
         .stream().filter(importType -> importType.getDataType() instanceof RTType)
         .forEach(importType -> importType.setSelected(false));
@@ -266,7 +479,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     final IntensityNormalizationSearchableSummary summary = new IntensityNormalizationSearchableSummary(
         featureList.getNumberOfRawDataFiles());
     final StandardCompoundNormalizationTypeParameters notSelectedParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, true, "mz,rt,mobility,name\n100,5,2,standard\n");
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,mobility,name\n100,5,2,standard\n");
 
     final Map<RawDataFile, NormalizationFunction> functions = module.createReferenceFunctions(
         summary, List.of(fileA), featureList,
@@ -277,7 +491,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     assertEquals(1d / 200d, functionA.getNormalizationFactor(100d, 5f), 1e-12);
 
     final StandardCompoundNormalizationTypeParameters selectedParameters = createModuleParametersFromCsv(
-        StandardUsageType.Nearest, true, "mz,rt,mobility,name\n100,5,2,standard\n");
+        StandardUsageType.Nearest, StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+        "mz,rt,mobility,name\n100,5,2,standard\n");
     selectedParameters.getValue(StandardCompoundNormalizationTypeParameters.standardCompounds)
         .stream().filter(importType -> importType.getDataType() instanceof MobilityType)
         .forEach(importType -> importType.setSelected(true));
@@ -323,7 +538,8 @@ class StandardCompoundNormalizationTypeModuleTest {
     module.interpolateAllFunctionsToSummary(summary, featureList,
         new SamplesBatch(featureList.getRawDataFiles()), new MetadataTable(false),
         functions, createMainParameters(AbundanceMeasure.Height),
-        createModuleParametersWithoutStandards(StandardUsageType.Nearest, false));
+        createModuleParametersWithoutStandards(StandardUsageType.Nearest,
+            StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES));
 
     var result = summary.get(targetFile);
     assertNotNull(result);
@@ -337,20 +553,19 @@ class StandardCompoundNormalizationTypeModuleTest {
   }
 
   private @NotNull StandardCompoundNormalizationTypeParameters createModuleParametersWithoutStandards(
-      final @NotNull StandardUsageType usageType, final boolean requireAllStandards)
-      throws IOException {
-    return createModuleParametersFromCsv(usageType, requireAllStandards,
-        "mz,rt,name\n500,50,unused\n");
+      final @NotNull StandardUsageType usageType,
+      final @NotNull StandardCompoundNormalizationMode mode) throws IOException {
+    return createModuleParametersFromCsv(usageType, mode, "mz,rt,name\n500,50,unused\n");
   }
 
   private @NotNull StandardCompoundNormalizationTypeParameters createModuleParametersFromCsv(
-      final @NotNull StandardUsageType usageType, final boolean requireAllStandards,
-      final @NotNull String csvContent) throws IOException {
+      final @NotNull StandardUsageType usageType,
+      final @NotNull StandardCompoundNormalizationMode mode, final @NotNull String csvContent)
+      throws IOException {
     final File standardsFile = writeStandardsFile(csvContent);
     return StandardCompoundNormalizationTypeParameters.create(List.of(SampleType.values()),
         usageType, 1d, standardsFile, ",", new MZTolerance(0.25, 0d),
-        new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f),
-        requireAllStandards);
+        new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f), mode);
   }
 
   private @NotNull File writeStandardsFile(final @NotNull String csvContent) throws IOException {

@@ -58,7 +58,6 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -178,9 +177,13 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
 
       if (copyFeatures) {
-        // Copy the features.
+        // Copy the features. Row bindings are not applied per feature: each apply aggregates over
+        // all features already present, making a full row copy O(features^2) - dominating list
+        // copies of aligned lists with many samples.
+        // assumption: all row values were already copied above, and ModularFeatureList#addRow
+        // applies the row bindings once for the whole row.
         row.streamFeatures().forEach(feature -> this.addFeature(feature.getRawDataFile(),
-            new ModularFeature(flist, feature)));
+            new ModularFeature(flist, feature), false));
       }
     }
   }
@@ -801,11 +804,4 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     return FeatureUtils.rowToString(this);
   }
 
-  @Override
-  public <T> @Nullable T get(DataType<T> key) {
-    if (key instanceof MappingType<?> mt) {
-      return (T) mt.getValue(this);
-    }
-    return super.get(key);
-  }
 }

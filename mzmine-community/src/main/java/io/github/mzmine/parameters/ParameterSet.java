@@ -80,7 +80,21 @@ public interface ParameterSet extends ParameterContainer {
 
   Parameter<?>[] getParameters();
 
-  <T extends Parameter<?>> T getParameter(T parameter);
+  /**
+   * Get parameter with given {@link Parameter#getName()}
+   *
+   * @return the parameter or throws exception if parameter is missing
+   */
+  default @NotNull <T extends Parameter<?>> T getParameter(T parameter) {
+    return tryGetParameter(parameter).orElseThrow(
+        () -> new IllegalArgumentException("Parameter " + parameter.getName() + " does not exist"));
+  }
+
+  /**
+   *
+   * @return the optional parameter or empty if missing
+   */
+  <T extends Parameter<?>> @NotNull Optional<T> tryGetParameter(T parameter);
 
   default <V, T extends Parameter<V>> V getValue(T parameter) {
     final T actualParam = getParameter(parameter);
