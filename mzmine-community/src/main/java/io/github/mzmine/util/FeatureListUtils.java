@@ -905,7 +905,8 @@ public class FeatureListUtils {
   }
 
   /**
-   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   * Transfer selected scans, applied methods, annotation sort config, preferences, row and feature
+   * types
    *
    * @param source        copy from
    * @param target        copy to
@@ -936,6 +937,7 @@ public class FeatureListUtils {
     }
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
+    target.setPreferences(source.getPreferences().copy());
   }
 
   /**

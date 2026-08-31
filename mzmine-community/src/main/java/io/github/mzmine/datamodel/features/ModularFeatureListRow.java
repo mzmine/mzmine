@@ -58,7 +58,6 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaList
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -805,11 +804,4 @@ public class ModularFeatureListRow extends ColumnarModularDataModelRow implement
     return FeatureUtils.rowToString(this);
   }
 
-  @Override
-  public <T> @Nullable T get(DataType<T> key) {
-    if (key instanceof MappingType<?> mt) {
-      return (T) mt.getValue(this);
-    }
-    return super.get(key);
-  }
 }

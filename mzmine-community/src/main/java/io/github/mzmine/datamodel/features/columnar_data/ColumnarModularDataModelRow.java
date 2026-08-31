@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.columnar_data;
 import io.github.mzmine.datamodel.features.DataTypeValueChangeListener;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,17 +64,10 @@ public class ColumnarModularDataModelRow implements ModularDataModel {
 
   @Override
   public <T> @Nullable T get(DataType<T> key) {
+    if (key instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
     return schema.get(modelRowIndex, key);
-  }
-
-  @Override
-  public <T> @Nullable T getOrDefault(DataType<T> type, @Nullable T defaultValue) {
-    return schema.getOrDefault(modelRowIndex, type, defaultValue);
-  }
-
-  @Override
-  public <T> @NotNull T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
-    return schema.getNonNullElse(modelRowIndex, type, defaultValue);
   }
 
   @Override
