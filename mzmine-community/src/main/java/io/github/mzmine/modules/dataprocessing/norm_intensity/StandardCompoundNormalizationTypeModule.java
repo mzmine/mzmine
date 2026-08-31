@@ -140,7 +140,13 @@ public class StandardCompoundNormalizationTypeModule extends
 //        moduleSpecificParameters, selection);
   }
 
-  private @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
+  /**
+   * Package private so that tests can drive the two phases directly. Production code goes through
+   * {@link #createAllNormalizationFunctionsToSummary(IntensityNormalizationSearchableSummary,
+   * ModularFeatureList, SamplesBatch, MetadataTable, ParameterSet, ParameterSet,
+   * StandardCompoundSelection)}.
+   */
+  protected @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
       @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final List<@NotNull RawDataFile> referenceFiles,
       @NotNull final ParameterSet mainParameters,
