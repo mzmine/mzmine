@@ -92,7 +92,9 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
 
-  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+  // clone to avoid contention on synchronized block
+  private final NumberFormats formats = MZmineCore.getConfiguration().getExportFormats()
+      .createCopy();
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 

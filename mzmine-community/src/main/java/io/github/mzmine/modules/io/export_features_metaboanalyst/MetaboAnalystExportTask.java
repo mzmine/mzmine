@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -67,6 +68,8 @@ class MetaboAnalystExportTask extends AbstractTask {
   private final String grouping;
   private final AbundanceMeasure abundanceMeasure;
   private final CompoundRowSelection rowSelection;
+  // clone to avoid contention on synchronized block
+  private final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats().createCopy();
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
@@ -260,16 +263,13 @@ class MetaboAnalystExportTask extends AbstractTask {
       generatedName.append("/").append(CSVUtils.escape(name, fieldSeparator));
     }
 
-    generatedName.append("/").append(MZmineCore.getConfiguration().getMZFormat().format(mz))
-        .append("mz");
+    generatedName.append("/").append(formats.mzFormat().format(mz)).append("mz");
 
     if (rt != null) {
-      generatedName.append("/").append(MZmineCore.getConfiguration().getRTFormat().format(rt))
-          .append("min");
+      generatedName.append("/").append(formats.rtFormat().format(rt)).append("min");
     }
     if (mobility != null) {
-      generatedName.append("/")
-          .append(MZmineCore.getConfiguration().getMobilityFormat().format(mobility));
+      generatedName.append("/").append(formats.mobilityFormat().format(mobility));
     }
 
     return generatedName.toString();
