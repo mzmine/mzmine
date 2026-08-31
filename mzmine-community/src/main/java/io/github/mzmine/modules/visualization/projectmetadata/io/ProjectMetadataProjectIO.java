@@ -56,7 +56,7 @@ public final class ProjectMetadataProjectIO {
    */
   public static boolean saveToZip(@NotNull final ZipOutputStream zipStream) throws IOException {
     final MetadataTable metadata = ProjectService.getMetadata();
-    if (metadata.getData().isEmpty()) {
+    if (metadata.getColumns().isEmpty()) {
       logger.info("Project metadata is empty, nothing to save");
       return false;
     }
