@@ -31,6 +31,8 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +45,12 @@ import org.jetbrains.annotations.NotNull;
  */
 final class BatchQueueSegmenter {
 
-  private static final Set<Class<? extends MZmineProcessingModule>> CHROMATOGRAM_BUILDERS = Set.of(
-      ModularADAPChromatogramBuilderModule.class, ChromatogramBuilderModule.class);
+  private static final Set<String> CHROMATOGRAM_BUILDERS = Set.of(
+      new ModularADAPChromatogramBuilderModule().getUniqueID(), new IonMobilityTraceBuilderModule().getUniqueID(), new RecursiveIMSBuilderModule().getUniqueID());
 
   private static final List<Predicate<MZmineProcessingStep<MZmineProcessingModule>>> SPLIT_STEPS = List.of(
       step -> step.getModule().getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT,
-      step -> CHROMATOGRAM_BUILDERS.contains(step.getModule().getClass()));
+      step -> CHROMATOGRAM_BUILDERS.contains(step.getModule().getUniqueID()));
 
   private BatchQueueSegmenter() {
   }

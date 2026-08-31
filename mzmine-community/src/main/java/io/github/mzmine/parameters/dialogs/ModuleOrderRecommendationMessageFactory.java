@@ -82,7 +82,7 @@ public final class ModuleOrderRecommendationMessageFactory {
         messageNodes.add(FxTexts.linebreak());
       }
     }
-    return FxTextFlows.newTextFlowInAccordion("Processing order", true,
+    return FxTextFlows.newTextFlowInAccordion("Processing order", false,
         messageNodes.toArray(Node[]::new));
   }
 }

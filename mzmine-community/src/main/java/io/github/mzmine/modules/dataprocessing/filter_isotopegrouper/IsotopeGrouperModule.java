@@ -29,12 +29,16 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,8 +50,8 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
   public static final String MODULE_NAME = "13C isotope filter (formerly: isotope grouper)";
   private static final String MODULE_DESCRIPTION =
       "This module detects isotopic features and removes them from the feature list. Its isotope "
-      + "patterns are limited to detected features. For a more comprehensive isotope pattern "
-      + "coverage and isotopes other than 13C, use the Isotope finder.";
+          + "patterns are limited to detected features. For a more comprehensive isotope pattern "
+          + "coverage and isotopes other than 13C, use the Isotope finder.";
 
   @Override
   public @NotNull String getName() {
@@ -88,4 +92,11 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
     return IsotopeGrouperParameters.class;
   }
 
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+        "Isotope grouping is retention time and mobility-aware and must run after feature resolving.",
+        ModuleOrderRule.ifPresentMustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.FEATURE_RESOLVING))));
+  }
 }

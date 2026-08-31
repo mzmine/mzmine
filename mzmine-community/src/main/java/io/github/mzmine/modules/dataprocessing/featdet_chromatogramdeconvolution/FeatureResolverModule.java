@@ -33,7 +33,6 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
-import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -72,12 +71,9 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(
-        new ModuleOrderRecommendation("Feature resolving is usually applied before deisotoping.",
-            ModuleOrderRule.ifPresentShouldRunBefore(IsotopeGrouperModule.class)),
-        new ModuleOrderRecommendation(
-            "Feature resolving cannot be applied to an aligned feature list.",
-            ModuleOrderRule.ifPresentMustRunBefore(
-                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+    return List.of(new ModuleOrderRecommendation(
+        "Feature resolving cannot be applied to an aligned feature list.",
+        ModuleOrderRule.ifPresentMustRunBefore(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }

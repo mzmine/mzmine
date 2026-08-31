@@ -28,6 +28,7 @@ package io.github.mzmine.modules.batchmode.order;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,9 @@ record ModuleClassOrderCondition(
 
   @Override
   public @NotNull String description() {
+    if (Modifier.isAbstract(anchorModule.getModifiers()) || anchorModule.isInterface()) {
+      return anchorModule.getSimpleName();
+    }
     final MZmineProcessingModule module = MZmineCore.getModuleInstance(anchorModule);
     return module == null ? anchorModule.getSimpleName() : module.getName();
   }
