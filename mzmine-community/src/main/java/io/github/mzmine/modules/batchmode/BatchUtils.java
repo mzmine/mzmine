@@ -241,10 +241,7 @@ public class BatchUtils {
    */
   @NotNull
   public static MZmineProcessingStep<MZmineProcessingModule> cloneStep(
-      @NotNull MZmineProcessingStep<MZmineProcessingModule> step) {
-    if (step.getParameterSet() == null) {
-      return new MZmineProcessingStepImpl<>(step.getModule(), null);
-    }
+      @NotNull final MZmineProcessingStep<MZmineProcessingModule> step) {
     final ParameterSet clonedParams = step.getParameterSet().cloneParameterSet();
     return new MZmineProcessingStepImpl<>(step.getModule(), clonedParams);
   }

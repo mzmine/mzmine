@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -282,41 +281,20 @@ public class RawDataSavingUtils {
    *                                  longer queue only appends additional steps.
    * @return true or false.
    */
-  public static boolean queuesEqual(BatchQueue q1, BatchQueue q2, boolean skipFileParameters,
-      boolean skipRawDataFileParameters, boolean allowSubsets) {
+  public static boolean queuesEqual(@NotNull final BatchQueue q1, @NotNull final BatchQueue q2,
+      final boolean skipFileParameters, final boolean skipRawDataFileParameters,
+      final boolean allowSubsets) {
     if (q1.size() != q2.size() && !allowSubsets) {
       return false;
     }
 
     for (int i = 0; i < q1.size() && i < q2.size(); i++) {
-      if (!processingStepEquals(q1.get(i), q2.get(i), skipFileParameters,
+      if (!ParameterUtils.equalValues(q1.get(i), q2.get(i), skipFileParameters,
           skipRawDataFileParameters)) {
         return false;
       }
     }
 
-    return true;
-  }
-
-  private static boolean processingStepEquals(MZmineProcessingStep<?> step1,
-      MZmineProcessingStep<?> step2, boolean skipFileParameters,
-      boolean skipRawDataFileParameters) {
-
-    if (!step1.getModule().equals(step2.getModule())) {
-      logger.finest("Modules " + step1.getModule().getClass().getName() + " is not equal to "
-          + step2.getModule().getClass().getName());
-      return false;
-    }
-
-    final var parameterSet1 = step1.getParameterSet();
-    final var parameterSet2 = step2.getParameterSet();
-
-    if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, skipFileParameters,
-        skipRawDataFileParameters)) {
-      logger.finest(
-          "Queues are not equal. Parameter sets of step " + step1.getModule() + " are not equal.");
-      return false;
-    }
     return true;
   }
 
