@@ -37,13 +37,11 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
@@ -108,7 +106,6 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   private final ChromatogramPlotController mobilogramPlot;
   private final SimpleSpectraChartController ms1Chart;
   private final SimpleSpectraChartController ms2Chart;
-  private final SimpleSpectraChartController isotopeSpectrumChart;
   private final CompoundRowQualityController qualityCtrl;
   private final FxFeatureTableController tableCtrl;
   private final FeatureRow4DPlotController featurePlot4D;
@@ -119,7 +116,6 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
       @NotNull ChromatogramPlotController mobilogramPlot,
       @NotNull SimpleSpectraChartController ms1Chart,
       @NotNull SimpleSpectraChartController ms2Chart,
-      @NotNull SimpleSpectraChartController isotopeSpectrumChart,
       @NotNull CompoundRowQualityController qualityCtrl,
       @NotNull FxFeatureTableController tableCtrl,
       @NotNull FeatureRow4DPlotController featurePlot4D) {
@@ -129,7 +125,6 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     this.mobilogramPlot = mobilogramPlot;
     this.ms1Chart = ms1Chart;
     this.ms2Chart = ms2Chart;
-    this.isotopeSpectrumChart = isotopeSpectrumChart;
     this.qualityCtrl = qualityCtrl;
     this.tableCtrl = tableCtrl;
     this.featurePlot4D = featurePlot4D;
@@ -302,28 +297,29 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final BorderPane mainMS2 = new BorderPane(ms2Stack);
     mainMS2.setTop(ms2Toolbar);
 
-    // Isotope pattern mirror sits between MS1 and MS2: detected isotope pattern on top, the
-    // representative MS1 on the bottom, with a charge-state selector toolbar above.
-    final Region isotopeMirror = buildIsotopeMirror();
-
-    final SplitPane sp = new SplitPane(ms1View, isotopeMirror, mainMS2);
+    // decision: the regular layout is MS1 | MS2 only. The per-row isotope pattern is shown by the
+    // "Isotope pattern" card of the compound quality pane; the mirror below is the developer-only
+    // isotope finder review pane (see IsotopeDiagnosticsSupport) and stays out of the normal UI.
+    final SplitPane sp;
+    if (IsotopeDiagnosticsSupport.isEnabled()) {
+      sp = new SplitPane(ms1View, buildIsotopeMirror(), mainMS2);
+      sp.setDividerPositions(0.33, 0.66);
+    } else {
+      sp = new SplitPane(ms1View, mainMS2);
+      sp.setDividerPositions(0.5);
+    }
     sp.setOrientation(Orientation.VERTICAL);
-    sp.setDividerPositions(0.33, 0.66);
     return sp;
   }
 
   /**
-   * Builds the isotope pattern mirror pane: a toolbar with prev/next charge-state icon buttons and
-   * a charge ComboBox (mirroring the MS2 toolbar layout), above a content area that shows one of
-   * three things depending on the selected adduct row:
-   * <ul>
-   *   <li>the mirror plot (detected isotope pattern on top, representative MS1 on bottom) when the
-   *       row has a detected isotope pattern — the domain is zoomed to the pattern m/z range ±5;</li>
-   *   <li>a plain full MS1 spectrum of the row's representative scan (in a
-   *       {@link SimpleSpectraChartController}, like the MS1 / MS2 charts) when the row has no
-   *       isotope pattern;</li>
-   *   <li>a centered bold message when the row has neither a pattern nor a representative scan.</li>
-   * </ul>
+   * Builds the developer-only isotope pattern mirror pane (only reachable when
+   * {@link IsotopeDiagnosticsSupport#isEnabled()}): a toolbar with prev/next charge-state icon
+   * buttons, a charge ComboBox (mirroring the MS2 toolbar layout) and the averagine-model toggle,
+   * above a content area that shows either the mirror plot (detected isotope pattern on top,
+   * representative MS1 on bottom; the domain is zoomed to the pattern m/z range ±5) or a centered
+   * bold message when the row has no pattern or no representative scan. The per-charge score table
+   * and the per-peak dump sit in a collapsed pane below.
    */
   private @NotNull Region buildIsotopeMirror() {
     final Label chargeLabel = FxLabels.newBoldLabel("Potential isotopes");
@@ -340,41 +336,32 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, chargeLabel, prevCharge, chargeCombo,
         nextCharge);
 
-    // developer-only (see IsotopeDiagnosticsSupport): toggle the bottom spectrum between the
-    // representative MS1 and the recomputed averagine envelope model used to score.
-    final boolean diagnosticsEnabled = IsotopeDiagnosticsSupport.isEnabled();
-    if (diagnosticsEnabled) {
-      final CheckBox envelopeToggle = new CheckBox("Averagine model");
-      envelopeToggle.setTooltip(new Tooltip(
-          "Bottom spectrum: show the recomputed averagine envelope model instead of the MS1 scan"));
-      envelopeToggle.selectedProperty().bindBidirectional(model.envelopeOverlayVisibleProperty());
-      toolbar.getChildren().add(envelopeToggle);
-    }
+    // toggle the bottom spectrum between the representative MS1 and the recomputed averagine
+    // envelope model used to score.
+    final CheckBox envelopeToggle = new CheckBox("Averagine model");
+    envelopeToggle.setTooltip(new Tooltip(
+        "Bottom spectrum: show the recomputed averagine envelope model instead of the MS1 scan"));
+    envelopeToggle.selectedProperty().bindBidirectional(model.envelopeOverlayVisibleProperty());
+    toolbar.getChildren().add(envelopeToggle);
 
-    // Stack of three mutually-exclusive layers toggled by visibility: the mirror chart holder, the
-    // fallback full-MS1 spectrum chart, and the "no data" message.
+    // Two mutually-exclusive layers toggled by visibility: the mirror chart holder and the
+    // "no data" message.
     final BorderPane mirrorHolder = new BorderPane();
-    final Region spectrumView = isotopeSpectrumChart.buildView();
     final Label noDataLabel = FxLabels.newBoldTitle("No MS1 for selected ion");
     noDataLabel.setMouseTransparent(true);
-    final StackPane stack = new StackPane(mirrorHolder, spectrumView, noDataLabel);
+    final StackPane stack = new StackPane(mirrorHolder, noDataLabel);
     StackPane.setAlignment(noDataLabel, Pos.CENTER);
     VBox.setVgrow(stack, Priority.ALWAYS);
 
-    final Runnable rebuild = () -> rebuildIsotopeMirror(mirrorHolder, spectrumView, noDataLabel);
+    final Runnable rebuild = () -> rebuildIsotopeMirror(mirrorHolder, noDataLabel);
     model.selectedIsotopePatternProperty().subscribe(_ -> rebuild.run());
     model.isotopeRepresentativeScanProperty().subscribe(_ -> rebuild.run());
-    if (diagnosticsEnabled) {
-      model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
-      model.envelopeOverlayVisibleProperty().subscribe(_ -> rebuild.run());
-    }
+    model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
+    model.envelopeOverlayVisibleProperty().subscribe(_ -> rebuild.run());
     rebuild.run();
 
     final BorderPane main = new BorderPane(stack);
     main.setTop(toolbar);
-    if (!diagnosticsEnabled) {
-      return main;
-    }
     // dev-only diagnostics review pane (per-charge scores + per-peak dump) below the mirror
     VBox.setVgrow(main, Priority.ALWAYS);
     return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, main, buildDiagnosticsPane());
@@ -464,20 +451,20 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
   }
 
   /**
-   * Rebuilds the isotope mirror content. With a detected pattern: draws the mirror
-   * {@link EChartViewer} (pattern top, representative MS1 bottom) and zooms the shared m/z domain
-   * to the pattern's m/z range ±5. Without a pattern but with a representative scan: shows that
-   * scan as a plain full MS1 spectrum. With neither: shows the centered "no data" message.
+   * Rebuilds the isotope mirror content. With recomputed diagnostics: draws the richer diagnostics
+   * mirror. With a detected pattern: draws the plain mirror {@link EChartViewer} (pattern top,
+   * representative MS1 bottom) and zooms the shared m/z domain to the pattern's m/z range ±5.
+   * Otherwise: shows the centered "no data" message.
    */
   private void rebuildIsotopeMirror(@NotNull final BorderPane mirrorHolder,
-      @NotNull final Region spectrumView, @NotNull final Label noDataLabel) {
+      @NotNull final Label noDataLabel) {
     final IsotopePattern pattern = model.getSelectedIsotopePattern();
     final Scan representative = model.getIsotopeRepresentativeScan();
 
-    // developer-only: when diagnostics were recomputed for this row, draw the richer diagnostics
-    // mirror (element labels, plausibility colouring, ghost expected sticks, gate band, envelope
-    // overlay toggle) instead of the plain detected-vs-MS1 mirror.
-    if (IsotopeDiagnosticsSupport.isEnabled() && representative != null) {
+    // when diagnostics were recomputed for this row, draw the richer diagnostics mirror (element
+    // labels, plausibility colouring, ghost expected sticks, gate band, envelope overlay toggle)
+    // instead of the plain detected-vs-MS1 mirror.
+    if (representative != null) {
       final ChargeDiagnostics diag = IsotopeDiagnosticsSupport.matchDiagnostics(
           model.getIsotopeDiagnostics(), pattern);
       if (diag != null) {
@@ -485,7 +472,6 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
             model.isEnvelopeOverlayVisible());
         mirrorHolder.setCenter(viewer);
         setLayerVisible(mirrorHolder, true);
-        setLayerVisible(spectrumView, false);
         noDataLabel.setVisible(false);
         return;
       }
@@ -501,32 +487,13 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
       mirrorHolder.setCenter(viewer);
       zoomToPatternRange(viewer, pattern);
       setLayerVisible(mirrorHolder, true);
-      setLayerVisible(spectrumView, false);
-      noDataLabel.setVisible(false);
-      return;
-    }
-
-    if (representative != null) {
-      // No isotope pattern: show a plain full MS1 spectrum of the row (same chart type as MS1/MS2).
-      // fully qualified: javafx.scene.paint.Color is imported for the JavaFX side of this builder
-      final java.awt.Color awt = FxColorUtil.fxColorToAWT(
-          ConfigService.getDefaultColorPalette().getNeutralColor());
-      isotopeSpectrumChart.clearDatasets();
-      isotopeSpectrumChart.addSpectrum(new MassSpectrumProvider(representative,
-          "MS1 " + representative.getDataFile().getName() + ":" + representative.getScanNumber(),
-          awt), representative.getSpectrumType());
-      mirrorHolder.setCenter(null);
-      setLayerVisible(mirrorHolder, false);
-      setLayerVisible(spectrumView, true);
       noDataLabel.setVisible(false);
       return;
     }
 
     // Neither a pattern nor a representative scan.
     mirrorHolder.setCenter(null);
-    isotopeSpectrumChart.clearDatasets();
     setLayerVisible(mirrorHolder, false);
-    setLayerVisible(spectrumView, false);
     noDataLabel.setVisible(true);
   }
 

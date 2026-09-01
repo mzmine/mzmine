@@ -51,7 +51,8 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   /**
    * Comparator for sorting isotope patterns by their size in descending order, and then by charge
-   * state in ascending order. Charge state -1 is considered as the highest charge state.
+   * state in ascending order. Charge state -1 (not detected) is considered as the highest charge
+   * state.
    */
   public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
           IsotopePattern::getNumberOfDataPoints).reversed()
@@ -67,8 +68,8 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   public static final Comparator<IsotopePattern> patternScoreComparator = Comparator.comparingDouble(
           // decision: an unscored (NaN) pattern is ranked as the worst score, so a scored pattern
           // always outranks it and a set without any score falls through to the size ordering
-          (IsotopePattern ip) -> Double.isNaN(ip.getScore()) ? Double.NEGATIVE_INFINITY
-              : ip.getScore()).reversed() // higher score first
+          (IsotopePattern ip) -> Double.isNaN(ip.getScore()) ? Double.NEGATIVE_INFINITY : ip.getScore())
+      .reversed() // higher score first
       .thenComparing(patternSizeComparator);
 
   @NotNull
@@ -86,10 +87,10 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * @param patterns the isotope patterns, one per charge state (must not be empty).
    * @param sort     whether to (re-)rank the patterns by {@link #patternScoreComparator}. Pass
    *                 {@code false} when the caller already ranked them with more information than a
-   *                 single score carries - e.g. the isotope finder, which selects the winning charge
-   *                 from the bounded quality AND a peak-count reward. Re-deriving the order from
-   *                 {@link IsotopePattern#getScore()} alone would then be lossy and could disagree
-   *                 with the charge the caller assigned to the feature.
+   *                 single score carries - e.g. the isotope finder, which selects the winning
+   *                 charge from the bounded quality AND a peak-count reward. Re-deriving the order
+   *                 from {@link IsotopePattern#getScore()} alone would then be lossy and could
+   *                 disagree with the charge the caller assigned to the feature.
    */
   private MultiChargeStateIsotopePattern(@NotNull List<IsotopePattern> patterns,
       final boolean sort) {

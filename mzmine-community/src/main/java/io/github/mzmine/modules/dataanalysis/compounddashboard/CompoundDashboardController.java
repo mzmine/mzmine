@@ -107,9 +107,6 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
   private final ChromatogramPlotController mobilogramPlot = new ChromatogramPlotController(true);
   private final SimpleSpectraChartController ms1Chart = new SimpleSpectraChartController();
   private final SimpleSpectraChartController ms2Chart = new SimpleSpectraChartController();
-  // Shown in place of the isotope mirror when the selected row has no detected isotope pattern:
-  // a plain full MS1 spectrum of the row's representative scan.
-  private final SimpleSpectraChartController isotopeSpectrumChart = new SimpleSpectraChartController();
   private final CompoundRowQualityController qualityCtrl = new CompoundRowQualityController();
   private final FxFeatureTableController tableCtrl = new FxFeatureTableController(
       FeatureTableOwner.COMPOUND_DASHBOARD);
@@ -127,7 +124,7 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     super(new CompoundDashboardModel());
     this.interactor = new CompoundDashboardInteractor(model);
     this.builder = new CompoundDashboardViewBuilder(model, this, eicPlot, mobilogramPlot, ms1Chart,
-        ms2Chart, isotopeSpectrumChart, qualityCtrl, tableCtrl, featurePlot4D);
+        ms2Chart, qualityCtrl, tableCtrl, featurePlot4D);
 
     model.setColorPalette(CompoundDashboardInteractor.snapshotPalette());
 
@@ -292,10 +289,6 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     mobilogramPlot.setShowSeriesLabel(true);
     ms1Chart.rangeAxisLabelProperty().set("Intensity (MS1)");
     ms2Chart.rangeAxisLabelProperty().set("Intensity (MS2)");
-    // Fallback full-MS1 spectrum shown when the selected row has no isotope pattern.
-    isotopeSpectrumChart.rangeAxisLabelProperty().set("Intensity (MS1)");
-    isotopeSpectrumChart.domainAxisLabelProperty().set("m/z");
-    isotopeSpectrumChart.setLegendItemsVisible(false);
   }
 
   // --- FxController overrides -----------------------------------------------
@@ -316,7 +309,6 @@ public class CompoundDashboardController extends FxController<CompoundDashboardM
     qualityCtrl.close();
     tableCtrl.close();
     featurePlot4D.close();
-    isotopeSpectrumChart.close();
   }
 
   // --- public API ------------------------------------------------------------

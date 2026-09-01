@@ -227,7 +227,10 @@ public class IsotopePatternCalculator implements MZmineModule {
   }
 
   /**
-   * Predict pattern with default binning width for annotations
+   * Predict pattern with default binning width for annotations. The binning width is very small
+   * resulting in separate signals for O and N.
+   * <p>
+   * TODO scoring should score against multiple resolutions and keep track of best merge width
    *
    * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
    * @return the isotope pattern of ion formula. or null if formula or ionType are null

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -54,7 +55,7 @@ public interface IsotopePattern extends MassSpectrum {
 
   /**
    * A quality score for this isotope pattern, higher is better. Used to rank charge-state
-   * hypotheses of a {@link io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern} best
+   * hypotheses of a {@link MultiChargeStateIsotopePattern} best
    * first. Patterns that were not scored (e.g. predicted patterns) return {@link Double#NaN}.
    *
    * @return the pattern score, or {@link Double#NaN} if this pattern carries no score.
