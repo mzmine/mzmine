@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Internal standards normalization
  */
-public final class StandardCompoundNormalizationTypeModule implements NormalizationTypeModule,
+public final class StandardCompoundNormalizationTypeModule implements
     InternalStandardSelectingNormalizer {
 
   /**

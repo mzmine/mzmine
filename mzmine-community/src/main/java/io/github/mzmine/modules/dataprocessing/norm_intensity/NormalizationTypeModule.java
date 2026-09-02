@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * may be applied to references samples and then interpolated for others.
  */
 public sealed interface NormalizationTypeModule extends MZmineModule permits
-    MetadataColumnNormalizationTypeModule, NoNormalizationTypeModule,
-    NormalizationTypeWithReferencesModule, StandardCompoundNormalizationTypeModule {
+    InternalStandardSelectingNormalizer, MetadataColumnNormalizationTypeModule,
+    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule {
 
   void createAllNormalizationFunctionsToSummary(
       @NotNull IntensityNormalizationSearchableSummary summary,

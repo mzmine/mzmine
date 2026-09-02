@@ -37,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
  * Internal standards should be selected for the whole dataset so that all batches use the same rows
  * as internal standards.
  */
-public interface InternalStandardSelectingNormalizer {
+public sealed interface InternalStandardSelectingNormalizer extends NormalizationTypeModule permits
+    StandardCompoundNormalizationTypeModule {
 
   /**
    * Resolves the standard compounds file to feature list rows and determines the reference level of
