@@ -29,30 +29,33 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Duplicate peak filter
- * 
+ * <p>
  * This filter cleans up a feature list by keeping only the row with the strongest median peak area
  * of all rows having same (optionally) identification and similar m/z and rt values (within
  * tolerances)
- * 
+ * <p>
  * Idea is to run this filter before alignment on feature lists with peaks from a single raw data
  * file in each list, but it will work on aligned feature lists too.
- * 
+ *
  */
 public class DuplicateFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Duplicate peak filter";
-  private static final String MODULE_DESCRIPTION =
-      "This method removes duplicate peaks (peaks with same retention times and m/z) from the feature list.";
+  private static final String MODULE_DESCRIPTION = "This method removes duplicate peaks (peaks with same retention times and m/z) from the feature list.";
 
   @Override
   public @NotNull String getName() {
@@ -69,12 +72,13 @@ public class DuplicateFilterModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList[] peakLists = parameters.getParameter(DuplicateFilterParameters.peakLists).getValue()
-        .getMatchingFeatureLists();
+    FeatureList[] peakLists = parameters.getParameter(DuplicateFilterParameters.peakLists)
+        .getValue().getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
-      Task newTask = new DuplicateFilterTask(project, peakList, parameters, storage, moduleCallDate);
+      Task newTask = new DuplicateFilterTask(project, peakList, parameters, storage,
+          moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -90,5 +94,13 @@ public class DuplicateFilterModule implements MZmineProcessingModule {
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return DuplicateFilterParameters.class;
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+        "Duplicate filtering should run after Gap filling/Secondary feature finding.",
+        ModuleOrderRule.ifPresentMustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.GAPFILLING))));
   }
 }

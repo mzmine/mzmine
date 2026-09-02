@@ -32,7 +32,6 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
-import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -88,11 +87,8 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(new ModuleOrderRecommendation(
-            "Gap filling/Secondary feature finding must run after sample alignment. Without prior alignment gap filling does not change anything.",
-            ModuleOrderRule.mustRunAfter(
-                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))),
-        new ModuleOrderRecommendation(
-            "Gap filling/Secondary feature finding should run before duplicate filtering.",
-            ModuleOrderRule.ifPresentMustRunBefore(DuplicateFilterModule.class)));
+        "Gap filling/Secondary feature finding must run after sample alignment. Without prior alignment gap filling does not change anything.",
+        ModuleOrderRule.mustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }

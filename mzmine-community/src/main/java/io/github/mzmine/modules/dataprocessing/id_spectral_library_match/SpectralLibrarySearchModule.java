@@ -31,6 +31,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -45,8 +49,7 @@ import org.jetbrains.annotations.NotNull;
 public class SpectralLibrarySearchModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Spectral library search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches all feature list rows (from all feature lists) against a local spectral libraries (needs to be loaded first).";
+  private static final String MODULE_DESCRIPTION = "This method searches all feature list rows (from all feature lists) against a local spectral libraries (needs to be loaded first).";
 
   /**
    * Show dialog for identifying multiple selected peak-list rows.
@@ -54,7 +57,7 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
    * @param rows the feature list row.
    */
   public static void showSelectedRowsIdentificationDialog(final List<FeatureListRow> rows,
-                                                          FeatureTableFX table, @NotNull Instant moduleCallDate) {
+      FeatureTableFX table, @NotNull Instant moduleCallDate) {
 
     final ParameterSet parameters = new SelectedRowsSpectralLibrarySearchParameters();
 
@@ -79,10 +82,9 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-                            @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    final ModularFeatureList[] featureLists = parameters
-        .getParameter(SpectralLibrarySearchParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    final ModularFeatureList[] featureLists = parameters.getParameter(
+        SpectralLibrarySearchParameters.peakLists).getValue().getMatchingFeatureLists();
     Task newTask = new SpectralLibrarySearchTask(parameters, featureLists, moduleCallDate);
     tasks.add(newTask);
 
@@ -99,4 +101,13 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
     return SpectralLibrarySearchParameters.class;
   }
 
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+            "Spectral networking requires that MS2 spectra are assigned to features.",
+            ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
+        new ModuleOrderRecommendation("Annotations are not preserved during alignment",
+            ModuleOrderRule.ifPresentMustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+  }
 }

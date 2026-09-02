@@ -44,8 +44,10 @@ execution.
   alignment, compound representation, correlation-dependent ion networking, and ion-network formula
   processing. Mass-list consumers use a shared anchor condition that matches standalone mass
   detection or advanced data import with either MS1 or MSn mass detection enabled in the same
-  inferred pipeline. Feature-list blank subtraction requires any earlier alignment-category
-  module, while chromatogram blank subtraction must precede any `FeatureResolverModule`. Other
+  inferred pipeline. MS2 consumers can use a shared anchor condition that matches a feature resolver
+  only when its optional MS/MS scan pairing is enabled, or either the standalone MS2 grouping or DIA
+  pseudo-MS2 builder. Feature-list blank subtraction requires any earlier alignment-category module,
+  while chromatogram blank subtraction must precede any `FeatureResolverModule`. Other
   parameter-dependent checks remain undeclared until the rule model can express their applicability
   without false positives.
 

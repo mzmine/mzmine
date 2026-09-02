@@ -28,6 +28,10 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_searc
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingOptions;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,6 +39,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -77,5 +82,15 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
               this.getClass()));
     }
     return ExitCode.OK;
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+            "Analog search requires that MS2 spectra are assigned to features.",
+            ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
+        new ModuleOrderRecommendation("Annotations are not preserved during alignment",
+            ModuleOrderRule.ifPresentMustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }
