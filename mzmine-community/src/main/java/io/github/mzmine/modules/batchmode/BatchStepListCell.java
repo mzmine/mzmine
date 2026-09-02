@@ -27,12 +27,14 @@ package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.util.function.IntFunction;
 import javafx.scene.control.Tooltip;
+import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -47,7 +49,7 @@ final class BatchStepListCell extends
   BatchStepListCell(@NotNull final IntFunction<@Nullable String> validationMessageProvider) {
     this.validationMessageProvider = validationMessageProvider;
     infoIcon = FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE, FxIconUtil.LIST_ICON_SIZE,
-        ConfigService.getDefaultColorPalette().getNeutralColor());
+        getWarningColor());
     validationTooltip.setWrapText(true);
     validationTooltip.setMaxWidth(600);
   }
@@ -74,5 +76,13 @@ final class BatchStepListCell extends
     validationTooltip.setText(validationMessage);
     setGraphic(infoIcon);
     setTooltip(validationTooltip);
+  }
+
+  private boolean isThemeDark() {
+    return ConfigService.getConfiguration().getTheme().isDark();
+  }
+
+  private Color getWarningColor() {
+    return isThemeDark() ? ColorsFX.YELLOW_WARN : ColorsFX.MAGENTA;
   }
 }
