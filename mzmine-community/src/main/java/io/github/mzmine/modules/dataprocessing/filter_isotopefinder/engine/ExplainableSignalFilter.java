@@ -50,7 +50,7 @@ import org.openscience.cdk.Element;
  * centroid can land between two isotope defects and is then indistinguishable from contamination.
  * Charge selection is unaffected either way - this runs after scoring.
  */
-public final class ExplainableSignalFilter {
+final class ExplainableSignalFilter {
 
   /**
    * Largest number of isotope substitutions the filter combines when testing whether an off-grid

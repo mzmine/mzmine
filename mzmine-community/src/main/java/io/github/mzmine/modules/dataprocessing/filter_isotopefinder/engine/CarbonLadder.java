@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  *   an intensity-weighted m/z, used for coverage and the emitted pattern.</li>
  * </ul>
  */
-public final class CarbonLadder {
+final class CarbonLadder {
 
   /**
    * The m/z tolerance is widened by this factor when testing whether a 13C-grid position is
@@ -189,7 +189,7 @@ public final class CarbonLadder {
    * @param toleranceFactor multiplier on the m/z tolerance.
    * @return the closest candidate m/z, or {@link Double#NaN} when the position is unoccupied.
    */
-  public double nearestMzWithin(final double mz, final double toleranceFactor) {
+  private double nearestMzWithin(final double mz, final double toleranceFactor) {
     if (sortedMz.length == 0) {
       return Double.NaN;
     }
@@ -262,7 +262,7 @@ public final class CarbonLadder {
    * @param step the offset step (1 = every 13C, 2 = every second 13C).
    * @return inclusive {@code [minOffset, maxOffset]} span containing offset 0.
    */
-  public int @NotNull [] gapFreeSpan(final int step) {
+  private int @NotNull [] gapFreeSpan(final int step) {
     int hi = 0;
     while (!Double.isNaN(nearestMzWithin(exactMzAt(hi + step), GAP_TOL_FACTOR))) {
       hi += step;

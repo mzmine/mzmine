@@ -42,7 +42,7 @@ import org.openscience.cdk.Element;
  * Single source of truth for the engine wiring so every caller builds an identically configured
  * engine.
  */
-public final class IsotopeFinderEngineFactory {
+final class IsotopeFinderEngineFactory {
 
   private IsotopeFinderEngineFactory() {
   }

@@ -52,7 +52,7 @@ import org.jetbrains.annotations.NotNull;
  *                       far below the averagine carbon minimum, and penalising it costs real
  *                       polyhalogen charge calls.
  */
-public record CarbonRatio(boolean present, double value, boolean anchorIsMono,
+record CarbonRatio(boolean present, double value, boolean anchorIsMono,
                           boolean anchorIsBase) {
 
   /**

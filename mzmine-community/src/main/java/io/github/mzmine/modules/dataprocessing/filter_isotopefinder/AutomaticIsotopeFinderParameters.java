@@ -73,7 +73,6 @@ public class AutomaticIsotopeFinderParameters extends SimpleParameterSet {
         CarbonAveragineAlgorithmParameters.DEFAULT_MZ_TOLERANCE,
         CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE);
   }
-
   public static void setAll(@NotNull ParameterSet params, boolean requireC13,
       @NotNull MZTolerance mzTolerance, int maxCharge) {
     params.setParameter(AutomaticIsotopeFinderParameters.requireC13, requireC13);

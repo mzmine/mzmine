@@ -32,6 +32,6 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine;
  * @param mz        intensity-weighted mean m/z of the collapsed signals at this offset.
  * @param intensity summed intensity of the collapsed signals at this offset.
  */
-public record OffsetPeak(int offset, double mz, double intensity) {
+record OffsetPeak(int offset, double mz, double intensity) {
 
 }

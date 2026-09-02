@@ -200,7 +200,6 @@ class IsotopeFinderTask extends AbstractTask {
 
     try {
       for (FeatureListRow row : featureList.getRows()) {
-        // another sample may have failed already, then stop early
         if (isCanceled() || errorMessage.get() != null) {
           return detected;
         }

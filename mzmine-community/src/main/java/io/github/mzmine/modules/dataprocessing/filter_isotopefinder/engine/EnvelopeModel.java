@@ -34,8 +34,8 @@ import org.jetbrains.annotations.Nullable;
  * Strategy that predicts the isotope intensity envelope for a searched signal at a given charge.
  * This is the part of the detection a future alternative model (e.g. formula prediction) would
  * replace; today {@link io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel}
- * is the only implementation and models are built directly by
- * {@link io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderEngineFactory}.
+ * is the only implementation and models are built directly by the module-package
+ * {@code IsotopeFinderEngineFactory}.
  */
 public interface EnvelopeModel {
 
