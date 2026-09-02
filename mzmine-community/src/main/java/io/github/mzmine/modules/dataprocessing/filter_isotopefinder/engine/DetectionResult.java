@@ -44,16 +44,10 @@ import org.jetbrains.annotations.Nullable;
  * @param anchors    how each pattern maps to its predicted envelope (aligned with
  *                   {@code scores}/{@code patterns} by index), so a post-processing step such as
  *                   cross-scan refinement can test whether an offset is predicted at all.
- * @param diagnostics rich per-charge scoring diagnostics (one per emitted charge, aligned with
- *                    {@code scores}/{@code patterns} by index), or null when the engine ran without
- *                    {@code keepDiagnostics}. Not persisted; recomputed on demand for review. The
- *                    detected composition is NOT repeated per charge - it belongs to the winner, see
- *                    {@code detectedComposition}.
  */
 public record DetectionResult(int bestCharge, @NotNull List<ChargeScore> scores,
                               @NotNull List<IsotopePattern> patterns,
                               @NotNull List<PatternAnchor> anchors,
-                              @Nullable DetectedComposition detectedComposition,
-                              @Nullable List<ChargeDiagnostics> diagnostics) {
+                              @Nullable DetectedComposition detectedComposition) {
 
 }

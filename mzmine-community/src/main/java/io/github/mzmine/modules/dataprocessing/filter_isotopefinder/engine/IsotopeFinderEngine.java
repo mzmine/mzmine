@@ -111,9 +111,6 @@ public class IsotopeFinderEngine {
   // noise axis, 0.0174 -> 0.0177 overall) and bought no completeness, because the corpus's wide
   // envelopes already reach patternRecall 1.0000. Revisit only with real data that shows truncation.
   private static final double MIN_BRIDGED_REL_INTENSITY = 0.005;
-  // heavy-isotope per-signal attribution window (neutral Da): a signal's mass-defect deviation from
-  // the 13C grid must be within this of a candidate element's M+2/M+1 defect to be labelled with it.
-  private static final double HEAVY_ATTR_WINDOW = 0.006;
 
   private final int maxCharge;
   private final MZTolerance tol;
@@ -128,9 +125,6 @@ public class IsotopeFinderEngine {
   // collects the emitted signals of a charge and, when the opt-in filter is enabled, drops those the
   // configured chemistry cannot explain
   private final ExplainableSignalFilter signalFilter;
-  // developer-only: retain rich per-charge scoring diagnostics on the DetectionResult. Off in the
-  // normal processing run (the diagnostics are recomputed on demand by the compound dashboard).
-  private final boolean keepDiagnostics;
 
   /**
    * @param config the full engine configuration, see {@link IsotopeFinderEngineConfig#of}.
@@ -144,7 +138,6 @@ public class IsotopeFinderEngine {
     this.requireC13 = config.requireC13();
     this.elementDetectionMode = config.elementDetectionMode();
     this.autoCandidates = config.autoCandidates();
-    this.keepDiagnostics = config.keepDiagnostics();
     // user heavies are only added on top of the detected ones in the combined mode
     this.includeUserHeavies = elementDetectionMode == ElementDetectionMode.USER_PLUS_AUTO;
     this.signalFilter = ExplainableSignalFilter.create(config.explainableSignalsOnly(), elements,
@@ -301,9 +294,6 @@ public class IsotopeFinderEngine {
     final List<ChargeScore> scores = new ArrayList<>();
     // aligned by index with scores/patterns: the envelope anchor of each emitted pattern
     final List<PatternAnchor> anchors = new ArrayList<>();
-    // developer-only: aligned by index with scores/patterns. Winner (index 0) carries the detected
-    // composition; alternates carry null (element auto-detection re-scores the winner only).
-    final List<ChargeDiagnostics> diagnostics = keepDiagnostics ? new ArrayList<>() : null;
     int bestCharge = 0;
     boolean first = true;
     for (final Scored scored : scoredList) {
@@ -327,82 +317,13 @@ public class IsotopeFinderEngine {
             e.raw(), prob);
         scores.add(score);
         anchors.add(new PatternAnchor(scored.env(), e.baseMz(), e.placement()));
-        if (diagnostics != null) {
-          diagnostics.add(buildDiagnostics(e, scored.env(), scored.m1Bounds(), score,
-              first ? detectedComposition : null));
-        }
         if (first) {
           bestCharge = e.charge();
         }
       }
       first = false;
     }
-    return new DetectionResult(bestCharge, scores, patterns, anchors, detectedComposition,
-        diagnostics);
-  }
-
-  /**
-   * Build the rich per-charge diagnostics for one emitted charge (developer-only, only called when
-   * {@code keepDiagnostics}). Attributes each kept signal to the 13C grid or a candidate heavy
-   * element from its mass defect, and snapshots the predicted envelope and M+1 bounds used to
-   * score.
-   *
-   * @param comp the detected composition when this charge is the winner (element auto-detection
-   *             re-scores the winner only), else null. Only used to narrow the per-signal element
-   *             labels; the composition itself is reported once on the
-   *             {@link DetectionResult#detectedComposition()}.
-   */
-  private @NotNull ChargeDiagnostics buildDiagnostics(@NotNull final ChargeEval e,
-      @NotNull final IsotopeEnvelope env, final double @NotNull [] m1Bounds,
-      @NotNull final ChargeScore score, @Nullable final DetectedComposition comp) {
-    final double baseMz = e.baseMz();
-    final int placement = e.placement();
-    final double spacingDa = env.spacingDa();
-    double baseIntensity = 0d;
-    for (final DataPoint dp : e.keptCandidates()) {
-      baseIntensity = Math.max(baseIntensity, dp.getIntensity());
-    }
-    // candidate heavy elements for per-signal attribution: the detected composition when available,
-    // otherwise the default candidate set so alternates still get a best-effort label. This is a
-    // NARROWER set than the emitted-pattern filter's (see ExplainableSignalFilter), so UNEXPLAINED
-    // can still appear here - for a signal the filter kept because nothing at its offset was
-    // explainable, or for one attributable to an element outside the detected composition.
-    final List<String> heavyCandidates =
-        comp != null && !comp.elements().isEmpty() ? List.copyOf(comp.elements())
-            : ElementAutoDetector.DEFAULT_CANDIDATES;
-    final List<DataPoint> sorted = new ArrayList<>(List.of(e.keptCandidates()));
-    sorted.sort((a, b) -> Double.compare(a.getMZ(), b.getMZ()));
-    final List<IsotopeSignalAttribution> signals = new ArrayList<>(sorted.size());
-    for (final DataPoint dp : sorted) {
-      final int k = (int) Math.round((dp.getMZ() - baseMz) / spacingDa);
-      final int offsetFromMono = k + placement;
-      final double exactGrid = baseMz + k * spacingDa;
-      final boolean onGrid = tol.checkWithinTolerance(exactGrid, dp.getMZ());
-      final double relInt = baseIntensity > 0d ? dp.getIntensity() / baseIntensity : 0d;
-      final IsotopeAssignment assignment;
-      final String label;
-      if (onGrid) {
-        if (offsetFromMono == 0) {
-          assignment = IsotopeAssignment.MONOISOTOPIC;
-          label = "M";
-        } else {
-          assignment = IsotopeAssignment.CARBON_13;
-          label = (offsetFromMono > 0 ? "+" : "") + offsetFromMono + " ¹³C";
-        }
-      } else {
-        // neutral-mass deviation from the exact 13C grid at this nominal offset (see attributeHeavyElement)
-        final double deviation = (dp.getMZ() - exactGrid) * env.charge();
-        final String el = ElementAutoDetector.attributeHeavyElement(deviation, heavyCandidates,
-            HEAVY_ATTR_WINDOW);
-        assignment = el != null ? IsotopeAssignment.HEAVY_ISOTOPE : IsotopeAssignment.UNEXPLAINED;
-        label = el != null ? el : "heavy";
-      }
-      signals.add(
-          new IsotopeSignalAttribution(dp.getMZ(), dp.getIntensity(), offsetFromMono, assignment,
-              label, relInt));
-    }
-    return new ChargeDiagnostics(env.charge(), baseMz, baseIntensity, placement, spacingDa,
-        env.expected().clone(), env.upperBound().clone(), m1Bounds.clone(), signals, score);
+    return new DetectionResult(bestCharge, scores, patterns, anchors, detectedComposition);
   }
 
   private @Nullable ChargeEval scoreCharge(final int z, final double searchedMz,

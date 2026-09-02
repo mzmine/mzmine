@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -35,7 +34,6 @@ import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYDatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -83,32 +81,12 @@ public class CompoundDashboardModel {
   // prev/next icon buttons next to the adduct ComboBox.
   private final ObjectProperty<@Nullable Scan> selectedMs2Scan = new SimpleObjectProperty<>();
 
-  // The isotope pattern rendered on top of the isotope mirror plot (the detected pattern for the
-  // currently selected charge state). Navigated by the prev/next icon buttons and the charge
-  // ComboBox above the mirror plot. Can be null when the source ion has no detected pattern.
-  private final ObjectProperty<@Nullable IsotopePattern> selectedIsotopePattern = new SimpleObjectProperty<>();
-  // The representative MS1 scan rendered on the bottom of the isotope mirror plot. Same picking
-  // rule as the MS1 background scan, but resolved for the ion that supplies the isotope pattern.
-  private final ObjectProperty<@Nullable Scan> isotopeRepresentativeScan = new SimpleObjectProperty<>();
-
-  // Developer-only (see IsotopeDiagnosticsSupport): the isotope finder scoring diagnostics
-  // recomputed on demand for the selected adduct row, or null when disabled / unavailable. Drives
-  // the diagnostics mirror (element labels, plausibility colouring, gate band) and the score panel.
-  private final ObjectProperty<@Nullable DetectionResult> isotopeDiagnostics = new SimpleObjectProperty<>();
-  // Developer-only: when true the diagnostics mirror shows the recomputed averagine envelope model
-  // on the bottom instead of the representative MS1 scan.
-  private final BooleanProperty envelopeOverlayVisible = new SimpleBooleanProperty(false);
-
   // --- derived ---------------------------------------------------------------
   private final ObservableList<RawDataFile> availableRawDataFiles = FXCollections.observableArrayList();
   private final ObservableList<FeatureListRow> adductRows = FXCollections.observableArrayList();
   // All MS2 scans for the currently selected MS2 row: first the merged scan (REPRESENTATIVE across
   // samples), then the row's individual fragment scans. Drives the scan ComboBox.
   private final ObservableList<Scan> availableMs2Scans = FXCollections.observableArrayList();
-  // All detected isotope patterns (one per charge-state hypothesis) for the ion that supplies the
-  // isotope mirror plot. Drives the charge-state ComboBox above the mirror. Empty when the ion has
-  // no detected isotope pattern.
-  private final ObservableList<IsotopePattern> isotopeChargeStates = FXCollections.observableArrayList();
   // All member rows of the currently selected compound (flattened) paired with the color the EIC /
   // mobilogram / MS1 plots use for that row. Maintained by the Interactor so the legend FlowPane
   // mirrors what the user sees on the plots.
@@ -241,58 +219,6 @@ public class CompoundDashboardModel {
 
   public ObjectProperty<@Nullable Scan> selectedMs2ScanProperty() {
     return selectedMs2Scan;
-  }
-
-  public @NotNull ObservableList<IsotopePattern> getIsotopeChargeStates() {
-    return isotopeChargeStates;
-  }
-
-  public @Nullable IsotopePattern getSelectedIsotopePattern() {
-    return selectedIsotopePattern.get();
-  }
-
-  public void setSelectedIsotopePattern(@Nullable IsotopePattern pattern) {
-    selectedIsotopePattern.set(pattern);
-  }
-
-  public ObjectProperty<@Nullable IsotopePattern> selectedIsotopePatternProperty() {
-    return selectedIsotopePattern;
-  }
-
-  public @Nullable Scan getIsotopeRepresentativeScan() {
-    return isotopeRepresentativeScan.get();
-  }
-
-  public void setIsotopeRepresentativeScan(@Nullable Scan scan) {
-    isotopeRepresentativeScan.set(scan);
-  }
-
-  public ObjectProperty<@Nullable Scan> isotopeRepresentativeScanProperty() {
-    return isotopeRepresentativeScan;
-  }
-
-  public @Nullable DetectionResult getIsotopeDiagnostics() {
-    return isotopeDiagnostics.get();
-  }
-
-  public void setIsotopeDiagnostics(@Nullable DetectionResult diagnostics) {
-    isotopeDiagnostics.set(diagnostics);
-  }
-
-  public ObjectProperty<@Nullable DetectionResult> isotopeDiagnosticsProperty() {
-    return isotopeDiagnostics;
-  }
-
-  public boolean isEnvelopeOverlayVisible() {
-    return envelopeOverlayVisible.get();
-  }
-
-  public void setEnvelopeOverlayVisible(boolean value) {
-    envelopeOverlayVisible.set(value);
-  }
-
-  public BooleanProperty envelopeOverlayVisibleProperty() {
-    return envelopeOverlayVisible;
   }
 
   public @NotNull ObservableList<CompoundDashboardLegendEntry> getLegendEntries() {

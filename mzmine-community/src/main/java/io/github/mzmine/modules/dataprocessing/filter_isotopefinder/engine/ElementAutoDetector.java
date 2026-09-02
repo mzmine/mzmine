@@ -34,7 +34,6 @@ import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -389,67 +388,6 @@ public final class ElementAutoDetector {
       }
     }
     return byCharge;
-  }
-
-  /**
-   * Attribute a single off-13C-grid signal to the most likely candidate heavy element, purely from
-   * its mass defect relative to the exact 13C grid. Used both to label detected isotope-pattern
-   * peaks in the compound dashboard and to decide whether an off-grid signal is explainable at all
-   * (see the emitted-pattern filter in {@code IsotopeFinderEngine}).
-   * <p>
-   * {@code neutralDeviationFromGrid} is the neutral-mass deviation of the signal from the nearest
-   * exact 13C-grid position ({@code (observedMz - exactGridMz) * charge}). Because accompanying 13C
-   * atoms sit exactly on the grid, this deviation is invariant to how many carbons accompany the
-   * heavy substitution: e.g. a single 37Cl (whether alone or with extra 13C) always deviates
-   * {@code m2Delta - 2*C13 ~ -9.7 mDa} from the grid. Each candidate's M+2 (and, for M+1-bearing
-   * elements such as Si, M+1) deviation is compared and the nearest within {@code windowNeutral} is
-   * returned. Cl and Br differ by only ~0.9 mDa so are barely separable on a single peak; the
-   * pattern-level {@link #detect} confidence remains the authoritative element call.
-   *
-   * @param neutralDeviationFromGrid signed neutral-mass deviation from the nearest exact 13C grid
-   *                                 position (Da).
-   * @param candidates               heavy-element symbols to consider.
-   * @param windowNeutral            maximum |deviation - candidate deviation| (Da) to accept a
-   *                                 match.
-   * @return the best-matching element symbol, or {@code null} if none matches within the window.
-   */
-  @Nullable
-  public static String attributeHeavyElement(final double neutralDeviationFromGrid,
-      @NotNull final List<String> candidates, final double windowNeutral) {
-    return attributeHeavyIsotope(neutralDeviationFromGrid, buildElementIsotopes(candidates),
-        windowNeutral);
-  }
-
-  /**
-   * Same as {@link #attributeHeavyElement(double, List, double)} on an already-resolved candidate
-   * isotope table, so a caller that attributes many signals does not rebuild it per signal.
-   *
-   * @param elements the candidate elements' isotope table, see {@link #buildElementIsotopes}.
-   */
-  @Nullable
-  static String attributeHeavyIsotope(final double neutralDeviationFromGrid,
-      @NotNull final List<ElementIsotopes> elements, final double windowNeutral) {
-    String best = null;
-    double bestDist = windowNeutral;
-    for (final ElementIsotopes e : elements) {
-      // M+2 deviation from the nearest carbon grid (round(m2Delta) == 2 for Cl/Br/S/Si-30)
-      final double devM2 = e.m2Delta() - Math.round(e.m2Delta()) * C13;
-      final double dM2 = Math.abs(neutralDeviationFromGrid - devM2);
-      if (dM2 < bestDist) {
-        bestDist = dM2;
-        best = e.symbol();
-      }
-      // M+1 deviation for genuinely M+1-bearing elements (29Si); trace M+1 isotopes are ignored
-      if (e.m1Delta() != null && e.m1Rel() >= SIGNIFICANT_M1_REL) {
-        final double devM1 = e.m1Delta() - Math.round(e.m1Delta()) * C13;
-        final double dM1 = Math.abs(neutralDeviationFromGrid - devM1);
-        if (dM1 < bestDist) {
-          bestDist = dM1;
-          best = e.symbol();
-        }
-      }
-    }
-    return best;
   }
 
   /**

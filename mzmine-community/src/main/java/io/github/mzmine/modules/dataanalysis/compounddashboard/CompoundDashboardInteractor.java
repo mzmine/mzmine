@@ -25,18 +25,13 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRow;
-import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardColoring.ColorAssignment;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderDiagnostics;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -46,8 +41,6 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,9 +51,6 @@ import org.jetbrains.annotations.Nullable;
  * the FX thread; the tasks themselves do their work on a background thread.
  */
 public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardModel> {
-
-  private static final Logger logger = Logger.getLogger(
-      CompoundDashboardInteractor.class.getName());
 
   public CompoundDashboardInteractor(@NotNull final CompoundDashboardModel model) {
     super(model);
@@ -87,7 +77,6 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
       model.setSelectedMs2Row(null);
       model.getAvailableMs2Scans().clear();
       model.setSelectedMs2Scan(null);
-      clearIsotopeState();
       model.setCurrentRawDataFile(null);
       model.getEicDatasets().clear();
       model.getMobilogramDatasets().clear();
@@ -200,98 +189,6 @@ public class CompoundDashboardInteractor extends FxInteractor<CompoundDashboardM
     // Always reset to the first (merged) entry when the row changes — the previous selection
     // refers to a different row and doesn't make sense here anymore.
     model.setSelectedMs2Scan(result.isEmpty() ? null : result.iterator().next());
-  }
-
-  /**
-   * Recompute the isotope mirror inputs for the currently selected adduct row. The top spectrum of
-   * the mirror is the detected isotope pattern of that row; when the row carries a
-   * {@link MultiChargeStateIsotopePattern} each charge-state hypothesis becomes a selectable entry
-   * in {@link CompoundDashboardModel#getIsotopeChargeStates()} (best score first), otherwise the
-   * single detected pattern is the only entry. The bottom spectrum is the row's representative MS1
-   * scan (same picking rule as the MS1 background scan).
-   * <p>
-   * decision: the source is strictly the selected adduct row — no fallback to the compound's
-   * preferred row. When the selected row has no detected isotope pattern the charge list stays
-   * empty; the view then shows the plain representative MS1 spectrum instead of the mirror.
-   * <p>
-   * The current charge-state selection is preserved when it still exists in the refreshed list (so
-   * a raw-file change does not reset the user's charge pick); otherwise the preferred (first)
-   * pattern is selected.
-   */
-  public void recomputeIsotopePattern() {
-    final FeatureListRow source = model.getSelectedAdductRow();
-    if (source == null) {
-      clearIsotopeState();
-      return;
-    }
-    final IsotopePattern best = source.getBestIsotopePattern();
-    final List<IsotopePattern> patterns;
-    if (best instanceof MultiChargeStateIsotopePattern multi) {
-      patterns = List.copyOf(multi.getPatterns());
-    } else if (best != null) {
-      patterns = List.of(best);
-    } else {
-      patterns = List.of();
-    }
-    model.getIsotopeChargeStates().setAll(patterns);
-    final IsotopePattern current = model.getSelectedIsotopePattern();
-    model.setSelectedIsotopePattern(current != null && patterns.contains(current) ? current
-        : (patterns.isEmpty() ? null : patterns.getFirst()));
-    // Representative scan is always resolved for the selected row so the view can show a plain
-    // full MS1 spectrum when no isotope pattern is available.
-    final Scan representative = pickRepresentativeScan(source, model.getCurrentRawDataFile());
-    model.setIsotopeRepresentativeScan(representative);
-    recomputeDiagnostics(source, representative);
-  }
-
-  /**
-   * Reset everything the isotope mirror reads, so no stale pattern, scan or diagnostics survives a
-   * selection change.
-   */
-  private void clearIsotopeState() {
-    model.getIsotopeChargeStates().clear();
-    model.setSelectedIsotopePattern(null);
-    model.setIsotopeRepresentativeScan(null);
-    model.setIsotopeDiagnostics(null);
-  }
-
-  /**
-   * Developer-only: recompute the isotope finder scoring diagnostics for the selected row on demand
-   * (see {@link IsotopeDiagnosticsSupport}). No-op (clears the model) when the diagnostics UI is
-   * disabled or the prerequisites are missing. Runs synchronously on the FX thread; the single-scan
-   * re-run is cheap for the default signal-based mode.
-   */
-  private void recomputeDiagnostics(@NotNull final FeatureListRow source,
-      @Nullable final Scan representative) {
-    if (!IsotopeDiagnosticsSupport.isEnabled() || representative == null) {
-      model.setIsotopeDiagnostics(null);
-      return;
-    }
-    DetectionResult diagnostics = null;
-    try {
-      diagnostics = IsotopeFinderDiagnostics.recompute(source, representative);
-    } catch (final Exception ex) {
-      logger.log(Level.WARNING,
-          "Failed to recompute isotope finder diagnostics: " + ex.getMessage(), ex);
-    }
-    model.setIsotopeDiagnostics(diagnostics);
-  }
-
-  /**
-   * Pick the representative MS1 scan for {@code row}: the feature in {@code file} if present,
-   * otherwise the row's best feature. Mirrors {@code CompoundDashboardSpectraTask} so the mirror's
-   * bottom spectrum matches the MS1 background scan.
-   */
-  private static @Nullable Scan pickRepresentativeScan(@NotNull final FeatureListRow row,
-      @Nullable final RawDataFile file) {
-    if (file != null) {
-      final Feature f = row.getFeature(file);
-      if (f != null && f.getRepresentativeScan() != null) {
-        return f.getRepresentativeScan();
-      }
-    }
-    final Feature best = row.getBestFeature();
-    return best == null ? null : best.getRepresentativeScan();
   }
 
   /**

@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.compounddashboard;
 
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -36,8 +35,6 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -46,22 +43,16 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.CompoundRowQualityController;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeDiagnostics;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.ChargeScore;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotController;
 import io.github.mzmine.modules.visualization.featurerow4dplot.FeatureRow4DPlotIcon;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.spectra.simplespectrachart.SimpleSpectraChartController;
-import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -70,15 +61,10 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -91,9 +77,6 @@ import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYDataset;
 
 /**
  * Builds the dashboard layout. Receives the controller for prev/next callbacks and the
@@ -297,300 +280,12 @@ public class CompoundDashboardViewBuilder extends FxViewBuilder<CompoundDashboar
     final BorderPane mainMS2 = new BorderPane(ms2Stack);
     mainMS2.setTop(ms2Toolbar);
 
-    // decision: the regular layout is MS1 | MS2 only. The per-row isotope pattern is shown by the
-    // "Isotope pattern" card of the compound quality pane; the mirror below is the developer-only
-    // isotope finder review pane (see IsotopeDiagnosticsSupport) and stays out of the normal UI.
-    final SplitPane sp;
-    if (IsotopeDiagnosticsSupport.isEnabled()) {
-      sp = new SplitPane(ms1View, buildIsotopeMirror(), mainMS2);
-      sp.setDividerPositions(0.33, 0.66);
-    } else {
-      sp = new SplitPane(ms1View, mainMS2);
-      sp.setDividerPositions(0.5);
-    }
+    // decision: the layout is MS1 | MS2 only. The per-row isotope pattern is shown by the
+    // "Isotope pattern" card of the compound quality pane.
+    final SplitPane sp = new SplitPane(ms1View, mainMS2);
     sp.setOrientation(Orientation.VERTICAL);
+    sp.setDividerPositions(0.45);
     return sp;
-  }
-
-  /**
-   * Builds the developer-only isotope pattern mirror pane (only reachable when
-   * {@link IsotopeDiagnosticsSupport#isEnabled()}): a toolbar with prev/next charge-state icon
-   * buttons, a charge ComboBox (mirroring the MS2 toolbar layout) and the averagine-model toggle,
-   * above a content area that shows either the mirror plot (detected isotope pattern on top,
-   * representative MS1 on bottom; the domain is zoomed to the pattern m/z range ±5) or a centered
-   * bold message when the row has no pattern or no representative scan. The per-charge score table
-   * and the per-peak dump sit in a collapsed pane below.
-   */
-  private @NotNull Region buildIsotopeMirror() {
-    final Label chargeLabel = FxLabels.newBoldLabel("Potential isotopes");
-    final ButtonBase prevCharge = FxIconUtil.newIconButton(FxIcons.ARROW_LEFT,
-        "Previous charge state", controller::previousChargeState);
-    final ButtonBase nextCharge = FxIconUtil.newIconButton(FxIcons.ARROW_RIGHT, "Next charge state",
-        controller::nextChargeState);
-    final ComboBox<IsotopePattern> chargeCombo = FxComboBox.createComboBox("Charge state",
-        model.getIsotopeChargeStates(), model.selectedIsotopePatternProperty());
-    chargeCombo.setCellFactory(_ -> chargeStateCell());
-    chargeCombo.setButtonCell(chargeStateCell());
-    HBox.setHgrow(chargeCombo, Priority.SOMETIMES);
-
-    final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, chargeLabel, prevCharge, chargeCombo,
-        nextCharge);
-
-    // toggle the bottom spectrum between the representative MS1 and the recomputed averagine
-    // envelope model used to score.
-    final CheckBox envelopeToggle = new CheckBox("Averagine model");
-    envelopeToggle.setTooltip(new Tooltip(
-        "Bottom spectrum: show the recomputed averagine envelope model instead of the MS1 scan"));
-    envelopeToggle.selectedProperty().bindBidirectional(model.envelopeOverlayVisibleProperty());
-    toolbar.getChildren().add(envelopeToggle);
-
-    // Two mutually-exclusive layers toggled by visibility: the mirror chart holder and the
-    // "no data" message.
-    final BorderPane mirrorHolder = new BorderPane();
-    final Label noDataLabel = FxLabels.newBoldTitle("No MS1 for selected ion");
-    noDataLabel.setMouseTransparent(true);
-    final StackPane stack = new StackPane(mirrorHolder, noDataLabel);
-    StackPane.setAlignment(noDataLabel, Pos.CENTER);
-    VBox.setVgrow(stack, Priority.ALWAYS);
-
-    final Runnable rebuild = () -> rebuildIsotopeMirror(mirrorHolder, noDataLabel);
-    model.selectedIsotopePatternProperty().subscribe(_ -> rebuild.run());
-    model.isotopeRepresentativeScanProperty().subscribe(_ -> rebuild.run());
-    model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
-    model.envelopeOverlayVisibleProperty().subscribe(_ -> rebuild.run());
-    rebuild.run();
-
-    final BorderPane main = new BorderPane(stack);
-    main.setTop(toolbar);
-    // dev-only diagnostics review pane (per-charge scores + per-peak dump) below the mirror
-    VBox.setVgrow(main, Priority.ALWAYS);
-    return FxLayout.newVBox(Pos.TOP_LEFT, Insets.EMPTY, true, main, buildDiagnosticsPane());
-  }
-
-  /**
-   * Developer-only diagnostics review pane: a per-charge {@link ChargeScore} table (why a charge
-   * won) plus a copyable per-peak / gate / composition dump for the selected charge. Collapsed by
-   * default; rebuilds when the recomputed diagnostics or the selected charge change.
-   */
-  private @NotNull TitledPane buildDiagnosticsPane() {
-    final TableView<ChargeScore> scoreTable = buildScoreTable();
-    final Label caption = FxLabels.newLabel("");
-    caption.setWrapText(true);
-    final TextArea dump = new TextArea();
-    dump.setEditable(false);
-    dump.setPrefRowCount(8);
-    dump.setStyle("-fx-font-family: monospace;");
-    final VBox content = FxLayout.newVBox(Pos.TOP_LEFT, new Insets(FxLayout.DEFAULT_SPACE), false,
-        caption, scoreTable, FxLabels.newBoldLabel("Per-peak / gate detail"), dump);
-    final TitledPane pane = new TitledPane("Isotope finder diagnostics (dev)", content);
-    pane.setExpanded(false);
-
-    final Runnable rebuild = () -> rebuildDiagnosticsPane(scoreTable, caption, dump);
-    model.isotopeDiagnosticsProperty().subscribe(_ -> rebuild.run());
-    model.selectedIsotopePatternProperty().subscribe(_ -> rebuild.run());
-    rebuild.run();
-    return pane;
-  }
-
-  private @NotNull TableView<ChargeScore> buildScoreTable() {
-    final TableView<ChargeScore> table = new TableView<>();
-    table.setPrefHeight(140);
-    table.getColumns().add(scoreColumn("z", s -> Integer.toString(s.charge())));
-    table.getColumns().add(scoreColumn("score", s -> fmtScore(s.score())));
-    table.getColumns().add(scoreColumn("raw", s -> fmtScore(s.raw())));
-    table.getColumns().add(scoreColumn("coverage", s -> fmtScore(s.coverage())));
-    table.getColumns().add(scoreColumn("carbonFit", s -> fmtScore(s.carbonFit())));
-    table.getColumns().add(scoreColumn("selfCons", s -> fmtScore(s.selfConsistency())));
-    table.getColumns().add(scoreColumn("spacing", s -> fmtScore(s.spacingConsistency())));
-    table.getColumns().add(scoreColumn("intAgree", s -> fmtScore(s.intensityAgreement())));
-    return table;
-  }
-
-  private static @NotNull TableColumn<ChargeScore, String> scoreColumn(@NotNull final String title,
-      @NotNull final Function<ChargeScore, String> value) {
-    final TableColumn<ChargeScore, String> col = new TableColumn<>(title);
-    col.setCellValueFactory(cd -> new ReadOnlyStringWrapper(value.apply(cd.getValue())));
-    return col;
-  }
-
-  private static @NotNull String fmtScore(final double v) {
-    return Double.isNaN(v) ? "-" : String.format("%.3f", v);
-  }
-
-  private void rebuildDiagnosticsPane(@NotNull final TableView<ChargeScore> scoreTable,
-      @NotNull final Label caption, @NotNull final TextArea dump) {
-    final DetectionResult result = model.getIsotopeDiagnostics();
-    if (result == null || result.diagnostics() == null) {
-      scoreTable.getItems().clear();
-      caption.setText(
-          "No diagnostics — the row was not processed by the isotope finder, or nothing was detected.");
-      dump.clear();
-      return;
-    }
-    scoreTable.getItems().setAll(result.scores());
-    final ChargeDiagnostics diag = IsotopeDiagnosticsSupport.matchDiagnostics(result,
-        model.getSelectedIsotopePattern());
-    final StringBuilder cap = new StringBuilder(
-        "Recomputed on the representative scan (single scan; no FWHM refinement). Best charge z=").append(
-        result.bestCharge()).append('.');
-    final String comp = IsotopeDiagnosticsSupport.formatComposition(result, diag);
-    if (comp != null) {
-      cap.append(' ').append(comp);
-    }
-    caption.setText(cap.toString());
-    dump.setText(IsotopeDiagnosticsSupport.formatDump(result, diag));
-    // select the row for the currently shown charge so the table tracks the mirror
-    if (diag != null) {
-      for (final ChargeScore s : scoreTable.getItems()) {
-        if (s.charge() == diag.charge()) {
-          scoreTable.getSelectionModel().select(s);
-          break;
-        }
-      }
-    }
-  }
-
-  /**
-   * Rebuilds the isotope mirror content. With recomputed diagnostics: draws the richer diagnostics
-   * mirror. With a detected pattern: draws the plain mirror {@link EChartViewer} (pattern top,
-   * representative MS1 bottom) and zooms the shared m/z domain to the pattern's m/z range ±5.
-   * Otherwise: shows the centered "no data" message.
-   */
-  private void rebuildIsotopeMirror(@NotNull final BorderPane mirrorHolder,
-      @NotNull final Label noDataLabel) {
-    final IsotopePattern pattern = model.getSelectedIsotopePattern();
-    final Scan representative = model.getIsotopeRepresentativeScan();
-
-    // when diagnostics were recomputed for this row, draw the richer diagnostics mirror (element
-    // labels, plausibility colouring, ghost expected sticks, gate band, envelope overlay toggle)
-    // instead of the plain detected-vs-MS1 mirror.
-    if (representative != null) {
-      final ChargeDiagnostics diag = IsotopeDiagnosticsSupport.matchDiagnostics(
-          model.getIsotopeDiagnostics(), pattern);
-      if (diag != null) {
-        final EChartViewer viewer = IsotopeDiagnosticsMirrorChart.create(diag, representative,
-            model.isEnvelopeOverlayVisible());
-        mirrorHolder.setCenter(viewer);
-        setLayerVisible(mirrorHolder, true);
-        noDataLabel.setVisible(false);
-        return;
-      }
-    }
-
-    if (pattern != null && representative != null) {
-      final int charge = pattern.getCharge();
-      final String topLabel =
-          "Detected isotope pattern" + (charge > 0 ? " (z=" + charge + ")" : "");
-      // MirrorChartFactory accepts any MassSpectrum; IsotopePattern and Scan are both MassSpectrum.
-      final EChartViewer viewer = MirrorChartFactory.createMirrorChartViewer(pattern,
-          representative, topLabel, "Representative MS1", false, true);
-      mirrorHolder.setCenter(viewer);
-      zoomToPatternRange(viewer, pattern);
-      setLayerVisible(mirrorHolder, true);
-      noDataLabel.setVisible(false);
-      return;
-    }
-
-    // Neither a pattern nor a representative scan.
-    mirrorHolder.setCenter(null);
-    setLayerVisible(mirrorHolder, false);
-    noDataLabel.setVisible(true);
-  }
-
-  /**
-   * Zoom the shared m/z domain axis of the mirror plot to the pattern's m/z range ±5 so the newly
-   * selected pattern fills the plot instead of the full representative MS1 range, then rescale the
-   * intensity (range) axis of the top and bottom subplots to the tallest signal within that m/z
-   * window — otherwise the full-scan MS1 on the bottom keeps its baseline near a peak that has been
-   * zoomed out of view.
-   */
-  private static void zoomToPatternRange(@NotNull final EChartViewer viewer,
-      @NotNull final IsotopePattern pattern) {
-    double min = Double.POSITIVE_INFINITY;
-    double max = Double.NEGATIVE_INFINITY;
-    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
-      final double mz = pattern.getMzValue(i);
-      min = Math.min(min, mz);
-      max = Math.max(max, mz);
-    }
-    if (min > max) {
-      return;
-    }
-    final double lo = min - 5;
-    final double hi = max + 5;
-    final XYPlot plot = viewer.getChart().getXYPlot();
-    plot.getDomainAxis().setRange(lo, hi);
-    // The mirror is a CombinedDomainXYPlot with one subplot per spectrum (top + bottom, the bottom
-    // range axis inverted); auto-range each subplot independently to the data in the m/z window.
-    if (plot instanceof CombinedDomainXYPlot combined) {
-      for (final Object sub : combined.getSubplots()) {
-        if (sub instanceof XYPlot subplot) {
-          autoRangeToDomainWindow(subplot, lo, hi);
-        }
-      }
-    } else {
-      autoRangeToDomainWindow(plot, lo, hi);
-    }
-  }
-
-  /**
-   * Set {@code plot}'s range axis to {@code [0, maxIntensity * 1.05]} where {@code maxIntensity} is
-   * the tallest signal of any dataset whose m/z falls within {@code [lo, hi]}. Intensities are
-   * stored positive in both subplots (the bottom axis is inverted for display), so a single
-   * non-negative scan works for both.
-   */
-  private static void autoRangeToDomainWindow(@NotNull final XYPlot plot, final double lo,
-      final double hi) {
-    double maxIntensity = 0d;
-    for (int d = 0; d < plot.getDatasetCount(); d++) {
-      final XYDataset ds = plot.getDataset(d);
-      if (ds == null) {
-        continue;
-      }
-      for (int s = 0; s < ds.getSeriesCount(); s++) {
-        for (int i = 0; i < ds.getItemCount(s); i++) {
-          final double x = ds.getXValue(s, i);
-          if (x < lo || x > hi) {
-            continue;
-          }
-          maxIntensity = Math.max(maxIntensity, ds.getYValue(s, i));
-        }
-      }
-    }
-    if (maxIntensity > 0d) {
-      plot.getRangeAxis().setRange(0d, maxIntensity * 1.05);
-    }
-  }
-
-  private static void setLayerVisible(@NotNull final Node node, final boolean visible) {
-    node.setVisible(visible);
-    node.setManaged(visible);
-  }
-
-  private static @NotNull ListCell<IsotopePattern> chargeStateCell() {
-    return new ListCell<>() {
-      @Override
-      protected void updateItem(final IsotopePattern item, final boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || item == null) {
-          setText(null);
-        } else {
-          setText(formatChargeStateLabel(item));
-        }
-        setGraphic(null);
-      }
-    };
-  }
-
-  private static @NotNull String formatChargeStateLabel(@NotNull final IsotopePattern pattern) {
-    final int charge = pattern.getCharge();
-    final String chargeStr = charge > 0 ? ("z = " + charge) : "z = ?";
-    final double score = pattern.getScore();
-    if (Double.isNaN(score)) {
-      return chargeStr;
-    }
-    final NumberFormats fmt = ConfigService.getGuiFormats();
-    return chargeStr + " · score " + fmt.score(score);
   }
 
   /**

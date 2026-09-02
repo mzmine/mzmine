@@ -61,20 +61,12 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           + "algorithm.", IsotopeFinderModeOptions.AUTOMATIC);
 
   // legacy parameters: they used to live on this top level and moved into the algorithm parameters.
-  // They are not part of this parameter set anymore and only exist to read the value of an older
-  // batch/config XML, see getNameParameterMap() and handleLoadedParameters(). Private on purpose -
-  // nothing but the legacy loading may read them. The templates are only ever CLONED, never used
-  // directly: loading writes the parsed value into the parameter instance, so a shared static one
-  // would leak values between parameter sets loading at the same time.
-  private static final MZToleranceParameter legacyMzToleranceTemplate = new MZToleranceParameter(
+  private final MZToleranceParameter legacyMzToleranceTemplate = new MZToleranceParameter(
       ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
 
-  private static final IntegerParameter legacyMaxChargeTemplate = new IntegerParameter(
+  private final IntegerParameter legacyMaxChargeTemplate = new IntegerParameter(
       "Maximum charge of isotope m/z", "Legacy parameter, moved into the algorithm parameters.",
       CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE, true, 1, 1000);
-
-  // even older name of the same tolerance parameter
-  private static final String LEGACY_MZ_TOLERANCE_OLD_NAME = "m/z tolerance";
 
   public IsotopeFinderParameters() {
     super(new UserParameter[]{featureLists, mode},
@@ -113,10 +105,7 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           The isotope finder was reworked: the detection algorithm now searches all plausible isotope \
           signals around the feature m/z, selects the most probable charge state, and bounds the \
           pattern with modelled relative intensities. Results therefore differ from earlier versions \
-          and are generally more complete and more reliable.
-          The parameters were restructured into algorithm options, the new default being "Automatic". \
-          Your m/z tolerance and maximum charge were carried over; all other settings use the new \
-          defaults. Note that the default maximum charge is now 3 instead of 1.""";
+          and are generally more complete and more reliable.""";
       default -> null;
     };
   }
@@ -124,12 +113,11 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
     var nameParameterMap = super.getNameParameterMap();
-    // parameters that moved into the algorithm parameters, see handleLoadedParameters. Cloned so the
-    // loaded value lands on an instance owned by this load only.
-    final MZToleranceParameter tolerance = legacyMzToleranceTemplate.cloneParameter();
-    final IntegerParameter maxChargeParam = legacyMaxChargeTemplate.cloneParameter();
+    // parameters that moved into the algorithm parameters, see handleLoadedParameters.
+    final MZToleranceParameter tolerance = legacyMzToleranceTemplate;
+    final IntegerParameter maxChargeParam = legacyMaxChargeTemplate;
     nameParameterMap.put(tolerance.getName(), tolerance);
-    nameParameterMap.put(LEGACY_MZ_TOLERANCE_OLD_NAME, tolerance);
+    nameParameterMap.put("m/z tolerance", tolerance);
     nameParameterMap.put(maxChargeParam.getName(), maxChargeParam);
     return nameParameterMap;
   }

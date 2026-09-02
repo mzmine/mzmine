@@ -59,8 +59,8 @@ public class CompoundRowQualityInteractor {
 
   /// Display order matches {@link QualityCheckType} ordering.
   private final @NotNull List<@NotNull QualityCheck> checks = List.of(
-      new CompoundAnnotationMatchCheck(), new AnnotationAgreementCheck(), new IonTypesCheck(),
-      new MainAdductCheck(), new IsotopePatternCheck(), new RtStabilityCheck(),
+      new CompoundAnnotationMatchCheck(), new AnnotationAgreementCheck(), new IsotopePatternCheck(),
+      new IonTypesCheck(), new MainAdductCheck(), new RtStabilityCheck(),
       new Ms2AvailableCheck(),
       new InSourceFragmentationCheck(),
       new ImsFragmentationCheck());

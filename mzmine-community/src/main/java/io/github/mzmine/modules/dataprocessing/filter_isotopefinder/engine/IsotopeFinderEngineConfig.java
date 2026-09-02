@@ -33,9 +33,8 @@ import org.openscience.cdk.Element;
 
 /**
  * Full configuration of an {@link IsotopeFinderEngine}. Built with {@link #of} for the required
- * settings and refined with the {@code with*} methods, so an optional setting - notably
- * {@link #keepDiagnostics()}, which is developer-only - is named at the call site instead of being a
- * positional boolean.
+ * settings and refined with the {@code with*} methods, so an optional setting is named at the call
+ * site instead of being a positional boolean.
  *
  * @param elements             the elements whose isotope m/z differences seed the candidate search.
  * @param maxCharge            highest charge hypothesis to score.
@@ -51,25 +50,22 @@ import org.openscience.cdk.Element;
  *                               default - it lowers the noise leak at the cost of pattern
  *                               completeness, see
  *                               {@code CarbonAveragineAlgorithmParameters#explainableSignalsOnly}.
- * @param keepDiagnostics      developer-only: retain rich per-charge scoring diagnostics on the
- *                             {@link DetectionResult}. Off in the normal processing run.
  */
 public record IsotopeFinderEngineConfig(@NotNull List<Element> elements, int maxCharge,
                                         @NotNull MZTolerance tol, @NotNull EnvelopeModel model,
                                         @NotNull String modeLabel, boolean requireC13,
                                         @NotNull ElementDetectionMode elementDetectionMode,
                                         @NotNull List<String> autoCandidates,
-                                        boolean explainableSignalsOnly, boolean keepDiagnostics) {
+                                        boolean explainableSignalsOnly) {
 
   /**
-   * @return a configuration with element auto-detection, the explainable-signals filter and
-   * diagnostics off.
+   * @return a configuration with element auto-detection and the explainable-signals filter off.
    */
   public static @NotNull IsotopeFinderEngineConfig of(@NotNull final List<Element> elements,
       final int maxCharge, @NotNull final MZTolerance tol, @NotNull final EnvelopeModel model,
       @NotNull final String modeLabel, final boolean requireC13) {
     return new IsotopeFinderEngineConfig(elements, maxCharge, tol, model, modeLabel, requireC13,
-        ElementDetectionMode.USER_DEFINED, List.of(), false, false);
+        ElementDetectionMode.USER_DEFINED, List.of(), false);
   }
 
   /**
@@ -80,7 +76,7 @@ public record IsotopeFinderEngineConfig(@NotNull List<Element> elements, int max
   public @NotNull IsotopeFinderEngineConfig withElementDetection(
       @NotNull final ElementDetectionMode mode, @NotNull final List<String> candidates) {
     return new IsotopeFinderEngineConfig(elements, maxCharge, tol, model, modeLabel, requireC13,
-        mode, candidates, explainableSignalsOnly, keepDiagnostics);
+        mode, candidates, explainableSignalsOnly);
   }
 
   /**
@@ -89,15 +85,6 @@ public record IsotopeFinderEngineConfig(@NotNull List<Element> elements, int max
    */
   public @NotNull IsotopeFinderEngineConfig withExplainableSignalsOnly(final boolean only) {
     return new IsotopeFinderEngineConfig(elements, maxCharge, tol, model, modeLabel, requireC13,
-        elementDetectionMode, autoCandidates, only, keepDiagnostics);
-  }
-
-  /**
-   * @param keep whether to retain the per-charge scoring diagnostics (developer-only).
-   * @return a copy with the diagnostics flag set.
-   */
-  public @NotNull IsotopeFinderEngineConfig withDiagnostics(final boolean keep) {
-    return new IsotopeFinderEngineConfig(elements, maxCharge, tol, model, modeLabel, requireC13,
-        elementDetectionMode, autoCandidates, explainableSignalsOnly, keep);
+        elementDetectionMode, autoCandidates, only);
   }
 }

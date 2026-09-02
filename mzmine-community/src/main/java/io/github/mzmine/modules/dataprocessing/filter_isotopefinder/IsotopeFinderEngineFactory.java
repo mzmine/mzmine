@@ -31,8 +31,6 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.Envel
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngineConfig;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeModel;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,9 +39,8 @@ import org.openscience.cdk.Element;
 
 /**
  * Builds an {@link IsotopeFinderEngine} from a {@link CarbonAveragineAlgorithmParameters} setup.
- * Single source of truth for the engine wiring so both {@link IsotopeFinderTask} (the processing run)
- * and the on-demand diagnostics recompute (compound dashboard, see
- * {@link IsotopeFinderDiagnostics}) build an identically configured engine.
+ * Single source of truth for the engine wiring so every caller builds an identically configured
+ * engine.
  */
 public final class IsotopeFinderEngineFactory {
 
@@ -51,43 +48,14 @@ public final class IsotopeFinderEngineFactory {
   }
 
   /**
-   * Rebuild the engine of a finished run from its stored top-level parameters. Only for the
-   * developer-only diagnostics recompute - the normal run gets its parameters from the algorithm that
-   * created the task, see
-   * {@link IsotopeFinderAlgorithmModule#createTasks(io.github.mzmine.datamodel.MZmineProject,
-   * io.github.mzmine.datamodel.features.ModularFeatureList[], ParameterSet, ParameterSet,
-   * java.time.Instant)}.
-   *
-   * @param parameters      an {@link IsotopeFinderParameters} value set.
-   * @param keepDiagnostics developer-only: retain rich per-charge scoring diagnostics on the result.
-   * @return the configured engine. The switch below is exhaustive on purpose: an algorithm that this
-   * carbon-averagine engine cannot reproduce must decide here what the diagnostics should do.
-   */
-  public static @NotNull IsotopeFinderEngine createForDiagnostics(
-      @NotNull final ParameterSet parameters, final boolean keepDiagnostics) {
-    final ValueWithParameters<IsotopeFinderModeOptions> modeValue = parameters.getParameter(
-        IsotopeFinderParameters.mode).getValueWithParameters();
-    final CarbonAveragineAlgorithmParameters algo = switch (modeValue.value()) {
-      case AUTOMATIC -> AutomaticIsotopeFinderParameters.toCarbonAveragineParameters(
-          modeValue.parameters());
-      case CARBON_AVERAGINE ->
-          (CarbonAveragineAlgorithmParameters) modeValue.parameters().cloneParameterSet();
-    };
-    return create(algo, modeValue.value().toString(), keepDiagnostics);
-  }
-
-  /**
    * Build the engine from the full algorithm parameters.
    *
-   * @param algo            the full carbon-averagine setup.
-   * @param algorithmName   name of the selected algorithm, only used for reporting.
-   * @param keepDiagnostics developer-only: retain rich per-charge scoring diagnostics on the result
-   *                        (used by the compound dashboard review tooling). Off for the normal run.
+   * @param algo          the full carbon-averagine setup.
+   * @param algorithmName name of the selected algorithm, only used for reporting.
    * @return the configured engine.
    */
   public static @NotNull IsotopeFinderEngine create(
-      @NotNull final CarbonAveragineAlgorithmParameters algo, @NotNull final String algorithmName,
-      final boolean keepDiagnostics) {
+      @NotNull final CarbonAveragineAlgorithmParameters algo, @NotNull final String algorithmName) {
     final List<Element> elements = algo.getValue(CarbonAveragineAlgorithmParameters.elements);
     final int maxCharge = algo.getValue(CarbonAveragineAlgorithmParameters.maxCharge);
     final MZTolerance tol = algo.getValue(CarbonAveragineAlgorithmParameters.isotopeMzTolerance);
@@ -107,7 +75,7 @@ public final class IsotopeFinderEngineFactory {
     return new IsotopeFinderEngine(
         IsotopeFinderEngineConfig.of(elements, maxCharge, tol, model, algorithmName, requireC13)
             .withElementDetection(elementDetectionMode, autoCandidates)
-            .withExplainableSignalsOnly(explainableOnly).withDiagnostics(keepDiagnostics));
+            .withExplainableSignalsOnly(explainableOnly));
   }
 
   /**

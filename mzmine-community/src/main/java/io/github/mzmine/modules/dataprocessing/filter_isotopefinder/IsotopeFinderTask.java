@@ -122,7 +122,7 @@ class IsotopeFinderTask extends AbstractTask {
 
     // build the detection engine (envelope model, charge scoring, element auto-detection) from the
     // algorithm parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
-    this.engine = IsotopeFinderEngineFactory.create(algo, algorithmName, false);
+    this.engine = IsotopeFinderEngineFactory.create(algo, algorithmName);
 
     // FWHM refinement parameters
     this.fwhmRefineEnabled = algo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine);
