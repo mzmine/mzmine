@@ -139,8 +139,8 @@ public class ExportScansTask extends AbstractTask {
    */
   public void exportText() throws IOException {
 
-    // Open the writer - append data if file already exists
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
+    // Open the writer - overwrite if file already exists
+    final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, false));
     try {
       for (Scan scan : scans) {
         logger.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
