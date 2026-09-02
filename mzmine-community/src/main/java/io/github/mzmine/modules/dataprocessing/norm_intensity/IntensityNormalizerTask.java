@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -309,21 +310,8 @@ class IntensityNormalizerTask extends AbstractTask {
     if (internalStandardEnabled) {
       try {
         // Use normalized abundances as base for IS metric computation if pass 1 already ran.
-        final NormalizationTypeModule isNormalizer = internalStandardNormalizer.getModuleInstance();
-        if (isNormalizer instanceof InternalStandardSelectingNormalizer standardModule) {
-          if (internalStandardSelection == null) {
-            throw new IllegalStateException(
-                "Resolved internal standards were null. It seems this module does not handle internal standards.");
-          }
-          // reuse the standard rows that were resolved for the whole feature list
-          standardModule.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
-              samplesBatch, metadata, mainParameters, internalStandardParams,
-              internalStandardSelection);
-        } else {
-          throw new IllegalStateException(
-              "Seems like internal standard module %s is not handled.".formatted(
-                  isNormalizer.getName()));
-        }
+        applyInternalStandardization(samplesBatch, summary, metadata);
+
         processedFiles += samplesBatch.size();
       } catch (IllegalStateException e) {
         error("Pre-normalization internal standards: " + e.getMessage());
@@ -343,6 +331,31 @@ class IntensityNormalizerTask extends AbstractTask {
             IntensityNormalizerParameters.normalizationType.getName(),
             normalizationTypeModule.getName()) + e.getMessage());
         return;
+      }
+    }
+  }
+
+  private void applyInternalStandardization(SamplesBatch samplesBatch,
+      IntensityNormalizationSearchableSummary summary, MetadataTable metadata) {
+    final NormalizationTypeModule isNormalizer = internalStandardNormalizer.getModuleInstance();
+    switch (isNormalizer) {
+      case StandardCompoundNormalizationTypeModule standardModule -> {
+        if (internalStandardSelection == null) {
+          throw new IllegalStateException(
+              "Resolved internal standards were null. It seems this module does not handle internal standards.");
+        }
+        // reuse the standard rows that were resolved for the whole feature list
+        standardModule.createAllNormalizationFunctionsToSummary(summary, normalizedFeatureList,
+            samplesBatch, metadata, mainParameters, internalStandardParams,
+            internalStandardSelection);
+      }
+      case FeatureIntensityNormalizationModule _, TotalRawSignalNormalizationTypeModule _,
+           NoNormalizationTypeModule _, MetadataColumnNormalizationTypeModule _ -> {
+        // currently only no normalization (!internalStandardEnabled) and no internal standard
+        // normalization are handled here. In case we add another normalizer we may have to handle it
+        throw new IllegalStateException(
+            "There is an internal standard normalizer module selected %s that is not handled in intensity normalizer task.".formatted(
+                isNormalizer.getName()));
       }
     }
   }

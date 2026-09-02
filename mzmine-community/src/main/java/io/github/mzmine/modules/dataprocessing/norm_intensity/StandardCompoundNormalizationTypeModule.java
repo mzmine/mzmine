@@ -57,8 +57,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Internal standards normalization
  */
-public class StandardCompoundNormalizationTypeModule extends
-    NormalizationTypeWithReferencesModule implements InternalStandardSelectingNormalizer {
+public final class StandardCompoundNormalizationTypeModule implements NormalizationTypeModule,
+    InternalStandardSelectingNormalizer {
 
   /**
    * Prefix of the informational messages this step adds to
@@ -125,21 +125,13 @@ public class StandardCompoundNormalizationTypeModule extends
    * Should use the overloaded method with already applied selection of standards to use the same
    * standards for all sample batches
    */
-  @Deprecated
   @Override
-  public @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
+  public void createAllNormalizationFunctionsToSummary(
       @NotNull IntensityNormalizationSearchableSummary summary,
-      @NotNull final List<@NotNull RawDataFile> referenceFiles,
-      @NotNull final ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
-      @NotNull final MetadataTable metadata, @NotNull final ParameterSet mainParameters,
-      @NotNull final ParameterSet moduleSpecificParameters) {
+      @NotNull ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
+      @NotNull MetadataTable metadata, @NotNull ParameterSet mainParameters,
+      @NotNull ParameterSet moduleSpecificParameters) {
     throw new UnsupportedOperationException("Use the method with preselected standard selection.");
-    // no precomputed selection: resolve the standards for the reference files of this batch
-//    final StandardCompoundSelection selection = selectStandards(summary, featureList,
-//        referenceFiles, mainParameters, moduleSpecificParameters);
-//
-//    return createReferenceFunctions(summary, referenceFiles, mainParameters,
-//        moduleSpecificParameters, selection);
   }
 
   /**
@@ -148,7 +140,7 @@ public class StandardCompoundNormalizationTypeModule extends
    * ModularFeatureList, SamplesBatch, MetadataTable, ParameterSet, ParameterSet,
    * StandardCompoundSelection)}.
    */
-  protected @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
+  @NotNull Map<@NotNull RawDataFile, @NotNull NormalizationFunction> createReferenceFunctions(
       @NotNull final IntensityNormalizationSearchableSummary summary,
       @NotNull final List<@NotNull RawDataFile> referenceFiles,
       @NotNull final ParameterSet mainParameters,
@@ -638,4 +630,23 @@ public class StandardCompoundNormalizationTypeModule extends
     }
   }
 
+  /**
+   * Interpolate all missing sample functions from the reference functions. Default implementation
+   * uses linear binary interpolation. Overwrite for other interpolation.
+   *
+   * @param summary      results be merged into the summary
+   * @param samplesBatch the samples batch to process
+   * @param refFunctions the reference functions of this normalization step. This may not be the
+   *                     function in summary as summary merges with the previous normalization
+   *                     steps.
+   */
+  void interpolateAllFunctionsToSummary(@NotNull IntensityNormalizationSearchableSummary summary,
+      @NotNull ModularFeatureList featureList, @NotNull SamplesBatch samplesBatch,
+      @NotNull MetadataTable metadata,
+      Map<@NotNull RawDataFile, @NotNull NormalizationFunction> refFunctions,
+      @NotNull ParameterSet mainParameters, @NotNull ParameterSet moduleSpecificParameters) {
+    // will check if interpolation is needed to then interpolate functions and save them to summary
+    NormalizationFunctionUtils.interpolateLinearBinary(summary, samplesBatch, refFunctions,
+        metadata);
+  }
 }
