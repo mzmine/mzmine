@@ -25,6 +25,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -39,10 +40,12 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
@@ -287,10 +290,11 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
           .sort(Comparator.comparingDouble(a -> a.getScore() != null ? a.getScore() : 0f));
     }
 
+    dataFile.getAppliedMethods().forEach(m -> processedFeatureList.getAppliedMethods().add(m));
+
     // Append processed feature list to the project
     project.addFeatureList(processedFeatureList);
 
-    dataFile.getAppliedMethods().forEach(m -> processedFeatureList.getAppliedMethods().add(m));
     // Add task description to peakList
     processedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Targeted feature detection ",
@@ -319,13 +323,19 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       processedScans++;
     }
 
+    finalizeFeatures(gaps);
+    return true;
+  }
+
+  private void finalizeFeatures(List<? extends Gap> gaps) {
     for (Gap gap : gaps) {
       final FeatureListRow row = gap.getFeatureListRow();
       if (gap.noMoreOffers(minDataPoints)) {
+        ((ModularFeature) row.getFeature(gap.getRawDataFile())).set(DetectionType.class,
+            FeatureStatus.DETECTED);
         processedFeatureList.addRow(row);
       }
     }
-    return true;
   }
 
   private boolean processLcmsFile(List<Gap> gaps) {
@@ -347,13 +357,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       processedScans++;
     }
 
-    for (Gap gap : gaps) {
-      // Finalize gaps
-      final FeatureListRow row = gap.getFeatureListRow();
-      if (gap.noMoreOffers()) {
-        processedFeatureList.addRow(row);
-      }
-    }
+    finalizeFeatures(gaps);
     return true;
   }
 
