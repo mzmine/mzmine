@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * <b>The arrays are exposed directly and must never be mutated by callers.</b> An envelope is built
  * once per (m/z, charge) hypothesis and shared by every scoring step; a caller that needs to keep a
- * snapshot (e.g. the diagnostics) must clone.
+ * snapshot must clone.
  */
 public record IsotopeEnvelope(@NotNull double[] expected, @NotNull double[] upperBound,
                               double spacingDa, int charge) {

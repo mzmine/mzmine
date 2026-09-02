@@ -121,7 +121,7 @@ class IsotopeFinderTask extends AbstractTask {
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
 
     // build the detection engine (envelope model, charge scoring, element auto-detection) from the
-    // algorithm parameters. Shared with the compound dashboard's on-demand diagnostics recompute.
+    // algorithm parameters
     this.engine = IsotopeFinderEngineFactory.create(algo, algorithmName);
 
     // FWHM refinement parameters

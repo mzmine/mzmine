@@ -81,7 +81,7 @@ public final class IsotopeFinderEngineFactory {
   /**
    * @return the heavy-element symbols the auto-detector may infer for the given detection mode.
    */
-  public static @NotNull List<String> autoCandidates(@NotNull final ElementDetectionMode mode,
+  private static @NotNull List<String> autoCandidates(@NotNull final ElementDetectionMode mode,
       @NotNull final List<Element> elements) {
     return switch (mode) {
       case USER_DEFINED -> List.of();
