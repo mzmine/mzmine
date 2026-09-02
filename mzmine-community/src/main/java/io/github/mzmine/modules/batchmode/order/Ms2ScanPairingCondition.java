@@ -42,16 +42,17 @@ public enum Ms2ScanPairingCondition implements ModuleOrderCondition {
 
   @Override
   public @NotNull String description() {
-    return "a feature resolver with MS/MS scan pairing enabled, MS2 grouping, or the DIA pseudo "
-        + "MS2 builder";
+    return """
+        MS2 spectra are paried by a feature resolver ("%s" parameter), "%s" module, or "%s" module.
+        """.formatted(GeneralResolverParameters.groupMS2Parameters.getName(),
+        GroupMS2Module.MODULE_NAME, DiaMs2CorrModule.NAME);
   }
 
   @Override
   public boolean matches(
       @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
     return step.getModule() instanceof GroupMS2Module
-        || step.getModule() instanceof DiaMs2CorrModule
-        || hasResolverMs2ScanPairing(step);
+        || step.getModule() instanceof DiaMs2CorrModule || hasResolverMs2ScanPairing(step);
   }
 
   private static boolean hasResolverMs2ScanPairing(@NotNull final MZmineProcessingStep<?> step) {
@@ -60,8 +61,8 @@ public enum Ms2ScanPairingCondition implements ModuleOrderCondition {
     }
 
     final ParameterSet parameters = step.getParameterSet();
-    if (parameters == null
-        || !parameters.hasParameter(GeneralResolverParameters.groupMS2Parameters)) {
+    if (parameters == null || !parameters.hasParameter(
+        GeneralResolverParameters.groupMS2Parameters)) {
       return false;
     }
     return Boolean.TRUE.equals(parameters.getValue(GeneralResolverParameters.groupMS2Parameters));

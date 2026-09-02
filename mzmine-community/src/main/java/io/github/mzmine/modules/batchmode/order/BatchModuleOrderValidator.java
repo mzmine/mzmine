@@ -116,19 +116,11 @@ public final class BatchModuleOrderValidator {
     final ModuleOrderRuleEvaluation ruleEvaluation = selectedViolation.ruleEvaluation();
     final ModuleOrderRule selectedRule = ruleEvaluation.rule();
     final String ruleDescription = ruleEvaluation.ruleDescription();
-    final String missingText = ruleEvaluation.requiredStepMissing() ? switch (selectedRule) {
-      case RelativeModuleOrderRule relativeRule -> {
-        final ModuleOrderEvaluationContext context = new ModuleOrderEvaluationContext(batchQueue,
-            segment, stepIndex);
-        final String anchorDescription = relativeRule.anchorCondition().description(context);
-        yield " " + asSentence(capitalizeFirst(anchorDescription) + " needs to be added");
-      }
-    } : "";
     final String rationale = asSentence(recommendation.rationale());
     final String pipelineText =
         showPipelineIndex ? "pipeline %d, ".formatted(segmentIndex + 1) : "";
-    final String message = "Step %d, %s%s. %s%s".formatted(stepIndex + 1, pipelineText,
-        ruleDescription, rationale, missingText);
+    final String message = "Step %d, %s%s. %s".formatted(stepIndex + 1, pipelineText,
+        ruleDescription, rationale);
     issues.add(
         new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
             module.getName(), recommendation, selectedRule, message));
