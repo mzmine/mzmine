@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,67 +28,65 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import java.util.Map;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Top-level isotope finder parameters: the feature lists plus the algorithm choice. The whole setup
+ * of a detection run lives in the algorithm's embedded parameters, see
+ * {@link IsotopeFinderModeOptions} and {@link CarbonAveragineAlgorithmParameters}.
+ */
 public class IsotopeFinderParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
-      "Chemical elements which isotopes will be considered");
-  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
-      ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
-  public static final IntegerParameter maxCharge = new IntegerParameter(
-      "Maximum charge of isotope m/z",
-      "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
-          + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
-          + "but insert an integer greater than 1 if you want to consider ions of higher charge states.",
-      1, true, 1, 1000);
+  // decision: only AUTOMATIC is offered for now the carbon one is too complex for now
+  public static final ModuleOptionsEnumComboParameter<IsotopeFinderModeOptions> mode = new ModuleOptionsEnumComboParameter<>(
+      "Algorithm",
+      "Automatic only asks for m/z tolerance, the 13C requirement, and the maximum charge and uses "
+          + "sensible defaults for the rest.",
+      new IsotopeFinderModeOptions[]{IsotopeFinderModeOptions.AUTOMATIC},
+      IsotopeFinderModeOptions.AUTOMATIC);
 
-  public static final ComboParameter<ScanRange> scanRange = new ComboParameter<>("Search in scans",
-      " Options to search isotopes in the single most intense scan"
-          + " or within all scans in full-width at half maximum range.", ScanRange.values(),
-      ScanRange.SINGLE_MOST_INTENSE);
+  // legacy parameters: they used to live on this top level and moved into the algorithm parameters.
+  private final MZToleranceParameter legacyMzToleranceTemplate = new MZToleranceParameter(
+      ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
+
+  private final IntegerParameter legacyMaxChargeTemplate = new IntegerParameter(
+      "Maximum charge of isotope m/z", "Legacy parameter, moved into the algorithm parameters.",
+      CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE, true, 1, 1000);
 
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange},
+    super(new UserParameter[]{featureLists, mode},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, FxTexts.text("""
-        The isotope finder will search for all possible isotope signals in the mass lists for each
-        feature. The resulting pattern may contain signals from different charge states as this module tries
-        to capture all available information, whereas the isotope grouper acts as a feature filter.
+        The isotope finder searches for all plausible isotope signals around each feature m/z. It
+        selects the most probable charge state, flags other highly probable charges (e.g. overlapping
+        [M+H]+ and [2M+2H]2+), and bounds the pattern with rough relative-intensity estimates. The
+        resulting pattern is intentionally inclusive so that downstream formula prediction can refine
+        it further.
         """));
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-
-  public enum ScanRange {
-    // IN_FWHM,
-    SINGLE_MOST_INTENSE;
-
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
   }
 
   @Override
@@ -97,11 +95,62 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   }
 
   @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(final int version) {
+    return switch (version) {
+      // only mention the major change - the detection itself is different, not just the parameters
+      case 2 -> """
+          The isotope finder was reworked: the detection algorithm now searches all plausible isotope \
+          signals around the feature m/z, selects the most probable charge state, and bounds the \
+          pattern with modelled relative intensities. Results therefore differ from earlier versions \
+          and are generally more complete and more reliable.""";
+      default -> null;
+    };
+  }
+
+  @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
-    // parameters were renamed but stayed the same type
     var nameParameterMap = super.getNameParameterMap();
-    // we use the same parameters here so no need to increment the version. Loading will work fine
-    nameParameterMap.put("m/z tolerance", getParameter(isotopeMzTolerance));
+    // parameters that moved into the algorithm parameters, see handleLoadedParameters.
+    final MZToleranceParameter tolerance = legacyMzToleranceTemplate;
+    final IntegerParameter maxChargeParam = legacyMaxChargeTemplate;
+    nameParameterMap.put(tolerance.getName(), tolerance);
+    nameParameterMap.put("m/z tolerance", tolerance);
+    nameParameterMap.put(maxChargeParam.getName(), maxChargeParam);
     return nameParameterMap;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    // read the values off the clones that the loading filled, see getNameParameterMap. The map is
+    // keyed by the parameter's own name, also when the XML used the older name.
+    final Parameter<?> loadedTolerance = loadedParams.get(legacyMzToleranceTemplate.getName());
+    final Parameter<?> loadedMaxCharge = loadedParams.get(legacyMaxChargeTemplate.getName());
+    final MZTolerance tolerance =
+        loadedTolerance instanceof MZToleranceParameter p ? p.getValue() : null;
+    final Integer legacyCharge =
+        loadedMaxCharge instanceof IntegerParameter p ? p.getValue() : null;
+    if (tolerance == null && legacyCharge == null) {
+      return;
+    }
+
+    // decision: a batch that still carries these on the top level predates the algorithm options, so
+    // it only ever ran the carbon model algorithm with defaults. Map it to the automatic option,
+    // which is that algorithm with defaults plus exactly these two values.
+    final ParameterSet automatic = getParameter(mode).setOptionGetParameters(
+        IsotopeFinderModeOptions.AUTOMATIC);
+    if (tolerance != null) {
+      automatic.setParameter(AutomaticIsotopeFinderParameters.isotopeMzTolerance, tolerance);
+    }
+    if (legacyCharge != null) {
+      automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, legacyCharge);
+    }
   }
 }

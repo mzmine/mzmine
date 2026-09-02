@@ -148,7 +148,8 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
 
     return new SimpleIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getCharge(),
-        pattern.getStatus(), pattern.getDescription(), newComp.toArray(new String[0]));
+        pattern.getScore(), pattern.getStatus(), pattern.getDescription(),
+        newComp.toArray(new String[0]));
   }
 
   /**
@@ -171,18 +172,21 @@ public class IsotopePatternCalculator implements MZmineModule {
       return pattern;
     }
 
+    // the score describes the pattern shape, which normalization does not change - carry it over so
+    // a normalized multi-charge pattern keeps its charge ranking
     if (pattern instanceof SimpleIsotopePattern simple
         && ((SimpleIsotopePattern) pattern).getIsotopeCompositions() != null) {
-      return new SimpleIsotopePattern(newDataPoints, pattern.getCharge(), pattern.getStatus(),
-          pattern.getDescription(), simple.getIsotopeCompositions());
+      return new SimpleIsotopePattern(newDataPoints, pattern.getCharge(), pattern.getScore(),
+          pattern.getStatus(), pattern.getDescription(), simple.getIsotopeCompositions());
     } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
-      // normalize all patterns for all charge states
+      // normalize all patterns for all charge states, preserving the existing ranking: the order was
+      // chosen by the writer (the isotope finder ranks by more than the stored score)
       final List<IsotopePattern> patternsForCharges = multi.getPatterns().stream()
           .map(p -> normalizeIsotopePattern(p, normalizedValue)).toList();
-      return new MultiChargeStateIsotopePattern(patternsForCharges);
+      return MultiChargeStateIsotopePattern.ofRanked(patternsForCharges);
     } else {
-      return new SimpleIsotopePattern(newDataPoints, pattern.getCharge(), pattern.getStatus(),
-          pattern.getDescription());
+      return new SimpleIsotopePattern(newDataPoints, pattern.getCharge(), pattern.getScore(),
+          pattern.getStatus(), pattern.getDescription());
     }
   }
 
@@ -223,7 +227,10 @@ public class IsotopePatternCalculator implements MZmineModule {
   }
 
   /**
-   * Predict pattern with default binning width for annotations
+   * Predict pattern with default binning width for annotations. The binning width is very small
+   * resulting in separate signals for O and N.
+   * <p>
+   * TODO scoring should score against multiple resolutions and keep track of best merge width
    *
    * @param neutralFormula ionType will be added on top of neutral formula to create ion formula
    * @return the isotope pattern of ion formula. or null if formula or ionType are null

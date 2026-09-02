@@ -76,9 +76,11 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMs2AdvancedParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.AutomaticIsotopeFinderParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.CarbonAveragineAlgorithmParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModeOptions;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
@@ -1297,12 +1299,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(IsotopeFinderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(IsotopeFinderParameters.isotopeMzTolerance, mzTolFeaturesIntraSample);
-    param.setParameter(IsotopeFinderParameters.maxCharge, 1);
-    param.setParameter(IsotopeFinderParameters.scanRange, ScanRange.SINGLE_MOST_INTENSE);
-    param.setParameter(IsotopeFinderParameters.elements,
-        List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S")));
+    // the automatic algorithm only needs the tolerance and the charge range, the rest defaults to
+    // H, C, N, O, S with the standard carbon-averagine envelope
+    final ParameterSet isoAlgorithm = param.getParameter(IsotopeFinderParameters.mode)
+        .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
+
+    AutomaticIsotopeFinderParameters.setAll(isoAlgorithm,
+        CarbonAveragineAlgorithmParameters.DEFAULT_REQUIRE_C13, mzTolScans,
+        CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
         param));

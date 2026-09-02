@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -53,6 +54,17 @@ public interface IsotopePattern extends MassSpectrum {
   @NotNull String getDescription();
 
   /**
+   * A quality score for this isotope pattern, higher is better. Used to rank charge-state
+   * hypotheses of a {@link MultiChargeStateIsotopePattern} best
+   * first. Patterns that were not scored (e.g. predicted patterns) return {@link Double#NaN}.
+   *
+   * @return the pattern score, or {@link Double#NaN} if this pattern carries no score.
+   */
+  default double getScore() {
+    return Double.NaN;
+  }
+
+  /**
    * Appends a new isotope pattern xml element to the current element.
    */
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
@@ -78,7 +90,8 @@ public interface IsotopePattern extends MassSpectrum {
       mzs[i] = getMzValue(i);
     }
 
-    return new SimpleIsotopePattern(mzs, intensities, getCharge(), getStatus(), getDescription());
+    return new SimpleIsotopePattern(mzs, intensities, getCharge(), getScore(), getStatus(),
+        getDescription());
   }
 
   public enum IsotopePatternStatus {
