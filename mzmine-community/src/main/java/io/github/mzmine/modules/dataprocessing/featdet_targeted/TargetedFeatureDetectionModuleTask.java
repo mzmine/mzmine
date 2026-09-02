@@ -156,11 +156,11 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         mzTol.getPpmTolerance() * 2);
 
     final List<OverlappingCompoundAnnotation> overlappingCompoundAnnotations = new ArrayList<>();
-    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList(annotations);
+    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList<>(annotations);
     sortedAnnotations.sort(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ));
 
     while (!sortedAnnotations.isEmpty()) {
-      final CompoundDBAnnotation annotation = sortedAnnotations.remove(0);
+      final CompoundDBAnnotation annotation = sortedAnnotations.removeFirst();
 
       final Range<Double> doubleToleranceRange = doubleTolerance.getToleranceRange(
           annotation.getPrecursorMZ());
@@ -170,10 +170,6 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       final OverlappingCompoundAnnotation overlappingAnnotation = new OverlappingCompoundAnnotation(
           annotation, mzTol, rtTol, mobTol);
 
-      // check against all remaining annotations
-      if (sortedAnnotations.isEmpty()) {
-        continue;
-      }
       for (Iterator<CompoundDBAnnotation> iterator = sortedAnnotations.iterator();
           iterator.hasNext(); ) {
         final CompoundDBAnnotation sortedAnnotation = iterator.next();
