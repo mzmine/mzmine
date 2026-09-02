@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.signal.CarbonAveragineEnvelopeParameters;
@@ -32,8 +57,8 @@ public class CarbonAveragineAlgorithmParameters extends SimpleParameterSet {
   // depend on the possibly-overwritten value carried by the shared static parameter templates).
   public static final List<Element> DEFAULT_ELEMENTS = List.of(new Element("H"), new Element("C"),
       new Element("N"), new Element("O"), new Element("S"));
-  public static final ElementDetectionMode DEFAULT_ELEMENT_DETECTION_MODE = ElementDetectionMode.USER_DEFINED;
-  public static final MZTolerance DEFAULT_MZ_TOLERANCE = new MZTolerance(0.0005, 10);
+  public static final ElementDetectionMode DEFAULT_ELEMENT_DETECTION_MODE = ElementDetectionMode.USER_PLUS_AUTO;
+  public static final MZTolerance DEFAULT_MZ_TOLERANCE = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA;
   public static final int DEFAULT_MAX_CHARGE = 3;
   public static final boolean DEFAULT_REQUIRE_C13 = false;
   public static final boolean DEFAULT_EXPLAINABLE_SIGNALS_ONLY = false;
@@ -46,12 +71,12 @@ public class CarbonAveragineAlgorithmParameters extends SimpleParameterSet {
   public static final ComboParameter<ElementDetectionMode> elementDetectionMode = new ComboParameter<>(
       "Element auto-detection",
       "Infers which heavy elements are present from the detected pattern and uses the inferred atom "
-          + "counts to refine the plausible intensity bounds of the carbon-averagine envelope. "
-          + "USER_DEFINED (default) keeps the current behavior: heavy-isotope bounds come from the "
-          + "chosen elements with a crude atom-count estimate. AUTO_DETECT infers popular heavy "
-          + "elements (Cl, Br, S, Si) from the pattern and uses the detected atom counts. "
-          + "USER_PLUS_AUTO combines both.", ElementDetectionMode.values(),
-      DEFAULT_ELEMENT_DETECTION_MODE);
+          + "counts to refine the plausible intensity bounds of the carbon model envelope. "
+          + "User-defined + auto-detect (default) combines the chosen elements with the inferred "
+          + "ones. User-defined elements only takes heavy-isotope bounds from the chosen elements "
+          + "with a crude atom-count estimate. Auto-detect heavy elements infers popular heavy "
+          + "elements (Cl, Br, S, Si) from the pattern and uses the detected atom counts.",
+      ElementDetectionMode.values(), DEFAULT_ELEMENT_DETECTION_MODE);
 
   // Parameter NAMES and DESCRIPTIONS of the parameters that the simplified "automatic" option also
   // exposes. decision: the shared part is the text, NOT the parameter instance. A parameter instance
@@ -108,7 +133,7 @@ public class CarbonAveragineAlgorithmParameters extends SimpleParameterSet {
       new FwhmRefineParameters(), DEFAULT_FWHM_REFINE);
 
   public static final ParameterSetParameter<CarbonAveragineEnvelopeParameters> envelope = new ParameterSetParameter<>(
-      "Carbon-averagine envelope",
+      "Carbon model envelope",
       "Parameters of the predicted 13C envelope: the carbon count is estimated from the searched mass "
           + "and drives the expected relative intensities used to score charges and bound the pattern.",
       new CarbonAveragineEnvelopeParameters());

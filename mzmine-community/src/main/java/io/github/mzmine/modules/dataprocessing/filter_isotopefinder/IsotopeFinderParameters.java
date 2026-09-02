@@ -54,11 +54,13 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
+  // decision: only AUTOMATIC is offered for now the carbon one is too complex for now
   public static final ModuleOptionsEnumComboParameter<IsotopeFinderModeOptions> mode = new ModuleOptionsEnumComboParameter<>(
       "Algorithm",
       "Automatic only asks for m/z tolerance, the 13C requirement, and the maximum charge and uses "
-          + "sensible defaults for the rest. Carbon-averagine exposes the full setup of the same "
-          + "algorithm.", IsotopeFinderModeOptions.AUTOMATIC);
+          + "sensible defaults for the rest.",
+      new IsotopeFinderModeOptions[]{IsotopeFinderModeOptions.AUTOMATIC},
+      IsotopeFinderModeOptions.AUTOMATIC);
 
   // legacy parameters: they used to live on this top level and moved into the algorithm parameters.
   private final MZToleranceParameter legacyMzToleranceTemplate = new MZToleranceParameter(
@@ -140,7 +142,7 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     }
 
     // decision: a batch that still carries these on the top level predates the algorithm options, so
-    // it only ever ran the carbon-averagine algorithm with defaults. Map it to the automatic option,
+    // it only ever ran the carbon model algorithm with defaults. Map it to the automatic option,
     // which is that algorithm with defaults plus exactly these two values.
     final ParameterSet automatic = getParameter(mode).setOptionGetParameters(
         IsotopeFinderModeOptions.AUTOMATIC);

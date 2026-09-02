@@ -1303,9 +1303,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // H, C, N, O, S with the standard carbon-averagine envelope
     final ParameterSet isoAlgorithm = param.getParameter(IsotopeFinderParameters.mode)
         .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
-    isoAlgorithm.setParameter(AutomaticIsotopeFinderParameters.isotopeMzTolerance,
-        mzTolFeaturesIntraSample);
-    isoAlgorithm.setParameter(AutomaticIsotopeFinderParameters.maxCharge,
+
+    AutomaticIsotopeFinderParameters.setAll(isoAlgorithm,
+        CarbonAveragineAlgorithmParameters.DEFAULT_REQUIRE_C13, mzTolScans,
         CarbonAveragineAlgorithmParameters.DEFAULT_MAX_CHARGE);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),

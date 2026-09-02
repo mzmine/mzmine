@@ -40,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
  * carries the full setup of the detection run as its embedded parameters, so the top-level
  * {@link IsotopeFinderParameters} only has the feature lists and the algorithm choice.
  * <p>
- * Both options run the same carbon-averagine detection; they only differ in how much of its setup
- * they expose.
+ * Both options run the same carbon model detection; they only differ in how much of its setup they
+ * expose.
  */
 public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderAlgorithmModule> {
 
@@ -50,15 +50,20 @@ public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderA
    */
   AUTOMATIC,
   /**
-   * Full carbon-averagine setup: estimates the carbon count from m/z, no formula prediction.
+   * Full carbon model setup: estimates the carbon count from m/z, no formula prediction.
+   * <p>
+   * decision: currently NOT offered in the algorithm combo, see {@link IsotopeFinderParameters#mode}
+   * - the automatic option covers every setup we want users to pick from for now. The option is kept
+   * here (and its module stays registered) because the full parameter set is what the detection
+   * actually runs on and what the automatic option maps onto.
    */
-  CARBON_AVERAGINE;
+  CARBON_MODEL;
 
   @Override
   public Class<? extends IsotopeFinderAlgorithmModule> getModuleClass() {
     return switch (this) {
       case AUTOMATIC -> AutomaticIsotopeFinderModule.class;
-      case CARBON_AVERAGINE -> CarbonAveragineAlgorithmModule.class;
+      case CARBON_MODEL -> CarbonAveragineAlgorithmModule.class;
     };
   }
 
@@ -66,7 +71,7 @@ public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderA
   public String toString() {
     return switch (this) {
       case AUTOMATIC -> "Automatic";
-      case CARBON_AVERAGINE -> "Carbon-averagine";
+      case CARBON_MODEL -> "Carbon model";
     };
   }
 
@@ -75,8 +80,7 @@ public enum IsotopeFinderModeOptions implements ModuleOptionsEnum<IsotopeFinderA
     // do not change these values for save/load
     return switch (this) {
       case AUTOMATIC -> "automatic";
-      // kept from the former "Signal based (carbon-averagine)" mode so a saved selection still resolves
-      case CARBON_AVERAGINE -> "signal_based";
+      case CARBON_MODEL -> "carbon_model";
     };
   }
 

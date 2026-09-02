@@ -33,8 +33,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 public enum ElementDetectionMode {
 
   /**
-   * Keep the current behavior: heavy-isotope bounds come from the chosen elements with a crude
-   * atom-count estimate. Default.
+   * Heavy-isotope bounds come from the chosen elements only, with a crude atom-count estimate.
    */
   USER_DEFINED,
   /**
@@ -43,7 +42,7 @@ public enum ElementDetectionMode {
    */
   AUTO_DETECT,
   /**
-   * Combine the user-configured heavy elements with the auto-detected ones.
+   * Combine the user-configured heavy elements with the auto-detected ones. Default.
    */
   USER_PLUS_AUTO;
 

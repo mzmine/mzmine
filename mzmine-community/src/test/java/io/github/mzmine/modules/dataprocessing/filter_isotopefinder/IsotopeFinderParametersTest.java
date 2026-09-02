@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.parameters.ParameterSet;
@@ -39,7 +40,7 @@ import org.w3c.dom.Element;
 
 /**
  * Parameter defaults, save/load round-trip, and the mapping of the simplified "Automatic" algorithm
- * onto the full carbon-averagine setup. Also covers backward compatibility: legacy batches that still
+ * onto the full carbon model setup. Also covers backward compatibility: legacy batches that still
  * contain removed parameters must load without error and fall back to the defaults.
  */
 class IsotopeFinderParametersTest {
@@ -82,20 +83,31 @@ class IsotopeFinderParametersTest {
   void saveLoadRoundtripPreservesAlgorithmAndItsParameters() throws Exception {
     final IsotopeFinderParameters params = cloned();
     final ParameterSet algo = params.getParameter(IsotopeFinderParameters.mode)
-        .setOptionGetParameters(IsotopeFinderModeOptions.CARBON_AVERAGINE);
-    algo.setParameter(CarbonAveragineAlgorithmParameters.maxCharge, 4);
-    algo.getParameter(CarbonAveragineAlgorithmParameters.fwhmRefine).setValue(true);
+        .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
+    algo.setParameter(AutomaticIsotopeFinderParameters.maxCharge, 4);
+    algo.setParameter(AutomaticIsotopeFinderParameters.requireC13, true);
 
     final String xml = ParameterUtils.saveValuesToXMLString(params);
     final IsotopeFinderParameters loaded = cloned();
     ParameterUtils.loadValuesFromXMLString(loaded, xml);
 
-    assertEquals(IsotopeFinderModeOptions.CARBON_AVERAGINE,
-        loaded.getValue(IsotopeFinderParameters.mode));
+    assertEquals(IsotopeFinderModeOptions.AUTOMATIC, loaded.getValue(IsotopeFinderParameters.mode));
     final ParameterSet loadedAlgo = loaded.getParameter(IsotopeFinderParameters.mode)
         .getEmbeddedParameters();
-    assertEquals(4, loadedAlgo.getValue(CarbonAveragineAlgorithmParameters.maxCharge));
-    assertTrue(loadedAlgo.getValue(CarbonAveragineAlgorithmParameters.fwhmRefine));
+    assertEquals(4, loadedAlgo.getValue(AutomaticIsotopeFinderParameters.maxCharge));
+    assertTrue(loadedAlgo.getValue(AutomaticIsotopeFinderParameters.requireC13));
+  }
+
+  /**
+   * Only the automatic option is offered, see {@link IsotopeFinderParameters#mode}, so the combo
+   * carries no parameter set for the full carbon model option and cannot resolve it from a saved
+   * selection. Guards the accidental re-add of an option that the GUI would then show.
+   */
+  @Test
+  void onlyAutomaticAlgorithmIsSelectable() {
+    final IsotopeFinderParameters params = cloned();
+    assertNull(params.getParameter(IsotopeFinderParameters.mode)
+        .getEmbeddedParameters(IsotopeFinderModeOptions.CARBON_MODEL));
   }
 
   @Test
