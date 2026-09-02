@@ -35,6 +35,7 @@ import io.github.mzmine.util.javafx.DraggableListCell;
 import java.util.function.IntFunction;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -52,6 +53,7 @@ final class BatchStepListCell extends
         getWarningColor());
     validationTooltip.setWrapText(true);
     validationTooltip.setMaxWidth(600);
+    validationTooltip.setShowDuration(Duration.INDEFINITE);
   }
 
   @Override
