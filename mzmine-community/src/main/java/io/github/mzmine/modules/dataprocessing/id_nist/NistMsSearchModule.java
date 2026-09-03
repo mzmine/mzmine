@@ -53,7 +53,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
    */
   public static final String UNIQUE_ID = "NistMsSearchModule";
 
-  private static final String MODULE_NAME = "NIST MS search";
+  public static final String MODULE_NAME = "NIST MS search";
   private static final String MODULE_DESCRIPTION =
       "Searches GC-EI or MS/MS spectra against the libraries of a licensed NIST installation, "
           + "using NIST's command line program MSPepSearch.";

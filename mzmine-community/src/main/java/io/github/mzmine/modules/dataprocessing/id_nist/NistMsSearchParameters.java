@@ -40,6 +40,10 @@ import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchCon
 import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistSearchMode;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.GroupView;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupPane.ParameterGroup;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -228,8 +232,11 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   }
 
   @Override
-  public ExitCode showSetupDialog(final boolean valueCheckRequired) {
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
 
+  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     // prefill the installation directory, so that the dialog is usually ready to go
     if (getValue(NIST_DIRECTORY) == null) {
       final File discovered = NistSearchConfig.discoverInstallation();
@@ -238,8 +245,27 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       }
     }
 
-    return super.showSetupDialog(valueCheckRequired);
+    final List<UserParameter<?, ? extends Region>> fixed = List.of();
+
+    final List<ParameterGroup> groups = List.of( //
+        new ParameterGroup("General", PEAK_LISTS, NIST_DIRECTORY, SEARCH_MODE, DOT_PRODUCT,
+            spectraMergeSelect), //
+        new ParameterGroup("MS/MS-specific", PRECURSOR_TOLERANCE, FRAGMENT_TOLERANCE), //
+        new ParameterGroup("GC-EI-MS-specific", INTEGER_MZ) //
+    );
+
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
+        false, fixed, groups, GroupView.SINGLE_LIST);
+    dialog.setTitle(NistMsSearchModule.MODULE_NAME);
+    dialog.setFilterText(filterParameters);
+    dialog.setWidth(800);
+    dialog.setHeight(800);
+
+    // check
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
+
 
   @Override
   public boolean checkParameterValues(final Collection<String> errorMessages) {
