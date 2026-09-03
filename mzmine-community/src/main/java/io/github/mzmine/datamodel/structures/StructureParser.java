@@ -30,7 +30,6 @@ import static io.github.mzmine.datamodel.structures.StructureInputType.INCHI;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import io.github.mzmine.datamodel.structures.StructureUtils.SmilesFlavor;
 import io.github.mzmine.util.StringUtils;
 import java.util.HashSet;
 import java.util.Set;
@@ -188,38 +187,24 @@ public class StructureParser {
       return cached;
     }
 
-    final MolecularStructure parsed = parseStructureWithoutCache(structure, inputType, options);
+    final SimpleMolecularStructure parsed = parseStructureWithoutCache(structure, inputType,
+        options);
     if (parsed == null) {
       return null;
     }
-
-    // Derive the clean forms once. Each generator can fail independently. Both smiles flavors are
-    // needed: SmiFlavor.Stereo also changes the traversal, so canonical and isomeric differ even
-    // without stereo chemistry.
-    final String canonicalSmiles = StructureUtils.getSmiles(SmilesFlavor.CANONICAL,
-        parsed.structure());
-    final String isomericSmiles = StructureUtils.getSmiles(SmilesFlavor.ISOMERIC,
-        parsed.structure());
-    final InchiStructure inchiStruct = StructureUtils.getInchiStructure(parsed.structure());
 
     // decision: keep the derived values instead of discarding them. Generating them for the cache
     // keys costs roughly 1400 us per structure while an on demand inchiKey() call costs another
     // ~220 us and formulaString() ~16 us. Since a cached structure is handed to many callers,
     // storing what was already paid for makes value access about 8x cheaper at zero extra cost.
-    final MolecularStructure mol = new PrecomputedMolecularStructure(parsed.structure(),
-        parsed.formula(), canonicalSmiles, isomericSmiles,
-        inchiStruct != null ? inchiStruct.inchi() : null,
-        inchiStruct != null ? inchiStruct.inchiKey() : null, parsed.monoIsotopicMass(),
-        parsed.mostAbundantMass(), parsed.totalFormalCharge());
+    final MolecularStructure mol = parsed.precomputeValues();
 
     // Populate CLEAN_CACHE with all derivable clean keys → same MolecularStructure instance.
     final HashSet<String> cleanKeys = HashSet.newHashSet(4);
-    putClean(cleanKeys, mol, canonicalSmiles);
-    putClean(cleanKeys, mol, isomericSmiles);
-    if (inchiStruct != null) {
-      putClean(cleanKeys, mol, inchiStruct.inchi());
-      putClean(cleanKeys, mol, inchiStruct.inchiKey());
-    }
+    putClean(cleanKeys, mol, mol.canonicalSmiles());
+    putClean(cleanKeys, mol, mol.isomericSmiles());
+    putClean(cleanKeys, mol, mol.inchi());
+    putClean(cleanKeys, mol, mol.inchiKey());
 
     // Populate RAW_CACHE with the original caller inputs — skip if the input string already
     // appears in CLEAN_CACHE (avoids redundant storage of already-canonical inputs).
@@ -228,7 +213,7 @@ public class StructureParser {
   }
 
   @Nullable
-  public MolecularStructure parseStructureWithoutCache(@Nullable String structure,
+  public SimpleMolecularStructure parseStructureWithoutCache(@Nullable String structure,
       @NotNull StructureInputType inputType) {
     return parseStructureWithoutCache(structure, inputType, HarmonizationOptions.DEFAULT);
   }
@@ -238,7 +223,7 @@ public class StructureParser {
    * @return the structure or null
    */
   @Nullable
-  public MolecularStructure parseStructureWithoutCache(@Nullable String structure,
+  public SimpleMolecularStructure parseStructureWithoutCache(@Nullable String structure,
       @NotNull StructureInputType inputType, @NotNull HarmonizationOptions options) {
     if (structure == null || structure.isBlank() || structure.equalsIgnoreCase("n/a")
         || structure.equalsIgnoreCase("na")) {
