@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -39,6 +40,8 @@ import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularParameters;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
@@ -46,12 +49,17 @@ import io.github.mzmine.modules.tools.output_compare_csv.CheckResult.Severity;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvParameters;
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -97,7 +105,8 @@ public class IntegrationTestUtils {
    */
   public static List<CheckResult> runBatchCompareToCsv(String batchFile, String baseCsvFile,
       File tempDir, @Nullable String @Nullable [] overrideDataFiles,
-      @Nullable String @Nullable [] overrideSpectralLibraries) {
+      @Nullable String @Nullable [] overrideSpectralLibraries,
+      @Nullable File overrideMetadataFile) {
 
     final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
     final URL expectedResultsUrl = IntegrationTestUtils.class.getClassLoader()
@@ -127,7 +136,7 @@ public class IntegrationTestUtils {
     }
 
     return runBatchCompareToCsv(urlToFile(batch), urlToFile(expectedResultsUrl), tempDir, files,
-        libraries);
+        libraries, overrideMetadataFile);
   }
 
   /**
@@ -146,11 +155,11 @@ public class IntegrationTestUtils {
    */
   public static List<CheckResult> runBatchCompareToCsv(File batchFile, File baseCsvFile,
       File tempDir, @Nullable File @Nullable [] overrideDataFiles,
-      @Nullable File @Nullable [] overrideSpectralLibraries) {
+      @Nullable File @Nullable [] overrideSpectralLibraries, @Nullable File overrideMetadataFile) {
 
     final String batchFileName = batchFile.getName();
     final File csvExportFile = runBatchGetExportedCsv(batchFile, tempDir, overrideDataFiles,
-        overrideSpectralLibraries);
+        overrideSpectralLibraries, overrideMetadataFile);
 
     return getCsvComparisonResults(baseCsvFile, csvExportFile, batchFileName);
   }
@@ -161,7 +170,7 @@ public class IntegrationTestUtils {
     final URL resource = IntegrationTestUtils.class.getClassLoader()
         .getResource(expectedResultsFullPath);
     return runBatchCompareToCsv(test.batchFile(), urlToFile(resource), test.tempDir(),
-        test.rawFiles(), test.specLibs());
+        test.rawFiles(), test.specLibs(), test.metadataFile());
   }
 
   /**
@@ -170,7 +179,8 @@ public class IntegrationTestUtils {
    */
   public static @NotNull File runBatchGetExportedCsv(@NotNull String batchFile,
       @NotNull File tempDir, @Nullable String @Nullable [] overrideDataFiles,
-      @Nullable String @Nullable [] overrideSpectralLibraries) {
+      @Nullable String @Nullable [] overrideSpectralLibraries,
+      @Nullable File overrideMetadataFile) {
 
     final URL batch = IntegrationTestUtils.class.getClassLoader().getResource(batchFile);
     final @Nullable File @Nullable [] files =
@@ -196,12 +206,13 @@ public class IntegrationTestUtils {
       throw new RuntimeException("Not all libraries were found");
     }
 
-    return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries);
+    return runBatchGetExportedCsv(urlToFile(batch), tempDir, files, libraries,
+        overrideMetadataFile);
   }
 
   public static File runBatchGetExportedCsv(@NotNull final IntegrationTest test) {
     return runBatchGetExportedCsv(test.batchFile(), test.tempDir(), test.rawFiles(),
-        test.specLibs());
+        test.specLibs(), test.metadataFile());
   }
 
   /**
@@ -209,17 +220,23 @@ public class IntegrationTestUtils {
    * multiple comparisons shall be done, e.g., a purposefully failing test.
    */
   public static @NotNull File runBatchGetExportedCsv(File batchFile, File tempDir,
-      @Nullable File @Nullable [] overrideDataFiles, File[] overrideSpectralLibraries) {
+      @Nullable File @Nullable [] overrideDataFiles, File[] overrideSpectralLibraries,
+      @Nullable File overrideMetadataFile) {
 
     final MZmineProject project = new MZmineProjectImpl();
     ProjectService.getProjectManager().setCurrentProject(project);
     final String batchFileName = batchFile.getName();
 
     final BatchQueue queue = loadBatchFromFile(batchFile);
+    // some paths like the normalization file might be wrong absolute paths
+    // now try to change other files before that
+    // the raw files, metadata, spectral libraries are changed later
+    tryChangeInputFiles(queue, batchFile);
+
     final File csvExportFile = addOrModifyModularCsvExportStep(batchFileName, tempDir, queue);
 
     final BatchTask batchTask = BatchModeModule.runBatchQueue(queue, project, overrideDataFiles,
-        null, overrideSpectralLibraries, null, Instant.now(), null, null);
+        overrideMetadataFile, overrideSpectralLibraries, null, Instant.now(), null, null);
 
     checkImportedFilesAndLibraries(overrideDataFiles, overrideSpectralLibraries, batchFileName,
         project);
@@ -229,6 +246,50 @@ public class IntegrationTestUtils {
           "Batch task for batch file %s did not finish".formatted(batchFileName));
     }
     return csvExportFile;
+  }
+
+  /// search for input files next to the batch file, like normalization files
+  private static void tryChangeInputFiles(BatchQueue queue, File batchFile) {
+    final File parentFile = batchFile.getParentFile();
+    for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
+      final MZmineProcessingModule module = step.getModule();
+      if (module instanceof AllSpectralDataImportModule
+          || module instanceof SpectralLibraryImportModule) {
+        // data files, libraries, metadata is replaced in a different step
+        continue;
+      }
+
+      final ParameterSet params = step.getParameterSet();
+      ParameterUtils.streamParametersDeep(params, FileNameParameter.class)
+          .filter(p -> p.getType() == FileSelectionType.OPEN).forEach(fp -> {
+            final File value = fp.getValue();
+            final File existingFile = findExistingFileInPath(value, parentFile);
+            fp.setValue(existingFile);
+          });
+
+      ParameterUtils.streamParametersDeep(params, FileNamesParameter.class).forEach(fp -> {
+        final var files = fp.getValue();
+        final File[] existingFiles = new File[files.length];
+        for (int i = 0; i < files.length; i++) {
+          existingFiles[i] = findExistingFileInPath(files[i], parentFile);
+        }
+        fp.setValue(existingFiles);
+      });
+    }
+  }
+
+  private static File findExistingFileInPath(File file, File directory) {
+    if (file.exists()) {
+      return file;
+    }
+    final String name = FileAndPathUtil.getFileNameFromPath(file);
+    final File newFile = new File(directory, name);
+    if (newFile.exists()) {
+      return newFile;
+    }
+    throw new RuntimeException(
+        "File %s not found in directory %s and not found at original path %s".formatted(name,
+            directory.getAbsolutePath(), file.getPath()));
   }
 
   private static void checkImportedFilesAndLibraries(@Nullable File @Nullable [] overrideDataFiles,

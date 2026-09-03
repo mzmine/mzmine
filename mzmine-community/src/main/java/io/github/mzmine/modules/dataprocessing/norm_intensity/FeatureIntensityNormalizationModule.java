@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -35,7 +36,8 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureIntensityNormalizationModule extends AbstractFactorNormalizationTypeModule {
+public final class FeatureIntensityNormalizationModule extends
+    AbstractFactorNormalizationTypeModule {
 
   @Override
   public @NotNull String getName() {
@@ -43,7 +45,7 @@ public class FeatureIntensityNormalizationModule extends AbstractFactorNormaliza
   }
 
   @Override
-  public final @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureIntensityNormalizationParameters.class;
   }
 

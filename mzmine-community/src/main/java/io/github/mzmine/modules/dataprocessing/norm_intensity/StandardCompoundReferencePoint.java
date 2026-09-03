@@ -26,8 +26,29 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 /**
  * A standard reference point for one file-specific normalization function.
+ *
+ * @param abundance          the abundance of the standard in this specific file
+ * @param referenceAbundance the level this standard is normalized to, usually the median abundance
+ *                           of the standard over all reference samples. Dividing by it makes the
+ *                           {@link #factor()} a relative correction around 1, so that different
+ *                           standards become interchangeable and the intensity scale is preserved.
  */
-public record StandardCompoundReferencePoint(double mz, float rt, double abundance) {
+public record StandardCompoundReferencePoint(double mz, float rt, double abundance,
+                                             double referenceAbundance) {
 
+  /**
+   * A point without a reference level. Only used for
+   * {@link StandardCompoundFactorMode#ABSOLUTE_LEGACY}, where the factor is 1 / abundance.
+   */
+  public StandardCompoundReferencePoint(double mz, float rt, double abundance) {
+    this(mz, rt, abundance, 1d);
+  }
+
+  /**
+   * @return the normalization factor of this point, see {@link StandardCompoundFactorMode}
+   */
+  public double factor() {
+    return referenceAbundance / abundance;
+  }
 }
 
