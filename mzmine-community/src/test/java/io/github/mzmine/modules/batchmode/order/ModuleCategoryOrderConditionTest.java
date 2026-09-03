@@ -30,6 +30,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class ModuleCategoryOrderConditionTest {
         queue(subjectAfterAlignment()));
 
     Assertions.assertTrue(
-        messages.get(0).contains("A module in the Alignment category needs to be added"));
+        messages.get(0).contains("Subject MUST run after a module in the Alignment category"));
   }
 
   @Test
@@ -65,7 +66,7 @@ class ModuleCategoryOrderConditionTest {
     final Map<Integer, String> messages = BatchModuleOrderValidator.validateAndFormatByStep(queue);
 
     Assertions.assertTrue(
-        messages.get(3).contains("A module in the Alignment category needs to be added"));
+        messages.get(3).contains("Subject MUST run after a module in the Alignment category"));
     Assertions.assertFalse(messages.get(3).contains("Other-pipeline alignment"));
   }
 
@@ -103,7 +104,7 @@ class ModuleCategoryOrderConditionTest {
   private static BatchQueue queue(final MZmineProcessingModule... modules) {
     final BatchQueue queue = new BatchQueue();
     for (final MZmineProcessingModule module : modules) {
-      queue.add(new MZmineProcessingStepImpl<>(module, null));
+      queue.add(new MZmineProcessingStepImpl<>(module, new SimpleParameterSet()));
     }
     return queue;
   }

@@ -34,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -43,10 +43,8 @@ class Ms2ScanPairingConditionTest {
 
   @Test
   void standalonePairingModulesBeforeConsumerSatisfyCondition() {
-    final BatchQueue groupMs2Queue = queue(step(new GroupMS2Module(), null),
-        step(ms2Consumer(), null));
-    final BatchQueue diaMs2Queue = queue(step(new DiaMs2CorrModule(), null),
-        step(ms2Consumer(), null));
+    final BatchQueue groupMs2Queue = queue(step(new GroupMS2Module()), step(ms2Consumer()));
+    final BatchQueue diaMs2Queue = queue(step(new DiaMs2CorrModule()), step(ms2Consumer()));
 
     Assertions.assertFalse(BatchModuleOrderValidator.validate(groupMs2Queue).hasIssues());
     Assertions.assertFalse(BatchModuleOrderValidator.validate(diaMs2Queue).hasIssues());
@@ -71,7 +69,7 @@ class Ms2ScanPairingConditionTest {
 
   @Test
   void pairingAfterConsumerViolatesCondition() {
-    final BatchQueue queue = queue(step(ms2Consumer(), null), step(new GroupMS2Module(), null));
+    final BatchQueue queue = queue(step(ms2Consumer()), step(new GroupMS2Module()));
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
@@ -84,8 +82,7 @@ class Ms2ScanPairingConditionTest {
     final MinimumSearchFeatureResolverParameters parameters =
         new MinimumSearchFeatureResolverParameters();
     parameters.setParameter(GeneralResolverParameters.groupMS2Parameters, pairMs2Scans);
-    return queue(step(new MinimumSearchFeatureResolverModule(), parameters),
-        step(ms2Consumer(), null));
+    return queue(step(new MinimumSearchFeatureResolverModule(), parameters), step(ms2Consumer()));
   }
 
   private static @NotNull TestSubjectModule ms2Consumer() {
@@ -95,7 +92,12 @@ class Ms2ScanPairingConditionTest {
   }
 
   private static @NotNull MZmineProcessingStepImpl<MZmineProcessingModule> step(
-      @NotNull final MZmineProcessingModule module, @Nullable final ParameterSet parameters) {
+      @NotNull final MZmineProcessingModule module) {
+    return step(module, new SimpleParameterSet());
+  }
+
+  private static @NotNull MZmineProcessingStepImpl<MZmineProcessingModule> step(
+      @NotNull final MZmineProcessingModule module, @NotNull final ParameterSet parameters) {
     return new MZmineProcessingStepImpl<>(module, parameters);
   }
 

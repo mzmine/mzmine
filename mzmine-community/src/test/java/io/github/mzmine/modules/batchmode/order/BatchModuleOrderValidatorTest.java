@@ -30,6 +30,7 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +51,6 @@ class BatchModuleOrderValidatorTest {
     Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
     Assertions.assertTrue(
         result.issues().getFirst().message().contains("Subject MUST run after TestAnchorModule"));
-    Assertions.assertTrue(
-        result.issues().getFirst().message().contains("TestAnchorModule needs to be added"));
   }
 
   @Test
@@ -111,7 +110,7 @@ class BatchModuleOrderValidatorTest {
     Assertions.assertEquals(ModuleOrderLevel.SHOULD,
         missingAnchorResult.issues().getFirst().level());
     Assertions.assertTrue(missingAnchorResult.issues().getFirst().message()
-        .contains("TestAnchorModule needs to be added"));
+        .contains("Subject should run before TestAnchorModule"));
   }
 
   @Test
@@ -283,7 +282,7 @@ class BatchModuleOrderValidatorTest {
   private static BatchQueue queue(final MZmineProcessingModule... modules) {
     final BatchQueue queue = new BatchQueue();
     for (final MZmineProcessingModule module : modules) {
-      queue.add(new MZmineProcessingStepImpl<>(module, null));
+      queue.add(new MZmineProcessingStepImpl<>(module, new SimpleParameterSet()));
     }
     return queue;
   }

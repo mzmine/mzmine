@@ -33,8 +33,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -42,16 +42,14 @@ class MassDetectionConditionTest {
 
   @Test
   void standaloneMassDetectionBeforeConsumerSatisfiesCondition() {
-    final BatchQueue queue = queue(step(new MassDetectionModule(), null),
-        step(massListConsumer(), null));
+    final BatchQueue queue = queue(step(new MassDetectionModule()), step(massListConsumer()));
 
     Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
   }
 
   @Test
   void standaloneMassDetectionAfterConsumerViolatesCondition() {
-    final BatchQueue queue = queue(step(massListConsumer(), null),
-        step(new MassDetectionModule(), null));
+    final BatchQueue queue = queue(step(massListConsumer()), step(new MassDetectionModule()));
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
@@ -84,7 +82,7 @@ class MassDetectionConditionTest {
     final BatchQueue queue = queue(
         step(new AllSpectralDataImportModule(), importParameters(true, false)),
         step(new AllSpectralDataImportModule(), importParameters(false, false)),
-        step(massListConsumer(), null));
+        step(massListConsumer()));
 
     final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
 
@@ -95,7 +93,7 @@ class MassDetectionConditionTest {
   private static @NotNull BatchQueue importThenMassListConsumer(final boolean ms1MassDetection,
       final boolean msnMassDetection) {
     return queue(step(new AllSpectralDataImportModule(),
-        importParameters(ms1MassDetection, msnMassDetection)), step(massListConsumer(), null));
+        importParameters(ms1MassDetection, msnMassDetection)), step(massListConsumer()));
   }
 
   private static @NotNull TestSubjectModule massListConsumer() {
@@ -118,7 +116,12 @@ class MassDetectionConditionTest {
   }
 
   private static @NotNull MZmineProcessingStepImpl<MZmineProcessingModule> step(
-      @NotNull final MZmineProcessingModule module, @Nullable final ParameterSet parameters) {
+      @NotNull final MZmineProcessingModule module) {
+    return step(module, new SimpleParameterSet());
+  }
+
+  private static @NotNull MZmineProcessingStepImpl<MZmineProcessingModule> step(
+      @NotNull final MZmineProcessingModule module, @NotNull final ParameterSet parameters) {
     return new MZmineProcessingStepImpl<>(module, parameters);
   }
 
