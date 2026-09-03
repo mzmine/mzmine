@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
@@ -41,17 +42,35 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
 
   private final String name;
   private final String description;
+
+  /**
+   * Applied to every editing component, so that a parameter can add its own controls next to the
+   * browse button. Null for the plain directory field.
+   */
+  private final @Nullable Consumer<DirectoryComponent> componentCustomizer;
+
   private File value;
 
   public DirectoryParameter(final String aName, final String aDescription) {
+    this(aName, aDescription, (Consumer<DirectoryComponent>) null);
+  }
+
+  /**
+   * @param componentCustomizer called on every editing component that is created, for example to
+   *                            add a button that fills the field in automatically.
+   */
+  public DirectoryParameter(final String aName, final String aDescription,
+      @Nullable final Consumer<DirectoryComponent> componentCustomizer) {
 
     name = aName;
     description = aDescription;
+    this.componentCustomizer = componentCustomizer;
   }
 
   public DirectoryParameter(final String aName, final String aDescription, String defaultPath) {
     name = aName;
     description = aDescription;
+    componentCustomizer = null;
     Path path = Paths.get(defaultPath);
     if (Files.exists(path)) {
       value = path.toFile();
@@ -73,7 +92,11 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   @Override
   public DirectoryComponent createEditingComponent() {
 
-    return new DirectoryComponent();
+    final DirectoryComponent component = new DirectoryComponent();
+    if (componentCustomizer != null) {
+      componentCustomizer.accept(component);
+    }
+    return component;
   }
 
   @Override
@@ -91,7 +114,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
   @Override
   public DirectoryParameter cloneParameter() {
 
-    final DirectoryParameter copy = new DirectoryParameter(name, description);
+    final DirectoryParameter copy = new DirectoryParameter(name, description, componentCustomizer);
     copy.setValue(getValue());
     return copy;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,6 +61,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.CachedMobilityScan;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -2597,16 +2598,33 @@ public class ScanUtils {
 
 
   /**
-   * Integer conversion methods.
+   * How the signals that fall into the same nominal mass are combined by
+   * {@link #integerDataPoints(DataPoint[], IntegerMode)}.
    */
-  public enum IntegerMode {
+  public enum IntegerMode implements UniqueIdSupplier {
 
-    SUM("Merging mode: Sum"), MAX("Merging mode: Maximum");
+    /**
+     * Add up the intensities, so that the nominal mass carries the total of every signal in it.
+     */
+    SUM("Merging mode: Sum"),
+
+    /**
+     * Keep only the most intense signal of the nominal mass.
+     */
+    MAX("Merging mode: Maximum");
 
     private final String intMode;
 
     IntegerMode(String intMode) {
       this.intMode = intMode;
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+      return switch (this) {
+        case SUM -> "sum";
+        case MAX -> "max";
+      };
     }
 
     @Override
