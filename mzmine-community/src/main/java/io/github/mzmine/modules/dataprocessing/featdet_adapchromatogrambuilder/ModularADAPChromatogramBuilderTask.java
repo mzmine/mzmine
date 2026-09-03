@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
@@ -47,6 +49,7 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -64,7 +67,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
-import static java.util.Objects.requireNonNullElse;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +93,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> callingModule;
   private final boolean isImaging;
+  private final boolean clearRtCorrection;
   private double progress = 0.0;
   private ModularFeatureList newFeatureList;
 
@@ -103,7 +106,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       Class<? extends MZmineModule> callingModule, @Nullable Integer minimumTotalScans,
-      @Nullable Double minGroupIntensity) {
+      @Nullable Double minGroupIntensity, final boolean clearRtCorrection) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
@@ -126,6 +129,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     this.minimumTotalScans = requireNonNullElse(minimumTotalScans, minimumConsecutiveScans);
 
     isImaging = callingModule.equals(ImageBuilderModule.class);
+    this.clearRtCorrection = clearRtCorrection;
   }
 
   public static ModularADAPChromatogramBuilderTask forImaging(MZmineProject project,
@@ -133,7 +137,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       @NotNull Instant moduleCallDate, Class<? extends MZmineModule> callingModule) {
     var total = parameters.getValue(ImageBuilderParameters.minTotalSignals);
     return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, total, null);
+        moduleCallDate, callingModule, total, null, false);
   }
 
   public static ModularADAPChromatogramBuilderTask forChromatography(MZmineProject project,
@@ -142,7 +146,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     var minGroupIntensity = parameters.getValue(
         ADAPChromatogramBuilderParameters.minGroupIntensity);
     return new ModularADAPChromatogramBuilderTask(project, dataFile, parameters, storage,
-        moduleCallDate, callingModule, null, minGroupIntensity);
+        moduleCallDate, callingModule, null, minGroupIntensity,
+        parameters.getValue(ADAPChromatogramBuilderParameters.clearRtCorrection));
   }
 
   @Override
@@ -165,6 +170,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     logger.info(() -> "Started chromatogram builder on " + dataFile);
+
+    if (clearRtCorrection) {
+      RemoveScanRtCorrectionModule.clearRtCorrection(new RawDataFile[]{dataFile},
+          getModuleCallDate(), "Resetting RT correction during chromatogram builder.");
+    }
 
     Scan[] scans = scanSelection.getMatchingScans(dataFile);
     int emptyScanNumber = 0;
@@ -194,9 +204,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         final String msg =
             "Retention time of scan #" + s.getScanNumber() + " in file " + dataFile.getName()
-            + " is smaller then the retention time of the previous scan."
-            + " Please make sure you only use scans with increasing retention times."
-            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+                + " is smaller then the retention time of the previous scan."
+                + " Please make sure you only use scans with increasing retention times."
+                + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
         setErrorMessage(msg);
         return;
       }
@@ -214,8 +224,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         DesktopService.getDesktop().displayMessage(null,
             "mzmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-            + "This will likely produce wrong results. "
-            + "Please, set the scan filter parameter to a specific MS level");
+                + "This will likely produce wrong results. "
+                + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
       if (pol != scans[i].getPolarity()) {

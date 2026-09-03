@@ -34,14 +34,18 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -52,7 +56,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
@@ -60,6 +66,10 @@ public class RTCorrectionParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(0.01, 15);
+
+  public static final BooleanParameter clearPreviousCorrection = new BooleanParameter(
+      "Clear previous RT corrections",
+      "Clear any previous retention time correction. Default = true", true);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter(
       "Retention time tolerance", "Maximum allowed difference between two retention time values",
@@ -93,7 +103,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
 
   public RTCorrectionParameters() {
     super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight, rtMeasure,
-            calibrationFunctionModule},
+            clearPreviousCorrection, calibrationFunctionModule},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration_scans/scan-based-rt-corr.html");
   }
 
@@ -140,7 +150,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
@@ -148,7 +158,37 @@ public class RTCorrectionParameters extends SimpleParameterSet {
     return switch (version) {
       case 2 ->
           "The correction algorithm was updated in version >4.8.33. Correction results will not match previous algorithm.";
+      case 3 ->
+          "A parameter to clear existing RT corrections was added and is enabled by default. If you intentionally applied multiple corrections previously, disable the parameter.";
       default -> null;
     };
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if (loadedVersion < 3 && !loadedParams.containsKey(clearPreviousCorrection.getName())) {
+      setParameter(clearPreviousCorrection, true);
+    }
+  }
+
+  public static RTCorrectionParameters create(@NotNull FeatureListsSelection flists,
+      @NotNull MZTolerance mzTol, @NotNull RTTolerance rtTol, double minHeight,
+      boolean clearPrevious, SampleTypeFilter sampleTypes, @NotNull RTMeasure rtMeasure,
+      @NotNull RtCorrectionFunctions calibrationFunction,
+      @NotNull ParameterSet calibrationFunctionParameters) {
+    final ParameterSet param = new RTCorrectionParameters().cloneParameterSet();
+    param.setParameter(featureLists, flists);
+    param.setParameter(MZTolerance, mzTol);
+    param.setParameter(RTTolerance, rtTol);
+    param.setParameter(clearPreviousCorrection, clearPrevious);
+    param.setParameter(RTCorrectionParameters.minHeight, minHeight);
+    param.setParameter(RTCorrectionParameters.sampleTypes, sampleTypes);
+    param.setParameter(RTCorrectionParameters.rtMeasure, rtMeasure);
+    final ModuleOptionsEnumComboParameter<RtCorrectionFunctions> parameter = param.getParameter(
+        RTCorrectionParameters.calibrationFunctionModule);
+    parameter.setValue(calibrationFunction, calibrationFunctionParameters);
+
+    return (RTCorrectionParameters) param;
   }
 }

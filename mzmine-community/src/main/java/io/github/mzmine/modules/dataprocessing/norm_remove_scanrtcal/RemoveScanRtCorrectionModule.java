@@ -23,72 +23,63 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
+package io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal;
 
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/*
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- *
- * The image builder will use the ADAP Chromatogram builder task
- */
-public class ImageBuilderModule implements MZmineProcessingModule {
+public class RemoveScanRtCorrectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Image builder";
-  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds images.";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
+  /**
+   * Removes corrected retention times from scans for the given data files in this thread. Always
+   * adds an applied method.
+   */
+  public static void clearRtCorrection(RawDataFile[] dataFile, @NotNull Instant moduleCallDate,
+      @Nullable String callerDescription) {
+    final RemoveScanRtCorrectionParameters param = RemoveScanRtCorrectionParameters.create(
+        dataFile);
+    final RemoveScanRtCorrectionTask t = new RemoveScanRtCorrectionTask(null, moduleCallDate, param,
+        RemoveScanRtCorrectionModule.class, callerDescription);
+    t.run();
   }
 
   @Override
   public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
+    return "Removes corrected retention times from scans.";
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-
-    for (RawDataFile file : files) {
-      if (!(file instanceof ImagingRawDataFile)) {
-        continue;
-      }
-      Task task = ModularADAPChromatogramBuilderTask.forImaging(project, file, parameters, storage,
-          moduleCallDate, ImageBuilderModule.class);
-      tasks.add(task);
-    }
+    tasks.add(new RemoveScanRtCorrectionTask(null, moduleCallDate, parameters, this.getClass(),
+        "Manually called reset of RT correction."));
 
     return ExitCode.OK;
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.EIC_DETECTION;
+    return MZmineModuleCategory.NORMALIZATION;
   }
 
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return ImageBuilderParameters.class;
+  public @NotNull String getName() {
+    return "Clear Retention time correction on scans";
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return RemoveScanRtCorrectionParameters.class;
+  }
 }
