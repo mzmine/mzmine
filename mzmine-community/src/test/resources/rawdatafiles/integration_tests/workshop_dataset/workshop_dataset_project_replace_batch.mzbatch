@@ -2,8 +2,8 @@
 <batch mzmine_version="4.10.57">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
-            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
-            <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
+            <file relative_path="..\171103_PMA_TK_QC_04-4to5min.mzML">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
+            <file relative_path="..\171103_PMA_TK_QC_05-4to5min.mzML">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_05-4to5min.mzML</file>
         </parameter>
         <parameter name="Vendor data options">
             <parameter name="Try vendor centroiding">false</parameter>
@@ -100,9 +100,8 @@
             <parameter name="Denormalize fragment scans (traps)">true</parameter>
         </parameter>
         <parameter name="Metadata file" selected="true">
-            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</current_file>
+            <current_file relative_path="..\fake_metadata.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</last_file>
-            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.tsv</last_file>
         </parameter>
         <parameter name="Extract sample metadata" selected="false">
             <parameter name="Overwrite existing values">true</parameter>
@@ -110,8 +109,8 @@
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
-            <file>D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\massbank_nist_for_tests.msp</file>
-            <file>D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
+            <file relative_path="..\..\..\..\spectral_libraries\integration_tests\massbank_nist_for_tests.msp">D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\massbank_nist_for_tests.msp</file>
+            <file relative_path="..\..\..\..\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json">D:\git\mzmine3\mzmine-community\src\test\resources\spectral_libraries\integration_tests\MoNA-export-LC-MS-MS_Spectra.json</file>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule" module_name="Mass detection" parameter_version="1">
@@ -246,7 +245,6 @@
             <ppmtolerance>10.0</ppmtolerance>
         </parameter>
         <parameter name="Suffix">eics</parameter>
-        <parameter name="Allow single scan chromatograms"/>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule" module_name="Smoothing" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
@@ -537,7 +535,7 @@
             <ionLibrary id="1944315c-6b03-4b87-8479-0c699ce35a7b">
                 <origin kind="local"/>
                 <name>Legacy library imported</name>
-                <savedDate>2026-09-02T16:12:39.0858864</savedDate>
+                <savedDate>2026-09-03T10:15:20.9444548</savedDate>
                 <lastUpdatedDate>2026-05-28T16:18:03.8610782</lastUpdatedDate>
                 <parts>
                     <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
@@ -602,8 +600,8 @@
                 <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
                     <origin kind="builtin"/>
                     <name>mzmine default main ions (+/-)</name>
-                    <savedDate>2026-09-02T16:12:39.0868976</savedDate>
-                    <lastUpdatedDate>2026-09-02T15:57:46.3460729</lastUpdatedDate>
+                    <savedDate>2026-09-03T10:15:20.9454547</savedDate>
+                    <lastUpdatedDate>2026-09-03T09:59:06.8416795</lastUpdatedDate>
                     <parts>
                         <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
                         <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
@@ -1106,11 +1104,10 @@
                 <parameter name="Normalization type">Nearest standard</parameter>
                 <parameter name="m/z vs RT balance">1.0</parameter>
                 <parameter name="Standard compounds file">
-                    <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</current_file>
+                    <current_file relative_path="..\fake_is_norm.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</current_file>
                     <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</last_file>
-                    <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.tsv</last_file>
-                    <last_file>D:\tmp\is_norm\is_norm_micro.csv</last_file>
-                    <last_file>D:\tmp\is_norm\is_norm_micro - Copy.csv</last_file>
+                    <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\is_norm\is_norm_micro.csv">D:\tmp\is_norm\is_norm_micro.csv</last_file>
+                    <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\is_norm\is_norm_micro - Copy.csv">D:\tmp\is_norm\is_norm_micro - Copy.csv</last_file>
                 </parameter>
                 <parameter name="Field separator">,</parameter>
                 <parameter name="Standard compounds">
@@ -1147,18 +1144,31 @@
             <messages/>
         </parameter>
     </batchstep>
+    <batchstep method="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule" module_name="Export to CSV file (modular)" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Row selection">all_major_ions</parameter>
+        <parameter name="Filename">
+            <current_file relative_path="..\expected_results.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv</current_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results.csv</last_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</last_file>
+        </parameter>
+        <parameter name="Field separator">,</parameter>
+        <parameter name="Identification separator">;</parameter>
+        <parameter name="Remove empty columns">true</parameter>
+        <parameter name="Filter rows">ALL</parameter>
+    </batchstep>
     <batchstep method="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule" module_name="Save project as" parameter_version="1">
         <parameter name="Project file">
-            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
-            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
-            <last_file>D:\tmp\iimn comp.mzmine</last_file>
+            <current_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
+            <last_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
+            <last_file relative_path="..\..\..\..\..\..\..\..\..\..\tmp\iimn comp.mzmine">D:\tmp\iimn comp.mzmine</last_file>
         </parameter>
         <parameter name="Project type">Standalone (large/flexible)</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.projectload.ProjectLoadModule" module_name="Open project..." parameter_version="1">
         <parameter name="Project file">
-            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
-            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
+            <current_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
+            <last_file relative_path="">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</last_file>
         </parameter>
         <parameter name="Merge onto existing">false</parameter>
         <parameter name="Keep current spectral libraries">false</parameter>
@@ -1167,7 +1177,7 @@
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
         <parameter name="Row selection">all_major_ions</parameter>
         <parameter name="Filename">
-            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</current_file>
+            <current_file relative_path="..\expected_results_project.csv">D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</last_file>
         </parameter>
         <parameter name="Field separator">,</parameter>
