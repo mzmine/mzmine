@@ -192,12 +192,16 @@ public class SiriusExportTask extends AbstractTask {
   private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
       throws IOException {
 
+    // index the MS1 correlation edges by row once instead of probing all row pairs for each row
+    final Map<FeatureListRow, List<RowsRelationship>> correlationIndex = featureList.getMs1CorrelationMap()
+        .map(R2RMap::createRowIndex).orElseGet(Map::of);
+
     for (FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return;
       }
 
-      if (exportRow(writer, row)) {
+      if (exportRow(writer, row, correlationIndex)) {
         exportedRows.getAndIncrement();
       }
 
@@ -206,9 +210,23 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
+   * Exports a single row without a precomputed correlation index. Prefer
+   * {@link #exportRow(BufferedWriter, FeatureListRow, Map)} when exporting many rows.
+   *
    * @return True if the row was exported.
    */
   public boolean exportRow(BufferedWriter writer, FeatureListRow row) throws IOException {
+    return exportRow(writer, row, null);
+  }
+
+  /**
+   * @param correlationIndex MS1 correlation edges by row, see {@link R2RMap#createRowIndex()}. May
+   *                         be null, then the edges of this row are searched in the correlation map
+   *                         of its feature list.
+   * @return True if the row was exported.
+   */
+  public boolean exportRow(BufferedWriter writer, FeatureListRow row,
+      @Nullable Map<FeatureListRow, List<RowsRelationship>> correlationIndex) throws IOException {
 
     if (!checkFeatureCriteria(row)) {
       return false;
@@ -218,7 +236,7 @@ public class SiriusExportTask extends AbstractTask {
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
 
     // export either correlated OR MS1
-    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row);
+    final SpectralLibraryEntry ms1 = getCorrelatedOrBestMS1Spectrum(row, correlationIndex);
     if (ms1 != null) {
       entries.add(ms1);
     }
@@ -245,7 +263,8 @@ public class SiriusExportTask extends AbstractTask {
     return actuallyExported > 0;
   }
 
-  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row) {
+  private @Nullable SpectralLibraryEntry getCorrelatedOrBestMS1Spectrum(final FeatureListRow row,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     final Feature bestFeature = row.getBestFeature();
     if (bestFeature == null) {
       // maybe no MS1 data?
@@ -256,7 +275,7 @@ public class SiriusExportTask extends AbstractTask {
     }
 
     final SpectralLibraryEntry correlated = generateCorrelationSpectrum(entryFactory, mzTol, row,
-        null, null);
+        null, null, correlationIndex);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
       return correlated;
     } else {
@@ -367,14 +386,44 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
+   * The rows that are directly correlated to this row in MS1.
+   *
+   * @param correlationIndex MS1 correlation edges by row or null to search the correlation map of
+   *                         the feature list of this row
+   * @return list of directly correlated rows, empty if there are none
+   */
+  private static @NotNull List<FeatureListRow> getCorrelatedRows(@NotNull final FeatureListRow row,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
+    if (correlationIndex != null) {
+      final List<RowsRelationship> edges = correlationIndex.get(row);
+      return edges == null ? List.of()
+          : edges.stream().map(rel -> rel.getOtherRow(row)).distinct().toList();
+    }
+
+    // no index available: probe all pairs of this row
+    final FeatureList flist = row.getFeatureList();
+    final R2RMap<RowsRelationship> ms1Map =
+        flist == null ? null : flist.getMs1CorrelationMap().orElse(null);
+    return ms1Map == null ? List.of()
+        : ms1Map.streamAllCorrelatedRows(row, flist.getRows()).map(rel -> rel.getOtherRow(row))
+            .distinct().toList();
+  }
+
+  /**
    * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
    * via IIN (+ their isotopes).
+   *
+   * @param correlationIndex MS1 correlation edges by row, see {@link R2RMap#createRowIndex()}.
+   *                         Create it once per feature list and pass it in when many rows are
+   *                         exported. May be null, then the edges of this row are searched in the
+   *                         correlation map of its feature list.
    */
   @Nullable
   public static SpectralLibraryEntry generateCorrelationSpectrum(
       final SpectralLibraryEntryFactory entryFactory, final MZTolerance mzTol,
       @NotNull FeatureListRow row, @Nullable RawDataFile file,
-      @Nullable final Map<DBEntryField, Object> metadataMap) {
+      @Nullable final Map<DBEntryField, Object> metadataMap,
+      @Nullable final Map<FeatureListRow, List<RowsRelationship>> correlationIndex) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     final List<DataPoint> dps = new ArrayList<>();
 
@@ -389,12 +438,7 @@ public class SiriusExportTask extends AbstractTask {
     // the rows directly correlated to this row (edges in the MS1 correlation map) take the place of
     // the former row group. Transitively correlated rows were never exported either, so only direct
     // neighbors are relevant here.
-    final FeatureList flist = row.getFeatureList();
-    final R2RMap<RowsRelationship> ms1Map =
-        flist == null ? null : flist.getMs1CorrelationMap().orElse(null);
-    final List<FeatureListRow> correlatedRows = ms1Map == null ? List.of()
-        : ms1Map.streamAllCorrelatedRows(row, flist.getRows()).map(rel -> rel.getOtherRow(row))
-            .distinct().toList();
+    final List<FeatureListRow> correlatedRows = getCorrelatedRows(row, correlationIndex);
     final boolean hasGroup = !correlatedRows.isEmpty();
 
     if (!hasGroup && identity != null) {

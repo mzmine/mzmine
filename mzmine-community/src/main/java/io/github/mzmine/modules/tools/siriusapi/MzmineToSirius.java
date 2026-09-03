@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -160,7 +160,7 @@ public class MzmineToSirius {
     SpectralLibraryEntryFactory factory = new SpectralLibraryEntryFactory(true, false, false,
         false);
     final MassSpectrum correlated = SiriusExportTask.generateCorrelationSpectrum(factory,
-        SpectraMerging.defaultMs1MergeTol, row, null, null);
+        SpectraMerging.defaultMs1MergeTol, row, null, null, null);
 
     if (correlated == null) {
       return spectrum(row.getBestFeature().getRepresentativeScan());

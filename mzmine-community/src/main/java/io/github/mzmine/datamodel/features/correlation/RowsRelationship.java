@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public sealed interface RowsRelationship permits AbstractRowsRelationship {
+public sealed interface RowsRelationship extends RowPair permits AbstractRowsRelationship {
 
   /**
    * Score of this row 2 row relationship
@@ -101,6 +101,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
    *
    * @return the first row
    */
+  @Override
   @NotNull FeatureListRow getRowA();
 
   /**
@@ -108,17 +109,8 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
    *
    * @return the second row
    */
+  @Override
   @NotNull FeatureListRow getRowB();
-
-  default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
-    if (getRowA().equals(correlatedRow)) {
-      return getRowB();
-    } else if (getRowB().equals(correlatedRow)) {
-      return getRowA();
-    }
-    throw new RuntimeException("Given row is not part of this row relationship");
-  }
-
 
   /**
    * All types of relationships
