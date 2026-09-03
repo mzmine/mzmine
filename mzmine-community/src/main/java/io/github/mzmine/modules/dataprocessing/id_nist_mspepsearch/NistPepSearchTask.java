@@ -400,9 +400,11 @@ public final class NistPepSearchTask extends AbstractTask {
     process = running;
 
     // Drain both streams on their own threads. Reading them from one thread risks blocking on a
-    // full pipe buffer, and stderr carries the /PROGRESS messages and any error text.
-    final StringBuilder stdout = new StringBuilder();
-    final StringBuilder stderr = new StringBuilder();
+    // full pipe buffer, and stderr carries the /PROGRESS messages and any error text. Both go into
+    // bounded buffers: /PROGRESS makes stderr grow with the number of searched spectra, while only
+    // its ends are ever read.
+    final ProcessOutputBuffer stdout = new ProcessOutputBuffer();
+    final ProcessOutputBuffer stderr = new ProcessOutputBuffer();
 
     final int exitCode;
     try {
@@ -433,11 +435,11 @@ public final class NistPepSearchTask extends AbstractTask {
 
     if (exitCode != 0) {
       throw new IOException(
-          "MSPepSearch failed with exit code %d.%n%s%n%s%nCommand: %s".formatted(exitCode,
-              tail(stderr), tail(stdout), String.join(" ", command)));
+          "MSPepSearch failed with exit code %d.%n%s%n%s%nCommand: %s".formatted(exitCode, stderr,
+              stdout, String.join(" ", command)));
     }
 
-    logger.finest(() -> "MSPepSearch finished: " + tail(stderr));
+    logger.finest(() -> "MSPepSearch finished: " + stderr);
   }
 
   /**
@@ -446,7 +448,7 @@ public final class NistPepSearchTask extends AbstractTask {
    * @param countProgress whether {@link #PROGRESS_MARKER} lines on this stream advance the progress
    *                      bar. Only stderr carries them.
    */
-  private Thread drain(final InputStream stream, final StringBuilder target,
+  private Thread drain(final InputStream stream, final ProcessOutputBuffer target,
       final boolean countProgress) {
 
     // Read by lines: the marker has to be matched as a whole, which a fixed size character buffer
@@ -457,9 +459,7 @@ public final class NistPepSearchTask extends AbstractTask {
       try (var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
         String line;
         while ((line = reader.readLine()) != null) {
-          synchronized (target) {
-            target.append(line).append(System.lineSeparator());
-          }
+          target.add(line);
           if (countProgress && line.contains(PROGRESS_MARKER)) {
             searchedSpectra.incrementAndGet();
           }
@@ -472,17 +472,6 @@ public final class NistPepSearchTask extends AbstractTask {
     thread.setDaemon(true);
     thread.start();
     return thread;
-  }
-
-  /**
-   * The last part of a captured stream, so that an error message stays readable.
-   */
-  private static String tail(final StringBuilder text) {
-
-    synchronized (text) {
-      final String string = text.toString().strip();
-      return string.length() <= 2000 ? string : "..." + string.substring(string.length() - 2000);
-    }
   }
 
   /**

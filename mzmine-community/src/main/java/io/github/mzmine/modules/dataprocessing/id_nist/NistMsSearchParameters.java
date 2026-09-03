@@ -81,21 +81,19 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
   public static final DirectoryParameter NIST_DIRECTORY = new DirectoryParameter(
       "NIST installation directory", """
-      The NIST installation directory, for example C:\\NIST26. Use the button to detect it \
-      automatically.
+      The NIST installation directory, for example C:\\NIST26. Use the button to detect it automatically.
       It must contain the MSPepSearch sub directory with MSPepSearch64.exe and the library sub \
       directories such as mainlib or hr_msms_nist.""", NistMsSearchParameters::addAutoDetectButton);
 
   public static final ComboParameter<NistSearchMode> SEARCH_MODE = new ComboParameter<>(
       "Search type", """
       The NIST search preset to use, which also picks the libraries.
-      The GC-EI searches run on unit mass EI spectra against all EI libraries of the installation \
-      (mainlib, replib); identity finds the compound itself, similarity also finds related \
-      compounds that are not in the library. MS/MS runs on accurate mass spectra against all \
-      tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).
-      Automatic uses the GC-EI identity search if the feature list was built by a spectral \
-      deconvolution module and the MS/MS search otherwise. The effective search type is written to \
-      the log and shown in the task description.""", SEARCH_MODES, NistSearchMode.AUTO);
+      The GC-EI searches run on unit mass EI spectra against all EI libraries of the installation (mainlib, replib);
+      identity finds the compound itself, similarity also finds related compounds that are not in the library.
+      MS/MS runs on accurate mass spectra against all tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).
+      Automatic uses the GC-EI identity search if the feature list was built by a spectral deconvolution module and the MS/MS search otherwise.
+      The effective search type is written to the log and shown in the task description.""",
+      SEARCH_MODES, NistSearchMode.AUTO);
 
   public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
 
@@ -103,29 +101,25 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Kept under its original name so that saved batches keep their value. MSPepSearch filters on the
    * NIST match factor, which is this score times 1000.
    */
-  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
-      """
-          The minimum similarity score of a reported hit, on mzmine's 0 to 1 scale.
-          This is the NIST match factor divided by 1000 (MSPepSearch /MinMF): 0.7 and above is \
-          usually considered a good match, 0.9 and above an excellent one.""",
+  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity", """
+      The minimum similarity score of a reported hit, on mzmine's 0 to 1 scale.
+      This is the NIST match factor divided by 1000 (MSPepSearch /MinMF): 0.7 and above is \
+      usually considered a good match, 0.9 and above an excellent one.""",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
 
   public static final MZToleranceParameter PRECURSOR_TOLERANCE = new MZToleranceParameter(
       "Precursor m/z tolerance", """
-      MS/MS only. MSPepSearch /Z or /ZPPM: the precursor ion m/z uncertainty.
-      MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
+      MS/MS only. MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
       is greater than zero it is used, otherwise the absolute value is.""", 0.005, 20);
 
   public static final MZToleranceParameter FRAGMENT_TOLERANCE = new MZToleranceParameter(
       "Fragment m/z tolerance", """
-      MS/MS only. MSPepSearch /M or /MPPM: the product ion m/z uncertainty.
-      MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
+      MS/MS only. MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
       is greater than zero it is used, otherwise the absolute value is.""", 0.01, 40);
 
   public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
       new ComboParameter<>("Integer m/z", """
-          GC-EI only. Merge fractional m/z to unit mass before searching, as the NIST EI libraries \
-          are unit mass.
+          GC-EI only. Merge fractional m/z to unit mass before searching, as the NIST EI libraries are unit mass.
           Only needed if your spectra are not already centroided to unit mass.""",
           IntegerMode.values(), IntegerMode.SUM), false);
 
@@ -161,8 +155,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public @NotNull NistSearchConfig toConfig() {
 
     final Double minSimilarity = getValue(DOT_PRODUCT);
-    final IntegerMode integerMz = Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? getParameter(
-        INTEGER_MZ).getEmbeddedParameter().getValue() : null;
+    final IntegerMode integerMz =
+        Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? getParameter(INTEGER_MZ).getEmbeddedParameter()
+            .getValue() : null;
 
     final NistSearchMode mode = getValue(SEARCH_MODE);
 
@@ -373,8 +368,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         text("Runs NIST's command line program "), italicText("MSPepSearch. "),
         boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer."),
         text("\nContact mzio to obtain the latest NIST library ("),
-        hyperlinkText("mzio.io/nist", "https://mzio.io/nist/"), text(")."), text("\nThe "),
-        text(
+        hyperlinkText("mzio.io/nist", "https://mzio.io/nist/"), text(")."), text("\nThe "), text(
             "NIST returns no library spectra or structures, so the mirror plot only shows the input spectrum."));
   }
 }
