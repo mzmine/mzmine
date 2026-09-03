@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,16 @@ package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -56,6 +60,14 @@ public class FeatureListBlankSubtractionModule implements MZmineProcessingModule
   @Override
   public String getDescription() {
     return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list. Additionally, removed features can be saved to another feature list for inspection. ";
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+        "Feature-list blank subtraction requires a feature list containing all aligned samples",
+        ModuleOrderRule.mustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 
   @Override

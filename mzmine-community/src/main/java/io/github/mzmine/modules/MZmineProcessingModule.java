@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,22 @@
 
 package io.github.mzmine.modules;
 
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface representing a data processing method that produces new data. Modules implementing this
  * interface can be executed in a batch.
  */
 public interface MZmineProcessingModule extends MZmineRunnableModule {
 
+  /**
+   * Describes valid or recommended positions of this module in a processing pipeline. Every
+   * applicable recommendation is evaluated independently, and any violation is reported. Modules
+   * without ordering requirements do not need to override this method.
+   */
+  default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of();
+  }
 }
