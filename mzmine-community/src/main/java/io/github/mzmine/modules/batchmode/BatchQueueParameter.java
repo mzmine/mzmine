@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -129,6 +132,28 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
     final BatchQueueParameter copy = new BatchQueueParameter(lastParsingErrorMessages);
     copy.setValue(value != null ? value.clone() : null);
     return copy;
+  }
+
+  @Override
+  public boolean valueEquals(@Nullable final Parameter<?> that) {
+    if (!(that instanceof BatchQueueParameter thatParameter)) {
+      return false;
+    }
+
+    final BatchQueue thatValue = thatParameter.getValue();
+    if (value == thatValue) {
+      return true;
+    }
+    if (value == null || thatValue == null || value.size() != thatValue.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < value.size(); i++) {
+      if (!ParameterUtils.equalValues(value.get(i), thatValue.get(i), false, false)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

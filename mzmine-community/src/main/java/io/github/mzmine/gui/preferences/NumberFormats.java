@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,11 @@
 package io.github.mzmine.gui.preferences;
 
 import com.google.common.collect.Range;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
@@ -39,6 +41,19 @@ public record NumberFormats(NumberFormat mzFormat, NumberFormat rtFormat,
 
   private static final Logger logger = Logger.getLogger(NumberFormats.class.getName());
   private static final String empty = "";
+
+  /**
+   * Use in classes that format many values, to avoid contending on the shared instances. Because
+   * {@link DecimalFormat#format(double)} uses a lock internally.
+   *
+   * @return a deep copy of all formats. {@link UnitFormat} is an enum and therefore shared.
+   */
+  public @NotNull NumberFormats createCopy() {
+    return new NumberFormats((NumberFormat) mzFormat.clone(), (NumberFormat) rtFormat.clone(),
+        (NumberFormat) mobilityFormat.clone(), (NumberFormat) ccsFormat.clone(),
+        (NumberFormat) intensityFormat.clone(), (NumberFormat) ppmFormat.clone(),
+        (NumberFormat) percentFormat.clone(), (NumberFormat) scoreFormat.clone(), unitFormat);
+  }
 
   private static String range(Range<? extends Number> range, NumberFormat format) {
     return range != null ? format.format(range.lowerEndpoint()) + " - " + format.format(

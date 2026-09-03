@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,17 +25,17 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.util.StringUtils;
-import static io.github.mzmine.util.StringUtils.inQuotes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -66,8 +66,7 @@ public class MetadataTableModel {
 
   private void addRows(MetadataTable metadataTable, TableView<MetadataRow> tableView) {
     // 2. Determine the unique rows (gather all unique RawDataFile keys)
-    Set<RawDataFile> uniqueFiles = metadataTable.getData().values().stream()
-        .flatMap(innerMap -> innerMap.keySet().stream()).collect(Collectors.toSet());
+    final List<RawDataFile> uniqueFiles = metadataTable.getRawDataFilesUnsorted();
 
     // 3. Create MetadataRow objects for each unique RawDataFile
     List<MetadataRow> rows = uniqueFiles.stream()
@@ -90,7 +89,7 @@ public class MetadataTableModel {
     final TableColumn<MetadataRow, String> dataFileColumn = createDataFileColumn();
     tableView.getColumns().add(dataFileColumn);
 
-    final List<MetadataColumn<?>> tableColumns = metadataTable.getData().keySet().stream().sorted()
+    final List<MetadataColumn<?>> tableColumns = metadataTable.getColumns().stream().sorted()
         .toList();
 
     for (MetadataColumn<?> metaColumn : tableColumns) {
