@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<batch mzmine_version="4.9.44">
+<batch mzmine_version="4.10.57">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
             <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
@@ -13,6 +13,7 @@
                 <parameter name="Negative lockmass">554.262022</parameter>
             </parameter>
             <parameter name="Waters MassLynx data import">native</parameter>
+            <parameter name="Pressure compensation (Bruker IMS)">No compensation</parameter>
         </parameter>
         <parameter name="Advanced import" selected="false">
             <parameter name="Scan filters" selected="false">
@@ -43,6 +44,12 @@
                     <parameter name="Noise level"/>
                     <parameter name="Minimum non-zero points">3</parameter>
                     <parameter name="Intensity calculation">Height</parameter>
+                    <parameter name="Smoothing" selected_item="none">
+                        <module name="none"/>
+                        <module name="savitzky_golay">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
+                    </parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -72,6 +79,12 @@
                     <parameter name="Noise level"/>
                     <parameter name="Minimum non-zero points">3</parameter>
                     <parameter name="Intensity calculation">Height</parameter>
+                    <parameter name="Smoothing" selected_item="none">
+                        <module name="none"/>
+                        <module name="savitzky_golay">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
+                    </parameter>
                 </module>
                 <module name="Recursive threshold">
                     <parameter name="Noise level"/>
@@ -86,9 +99,14 @@
             </parameter>
             <parameter name="Denormalize fragment scans (traps)">true</parameter>
         </parameter>
-        <parameter name="Metadata file" selected="false">
-            <current_file>D:\OneDrive - mzio GmbH\mzio\Example data\Thermo\20 years mzmine\metadata_PA.tsv</current_file>
-            <last_file>D:\OneDrive - mzio GmbH\mzio\Example data\Thermo\20 years mzmine\metadata_PA.tsv</last_file>
+        <parameter name="Metadata file" selected="true">
+            <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</current_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.csv</last_file>
+            <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_metadata.tsv</last_file>
+        </parameter>
+        <parameter name="Extract sample metadata" selected="false">
+            <parameter name="Overwrite existing values">true</parameter>
+            <parameter name="Regex column mappings"/>
         </parameter>
         <parameter name="Sort and color">true</parameter>
         <parameter name="Spectral library files">
@@ -130,6 +148,12 @@
                 <parameter name="Noise level">1.0</parameter>
                 <parameter name="Minimum non-zero points">3</parameter>
                 <parameter name="Intensity calculation">Height</parameter>
+                <parameter name="Smoothing" selected_item="none">
+                    <module name="none"/>
+                    <module name="savitzky_golay">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
+                </parameter>
             </module>
             <module name="Recursive threshold">
                 <parameter name="Noise level">10.0</parameter>
@@ -177,6 +201,12 @@
                 <parameter name="Noise level">1.0</parameter>
                 <parameter name="Minimum non-zero points">3</parameter>
                 <parameter name="Intensity calculation">Height</parameter>
+                <parameter name="Smoothing" selected_item="none">
+                    <module name="none"/>
+                    <module name="savitzky_golay">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
+                </parameter>
             </module>
             <module name="Recursive threshold">
                 <parameter name="Noise level">10.0</parameter>
@@ -286,9 +316,9 @@
         <parameter name="Chemical elements">H,C,N,O,S</parameter>
         <parameter name="m/z tolerance (feature-to-scan)">
             <absolutetolerance>0.0015</absolutetolerance>
-            <ppmtolerance>3.0</ppmtolerance>
+            <ppmtolerance>10.0</ppmtolerance>
         </parameter>
-        <parameter name="Maximum charge of isotope m/z">1</parameter>
+        <parameter name="Maximum charge of isotope m/z">5</parameter>
         <parameter name="Search in scans">SINGLE MOST INTENSE</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" module_name="Join aligner" parameter_version="1">
@@ -386,6 +416,8 @@
             <parameter name="Exclude isotopes">O</parameter>
         </parameter>
         <parameter name="Remove redundant isotope rows">false</parameter>
+        <parameter name="Feature row IDs" selected="false"/>
+        <parameter name="Compound IDs" selected="false"/>
         <parameter name="m/z" selected="false">
             <min>454.0</min>
             <max>455.0</max>
@@ -419,8 +451,8 @@
             <parameter name="Use Remainder of Kendrick mass">false</parameter>
         </parameter>
         <parameter name="Flexible filter (e.g., annotation)" selected="false">
-            <parameter name="Matching mode"/>
-            <parameter name="Type"/>
+            <parameter name="Matching mode">any</parameter>
+            <parameter name="Type">compound_name</parameter>
             <parameter name="Search value"/>
         </parameter>
         <parameter name="Only identified?">false</parameter>
@@ -505,7 +537,7 @@
             <ionLibrary id="1944315c-6b03-4b87-8479-0c699ce35a7b">
                 <origin kind="local"/>
                 <name>Legacy library imported</name>
-                <savedDate>2026-05-28T16:23:04.2056365</savedDate>
+                <savedDate>2026-09-02T16:12:39.0858864</savedDate>
                 <lastUpdatedDate>2026-05-28T16:18:03.8610782</lastUpdatedDate>
                 <parts>
                     <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
@@ -570,8 +602,8 @@
                 <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
                     <origin kind="builtin"/>
                     <name>mzmine default main ions (+/-)</name>
-                    <savedDate>2026-05-28T16:23:04.2091552</savedDate>
-                    <lastUpdatedDate>2026-05-28T16:05:58.1712344</lastUpdatedDate>
+                    <savedDate>2026-09-02T16:12:39.0868976</savedDate>
+                    <lastUpdatedDate>2026-09-02T15:57:46.3460729</lastUpdatedDate>
                     <parts>
                         <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
                         <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>
@@ -648,6 +680,44 @@
             <parameter name="Delete smaller networks: Link threshold" selected="true">4</parameter>
             <parameter name="Delete networks without monomer">true</parameter>
             <parameter name="Only keep rows with ion ID">false</parameter>
+        </parameter>
+        <parameter name="Compound grouping" selected="true">
+            <parameter name="Componentizer" selected_item="simple_iin_correlation">
+                <module name="simple_iin_correlation">
+                    <parameter name="m/z tolerance (intra-sample)">
+                        <absolutetolerance>0.001</absolutetolerance>
+                        <ppmtolerance>5.0</ppmtolerance>
+                    </parameter>
+                    <parameter name="RT tolerance" unit="MINUTES">0.03</parameter>
+                    <parameter name="Min network density">0.4</parameter>
+                </module>
+                <module name="weighted_graph">
+                    <parameter name="m/z tolerance (intra-sample)">
+                        <absolutetolerance>0.001</absolutetolerance>
+                        <ppmtolerance>5.0</ppmtolerance>
+                    </parameter>
+                    <parameter name="RT tolerance" unit="MINUTES">0.08</parameter>
+                    <parameter name="Weight: RT coherence">2.0</parameter>
+                    <parameter name="Weight: shape correlation">1.0</parameter>
+                    <parameter name="Weight: ion identity">0.5</parameter>
+                    <parameter name="Weight: isotope">0.5</parameter>
+                    <parameter name="Weight: annotation">0.5</parameter>
+                    <parameter name="Min core density">0.3</parameter>
+                    <parameter name="Core merge overlap">0.5</parameter>
+                    <parameter name="Assignment confidence">0.6</parameter>
+                    <parameter name="Near-tie margin">0.1</parameter>
+                    <parameter name="Size penalty threshold">10</parameter>
+                    <parameter name="Size penalty">0.3</parameter>
+                    <parameter name="RT spread threshold (min)">0.05</parameter>
+                    <parameter name="Message-passing rounds">3</parameter>
+                    <parameter name="Message-passing damping">0.5</parameter>
+                    <parameter name="Split on annotation conflict">true</parameter>
+                </module>
+            </parameter>
+            <parameter name="Representative row" selected_item="prefer_annotated">
+                <module name="prefer_annotated"/>
+                <module name="ion_type_ranking"/>
+            </parameter>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule" module_name="Spectral library search" parameter_version="3">
@@ -1019,6 +1089,64 @@
             </parameter>
         </parameter>
     </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule" module_name="Intensity normalizer" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Name suffix">norm</parameter>
+        <parameter name="Original feature list">PROCESS IN PLACE</parameter>
+        <parameter name="Abundance measure">Height</parameter>
+        <parameter name="Batch correction metadata column" selected="false"/>
+        <parameter name="Metadata column (weight, dilution, ...)" selected="true">
+            <parameter name="mode">multiply</parameter>
+            <parameter name="metadata column">factor</parameter>
+        </parameter>
+        <parameter name="Intra-sample correction" selected_item="internal_standard_compounds">
+            <module name="no_normalization"/>
+            <module name="internal_standard_compounds">
+                <parameter mode="ALL" name="Reference samples"/>
+                <parameter name="Normalization type">Nearest standard</parameter>
+                <parameter name="m/z vs RT balance">1.0</parameter>
+                <parameter name="Standard compounds file">
+                    <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</current_file>
+                    <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.csv</last_file>
+                    <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\fake_is_norm.tsv</last_file>
+                    <last_file>D:\tmp\is_norm\is_norm_micro.csv</last_file>
+                    <last_file>D:\tmp\is_norm\is_norm_micro - Copy.csv</last_file>
+                </parameter>
+                <parameter name="Field separator">,</parameter>
+                <parameter name="Standard compounds">
+                    <importtype column="mz" datatype="io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType" selected="true"/>
+                    <importtype column="rt" datatype="io.github.mzmine.datamodel.features.types.numbers.RTType" selected="true"/>
+                    <importtype column="mobility" datatype="io.github.mzmine.datamodel.features.types.numbers.MobilityType" selected="false"/>
+                    <importtype column="name" datatype="io.github.mzmine.datamodel.features.types.annotations.CompoundNameType" selected="true"/>
+                </parameter>
+                <parameter name="m/z tolerance">
+                    <absolutetolerance>0.005</absolutetolerance>
+                    <ppmtolerance>5.0</ppmtolerance>
+                </parameter>
+                <parameter name="RT tolerance" unit="MINUTES">0.1</parameter>
+                <parameter name="Mobility tolerance">0.01</parameter>
+                <parameter name="Requirement" selected="require_all_in_all_samples">1</parameter>
+            </module>
+        </parameter>
+        <parameter name="Inter-sample correction" selected_item="feature_intensity_normalization">
+            <module name="no_normalization"/>
+            <module name="feature_intensity_normalization">
+                <parameter mode="LIST" name="Reference samples">
+                    <selected>qc</selected>
+                </parameter>
+                <parameter name="Normalize by feature abundances">median</parameter>
+            </module>
+            <module name="spectral_tic">
+                <parameter mode="LIST" name="Reference samples">
+                    <selected>qc</selected>
+                </parameter>
+            </module>
+        </parameter>
+        <parameter name="Normalization functions">
+            <functions/>
+            <messages/>
+        </parameter>
+    </batchstep>
     <batchstep method="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule" module_name="Save project as" parameter_version="1">
         <parameter name="Project file">
             <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\project.mzmine</current_file>
@@ -1037,6 +1165,7 @@
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule" module_name="Export to CSV file (modular)" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="Row selection">all_major_ions</parameter>
         <parameter name="Filename">
             <current_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</current_file>
             <last_file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\expected_results_project.csv</last_file>
