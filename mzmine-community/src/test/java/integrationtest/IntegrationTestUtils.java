@@ -59,6 +59,7 @@ import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -281,13 +282,14 @@ public class IntegrationTestUtils {
     if (file.exists()) {
       return file;
     }
-    final File newFile = new File(directory, file.getName());
+    final String name = FileAndPathUtil.getFileNameFromPath(file);
+    final File newFile = new File(directory, name);
     if (newFile.exists()) {
       return newFile;
     }
     throw new RuntimeException(
-        "File %s not found in directory %s and not found at original path %s".formatted(
-            file.getName(), directory.getAbsolutePath(), file.getAbsolutePath()));
+        "File %s not found in directory %s and not found at original path %s".formatted(name,
+            directory.getAbsolutePath(), file.getPath()));
   }
 
   private static void checkImportedFilesAndLibraries(@Nullable File @Nullable [] overrideDataFiles,
