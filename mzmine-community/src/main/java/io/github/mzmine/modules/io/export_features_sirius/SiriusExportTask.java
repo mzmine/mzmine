@@ -398,7 +398,12 @@ public class SiriusExportTask extends AbstractTask {
     final boolean hasGroup = !correlatedRows.isEmpty();
 
     if (!hasGroup && identity != null) {
-      throw new IllegalStateException("Cannot have an ion identity without correlated rows.");
+      // an ion identity is always created from correlated rows, but the correlation map may be
+      // missing later, e.g. when a module created a new feature list that only copied the rows and
+      // their annotations. Export the isotope pattern of this feature then instead of failing.
+      logger.finer(() ->
+          "Row has an ion identity but no correlated rows. Exporting only its isotope pattern: "
+              + FeatureUtils.rowToString(row));
     }
 
     if (!hasGroup) {

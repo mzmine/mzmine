@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @author Robin Schmid
  */
-public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
+public class R2RMap<T> extends ConcurrentHashMap<Long, T> {
 
   public R2RMap() {
   }
@@ -48,7 +48,7 @@ public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
    * @param b Feature list row with getID >=0
    * @return unique undirected ID
    */
-  public static int toKey(FeatureListRow a, FeatureListRow b) {
+  public static long toKey(FeatureListRow a, FeatureListRow b) {
     return MathUtils.undirectedPairing(a.getID(), b.getID());
   }
 

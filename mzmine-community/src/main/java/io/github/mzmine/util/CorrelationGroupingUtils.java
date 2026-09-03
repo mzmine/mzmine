@@ -78,7 +78,7 @@ public class CorrelationGroupingUtils {
 
       int nextGroupID = 1;
       // add all connections
-      for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
+      for (Entry<Long, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
