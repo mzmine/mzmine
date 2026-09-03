@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,16 +27,21 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MathUtils;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Map an object to two rows
  *
  * @author Robin Schmid
  */
-public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
+public class R2RMap<T extends RowPair> extends ConcurrentHashMap<Long, T> {
 
   public R2RMap() {
   }
@@ -48,7 +53,7 @@ public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
    * @param b Feature list row with getID >=0
    * @return unique undirected ID
    */
-  public static int toKey(FeatureListRow a, FeatureListRow b) {
+  public static long toKey(FeatureListRow a, FeatureListRow b) {
     return MathUtils.undirectedPairing(a.getID(), b.getID());
   }
 
@@ -82,10 +87,34 @@ public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
   }
 
   /**
-   * Performance optimised version to get a stream of all correlated rows in this {@link R2RMap}.
-   * Mapping is based on the ID of the two rows. Make sure the row and allRows originate from the
-   * same feature list as this R2RMap relates to. Rows from other feature lists with common ids will
-   * be falsely correlated.
+   * Creates an external index of all pairs in this map by row. Loops over all values and maps each
+   * pair to both its {@link RowPair#getRowA()} and {@link RowPair#getRowB()}, so a lookup by row
+   * directly yields all edges of that row. Prefer this over
+   * {@link #streamAllCorrelatedRows(FeatureListRow, Collection)} whenever many rows are queried:
+   * the index is created once in O(edges) while each stream call probes all possible pairs of one
+   * row.
+   * <p>
+   * The index is a snapshot and is not updated when this map changes. Rows without any pair are
+   * not contained in the index.
+   *
+   * @return a modifiable map of row to all edges of that row in no specific order
+   */
+  public @NotNull Map<FeatureListRow, List<T>> createRowIndex() {
+    final Map<FeatureListRow, List<T>> index = new HashMap<>();
+    for (final T pair : values()) {
+      index.computeIfAbsent(pair.getRowA(), _ -> new ArrayList<>()).add(pair);
+      index.computeIfAbsent(pair.getRowB(), _ -> new ArrayList<>()).add(pair);
+    }
+    return index;
+  }
+
+  /**
+   * Get a stream of all correlated rows in this {@link R2RMap}. Mapping is based on the ID of the
+   * two rows. Make sure the row and allRows originate from the same feature list as this R2RMap
+   * relates to. Rows from other feature lists with common ids will be falsely correlated.
+   * <p>
+   * This probes all pairs of row and allRows. Use {@link #createRowIndex()} once instead when
+   * querying many rows.
    *
    * @param row     the row to search relationships for
    * @param allRows a collection of all rows to check for correlation

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,14 +39,12 @@ public class MathUtils {
 
 
   /**
-   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
-   * b is undirected so the arguments of a and b can be switched
+   * Unique id for a pair of integers. The result of a and b is undirected so the arguments of a and
+   * b can be switched.
    *
-   * @param a >=0
-   * @param b >=0
    * @return unique undirected pairing ID
    */
-  public static int undirectedPairing(int a, int b) {
+  public static long undirectedPairing(int a, int b) {
     if (a > b) {
       return directedPairing(b, a);
     } else {
@@ -55,15 +53,42 @@ public class MathUtils {
   }
 
   /**
-   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
-   * b is directed so changing the argument order will change the result.
+   * Unique id for a pair of integers. The result of a and b is directed so changing the argument
+   * order will change the result.
+   * <p>
+   * decision: both arguments are packed into the two halves of a long instead of using a Cantor
+   * pairing function. Cantor pairing overflows int already for medium sized inputs (a + b >= 46341)
+   * and then silently maps different pairs onto the same id, e.g. (59, 302) and (32632, 32904). The
+   * packed key is collision free for the full int range.
    *
-   * @param a >=0
-   * @param b >=0
    * @return unique directed pairing ID
    */
-  public static int directedPairing(int a, int b) {
-    return ((a + b) * (a + b + 1) / 2) + a;
+  public static long directedPairing(int a, int b) {
+    return ((long) a << 32) | (b & 0xFFFFFFFFL);
+  }
+
+  /**
+   * The first value a of a pairing ID created by {@link #directedPairing(int, int)} or
+   * {@link #undirectedPairing(int, int)}. For an undirected pairing ID this is the smaller of the
+   * two values.
+   *
+   * @param pairingId a pairing ID
+   * @return the first value a that was packed into the pairing ID
+   */
+  public static int pairingA(long pairingId) {
+    return (int) (pairingId >> 32);
+  }
+
+  /**
+   * The second value b of a pairing ID created by {@link #directedPairing(int, int)} or
+   * {@link #undirectedPairing(int, int)}. For an undirected pairing ID this is the greater of the
+   * two values.
+   *
+   * @param pairingId a pairing ID
+   * @return the second value b that was packed into the pairing ID
+   */
+  public static int pairingB(long pairingId) {
+    return (int) pairingId;
   }
 
   /**
