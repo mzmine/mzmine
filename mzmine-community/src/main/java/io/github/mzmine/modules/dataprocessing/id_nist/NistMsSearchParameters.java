@@ -48,12 +48,12 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MzToleranceUnit;
+import io.github.mzmine.parameters.parametertypes.tolerances.SingleMzToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.File;
@@ -91,12 +91,12 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
   public static final ComboParameter<NistSearchMode> SEARCH_MODE = new ComboParameter<>(
       "Search type", """
-      The NIST search preset to use, which also picks the libraries.
-      The GC-EI searches run on unit mass EI spectra against all EI libraries of the installation (mainlib, replib);
-      identity finds the compound itself, similarity also finds related compounds that are not in the library.
-      MS/MS runs on accurate mass spectra against all tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).
-      Automatic uses the GC-EI identity search if the feature list was built by a spectral deconvolution module and the MS/MS search otherwise.
-      The effective search type is written to the log and shown in the task description.""",
+      The NIST search preset to use. It also picks the libraries and decides which of the parameters below apply.
+      GC-EI identity: unit mass EI spectra against the EI libraries (mainlib, replib), to find the compound itself.
+      GC-EI similarity: the same, but also finds related compounds that are not in the library themselves.
+      MS/MS: accurate mass spectra against the tandem libraries (hr_msms_nist, lr_msms_nist, apci_msms_nist).
+      Automatic: GC-EI identity if the feature list was built by a spectral deconvolution module, MS/MS otherwise.
+      The search type that was actually used is written to the log and shown in the task description.""",
       SEARCH_MODES, NistSearchMode.AUTO);
 
   public static final SpectraMergeSelectParameter spectraMergeSelect = SpectraMergeSelectParameter.createLimitedToFewScans();
@@ -111,21 +111,43 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       usually considered a good match, 0.9 and above an excellent one.""",
       MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
 
-  public static final MZToleranceParameter PRECURSOR_TOLERANCE = new MZToleranceParameter(
+  /**
+   * Single unit rather than the usual pair: MSPepSearch takes either {@code /Z} or {@code /ZPPM}
+   * and silently uses whichever came last, so a maximum of the two cannot be expressed.
+   */
+  public static final SingleMzToleranceParameter PRECURSOR_TOLERANCE = new SingleMzToleranceParameter(
       "Precursor m/z tolerance", """
-      MS/MS only. MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
-      is greater than zero it is used, otherwise the absolute value is.""", 0.005, 20);
+      MS/MS searches only, the GC-EI searches ignore it.
+      How far the precursor m/z of a library entry may differ from the one of the searched spectrum.
+      It only decides which library entries are compared and does not enter the match factor itself.
+      MSPepSearch takes a single value, so this is either an absolute or a relative tolerance, never the maximum of both.""",
+      MzToleranceUnit.PPM, 0.005, 20);
 
-  public static final MZToleranceParameter FRAGMENT_TOLERANCE = new MZToleranceParameter(
+  /**
+   * Single unit for the same reason as {@link #PRECURSOR_TOLERANCE}, here {@code /M} and
+   * {@code /MPPM}.
+   */
+  public static final SingleMzToleranceParameter FRAGMENT_TOLERANCE = new SingleMzToleranceParameter(
       "Fragment m/z tolerance", """
-      MS/MS only. MSPepSearch takes either a ppm or an absolute value, not the maximum of both: if the ppm value \
-      is greater than zero it is used, otherwise the absolute value is.""", 0.01, 40);
+      MS/MS searches only. The GC-EI searches ignore it and always match on unit mass, see Integer m/z.
+      The product ion m/z uncertainty. Unlike the precursor tolerance this one decides \
+      which signals count as matched and therefore the match factor itself. NIST recommends 20 ppm or less.
+      MSPepSearch takes a single value, so this is either an absolute or a relative tolerance, never the maximum of both.""",
+      MzToleranceUnit.PPM, 0.01, 20);
 
-  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
-      new ComboParameter<>("Integer m/z", """
-          GC-EI only. Merge fractional m/z to unit mass before searching, as the NIST EI libraries are unit mass.
-          Only needed if your spectra are not already centroided to unit mass.""",
-          IntegerMode.values(), IntegerMode.SUM), false);
+  /**
+   * Not optional: MSPepSearch bins to unit mass whether or not mzmine does, so the only question is
+   * how the signals of a nominal mass are combined, see {@link IntegerMode}.
+   */
+  public static final ComboParameter<IntegerMode> INTEGER_MZ = new ComboParameter<>("Integer m/z",
+      """
+          GC-EI searches only, the MS/MS search ignores it.
+          How the signals of the same nominal mass are combined before searching, because the NIST EI libraries are unit mass.
+          Sum: adds their intensities, which is how a unit mass library spectrum reports a nominal mass, / 
+          and is what accurate mass GC data (GC-QTOF, GC-Orbitrap) needs.
+          Maximum: keeps only the most intense of them.
+          Unit mass quadrupole data has one signal per nominal mass, so there both options are the same.""",
+      IntegerMode.values(), IntegerMode.SUM);
 
   public NistMsSearchParameters() {
     super(
@@ -159,10 +181,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public @NotNull NistSearchConfig toConfig() {
 
     final Double minSimilarity = getValue(DOT_PRODUCT);
-    final IntegerMode integerMz =
-        Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? getParameter(INTEGER_MZ).getEmbeddedParameter()
-            .getValue() : null;
-
+    final IntegerMode integerMz = getValue(INTEGER_MZ);
     final NistSearchMode mode = getValue(SEARCH_MODE);
 
     return new NistSearchConfig(getValue(NIST_DIRECTORY),
@@ -210,25 +229,11 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     preset.setParameter(DOT_PRODUCT, defaults.minSimilarity());
     preset.setParameter(PRECURSOR_TOLERANCE, defaults.precursorTolerance());
     preset.setParameter(FRAGMENT_TOLERANCE, defaults.fragmentTolerance());
-    preset.setIntegerMz(defaults.integerMz());
+    preset.setParameter(INTEGER_MZ, defaults.integerMz());
     preset.getParameter(spectraMergeSelect)
         .setSimplePreset(defaults.mergePreset(), defaults.mergeTolerance());
 
     return preset;
-  }
-
-  /**
-   * Switches the optional unit mass merging on or off in one call.
-   *
-   * @param integerMz the merging mode to use, or null to switch it off.
-   */
-  private void setIntegerMz(@Nullable final IntegerMode integerMz) {
-
-    if (integerMz == null) {
-      setParameter(INTEGER_MZ, false);
-    } else {
-      setParameter(INTEGER_MZ, true, integerMz);
-    }
   }
 
   @Override
@@ -245,6 +250,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       }
     }
 
+    // no parameter is pinned above the groups, everything is grouped by the search type it applies to
     final List<UserParameter<?, ? extends Region>> fixed = List.of();
 
     final List<ParameterGroup> groups = List.of( //
@@ -254,14 +260,13 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         new ParameterGroup("GC-EI-MS-specific", INTEGER_MZ) //
     );
 
-    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this,
-        false, fixed, groups, GroupView.SINGLE_LIST);
+    final GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired,
+        this, false, fixed, groups, GroupView.SINGLE_LIST);
     dialog.setTitle(NistMsSearchModule.MODULE_NAME);
     dialog.setFilterText(filterParameters);
     dialog.setWidth(800);
     dialog.setHeight(800);
 
-    // check
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -325,16 +330,13 @@ public class NistMsSearchParameters extends SimpleParameterSet {
       return;
     }
 
-    // Integer m/z was the only GC-EI specific option the old parameters had, so switching it on is
-    // the one hint they give about which of the two workflows was set up.
-    // assumption: everything else was an MS/MS search, which is what the old default was.
-    final NistSearchDefaults defaults =
-        Boolean.TRUE.equals(getValue(INTEGER_MZ)) ? NistSearchDefaults.GC_EI
-            : NistSearchDefaults.MSMS;
+    // assumption: an old parameter set was an MS/MS search, which is what the old default was.
+    // Integer m/z used to be the one hint about the workflow, because only the GC-EI one switched
+    // it on - but it was an optional parameter whose on/off state lived in an XML attribute that
+    // the plain combo box of this version does not read, so that hint is gone. What actually
+    // decides the workflow is the search type below, which is left to the automatic detection.
+    final NistSearchDefaults defaults = NistSearchDefaults.MSMS;
 
-    // decision: the old parameters do not say which workflow they were set up for, so the search
-    // type is left to the automatic detection rather than guessed from Integer m/z. The tolerances
-    // below have no such fallback and do use the guess.
     if (!loadedParams.containsKey(SEARCH_MODE.getName())) {
       setParameter(SEARCH_MODE, NistSearchMode.AUTO);
     }
@@ -344,9 +346,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     if (!loadedParams.containsKey(FRAGMENT_TOLERANCE.getName())) {
       setParameter(FRAGMENT_TOLERANCE, defaults.fragmentTolerance());
     }
-    if (!loadedParams.containsKey(INTEGER_MZ.getName())) {
-      setIntegerMz(defaults.integerMz());
-    }
+    // the old on/off state cannot be read back, so the merging always starts from the default
+    setParameter(INTEGER_MZ, defaults.integerMz());
     // version 2 and older merged with a different parameter that cannot be mapped
     if (!loadedParams.containsKey(spectraMergeSelect.getName())) {
       getParameter(spectraMergeSelect).setSimplePreset(defaults.mergePreset(),
@@ -394,7 +395,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         text("Runs NIST's command line program "), italicText("MSPepSearch. "),
         boldText("Requires a licensed NIST installation"), text(" of NIST 17 or newer."),
         text("\nContact mzio to obtain the latest NIST library ("),
-        hyperlinkText("mzio.io/nist", "https://mzio.io/nist/"), text(")."), text("\nThe "), text(
-            "NIST returns no library spectra or structures, so the mirror plot only shows the input spectrum."));
+        hyperlinkText("mzio.io/nist", "https://mzio.io/nist/"), text(")."), text(
+            "\nNIST returns no library spectra or structures, so the mirror plot only shows the input spectrum."));
   }
 }

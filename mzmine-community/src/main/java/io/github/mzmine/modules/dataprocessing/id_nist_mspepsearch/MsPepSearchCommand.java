@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch;
 
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.SingleMzToleranceParameter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,9 +95,8 @@ final class MsPepSearchCommand {
    * paths containing spaces need no quoting.
    */
   static @NotNull List<String> build(@NotNull final NistSearchConfig config,
-      @NotNull final File executable, @NotNull final File queryFile,
-      @NotNull final File outputFile, @NotNull final File workDir,
-      @Nullable final Integer mwForLoss) {
+      @NotNull final File executable, @NotNull final File queryFile, @NotNull final File outputFile,
+      @NotNull final File workDir, @Nullable final Integer mwForLoss) {
 
     final NistSearchMode mode = config.mode();
 
@@ -148,8 +148,8 @@ final class MsPepSearchCommand {
   }
 
   /**
-   * Builds the leading concatenated option token: {@code dvI}, {@code dvS} or {@code dvH} for the EI
-   * searches and {@code maivzhG} for MS/MS.
+   * Builds the leading concatenated option token: {@code dvI}, {@code dvS} or {@code dvH} for the
+   * EI searches and {@code maivzhG} for MS/MS.
    * <p>
    * MSPepSearch's "penalize rare compounds" flag {@code p} is deliberately never emitted. Its help
    * states it only applies to the main and replicate libraries of 2020 or earlier plus NIST 23, and
@@ -183,10 +183,14 @@ final class MsPepSearchCommand {
   }
 
   /**
-   * Adds one m/z tolerance of a high resolution search.
+   * Adds one m/z tolerance of a high resolution search, as {@code /X} or {@code /XPPM}.
    * <p>
-   * MSPepSearch takes either a ppm or an absolute tolerance, never the maximum of both the way
-   * {@link MZTolerance} does, so the ppm value wins when it is set.
+   * Never both: {@code /Z} and {@code /ZPPM} are one slot, and passing both makes MSPepSearch use
+   * whichever came last without reporting anything. Verified against MSPepSearch 0.9.7.5 with a
+   * wide value on one and a narrow one on the other, in both orders. So the maximum of an absolute
+   * and a relative tolerance the way {@link MZTolerance} computes it cannot be expressed, which is
+   * why the module offers a {@link SingleMzToleranceParameter} and the tolerance arrives here with
+   * only one of its two terms set. A tolerance that does carry both is passed on as ppm.
    */
   private static void addTolerance(final List<String> command, final String argument,
       @Nullable final MZTolerance tolerance) {
