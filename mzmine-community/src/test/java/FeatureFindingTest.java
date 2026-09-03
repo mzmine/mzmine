@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,6 +68,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.statistics.AbundanceDataTablePreparationConfig;
@@ -224,16 +225,9 @@ public class FeatureFindingTest {
   @DisplayName("Test ADAP chromatogram builder")
   void chromatogramBuilderTest() throws InterruptedException {
 
-    ADAPChromatogramBuilderParameters paramChrom = new ADAPChromatogramBuilderParameters();
-    paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.ALL_FILES);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, 4);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
-        new MZTolerance(0.002, 10));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 1E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
+    ADAPChromatogramBuilderParameters paramChrom = ADAPChromatogramBuilderParameters.create(
+        new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1), 4,
+        new MZTolerance(0.002, 10), chromSuffix, 1E5, 3E5, false);
 
     logger.info("Testing ADAPChromatogramBuilder");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(50,

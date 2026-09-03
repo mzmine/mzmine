@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -37,6 +39,19 @@ import org.jetbrains.annotations.Nullable;
 
 public class RemoveScanRtCorrectionModule implements MZmineProcessingModule {
 
+  /**
+   * Removes corrected retention times from scans for the given data files in this thread. Always
+   * adds an applied method.
+   */
+  public static void clearRtCorrection(RawDataFile[] dataFile, @NotNull Instant moduleCallDate,
+      @Nullable String callerDescription) {
+    final RemoveScanRtCorrectionParameters param = RemoveScanRtCorrectionParameters.create(
+        dataFile);
+    final RemoveScanRtCorrectionTask t = new RemoveScanRtCorrectionTask(null, moduleCallDate, param,
+        RemoveScanRtCorrectionModule.class, callerDescription);
+    t.run();
+  }
+
   @Override
   public @NotNull String getDescription() {
     return "Removes corrected retention times from scans.";
@@ -47,7 +62,8 @@ public class RemoveScanRtCorrectionModule implements MZmineProcessingModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    tasks.add(new RemoveScanRtCorrectionTask(null, moduleCallDate, parameters, this.getClass()));
+    tasks.add(new RemoveScanRtCorrectionTask(null, moduleCallDate, parameters, this.getClass(),
+        "Manually called reset of RT correction."));
 
     return ExitCode.OK;
   }

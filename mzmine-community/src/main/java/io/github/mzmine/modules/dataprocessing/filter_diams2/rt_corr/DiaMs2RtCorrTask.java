@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,16 +55,13 @@ import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.IonMobilityMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrTask;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil.DIA;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -140,20 +137,10 @@ public class DiaMs2RtCorrTask extends AbstractTaskSubProcessor {
     numRows = flist.getNumberOfRows();
     this.mainTask = mainTask;
 
-    adapParameters = MZmineCore.getConfiguration()
-        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     final RawDataFilesSelection adapFiles = new RawDataFilesSelection(
-        RawDataFilesSelectionType.SPECIFIC_FILES);
-    adapFiles.setSpecificFiles(flist.getRawDataFiles().toArray(new RawDataFile[0]));
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.dataFiles, adapFiles);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.scanSelection, ms2ScanSelection);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans,
-        minCorrPoints);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
-        minMs2Intensity / 5);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minMs2Intensity);
+        flist.getRawDataFiles().toArray(new RawDataFile[0]));
+    adapParameters = ADAPChromatogramBuilderParameters.create(adapFiles, ms2ScanSelection,
+        minCorrPoints, mzTolerance, "chroms", minMs2Intensity / 5, minMs2Intensity, false);
   }
 
   /**

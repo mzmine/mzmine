@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -33,25 +35,31 @@ import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
 
   private final RawDataFile[] files;
+  @Nullable
+  private final String callerDescription;
 
   /**
-   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
-   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
-   *                       stored in ram. For now, one storage should be created per module call in
-   * @param moduleCallDate the call date of module to order execution order
+   * @param storage           The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                          RawDataFiles, MassLists, FeatureLists). May be null if results shall
+   *                          be stored in ram. For now, one storage should be created per module
+   *                          call in
+   * @param moduleCallDate    the call date of module to order execution order
+   * @param callerDescription
    */
-  protected RemoveScanRtCorrectionTask(@Nullable MemoryMapStorage storage,
+  public RemoveScanRtCorrectionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
+      @NotNull Class<? extends MZmineModule> moduleClass, @Nullable String callerDescription) {
     super(storage, moduleCallDate, parameters, moduleClass);
 
     files = parameters.getValue(RemoveScanRtCorrectionParameters.files).getMatchingRawDataFiles();
+    this.callerDescription = callerDescription;
   }
 
   @Override
@@ -61,12 +69,10 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
 
   @Override
   protected void addAppliedMethod() {
-    if (!getModuleClass().getName().equals(RemoveScanRtCorrectionModule.class.getName())) {
-      // only add applied method if this step was called by the actual module.
-      // may also be called in the process of rt correction.
-      return;
-    }
-    super.addAppliedMethod();
+    // always add applied method for consistency in projects where multiple calibrations are applied.
+    getProcessedDataFiles().forEach(file -> file.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(Objects.requireNonNullElse(callerDescription, ""),
+            getModuleClass(), parameters, getModuleCallDate())));
   }
 
   @Override

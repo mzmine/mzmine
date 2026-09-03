@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,11 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,5 +55,12 @@ public class RemoveScanRtCorrectionParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  public static RemoveScanRtCorrectionParameters create(@NotNull RawDataFile @NotNull [] files) {
+    final ParameterSet parameterSet = new RemoveScanRtCorrectionParameters().cloneParameterSet();
+    parameterSet.setParameter(RemoveScanRtCorrectionParameters.files,
+        new RawDataFilesSelection(files));
+    return (RemoveScanRtCorrectionParameters) parameterSet;
   }
 }

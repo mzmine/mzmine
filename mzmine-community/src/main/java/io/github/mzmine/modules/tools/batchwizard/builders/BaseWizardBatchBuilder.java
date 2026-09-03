@@ -132,8 +132,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
@@ -405,20 +403,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     noiseLevelMs1 = Math.min(minFeatureHeight, noiseLevelMs1);
 
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
-    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
     var scanSelection = new ScanSelection(1, RangeUtils.toFloatRange(cropRtRange),
         polarity.toScanPolaritySelection());
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scanSelection);
 
-    param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
-    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
-    param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
-    param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);
-    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
+    var param = ADAPChromatogramBuilderParameters.create(
+        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES), scanSelection,
+        minRtDataPoints, mzTolScans, "eics", noiseLevelMs1, minFeatureHeight, true);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
@@ -1188,35 +1179,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddClearRtCorrectionStep(final @NotNull BatchQueue q) {
-    final ParameterSet param = ConfigService.getConfiguration()
-        .getModuleParameters(RemoveScanRtCorrectionModule.class).cloneParameterSet();
-
-    param.setParameter(RemoveScanRtCorrectionParameters.files,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(RemoveScanRtCorrectionModule.class), param));
-  }
-
   protected void makeAndAddScanRtCorrectionStep(final @NotNull BatchQueue q,
       final @NotNull MZTolerance mzTolInterSample, final @NotNull RTTolerance interSampleRtTol) {
-    final RTCorrectionParameters scanRtParams = (RTCorrectionParameters) MZmineCore.getConfiguration()
-        .getModuleParameters(ScanRtCorrectionModule.class).cloneParameterSet();
 
-    scanRtParams.setParameter(RTCorrectionParameters.featureLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    scanRtParams.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
-    scanRtParams.setParameter(RTCorrectionParameters.RTTolerance,
-        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES));
-    scanRtParams.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight * 5);
-    scanRtParams.setParameter(RTCorrectionParameters.sampleTypes, SampleTypeFilter.qc());
-    scanRtParams.setParameter(RTCorrectionParameters.rtMeasure, RTMeasure.MEDIAN);
-    ParameterSet optionParameters = scanRtParams.getParameter(
-            RTCorrectionParameters.calibrationFunctionModule)
-        .setOptionGetParameters(RtCorrectionFunctions.MultiLinearCorrection);
-    optionParameters.setParameter(MultilinearRawFileRtCalibrationParameters.correctionBandwidth,
-        0.1);
+    final ParameterSet correctorParam = MultilinearRawFileRtCalibrationParameters.create(0.1);
+
+    final RTCorrectionParameters scanRtParams = RTCorrectionParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
+        mzTolInterSample,
+        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES),
+        minFeatureHeight * 5, true, SampleTypeFilter.qc(), RTMeasure.MEDIAN,
+        RtCorrectionFunctions.MultiLinearCorrection, correctorParam);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ScanRtCorrectionModule.class),
         scanRtParams));
