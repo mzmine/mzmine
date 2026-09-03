@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.output_compare_csv.CheckResult;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -106,7 +107,7 @@ public class IntegrationTests {
   @Test
   void testLcMsFullBatch(@TempDir File tempDir) {
     if (new File("D:\\OneDrive - mzio GmbH").exists()) {
-      Assertions.assertEquals(0, noSmilesErrors(
+      Assertions.assertEquals(0, filterErrors(
           IntegrationTest.builder("rawdatafiles/integration_tests/workshop_dataset",
               "workshop_dataset_full.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
               "rawdatafiles/integration_tests/workshop_dataset/expected_results_full.csv")).size());
@@ -204,7 +205,7 @@ public class IntegrationTests {
       logger.info("Skipping tims full batch integration test.");
       return;
     }
-    Assertions.assertEquals(0, noSmilesErrors(
+    Assertions.assertEquals(0, filterErrors(
         IntegrationTest.builder("rawdatafiles/integration_tests/lc_tims", "lc_tims_local.mzbatch")
             .specLibsFullPath("spectral_libraries/integration_tests/matches_for_tims-full.json")
             .tempDir(tempDir).build().runBatchGetCheckResults(
@@ -230,7 +231,7 @@ public class IntegrationTests {
       logger.info("Skipping tims full batch integration test.");
       return;
     }
-    Assertions.assertEquals(0, noSmilesErrors(
+    Assertions.assertEquals(0, filterErrors(
         IntegrationTest.builder("rawdatafiles/integration_tests/diaPASEF",
             "dia_pasef_local.mzbatch").tempDir(tempDir).build().runBatchGetCheckResults(
             "rawdatafiles/integration_tests/diaPASEF/expected_results.csv")).size());
@@ -255,10 +256,12 @@ public class IntegrationTests {
   }
 
   /**
-   * Allows dropping of smiles harmonization errors from integration tests
+   * Allows dropping of errors from integration tests. Smiles and inchi should be stable now. The
+   * cache might still sometimes hit different harmonized structure for inchi but is less likely.
    */
-  public List<CheckResult> noSmilesErrors(List<CheckResult> checkResults) {
-    return checkResults.stream()
-        .filter(r -> !Objects.requireNonNullElse(r.type(), "").contains("smiles")).toList();
+  public List<CheckResult> filterErrors(List<CheckResult> checkResults) {
+    return checkResults;
+//    return checkResults.stream()
+//        .filter(r -> !Objects.requireNonNullElse(r.type(), "").contains("smiles")).toList();
   }
 }

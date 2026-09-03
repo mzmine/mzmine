@@ -93,6 +93,8 @@ cdk-interfaces = { module = "org.openscience.cdk:cdk-interfaces", version.ref = 
 cdk-smiles = { module = "org.openscience.cdk:cdk-smiles", version.ref = "cdk" }
 cdk-inchi = { module = "org.openscience.cdk:cdk-inchi", version.ref = "cdk" }
 cdk-fingerprint = { module = "org.openscience.cdk:cdk-fingerprint", version.ref = "cdk" }
+cdk-smarts = { module = "org.openscience.cdk:cdk-smarts", version.ref = "cdk" }
+cdk-isomorphism = { module = "org.openscience.cdk:cdk-isomorphism", version.ref = "cdk" }
 
 msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
@@ -137,7 +139,7 @@ ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
 graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 # chemistry
-cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi"]
+cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi", "cdk-smarts", "cdk-isomorphism"]
 msdk = ["msdk-adap3d", "msdk-mzml", "msdk-netcdf"]
 # logging and other utils
 slf4j = ["slf4j-api", "slf4j-jdk14"] # libraries should only use slf4j-api, no other dependencies
