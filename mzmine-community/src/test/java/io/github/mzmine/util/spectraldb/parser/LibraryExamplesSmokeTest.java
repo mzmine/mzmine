@@ -73,7 +73,12 @@ class LibraryExamplesSmokeTest {
         Arguments.of("json/gnps2.json", GNPSJsonParser.class, 3),
         Arguments.of("json/mzmine.json", MZmineJsonParser.class, 53),
         Arguments.of("spectral_libraries/integration_tests/MoNA-export-LC-MS-MS_Spectra.json",
-            MonaJsonParser.class, 2));
+            MonaJsonParser.class, 2),
+        // libraries the integration test batches import, mzmine json wrapped in a json array
+        Arguments.of("spectral_libraries/integration_tests/GC_HRMS_Archeology.json",
+            MZmineJsonParser.class, 2),
+        Arguments.of("spectral_libraries/integration_tests/lib_to_flist.json",
+            MZmineJsonParser.class, 3));
   }
 
   @ParameterizedTest(name = "{0}")

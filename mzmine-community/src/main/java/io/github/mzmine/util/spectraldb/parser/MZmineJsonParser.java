@@ -83,7 +83,14 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     // decode inline instead of building a String for every line first.
     try (InputStream in = new BufferedInputStream(new FileInputStream(dataBaseFile),
         READ_BUFFER); JsonParser p = JsonUtils.FACTORY.createParser(in)) {
-      while (p.nextToken() == JsonToken.START_OBJECT) {
+      // the format is json lines, but some libraries wrap the same entries in one big json array.
+      // Stepping into that array makes both read as a sequence of entry objects
+      JsonToken first = p.nextToken();
+      if (first == JsonToken.START_ARRAY) {
+        first = p.nextToken();
+      }
+
+      for (JsonToken token = first; token == JsonToken.START_OBJECT; token = p.nextToken()) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
