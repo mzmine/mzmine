@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.SimpleRange.SimpleIntegerRange;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  */
 public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleIntegerRange,
-    SimpleDoubleRange {
+    SimpleDoubleRange, SimpleFloatRange {
 
   @NotNull
   public Range<T> guava();
@@ -123,6 +124,12 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   record SimpleIntegerRange(int lower, int upper) implements SimpleRange<Integer> {
 
+    public static SimpleIntegerRange of(Range<Integer> r) {
+      return new SimpleIntegerRange(
+          r.hasLowerBound() ? r.lowerEndpoint() : Integer.MIN_VALUE,
+          r.hasUpperBound() ? r.upperEndpoint() : Integer.MAX_VALUE);
+    }
+
     @Override
     public @NotNull Range<Integer> guava() {
       return Range.closed(lower, upper);
@@ -177,6 +184,12 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   record SimpleDoubleRange(double lower, double upper) implements SimpleRange<Double> {
 
+    public static SimpleDoubleRange of(Range<Double> r) {
+      return new SimpleDoubleRange(
+          r.hasLowerBound() ? r.lowerEndpoint() : Double.NEGATIVE_INFINITY,
+          r.hasUpperBound() ? r.upperEndpoint() : Double.POSITIVE_INFINITY);
+    }
+
     @Override
     public @NotNull Range<Double> guava() {
       return Range.closed(lower, upper);
@@ -225,6 +238,66 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     }
 
     public boolean contains(double value) {
+      return lower <= value && value <= upper;
+    }
+  }
+
+  record SimpleFloatRange(float lower, float upper) implements SimpleRange<Float> {
+
+    public static SimpleFloatRange of(Range<Float> r) {
+      return new SimpleFloatRange(
+          r.hasLowerBound() ? r.lowerEndpoint() : Float.NEGATIVE_INFINITY,
+          r.hasUpperBound() ? r.upperEndpoint() : Float.POSITIVE_INFINITY);
+    }
+
+    @Override
+    public @NotNull Range<Float> guava() {
+      return Range.closed(lower, upper);
+    }
+
+    @Override
+    public @NotNull Float lowerBound() {
+      return lower;
+    }
+
+    @Override
+    public @NotNull Float upperBound() {
+      return upper;
+    }
+
+    @Override
+    public @NotNull Float length() {
+      return upper - lower;
+    }
+
+    @Override
+    public boolean contains(@NotNull Float value) {
+      return lower <= value && value <= upper;
+    }
+
+    @Override
+    public boolean isConnected(@NotNull SimpleRange<Float> other) {
+      if (contains(other.lowerBound()) || contains(other.upperBound())) {
+        // simple overlap
+        return true;
+      }
+      if (lower < other.lowerBound() && upper > other.upperBound()) {
+        // this range encloses the other range
+        return true;
+      }
+      if (other.lowerBound() < lower && other.upperBound() > upper) {
+        // other range encloses this range
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isConnected(@NotNull Range<Float> other) {
+      return new SimpleFloatRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
+    }
+
+    public boolean contains(float value) {
       return lower <= value && value <= upper;
     }
   }

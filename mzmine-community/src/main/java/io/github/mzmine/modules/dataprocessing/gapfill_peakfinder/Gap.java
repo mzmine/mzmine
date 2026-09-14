@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -54,7 +55,7 @@ public class Gap {
   protected RawDataFile rawDataFile;
 
   protected Range<Double> mzRange;
-  protected Range<Float> rtRange;
+  protected SimpleFloatRange rtRange;
   private final boolean validateRtShape;
   protected double intTolerance;
 
@@ -81,7 +82,7 @@ public class Gap {
     this.rawDataFile = rawDataFile;
     this.intTolerance = intTolerance;
     this.mzRange = mzRange;
-    this.rtRange = rtRange;
+    this.rtRange = SimpleFloatRange.of(rtRange);
     this.validateRtShape = validateRtShape;
   }
 
@@ -188,7 +189,7 @@ public class Gap {
     // make the columns available in the feature table (addFeatureType de-dupes by class)
     flist.addFeatureType(new GapFillMzMatchDuplicateType());
 
-    final List<FeatureListRow> candidates = flist.getRowsInsideScanAndMZRange(rtRange, mzRange);
+    final List<FeatureListRow> candidates = flist.getRowsInsideScanAndMZRange(rtRange.guava(), mzRange);
 
     final List<Integer> mzIds = new ArrayList<>();
     for (final FeatureListRow other : candidates) {
@@ -258,7 +259,7 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() < rtRange.lowerEndpoint()) {
+    if (dp.getRT() < rtRange.lower()) {
       double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
       if (dp.getIntensity() > (prevInt * (1 - intTolerance))) {
         return true;
@@ -269,7 +270,7 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() > rtRange.upperEndpoint()) {
+    if (dp.getRT() > rtRange.upper()) {
       double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
       if (dp.getIntensity() < (prevInt * (1 + intTolerance))) {
         return true;
