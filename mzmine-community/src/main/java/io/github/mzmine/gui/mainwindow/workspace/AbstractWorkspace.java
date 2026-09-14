@@ -300,8 +300,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu groupingMenu = addModuleMenuItems("Feature grouping", CorrelateGroupingModule.class,
         IonNetworkingModule.class, MainSpectralNetworkingModule.class, AddIonNetworkingModule.class,
         IonNetworkRefinementModule.class, FormulaPredictionIonNetworkModule.class,
-        CreateAvgNetworkFormulasModule.class,
-        IonNetworkMSMSCheckModule.class, ClearIonIdentitiesModule.class);
+        CreateAvgNetworkFormulasModule.class, IonNetworkMSMSCheckModule.class,
+        ClearIonIdentitiesModule.class);
     groupingMenu.getItems().add(new SeparatorMenuItem());
     addModuleMenuItems(groupingMenu, CompoundGrouperModule.class,
         ConfigCompoundRepresentationModule.class);
@@ -356,8 +356,7 @@ public abstract class AbstractWorkspace implements Workspace {
         MassvoltammogramFromFeatureListModule.class);
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, "Lipids", LipidAnnotationQCDashboardModule.class,
-        EquivalentCarbonNumberModule.class,
-        LipidAnnotationSummaryModule.class);
+        EquivalentCarbonNumberModule.class, LipidAnnotationSummaryModule.class);
     addModuleMenuItems(featureVis, "Dashboards", CompoundDashboardModule.class,
         IntegrationDashboardModule.class, LipidAnnotationQCDashboardModule.class,
         StatsDasboardModule.class);
