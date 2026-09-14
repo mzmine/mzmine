@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,6 +63,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntrySorter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -361,10 +362,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
     var stream = entries.stream().filter(entry -> entry.getNumberOfDataPoints() >= minMatch);
 
     if (msLevelFilter.isFragmentationNoMS1()) {
-      // remove scans without precursor mz if its MS2
-      // sort by mz for binary search
+      // remove scans without precursor mz if its MS2.
+      // sorted by mz for the binary search and then by further fields, so entries with the same
+      // precursor keep a defined order instead of the order their libraries were imported in
       stream = stream.filter(entry -> entry.getPrecursorMZ() != null)
-          .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ));
+          .sorted(SpectralLibraryEntrySorter.DETERMINISTIC);
     }
     return stream.toList();
   }
