@@ -25,13 +25,16 @@
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -67,11 +70,22 @@ class MonaJsonParserTest {
     // from the top level metaData array
     Assertions.assertEquals("LTQ Orbitrap XL Thermo Scientific",
         first.<String>getOrElse(DBEntryField.INSTRUMENT, null));
-    Assertions.assertEquals("MS2", first.<String>getOrElse(DBEntryField.MS_LEVEL, null));
     Assertions.assertEquals("15000", first.<String>getOrElse(DBEntryField.RESOLUTION, null));
     // numeric metaData
     Assertions.assertEquals(371.3268, first.getAsDouble(DBEntryField.PRECURSOR_MZ).orElseThrow());
     Assertions.assertEquals(371.3274, first.getAsDouble(DBEntryField.EXACT_MASS).orElseThrow());
+
+    // every value goes through DBEntryField.convertValue, so the fields carry the type they
+    // declare instead of the text MoNA wrote. "MS2" becomes the level, "positive" is harmonized
+    Assertions.assertEquals(Integer.valueOf(2),
+        first.<Integer>getOrElse(DBEntryField.MS_LEVEL, null));
+    Assertions.assertEquals(Optional.of(2), first.getMsLevel());
+    Assertions.assertEquals(PolarityType.POSITIVE, first.getPolarity());
+    // "50 % (nominal)" keeps only the number and becomes the declared FloatArrayList
+    Assertions.assertEquals(new FloatArrayList(new float[]{50f}),
+        first.<Object>getOrElse(DBEntryField.COLLISION_ENERGY, null));
+    // "13.601 min" used to be dropped because the unit made the parse fail
+    Assertions.assertEquals(13.601f, first.getAsFloat(DBEntryField.RT).orElseThrow(), 1e-4f);
 
     // the "mz:intensity mz:intensity" spectrum string
     Assertions.assertEquals(12, first.getNumberOfDataPoints());

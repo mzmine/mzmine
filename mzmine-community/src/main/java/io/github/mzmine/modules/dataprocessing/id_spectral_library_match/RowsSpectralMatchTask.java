@@ -63,7 +63,6 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunctions;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntrySorter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -366,8 +365,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // sorted by mz for the binary search and then by further fields, so entries with the same
       // precursor keep a defined order instead of the order their libraries were imported in
       stream = stream.filter(entry -> entry.getPrecursorMZ() != null)
-          .sorted(SpectralLibraryEntrySorter.DETERMINISTIC);
+          .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ));
     }
+    // takes a lot of time due to structure harmonization - better to only call for matching results
+//    return stream.sorted(SpectralLibraryEntrySorter.DETERMINISTIC).toList();
     return stream.toList();
   }
 

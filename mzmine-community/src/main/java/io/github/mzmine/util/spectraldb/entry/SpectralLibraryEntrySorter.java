@@ -26,9 +26,12 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import java.util.Comparator;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Orders library entries so that a search over several libraries always sees them in the same
@@ -53,24 +56,20 @@ public final class SpectralLibraryEntrySorter {
       .thenComparing(SpectralLibraryEntrySorter::polarityOf) //
       .thenComparingInt(entry -> entry.getMsLevel().orElse(Integer.MAX_VALUE)) //
       .thenComparingInt(SpectralLibraryEntry::getNumberOfDataPoints) //
-      .thenComparing(field(DBEntryField.ENTRY_ID)) //
-      .thenComparing(field(DBEntryField.NAME)) //
-      .thenComparing(field(DBEntryField.ION_TYPE)) //
-      .thenComparing(field(DBEntryField.FORMULA)) //
-      .thenComparing(field(DBEntryField.INCHIKEY)) //
-      .thenComparing(field(DBEntryField.INCHI)) //
-      .thenComparing(field(DBEntryField.SMILES)) //
-      .thenComparing(field(DBEntryField.DATASET_ID));
+      .thenComparing(fieldAsString(DBEntryField.ENTRY_ID)) //
+      .thenComparing(fieldAsString(DBEntryField.NAME)) //
+      .thenComparing(fieldAsString(DBEntryField.ION_TYPE)) //
+      .thenComparing(s -> {
+        final MolecularStructure structure = s.getStructure();
+        return structure == null ? "" : structure.isomericSmiles();
+      });
 
-  private SpectralLibraryEntrySorter() {
+  private static @NonNull Function<SpectralLibraryEntry, String> fieldAsString(
+      @NotNull final DBEntryField f) {
+    return entry -> entry.getAsString(f).orElse("");
   }
 
-  /**
-   * Compares one field by its string form, which keeps this independent of the type a parser
-   * happened to store.
-   */
-  private static @NotNull Comparator<SpectralLibraryEntry> field(@NotNull final DBEntryField f) {
-    return Comparator.comparing(entry -> entry.getAsString(f).orElse(""));
+  private SpectralLibraryEntrySorter() {
   }
 
   private static @NotNull String polarityOf(@Nullable final SpectralLibraryEntry entry) {

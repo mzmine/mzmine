@@ -35,6 +35,7 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -330,24 +331,16 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case PUBMED:
           break;
         case RT:
-          Object tmp = readMetaData(main, "retention time");
-          if (tmp != null) {
-            if (tmp instanceof Number) {
-              value = ((Number) tmp).floatValue();
-            } else {
-              try {
-                String v = (String) tmp;
-                v = v.replaceAll(" ", "");
-                // to minutes
-                if (v.endsWith("sec")) {
-                  v = v.substring(0, v.length() - 3);
-                  value = Float.parseFloat(v) / 60f;
-                } else {
-                  value = Float.parseFloat(v);
-                }
-              } catch (Exception ex) {
-              }
+          // MoNA writes the unit next to the value, like "13.601 min" or "42 sec".
+          final Object rt = readMetaData(main, "retention time");
+          if (rt instanceof String text && text.toLowerCase().contains("sec")) {
+            try {
+              value = Float.parseFloat(text.replaceAll("[^0-9.]", "")) / 60f;
+            } catch (NumberFormatException ex) {
+              errors.addValueParsingError(f, "retention time", text);
             }
+          } else {
+            value = rt;
           }
           break;
         case SMILES:
@@ -361,14 +354,36 @@ public class MonaJsonParser extends SpectralDBTextParser {
           break;
       }
 
-      if (value != null && value.equals("N/A")) {
-        value = null;
+      putConverted(errors, map, f, value);
+    }
+  }
+
+  /**
+   * MoNA stores its values as plain json text and numbers, so each one goes through
+   * {@link DBEntryField#convertValue(String)} like in the other parsers. Without it the value keeps
+   * whatever shape the file had: an ms level stays the text "MS2", a polarity stays "positive"
+   * instead of being harmonized, and a collision energy stays text instead of the
+   * {@link FloatArrayList} its field is declared as.
+   */
+  private void putConverted(@NotNull final LibraryParsingErrors errors,
+      @NotNull final Map<DBEntryField, Object> map, @NotNull final DBEntryField f,
+      @Nullable final Object value) {
+    if (value == null) {
+      return;
+    }
+    final String content = value.toString().trim();
+    if (content.isEmpty() || "n/a".equalsIgnoreCase(content)) {
+      return;
+    }
+
+    try {
+      final Object converted = f.convertValue(content);
+      if (converted != null) {
+        map.put(f, converted);
       }
-      // add value
-      if (value != null) {
-        // add
-        map.put(f, value);
-      }
+    } catch (Exception ex) {
+      // a single unparsable value must not drop the whole entry, so keep it without this field
+      errors.addValueParsingError(f, f.toString(), content);
     }
   }
 

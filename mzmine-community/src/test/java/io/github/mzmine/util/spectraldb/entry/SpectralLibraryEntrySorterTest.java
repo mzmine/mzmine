@@ -41,12 +41,12 @@ import org.junit.jupiter.api.Test;
 class SpectralLibraryEntrySorterTest {
 
   private static SpectralLibraryEntry entry(final double precursorMz, final String polarity,
-      final String name, final String inchi, final int signals) {
+      final String name, final String smiles, final int signals) {
     final Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     fields.put(DBEntryField.PRECURSOR_MZ, precursorMz);
     fields.put(DBEntryField.POLARITY, polarity);
     fields.put(DBEntryField.NAME, name);
-    fields.put(DBEntryField.INCHI, inchi);
+    fields.put(DBEntryField.SMILES, smiles);
 
     final double[] mzs = new double[signals];
     final double[] intensities = new double[signals];
@@ -58,27 +58,27 @@ class SpectralLibraryEntrySorterTest {
   }
 
   /**
-   * The two tyrosine entries that made the result flip: same compound, same precursor, one with the
-   * stereo layer and one without.
+   * The pair that made the result flip in the workshop batch: the same compound at the same
+   * precursor, written once as the keto and once as the enol tautomer.
    */
-  private static List<SpectralLibraryEntry> tyrosinePair() {
-    final String base = "InChI=1S/C9H11NO3/c10-8(9(12)13)5-6-1-3-7(11)4-2-6/h1-4,8,11H,5,10H2,(H,12,13)";
-    return new ArrayList<>(List.of(entry(182.08117, "+", "TYROSINE", base + "/t8-/m0/s1", 8),
-        entry(182.08117, "+", "TYROSINE", base, 8)));
+  private static List<SpectralLibraryEntry> tautomerPair() {
+    return new ArrayList<>(List.of( //
+        entry(310.24, "+", "Pseudane", "CCCCCCCCCC=CC1=CC(C=2C=CC=CC2N1)=O", 8),
+        entry(310.24, "+", "Pseudane", "CCCCCCCCCC=CC1=CC(=C2C=CC=CC2=N1)O", 8)));
   }
 
   @Test
   void testTiedEntriesGetAStableOrder() {
-    final List<SpectralLibraryEntry> expected = new ArrayList<>(tyrosinePair());
+    final List<SpectralLibraryEntry> expected = new ArrayList<>(tautomerPair());
     expected.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
 
     // whatever order the import produced, sorting has to land on the same sequence
-    final List<SpectralLibraryEntry> shuffled = tyrosinePair();
+    final List<SpectralLibraryEntry> shuffled = tautomerPair();
     Collections.reverse(shuffled);
     shuffled.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
 
-    Assertions.assertEquals(inchis(expected), inchis(shuffled),
-        "entries that only differ in the structure fields were not ordered deterministically");
+    Assertions.assertEquals(smiles(expected), smiles(shuffled),
+        "entries that only differ in the structure were not ordered deterministically");
     // and the two are actually distinguished, not treated as equal
     Assertions.assertNotEquals(0,
         SpectralLibraryEntrySorter.DETERMINISTIC.compare(expected.get(0), expected.get(1)));
@@ -87,11 +87,11 @@ class SpectralLibraryEntrySorterTest {
   @Test
   void testOrderIsIndependentOfInputOrder() {
     final List<SpectralLibraryEntry> entries = new ArrayList<>(List.of( //
-        entry(200.1, "-", "B", "InChI=B", 5), //
-        entry(100.5, "+", "A", "InChI=A", 3), //
-        entry(200.1, "+", "B", "InChI=B2", 5), //
-        entry(200.1, "+", "B", "InChI=B1", 5), //
-        entry(100.5, "+", "A", "InChI=A", 7)));
+        entry(200.1, "-", "B", "CCO", 5), //
+        entry(100.5, "+", "A", "CCN", 3), //
+        entry(200.1, "+", "B", "CCCl", 5), //
+        entry(200.1, "+", "B", "CCBr", 5), //
+        entry(100.5, "+", "A", "CCN", 7)));
 
     final List<SpectralLibraryEntry> reference = new ArrayList<>(entries);
     reference.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
@@ -101,7 +101,7 @@ class SpectralLibraryEntrySorterTest {
       final List<SpectralLibraryEntry> shuffled = new ArrayList<>(entries);
       Collections.shuffle(shuffled, random);
       shuffled.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
-      Assertions.assertEquals(inchis(reference), inchis(shuffled), "shuffle " + i);
+      Assertions.assertEquals(smiles(reference), smiles(shuffled), "shuffle " + i);
       Assertions.assertEquals(names(reference), names(shuffled), "shuffle " + i);
     }
 
@@ -110,8 +110,28 @@ class SpectralLibraryEntrySorterTest {
         reference.stream().map(SpectralLibraryEntry::getPrecursorMZ).toList());
   }
 
-  private static List<String> inchis(final List<SpectralLibraryEntry> entries) {
-    return entries.stream().map(e -> e.getAsString(DBEntryField.INCHI).orElse("")).toList();
+  /**
+   * GC-EI entries have no precursor, they must not throw and must stay at one end.
+   */
+  @Test
+  void testMissingPrecursorSortsLast() {
+    final Map<DBEntryField, Object> noPrecursor = new EnumMap<>(DBEntryField.class);
+    noPrecursor.put(DBEntryField.NAME, "GC entry");
+    final SpectralLibraryEntry without = SpectralLibraryEntryFactory.create(null, noPrecursor,
+        new double[]{100d}, new double[]{1d});
+
+    final List<SpectralLibraryEntry> entries = new ArrayList<>(
+        List.of(without, entry(100.5, "+", "A", "CCN", 3)));
+    entries.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
+    Assertions.assertEquals("GC entry", entries.getLast().getOrElse(DBEntryField.NAME, ""));
+
+    Collections.reverse(entries);
+    entries.sort(SpectralLibraryEntrySorter.DETERMINISTIC);
+    Assertions.assertEquals("GC entry", entries.getLast().getOrElse(DBEntryField.NAME, ""));
+  }
+
+  private static List<String> smiles(final List<SpectralLibraryEntry> entries) {
+    return entries.stream().map(e -> e.getAsString(DBEntryField.SMILES).orElse("")).toList();
   }
 
   private static List<String> names(final List<SpectralLibraryEntry> entries) {
@@ -120,8 +140,8 @@ class SpectralLibraryEntrySorterTest {
 
   @Test
   void testPolarityIsCompared() {
-    final SpectralLibraryEntry positive = entry(150d, "+", "X", "InChI=X", 4);
-    final SpectralLibraryEntry negative = entry(150d, "-", "X", "InChI=X", 4);
+    final SpectralLibraryEntry positive = entry(150d, "+", "X", "CCN", 4);
+    final SpectralLibraryEntry negative = entry(150d, "-", "X", "CCN", 4);
     Assertions.assertNotEquals(0,
         SpectralLibraryEntrySorter.DETERMINISTIC.compare(positive, negative));
     Assertions.assertEquals(PolarityType.POSITIVE, positive.getPolarity());
