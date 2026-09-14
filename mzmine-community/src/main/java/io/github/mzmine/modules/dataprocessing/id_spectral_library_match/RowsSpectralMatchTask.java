@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -361,11 +361,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
     var stream = entries.stream().filter(entry -> entry.getNumberOfDataPoints() >= minMatch);
 
     if (msLevelFilter.isFragmentationNoMS1()) {
-      // remove scans without precursor mz if its MS2
-      // sort by mz for binary search
+      // remove scans without precursor mz if its MS2.
+      // sorted by mz for the binary search and then by further fields, so entries with the same
+      // precursor keep a defined order instead of the order their libraries were imported in
       stream = stream.filter(entry -> entry.getPrecursorMZ() != null)
           .sorted(Comparator.comparing(SpectralLibraryEntry::getPrecursorMZ));
     }
+    // takes a lot of time due to structure harmonization - better to only call for matching results
+//    return stream.sorted(SpectralLibraryEntrySorter.DETERMINISTIC).toList();
     return stream.toList();
   }
 

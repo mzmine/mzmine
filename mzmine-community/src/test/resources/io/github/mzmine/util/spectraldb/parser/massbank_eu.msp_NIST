@@ -1,0 +1,383 @@
+Name: Mevastatin
+Synon: Compactin, Mevastatinum, Mevastatina
+Synon: [(1S,7S,8S,8aR)-8-[2-[(2R,4R)-4-hydroxy-6-oxooxan-2-yl]ethyl]-7-methyl-1,2,3,7,8,8a-hexahydronaphthalen-1-yl] (2S)-2-methylbutanoate
+DB#: MSBNK-AAFC-AC000857
+InChIKey: AJLFOPYRIVGYMJ-INTXDZFKSA-N
+InChI: InChI=1S/C23H34O5/c1-4-14(2)23(26)28-20-7-5-6-16-9-8-15(3)19(22(16)20)11-10-18-12-17(24)13-21(25)27-18/h6,8-9,14-15,17-20,22,24H,4-5,7,10-13H2,1-3H3/t14-,15-,17+,18+,19-,20-,22-/m0/s1
+SMILES: CC[C@H](C)C(=O)O[C@H]1CCC=C2[C@H]1[C@H]([C@H](C=C2)C)CC[C@@H]3C[C@H](CC(=O)O3)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 391.2474
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 10(NCE)
+Formula: C23H34O5
+MW: 390
+ExactMass: 390.24063
+Comments: Parent=391.2474
+Splash: splash10-009i-0690000000-2f452437ceb865062cfd
+Num Peaks: 16
+107.0491 43
+125.0597 73
+143.0703 158
+145.1012 36
+159.1168 440
+185.1325 999
+187.1481 59
+209.1325 67
+211.1481 397
+225.1638 137
+229.1587 787
+235.1481 138
+253.1587 371
+271.1693 643
+289.1798 107
+391.2479 93
+
+Name: Ctrinin hydrate
+Synon: (1S,3R,4S)-1,6,8-trihydroxy-3,4,5-trimethyl-3,4-dihydro-1H-isochromene-7-carboxylic acid
+DB#: MSBNK-AAFC-AC000845
+InChIKey: MBTAFMZUDOUGPS-CGKQSRJASA-N
+InChI: InChI=1S/C13H16O6/c1-4-6(3)19-13(18)8-7(4)5(2)10(14)9(11(8)15)12(16)17/h4,6,13-15,18H,1-3H3,(H,16,17)/t4-,6-,13+/m1/s1
+SMILES: C[C@@H]1[C@H](O[C@@H](C2=C1C(=C(C(=C2O)C(=O)O)O)C)O)C
+Precursor_type: [M-H]-
+Spectrum_type: MS2
+PrecursorMZ: 267.0879
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: NEGATIVE
+Collision_energy: 40(NCE)
+Formula: C13H16O6
+MW: 268
+ExactMass: 268.09468
+Comments: Parent=267.0879
+Splash: splash10-052b-0190000000-cf1bf0fc6968b58ef0e1
+Num Peaks: 12
+151.0749 52
+161.0608 48
+177.0557 31
+177.0921 86
+179.0714 274
+205.0506 261
+205.087 525
+221.0819 44
+223.0612 376
+231.0663 59
+249.0768 999
+267.0868 269
+
+Name: Kotanin
+Synon: 8-(4,7-dimethoxy-5-methyl-2-oxochromen-8-yl)-4,7-dimethoxy-5-methylchromen-2-one
+DB#: MSBNK-AAFC-AC000182
+InChIKey: CSJOUDOXDHMIAH-UHFFFAOYSA-N
+InChI: InChI=1S/C24H22O8/c1-11-7-13(27-3)21(23-19(11)15(29-5)9-17(25)31-23)22-14(28-4)8-12(2)20-16(30-6)10-18(26)32-24(20)22/h7-10H,1-6H3
+SMILES: CC1=CC(=C(C2=C1C(=CC(=O)O2)OC)C3=C(C=C(C4=C3OC(=O)C=C4OC)C)OC)OC
+Precursor_type: [M+Na]+
+Spectrum_type: MS2
+PrecursorMZ: 461.1201
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 30(NCE)
+Formula: C24H22O8
+MW: 438
+ExactMass: 438.13145
+Comments: Parent=461.1201
+Splash: splash10-03di-0000900000-d741f6e434b3fbaad692
+Num Peaks: 1
+461.1207 999
+
+Name: Stipitatic acid
+Synon: Stipitatate
+Synon: 5,6-dihydroxy-3-oxocyclohepta-1,4,6-triene-1-carboxylic acid
+DB#: MSBNK-AAFC-AC000230
+InChIKey: ZGKNMKBZOSTFCB-UHFFFAOYSA-N
+InChI: InChI=1S/C8H6O5/c9-5-1-4(8(12)13)2-6(10)7(11)3-5/h1-3,10-11H,(H,12,13)
+SMILES: C1=C(C=C(C(=CC1=O)O)O)C(=O)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 183.0282
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 30(NCE)
+Formula: C8H6O5
+MW: 182
+ExactMass: 182.02151
+Comments: Parent=183.0282
+Splash: splash10-001i-0900000000-c66c7ec37f7ca15162c3
+Num Peaks: 1
+183.0288 999
+
+Name: T-2 Toxin
+Synon: Fusariotoxin T 2
+Synon: Insariotoxin
+Synon: T-2 mycotoxin
+Synon: (2alpha,3alpha,4beta,8alpha)-4,15-bis(acetyloxy)-3-hydroxy-12,13-epoxytrichothec-9-en-8-yl 3-methylbutanoate
+DB#: MSBNK-AAFC-AC000237
+InChIKey: BXFOFFBJRFZBQZ-QYWOHJEZSA-N
+InChI: InChI=1S/C24H34O9/c1-12(2)7-18(27)32-16-9-23(10-29-14(4)25)17(8-13(16)3)33-21-19(28)20(31-15(5)26)22(23,6)24(21)11-30-24/h8,12,16-17,19-21,28H,7,9-11H2,1-6H3/t16-,17+,19+,20+,21+,22+,23+,24-/m0/s1
+SMILES: CC1=C[C@@H]2[C@](C[C@@H]1OC(=O)CC(C)C)([C@]3([C@@H]([C@H]([C@H]([C@@]34CO4)O2)O)OC(=O)C)C)COC(=O)C
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 467.227
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 50(NCE)
+Formula: C24H34O9
+MW: 466
+ExactMass: 466.22027
+Comments: Parent=467.227
+Splash: splash10-0a4l-2900000000-772f01f01998918c8843
+Num Peaks: 74
+57.0706 999
+64.978 91
+67.0542 83
+69.0335 66
+79.0542 183
+81.0699 125
+83.0491 56
+85.0648 248
+91.0542 220
+93.0699 337
+95.0491 335
+95.0855 71
+97.0648 190
+105.0699 567
+107.0491 144
+107.0855 69
+109.0648 166
+115.0542 69
+117.0699 123
+119.0491 86
+119.0855 168
+121.0648 780
+123.0441 132
+123.0804 65
+125.0597 114
+128.0621 118
+129.0699 271
+130.0777 31
+131.0855 232
+133.0648 94
+133.1012 119
+137.0597 54
+141.0699 188
+142.0777 371
+143.0855 495
+144.0934 55
+145.0648 108
+145.1012 351
+147.0804 87
+147.1168 71
+153.0699 56
+154.0777 253
+155.0855 107
+156.0934 283
+157.1012 463
+158.0726 119
+159.0804 175
+159.1168 205
+161.0961 114
+165.0699 110
+166.0777 162
+167.0855 52
+169.1012 384
+171.0804 96
+171.1168 205
+172.0883 88
+173.0961 200
+175.1118 119
+179.0855 69
+181.1012 140
+182.0726 125
+184.0883 105
+185.0961 320
+187.1118 168
+189.1274 53
+191.1067 52
+197.0961 148
+199.1118 264
+203.1067 53
+209.0961 64
+215.1067 108
+217.1223 86
+227.1067 68
+245.1172 63
+
+Name: Roquefortine D
+Synon: (3S,5aS,10bR,11aS)-3-(1H-Imidazol-5-ylmethyl)-10b-(2-methyl-3-buten-2-yl)-6,10b,11,11a-tetrahydro-2H-pyrazino[1',2':1,5]pyrrolo[2,3-b]indole-1,4(3H,5aH)-dione
+DB#: MSBNK-AAFC-AC000806
+InChIKey: IQVNREJWRXOHEO-UHFFFAOYSA-N
+InChI: InChI=1S/C22H25N5O2/c1-4-21(2,3)22-10-17-18(28)25-16(9-13-11-23-12-24-13)19(29)27(17)20(22)26-15-8-6-5-7-14(15)22/h4-8,11-12,16-17,20,26H,1,9-10H2,2-3H3,(H,23,24)(H,25,28)
+SMILES: CC(C)(C=C)C12CC3C(=O)NC(C(=O)N3C1NC4=CC=CC=C24)CC5=CN=CN5
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 392.2076
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 10(NCE)
+Formula: C22H25N5O2
+MW: 391
+ExactMass: 391.20082
+Comments: Parent=392.2076
+Splash: splash10-0006-0009000000-888e0a107d07035e7c7d
+Num Peaks: 2
+324.1455 466
+392.2081 999
+
+Name: Trichodermamide C
+DB#: MSBNK-AAFC-AC000904
+InChIKey: PCMUPOUDXMFDRE-NYGSYELISA-N
+InChI: InChI=1S/C21H22N2O9/c1-23(12-8-10-4-6-14(29-2)17(30-3)16(10)31-20(12)27)19(26)11-9-21(28)15(25)7-5-13(24)18(21)32-22-11/h4-8,13,15,18,24-25,28H,9H2,1-3H3/t13-,15-,18+,21+/m1/s1
+SMILES: CN(C1=CC2=C(C(=C(C=C2)OC)OC)OC1=O)C(=O)C3=NO[C@H]4[C@@H](C=C[C@H]([C@]4(C3)O)O)O
+Precursor_type: [M+Na]+
+Spectrum_type: MS2
+PrecursorMZ: 469.1212
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 30(NCE)
+Formula: C21H22N2O9
+MW: 446
+ExactMass: 446.1325
+Comments: Parent=469.1212
+Splash: splash10-014i-0011900000-a81bed6b5a890f776446
+Num Peaks: 5
+257.0658 116
+262.0713 32
+311.0638 87
+327.0951 97
+469.1217 999
+
+Name: Sterigmatocystin
+Synon: Sterigmatocystine
+Synon: (3aR,12cS)-8-Hydroxy-6-methoxy-3a,12c-dihydro-7H-furo[3',2':4,5]furo[2,3-c]xanthen-7-one
+DB#: MSBNK-AAFC-AC000225
+InChIKey: UTSVPXMQSFGQTM-DCXZOGHSSA-N
+InChI: InChI=1S/C18H12O6/c1-21-11-7-12-13(8-5-6-22-18(8)24-12)17-15(11)16(20)14-9(19)3-2-4-10(14)23-17/h2-8,18-19H,1H3/t8-,18+/m0/s1
+SMILES: COC1=C2C(=C3[C@@H]4C=CO[C@@H]4OC3=C1)OC5=C(C2=O)C(=CC=C5)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 325.0701
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 20(NCE)
+Formula: C18H12O6
+MW: 324
+ExactMass: 324.06337
+Comments: Parent=325.0701
+Splash: splash10-004i-0009000000-31f9d04e4a1ddbaa2919
+Num Peaks: 2
+310.0472 33
+325.0707 999
+
+Name: alpha-Cyclopiazonic acid
+Synon: (6aR,11aS,11bR)-10-Acetyl-11-hydroxy-7,7-dimethyl-2,6,6a,7,11a,11b-hexahydro-9H-pyrrolo[1',2':2,3]isoindolo[4,5,6-cd]indol-9-one
+DB#: MSBNK-AAFC-AC000051
+InChIKey: SZINUGQCTHLQAZ-DQYPLSBCSA-N
+InChI: InChI=1S/C20H20N2O3/c1-9(23)14-18(24)17-16-11-8-21-13-6-4-5-10(15(11)13)7-12(16)20(2,3)22(17)19(14)25/h4-6,8,12,16-17,21,24H,7H2,1-3H3/t12-,16+,17+/m1/s1
+SMILES: CC(=O)C1=C([C@@H]2[C@@H]3[C@@H](CC4=C5C3=CNC5=CC=C4)C(N2C1=O)(C)C)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 337.1541
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 20(NCE)
+Formula: C20H20N2O3
+MW: 336
+ExactMass: 336.14739
+Comments: Parent=337.1541
+Splash: splash10-001a-0905000000-dd85b8816873af656526
+Num Peaks: 3
+182.0812 832
+196.1121 792
+337.1547 999
+
+Name: Mellein
+Synon: Ochracin
+Synon: 8-hydroxy-3-methyl-3,4-dihydroisochromen-1-one
+DB#: MSBNK-AAFC-AC000005
+InChIKey: KWILGNNWGSNMPA-UHFFFAOYSA-N
+InChI: InChI=1S/C10H10O3/c1-6-5-7-3-2-4-8(11)9(7)10(12)13-6/h2-4,6,11H,5H2,1H3
+SMILES: CC1CC2=C(C(=CC=C2)O)C(=O)O1
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 179.0697
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 50(NCE)
+Formula: C10H10O3
+MW: 178
+ExactMass: 178.06299
+Comments: Parent=179.0697
+Splash: splash10-01q9-0900000000-f556e9b53553d12b44b5
+Num Peaks: 6
+105.0699 422
+115.0542 36
+133.0648 999
+151.0754 39
+161.0597 708
+179.0703 56
+
+Name: Rugulosin
+DB#: MSBNK-AAFC-AC000565
+InChIKey: QFDPVUTXKUGISP-NVWQCAADSA-N
+InChI: InChI=1S/C30H22O10/c1-7-3-9-13(11(31)5-7)21(33)17-25(37)20-23(35)15-16-24(36)19(29(15,17)27(9)39)26(38)18-22(34)14-10(28(40)30(16,18)20)4-8(2)6-12(14)32/h3-6,15-16,19-20,23-24,31-36H,1-2H3/t15?,16?,19-,20-,23?,24?,29-,30-/m1/s1
+SMILES: CC1=CC(=C2C(=C1)C(=O)[C@]34[C@@H]5C(C6C3C([C@@H]([C@]67C(=C(C8=C(C=C(C=C8C7=O)C)O)O)C5=O)C(=O)C4=C2O)O)O)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 543.128
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 20(NCE)
+Formula: C30H22O10
+MW: 542
+ExactMass: 542.12127
+Comments: Parent=543.128
+Splash: splash10-00di-0090010000-f6e000d1e35217de8708
+Num Peaks: 6
+255.0652 266
+271.0601 91
+273.0757 999
+507.1074 82
+525.118 31
+543.1286 57
+
+Name: Trichodermamide C
+DB#: MSBNK-AAFC-AC000901
+InChIKey: PCMUPOUDXMFDRE-NYGSYELISA-N
+InChI: InChI=1S/C21H22N2O9/c1-23(12-8-10-4-6-14(29-2)17(30-3)16(10)31-20(12)27)19(26)11-9-21(28)15(25)7-5-13(24)18(21)32-22-11/h4-8,13,15,18,24-25,28H,9H2,1-3H3/t13-,15-,18+,21+/m1/s1
+SMILES: CN(C1=CC2=C(C(=C(C=C2)OC)OC)OC1=O)C(=O)C3=NO[C@H]4[C@@H](C=C[C@H]([C@]4(C3)O)O)O
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 447.1392
+Instrument_type: LC-ESI-ITFT
+Instrument: Q-Exactive Orbitrap Thermo Scientific
+Ion_mode: POSITIVE
+Collision_energy: 55(NCE)
+Formula: C21H22N2O9
+MW: 446
+ExactMass: 446.1325
+Comments: Parent=447.1392
+Splash: splash10-0006-0920000000-ced11ce0659b414e056d
+Num Peaks: 12
+81.0345 58
+95.0491 83
+105.0335 43
+109.0284 64
+123.0441 180
+165.0546 87
+193.0495 999
+206.0812 155
+215.0815 54
+234.0761 70
+243.0764 110
+244.0842 48
