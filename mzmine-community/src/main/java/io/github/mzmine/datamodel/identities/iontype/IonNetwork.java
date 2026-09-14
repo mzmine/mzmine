@@ -26,455 +26,214 @@
 package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An annotation network full of ions that point to the same neutral molecule (neutral mass)
+ * An annotation network full of ions that point to the same neutral molecule (neutral mass).
+ * <p>
+ * A network is only reachable through the {@link IonIdentity#getNetwork()} back reference of the
+ * rows it contains. {@link BuildingIonNetwork} is the mutable form used while networks are
+ * assembled and merged, {@link SimpleIonNetwork} is the immutable result that is attached to the
+ * rows and saved to the project.
+ * <p>
+ * Average RT and summed height are computed on demand from the current nodes. The neutral mass is
+ * cached by both implementations because it is queried far more often, and refreshed whenever the
+ * nodes change.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class IonNetwork implements Comparable<IonNetwork> {
-
-  private final List<IonNetworkNode> nodes = new ArrayList<>();
-  // possible formulas for this neutral mass
-  private final ObservableList<ResultFormula> molFormulas = FXCollections.observableArrayList();
-  // network id
-  private int id;
-  // neutral mass of central molecule which is described by all members of this network
-  private Double neutralMass = null;
-  // maximum absolute deviation from neutral mass average
-  private Double maxDev = null;
-  // average retention time of network
-  private double avgRT;
-  // summed height
-  private double heightSum = 0;
-  // can be used to stream all networks only once
-  // lowest row id
-  private int lowestID = -1;
-  // relationship to other IonNetworks (neutral molecules)
-  // marks as modification of:
-  private Map<IonNetwork, IonNetworkRelation> relations;
-
-  public IonNetwork(int id) {
-    super();
-    this.id = id;
-  }
+public sealed interface IonNetwork permits BuildingIonNetwork, SimpleIonNetwork {
 
   /**
-   * The ion types are undefined M+?
-   *
-   * @return
+   * Network ID, unique within a feature list. -1 while the network is still being built.
    */
-  public boolean isUndefined() {
-    return streamIons().map(IonIdentity::getIonType).anyMatch(IonType::isUndefinedAdduct);
-  }
-
-  private @NotNull Stream<IonIdentity> streamIons() {
-    return getNodes().stream().map(IonNetworkNode::ion);
-  }
+  int getID();
 
   /**
+   * A network with the given ID. All ion identities of this network are re-pointed to the returned
+   * instance, so the rows always reference the renumbered network afterwards.
    *
-   * @return unmodifiable copy of list
+   * @param id the new network ID
+   * @return the renumbered network, may be a new instance
    */
-  public List<IonNetworkNode> getNodes() {
-    return Collections.unmodifiableList(nodes);
+  @NotNull IonNetwork withID(int id);
+
+  /**
+   * @return unmodifiable list of the (row, ion) pairs of this network
+   */
+  @NotNull List<IonNetworkNode> getNodes();
+
+  /**
+   * Possible formulas for the neutral molecule described by this network, best first.
+   *
+   * @return unmodifiable list of formulas
+   */
+  @NotNull List<ResultFormula> getMolFormulas();
+
+  /**
+   * Append formulas, skipping those already present. The first formula should be the best.
+   */
+  void addMolFormulas(@NotNull List<ResultFormula> formulas);
+
+  /**
+   * Move a formula to the front of the list, marking it as the best one.
+   */
+  void setBestMolFormula(@NotNull ResultFormula formula);
+
+  /**
+   * Best molecular formula (first in list)
+   *
+   * @return null if no formula was assigned to this network
+   */
+  default @Nullable ResultFormula getBestMolFormula() {
+    final List<ResultFormula> formulas = getMolFormulas();
+    return formulas.isEmpty() ? null : formulas.getFirst();
+  }
+
+  default int size() {
+    return getNodes().size();
   }
 
   /**
-   *
    * @return a list copy of the rows
    */
-  public List<FeatureListRow> getRows() {
-    List<FeatureListRow> rows = new ArrayList<>(nodes.size());
-    for (IonNetworkNode node : nodes) {
+  default @NotNull List<FeatureListRow> getRows() {
+    final List<IonNetworkNode> nodes = getNodes();
+    final List<FeatureListRow> rows = new ArrayList<>(nodes.size());
+    for (final IonNetworkNode node : nodes) {
       rows.add(node.row());
     }
     return rows;
   }
 
+  default @NotNull Stream<FeatureListRow> streamRows() {
+    return getNodes().stream().map(IonNetworkNode::row);
+  }
+
+  default @NotNull Stream<IonIdentity> streamIons() {
+    return getNodes().stream().map(IonNetworkNode::ion);
+  }
 
   /**
-   * Network ID
+   * The ion types are undefined M+?
+   */
+  default boolean isUndefined() {
+    return streamIons().map(IonIdentity::getIonType).anyMatch(IonType::isUndefinedAdduct);
+  }
+
+  default boolean containsKey(@Nullable FeatureListRow row) {
+    return get(row) != null;
+  }
+
+  /**
+   * The ion identity that this network assigns to a row.
    *
-   * @return
+   * @return null if the row is not part of this network
    */
-  public int getID() {
-    return id;
-  }
-
-  public void setID(int i) {
-    id = i;
-    setNetworkToAllRows();
-  }
-
-  @NotNull
-  public List<ResultFormula> getMolFormulas() {
-    return molFormulas;
-  }
-
-  public Map<IonNetwork, IonNetworkRelation> getRelations() {
-    return Objects.requireNonNullElse(relations, Map.of());
-  }
-
-  /**
-   * Add a relation to another ion network. This relation could be a modification
-   *
-   * @param net
-   * @param rel
-   */
-  public void addRelation(IonNetwork net, IonNetworkRelation rel) {
-    if (relations == null) {
-      relations = new TreeMap<>();
-    }
-    relations.put(net, rel);
-  }
-
-  /**
-   * Remove a relation to another ion network. This relation could be a modification
-   */
-  public void removeRelation(IonNetwork net) {
-    if (relations == null) {
-      return;
-    }
-    relations.remove(net);
-  }
-
-  /**
-   * Clear
-   */
-  public void clearRelation() {
-    relations = null;
-  }
-
-  public int size() {
-    return nodes.size();
-  }
-
-  /**
-   * Create relations identity
-   */
-  public String concatRelationshipsToString() {
-    String name = "";
-    if (relations != null) {
-      name = relations.values().stream().filter(Objects::nonNull).map(rel -> rel.getName(this))
-          .collect(Collectors.joining(", "));
-    }
-
-    return name;
-  }
-
-  public void clearMolFormulas() {
-    molFormulas.clear();
-  }
-
-  /**
-   * The first formula should be the best
-   *
-   * @param molFormulas
-   */
-  public void addMolFormulas(List<ResultFormula> molFormulas) {
-    this.molFormulas.removeAll(molFormulas);
-    this.molFormulas.addAll(molFormulas);
-  }
-
-  /**
-   * The first formula should be the best
-   *
-   * @param molFormulas
-   */
-  public void addMolFormulas(ResultFormula... molFormulas) {
-    this.molFormulas.removeAll(molFormulas);
-    this.molFormulas.addAll(molFormulas);
-  }
-
-  public void addMolFormula(ResultFormula formula) {
-    addMolFormula(formula, false);
-  }
-
-  public void addMolFormula(ResultFormula formula, boolean asBest) {
-    if (!molFormulas.isEmpty()) {
-      molFormulas.remove(formula);
-    }
-
-    if (asBest) {
-      this.molFormulas.add(0, formula);
-    } else {
-      this.molFormulas.add(formula);
-    }
-  }
-
-  public void removeMolFormula(ResultFormula formula) {
-    if (molFormulas != null && !molFormulas.isEmpty()) {
-      molFormulas.remove(formula);
-    }
-  }
-
-  /**
-   * Best molecular formula (first in list)
-   *
-   * @return
-   */
-  public ResultFormula getBestMolFormula() {
-    return molFormulas == null || molFormulas.isEmpty() ? null : molFormulas.get(0);
-  }
-
-  public void setBestMolFormula(ResultFormula formula) {
-    addMolFormula(formula, true);
-  }
-
-  /**
-   * Neutral mass of center molecule which is described by all members of this network
-   */
-  public double getNeutralMass() {
-    return neutralMass == null ? calcNeutralMass() : neutralMass;
-  }
-
-  public IonIdentity put(FeatureListRow row, IonIdentity value) {
-    remove(row);
-
-    nodes.add(new IonNetworkNode(row, value));
-
-    if (row.getID() < lowestID || lowestID == -1) {
-      lowestID = row.getID();
-    }
-
-    value.setNetwork(this);
-
-    fireChanged();
-    return value;
-  }
-
-  public void remove(FeatureListRow key) {
-    nodes.removeIf(node -> {
-      if (node.row().equals(key)) {
-        node.ion().setNetwork(null);
-        if (node.row().getID() <= lowestID) {
-          recalcMinID();
-          fireChanged();
-        }
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /**
-   * Finds the minimum row id
-   */
-  public int recalcMinID() {
-    lowestID = streamRows().mapToInt(FeatureListRow::getID).min().orElse(-1);
-    return lowestID;
-  }
-
-  private @NotNull Stream<FeatureListRow> streamRows() {
-    return nodes.stream().map(IonNetworkNode::row);
-  }
-
-  public void clear() {
-    nodes.clear();
-    lowestID = -1;
-    fireChanged();
-  }
-
-  public void fireChanged() {
-    resetNeutralMass();
-    resetMaxDev();
-  }
-
-  public void resetNeutralMass() {
-    neutralMass = null;
-  }
-
-  /**
-   * Maximum absolute deviation from central neutral mass
-   */
-  public void resetMaxDev() {
-    maxDev = null;
-  }
-
-  /**
-   * Calculates and sets the neutral mass average and average rt
-   *
-   * @return
-   */
-  public double calcNeutralMass() {
-    neutralMass = null;
-    if (size() == 0) {
-      return 0;
-    }
-
-    double mass = 0;
-    avgRT = 0;
-    heightSum = 0;
-    for (var e : nodes) {
-      mass += e.ion().getIonType().getMass(e.row().getAverageMZ());
-      avgRT += e.row().getAverageRT();
-      // sum of heighest peaks heights
-      Float height = e.row().getMaxHeight();
-      heightSum += height == null || Float.isNaN(height) ? 1 : height;
-    }
-    avgRT = avgRT / size();
-    neutralMass = mass / size();
-    return neutralMass;
-  }
-
-  public double getAvgRT() {
-    if (neutralMass == null) {
-      calcNeutralMass();
-    }
-    return avgRT;
-  }
-
-  public double getHeightSum() {
-    if (neutralMass == null) {
-      calcNeutralMass();
-    }
-    return heightSum;
-  }
-
-  /**
-   * calculates the maximum deviation from the average mass
-   *
-   * @return
-   */
-  public double calcMaxDev() {
-    maxDev = null;
-    if (size() == 0) {
-      return 0;
-    }
-
-    neutralMass = getNeutralMass();
-    if (neutralMass == null || neutralMass == 0) {
-      return 0;
-    }
-
-    double max = 0;
-    for (var e : nodes) {
-      double mass = getMass(e);
-      max = Math.max(Math.abs(neutralMass - mass), max);
-    }
-    maxDev = max;
-    return maxDev;
-  }
-
-  /**
-   * Neutral mass of entry
-   *
-   * @param e
-   * @return
-   */
-  public double getMass(IonNetworkNode e) {
-    return e.ion().getIonType().getMass(e.row().getAverageMZ());
-  }
-
-  public double getMaxDev() {
-    return maxDev == null ? calcMaxDev() : maxDev;
-  }
-
-  /**
-   * All rows point to the same neutral mass
-   *
-   * @param mzTol
-   * @return
-   */
-  public boolean checkAllWithinMZTol(MZTolerance mzTol) {
-    double neutralMass = getNeutralMass();
-    double maxDev = getMaxDev();
-    return mzTol.checkWithinTolerance(neutralMass, neutralMass + maxDev);
-  }
-
-  public int[] getAllIDs() {
-    return streamRows().mapToInt(FeatureListRow::getID).toArray();
-  }
-
-  public void setNetworkToAllRows() {
-    streamIons().forEach(id -> id.setNetwork(this));
-  }
-
-  public void delete() {
-    for (IonNetworkNode node : nodes) {
-      node.row().removeIonIdentity(node.ion());
-    }
-    clear();
-  }
-
-  /**
-   * row has smallest id?
-   *
-   * @param row
-   * @return
-   */
-  public boolean hasSmallestID(FeatureListRow row) {
-    return row.getID() == lowestID;
-  }
-
-
-  @Override
-  public int compareTo(IonNetwork net) {
-    // -1 if this is better
-    return Integer.compare(net.size(), this.size());
-  }
-
-  public void addAll(@NotNull IonNetwork other) {
-    // avoid duplicates
-    nodes.removeAll(other.getNodes());
-    nodes.addAll(other.getNodes());
-
-    for (IonNetworkNode node : other.getNodes()) {
-      node.ion().setNetwork(this);
-    }
-
-    if (other.lowestID < lowestID || lowestID == -1) {
-      lowestID = other.lowestID;
-    }
-
-    fireChanged();
-  }
-
-  public void forEach(BiConsumer<FeatureListRow, IonIdentity> consumer) {
-    for (IonNetworkNode node : nodes) {
-      consumer.accept(node.row(), node.ion());
-    }
-  }
-
-  /**
-   * TODO rename to contains row
-   *
-   */
-  public boolean containsKey(FeatureListRow row) {
-    for (IonNetworkNode node : nodes) {
-      if (node.row().equals(row)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public IonIdentity get(@Nullable FeatureListRow row) {
+  default @Nullable IonIdentity get(@Nullable FeatureListRow row) {
     if (row == null) {
       return null;
     }
-    for (IonNetworkNode node : nodes) {
+    for (final IonNetworkNode node : getNodes()) {
       if (row.equals(node.row())) {
         return node.ion();
       }
     }
     return null;
+  }
+
+  default void forEach(@NotNull BiConsumer<FeatureListRow, IonIdentity> consumer) {
+    for (final IonNetworkNode node : getNodes()) {
+      consumer.accept(node.row(), node.ion());
+    }
+  }
+
+  /**
+   * Point the ion identities of all rows back to this network.
+   */
+  @NotNull
+  default IonNetwork setNetworkToAllRows() {
+    streamIons().forEach(ion -> ion.setNetwork(this));
+    return this;
+  }
+
+  /**
+   * Neutral mass of the center molecule which is described by all members of this network.
+   * <p>
+   * Implementations cache this value because it is queried often, e.g. by every ion library search
+   * and by sorting. The cache is refreshed whenever the nodes change.
+   */
+  double getNeutralMass();
+
+  /**
+   * Average of the neutral masses that the given nodes point to. Used by the implementations to
+   * (re)fill their neutral mass cache.
+   *
+   * @param nodes the (row, ion) pairs of a network
+   * @return 0 for an empty network or if no row has an m/z
+   */
+  static double calcNeutralMass(@NotNull final List<IonNetworkNode> nodes) {
+    double mass = 0;
+    int counted = 0;
+    for (final IonNetworkNode node : nodes) {
+      // rows without m/z cannot contribute a neutral mass - average over the remaining ones
+      // instead of failing, because this is computed eagerly while networks are built
+      final Double mz = node.row().getAverageMZ();
+      if (mz == null) {
+        continue;
+      }
+      mass += node.ion().getIonType().getMass(mz);
+      counted++;
+    }
+    return counted == 0 ? 0 : mass / counted;
+  }
+
+  /**
+   * Average retention time of all rows of this network.
+   */
+  default double getAvgRT() {
+    final List<IonNetworkNode> nodes = getNodes();
+    if (nodes.isEmpty()) {
+      return 0;
+    }
+    double rt = 0;
+    int n = 0;
+    for (final IonNetworkNode node : nodes) {
+      final Float averageRT = node.row().getAverageRT();
+      if (averageRT != null) {
+        rt += averageRT;
+        n++;
+      }
+    }
+    return rt / n;
+  }
+
+  /**
+   * Summed height of the most intense feature of each row.
+   */
+  default double getHeightSum() {
+    double heightSum = 0;
+    for (final IonNetworkNode node : getNodes()) {
+      final Float height = node.row().getMaxHeight();
+      heightSum += height == null || Float.isNaN(height) ? 0 : height;
+    }
+    return heightSum;
+  }
+
+  /**
+   * Remove the ion identities of this network from all its rows. The network is unreachable
+   * afterwards because rows are the only owners of ion identities.
+   */
+  default void delete() {
+    for (final IonNetworkNode node : getNodes()) {
+      node.row().removeIonIdentity(node.ion());
+      node.ion().setNetwork(null);
+    }
   }
 }

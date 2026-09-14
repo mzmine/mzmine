@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.iin;
+package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class IINRelationshipsSummaryType extends StringType {
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Relationship (all)";
-  }
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "iin_relationship_summary";
-  }
+/**
+ * A processing module that was removed from mzmine. Batch files created with older versions may
+ * still reference it, so {@link BatchQueue} needs the user facing name and a description to explain
+ * the skipped step instead of only printing a class name.
+ *
+ * @param className   full class name as written to batch files
+ * @param name        module name as it was shown in the menus and in the batch queue
+ * @param description why the module was removed and what to use instead, shown to the user
+ */
+public record RemovedModule(@NotNull String className, @NotNull String name,
+                            @NotNull String description) {
 
 }

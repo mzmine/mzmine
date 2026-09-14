@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.identities.iontype.BuildingIonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -250,7 +251,7 @@ public class IonNetworkingTask extends AbstractTask {
    */
   private long annotateGroup(RowGroup g, AtomicInteger compared) {
     // use linked hashmap to have repeatable results otherwise order might differ
-    Map<RowIonAnnotation, IonNetwork> results = new LinkedHashMap<>();
+    Map<RowIonAnnotation, BuildingIonNetwork> results = new LinkedHashMap<>();
 
     long annotations = 0;
     for (int i = 0; i < g.size() - 1; i++) {
@@ -276,13 +277,18 @@ public class IonNetworkingTask extends AbstractTask {
     return annotations;
   }
 
-  public static void addIonIdentitiesToRows(Collection<IonNetwork> networks) {
+  /**
+   * Adds built networks and attaches their ion identities to the rows, largest network first so
+   * that the most supported ion identity becomes the best one of each row.
+   */
+  public static void addIonIdentitiesToRows(Collection<BuildingIonNetwork> networks) {
     if (networks.isEmpty()) {
       return;
     }
-    final List<IonNetwork> sortedNetworks = networks.stream()
-        .distinct()
-        .sorted(Comparator.comparingInt(IonNetwork::size).reversed()).toList();
+    // re-point the ion identities to the immutable network
+    final List<IonNetwork> sortedNetworks = networks.stream().distinct()
+        .sorted(Comparator.comparingInt(IonNetwork::size).reversed())
+        .map(BuildingIonNetwork::setNetworkToAllRows).toList();
 
     Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
     for (IonNetwork net : sortedNetworks) {
@@ -296,7 +302,7 @@ public class IonNetworkingTask extends AbstractTask {
     sortedIons.forEach(FeatureListRow::setIonIdentities);
   }
 
-  private boolean checkRows(Map<RowIonAnnotation, IonNetwork> results, FeatureListRow rowA,
+  private boolean checkRows(Map<RowIonAnnotation, BuildingIonNetwork> results, FeatureListRow rowA,
       FeatureListRow rowB) {
     // search
     List<IonTypePair> matches = library.searchRows(rowA, rowB, mzTolerance);
@@ -306,11 +312,11 @@ public class IonNetworkingTask extends AbstractTask {
       final RowIonAnnotation a = new RowIonAnnotation(rowA, id.a());
       final RowIonAnnotation b = new RowIonAnnotation(rowB, id.b());
 
-      final IonNetwork oldNetA = results.get(a);
-      final IonNetwork oldNetB = results.get(b);
+      final BuildingIonNetwork oldNetA = results.get(a);
+      final BuildingIonNetwork oldNetB = results.get(b);
       if (oldNetA == null && oldNetB == null) {
         // create new
-        final IonNetwork network = new IonNetwork(-1);
+        final BuildingIonNetwork network = new BuildingIonNetwork();
         network.put(rowA, new IonIdentity(id.a()));
         network.put(rowB, new IonIdentity(id.b()));
         results.put(a, network);
