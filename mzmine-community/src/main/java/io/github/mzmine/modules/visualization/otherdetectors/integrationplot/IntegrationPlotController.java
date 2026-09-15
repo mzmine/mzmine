@@ -36,12 +36,14 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.dash_integration.FeatureIntegrationData;
+import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -197,6 +199,30 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     return model.integratedFeaturesProperty();
   }
 
+  public BooleanProperty showControlsProperty() {
+    return model.showControlsProperty();
+  }
+
+  public void setShowControls(boolean showControls) {
+    model.setShowControls(showControls);
+  }
+
+  public BooleanProperty showAxisTitlesProperty() {
+    return model.showAxisTitlesProperty();
+  }
+
+  public void setShowAxisTitles(boolean showAxisTitles) {
+    model.setShowAxisTitles(showAxisTitles);
+  }
+
+  public BooleanProperty useSampleColorProperty() {
+    return model.useSampleColorProperty();
+  }
+
+  public void setUseSampleColor(boolean useSampleColor) {
+    model.setUseSampleColor(useSampleColor);
+  }
+
   public void setAdditionalFeatures(List<IntensityTimeSeriesToXYProvider> additionalFeatures) {
     model.setAdditionalDataProviders(additionalFeatures);
   }
@@ -238,6 +264,10 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     model.setTitle(title);
   }
 
+  public ChromatogramPlotController getChromatogramPlot() {
+    return model.getChromatogramPlot();
+  }
+
   public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {
     model.setCurrentStartTime(newIntegrationRange.lowerEndpoint().doubleValue());
     model.setCurrentEndTime(newIntegrationRange.upperEndpoint().doubleValue());
@@ -266,5 +296,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public void setBinningMobilogramDataAccess(@Nullable BinningMobilogramDataAccess dataAccess) {
     model.setBinningMobilogramDataAccess(dataAccess);
+  }
+
+  public BooleanProperty showTitleProperty() {
+    return model.showTitleProperty();
   }
 }

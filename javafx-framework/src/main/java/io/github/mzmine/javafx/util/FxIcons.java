@@ -42,7 +42,7 @@ public enum FxIcons implements IconCodeSupplier {
   DARK_MODE_SWITCH, BATCH,
 
   //
-  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, //
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, TOOL, RELOAD, TOGGLE_SWITCH, YOUTUBE, DEVELOPMENT, BOOK, //
   ROCKET, LIGHTBULB, METADATA_TABLE, TABLE, SPREADSHEET,
 
   // ACTIONS
@@ -77,6 +77,7 @@ public enum FxIcons implements IconCodeSupplier {
       case ARROW_UP -> "bi-arrow-up";
       case ARROW_DOWN -> "bi-arrow-down";
       case RELOAD -> "bi-arrow-repeat";
+      case TOGGLE_SWITCH -> "bi-arrow-repeat";
       case YOUTUBE -> "bi-youtube";
       case DEVELOPMENT -> "bi-code-slash";
       case BOOK -> "bi-book";

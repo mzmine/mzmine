@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.date.LocalDateTimeParser;
+import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.io.CsvReader;
 import java.io.File;
 import java.time.Instant;
@@ -132,7 +132,7 @@ public class RICalculationTask extends AbstractFeatureListTask {
     if (file.exists() && file.canRead()) {
       try {
         String fileName = file.getAbsolutePath();
-        LocalDateTime date = LocalDateTimeParser.parseAnyFirstDate(
+        LocalDateTime date = DateTimeUtils.parseAnyFirstDate(
             FilenameUtils.removeExtension(fileName));
 
         if (date == null) {

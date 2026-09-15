@@ -26,12 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -40,7 +45,6 @@ import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -56,6 +60,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class StandardCompoundNormalizationTypeParameters extends SimpleParameterSet {
@@ -65,10 +70,10 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
+      The standards are only searched in those samples and only they define the standard levels.
       The recalibration of all other samples will be based on the acquisition order, which is
-      determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      Any custom group name of the mzmine_sample_type column can be selected, not just the
-      predefined types.
+      determined by the acquisition type column in the metadata (CTRL/CMD + M), no matter whether
+      they contain a standard or not.
       """, SampleTypeFilter.all());
 
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<>(
@@ -84,7 +89,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       StandardCompoundNormalizationTypeParameters::exportExampleFile);
 
   private static void exportExampleFile(File file) {
-    FileAndPathUtil.createDirectory(file);
+    FileAndPathUtil.createDirectory(file.getParentFile());
     try (var w = Files.newBufferedWriter(file.toPath(), WriterOptions.REPLACE.toOpenOption())) {
       String example = """
           mz,rt,mobility,name
@@ -123,14 +128,60 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       "Maximum allowed mobility difference when matching imported standards to feature list rows.",
       new MobilityTolerance(0.01f));
 
-  public static final BooleanParameter requireAllStandards = new BooleanParameter(
+
+  public static final StandardCompoundNormalizationRequirementParameter requirement = new StandardCompoundNormalizationRequirementParameter(
+      "Requirement", """
+      Defines how reference samples without all standards are handled. Files that are not reference \
+      samples are never checked and are always normalized by interpolation.
+      %s: all selected standards must be detected in each reference sample, otherwise normalization fails.
+      %s: reference samples need at least the configured number of detected standards, missing standards are skipped.
+      %s: reference samples without any detected standard are skipped and normalized by interpolation \
+      between the neighboring reference samples.""".formatted(
+      StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
+      StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,
+      StandardCompoundNormalizationMode.SKIP_FILES_WITHOUT_STANDARD),
+      StandardCompoundNormalizationMode.values(), StandardCompoundNormalizationRequirement.DEFAULT);
+
+  /**
+   * Only used to read the value of the legacy boolean parameter that {@link #requirement} replaced.
+   * Never added to {@link #getParameters()}, only registered in {@link #getNameParameterMap()} so
+   * that old batch files still load. Instance field on purpose: the static parameter instances are
+   * shared between all parameter sets.
+   */
+  private final BooleanParameter legacyRequireAllStandards = new BooleanParameter(
       "Require all standards",
       "If enabled, all selected standards must be present in each raw file for normalization",
       true);
 
   public StandardCompoundNormalizationTypeParameters() {
     super(sampleTypes, standardUsageType, mzVsRtBalance, standardCompoundsFile, fieldSeparator,
-        standardCompounds, mzTolerance, rtTolerance, mobilityTolerance, requireAllStandards);
+        standardCompounds, mzTolerance, rtTolerance, mobilityTolerance, requirement);
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    // the boolean "Require all standards" parameter was replaced by the mode combo parameter.
+    // types differ, so load the old value into the legacy parameter and map it in
+    // handleLoadedParameters
+    map.put(legacyRequireAllStandards.getName(), legacyRequireAllStandards);
+    return map;
+  }
+
+  @Override
+  public void handleLoadedParameters(final Map<String, Parameter<?>> loadedParams,
+      final int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+
+    final Parameter<?> oldRequireAllParam = loadedParams.get(legacyRequireAllStandards.getName());
+    if (oldRequireAllParam != null && !loadedParams.containsKey(requirement.getName())) {
+      // old parameter set: true was "all standards in all samples", false only required one standard
+      final StandardCompoundNormalizationMode mode = oldRequireAllParam.getValue() == Boolean.FALSE
+          ? StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES
+          : StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES;
+
+      setParameter(requirement, new StandardCompoundNormalizationRequirement(mode, 1));
+    }
   }
 
   public static @NotNull StandardCompoundNormalizationTypeParameters create(
@@ -140,11 +191,10 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull String selectedFieldSeparator, final @NotNull MZTolerance selectedMzTolerance,
       final @NotNull RTTolerance selectedRtTolerance,
       final @NotNull MobilityTolerance selectedMobilityTolerance,
-      final boolean selectedRequireAllStandards) {
+      final @NotNull StandardCompoundNormalizationMode selectedMode) {
     return create(selectedSampleTypes, selectedStandardUsageType, selectedMzVsRtBalance,
         selectedStandardCompoundsFile, selectedFieldSeparator, copyImportTypes(importTypes),
-        selectedMzTolerance, selectedRtTolerance, selectedMobilityTolerance,
-        selectedRequireAllStandards);
+        selectedMzTolerance, selectedRtTolerance, selectedMobilityTolerance, selectedMode);
   }
 
   public static @NotNull StandardCompoundNormalizationTypeParameters create(
@@ -156,7 +206,7 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
       final @NotNull MZTolerance selectedMzTolerance,
       final @NotNull RTTolerance selectedRtTolerance,
       final @NotNull MobilityTolerance selectedMobilityTolerance,
-      final boolean selectedRequireAllStandards) {
+      final @NotNull StandardCompoundNormalizationMode selectedMode) {
     final StandardCompoundNormalizationTypeParameters parameters = (StandardCompoundNormalizationTypeParameters) new StandardCompoundNormalizationTypeParameters().cloneParameterSet();
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.sampleTypes,
         SampleTypeFilter.of(selectedSampleTypes));
@@ -176,8 +226,8 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
         selectedRtTolerance);
     parameters.setParameter(StandardCompoundNormalizationTypeParameters.mobilityTolerance,
         selectedMobilityTolerance);
-    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requireAllStandards,
-        selectedRequireAllStandards);
+    parameters.setParameter(StandardCompoundNormalizationTypeParameters.requirement,
+        new StandardCompoundNormalizationRequirement(selectedMode, 1));
     return parameters;
   }
 

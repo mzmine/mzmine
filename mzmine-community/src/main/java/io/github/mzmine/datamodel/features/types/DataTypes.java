@@ -77,6 +77,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RIRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RIType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.SampleRsdType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import java.io.IOException;
@@ -229,9 +230,12 @@ public class DataTypes {
         RTRangeType.class, FwhmType.class, MobilityType.class, MobilityRangeType.class,
         RIType.class, RIRangeType.class, CCSType.class, CCSRelativeErrorType.class,
         MobilityUnitType.class, AreaType.class, HeightType.class, NormalizedAreaType.class,
-        NormalizedHeightType.class, IntensityRangeType.class, ChargeType.class,
-        FragmentScanNumbersType.class, IsotopePatternType.class, TailingFactorType.class,
-        AsymmetryFactorType.class,
+        NormalizedHeightType.class,
+        // main type of all relative standard deviations, they are its sub columns
+        SampleRsdType.class,
+        //
+        IntensityRangeType.class, ChargeType.class, FragmentScanNumbersType.class,
+        IsotopePatternType.class, TailingFactorType.class, AsymmetryFactorType.class,
         // annotation specific
         CompoundNameType.class, DatasetIdType.class, FormulaType.class, SmilesStructureType.class,
         InChIStructureType.class, InChIKeyStructureType.class, SplashType.class, UsiType.class,

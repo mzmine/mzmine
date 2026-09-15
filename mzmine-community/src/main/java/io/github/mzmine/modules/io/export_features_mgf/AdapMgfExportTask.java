@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,12 +55,14 @@ import org.jetbrains.annotations.NotNull;
 public class AdapMgfExportTask extends AbstractTask {
 
   private final String newLine = System.lineSeparator();
-  //
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat mzNominalForm = new DecimalFormat("0");
-  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
+  // clone to avoid contention on synchronized block
+  private final NumberFormat mzForm = (NumberFormat) MZmineCore.getConfiguration().getMZFormat()
+      .clone();
+  private final NumberFormat mzNominalForm = new DecimalFormat("0");
+  private final NumberFormat intensityForm = (NumberFormat) MZmineCore.getConfiguration()
+      .getIntensityFormat().clone();
   // seconds
-  private NumberFormat rtsForm = new DecimalFormat("0.###");
+  private final NumberFormat rtsForm = new DecimalFormat("0.###");
 
   private final FeatureList[] featureLists;
   private final File fileName;

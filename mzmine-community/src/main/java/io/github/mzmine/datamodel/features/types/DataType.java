@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -373,6 +373,20 @@ public abstract class DataType<T> implements Comparable<DataType>, UniqueIdSuppl
    */
   @NotNull
   public List<RowBinding> createDefaultRowBindings() {
+    return List.of();
+  }
+
+  /**
+   * In case this DataType is added to a {@link ModularFeature}, these row types are added to the
+   * {@link ModularFeatureList}. In contrast to {@link #createDefaultRowBindings()} their values are
+   * computed on demand, usually by implementing
+   * {@link io.github.mzmine.datamodel.features.types.modifiers.MappingType}, and therefore need no
+   * listeners on the feature values.
+   *
+   * @return row types that map their values from this feature type
+   */
+  @NotNull
+  public List<DataType> createDefaultMappedRowTypes() {
     return List.of();
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumn;
 import io.github.mzmine.datamodel.features.columnar_data.columns.DataColumns;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoDataColumnType;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
@@ -73,7 +74,8 @@ public class ColumnarModularDataModelSchema {
   protected final MemoryMapStorage storage;
 
   /**
-   * Each data type has its own DataColumn usually created in the factory {@link DataColumns}.
+   * Each data type has its own DataColumn usually created in the factory {@link DataColumns}. No
+   * column for {@link NoDataColumnType}, computed on demand without any storage
    */
   protected final Map<DataType, DataColumn> columns = new ConcurrentHashMap<>(20);
   /**
@@ -83,7 +85,12 @@ public class ColumnarModularDataModelSchema {
    */
   protected final CloseableReentrantReadWriteLock resizeLock = new CloseableReentrantReadWriteLock();
   protected final String modelName;
-  private final Map<DataType, DataColumn> readOnlyColumns = Collections.unmodifiableMap(columns);
+  /**
+   * All types of this schema, either backed by a {@link DataColumn} in {@link #columns} or, in case
+   * of {@link NoDataColumnType}, computed on demand without any storage.
+   */
+  private final Set<DataType> allTypes = ConcurrentHashMap.newKeySet(20);
+  private final Set<DataType> readOnlyAllTypes = Collections.unmodifiableSet(allTypes);
   private final AtomicInteger nextRow = new AtomicInteger(0);
   private final @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> dataTypeValueChangedListeners = new ConcurrentHashMap<>();
   private final @NotNull List<DataTypesChangedListener> dataTypesChangeListeners = new CopyOnWriteArrayList<>();
@@ -101,7 +108,7 @@ public class ColumnarModularDataModelSchema {
   }
 
   public boolean containsDataType(@NotNull final DataType type) {
-    return columns.containsKey(type);
+    return allTypes.contains(type);
   }
 
   public void addDataTypes(final DataType... types) {
@@ -126,8 +133,12 @@ public class ColumnarModularDataModelSchema {
 //      logger.finest("%s: adding %d data types %s".formatted(modelName, toAdd.size(),
 //          toAdd.stream().map(DataType::getUniqueID).collect(Collectors.joining(", "))));
       for (DataType dataType : toAdd) {
-        // for now use synchronized DataColumns
-        columns.put(dataType, DataColumns.ofTypeSynchronized(dataType, storage, columnLength));
+        // values of NoDataColumnType are computed on demand, so no column is needed
+        if (!(dataType instanceof NoDataColumnType)) {
+          // for now use synchronized DataColumns
+          columns.put(dataType, DataColumns.ofTypeSynchronized(dataType, storage, columnLength));
+        }
+        allTypes.add(dataType);
 //        logger.finest("%s: adding data type %s at %d".formatted(modelName, dataType.getUniqueID(),
 //            indexMap.getInt(dataType)));
       }
@@ -215,7 +226,8 @@ public class ColumnarModularDataModelSchema {
     });
   }
 
-  public void removeDataTypeValueChangeListener(@NotNull DataType type, @Nullable final DataTypeValueChangeListener<?> listener) {
+  public void removeDataTypeValueChangeListener(@NotNull DataType type,
+      @Nullable final DataTypeValueChangeListener<?> listener) {
     dataTypeValueChangedListeners.compute(type, (key, list) -> {
       if (list == null || list.isEmpty()) {
         return null;
@@ -254,11 +266,11 @@ public class ColumnarModularDataModelSchema {
   }
 
   public boolean isEmpty() {
-    return columns.isEmpty();
+    return allTypes.isEmpty();
   }
 
   public int getNumberOfTypes() {
-    return columns.size();
+    return allTypes.size();
   }
 
   /**
@@ -276,6 +288,12 @@ public class ColumnarModularDataModelSchema {
     if (type instanceof MissingValueType) {
       throw new UnsupportedOperationException(
           "Type %s is not meant to be added to a feature.".formatted(type.getClass()));
+    }
+
+    if (type instanceof NoDataColumnType) {
+      // values are computed on demand and never stored. Setting is silently ignored, e.g., when
+      // loading older projects that still contain values of such a type
+      return false;
     }
 
     DataColumn column = columns.get(type);
@@ -341,8 +359,7 @@ public class ColumnarModularDataModelSchema {
    * Remove the column
    */
   public <T> void remove(DataType<T> type) {
-    var column = getColumn(type);
-    if (column == null) {
+    if (!allTypes.remove(type)) {
       return;
     }
 
@@ -352,13 +369,20 @@ public class ColumnarModularDataModelSchema {
   }
 
   public Set<DataType> getTypes() {
-    return readOnlyColumns.keySet();
+    return readOnlyAllTypes;
   }
 
+  /**
+   *
+   * @return copy to allow stream and loop thread safe
+   */
   public Set<DataType> getTypesSnapshot() {
-    return Set.copyOf(columns.keySet());
+    return Set.copyOf(allTypes);
   }
 
+  /**
+   * @return stream all types
+   */
   public Stream<DataType> streamColumns() {
     return getTypesSnapshot().stream();
   }

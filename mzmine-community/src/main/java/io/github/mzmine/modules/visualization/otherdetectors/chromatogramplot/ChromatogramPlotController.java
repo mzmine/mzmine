@@ -44,6 +44,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.SequencedCollection;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -195,6 +196,22 @@ public class ChromatogramPlotController extends FxController<ChromatogramPlotMod
 
   public void setDomainAxisLabel(String label) {
     domainAxisLabel().set(label);
+  }
+
+  public BooleanProperty domainAxisLabelVisibleProperty() {
+    return model.showDomainAxisLabelProperty();
+  }
+
+  public void setDomainAxisLabelVisible(boolean visible) {
+    domainAxisLabelVisibleProperty().set(visible);
+  }
+
+  public BooleanProperty rangeAxisLabelVisibleProperty() {
+    return model.showRangeAxisLabelProperty();
+  }
+
+  public void setRangeAxisLabelVisible(boolean visible) {
+    rangeAxisLabelVisibleProperty().set(visible);
   }
 
   public ObjectProperty<NumberFormat> domainAxisFormat() {

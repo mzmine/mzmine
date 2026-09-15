@@ -34,12 +34,12 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsSaver;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundFeatureMember;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundFeature;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
+import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsSaver;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -201,6 +201,11 @@ public class FeatureListSaveTask extends AbstractTask {
     metadataElement.appendChild(nameElement);
     metadataElement.appendChild(dateElement);
     root.appendChild(metadataElement);
+
+    // write user defined preferences of this feature list
+    Element preferencesElement = document.createElement(CONST.XML_FLIST_PREFERENCES_ELEMENT);
+    flist.getPreferences().saveToXML(preferencesElement);
+    root.appendChild(preferencesElement);
 
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());

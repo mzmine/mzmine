@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,10 +29,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -54,22 +51,18 @@ public class AreaType extends HeightType {
     return "Area";
   }
 
-  @NotNull
   @Override
-  public List<RowBinding> createDefaultRowBindings() {
-    return List.of(new SimpleRowBinding(this, BindingsType.MAX));
-  }
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull ModularFeatureListRow row, @NotNull List<RawDataFile> file,
+      @Nullable DataType<?> superType, @Nullable Object value) {
 
-  @Override
-  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, @Nullable DataType<?> superType, @Nullable Object value) {
-
-    if(file.size() == 1) {
+    if (file.size() == 1) {
       final ModularFeature selectedFeature = row.getFeature(file.get(0));
 
-      if(selectedFeature != null && selectedFeature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
-        return () -> FxThread.runLater(() -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
-            row, row.getFeatureList()));
+      if (selectedFeature != null && selectedFeature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        return () -> FxThread.runLater(
+            () -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(), row,
+                row.getFeatureList()));
       }
     }
 

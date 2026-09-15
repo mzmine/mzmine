@@ -24,7 +24,9 @@
 
 package io.github.mzmine.modules.visualization.dash_integration;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -40,7 +42,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgori
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothingParameters;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -49,9 +50,12 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.project.ProjectService;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import javafx.collections.MapChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,26 +66,55 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
 
     model.featureListProperty().subscribe(flist -> {
       model.getFeatureTableFx().setFeatureList(flist);
-
-      final MetadataTable metadata = ProjectService.getMetadata();
-      final MetadataColumn<?> sortingCol = model.getRawFileSortingColumn();
-      model.setSortedFiles(flist.getRawDataFiles().stream().sorted(Comparator.comparing(
-              file -> Objects.requireNonNullElse(metadata.getValue(sortingCol, file), "").toString()))
-          .toList());
-
       model.postProcessingMethodProperty().set(extractPostProcessingMethod(flist));
+      updateSortedFiles();
     });
 
-    model.rawFileSortingColumnProperty().subscribe(col -> model.setSortedFiles(
-        model.getFeatureList().getRawDataFiles().stream().sorted(Comparator.comparing(
-            file -> Objects.requireNonNullElse(ProjectService.getMetadata().getValue(col, file), "")
-                .toString())).toList()));
+    model.sortOptionProperty().subscribe(_ -> updateSortedFiles());
+
+    // re-sort when feature data entries change (area values may have updated)
+    model.featureDataEntriesProperty().addListener(
+        (MapChangeListener<RawDataFile, FeatureIntegrationData>) _ -> {
+          if (model.getSortOption().isArea()) {
+            updateSortedFiles();
+          }
+        });
 
     // the offset may never be larger than the number of files
     model.sortedFilesProperty().subscribe(files -> model.setGridPaneFileOffset(
         Math.max(Math.min(model.getGridPaneFileOffset(), files.size() - 1), 0)));
     PropertyUtils.onChange(() -> onTaskThread(new FeatureIntegrationDataCalcTask(model)),
         model.rowProperty(), model.applyPostProcessingProperty());
+  }
+
+  private void updateSortedFiles() {
+    final List<io.github.mzmine.datamodel.RawDataFile> files = model.getFeatureList()
+        .getRawDataFiles();
+    final IntegrationDashboardSortOption sort = model.getSortOption();
+
+    if (sort.isMetadata()) {
+      final MetadataColumn<?> sortingCol = sort.metadataColumn();
+      model.setSortedFiles(files.stream().sorted(Comparator.comparing(
+          file -> Objects.requireNonNullElse(
+              ProjectService.getMetadata().getValue(sortingCol, file), "").toString())).toList());
+    } else if (sort.isArea()) {
+      final IntegrationDashboardAreaSortDirection areaSort = sort.areaSortDirection();
+      final Map<io.github.mzmine.datamodel.RawDataFile, Float> areaMap = new HashMap<>();
+      for (final io.github.mzmine.datamodel.RawDataFile file : files) {
+        final FeatureIntegrationData data = model.getFeatureDataEntries().get(file);
+        final float area =
+            (data != null && data.feature() != null) ? FeatureDataUtils.calculateArea(
+                data.feature()) : 0f;
+        areaMap.put(file, area);
+      }
+      final Comparator<io.github.mzmine.datamodel.RawDataFile> cmp = Comparator.comparingDouble(
+          f -> areaMap.getOrDefault(f, 0f));
+      model.setSortedFiles(
+          files.stream().sorted(areaSort == IntegrationDashboardAreaSortDirection.ASCENDING ? cmp : cmp.reversed())
+              .toList());
+    } else {
+      model.setSortedFiles(List.copyOf(files));
+    }
   }
 
   private static SmoothingAlgorithm extractSmoother(ModularFeatureList flist) {

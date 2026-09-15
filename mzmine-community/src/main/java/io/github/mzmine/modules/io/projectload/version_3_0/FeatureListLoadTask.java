@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundFeature;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsLoader;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -535,6 +536,12 @@ public class FeatureListLoadTask extends AbstractTask {
       final Element metadataElement = (Element) (((NodeList) metadataExpr.evaluate(configuration,
           XPathConstants.NODESET)).item(0));
 
+      // preferences may be absent in projects saved before they were introduced
+      XPathExpression preferencesExpr = xpath.compile(
+          "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_PREFERENCES_ELEMENT);
+      final Element preferencesElement = (Element) (((NodeList) preferencesExpr.evaluate(
+          configuration, XPathConstants.NODESET)).item(0));
+
       XPathExpression expr = xpath.compile(
           "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
       NodeList nodelist = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
@@ -608,6 +615,12 @@ public class FeatureListLoadTask extends AbstractTask {
       if (preferredAnnoationSorting != null) {
         PreferredAnnotationRankingParameters param = (PreferredAnnotationRankingParameters) preferredAnnoationSorting.getParameters();
         flist.setAnnotationSortConfig(param.toConfig());
+      }
+      final FeatureListPreferences preferences = FeatureListPreferences.loadFromXML(
+          preferencesElement);
+      // old projects do not have preferences (introduced mzmine 4.11)
+      if (preferences != null) {
+        flist.setPreferences(preferences);
       }
       return flist;
     } catch (XPathExpressionException | ParserConfigurationException | SAXException |

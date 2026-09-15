@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -71,6 +72,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,6 +125,12 @@ public class SampleTypeFilterComponent extends HBox implements
    * Combo boxes flip their arrow while the popup is open, this drives the same CSS state.
    */
   private static final PseudoClass SHOWING = PseudoClass.getPseudoClass("showing");
+  /**
+   * Ticking a few types in a row is one decision, not one per click. Listeners on the value can be
+   * expensive - the feature table RSD columns rerun a module - so single selections are collected
+   * for this long before they are committed.
+   */
+  private static final Duration COMMIT_DELAY = Duration.seconds(2);
 
   /**
    * Where an item in the list came from. Only {@link #CUSTOM} items can be removed again.
@@ -179,6 +187,16 @@ public class SampleTypeFilterComponent extends HBox implements
   private final StringProperty newValueText = new SimpleStringProperty("");
   private final CheckBox allBox = new CheckBox("All sample types");
   private final CheckBox noneBox = new CheckBox("None");
+  /**
+   * Delays committing single item selections to {@link #value}, see
+   * {@link #setSelectedDelayed(String, boolean)}.
+   */
+  private final PauseTransition commitDelay = new PauseTransition(COMMIT_DELAY);
+  /**
+   * The selection the item rows currently show but that was not written to {@link #value} yet, or
+   * null if there is nothing pending. See {@link #setSelectedDelayed(String, boolean)}.
+   */
+  private @Nullable SampleTypeFilter pendingSelection;
 
   public SampleTypeFilterComponent(@Nullable SampleTypeFilter initialValue) {
     super(FxLayout.DEFAULT_SPACE);
@@ -197,8 +215,15 @@ public class SampleTypeFilterComponent extends HBox implements
     popup.setHideOnEscape(true);
     popup.setAutoFix(true);
     // keep the arrow in the "open" look while the popup is up, like a real combo box
-    popup.showingProperty()
-        .subscribe(showing -> comboBox.pseudoClassStateChanged(SHOWING, showing));
+    popup.showingProperty().subscribe(showing -> {
+      comboBox.pseudoClassStateChanged(SHOWING, showing);
+      if (!showing) {
+        // do not make the user wait for the delay once the list is out of sight
+        commitPendingSelection();
+      }
+    });
+
+    commitDelay.setOnFinished(_ -> commitPendingSelection());
 
     value.subscribe(this::onValueChanged);
     setValue(initialValue);
@@ -272,7 +297,56 @@ public class SampleTypeFilterComponent extends HBox implements
     // a loaded filter may reference groups that are not in the project (yet) - keep them
     // selectable instead of silently dropping them
     customValues.addAll(filter.customValues());
+    // a value set from the outside replaces whatever the user was about to commit
+    dropPendingSelection();
     value.set(filter);
+  }
+
+  /**
+   * @return the selection the popup currently shows, which is the pending one while the user is
+   * still ticking item rows
+   */
+  private @NotNull SampleTypeFilter getShownSelection() {
+    return pendingSelection != null ? pendingSelection : value.get();
+  }
+
+  /**
+   * Shows the new selection but only commits it to {@link #value} after {@link #COMMIT_DELAY} or
+   * once the popup closes, whichever comes first. Ticking several types is one decision of the user
+   * and every commit may trigger expensive listeners.
+   */
+  private void setSelectedDelayed(@NotNull final String itemValue, final boolean selected) {
+    final Set<String> values = new LinkedHashSet<>(getShownSelection().getValues());
+    if (selected) {
+      values.add(itemValue);
+    } else {
+      values.remove(itemValue);
+    }
+
+    // any individual choice leaves the open ended all/none modes
+    pendingSelection = SampleTypeFilter.ofValues(values);
+    showFilter(pendingSelection);
+    commitDelay.playFromStart();
+  }
+
+  /**
+   * Writes a pending item selection to {@link #value}. Does nothing if there is none.
+   */
+  private void commitPendingSelection() {
+    commitDelay.stop();
+    final SampleTypeFilter pending = pendingSelection;
+    pendingSelection = null;
+    if (pending != null) {
+      value.set(pending);
+    }
+  }
+
+  /**
+   * Forgets a pending item selection, for values that are set explicitly and therefore replace it.
+   */
+  private void dropPendingSelection() {
+    commitDelay.stop();
+    pendingSelection = null;
   }
 
   /**
@@ -285,6 +359,14 @@ public class SampleTypeFilterComponent extends HBox implements
       rememberedValues.clear();
       rememberedValues.addAll(filter.getValues());
     }
+    showFilter(filter);
+  }
+
+  /**
+   * Reflects a filter in the UI without committing it, so that a pending item selection is visible
+   * while it waits for {@link #commitDelay}.
+   */
+  private void showFilter(@NotNull final SampleTypeFilter filter) {
     allBox.setSelected(filter.getMode() == Mode.ALL);
     noneBox.setSelected(filter.getMode() == Mode.NONE);
     syncItemChecks(filter);
@@ -329,9 +411,9 @@ public class SampleTypeFilterComponent extends HBox implements
     // setOnAction only reacts to user clicks, unlike a selectedProperty listener, so no guard flag
     // is needed against the programmatic updates in onValueChanged
     allBox.setOnAction(
-        _ -> value.set(allBox.isSelected() ? SampleTypeFilter.all() : rememberedListFilter()));
+        _ -> setValueNow(allBox.isSelected() ? SampleTypeFilter.all() : rememberedListFilter()));
     noneBox.setOnAction(
-        _ -> value.set(noneBox.isSelected() ? SampleTypeFilter.none() : rememberedListFilter()));
+        _ -> setValueNow(noneBox.isSelected() ? SampleTypeFilter.none() : rememberedListFilter()));
 
     final TextField newValueField = new TextField();
     newValueField.setPromptText("Add sample type…");
@@ -376,7 +458,7 @@ public class SampleTypeFilterComponent extends HBox implements
    * row.
    */
   private void refreshItems() {
-    final SampleTypeFilter filter = getValue();
+    final SampleTypeFilter filter = getShownSelection();
     final Map<String, Integer> counts = countFilesPerSampleType();
 
     // predefined first, then everything the project or the user added, each block sorted a-z
@@ -409,14 +491,14 @@ public class SampleTypeFilterComponent extends HBox implements
     // stays managed while invisible, so the labels keep their column and the rows do not jump
     // around when the mode changes
     box.visibleProperty().bind(allMode.not());
-    box.setOnAction(_ -> setSelected(itemValue, box.isSelected()));
+    box.setOnAction(_ -> setSelectedDelayed(itemValue, box.isSelected()));
     itemRows.add(new ItemRow(itemValue, box));
 
     final Label name = new Label(itemValue);
     // checkbox and label were separated so that we can hide the box when ALL. Therefore listen to click
     name.setOnMouseClicked(_ -> {
       if (!allMode.get()) {
-        setSelected(itemValue, !box.isSelected());
+        setSelectedDelayed(itemValue, !box.isSelected());
       }
     });
 
@@ -470,15 +552,14 @@ public class SampleTypeFilterComponent extends HBox implements
     return SampleTypeFilter.ofValues(rememberedValues);
   }
 
-  private void setSelected(@NotNull final String itemValue, final boolean selected) {
-    final Set<String> values = new LinkedHashSet<>(getValue().getValues());
-    if (selected) {
-      values.add(itemValue);
-    } else {
-      values.remove(itemValue);
-    }
-    // any individual choice leaves the open ended all/none modes
-    value.set(SampleTypeFilter.ofValues(values));
+  /**
+   * Commits a filter right away, for the explicit choices where the user does not select single
+   * types, see {@link #setSelectedDelayed(String, boolean)}.
+   */
+  private void setValueNow(@NotNull final SampleTypeFilter filter) {
+    // this choice replaces a pending item selection instead of being overwritten by it later
+    dropPendingSelection();
+    value.set(filter);
   }
 
   /**
@@ -486,13 +567,13 @@ public class SampleTypeFilterComponent extends HBox implements
    */
   private void toggleAll() {
     final List<String> listed = itemRows.stream().map(ItemRow::value).toList();
-    final Set<String> selected = getValue().getValues();
+    final SampleTypeFilter shown = getShownSelection();
     final boolean allSelected =
-        getValue().getMode() == Mode.LIST && !listed.isEmpty() && selected.containsAll(listed);
+        shown.getMode() == Mode.LIST && !listed.isEmpty() && shown.getValues().containsAll(listed);
 
     // deliberately does not switch to Mode.ALL - checking every known type and "any type" are
     // different things, and the user picks the latter through the dedicated checkbox
-    value.set(
+    setValueNow(
         allSelected ? SampleTypeFilter.ofValues(List.of()) : SampleTypeFilter.ofValues(listed));
   }
 
@@ -509,10 +590,11 @@ public class SampleTypeFilterComponent extends HBox implements
     newValueText.set("");
 
     // adding is only useful if it also selects - otherwise the user would have to hunt for the row
+    final SampleTypeFilter shown = getShownSelection();
     final Set<String> values = new LinkedHashSet<>(
-        getValue().getMode() == Mode.LIST ? getValue().getValues() : Set.of());
+        shown.getMode() == Mode.LIST ? shown.getValues() : Set.of());
     values.add(typed);
-    value.set(SampleTypeFilter.ofValues(values));
+    setValueNow(SampleTypeFilter.ofValues(values));
     refreshItems();
   }
 
@@ -520,9 +602,9 @@ public class SampleTypeFilterComponent extends HBox implements
     customValues.remove(itemValue);
     rememberedValues.remove(itemValue);
 
-    final Set<String> values = new LinkedHashSet<>(getValue().getValues());
+    final Set<String> values = new LinkedHashSet<>(getShownSelection().getValues());
     if (values.remove(itemValue)) {
-      value.set(SampleTypeFilter.ofValues(values));
+      setValueNow(SampleTypeFilter.ofValues(values));
     }
     refreshItems();
   }

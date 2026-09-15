@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxLabels;
@@ -50,6 +51,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureTableFXUtil;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -73,6 +75,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.FlowPane;
 import org.jetbrains.annotations.NotNull;
 
 public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDashboardModel> {
@@ -168,6 +171,11 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
     for (int i = startOffset; i < startOffset + pageSize && i < sortedFiles.size(); i++) {
       final Region integrationPlot = getPlotForFile(filePlotCache, sortedFiles.get(i));
+      // Force refresh of the background and markers when the plot is re-added to the grid
+      if (integrationPlot instanceof BorderPane bp
+          && integrationPlot.getUserData() instanceof IntegrationPlotController pc) {
+        pc.setFeatureDataEntry(model.getFeatureDataEntries().get(sortedFiles.get(i)));
+      }
 
       grid.add(integrationPlot, columnIndex++, rowIndex);
       if (columnIndex >= gridNumColumns) {
@@ -179,31 +187,52 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
 
   private @NotNull Region getPlotForFile(final Map<RawDataFile, RegionController> filePlotCache,
       RawDataFile file) {
+    final IntegrationDashboardModel dashboardModel = model;
     return filePlotCache.computeIfAbsent(file, _ -> {
       final IntegrationPlotController plot = new IntegrationPlotController();
       plot.setTextLessButtons(true);
       plot.setMaxIntegratedFeatures(1);
+      plot.showControlsProperty().bind(dashboardModel.showControlsProperty());
+      plot.showAxisTitlesProperty().bind(dashboardModel.showAxisTitlesProperty());
+      plot.showTitleProperty().bind(dashboardModel.showFileNameProperty());
+      plot.useSampleColorProperty().bind(dashboardModel.useSampleColorProperty());
+      plot.getChromatogramPlot().cursorPositionProperty()
+          .bindBidirectional(dashboardModel.cursorPositionProperty());
+
       if (file instanceof IMSRawDataFile ims) {
         plot.setBinningMobilogramDataAccess(new BinningMobilogramDataAccess(ims,
-            BinningMobilogramDataAccess.getPreviousBinningWidth(model.getFeatureList(),
+            BinningMobilogramDataAccess.getPreviousBinningWidth(dashboardModel.getFeatureList(),
                 ims.getMobilityType())));
       }
 //        plot.setChartGroup(chartGroup);
       // auto update on change of the feature data entry. must be subscribed in here because we don't want to subscribe multiple times
-      model.featureDataEntriesProperty()
+      dashboardModel.featureDataEntriesProperty()
           .addListener((MapChangeListener<RawDataFile, FeatureIntegrationData>) change -> {
             if (change.getKey() == file) {
-              plot.setTitle(file.getName());
+              if (dashboardModel.isShowFileName()) {
+                plot.setTitle(file.getName());
+              } else {
+                plot.setTitle(null);
+              }
               plot.setFeatureDataEntry(change.getValueAdded());
             }
           });
 
+      dashboardModel.showFileNameProperty().subscribe(show -> {
+        if (show) {
+          plot.setTitle(file.getName());
+        } else {
+          plot.setTitle(null);
+        }
+      });
+
       final Region region = plot.buildView();
+      region.setUserData(plot);
       // need to set manually, using a subscription does not work for some reason.
       region.visibleProperty().subscribe(_ -> {
         // setting once at the beginning leads to the change not being applied properly
         plot.setRangeAxisStickyZero(true);
-        plot.setFeatureDataEntry(model.getFeatureDataEntries().get(file));
+        plot.setFeatureDataEntry(dashboardModel.getFeatureDataEntries().get(file));
       });
 
       plot.addIntegrationListener(newIntegrationListener(plot, filePlotCache, file));
@@ -214,16 +243,17 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
   private @NotNull FeatureIntegratedListener newIntegrationListener(
       final IntegrationPlotController plot, Map<RawDataFile, RegionController> controllerMap,
       RawDataFile file) {
+    final IntegrationDashboardModel dashboardModel = model;
     return (eventType, newFeatureTimeSeries, newIntegrationRange) -> {
-      final IntegrationTransfer syncSetting = model.getSyncReIntegration();
-      final FeatureListRow row = model.getRow();
+      final IntegrationTransfer syncSetting = dashboardModel.getSyncReIntegration();
+      final FeatureListRow row = dashboardModel.getRow();
       if (row == null) {
         return;
       }
 
       // pass integration to other plots if applicable
       if (eventType == EventType.INTERNAL_CHANGE && syncSetting != IntegrationTransfer.NONE) {
-        for (RawDataFile otherFile : model.getSortedFiles()) {
+        for (RawDataFile otherFile : dashboardModel.getSortedFiles()) {
           final RegionController rc = controllerMap.get(otherFile);
           if (rc != null && rc.controller() != null && plot != rc.controller()
               && syncSetting.appliesTo(row, otherFile, rc.controller())) {
@@ -240,7 +270,7 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         final ModularFeature currentFeature = (ModularFeature) row.getFeature(file);
         if (currentFeature == null) {
           row.addFeature(file,
-              new ModularFeature(model.getFeatureList(), file, its, FeatureStatus.MANUAL));
+              new ModularFeature(dashboardModel.getFeatureList(), file, its, FeatureStatus.MANUAL));
         } else {
           currentFeature.set(FeatureDataType.class, its);
           currentFeature.set(DetectionType.class, FeatureStatus.MANUAL);
@@ -250,9 +280,9 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         row.removeFeature(file);
       }
       // reflect change in gui
-      final FeatureIntegrationData oldEntry = model.featureDataEntriesProperty().get(file);
+      final FeatureIntegrationData oldEntry = dashboardModel.featureDataEntriesProperty().get(file);
       if (oldEntry != null) { // should always be the case
-        model.featureDataEntriesProperty().put(file,
+        dashboardModel.featureDataEntriesProperty().put(file,
             new FeatureIntegrationData(file, newFeatureTimeSeries, oldEntry.chromatogram(),
                 oldEntry.additionalData()));
       }
@@ -263,8 +293,10 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final Label lblCols = FxLabels.newLabel("Columns");
     final Label lblRows = FxLabels.newLabel("Rows");
 
-    final Spinner<Integer> spCols = FxSpinners.newSpinner(1, 10, model.gridNumColumnsProperty());
-    final Spinner<Integer> spRows = FxSpinners.newSpinner(1, 10, model.gridNumRowsProperty());
+    final Spinner<Integer> spCols = FxSpinners.newSpinner(1, 30, model.gridNumColumnsProperty());
+    spCols.setPrefWidth(80);
+    final Spinner<Integer> spRows = FxSpinners.newSpinner(1, 30, model.gridNumRowsProperty());
+    spRows.setPrefWidth(80);
 
     final Button previousPage = FxButtons.createButton(null, FxIcons.ARROW_LEFT, "Previous page",
         () -> model.setGridPaneFileOffset(
@@ -293,20 +325,37 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
         }, model.sortedFilesProperty(), model.gridNumRowsProperty(), model.gridNumColumnsProperty(),
         model.gridPaneFileOffsetProperty());
 
-    return FxLayout.newHBox(Pos.CENTER, lblCols, spCols, lblRows, spRows,
-        new Separator(Orientation.VERTICAL), previousPage, lblEntries, lblPage, nextPage);
+    FlowPane flowPane = FxLayout.newFlowPane(lblCols, spCols, lblRows, spRows,
+        new Separator(Orientation.VERTICAL), previousPage, lblEntries, lblPage, nextPage,
+        new Separator(Orientation.VERTICAL),
+        FxCheckBox.newCheckBox("Show file name", model.showFileNameProperty(),
+            "Show the file name as title on top of the plot."),
+        FxCheckBox.newCheckBox("Show controls", model.showControlsProperty(),
+            "Show control buttons underneath for each plot."),
+        FxCheckBox.newCheckBox("Show axis titles", model.showAxisTitlesProperty(),
+            "Show titles for the X and Y axes in each plot."),
+        FxCheckBox.newCheckBox("Use sample color", model.useSampleColorProperty(),
+            "Use sample-specific colors for the plots. The colors are defined in the sample metadata.\nIf not activated, all plots will use the same default colors."));
+    flowPane.setAlignment(Pos.CENTER);
+    flowPane.setPrefWrapLength(1200);
+    return flowPane;
   }
 
   private Region buildMetadataColSelectionForSorting() {
     final List<MetadataColumn<?>> columns = ProjectService.getMetadata().getColumns().stream()
         .sorted(Comparator.comparing(MetadataColumn::getTitle)).toList();
 
-    final Label lblSortBy = FxLabels.newLabel("Sort files by:");
-    ComboBox<MetadataColumn<?>> cmbMetadataCol = new ComboBox<>(
-        FXCollections.observableArrayList(columns));
-    cmbMetadataCol.valueProperty().bindBidirectional(model.rawFileSortingColumnProperty());
+    final List<IntegrationDashboardSortOption> options = new ArrayList<>();
+    columns.forEach(col -> options.add(IntegrationDashboardSortOption.of(col)));
+    options.add(IntegrationDashboardSortOption.of(IntegrationDashboardAreaSortDirection.ASCENDING));
+    options.add(IntegrationDashboardSortOption.of(IntegrationDashboardAreaSortDirection.DESCENDING));
 
-    return FxLayout.newHBox(lblSortBy, cmbMetadataCol);
+    final Label lblSortBy = FxLabels.newLabel("Sort files by:");
+    ComboBox<IntegrationDashboardSortOption> cmbSort = new ComboBox<>(
+        FXCollections.observableArrayList(options));
+    cmbSort.valueProperty().bindBidirectional(model.sortOptionProperty());
+
+    return FxLayout.newFlowPane(lblSortBy, cmbSort);
   }
 
   private Region buildIntegrationTransfer() {

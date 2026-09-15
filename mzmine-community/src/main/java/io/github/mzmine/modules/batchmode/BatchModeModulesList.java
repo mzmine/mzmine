@@ -73,6 +73,7 @@ import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule;
 import io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule;
@@ -349,6 +350,7 @@ public class BatchModeModulesList {
           PCALoadingsExtractionModule.class, //
           SplitAlignedFeatureListModule.class, //
           PreferredAnnotationRankingModule.class, //
+          FeatureListPreferencesModule.class, //
 
           /*
            * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}

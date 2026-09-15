@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,14 +31,16 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundList;
 import io.github.mzmine.datamodel.features.compoundlist.ModularCompoundRow;
 import io.github.mzmine.gui.DesktopService;
-import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FxFeatureTableController;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -51,6 +53,21 @@ import org.jetbrains.annotations.Nullable;
 public class FeatureTableFXUtil {
 
   private static final Logger logger = Logger.getLogger(FeatureTableFX.class.getName());
+
+  /**
+   * All tables that currently exist, so that derived values like the RSD columns can be refreshed
+   * in every table that shows a feature list - not only in those that live in their own
+   * {@link FeatureTableTab} but also in the tables embedded in the statistics or compound
+   * dashboard. Tables are weakly referenced so a closed table does not keep its feature list
+   * alive.
+   * <p>
+   * Tables are created on the JavaFX thread but {@link #getTablesFor(FeatureList)} may be called
+   * from any thread, therefore every access must hold the monitor of this set. A read write lock
+   * would not help: {@link WeakHashMap} expunges garbage collected entries during reads, so even
+   * concurrent reads mutate the backing map and would all need the write lock.
+   */
+  private static final Set<FeatureTableFX> instances = Collections.newSetFromMap(
+      new WeakHashMap<>());
 
   /**
    * Creates and shows a new FeatureTable. Should be called via
@@ -326,16 +343,39 @@ public class FeatureTableFXUtil {
       return;
     }
 
-    final MZmineGUI desktop = (MZmineGUI) DesktopService.getDesktop();
-    final List<FeatureTableFX> featureTables = desktop.getAllTabs().stream()
-        .filter(FeatureTableTab.class::isInstance).map(FeatureTableTab.class::cast)
-        .map(FeatureTableTab::getController).map(FxFeatureTableController::getFeatureTable)
-        .filter(t -> t.getFeatureList() == flist).toList();
-
     FxThread.runLater(() -> {
-      for (FeatureTableFX featureTable : featureTables) {
+      // all tables, also those embedded in a dashboard - their cells show the same derived values
+      final List<FeatureTableFX> tables = getTablesFor(flist);
+      for (FeatureTableFX featureTable : tables) {
         featureTable.refresh();
       }
     });
+  }
+
+  /**
+   * @param flist the feature list to look for
+   * @return all existing tables that show this feature list, including tables that are embedded in
+   * dashboards. Safe to call from any thread.
+   */
+  public static @NotNull List<FeatureTableFX> getTablesFor(@Nullable final FeatureList flist) {
+    if (flist == null) {
+      return List.of();
+    }
+    // copy under the monitor so that a table created on the JavaFX thread cannot cause a
+    // ConcurrentModificationException here. Filtering then happens outside the lock because
+    // getFeatureList may touch JavaFX properties.
+    final FeatureTableFX[] snapshot;
+    synchronized (instances) {
+      snapshot = instances.toArray(FeatureTableFX[]::new);
+    }
+
+    return Arrays.stream(snapshot).filter(table -> table != null && table.getFeatureList() == flist)
+        .toList();
+  }
+
+  public static void addInstance(FeatureTableFX table) {
+    synchronized (instances) {
+      instances.add(table);
+    }
   }
 }

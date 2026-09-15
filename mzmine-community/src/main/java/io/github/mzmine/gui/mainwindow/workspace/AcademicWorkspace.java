@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -53,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModul
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule;
 import io.github.mzmine.modules.dataprocessing.filter_ims_msms_refinement.ImsMs2RefinementModule;
@@ -203,6 +205,7 @@ public final class AcademicWorkspace extends AbstractWorkspace {
 
     menu.getItems().add(buildDefaultAnnotationSubMenu());
 
+    addModuleMenuItems(menu, "Preferences", FeatureListPreferencesModule.class);
     addModuleMenuItems(menu, "Statistics", StatsDasboardModule.class, VolcanoPlotModule.class,
         PCAModule.class, AnovaModule.class);
     return menu;

@@ -167,10 +167,10 @@ public class MZmineProjectImpl implements MZmineProject {
       rawDataFiles.removeAll(file);
       fireDataFilesChangeEvent(List.of(file), Type.REMOVED);
 
-      for (RawDataFile f : file) {
-        // Remove the file from the metadata table
-        projectMetadata.removeFile(f);
+      // Remove the files from the metadata table in one update
+      projectMetadata.removeFiles(List.of(file));
 
+      for (RawDataFile f : file) {
         // Close the data file, which also removed the temporary data
         f.close();
       }
