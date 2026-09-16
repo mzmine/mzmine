@@ -328,7 +328,7 @@ application {
     ]
 }
 
-// batchSpeedTest / batchSpeedReport benchmark tasks
+// benchmark tasks: batch speed test, isotope finder accuracy benchmarks
 apply from: "$projectDir/gradle/speed-test.gradle"
 
 // Bundle external tools directly through jpackage on all operating systems.

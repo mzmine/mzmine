@@ -302,6 +302,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public Map<String, Parameter<?>> getNameParameterMap() {
     var map = super.getNameParameterMap();
     map.put(commentFields.getName(), commentFields);
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(ionLibrary));
     return map;
   }
 

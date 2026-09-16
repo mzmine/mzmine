@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 public class IonNetRelationsParameters extends SimpleParameterSet {
@@ -60,6 +61,14 @@ public class IonNetRelationsParameters extends SimpleParameterSet {
     super(
         new Parameter[]{featureLists, mzTol, searchCondensedMultimer, searchCondensedHeteroMultimer,
             ionLibrary});
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    final Map<String, Parameter<?>> map = super.getNameParameterMap();
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(ionLibrary));
+    return map;
   }
 
   @Override

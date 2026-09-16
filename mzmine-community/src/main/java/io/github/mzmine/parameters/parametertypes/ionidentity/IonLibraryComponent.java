@@ -32,6 +32,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.util.FxIconUtil.newIconButton;
 import static io.github.mzmine.javafx.util.FxIconUtil.newIconButtonOpenUrl;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesController;
 import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
@@ -118,8 +119,7 @@ public class IonLibraryComponent extends BorderPane implements ParameterComponen
         addToGlobalLibrary, //
         newIconButton(FxIcons.GEAR_PREFERENCES, tooltip, this::showGlobalTab), //
         newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE,
-            tooltip + "\nClick to open the documentation.",
-            "https://mzmine.github.io/mzmine_documentation/ions/ions.html"));
+            tooltip + "\nClick to open the documentation.", IonsDocumentation.LIBRARY_PARAMETER));
 
     setTop(topBox);
     setCenter(infoBox);

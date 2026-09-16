@@ -28,6 +28,10 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.cosine_no_precursor.NoPrecursorCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.dreams.DreaMSNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.modified_cosine.ModifiedCosineSpectralNetworkingTask;
@@ -82,8 +86,8 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
       case COSINE_NO_PRECURSOR -> Arrays.stream(featureLists).map(
           flist -> new NoPrecursorCosineSpectralNetworkingTask(parameters, flist, moduleCallDate,
               this.getClass())).toList();
-      case STRUCTURE_TANIMOTO -> Arrays.stream(featureLists)
-          .map(flist -> new StructureTanimotoNetworkingTask(parameters, flist, moduleCallDate,
+      case STRUCTURE_TANIMOTO -> Arrays.stream(featureLists).map(
+          flist -> new StructureTanimotoNetworkingTask(parameters, flist, moduleCallDate,
               this.getClass())).toList();
       // one task for all
       case MS2_DEEPSCORE -> List.of(
@@ -93,5 +97,15 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
           new DreaMSNetworkingTask(project, featureLists, parameters, null, moduleCallDate,
               this.getClass()));
     };
+  }
+
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation(
+            "Spectral networking requires that MS2 spectra are assigned to features.",
+            ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
+        new ModuleOrderRecommendation("Spectral networks are not preserved during alignment",
+            ModuleOrderRule.ifPresentMustRunAfter(
+                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }

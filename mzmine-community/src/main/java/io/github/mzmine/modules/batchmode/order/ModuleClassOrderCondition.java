@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,20 +22,35 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.modules.dataprocessing.id_nist;
 
-public enum ImportOption {
+package io.github.mzmine.modules.batchmode.order;
 
-  APPEND("Append"),
-  OVERWRITE("Overwrite");
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import java.lang.reflect.Modifier;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
-  private final String type;
+record ModuleClassOrderCondition(
+    @NotNull Class<? extends MZmineProcessingModule> anchorModule) implements ModuleOrderCondition {
 
-  ImportOption(String type) {
-    this.type = type;
+  ModuleClassOrderCondition {
+    Objects.requireNonNull(anchorModule);
   }
 
-  public String toString() {
-    return type;
+  @Override
+  public @NotNull String description() {
+    if (Modifier.isAbstract(anchorModule.getModifiers()) || anchorModule.isInterface()) {
+      return anchorModule.getSimpleName();
+    }
+    final MZmineProcessingModule module = MZmineCore.getModuleInstance(anchorModule);
+    return module == null ? anchorModule.getSimpleName() : module.getName();
+  }
+
+  @Override
+  public boolean matches(
+      @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
+    return anchorModule.isInstance(step.getModule());
   }
 }

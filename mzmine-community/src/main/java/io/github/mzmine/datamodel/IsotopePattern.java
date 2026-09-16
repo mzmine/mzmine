@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import java.util.Comparator;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +36,25 @@ import org.jetbrains.annotations.NotNull;
  * This interface defines an isotope pattern which can be attached to a peak
  */
 public interface IsotopePattern extends MassSpectrum {
+
+  /**
+   * Comparator for sorting isotope patterns by their size in descending order, and then by charge
+   * state in ascending order. Charge state -1 (not detected) is considered as the highest charge
+   * state.
+   */
+  Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
+          IsotopePattern::getNumberOfDataPoints).reversed()
+      .thenComparingInt(ip -> ip.getCharge() == -1 ? Integer.MAX_VALUE : ip.getCharge());
+  /**
+   * Sorts by {@link IsotopePattern#getScore() score}, best first. Unscored patterns
+   * ({@link Double#NaN}, e.g. predicted ones) sort last and then fall back to
+   * {@link #patternSizeComparator}, which preserves the legacy ordering when nothing is scored.
+   */
+  Comparator<IsotopePattern> patternScoreComparator = Comparator.comparingDouble(
+          // NaN ranks as the worst score, so a scored pattern always outranks an unscored one
+          (IsotopePattern ip) -> Double.isNaN(ip.getScore()) ? Double.NEGATIVE_INFINITY : ip.getScore())
+      .reversed() // higher score first
+      .thenComparing(patternSizeComparator);
 
   /**
    * The charge state for the detected pattern
@@ -51,6 +72,16 @@ public interface IsotopePattern extends MassSpectrum {
    * Returns a description of this isotope pattern (formula, etc.)
    */
   @NotNull String getDescription();
+
+  /**
+   * Quality score, higher is better, used to rank the charge-state hypotheses of a
+   * {@link MultiChargeStateIsotopePattern}.
+   *
+   * @return the score, or {@link Double#NaN} for an unscored pattern such as a predicted one.
+   */
+  default double getScore() {
+    return Double.NaN;
+  }
 
   /**
    * Appends a new isotope pattern xml element to the current element.
@@ -78,7 +109,8 @@ public interface IsotopePattern extends MassSpectrum {
       mzs[i] = getMzValue(i);
     }
 
-    return new SimpleIsotopePattern(mzs, intensities, getCharge(), getStatus(), getDescription());
+    return new SimpleIsotopePattern(mzs, intensities, getCharge(), getScore(), getStatus(),
+        getDescription());
   }
 
   public enum IsotopePatternStatus {

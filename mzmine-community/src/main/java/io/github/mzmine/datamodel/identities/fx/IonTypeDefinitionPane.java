@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.gridRow;
 import static io.github.mzmine.javafx.components.util.FxLayout.newGrid2Col;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
@@ -48,6 +49,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -57,6 +59,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.StringUtils;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
@@ -141,7 +144,9 @@ class IonTypeDefinitionPane extends BorderPane {
     final Region infoPane = FxTextFlows.newTextFlowInAccordion("Info",
         FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true, text("""
             Ion types are defined by a molecule multiplier (2M) and multiple building blocks which define additions or neutral losses with their charge and mass differences.
-            Simply write an ion type notation, the parsed result will be shown below, and finally click add. Unknown names of building blocks need to be defined but formulas will be parsed directly."""));
+            Simply write an ion type notation, the parsed result will be shown below, and finally click add. Unknown names of building blocks need to be defined but formulas will be parsed directly.
+            """), FxTexts.hyperlinkText("Open the documentation on the ion type notation.",
+            IonsDocumentation.NOTATION));
 
     var lbParsingResult = newBoldLabel(
         parsedIonType.map(ion -> ion.toString(IonTypeStringFlavor.FULL_WITH_MASS))
@@ -174,7 +179,13 @@ class IonTypeDefinitionPane extends BorderPane {
         text("  Check "), colored(boldText("neutral"), highlightColor),
         text(" definition: May be expected"));
 
-    unchargedFlow.visibleProperty().bind(btnAdd.disabledProperty().not());
+    // only hint at a missing charge if the parsed ion type is actually neutral
+    final BooleanBinding neutralDefinition = Bindings.createBooleanBinding(() -> {
+      final IonType parsed = parsedIonType.get();
+      return !btnAdd.isDisabled() && parsed != null && parsed.isNeutral();
+    }, btnAdd.disabledProperty(), parsedIonType);
+    unchargedFlow.visibleProperty().bind(neutralDefinition);
+    FxLayout.bindManagedToVisible(unchargedFlow);
     Tooltip.install(unchargedFlow, new Tooltip("""
         A neutral definition may be added to libraries. Some modules may decide to use neutrals while \
         Ion identity networking and others will filter them out by default.

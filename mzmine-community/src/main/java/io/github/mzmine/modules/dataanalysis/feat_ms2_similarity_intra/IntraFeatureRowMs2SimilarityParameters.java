@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,7 +71,10 @@ public class IntraFeatureRowMs2SimilarityParameters extends SimpleParameterSet {
       true);
 
   public IntraFeatureRowMs2SimilarityParameters() {
-    super(featureLists, filename, mzTol, minMatchedSignals, signalFilters, splitByFragmentationEnergy);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/feat_ms2_similarity_intra/intra_row_ms2_similarity.html",
+        featureLists, filename, mzTol, minMatchedSignals, signalFilters,
+        splitByFragmentationEnergy);
   }
 
   @Override

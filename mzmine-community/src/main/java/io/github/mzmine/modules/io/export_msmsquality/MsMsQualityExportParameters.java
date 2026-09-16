@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.io.export_msmsquality;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -57,8 +56,9 @@ public class MsMsQualityExportParameters extends SimpleParameterSet {
       "Only MS2 spectra whose compound name is contained in the feature lsit name are exported.");
 
   public MsMsQualityExportParameters() {
-    super(new Parameter[]{flists, file, onlyCompoundAnnotated, formulaTolerance,
-        matchCompoundNameToFlist});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io_export_msmsquality/msms_quality_export.html",
+        flists, file, onlyCompoundAnnotated, formulaTolerance, matchCompoundNameToFlist);
   }
 
   @Override

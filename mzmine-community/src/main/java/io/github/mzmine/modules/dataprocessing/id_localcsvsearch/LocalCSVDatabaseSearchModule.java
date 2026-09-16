@@ -29,18 +29,21 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
 
   public static final String MODULE_NAME = "Local compound database search";
-  private static final String MODULE_DESCRIPTION =
-      "This method searches a custom database (CSV file) using m/z and retention time values.";
+  private static final String MODULE_DESCRIPTION = "This method searches a custom database (CSV file) using m/z and retention time values.";
 
   @Override
   public @NotNull String getName() {
@@ -79,4 +82,10 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
     return LocalCSVDatabaseSearchParameters.class;
   }
 
+  @Override
+  public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
+    return List.of(new ModuleOrderRecommendation("Annotations are not preserved during alignment",
+        ModuleOrderRule.ifPresentMustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+  }
 }
