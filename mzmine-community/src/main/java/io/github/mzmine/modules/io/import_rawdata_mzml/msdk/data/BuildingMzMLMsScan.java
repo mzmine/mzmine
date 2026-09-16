@@ -81,7 +81,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private Float retentionTime;
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
-  private Double tic;
 
   // temporary - set to null after load
   private MzMLBinaryDataInfo mzBinaryDataInfo;
@@ -220,7 +219,8 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
     }
-    return tic;
+    // usually not called on an mzml scan, dont cache and dont precompute
+    return Arrays.stream(getIntensityValues(new double[getNumberOfDataPoints()])).sum();
   }
 
   @Override
@@ -643,7 +643,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
         this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
             specData.intensities());
-        this.tic = Arrays.stream(specData.intensities()).sum();
       }
 
     } catch (MSDKException | IOException e) {
@@ -795,8 +794,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       this.wavelengthValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
       this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
           specData.intensities());
-      this.tic = Arrays.stream(specData.intensities()).sum();
-
     } catch (MSDKException | IOException e) {
       logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
       return false;
