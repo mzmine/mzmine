@@ -59,14 +59,15 @@ public class SynonymsType extends ListDataType<String> {
   /**
    * Accepts JSON arrays and semicolon-separated names with CSV quoting. Commas belong to names.
    */
-  public static @Nullable List<String> parse(@Nullable final String text) {
+  public static @Nullable List<String> parse(@Nullable String text) {
     if (text == null) {
       return null;
     }
     if (text.isBlank()) {
       return List.of();
     }
-    if (text.stripLeading().startsWith("[")) {
+    text = text.strip();
+    if (text.startsWith("[")) {
       final Object json = JsonUtils.readValueOrNull(text);
       if (json instanceof List<?> list && list.stream().allMatch(String.class::isInstance)) {
         return list.stream().map(String.class::cast).toList();

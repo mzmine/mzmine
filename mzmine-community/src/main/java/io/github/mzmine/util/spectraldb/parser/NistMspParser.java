@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -229,9 +230,7 @@ public class NistMspParser extends SpectralDBTextParser {
             if (field == DBEntryField.SYNONYMS && fields.get(field) instanceof List<?> previous
                 && value instanceof List<?> synonyms) {
               // MSP stores additional synonyms on repeated Synon lines.
-              final List<Object> combined = new ArrayList<>(previous);
-              combined.addAll(synonyms);
-              fields.put(field, combined);
+              fields.put(field, CollectionUtils.combineUniqueStrings(previous, synonyms));
             } else {
               fields.put(field, value);
             }
