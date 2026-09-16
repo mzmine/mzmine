@@ -123,9 +123,8 @@ public class IntegrationTests {
     final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
         "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
 
-    // there should be the warning that the number of row types is not equal and 9 columns are missing
-    // database name of spectral library matches is not loaded because
-    Assertions.assertEquals(2,
+    // database name of spectral library matches is not loaded because it is from the library
+    Assertions.assertEquals(7,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
             "project_load_lcms").size());
     // saving and loading the project should be identical
