@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
@@ -354,14 +356,35 @@ public class ScanUtils {
    */
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+    return findBasePeak(scan, SimpleRange.ofDouble(mzRange));
+  }
+
+  /**
+   * Find a base peak of a given scan in a given m/z range
+   *
+   * @param scan    Scan to search
+   * @param mzRange mz range to search in
+   * @return data point containing base peak m/z and intensity
+   */
+  @Nullable
+  public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull SimpleDoubleRange mzRange) {
+    return findBasePeak(scan, mzRange.lower(), mzRange.upper());
+  }
+
+  /**
+   * Find a base peak of a given scan in a given m/z range
+   *
+   * @param scan  Scan to search
+   * @param lower lower mz range
+   * @param upper upper mz range
+   * @return data point containing base peak m/z and intensity
+   */
+  public static DataPoint findBasePeak(@NotNull Scan scan, double lower, double upper) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
-    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+    if (scanBasePeakMz != null && lower <= scanBasePeakMz && scanBasePeakMz <= upper) {
       return new SimpleDataPoint(scanBasePeakMz,
           requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
-
-    final double lower = mzRange.lowerEndpoint();
-    final double upper = mzRange.upperEndpoint();
 
     boolean found = false;
     double baseMz = 0d;

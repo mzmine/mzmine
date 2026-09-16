@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.Collection;
 import java.util.Objects;
@@ -101,6 +103,17 @@ public class MZTolerance {
 
   public double getPpmToleranceForMass(final double mzValue) {
     return Math.max(ppmTolerance, mzTolerance / (mzValue / MILLION));
+  }
+
+  public SimpleDoubleRange getSimpleToleranceRange(final double mzValue) {
+    final double absoluteTolerance = getMzToleranceForMass(mzValue);
+    return SimpleRange.ofDouble(mzValue - absoluteTolerance, mzValue + absoluteTolerance);
+  }
+
+  public SimpleDoubleRange getSimpleToleranceRange(final Range<Double> mzRange) {
+    return SimpleRange.ofDouble(
+        mzRange.lowerEndpoint() - getMzToleranceForMass(mzRange.lowerEndpoint()),
+        mzRange.upperEndpoint() + getMzToleranceForMass(mzRange.upperEndpoint()));
   }
 
   public Range<Double> getToleranceRange(final double mzValue) {
