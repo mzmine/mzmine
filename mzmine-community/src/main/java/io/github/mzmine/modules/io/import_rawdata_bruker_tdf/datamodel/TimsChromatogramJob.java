@@ -39,7 +39,7 @@ public class TimsChromatogramJob {
         TDFLib.C_DOUBLE.withName("mz_max"),
         TDFLib.C_DOUBLE.withName("ook0_min"),
         TDFLib.C_DOUBLE.withName("ook0_max")
-    ).withName("$anon$402:9");
+    ).withName("$anon$417:9");
 
     /**
      * The layout of this struct
