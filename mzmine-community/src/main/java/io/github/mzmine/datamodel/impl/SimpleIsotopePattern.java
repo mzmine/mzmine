@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,11 +53,14 @@ public class SimpleIsotopePattern implements IsotopePattern {
   private static final String XML_COMPOSITION_ELEMENT = "composition";
   private static final String XML_STATUS_ELEMENT = "status";
   private static final String XML_CHARGE_ELEMENT = "charge";
+  private static final String XML_SCORE_ELEMENT = "score";
 
   private final double[] mzValues;
   private final double[] intensityValues;
   private final double tic;
   private final int charge;
+  // quality score, higher is better; Double.NaN if this pattern was not scored
+  private final double score;
   private final int highestIsotope;
   private final IsotopePatternStatus status;
   private final String description;
@@ -67,17 +70,32 @@ public class SimpleIsotopePattern implements IsotopePattern {
 
   public SimpleIsotopePattern(double[] mzValues, double[] intensityValues, int charge,
       IsotopePatternStatus status, String description) {
-    this(mzValues, intensityValues, charge, status, description, null);
+    this(mzValues, intensityValues, charge, Double.NaN, status, description, null);
+  }
+
+  public SimpleIsotopePattern(double[] mzValues, double[] intensityValues, int charge, double score,
+      IsotopePatternStatus status, String description) {
+    this(mzValues, intensityValues, charge, score, status, description, null);
   }
 
 
   public SimpleIsotopePattern(DataPoint[] dataPoints, int charge, IsotopePatternStatus status,
       String description) {
-    this(dataPoints, charge, status, description, null);
+    this(dataPoints, charge, Double.NaN, status, description, null);
   }
 
   public SimpleIsotopePattern(DataPoint[] dataPoints, int charge, IsotopePatternStatus status,
       String description, String[] isotopeCompostion) {
+    this(dataPoints, charge, Double.NaN, status, description, isotopeCompostion);
+  }
+
+  public SimpleIsotopePattern(DataPoint[] dataPoints, int charge, double score,
+      IsotopePatternStatus status, String description) {
+    this(dataPoints, charge, score, status, description, null);
+  }
+
+  public SimpleIsotopePattern(DataPoint[] dataPoints, int charge, double score,
+      IsotopePatternStatus status, String description, String[] isotopeCompostion) {
 
     mzValues = new double[dataPoints.length];
     intensityValues = new double[dataPoints.length];
@@ -89,6 +107,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
     this.tic = tic;
     this.charge = charge;
+    this.score = score;
     this.status = status;
     this.description = description;
     this.isotopeCompostion = isotopeCompostion;
@@ -98,11 +117,17 @@ public class SimpleIsotopePattern implements IsotopePattern {
 
   public SimpleIsotopePattern(double[] mzValues, double[] intensityValues, int charge,
       IsotopePatternStatus status, String description, String[] isotopeCompostion) {
+    this(mzValues, intensityValues, charge, Double.NaN, status, description, isotopeCompostion);
+  }
+
+  public SimpleIsotopePattern(double[] mzValues, double[] intensityValues, int charge, double score,
+      IsotopePatternStatus status, String description, String[] isotopeCompostion) {
 
     assert mzValues.length > 0;
     assert mzValues.length == intensityValues.length;
 
     this.charge = charge;
+    this.score = score;
     this.mzValues = mzValues;
     this.intensityValues = intensityValues;
     this.status = status;
@@ -124,6 +149,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     String[] comp = null;
     IsotopePatternStatus status = null;
     int charge = 1;
+    double score = Double.NaN;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(XML_ELEMENT))) {
@@ -145,14 +171,20 @@ public class SimpleIsotopePattern implements IsotopePattern {
         }
         case XML_STATUS_ELEMENT -> status = IsotopePatternStatus.valueOf(reader.getElementText());
         case XML_CHARGE_ELEMENT -> charge = Integer.parseInt(reader.getElementText());
+        case XML_SCORE_ELEMENT -> score = Double.parseDouble(reader.getElementText());
       }
     }
-    return new SimpleIsotopePattern(mzs, intensities, charge, status, desc, comp);
+    return new SimpleIsotopePattern(mzs, intensities, charge, score, status, desc, comp);
   }
 
   @Override
   public int getCharge() {
     return charge;
+  }
+
+  @Override
+  public double getScore() {
+    return score;
   }
 
   @Override
@@ -318,6 +350,13 @@ public class SimpleIsotopePattern implements IsotopePattern {
     writer.writeStartElement(XML_CHARGE_ELEMENT);
     writer.writeCharacters(String.valueOf(charge));
     writer.writeEndElement();
+
+    // only persist a real score; predicted/unscored patterns keep NaN and omit the element
+    if (!Double.isNaN(score)) {
+      writer.writeStartElement(XML_SCORE_ELEMENT);
+      writer.writeCharacters(String.valueOf(score));
+      writer.writeEndElement();
+    }
 
     if (isotopeCompostion != null) {
       writer.writeStartElement(XML_COMPOSITION_ELEMENT);
