@@ -33,6 +33,9 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -44,7 +47,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
-import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -64,7 +66,7 @@ public class ImsGap extends Gap {
 
   private static final Logger logger = Logger.getLogger(ImsGap.class.getName());
 
-  private final Range<Float> mobilityRange;
+  private final SimpleFloatRange mobilityRange;
   private final BinningMobilogramDataAccess mobilogramBinning;
 
   /**
@@ -78,7 +80,7 @@ public class ImsGap extends Gap {
    * @param mobilogramBinning
    */
   public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull SimpleDoubleRange mzRange, @NotNull SimpleFloatRange rtRange,
       @NotNull Range<Float> mobilityRange, double intTolerance,
       @NotNull BinningMobilogramDataAccess mobilogramBinning) {
     this(peakListRow, rawDataFile, mzRange, rtRange, mobilityRange, intTolerance, mobilogramBinning,
@@ -86,11 +88,11 @@ public class ImsGap extends Gap {
   }
 
   public ImsGap(@NotNull FeatureListRow peakListRow, @NotNull RawDataFile rawDataFile,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> rtRange,
+      @NotNull SimpleDoubleRange mzRange, @NotNull SimpleFloatRange rtRange,
       @NotNull Range<Float> mobilityRange, double intTolerance,
       @NotNull BinningMobilogramDataAccess mobilogramBinning, boolean validateRtShape) {
     super(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, validateRtShape);
-    this.mobilityRange = mobilityRange;
+    this.mobilityRange = SimpleRange.ofFloat(mobilityRange);
     this.mobilogramBinning = mobilogramBinning;
   }
 
@@ -134,7 +136,7 @@ public class ImsGap extends Gap {
     final Frame frame = access.getFrame();
     final MobilityType mobilityType = frame.getMobilityType();
 //    final double featureMz = peakListRow.getAverageMZ();
-    final double featureMz = RangeUtils.rangeCenter(mzRange);
+    final double featureMz = mzCenter;
 
     /*if (frame.getRetentionTime() < rtRange.lowerEndpoint()) {
       return null;
@@ -155,27 +157,25 @@ public class ImsGap extends Gap {
         return null;
       }
 
-      if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lowerEndpoint())
-          || (mobilityType == MobilityType.TIMS
-          && scan.getMobility() > mobilityRange.upperEndpoint())) {
+      if ((mobilityType != MobilityType.TIMS && scan.getMobility() < mobilityRange.lower())
+          || (mobilityType == MobilityType.TIMS && scan.getMobility() > mobilityRange.upper())) {
         continue;
-      } else if (
-          (mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upperEndpoint())
+      } else if ((mobilityType != MobilityType.TIMS && scan.getMobility() > mobilityRange.upper())
               || (mobilityType == MobilityType.TIMS
-              && scan.getMobility() < mobilityRange.lowerEndpoint())) {
+          && scan.getMobility() < mobilityRange.lower())) {
         break;
       }
 
       int bestIndex = -1;
       double bestDelta = Double.POSITIVE_INFINITY;
 
-      final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), DefaultTo.GREATER_EQUALS);
+      final int startIndex = access.binarySearch(mzRange.lower(), DefaultTo.GREATER_EQUALS);
       if (startIndex == -1) {
         continue;
       }
       for (int i = startIndex; i < access.getNumberOfDataPoints(); i++) {
         final double mz = access.getMzValue(i);
-        if (mz > mzRange.upperEndpoint()) {
+        if (mz > mzRange.upper()) {
           break;
         }
 
