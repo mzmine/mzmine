@@ -352,4 +352,8 @@ public class Gap {
   public FeatureListRow getFeatureListRow() {
     return featureListRow;
   }
+
+  public RawDataFile getRawDataFile() {
+    return rawDataFile;
+  }
 }

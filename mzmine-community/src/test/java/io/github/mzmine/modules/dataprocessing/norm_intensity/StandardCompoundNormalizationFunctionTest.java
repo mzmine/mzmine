@@ -26,9 +26,13 @@ package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 class StandardCompoundNormalizationFunctionTest {
 
@@ -148,5 +152,98 @@ class StandardCompoundNormalizationFunctionTest {
         List.of(new StandardCompoundReferencePoint(100d, 5f, 200d)));
 
     assertEquals(0.005d, function.getNormalizationFactor(100d, 5f), 1e-12);
+  }
+
+  @Test
+  void medianScaledNearestUsesRelativeFactorOfClosestPoint() {
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        StandardUsageType.Nearest, 1.0d, StandardCompoundFactorMode.MEDIAN_SCALED,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, 300d),
+            new StandardCompoundReferencePoint(150d, 10f, 500d, 250d)));
+
+    // closest point is at 100/5: 300 / 200
+    assertEquals(1.5d, function.getNormalizationFactor(100.1d, 5.1f), 1e-12);
+  }
+
+  @Test
+  void medianScaledReturnsOneForSampleAtTheReferenceLevel() {
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        StandardUsageType.Weighted, 1.0d, StandardCompoundFactorMode.MEDIAN_SCALED,
+        List.of(new StandardCompoundReferencePoint(100d, 4f, 200d, 200d),
+            new StandardCompoundReferencePoint(100d, 6f, 800d, 800d)));
+
+    assertEquals(1d, function.getNormalizationFactor(100d, 4.5f), 1e-12);
+  }
+
+  @Test
+  void medianScaledWeightedAveragesTheFactorsNotTheAbundances() {
+    // factors are 2.0 at RT 4 and 0.5 at RT 6, query at RT 4.5 is 3x closer to the first point
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        StandardUsageType.Weighted, 1.0d, StandardCompoundFactorMode.MEDIAN_SCALED,
+        List.of(new StandardCompoundReferencePoint(100d, 4f, 100d, 200d),
+            new StandardCompoundReferencePoint(100d, 6f, 200d, 100d)));
+
+    // (2.0 * 1/0.5 + 0.5 * 1/1.5) / (1/0.5 + 1/1.5)
+    final double expected = (2d * 2d + 0.5d * (1d / 1.5d)) / (2d + 1d / 1.5d);
+    assertEquals(expected, function.getNormalizationFactor(100d, 4.5f), 1e-12);
+  }
+
+  @Test
+  void medianScaledThrowsOnZeroAbundance() {
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        StandardUsageType.Nearest, 1.0d, StandardCompoundFactorMode.MEDIAN_SCALED,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 0d, 200d)));
+
+    final IllegalStateException exception = assertThrows(IllegalStateException.class,
+        () -> function.getNormalizationFactor(100d, 5f));
+
+    assertTrue(exception.getMessage().contains("Illegal standard normalization factor"));
+  }
+
+  @Test
+  void xmlRoundTripKeepsFactorModeAndReferenceAbundance() throws Exception {
+    final StandardCompoundNormalizationFunction function = new StandardCompoundNormalizationFunction(
+        StandardUsageType.Weighted, 2.0d, StandardCompoundFactorMode.MEDIAN_SCALED,
+        List.of(new StandardCompoundReferencePoint(100d, 5f, 200d, 300d)));
+
+    final Element element = createElement();
+    function.saveToXML(element);
+
+    assertEquals(function, StandardCompoundNormalizationFunction.loadFromXML(element));
+  }
+
+  @Test
+  void loadFromXmlWithoutFactorModeKeepsTheLegacyAbsoluteBehavior() throws Exception {
+    // a function saved before the median scaling was introduced: no factorMode, no refAbundance
+    final Element element = createElement();
+    element.setAttribute("type", StandardCompoundNormalizationFunction.XML_TYPE);
+    element.setAttribute("standardUsageType", StandardUsageType.Weighted.name());
+    element.setAttribute("mzVsRtBalance", "1.0");
+    appendLegacyPoint(element, 100d, 4f, 100d);
+    appendLegacyPoint(element, 100d, 6f, 300d);
+
+    final StandardCompoundNormalizationFunction loaded = StandardCompoundNormalizationFunction.loadFromXML(
+        element);
+
+    assertEquals(StandardCompoundFactorMode.ABSOLUTE_LEGACY, loaded.factorMode());
+    // same value as weightedUsesInverseDistanceAveraging, so gap filled features keep matching
+    assertEquals(2d / 3d * 0.01d, loaded.getNormalizationFactor(100d, 4.5f), 1e-12);
+  }
+
+  private static void appendLegacyPoint(final Element functionElement, final double mz,
+      final float rt, final double abundance) {
+    final Element point = functionElement.getOwnerDocument().createElement("standardPoint");
+    point.setAttribute("mz", Double.toString(mz));
+    point.setAttribute("rt", Float.toString(rt));
+    point.setAttribute("abundance", Double.toString(abundance));
+    functionElement.appendChild(point);
+  }
+
+  private static Element createElement() throws Exception {
+    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        .newDocument();
+    final Element element = document.createElement("normalizationFunction");
+    document.appendChild(element);
+    return element;
   }
 }

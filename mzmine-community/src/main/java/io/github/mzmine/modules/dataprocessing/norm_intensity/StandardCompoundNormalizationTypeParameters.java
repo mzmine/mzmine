@@ -26,6 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.norm_intensity;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
+import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -40,10 +44,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirement;
-import io.github.mzmine.parameters.parametertypes.combowithinput.StandardCompoundNormalizationRequirementParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
-import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -69,10 +70,10 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
   public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
+      The standards are only searched in those samples and only they define the standard levels.
       The recalibration of all other samples will be based on the acquisition order, which is
-      determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      Any custom group name of the mzmine_sample_type column can be selected, not just the
-      predefined types.
+      determined by the acquisition type column in the metadata (CTRL/CMD + M), no matter whether
+      they contain a standard or not.
       """, SampleTypeFilter.all());
 
   public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<>(
@@ -130,10 +131,11 @@ public class StandardCompoundNormalizationTypeParameters extends SimpleParameter
 
   public static final StandardCompoundNormalizationRequirementParameter requirement = new StandardCompoundNormalizationRequirementParameter(
       "Requirement", """
-      Defines how samples without all standards are handled.
-      %s: all selected standards must be detected in each raw file, otherwise normalization fails.
-      %s: raw files need at least one detected standard, missing standards are skipped.
-      %s: raw files without any detected standard are skipped and normalized by interpolation \
+      Defines how reference samples without all standards are handled. Files that are not reference \
+      samples are never checked and are always normalized by interpolation.
+      %s: all selected standards must be detected in each reference sample, otherwise normalization fails.
+      %s: reference samples need at least the configured number of detected standards, missing standards are skipped.
+      %s: reference samples without any detected standard are skipped and normalized by interpolation \
       between the neighboring reference samples.""".formatted(
       StandardCompoundNormalizationMode.REQUIRE_ALL_IN_ALL_SAMPLES,
       StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES,

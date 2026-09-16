@@ -32,24 +32,29 @@ import org.jetbrains.annotations.NotNull;
  * Defines how strict the internal standard normalization is about standards that were not detected
  * in a reference sample.
  * <p>
+ * All modes only apply to the reference samples selected by the "Reference samples" parameter. Files
+ * that are not reference samples are never checked for standards, they are always normalized by
+ * interpolation between the neighboring reference samples.
+ * <p>
  * Replaces the legacy boolean "Require all standards" parameter: {@code true} maps to
  * {@link #REQUIRE_ALL_IN_ALL_SAMPLES} and {@code false} to {@link #REQUIRE_N_SAMPLES}.
  */
 public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
 
   /**
-   * Every matched standard must be detected with a usable abundance in every sample. Otherwise the
-   * normalization fails. This is the default and the strictest option.
+   * Every matched standard must be detected with a usable abundance in every reference sample.
+   * Otherwise the normalization fails. This is the default and the strictest option.
    */
   REQUIRE_ALL_IN_ALL_SAMPLES,
   /**
-   * Missing standards are skipped, but each sample needs at least N usable standard. A sample
-   * without any standard fails the normalization.
+   * Missing standards are skipped, but each reference sample needs at least N usable standard. A
+   * reference sample without any standard fails the normalization.
    */
   REQUIRE_N_SAMPLES,
   /**
-   * Missing standards are skipped and samples without any usable standard are skipped as well. Such
-   * samples are then normalized by interpolation between the neighboring reference samples.
+   * Missing standards are skipped and reference samples without any usable standard are skipped as
+   * well. Such samples are then normalized by interpolation between the neighboring reference
+   * samples.
    */
   SKIP_FILES_WITHOUT_STANDARD;
 
@@ -60,9 +65,9 @@ public enum StandardCompoundNormalizationMode implements UniqueIdSupplier {
   @Override
   public String toString() {
     return switch (this) {
-      case REQUIRE_ALL_IN_ALL_SAMPLES -> "Require all standards in all samples (default)";
-      case REQUIRE_N_SAMPLES -> "Require at least N standard in each sample";
-      case SKIP_FILES_WITHOUT_STANDARD -> "Skip files without standard";
+      case REQUIRE_ALL_IN_ALL_SAMPLES -> "Require all standards in all reference samples (default)";
+      case REQUIRE_N_SAMPLES -> "Require at least N standard in each reference sample";
+      case SKIP_FILES_WITHOUT_STANDARD -> "Skip reference samples without standard";
     };
   }
 

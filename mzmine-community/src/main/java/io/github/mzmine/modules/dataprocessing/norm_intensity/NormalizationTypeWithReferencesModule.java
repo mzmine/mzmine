@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Creates one normalization function per reference file. And then interpolated between them.
  */
-public abstract class NormalizationTypeWithReferencesModule implements NormalizationTypeModule {
+public abstract sealed class NormalizationTypeWithReferencesModule implements
+    NormalizationTypeModule permits AbstractFactorNormalizationTypeModule {
 
 
   /**

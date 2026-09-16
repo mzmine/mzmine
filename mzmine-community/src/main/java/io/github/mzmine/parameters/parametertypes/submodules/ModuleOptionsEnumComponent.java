@@ -146,7 +146,14 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
       onViewStateChange(newValue);
     });
 
-    topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name), combo);
+    if (parametersMap.size() == 1 && parametersMap.containsKey(startValue)
+        && startValue == selectedValue.get()) {
+      topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name + ":"),
+          FxLabels.newItalicLabel(selectedValue.get().toString()));
+    } else {
+      topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name), combo);
+    }
+
     if (!alwaysOpen) {
       topPane.getChildren().add(setButton);
     }

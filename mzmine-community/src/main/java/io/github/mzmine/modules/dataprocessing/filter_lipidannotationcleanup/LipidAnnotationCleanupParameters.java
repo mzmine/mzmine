@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -66,7 +67,9 @@ public class LipidAnnotationCleanupParameters extends SimpleParameterSet {
   public static final DuplicateAnnotationScopeParameter duplicateScope = new DuplicateAnnotationScopeParameter();
 
   public LipidAnnotationCleanupParameters() {
-    super(featureLists, ionizationPreferences, rowHandlingMode, lipidAnalysisType, duplicateScope);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html#lipid-annotation-cleanup",
+        featureLists, ionizationPreferences, rowHandlingMode, lipidAnalysisType, duplicateScope);
   }
 
   @Override
