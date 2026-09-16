@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,10 +41,12 @@ import static io.github.mzmine.util.StringUtils.isBlank;
 import static io.github.mzmine.util.StringUtils.requireValueOrElse;
 import static io.github.mzmine.util.components.FormulaTextField.newFormulaTextField;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.properties.PropertyUtils;
@@ -138,7 +140,9 @@ public class IonPartDefinitionPane extends BorderPane {
         FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE), true, text("""
             Ion building blocks define alternative names for ion additions or neutral losses, e.g., (NH4 for the formula H4N)."""),
         boldText("\nImportant: "), text(
-            "Ion building blocks without an alternative name are parsed by their formula. No need to define them."));
+            "Ion building blocks without an alternative name are parsed by their formula. No need to define them.\n"),
+        FxTexts.hyperlinkText("Open the documentation on ion building blocks.",
+            IonsDocumentation.DEFINE_PARTS));
 
     // layout in grid
     final GridPane ionCreationGrid = FxLayout.newGrid2Col(GridColumnGrow.NONE,

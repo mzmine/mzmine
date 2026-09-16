@@ -105,7 +105,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   }
 
   public IonNetworkingParameters(Setup setup) {
-    super(createParam(setup));
+    super(createParam(setup),
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ion_networking/iin/iin.html");
     this.setup = setup;
   }
 
