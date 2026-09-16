@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,8 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   @NotNull T upperBound();
 
   /**
-   * @return upper - lower
+   * @return upper - lower, saturated at the MAX_VALUE of the type instead of overflowing. This
+   * matters for the {@link Range#all()} substitute, which spans the whole domain of the type.
    */
   @NotNull T length();
 
@@ -74,23 +75,49 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
     return range != null ? range.guava() : null;
   }
 
+  /**
+   * Open bounds are substituted by the MAX_VALUE of the respective type, see
+   * {@link SimpleDoubleRange#of(Range)}.
+   */
   @Nullable
   @Contract("null -> null")
-  public static SimpleDoubleRange ofDouble(@Nullable Range<Double> range) {
-    if (range == null) {
-      return null;
-    }
-
-    if (Range.all().equals(range)) {
-      return new SimpleDoubleRange(-Double.MAX_VALUE, Double.MAX_VALUE);
-    }
-
-    return new SimpleDoubleRange(range.lowerEndpoint(), range.upperEndpoint());
+  static SimpleDoubleRange ofDouble(@Nullable Range<Double> range) {
+    return range == null ? null : SimpleDoubleRange.of(range);
   }
 
   @NotNull
-  static SimpleDoubleRange ofDouble(double upper, double lower) {
-    return of(upper, lower);
+  static SimpleDoubleRange ofDouble(double lower, double upper) {
+    return of(lower, upper);
+  }
+
+  /**
+   * Open bounds are substituted by the MAX_VALUE of the respective type, see
+   * {@link SimpleFloatRange#of(Range)}.
+   */
+  @Nullable
+  @Contract("null -> null")
+  static SimpleFloatRange ofFloat(@Nullable Range<Float> range) {
+    return range == null ? null : SimpleFloatRange.of(range);
+  }
+
+  @NotNull
+  static SimpleFloatRange ofFloat(float lower, float upper) {
+    return of(lower, upper);
+  }
+
+  /**
+   * Open bounds are substituted by {@link Integer#MIN_VALUE}/{@link Integer#MAX_VALUE}, see
+   * {@link SimpleIntegerRange#of(Range)}.
+   */
+  @Nullable
+  @Contract("null -> null")
+  static SimpleIntegerRange ofInteger(@Nullable Range<Integer> range) {
+    return range == null ? null : SimpleIntegerRange.of(range);
+  }
+
+  @NotNull
+  static SimpleIntegerRange ofInteger(int lower, int upper) {
+    return of(lower, upper);
   }
 
   @NotNull
@@ -99,32 +126,22 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
   }
 
   @NotNull
+  static SimpleFloatRange of(float lower, float upper) {
+    return new SimpleFloatRange(lower, upper);
+  }
+
+  @NotNull
   static SimpleDoubleRange of(double lower, double upper) {
     return new SimpleDoubleRange(lower, upper);
   }
 
-  @Nullable
-  @Contract("null -> null")
-  public static SimpleIntegerRange ofInteger(@Nullable Range<Integer> range) {
-    if (range == null) {
-      return null;
-    }
-
-    if (Range.all().equals(range)) {
-      return new SimpleIntegerRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-
-    return new SimpleIntegerRange(range.lowerEndpoint(), range.upperEndpoint());
-  }
-
-  @NotNull
-  static SimpleIntegerRange ofInteger(int lower, int upper) {
-    return of(lower, upper);
-  }
-
   record SimpleIntegerRange(int lower, int upper) implements SimpleRange<Integer> {
 
-    public static SimpleIntegerRange of(Range<Integer> r) {
+    /**
+     * Open bounds are substituted by {@link Integer#MIN_VALUE}/{@link Integer#MAX_VALUE}.
+     */
+    @NotNull
+    public static SimpleIntegerRange of(@NotNull Range<Integer> r) {
       return new SimpleIntegerRange(
           r.hasLowerBound() ? r.lowerEndpoint() : Integer.MIN_VALUE,
           r.hasUpperBound() ? r.upperEndpoint() : Integer.MAX_VALUE);
@@ -147,7 +164,9 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public @NotNull Integer length() {
-      return upper - lower;
+      // the substitute for Range.all() spans the whole int domain and would wrap around,
+      // saturate at MAX_VALUE instead of reporting a negative length
+      return Math.clamp((long) upper - (long) lower, 0, Integer.MAX_VALUE);
     }
 
     @Override
@@ -174,7 +193,7 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public boolean isConnected(@NotNull Range<Integer> other) {
-      return new SimpleIntegerRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
+      return SimpleIntegerRange.of(other).isConnected(this);
     }
 
     public boolean contains(int value) {
@@ -184,10 +203,14 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   record SimpleDoubleRange(double lower, double upper) implements SimpleRange<Double> {
 
-    public static SimpleDoubleRange of(Range<Double> r) {
-      return new SimpleDoubleRange(
-          r.hasLowerBound() ? r.lowerEndpoint() : Double.NEGATIVE_INFINITY,
-          r.hasUpperBound() ? r.upperEndpoint() : Double.POSITIVE_INFINITY);
+    /**
+     * Open bounds are substituted by -{@link Double#MAX_VALUE}/{@link Double#MAX_VALUE}. Note that
+     * the substitute does not contain the infinities or NaN, unlike {@link Range#all()}.
+     */
+    @NotNull
+    public static SimpleDoubleRange of(@NotNull Range<Double> r) {
+      return new SimpleDoubleRange(r.hasLowerBound() ? r.lowerEndpoint() : -Double.MAX_VALUE,
+          r.hasUpperBound() ? r.upperEndpoint() : Double.MAX_VALUE);
     }
 
     @Override
@@ -207,7 +230,13 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public @NotNull Double length() {
-      return upper - lower;
+      final double length = upper - lower;
+      // the substitute for Range.all() spans -MAX_VALUE to MAX_VALUE and overflows to infinity,
+      // saturate at MAX_VALUE instead. an actually infinite bound keeps its infinite length.
+      if (Double.isInfinite(length) && Double.isFinite(lower) && Double.isFinite(upper)) {
+        return Double.MAX_VALUE;
+      }
+      return length;
     }
 
     @Override
@@ -234,7 +263,7 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public boolean isConnected(@NotNull Range<Double> other) {
-      return new SimpleDoubleRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
+      return SimpleDoubleRange.of(other).isConnected(this);
     }
 
     public boolean contains(double value) {
@@ -244,10 +273,14 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
   record SimpleFloatRange(float lower, float upper) implements SimpleRange<Float> {
 
-    public static SimpleFloatRange of(Range<Float> r) {
-      return new SimpleFloatRange(
-          r.hasLowerBound() ? r.lowerEndpoint() : Float.NEGATIVE_INFINITY,
-          r.hasUpperBound() ? r.upperEndpoint() : Float.POSITIVE_INFINITY);
+    /**
+     * Open bounds are substituted by -{@link Float#MAX_VALUE}/{@link Float#MAX_VALUE}. Note that
+     * the substitute does not contain the infinities or NaN, unlike {@link Range#all()}.
+     */
+    @NotNull
+    public static SimpleFloatRange of(@NotNull Range<Float> r) {
+      return new SimpleFloatRange(r.hasLowerBound() ? r.lowerEndpoint() : -Float.MAX_VALUE,
+          r.hasUpperBound() ? r.upperEndpoint() : Float.MAX_VALUE);
     }
 
     @Override
@@ -267,7 +300,13 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public @NotNull Float length() {
-      return upper - lower;
+      final float length = upper - lower;
+      // the substitute for Range.all() spans -MAX_VALUE to MAX_VALUE and overflows to infinity,
+      // saturate at MAX_VALUE instead. an actually infinite bound keeps its infinite length.
+      if (Float.isInfinite(length) && Float.isFinite(lower) && Float.isFinite(upper)) {
+        return Float.MAX_VALUE;
+      }
+      return length;
     }
 
     @Override
@@ -294,7 +333,7 @@ public sealed interface SimpleRange<T extends Comparable<?>> permits SimpleInteg
 
     @Override
     public boolean isConnected(@NotNull Range<Float> other) {
-      return new SimpleFloatRange(other.lowerEndpoint(), other.upperEndpoint()).isConnected(this);
+      return SimpleFloatRange.of(other).isConnected(this);
     }
 
     public boolean contains(float value) {
