@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,18 +33,22 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.javafx.components.factories.ArticleReferences;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
@@ -86,20 +90,25 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "chromatograms");
 
-
   public static final DoubleParameter minHighestPoint = new DoubleParameter(
       "Minimum absolute height",
       "Points below this intensity will not be considered in starting a new chromatogram",
       MZmineCore.getConfiguration().getIntensityFormat());
 
+  public static final BooleanParameter clearRtCorrection = new BooleanParameter(
+      RTCorrectionParameters.clearPreviousCorrection.getName(), """
+      If a file is processed multimple times, clearing potentially applied RT corrections ensures that
+      the processing is reproducible for multiple runs. If no correction was applied previously,
+      this parameter has no effect. Default = enabled.""", true);
+
   public static final HiddenParameter<Map<String, Boolean>> allowSingleScans = new HiddenParameter<>(
       new OptOutParameter("Allow single scan chromatograms",
           "Allows selection of single scans as chromatograms. This is useful for "
-          + "feature table generation if MALDI point measurements."));
+              + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
     super(new Parameter[]{dataFiles, scanSelection, minimumConsecutiveScans, minGroupIntensity,
-            minHighestPoint, mzTolerance, suffix, allowSingleScans},
+            minHighestPoint, mzTolerance, suffix, clearRtCorrection, allowSingleScans},
         "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
 
@@ -123,9 +132,9 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   @Override
   public String getRestrictedIonMobilitySupportMessage() {
     return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
-           + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-           + "The mobility dimension can be added by the IMS expander module after feature resolving. "
-           + "Do you wish to continue?";
+        + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
+        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
+        + "Do you wish to continue?";
   }
 
   @NotNull
@@ -144,11 +153,11 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         .get("optoutsinglescancheck");
 
     if (getParameter(minimumConsecutiveScans).getValue() <= 1 && (singleScansOkOptOut == null
-                                                                  || !singleScansOkOptOut)) {
+        || !singleScansOkOptOut)) {
       ButtonType buttonType = MZmineCore.getDesktop()
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
               "The number of consecutive scans was set to <= 1.\nThis can lead to more noise"
-              + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
+                  + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
               b -> this.getParameter(allowSingleScans).getValue().put("optoutsinglescancheck", b));
       return buttonType.equals(ButtonType.YES);
     }
@@ -167,5 +176,30 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
     nameParameterMap.put("Scans", getParameter(scanSelection));
     nameParameterMap.put("Scan to scan accuracy (m/z)", getParameter(mzTolerance));
     return nameParameterMap;
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if (!loadedParams.containsKey(clearRtCorrection.getName())) {
+      setParameter(clearRtCorrection, true);
+    }
+  }
+
+  public static ADAPChromatogramBuilderParameters create(RawDataFilesSelection files,
+      ScanSelection scans, int minRtDataPoints, MZTolerance mzTolScans, String suffix,
+      double minGroupInt, double minHeight, boolean clearRtCorrection) {
+    var param = new ADAPChromatogramBuilderParameters().cloneParameterSet();
+
+    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles, files);
+    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scans);
+    param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
+    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
+    param.setParameter(ADAPChromatogramBuilderParameters.suffix, suffix);
+    param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, minGroupInt);
+    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minHeight);
+    param.setParameter(ADAPChromatogramBuilderParameters.clearRtCorrection, clearRtCorrection);
+
+    return (ADAPChromatogramBuilderParameters) param;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -72,7 +71,9 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   private static final Logger logger = Logger.getLogger(ProjectSaveAsParameters.class.getName());
 
   public ProjectSaveAsParameters() {
-    super(new Parameter[]{projectFile, option});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/project_io/project_io.html#save-project-as",
+        projectFile, option);
   }
 
   @Override

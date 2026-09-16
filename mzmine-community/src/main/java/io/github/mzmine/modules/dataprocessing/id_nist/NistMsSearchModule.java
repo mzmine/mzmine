@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,43 +25,56 @@
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
+import io.github.mzmine.modules.dataprocessing.id_nist_mspepsearch.NistPepSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * NIST MS Search module.
+ * Searches feature lists against NIST libraries with NIST's command line program MSPepSearch.
  */
 public class NistMsSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "NIST MS Search";
+  /**
+   * The default unique ID of a module is its simple class name. Spelled out here so that the
+   * presets of {@link NistMsSearchParameters#createDefaultPresets()} can name their group without a
+   * module lookup - the value has to stay as it is, saved configurations refer to it.
+   */
+  public static final String UNIQUE_ID = "NistMsSearchModule";
+
+  public static final String MODULE_NAME = "NIST MS search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches spectra against the NIST library.";
+      "Searches GC-EI or MS/MS spectra against the libraries of a licensed NIST installation, "
+          + "using NIST's command line program MSPepSearch.";
 
   @Override
   public @NotNull String getName() {
-
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull String getDescription() {
+  public @NotNull String getUniqueID() {
+    return UNIQUE_ID;
+  }
 
+  @Override
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-
     return MZmineModuleCategory.ANNOTATION;
   }
 
@@ -71,32 +84,44 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
+      @NotNull final Instant moduleCallDate) {
 
-    for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
+    for (final FeatureList featureList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {
 
-      tasks.add(new NistMsSearchTask(peakList, parameters, moduleCallDate));
+      tasks.add(createTask(featureList, null, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;
   }
 
   /**
-   * Search for a peak-list row's mass spectrum.
+   * Searches the spectra of a single feature list row.
    *
-   * @param peakList the peak-list.
-   * @param row the peak-list row.
+   * @param featureList the feature list.
+   * @param row         the row to search.
    */
-  public static void singleRowSearch(final FeatureList peakList, final FeatureListRow row) {
+  public static void singleRowSearch(final FeatureList featureList, final FeatureListRow row) {
 
-    final ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
+    final ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(NistMsSearchModule.class);
+
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
-
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, Instant.now()));
+      MZmineCore.getTaskController()
+          .addTask(createTask(featureList, row, parameters, Instant.now()));
     }
+  }
+
+  private static NistPepSearchTask createTask(final FeatureList featureList,
+      @Nullable final FeatureListRow row, final ParameterSet parameters,
+      final Instant moduleCallDate) {
+
+    final SpectraMergeSelectParameter mergeSelect = parameters.getParameter(
+        NistMsSearchParameters.spectraMergeSelect);
+
+    return new NistPepSearchTask(((NistMsSearchParameters) parameters).toConfig(), featureList, row,
+        mergeSelect, NistMsSearchModule.class, parameters, moduleCallDate);
   }
 }

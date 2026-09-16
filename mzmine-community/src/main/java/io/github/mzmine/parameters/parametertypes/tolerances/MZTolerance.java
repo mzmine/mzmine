@@ -39,6 +39,7 @@ public class MZTolerance {
   public static final MZTolerance NARROW_5_PPM_OR_1_MDA = new MZTolerance(0.001, 5);
   public static final MZTolerance FIFTEEN_PPM_OR_FIVE_MDA = new MZTolerance(0.005, 15);
   public static final MZTolerance WIDE_25_PPM_OR_10_MDA = new MZTolerance(0.01, 25);
+  public static final MZTolerance UNIT_MASS_TOLERANCE = new MZTolerance(0.5, 0);
 
   // PPM conversion factor.
   private static final double MILLION = 1000000.0;

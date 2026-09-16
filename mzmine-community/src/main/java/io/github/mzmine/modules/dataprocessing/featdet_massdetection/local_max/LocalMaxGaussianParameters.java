@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,20 +22,23 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mzmine.modules.dataprocessing.id_nist;
 
-public enum ImportOption {
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection.local_max;
 
-  APPEND("Append"),
-  OVERWRITE("Overwrite");
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-  private final String type;
+/**
+ * Parameters for the optional Gaussian smoothing applied to consecutive ranges of the
+ * {@link LocalMaxMassDetector}.
+ */
+public class LocalMaxGaussianParameters extends SimpleParameterSet {
 
-  ImportOption(String type) {
-    this.type = type;
-  }
+  public static final IntegerParameter width = new IntegerParameter("Width (points)",
+      "Full width of the Gaussian filter in data points (sigma = width / 6). Even values are rounded "
+          + "up to the next odd number, the minimum is 3.", 5, 3, null);
 
-  public String toString() {
-    return type;
+  public LocalMaxGaussianParameters() {
+    super(width);
   }
 }
