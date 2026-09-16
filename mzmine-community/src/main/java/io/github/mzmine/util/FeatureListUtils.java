@@ -37,6 +37,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -1057,4 +1059,19 @@ public class FeatureListUtils {
         .thenComparing(FeatureList::getName);
   }
 
+
+  public static List<FeatureListRow> getRowsInsideScanAndMZRange(@NotNull FeatureList flist,
+      @NotNull SimpleFloatRange rtRange, @NotNull SimpleDoubleRange mzRange) {
+    List<FeatureListRow> results = new ArrayList<>();
+    final List<FeatureListRow> rows = flist.getRows();
+    for (var row : rows) {
+      Float rt = row.getAverageRT();
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        results.add(row);
+      } else if (rt > rtRange.upper()) {
+        break;
+      }
+    }
+    return results;
+  }
 }

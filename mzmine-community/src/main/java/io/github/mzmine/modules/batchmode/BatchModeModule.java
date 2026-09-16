@@ -188,6 +188,10 @@ public class BatchModeModule implements MZmineProcessingModule {
       }
     }
 
+    if (!BatchUtils.confirmModuleOrderWarnings(newQueue)) {
+      return null;
+    }
+
     ParameterSet parameters = new BatchModeParameters();
     parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
     BatchTask batchTask = new BatchTask(project, parameters, moduleCallDate);

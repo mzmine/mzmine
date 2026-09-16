@@ -55,6 +55,7 @@ public class ColorsFX {
   private static final Color MODIFIED_MARKER = MAGENTA;
 
   public static final Color YELLOW_WARN = new Color(0.941f, 0.894f, 0.259f, 1f);
+
   /**
    * Color palette with black+7colors for color blindness: <br> Black, orange, sky blue, bluish
    * green, yellow, blue, vermillion (darker orange), reddish purple

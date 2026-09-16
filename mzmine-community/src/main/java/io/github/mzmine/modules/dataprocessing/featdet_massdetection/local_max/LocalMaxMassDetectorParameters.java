@@ -49,7 +49,10 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
       "Smoothing",
       "Optional smoothing applied to the equidistant points of each consecutive range before maximum "
           + "and edge detection. The intensity calculation always uses the original (unsmoothed) "
-          + "intensities.", LocalMaxSmoothingOptions.NONE);
+          + "intensities. Gaussian smoothing is recommended as it does not ring next to intense "
+          + "peaks; Savitzky-Golay can create artificial maxima on the flanks of intense peaks when "
+          + "profile peaks are not separated into disconnected ranges.",
+      LocalMaxSmoothingOptions.GAUSSIAN);
 
   public LocalMaxMassDetectorParameters() {
     super(noiseLevel, minNumberOfDp, intensityCalculation, smoothing);
