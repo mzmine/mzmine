@@ -323,6 +323,16 @@ application {
             // required for getting log file
             '--add-opens=java.logging/java.util.logging=ALL-UNNAMED',
 
+            "-XX:+UseG1GC", // pin GC
+            // give heap back to the OS while mzmine sits idle, after 10 minutes without GC
+            "-XX:G1PeriodicGCInterval=600000",
+            // JDK default pinned: concurrent cycle instead of a full GC, a full GC would freeze the UI on the
+            "-XX:+G1PeriodicGCInvokesConcurrent",
+            // spectral libraries, annotations, scan definitions, file names - duplicate strings
+            // let G1 deduplicate their char arrays
+            "-XX:+UseStringDeduplication",
+            "-XX:+UseCompactObjectHeaders",
+
             // logging
             "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
     ]
@@ -373,7 +383,7 @@ runtime {
             "jdk.unsupported",
             "jdk.unsupported.desktop"
     ]
-    if(OperatingSystem.current().isWindows()) {
+    if (OperatingSystem.current().isWindows()) {
         // only required on windows to access the trust store for root certificates
         modules.add("jdk.crypto.mscapi")
     }
@@ -451,6 +461,17 @@ runtime {
                    "-XX:InitialRAMPercentage=5",
                    "-XX:MinRAMPercentage=75",
                    "-XX:MaxRAMPercentage=80",
+
+                   "-XX:+UseG1GC", // pin GC
+                   // give heap back to the OS while mzmine sits idle, after 10 minutes without GC
+                   "-XX:G1PeriodicGCInterval=600000",
+                   // JDK default pinned: concurrent cycle instead of a full GC, a full GC would freeze the UI on the
+                   "-XX:+G1PeriodicGCInvokesConcurrent",
+                   // spectral libraries, annotations, scan definitions, file names - duplicate strings
+                   // let G1 deduplicate their char arrays
+                   "-XX:+UseStringDeduplication",
+                   "-XX:+UseCompactObjectHeaders",
+
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
                    "-Djava.net.useSystemProxies=true",
