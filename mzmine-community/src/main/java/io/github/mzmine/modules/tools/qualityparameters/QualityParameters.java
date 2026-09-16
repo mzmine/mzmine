@@ -46,6 +46,21 @@ public class QualityParameters {
   private static final double FWHM_HEIGHT_FRACTION = 0.5;
   private static final double TAILING_HEIGHT_FRACTION = 0.05;
   private static final double ASYMMETRY_HEIGHT_FRACTION = 0.1;
+  /**
+   * A flank whose minimum intensity stays above this fraction of the apex intensity is too flat to
+   * tell where the peak would reach the threshold. Such a flank is limited to the observed data
+   * instead of being extrapolated.
+   */
+  private static final double FLAT_FLANK_FRACTION = 0.85;
+  /**
+   * Upper limit for the estimated half width of a flank that never reaches the threshold, as a
+   * multiple of the half width that was actually observed on that flank. A gaussian peak that is
+   * cut off at 84 % of its apex intensity is twice as wide as the observed part, which is roughly
+   * where {@link #FLAT_FLANK_FRACTION} already stops the extrapolation. This cap therefore mostly
+   * catches flanks that are not gaussian or whose fit is dominated by noise. It also bounds the
+   * FWHM to twice the observed peak width.
+   */
+  private static final double MAX_EXTRAPOLATION_FACTOR = 2.0;
 
   public static void calculateAndSetModularQualityParameters(
       @NotNull final ModularFeatureList flist) {
@@ -118,7 +133,10 @@ public class QualityParameters {
    * decision: a side that never drops below half the apex intensity, e.g. because the peak is cut
    * off or because a co-eluting peak fills up one flank, is mirrored from the opposite side. The
    * mirrored width is never narrower than what was actually observed on that side. If neither side
-   * drops below half maximum, both outer flanks are extrapolated down to the threshold.
+   * drops below half maximum, both flanks are extrapolated down to the threshold, see
+   * {@link #extrapolateToThreshold(double, double[], double[], int, int)}.
+   * <p>
+   * The result never exceeds twice the observed x range of the peak.
    *
    * @param x           x values (retention time), ascending with index
    * @param intensities intensities, same length as {@code x}
@@ -206,8 +224,8 @@ public class QualityParameters {
         findCrossing(threshold, x, intensities, 0, apex), //
         findCrossing(threshold, x, intensities, last, apex), //
         x[0], x[last], //
-        extrapolateToThreshold(threshold, x, intensities, 0, 1), //
-        extrapolateToThreshold(threshold, x, intensities, last, last - 1));
+        extrapolateToThreshold(threshold, x, intensities, 0, apex), //
+        extrapolateToThreshold(threshold, x, intensities, last, apex));
   }
 
   /**
@@ -236,21 +254,74 @@ public class QualityParameters {
   }
 
   /**
-   * Extrapolates the line through the two outermost data points of one side outwards until it
-   * reaches the threshold. Only used when that side never drops below the threshold.
+   * Estimates where one flank would cross the threshold if the peak were not cut off. Only used
+   * when that flank never drops below the threshold within the data.
+   * <p>
+   * decision: the slope is a least squares fit over all data points of the flank rather than the
+   * line through the two outermost points, so that a single noisy edge data point cannot dominate
+   * the estimate.
+   * <p>
+   * decision: a flank that never descends below {@link #FLAT_FLANK_FRACTION} of the apex intensity
+   * is not extrapolated at all. Such a flank carries no usable information about where the
+   * threshold would be reached, and a linear extrapolation of it reaches arbitrarily far. The
+   * caller then falls back to the observed data range for that flank.
+   * <p>
+   * decision: for all other flanks the estimated half width is capped at
+   * {@link #MAX_EXTRAPOLATION_FACTOR} times the half width that was actually observed.
    *
-   * @param outer index of the outermost data point of that side
-   * @param inner index of its neighbour towards the apex
-   * @return the extrapolated x value or NaN if the outer segment does not rise towards the apex
+   * @param edge index of the outermost data point of the flank
+   * @param apex index of the apex
+   * @return the estimated crossing, or NaN if the flank holds no data points, is too flat, or does
+   * not rise towards the apex
    */
   private static double extrapolateToThreshold(final double threshold, final double @NotNull [] x,
-      final double @NotNull [] intensities, final int outer, final int inner) {
-    final double rise = intensities[inner] - intensities[outer];
-    if (rise <= 0 || x[inner] == x[outer]) {
+      final double @NotNull [] intensities, final int edge, final int apex) {
+    if (edge == apex) {
       return Double.NaN;
     }
-    final double slope = rise / (x[inner] - x[outer]);
-    return x[outer] + (threshold - intensities[outer]) / slope;
+    final int step = edge < apex ? 1 : -1;
+    final int end = apex + step;
+
+    int n = 0;
+    double sumX = 0;
+    double sumY = 0;
+    double minIntensity = Double.MAX_VALUE;
+    for (int i = edge; i != end; i += step) {
+      sumX += x[i];
+      sumY += intensities[i];
+      minIntensity = Math.min(minIntensity, intensities[i]);
+      n++;
+    }
+    // an almost flat flank never descended far enough to tell where it would reach the threshold
+    if (minIntensity >= intensities[apex] * FLAT_FLANK_FRACTION) {
+      return Double.NaN;
+    }
+    final double meanX = sumX / n;
+    final double meanY = sumY / n;
+
+    double sumXy = 0;
+    double sumXx = 0;
+    for (int i = edge; i != end; i += step) {
+      final double dx = x[i] - meanX;
+      sumXy += dx * (intensities[i] - meanY);
+      sumXx += dx * dx;
+    }
+    if (sumXx == 0) {
+      return Double.NaN;
+    }
+    final double slope = sumXy / sumXx;
+    // the fitted line must rise towards the apex, no matter which flank it describes
+    if (slope * (x[apex] - x[edge]) <= 0) {
+      return Double.NaN;
+    }
+
+    final double apexX = x[apex];
+    final double observedHalfWidth = Math.abs(apexX - x[edge]);
+    final double fittedHalfWidth = Math.abs(meanX + (threshold - meanY) / slope - apexX);
+    // the flank stays above the threshold, so the crossing cannot lie inside the observed data
+    final double halfWidth = Math.clamp(fittedHalfWidth, observedHalfWidth,
+        MAX_EXTRAPOLATION_FACTOR * observedHalfWidth);
+    return edge < apex ? apexX - halfWidth : apexX + halfWidth;
   }
 
   /**

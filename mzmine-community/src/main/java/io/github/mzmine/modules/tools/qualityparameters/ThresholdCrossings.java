@@ -42,9 +42,11 @@ package io.github.mzmine.modules.tools.qualityparameters;
  *                           observed on the left
  * @param rightEdgeX         x value of the last data point, i.e. the width that was actually
  *                           observed on the right
- * @param leftExtrapolatedX  linear extrapolation of the two leftmost data points outwards down to
- *                           the threshold, NaN if that segment does not rise towards the apex
- * @param rightExtrapolatedX same as {@code leftExtrapolatedX} for the two rightmost data points
+ * @param leftExtrapolatedX  estimated crossing of the left flank if the peak were not cut off,
+ *                           from a least squares fit over that flank and capped at a multiple of
+ *                           the observed half width, NaN if the flank does not rise towards the
+ *                           apex
+ * @param rightExtrapolatedX same as {@code leftExtrapolatedX} for the right flank
  */
 public record ThresholdCrossings(double apexX, double leftX, double rightX, double leftEdgeX,
                                  double rightEdgeX, double leftExtrapolatedX,

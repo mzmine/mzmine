@@ -109,21 +109,73 @@ class QualityParametersTest {
   }
 
   @Test
-  @DisplayName("neither flank reaches half maximum: extrapolate both outer flanks")
+  @DisplayName("neither flank reaches half maximum: extrapolate both flanks")
   void testBothFlanksExtrapolated() {
     final double[] plateau = {60, 80, 100, 80, 60};
-    // left line 60@0 -> 80@1 reaches 50 at -0.5, right line 60@4 -> 80@3 reaches 50 at 4.5
+    // both flanks are straight lines with a slope of 20, so they reach 50 at -0.5 and 4.5
     Assertions.assertEquals(5.0, fwhm(plateau), EPS);
   }
 
   @Test
-  @DisplayName("extrapolating two nearly flat flanks reaches beyond the observed range")
-  void testExtrapolationCanExceedObservedRange() {
-    // documented consequence of extrapolating when neither flank reaches half maximum: the flatter
-    // the outer flanks are, the further outside the observed range the crossings end up
+  @DisplayName("the extrapolated slope is fitted over the whole flank, not over the edge segment")
+  void testExtrapolationUsesWholeFlank() {
+    // the outermost segment 60@0 -> 61@1 is almost flat and alone would extrapolate to -10, far
+    // enough out to hit the cap. The least squares fit over the whole flank 60, 61, 100 has a
+    // slope of 20 and reaches 50 at -11/60, well inside the cap.
+    final double[] noisyEdge = {60, 61, 100, 61, 60};
+    Assertions.assertEquals(2 * (2.0 + 11.0 / 60.0), fwhm(noisyEdge), EPS);
+  }
+
+  @Test
+  @DisplayName("extrapolation of a nearly flat flank is capped at twice the observed half width")
+  void testExtrapolationIsCapped() {
     final double[] flat = {70, 80, 100, 80, 72, 80, 75};
-    // left line 70@0 -> 80@1 reaches 50 at -2, right line 75@6 -> 80@5 reaches 50 at 11
-    Assertions.assertEquals(13.0, fwhm(flat), EPS);
+    // left flank fit reaches 50 at -11/9, a half width of 29/9 that stays below the cap of 2 * 2
+    // right flank fit reaches 50 at 10.28, a half width of 8.28 that is capped to 2 * 4 -> x = 10
+    Assertions.assertEquals(10.0 + 11.0 / 9.0, fwhm(flat), EPS);
+  }
+
+  @Test
+  @DisplayName("the FWHM never exceeds twice the observed range of the peak")
+  void testFwhmIsBoundedByTwiceTheObservedRange() {
+    final double[][] traces = {{0, 25, 50, 100, 50, 25, 0}, {0, 20, 100, 30, 80, 20, 0},
+        {60, 80, 100, 90, 70, 40, 0}, {60, 65, 70, 80, 100, 40, 0}, {60, 80, 100, 80, 60},
+        {70, 80, 100, 80, 72, 80, 75}, {99, 99, 100, 99, 99}, {100, 60, 40, 20, 0},
+        {60, 61, 62, 100, 50, 20, 5}};
+    for (final double[] trace : traces) {
+      final double observedRange = trace.length - 1.0;
+      final double width = fwhm(trace);
+      Assertions.assertFalse(Double.isNaN(width), "no width for a usable trace");
+      Assertions.assertTrue(width <= 2 * observedRange + EPS,
+          "width %s exceeds twice the observed range %s".formatted(width, observedRange));
+    }
+  }
+
+  @Test
+  @DisplayName("a flank that never descends below 85 % of the apex is not extrapolated")
+  void testFlatFlanksUseTheDataRange() {
+    // both flanks stay above 85 % of the apex, so the width is limited to the observed data
+    Assertions.assertEquals(4.0, fwhm(new double[]{99, 99, 100, 99, 99}), EPS);
+    Assertions.assertEquals(4.0, fwhm(new double[]{90, 95, 100, 95, 90}), EPS);
+    // exactly at the limit still counts as flat
+    Assertions.assertEquals(4.0, fwhm(new double[]{85, 92, 100, 92, 85}), EPS);
+  }
+
+  @Test
+  @DisplayName("a flank that descends below 85 % of the apex is still extrapolated")
+  void testFlanksBelowTheFlatLimitAreExtrapolated() {
+    // one intensity unit deeper than the flat limit, so both flanks are extrapolated and hit the
+    // cap of twice the observed half width
+    Assertions.assertEquals(8.0, fwhm(new double[]{84, 92, 100, 92, 84}), EPS);
+  }
+
+  @Test
+  @DisplayName("only the flat flank is limited to the data, the other one is extrapolated")
+  void testFlatFlankMixedWithExtrapolatedFlank() {
+    // left flank 90, 95, 100 stays above 85 % and ends at the first data point 0
+    // right flank 100, 80, 60 is fitted with a slope of -20 and reaches 50 at 4.5
+    final double[] mixed = {90, 95, 100, 80, 60};
+    Assertions.assertEquals(4.5, fwhm(mixed), EPS);
   }
 
   @Test
