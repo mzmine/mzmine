@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.iontype;
 
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.identities.iontype.IonPart.IonPartStringFlavor;
 import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,11 @@ import org.jetbrains.annotations.NotNull;
  * A lightweight reference to an {@link IonPart} that only carries the name, the charge of a single
  * item and the direction of the count. Matching against a real {@link IonPart} is done on these
  * three fields alone, so the mass, the formula and the count magnitude are deliberately ignored.
+ * <p>
+ * Its use is the representation of the user definable {@link IonTypeRanking} in the
+ * {@link FeatureListPreferences}, so reproducible sorting of {@link IonType}s. That also means a
+ * reference is independent of the referenced {@link IonPart} being defined in the global ion
+ * library. And mathing is done by name, charge, and sing alone.
  * <p>
  * decision: name plus charge plus count direction is the smallest key that still separates ion
  * parts users care about, e.g. Fe+2 from Fe+3 and +H from -H. Ignoring mass and formula makes a

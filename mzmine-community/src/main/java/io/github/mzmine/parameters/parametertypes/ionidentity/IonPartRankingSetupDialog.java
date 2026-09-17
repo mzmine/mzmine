@@ -110,7 +110,7 @@ final class IonPartRankingSetupDialog extends Dialog<List<IonPartFrequency>> {
       }
     });
 
-    final FilterableListView<IonPartReference> partList = createAvailableList();
+    final FilterableListView<IonPartReference> partList = createUnrankedIonsList();
     final TableView<IonPartFrequency> table = createRankingTable();
 
     final Button addButton = FxButtons.createButton("Add selected", FxIcons.ARROW_RIGHT,
@@ -170,7 +170,11 @@ final class IonPartRankingSetupDialog extends Dialog<List<IonPartFrequency>> {
     return new ArrayList<>(references);
   }
 
-  private @NotNull FilterableListView<IonPartReference> createAvailableList() {
+  /**
+   * The list of building blocks that may still be added, so all collected parts minus the ones that
+   * are already in the ranking. The filter is re-evaluated whenever the ranking changes.
+   */
+  private @NotNull FilterableListView<IonPartReference> createUnrankedIonsList() {
     final FilterableListView<IonPartReference> partList = FxListViews.newFilterableListView(
         available, false, SelectionMode.MULTIPLE);
     partList.sortingComparatorProperty().set(IonPartReference.SORTER);
