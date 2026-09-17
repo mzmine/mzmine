@@ -187,6 +187,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
@@ -234,8 +235,10 @@ import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectral
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -282,6 +285,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // lipid annotation
   private final boolean annotateLipids;
   protected final boolean predictFormulas;
+  private final boolean batchHasQcs;
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
@@ -295,6 +299,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     metadataFile = getOptional(params, DataImportWizardParameters.metadataFile);
     extractMetadataParams = getOptionalParameters(params,
         DataImportWizardParameters.extractMetadata).orElse(null);
+    final Map<@NotNull SampleType, List<File>> groupedSamples = Arrays.stream(dataFiles)
+        .collect(Collectors.groupingBy(f -> SampleType.guessFromName(f.getName())));
+    final @Nullable List<File> qcs = groupedSamples.get(SampleType.QC);
+    batchHasQcs = qcs != null && qcs.size() >= 2;
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -1186,12 +1194,19 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final ParameterSet correctorParam = MultilinearRawFileRtCalibrationParameters.create(0.1);
 
+    final SampleTypeFilter sampleTypeFilter =
+        batchHasQcs ? SampleTypeFilter.qc() : SampleTypeFilter.of(SampleType.QC, SampleType.SAMPLE);
+
     final RTCorrectionParameters scanRtParams = RTCorrectionParameters.create(
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
-        mzTolInterSample,
-        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES),
-        minFeatureHeight * 5, true, SampleTypeFilter.qc(), RTMeasure.MEDIAN,
-        RtCorrectionFunctions.MultiLinearCorrection, correctorParam);
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), //
+        mzTolInterSample, //
+        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES), //
+        minFeatureHeight * 5, //
+        true, //
+        sampleTypeFilter, //
+        RTMeasure.MEDIAN, //
+        RtCorrectionFunctions.MultiLinearCorrection, //
+        correctorParam);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ScanRtCorrectionModule.class),
         scanRtParams));
