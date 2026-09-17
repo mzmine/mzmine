@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.identities.io.IonLibraryIO;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -75,9 +74,9 @@ public final class IonNetworksLoader {
     final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
 
     // the ion types the ions reference by index, written before the rows
-    final List<IonType> library = new ArrayList<>();
+    final Map<Integer, IonType> library = new LinkedHashMap<>();
     // network id -> consensus formulas, in the order the networks were declared
-    final Map<Integer, List<ResultFormula>> consensusFormulas = new LinkedHashMap<>();
+    final Map<Integer, NetworkPlaceholder> networks = new LinkedHashMap<>();
     // network id -> members, filled while reading the rows
     final Map<Integer, List<IonNetworkNode>> nodesByNetwork = new LinkedHashMap<>();
 
@@ -88,8 +87,8 @@ public final class IonNetworksLoader {
           continue;
         }
         switch (reader.getLocalName()) {
-          case IonNetworkXml.ION_LIBRARY_ELEMENT -> library.addAll(readLibrary(reader));
-          case IonNetworkXml.NETWORK_ELEMENT -> readNetwork(reader, consensusFormulas);
+          case IonNetworkXml.ION_LIBRARY_ELEMENT -> library.putAll(readLibrary(reader));
+          case IonNetworkXml.NETWORK_ELEMENT -> readNetwork(reader, networks);
           case IonNetworkXml.ROW_ELEMENT -> readRow(reader, flist, library, nodesByNetwork);
           default -> {
             // unknown element of a newer format, skip
@@ -100,28 +99,31 @@ public final class IonNetworksLoader {
       reader.close();
     }
 
-    return buildNetworks(flist, consensusFormulas, nodesByNetwork);
+    return buildNetworks(flist, networks, nodesByNetwork);
   }
 
   /**
-   * The ion types that the ions reference by index. Written before the rows, so it is complete by
-   * the time the first ion is read. The element holds the JSON of a StorableIonLibrary, which
-   * {@link IonLibraryIO} turns back into ion types with deduplicated parts.
+   * The ion types that the ions reference by index, keyed by that index. Written before the rows, so
+   * it is complete by the time the first ion is read. The element holds the JSON of a
+   * StorableIonLibrary, which {@link IonLibraryIO} turns back into ion types with deduplicated
+   * parts.
    */
-  private static List<IonType> readLibrary(@NotNull final XMLStreamReader reader)
+  private static Map<Integer, IonType> readLibrary(@NotNull final XMLStreamReader reader)
       throws XMLStreamException {
     final String json = reader.getElementText().trim();
     if (json.isEmpty()) {
-      return List.of();
+      return Map.of();
     }
-    final IonLibrary library = IonLibraryIO.loadFromJson(json).library();
-    // IonLibraryIO may return an already known library whose ions are ordered differently
-    return IonNetworkXml.canonicalIonTypeOrder(library.ions());
+    // by index of the file, not by the order of library().ions(): that may be an already known
+    // library instance whose ions are ordered differently
+    return IonLibraryIO.loadFromJson(json).ionTypesByIndex();
   }
 
+  /**
+   * Read the ion network ID and other properties like the consensus formulas on the networks.
+   */
   private static void readNetwork(@NotNull final XMLStreamReader reader,
-      @NotNull final Map<Integer, List<ResultFormula>> consensusFormulas)
-      throws XMLStreamException {
+      @NotNull final Map<Integer, NetworkPlaceholder> networks) throws XMLStreamException {
     final int id = Integer.parseInt(reader.getAttributeValue(null, IonNetworkXml.NETWORK_ID_ATTR));
     final List<ResultFormula> formulas = new ArrayList<>();
 
@@ -134,7 +136,7 @@ public final class IonNetworksLoader {
       }
     }
 
-    consensusFormulas.put(id, formulas);
+    networks.put(id, new NetworkPlaceholder(id, formulas));
   }
 
   /**
@@ -142,7 +144,7 @@ public final class IonNetworksLoader {
    * order, which restores its best ion.
    */
   private static void readRow(@NotNull final XMLStreamReader reader,
-      @NotNull final ModularFeatureList flist, @NotNull final List<IonType> library,
+      @NotNull final ModularFeatureList flist, @NotNull final Map<Integer, IonType> library,
       @NotNull final Map<Integer, List<IonNetworkNode>> nodesByNetwork) throws XMLStreamException {
     final int rowId = Integer.parseInt(reader.getAttributeValue(null, IonNetworkXml.ROW_ID_ATTR));
     final FeatureListRow row = flist.findRowByID(rowId);
@@ -183,7 +185,7 @@ public final class IonNetworksLoader {
    * The ion type is not stored with the ion, it is referenced by its index in the library.
    */
   private static IonIdentity readIon(@NotNull final XMLStreamReader reader,
-      @NotNull final List<IonType> library) throws XMLStreamException {
+      @NotNull final Map<Integer, IonType> library) throws XMLStreamException {
     final int typeIndex = Integer.parseInt(
         reader.getAttributeValue(null, IonNetworkXml.ION_TYPE_REF_ATTR));
     final List<ResultFormula> formulas = new ArrayList<>();
@@ -203,8 +205,7 @@ public final class IonNetworksLoader {
       }
     }
 
-    final IonType ionType =
-        typeIndex >= 0 && typeIndex < library.size() ? library.get(typeIndex) : null;
+    final IonType ionType = library.get(typeIndex);
     if (ionType == null) {
       logger.fine(
           () -> "Skipping ion identity, ion type %d is not in the library of %d types".formatted(
@@ -231,19 +232,23 @@ public final class IonNetworksLoader {
 
   @NotNull
   private static List<IonNetwork> buildNetworks(@NotNull final ModularFeatureList flist,
-      @NotNull final Map<Integer, List<ResultFormula>> consensusFormulas,
+      @NotNull final Map<Integer, NetworkPlaceholder> placeholderNetworks,
       @NotNull final Map<Integer, List<IonNetworkNode>> nodesByNetwork) {
     final List<IonNetwork> networks = new ArrayList<>(nodesByNetwork.size());
 
     for (final Entry<Integer, List<IonNetworkNode>> entry : nodesByNetwork.entrySet()) {
       final int id = entry.getKey();
+      final NetworkPlaceholder placeholder = placeholderNetworks.get(id);
+      final List<ResultFormula> consensusFormulas =
+          placeholder == null ? List.of() : placeholder.consensusFormulas;
+
       final SimpleIonNetwork network = new SimpleIonNetwork(id, entry.getValue(),
-          consensusFormulas.getOrDefault(id, List.of()));
+          consensusFormulas);
       network.setNetworkToAllRows();
       networks.add(network);
     }
 
-    for (final int id : consensusFormulas.keySet()) {
+    for (final int id : placeholderNetworks.keySet()) {
       if (!nodesByNetwork.containsKey(id)) {
         logger.fine(
             () -> "Skipping ion network %d, none of its rows are in feature list %s".formatted(id,
@@ -251,5 +256,9 @@ public final class IonNetworksLoader {
       }
     }
     return networks;
+  }
+
+  private record NetworkPlaceholder(int id, List<ResultFormula> consensusFormulas) {
+
   }
 }

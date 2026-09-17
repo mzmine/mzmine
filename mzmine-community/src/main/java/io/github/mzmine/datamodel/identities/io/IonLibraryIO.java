@@ -41,7 +41,9 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.JsonUtils;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -68,6 +70,11 @@ public class IonLibraryIO {
     JsonUtils.writeToFileReplaceOrThrow(file, storableLibrary);
   }
 
+  /**
+   * The ion types are written in the order of {@link IonLibrary#ions()}, so the position of an ion
+   * type there is the index {@link LoadedIonLibrary#ionTypesByIndex()} hands it back under. That is
+   * what a format that embeds a library and only references its ion types has to use.
+   */
   public static @NotNull String toJson(@NotNull IonLibrary library) {
     final StorableIonLibrary storableLibrary = StorableIonLibrary.of(library);
     return JsonUtils.writeStringOrThrow(storableLibrary);
@@ -79,8 +86,7 @@ public class IonLibraryIO {
    * @throws RuntimeException in case of io issues
    */
   public static @NotNull LoadedIonLibrary loadFromJsonFile(@NotNull File file) {
-    final StorableIonLibrary storable = JsonUtils.readValueOrThrow(file, StorableIonLibrary.class);
-    return new LoadedIonLibrary(storable.savedDate(), convert(storable));
+    return convert(JsonUtils.readValueOrThrow(file, StorableIonLibrary.class));
   }
 
   /**
@@ -88,17 +94,16 @@ public class IonLibraryIO {
    * @return the ion library
    */
   public static @NotNull LoadedIonLibrary loadFromJson(@NotNull String json) {
-    final StorableIonLibrary storable = JsonUtils.readValueOrThrow(json, StorableIonLibrary.class);
-    return new LoadedIonLibrary(storable.savedDate(), convert(storable));
+    return convert(JsonUtils.readValueOrThrow(json, StorableIonLibrary.class));
   }
 
   /**
    * Converts the storable library to a real ion library. The ion parts are single instances per
    * count like one instance for 1Na+ and one for 2Na+
    *
-   * @return ion library
+   * @return the ion library together with the index the file referenced each ion type by
    */
-  static @NotNull IonLibrary convert(@NotNull StorableIonLibrary storable) {
+  static @NotNull LoadedIonLibrary convert(@NotNull StorableIonLibrary storable) {
     final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     // keeps a single instance of each part (including count) like one for 1H+ and 2H+
     // deduplicate
@@ -123,6 +128,25 @@ public class IonLibraryIO {
 
       types.add(IonType.create(ionParts, ion.molecules()));
     }
+
+    // keyed by position because that is what an embedding format references an ion type by, so
+    final Map<Integer, IonType> ionTypesByIndex = LinkedHashMap.newLinkedHashMap(types.size());
+    for (int i = 0; i < types.size(); i++) {
+      ionTypesByIndex.put(i, types.get(i));
+    }
+
+    return new LoadedIonLibrary(storable.savedDate(), convertLibrary(storable, types),
+        Collections.unmodifiableMap(ionTypesByIndex));
+  }
+
+  /**
+   * The library instance for the loaded ion types: an already known one where name and content
+   * match, otherwise a new one. Its {@link IonLibrary#ions()} may therefore be ordered differently
+   * than the file, which is why the ion types are also handed back by index.
+   */
+  private static @NotNull IonLibrary convertLibrary(@NotNull StorableIonLibrary storable,
+      @NotNull List<IonType> types) {
+    final GlobalIonLibraryService global = GlobalIonLibraryService.getGlobalLibrary();
     // use library instance that is already created and known if the content equals
     IonLibrary existing = global.getLibraryForName(storable.name()).orElse(null);
     if (existing != null && CollectionUtils.equalContentIgnoreOrder(existing.ions(), types)) {
@@ -166,7 +190,7 @@ public class IonLibraryIO {
       }
       StorableIonLibrary storable = XMLUtils.loadFromDOM(parent, StorableIonLibrary.class);
 
-      return new LoadedIonLibrary(storable.savedDate(), convert(storable));
+      return convert(storable);
     } catch (Exception e) {
       throw new RuntimeException("Failed to load ion library from XML", e);
     }

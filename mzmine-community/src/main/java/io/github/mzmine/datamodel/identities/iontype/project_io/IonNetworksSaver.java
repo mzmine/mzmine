@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.identities.iontype.IonTypeSorting;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.io.OutputStream;
@@ -91,12 +90,12 @@ public final class IonNetworksSaver {
         networkIds);
     final IonLibrary library = collectLibrary(ionsByRow);
     final String libraryJson = IonLibraryIO.toJson(library);
-    final List<IonType> indexedTypes = IonNetworkXml.canonicalIonTypeOrder(library.ions());
-    verifyIndicesSurviveReload(libraryJson, indexedTypes);
 
-    final Map<IonType, Integer> libraryIndices = HashMap.newHashMap(indexedTypes.size());
-    for (int i = 0; i < indexedTypes.size(); i++) {
-      libraryIndices.put(indexedTypes.get(i), i);
+    // toJson writes the ion types in the order of ions(), so that position is the index an ion
+    // references its ion type by and the loader gets back from LoadedIonLibrary.ionTypesByIndex
+    final Map<IonType, Integer> libraryIndices = HashMap.newHashMap(library.getNumIons());
+    for (int i = 0; i < library.getNumIons(); i++) {
+      libraryIndices.put(library.ions().get(i), i);
     }
 
     writer.writeStartDocument("UTF-8", "1.0");
@@ -153,11 +152,9 @@ public final class IonNetworksSaver {
   }
 
   /**
-   * An {@link IonLibrary} of the distinct ion types of all written ions. Only its
-   * {@link IonLibrary#ions()} are written, the identity of the library itself is not part of the
-   * project format. Building it here is what puts the ion types into the canonical
-   * {@link IonTypeSorting#MOLECULES_THEN_CHARGE_THEN_MASS} order, so the indices stay the same
-   * whenever the same networks are saved again.
+   * An {@link IonLibrary} of the distinct ion types of all written ions. Sorted within ion library
+   * but order does not matter for loading - the index an ion uses is read back from the file - it
+   * only keeps the output stable and the library readable.
    */
   private static IonLibrary collectLibrary(
       @NotNull final Map<FeatureListRow, List<IonIdentity>> ionsByRow) {
@@ -179,26 +176,6 @@ public final class IonNetworksSaver {
     writer.writeStartElement(IonNetworkXml.ION_LIBRARY_ELEMENT);
     writer.writeCharacters(libraryJson);
     writer.writeEndElement();
-  }
-
-  /**
-   * An ion references its ion type by the position in
-   * {@link IonNetworkXml#canonicalIonTypeOrder(List)}, so those positions only mean anything if the
-   * loader derives the very same order. Instead of trusting that, push the library through the
-   * loader path once and compare: a mismatch would silently give rows the wrong ion type, which is
-   * far worse than failing the save.
-   */
-  private static void verifyIndicesSurviveReload(@NotNull final String libraryJson,
-      @NotNull final List<IonType> indexedTypes) {
-    final List<IonType> reloaded = IonNetworkXml.canonicalIonTypeOrder(
-        IonLibraryIO.loadFromJson(libraryJson).library().ions());
-    if (!reloaded.equals(indexedTypes)) {
-      throw new IllegalStateException("""
-          The ion library does not reload in the order it was saved in, so the ion type references \
-          of the ion identity networks would point at the wrong ion types.
-          saved:    %s
-          reloaded: %s""".formatted(indexedTypes, reloaded));
-    }
   }
 
   /**
