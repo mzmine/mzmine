@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Simple implementation of the Scan interface.
@@ -99,8 +100,8 @@ public class MZmineToMSDKMsScan implements MsScan {
   }
 
   @Override
-  public Float getTIC() {
-    return mzmineScan.getTIC().floatValue();
+  public @NonNull Float getTIC() {
+    return (float) mzmineScan.getTIC();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,7 +85,7 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(new ModuleOrderRecommendation("Annotations are not preserved during alignment",
-        ModuleOrderRule.ifPresentMustRunAfter(
+        ModuleOrderRule.ifPresentShouldRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }

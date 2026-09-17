@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkNode;
 import io.github.mzmine.datamodel.identities.iontype.IonTypePair;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.datamodel.identities.iontype.SearchableIonLibrary;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperParameters;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperTask;
@@ -69,6 +70,14 @@ public class IonNetworkingTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(IonNetworkingTask.class.getName());
+
+  /**
+   * Largest network first with the lowest row ID as tiebreaker so that equally sized networks are
+   * always processed in the same order.
+   */
+  private static final Comparator<IonNetwork> NETWORK_SORTER = Comparator.comparingInt(
+      IonNetwork::size).reversed().thenComparingInt(IonNetwork::getLowestID);
+
   private final ModularFeatureList featureList;
   private final ParameterSet parameters;
   private final MZmineProject project;
@@ -203,11 +212,11 @@ public class IonNetworkingTask extends AbstractTask {
                 IonNetworkingParameters.COMPOUND_GROUPING).getEmbeddedParameters()
             .toFullParameters(List.of(featureList));
 
-        compoundTask = new CompoundGrouperTask(featureList,
-            compoundParams, getModuleCallDate(), true);
+        compoundTask = new CompoundGrouperTask(featureList, compoundParams, getModuleCallDate(),
+            true);
 
         try {
-        compoundTask.run();
+          compoundTask.run();
         } catch (Exception e) {
           error("Error running compound grouper task from within ion identity task.", e);
           return;
@@ -228,12 +237,14 @@ public class IonNetworkingTask extends AbstractTask {
   private void annotateGroups(final List<RowGroup> groups) {
     //
     AtomicInteger compared = new AtomicInteger(0);
+    // the ranking is user defined per feature list, see FeatureListPreferences
+    final IonTypeRanking ranking = featureList.getPreferences().getIonTypeRanking();
     // for all groups
     long annotPairs = groups.parallelStream().mapToLong(g -> {
       if (this.isCanceled()) {
         return 0;
       }
-      final long annotations = annotateGroup(g, compared);
+      final long annotations = annotateGroup(g, compared, ranking);
       stageProgress.addAndGet(1d / groups.size());
       return annotations;
     }).sum();
@@ -249,7 +260,8 @@ public class IonNetworkingTask extends AbstractTask {
    * @param g
    * @param compared
    */
-  private long annotateGroup(RowGroup g, AtomicInteger compared) {
+  private long annotateGroup(RowGroup g, AtomicInteger compared,
+      @NotNull final IonTypeRanking ranking) {
     // use linked hashmap to have repeatable results otherwise order might differ
     Map<RowIonAnnotation, BuildingIonNetwork> results = new LinkedHashMap<>();
 
@@ -272,7 +284,7 @@ public class IonNetworkingTask extends AbstractTask {
     }
 
     // add all networks to rows
-    addIonIdentitiesToRows(results.values());
+    addIonIdentitiesToRows(results.values(), ranking);
 
     return annotations;
   }
@@ -281,13 +293,13 @@ public class IonNetworkingTask extends AbstractTask {
    * Adds built networks and attaches their ion identities to the rows, largest network first so
    * that the most supported ion identity becomes the best one of each row.
    */
-  public static void addIonIdentitiesToRows(Collection<BuildingIonNetwork> networks) {
+  public static void addIonIdentitiesToRows(Collection<BuildingIonNetwork> networks,
+      @NotNull final IonTypeRanking ranking) {
     if (networks.isEmpty()) {
       return;
     }
     // re-point the ion identities to the immutable network
-    final List<IonNetwork> sortedNetworks = networks.stream().distinct()
-        .sorted(Comparator.comparingInt(IonNetwork::size).reversed())
+    final List<IonNetwork> sortedNetworks = networks.stream().distinct().sorted(NETWORK_SORTER)
         .map(BuildingIonNetwork::setNetworkToAllRows).toList();
 
     Map<FeatureListRow, List<IonIdentity>> sortedIons = new HashMap<>();
@@ -299,7 +311,12 @@ public class IonNetworkingTask extends AbstractTask {
       }
     }
 
-    sortedIons.forEach(FeatureListRow::setIonIdentities);
+    final Comparator<IonIdentity> bestFirst = IonNetworkLogic.bestFirstSorter(ranking);
+    sortedIons.forEach((row, ions) -> {
+      // all networks of this group are complete here, so the likelihood order is already final
+      ions.sort(bestFirst);
+      row.setIonIdentities(ions);
+    });
   }
 
   private boolean checkRows(Map<RowIonAnnotation, BuildingIonNetwork> results, FeatureListRow rowA,

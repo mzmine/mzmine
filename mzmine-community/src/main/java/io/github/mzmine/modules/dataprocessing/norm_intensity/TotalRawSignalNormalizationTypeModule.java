@@ -69,7 +69,7 @@ public final class TotalRawSignalNormalizationTypeModule extends
     ScanUtils.assertMassLists(scans);
 
     final double avgTIC = scans.stream().map(Scan::getMassList)
-        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getTIC(), 0d)).average().orElse(0d);
+        .mapToDouble(scan -> scan.getTIC()).average().orElse(0d);
     if (Double.compare(avgTIC, 0d) == 0) {
       throw new IllegalStateException("No TIC found for file: " + file.getName());
     }

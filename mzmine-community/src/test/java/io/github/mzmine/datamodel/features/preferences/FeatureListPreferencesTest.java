@@ -25,12 +25,19 @@
 
 package io.github.mzmine.datamodel.features.preferences;
 
+import io.github.mzmine.datamodel.identities.iontype.IonPartFrequency;
+import io.github.mzmine.datamodel.identities.iontype.IonParts;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesDtoParameters;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesParameters;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import io.github.mzmine.util.XMLUtils;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.jupiter.api.Assertions;
@@ -95,7 +102,8 @@ class FeatureListPreferencesTest {
   @MethodSource("filters")
   void testXmlRoundTrip(final String name, final SampleTypeFilter filter)
       throws ParserConfigurationException {
-    final FeatureListPreferences preferences = new FeatureListPreferences(filter);
+    final FeatureListPreferences preferences = new FeatureListPreferences(filter,
+        IonTypeRanking.createDefault());
 
     final FeatureListPreferences loaded = saveAndLoad(preferences);
 
@@ -108,12 +116,51 @@ class FeatureListPreferencesTest {
   @Test
   void testSavedXmlIsParameterSetShape() throws ParserConfigurationException {
     final Element element = newPreferencesElement();
-    new FeatureListPreferences(SampleTypeFilter.qc()).saveToXML(element);
+    new FeatureListPreferences(SampleTypeFilter.qc(), IonTypeRanking.createDefault()).saveToXML(
+        element);
 
     final NodeList parameters = element.getElementsByTagName(SimpleParameterSet.parameterElement);
-    Assertions.assertEquals(1, parameters.getLength());
-    Assertions.assertEquals(FeatureListPreferencesDtoParameters.rsdSampleTypes.getName(),
-        ((Element) parameters.item(0)).getAttribute(SimpleParameterSet.nameAttribute));
+    final List<String> names = new ArrayList<>(parameters.getLength());
+    for (int i = 0; i < parameters.getLength(); i++) {
+      names.add(((Element) parameters.item(i)).getAttribute(SimpleParameterSet.nameAttribute));
+    }
+    Assertions.assertEquals(List.of(FeatureListPreferencesDtoParameters.rsdSampleTypes.getName(),
+        FeatureListPreferencesDtoParameters.ionTypeRanking.getName()), names);
+  }
+
+  @Test
+  void testIonTypeRankingRoundTrip() throws ParserConfigurationException {
+    // a user defined ranking that differs from the default, with both polarities and both count
+    // directions in the one list
+    final IonTypeRanking ranking = new IonTypeRanking(
+        List.of(IonPartFrequency.of(IonParts.H, 0.9f), IonPartFrequency.of(IonParts.NA, 0.4f),
+            IonPartFrequency.of(IonParts.H_MINUS, 0.8f), IonPartFrequency.of(IonParts.CL, 0.25f)));
+
+    final FeatureListPreferences loaded = saveAndLoad(
+        new FeatureListPreferences(SampleTypeFilter.qc(), ranking));
+
+    Assertions.assertEquals(ranking, loaded.getIonTypeRanking());
+  }
+
+  @Test
+  void testDefaultRankingIsUsedWhenNotSaved() throws ParserConfigurationException {
+    // save regularly, then strip the ranking parameter to simulate a project saved before the
+    // ranking was introduced
+    final Element element = newPreferencesElement();
+    new FeatureListPreferences(SampleTypeFilter.all(), IonTypeRanking.createDefault()).saveToXML(
+        element);
+    final NodeList parameters = element.getElementsByTagName(SimpleParameterSet.parameterElement);
+    for (int i = parameters.getLength() - 1; i >= 0; i--) {
+      final Element parameter = (Element) parameters.item(i);
+      if (FeatureListPreferencesDtoParameters.ionTypeRanking.getName()
+          .equals(parameter.getAttribute(SimpleParameterSet.nameAttribute))) {
+        parameter.getParentNode().removeChild(parameter);
+      }
+    }
+
+    final FeatureListPreferences loaded = FeatureListPreferences.loadFromXML(element);
+    Assertions.assertNotNull(loaded);
+    Assertions.assertEquals(IonTypeRanking.createDefault(), loaded.getIonTypeRanking());
   }
 
   @Test
@@ -121,7 +168,8 @@ class FeatureListPreferencesTest {
     // the dto parameter set holds a static parameter, saving must work on clones only
     final SampleTypeFilter before = FeatureListPreferencesDtoParameters.rsdSampleTypes.getValue();
 
-    saveAndLoad(new FeatureListPreferences(SampleTypeFilter.ofValues("some other group")));
+    saveAndLoad(new FeatureListPreferences(SampleTypeFilter.ofValues("some other group"),
+        IonTypeRanking.createDefault()));
 
     Assertions.assertEquals(before, FeatureListPreferencesDtoParameters.rsdSampleTypes.getValue());
   }
@@ -136,6 +184,65 @@ class FeatureListPreferencesTest {
   void testWrongElementIsNull() throws ParserConfigurationException {
     // guards against loading a different element of the feature list xml
     Assertions.assertNull(FeatureListPreferences.loadFromXML(newElement("something_else")));
+  }
+
+  /**
+   * The module parameters wrap every preference in a {@link DefaultOffCustomParameter}. A fresh
+   * parameter set is on DEFAULT and therefore resolves to the mzmine default.
+   */
+  @Test
+  void testModuleParametersStartOnDefault() {
+    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+
+    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
+        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
+            .getSelectedOption());
+    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
+        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
+            .getSelectedOption());
+    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences());
+  }
+
+  /**
+   * A preference that differs from the mzmine default has to come back as CUSTOM, otherwise the
+   * dialog would silently reset it to the default.
+   */
+  @Test
+  void testModuleParametersUseCustomForNonDefaultValues() {
+    final IonTypeRanking onlySodium = new IonTypeRanking(
+        List.of(IonPartFrequency.of(IonParts.NA, 1f)));
+    final FeatureListPreferences preferences = new FeatureListPreferences(
+        SampleTypeFilter.ofValues("some other group"), onlySodium);
+
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
+        preferences);
+
+    Assertions.assertEquals(DefaultOffCustomOption.CUSTOM,
+        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
+            .getSelectedOption());
+    Assertions.assertEquals(DefaultOffCustomOption.CUSTOM,
+        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
+            .getSelectedOption());
+    // resolving returns the custom values again, this is what the task applies
+    Assertions.assertEquals(preferences, param.toPreferences());
+  }
+
+  /**
+   * Values that still are the mzmine default stay on DEFAULT, so a later change of the mzmine
+   * default is picked up instead of being pinned to the old value.
+   */
+  @Test
+  void testModuleParametersKeepDefaultForDefaultValues() {
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
+        FeatureListPreferences.createDefault());
+
+    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
+        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
+            .getSelectedOption());
+    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
+        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
+            .getSelectedOption());
+    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences());
   }
 
   @Test

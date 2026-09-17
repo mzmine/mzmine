@@ -62,7 +62,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(new ModuleOrderRecommendation(
         "Mass calibration estimates and corrects centroided and noise filtered data",
-        ModuleOrderRule.mustRunAfter(MassDetectionCondition.INSTANCE)));
+        ModuleOrderRule.mustRunAfter(MassDetectionCondition.MSany)));
   }
 
   @Override

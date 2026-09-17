@@ -28,34 +28,38 @@ package io.github.mzmine.modules.batchmode.order;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class MassDetectionConditionTest {
 
-  @Test
-  void standaloneMassDetectionBeforeConsumerSatisfiesCondition() {
-    final BatchQueue queue = queue(step(new MassDetectionModule()), step(massListConsumer()));
-
-    Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
+  private static @NotNull TestSubjectModule massListConsumer() {
+    return new TestSubjectModule(
+        new ModuleOrderRecommendation("The test module requires mass lists",
+            ModuleOrderRule.mustRunAfter(MassDetectionCondition.MSany)));
   }
 
-  @Test
-  void standaloneMassDetectionAfterConsumerViolatesCondition() {
-    final BatchQueue queue = queue(step(massListConsumer()), step(new MassDetectionModule()));
+  private static @NotNull ParameterSet importParameters(final boolean ms1MassDetection,
+      final boolean msnMassDetection) {
+    final AdvancedSpectraImportParameters advanced = new AdvancedSpectraImportParameters();
+    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, ms1MassDetection);
+    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, msnMassDetection);
 
-    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
-
-    Assertions.assertEquals(1, result.issues().size());
-    Assertions.assertEquals(TestSubjectModule.class,
-        queue.get(result.issues().getFirst().stepIndex()).getModule().getClass());
+    final AllSpectralDataImportParameters parameters = new AllSpectralDataImportParameters();
+    parameters.setParameter(AllSpectralDataImportParameters.advancedImport, true);
+    parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
+        .setEmbeddedParameters(advanced);
+    return parameters;
   }
 
   @Test
@@ -96,23 +100,33 @@ class MassDetectionConditionTest {
         importParameters(ms1MassDetection, msnMassDetection)), step(massListConsumer()));
   }
 
-  private static @NotNull TestSubjectModule massListConsumer() {
-    return new TestSubjectModule(
-        new ModuleOrderRecommendation("The test module requires mass lists",
-            ModuleOrderRule.mustRunAfter(MassDetectionCondition.INSTANCE)));
+  private static @NotNull MassDetectionParameters massDetectionParameters(
+      @NotNull final MsLevelFilter msLevelFilter) {
+    final MassDetectionParameters parameters = (MassDetectionParameters) new MassDetectionParameters().cloneParameterSet();
+    parameters.setParameter(MassDetectionParameters.scanSelection,
+        new ScanSelection(msLevelFilter));
+    return parameters;
   }
 
-  private static @NotNull ParameterSet importParameters(final boolean ms1MassDetection,
-      final boolean msnMassDetection) {
-    final AdvancedSpectraImportParameters advanced = new AdvancedSpectraImportParameters();
-    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, ms1MassDetection);
-    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, msnMassDetection);
+  @Test
+  void standaloneMassDetectionBeforeConsumerSatisfiesCondition() {
+    final BatchQueue queue = queue(
+        step(new MassDetectionModule(), massDetectionParameters(MsLevelFilter.ALL_LEVELS)),
+        step(massListConsumer()));
 
-    final AllSpectralDataImportParameters parameters = new AllSpectralDataImportParameters();
-    parameters.setParameter(AllSpectralDataImportParameters.advancedImport, true);
-    parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
-        .setEmbeddedParameters(advanced);
-    return parameters;
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(queue).hasIssues());
+  }
+
+  @Test
+  void standaloneMassDetectionAfterConsumerViolatesCondition() {
+    final BatchQueue queue = queue(step(massListConsumer()),
+        step(new MassDetectionModule(), massDetectionParameters(MsLevelFilter.ALL_LEVELS)));
+
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(queue);
+
+    Assertions.assertEquals(1, result.issues().size());
+    Assertions.assertEquals(TestSubjectModule.class,
+        queue.get(result.issues().getFirst().stepIndex()).getModule().getClass());
   }
 
   private static @NotNull MZmineProcessingStepImpl<MZmineProcessingModule> step(

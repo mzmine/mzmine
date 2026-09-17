@@ -123,7 +123,7 @@ public class IntegrationTests {
     final File csvExportFile = IntegrationTestUtils.loadProjectExportFeatureList(tempDir,
         "rawdatafiles/integration_tests/workshop_dataset/project.mzmine");
 
-    // database name of spectral library matches is not loaded because name usually comes from library
+    // database name of spectral library matches is not loaded because it is from the library
     Assertions.assertEquals(7,
         IntegrationTestUtils.getCsvComparisonResults(expectedResultsFromProcessing, csvExportFile,
             "project_load_lcms").size());

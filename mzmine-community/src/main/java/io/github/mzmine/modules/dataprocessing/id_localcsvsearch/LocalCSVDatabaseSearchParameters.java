@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -188,7 +189,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType<>(false, new Q3QuantMzType().getUniqueID(), new Q3QuantMzType()),//
       new ImportType<>(false, new IupacNameType()), //
       new ImportType<>(false, new CASType()), //
-      new ImportType<>(false, new InternalIdType()));
+      new ImportType<>(false, new InternalIdType()), //
+      new ImportType<>(false, new SynonymsType()) //
+  );
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
