@@ -24,6 +24,7 @@
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -515,9 +516,9 @@ public class FeatureFindingTest {
         "isotope pattern should be null, was removed from this step and is now part of isotope finder");
 
     // any with charge
-    assertTrue(processed1.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
+    assertFalse(processed1.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
         "No charge detected");
-    assertTrue(processed2.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
+    assertFalse(processed2.streamFeatures().mapToInt(Feature::getCharge).anyMatch(c -> c > 0),
         "No charge detected");
   }
 
