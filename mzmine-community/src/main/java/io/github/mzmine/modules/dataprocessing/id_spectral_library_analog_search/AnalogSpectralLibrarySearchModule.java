@@ -90,7 +90,7 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
             "Analog search requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
         new ModuleOrderRecommendation("Annotations are not preserved during alignment",
-            ModuleOrderRule.ifPresentMustRunAfter(
+            ModuleOrderRule.ifPresentShouldRunAfter(
                 ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }
