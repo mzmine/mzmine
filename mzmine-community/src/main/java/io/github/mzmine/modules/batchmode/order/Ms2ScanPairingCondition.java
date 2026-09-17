@@ -29,6 +29,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.parameters.ParameterSet;
@@ -43,15 +44,17 @@ public enum Ms2ScanPairingCondition implements ModuleOrderCondition {
   @Override
   public @NotNull String description() {
     return """
-        MS2 spectra are paired by a feature resolver ("%s" parameter), "%s" module, or "%s" module""".formatted(GeneralResolverParameters.groupMS2Parameters.getName(),
-        GroupMS2Module.MODULE_NAME, DiaMs2CorrModule.NAME);
+        MS2 spectra are paired by a feature resolver ("%s" parameter), "%s" module, or "%s" module""".formatted(
+        GeneralResolverParameters.groupMS2Parameters.getName(), GroupMS2Module.MODULE_NAME,
+        DiaMs2CorrModule.NAME);
   }
 
   @Override
   public boolean matches(
       @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
     return step.getModule() instanceof GroupMS2Module
-        || step.getModule() instanceof DiaMs2CorrModule || hasResolverMs2ScanPairing(step);
+        || step.getModule() instanceof DiaMs2CorrModule || hasResolverMs2ScanPairing(step)
+        || step.getModule() instanceof SpectralDeconvolutionGCModule;
   }
 
   private static boolean hasResolverMs2ScanPairing(@NotNull final MZmineProcessingStep<?> step) {
