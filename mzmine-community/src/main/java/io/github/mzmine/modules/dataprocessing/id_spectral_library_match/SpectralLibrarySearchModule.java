@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,7 +107,7 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
             "Spectral networking requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
         new ModuleOrderRecommendation("Annotations are not preserved during alignment",
-            ModuleOrderRule.ifPresentMustRunAfter(
+            ModuleOrderRule.ifPresentShouldRunAfter(
                 ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 }
