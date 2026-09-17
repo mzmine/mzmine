@@ -236,4 +236,7 @@ public sealed interface IonNetwork permits BuildingIonNetwork, SimpleIonNetwork 
       node.ion().setNetwork(null);
     }
   }
+
+  /// @return the lowest row ID or -1 if empty network
+  int getLowestID();
 }

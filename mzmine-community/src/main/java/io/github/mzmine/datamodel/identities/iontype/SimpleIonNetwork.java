@@ -96,6 +96,14 @@ public final class SimpleIonNetwork implements IonNetwork {
   }
 
   @Override
+  public int getLowestID() {
+    if (nodes.isEmpty()) {
+      return -1;
+    }
+    return nodes.getFirst().row().getID();
+  }
+
+  @Override
   public @NotNull List<ResultFormula> getMolFormulas() {
     return Collections.unmodifiableList(molFormulas);
   }

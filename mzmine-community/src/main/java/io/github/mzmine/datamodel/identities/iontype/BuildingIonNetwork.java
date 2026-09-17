@@ -42,6 +42,7 @@ public final class BuildingIonNetwork implements IonNetwork {
   private final @NotNull List<IonNetworkNode> nodes = new ArrayList<>();
   private final @NotNull List<ResultFormula> molFormulas = new ArrayList<>();
   private int id;
+  private int lowestID = -1;
   // kept in sync with the nodes so that repeated ion library searches do not recompute it
   private double neutralMass;
 
@@ -60,6 +61,7 @@ public final class BuildingIonNetwork implements IonNetwork {
   public BuildingIonNetwork(@NotNull final IonNetwork network) {
     this.id = network.getID();
     nodes.addAll(network.getNodes());
+    lowestID = nodes.stream().mapToInt(value -> value.row().getID()).min().orElse(-1);
     molFormulas.addAll(network.getMolFormulas());
     updateNeutralMass();
   }
@@ -95,6 +97,9 @@ public final class BuildingIonNetwork implements IonNetwork {
       @NotNull final IonIdentity ion) {
     removeNode(row);
     nodes.add(new IonNetworkNode(row, ion));
+    if (row.getID() < lowestID || lowestID == -1) {
+      lowestID = row.getID();
+    }
     ion.setNetwork(this);
     updateNeutralMass();
     return ion;
@@ -113,6 +118,9 @@ public final class BuildingIonNetwork implements IonNetwork {
       }
       return false;
     });
+    if (row.getID() <= lowestID) {
+      lowestID = nodes.stream().mapToInt(value -> value.row().getID()).min().orElse(-1);
+    }
   }
 
   /**
@@ -125,12 +133,16 @@ public final class BuildingIonNetwork implements IonNetwork {
 
     for (final IonNetworkNode node : other.getNodes()) {
       node.ion().setNetwork(this);
+      if (node.row().getID() < lowestID || lowestID == -1) {
+        lowestID = node.row().getID();
+      }
     }
     updateNeutralMass();
   }
 
   public void clear() {
     nodes.clear();
+    lowestID = -1;
     updateNeutralMass();
   }
 
@@ -161,6 +173,11 @@ public final class BuildingIonNetwork implements IonNetwork {
   @Override
   public double getNeutralMass() {
     return neutralMass;
+  }
+
+  @Override
+  public int getLowestID() {
+    return lowestID;
   }
 
   @Override
