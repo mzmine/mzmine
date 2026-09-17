@@ -244,15 +244,15 @@ public class DiaMs2RtCorrTask extends AbstractTaskSubProcessor {
     }
 
     PseudoSpectrum mostIntense = correlatedMs2s.stream()
-        .max(Comparator.comparing(ps -> Objects.requireNonNullElse(ps.getTIC(), 0d))).orElse(null);
+        .max(Comparator.comparing(PseudoSpectrum::getTIC)).orElse(null);
     if (mostIntense == null) {
       return null;
     }
 
     // only compare ions with other spectra that have at least 25% of the tic of the most intense
-    final double minTic = Objects.requireNonNullElse(mostIntense.getTIC(), 0d) * 0.25;
+    final double minTic = mostIntense.getTIC() * 0.25;
     final List<@NotNull PseudoSpectrum> minTicSpectra = correlatedMs2s.stream()
-        .filter(ms2 -> Objects.requireNonNullElse(ms2.getTIC(), 0d) >= minTic).toList();
+        .filter(ms2 -> ms2.getTIC() >= minTic).toList();
 
     DoubleArrayList mzs = new DoubleArrayList();
     DoubleArrayList intensities = new DoubleArrayList();

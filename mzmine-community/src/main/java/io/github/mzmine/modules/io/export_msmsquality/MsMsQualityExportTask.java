@@ -278,7 +278,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       score = new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
-    final Double tic = msmsScan.getTIC();
+    final double tic = msmsScan.getTIC();
     final Double bpi = msmsScan.getBasePeakIntensity();
     final List<String> spotNames = getSpotNames(mergedMsMs);
     final IonTimeSeries<? extends Scan> eic = feature.getFeatureData();
