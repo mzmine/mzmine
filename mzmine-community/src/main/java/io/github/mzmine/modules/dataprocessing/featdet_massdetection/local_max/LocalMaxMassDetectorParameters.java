@@ -55,7 +55,9 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
       LocalMaxSmoothingOptions.GAUSSIAN);
 
   public LocalMaxMassDetectorParameters() {
-    super(noiseLevel, minNumberOfDp, intensityCalculation, smoothing);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#local-maxima",
+        noiseLevel, minNumberOfDp, intensityCalculation, smoothing);
   }
 
   public static LocalMaxMassDetectorParameters create(final double noiseLevel,
