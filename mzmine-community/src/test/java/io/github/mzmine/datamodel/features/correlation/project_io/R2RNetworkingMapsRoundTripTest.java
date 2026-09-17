@@ -131,7 +131,7 @@ class R2RNetworkingMapsRoundTripTest {
       final R2RMap<RowsRelationship> loadedMap = loaded.getRowsMaps().get(typeKey);
       assertNotNull(loadedMap, "Missing map for " + typeKey);
       assertEquals(origMap.size(), loadedMap.size(), "Edge count mismatch for " + typeKey);
-      for (final Integer key : origMap.keySet()) {
+      for (final Long key : origMap.keySet()) {
         assertTrue(loadedMap.containsKey(key), "Missing edge key in " + typeKey);
         assertEquals(origMap.get(key).getClass(), loadedMap.get(key).getClass(),
             "Concrete class mismatch for " + typeKey);

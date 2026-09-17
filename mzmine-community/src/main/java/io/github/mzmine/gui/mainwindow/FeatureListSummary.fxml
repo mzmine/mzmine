@@ -68,6 +68,7 @@
            <ButtonBar GridPane.columnIndex="1" GridPane.rowIndex="4">
            <buttons>
             <Button fx:id="btnOpenInBatchQueue" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setAsBatchQueue" text="Open in batch queue"/>
+            <Button fx:id="btnSetPreferences" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setFeatureListPreferences" text="Set list preferences"/>
             <Button fx:id="exportfeature" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#exportRecord" text="Export"/>
            </buttons>
            </ButtonBar>

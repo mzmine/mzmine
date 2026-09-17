@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -36,6 +37,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
 import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.tools.PlaceholderModule;
 import io.github.mzmine.parameters.Parameter;
@@ -93,7 +95,12 @@ public class FeatureListSummaryController {
   @FXML
   public Button btnOpenInBatchQueue;
   @FXML
+  public Button btnSetPreferences;
+  @FXML
   public Button exportfeature;
+
+  /// the feature list this summary shows, null while a raw data file is shown
+  private @Nullable ModularFeatureList featureList;
 
   public static String parameterToString(Parameter<?> parameter, @Nullable String prefix) {
     String name = parameter.getName();
@@ -128,6 +135,10 @@ public class FeatureListSummaryController {
 
   @FXML
   public void initialize() {
+    // enabled as soon as a feature list is shown, see setFeatureList
+    btnSetPreferences.setDisable(true);
+    btnSetPreferences.visibleProperty().bind(btnSetPreferences.disabledProperty().not());
+    FxLayout.bindManagedToVisible(btnSetPreferences);
 
     lvAppliedMethods.getSelectionModel().selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> {
@@ -155,6 +166,8 @@ public class FeatureListSummaryController {
       return;
     }
 
+    this.featureList = featureList;
+    btnSetPreferences.setDisable(false);
     lbFeatureListName.setText(featureList.getName());
     tfNumRows.setText(String.valueOf(featureList.getNumberOfRows()));
     tfNumAnnotated.setText(String.valueOf(countAnnotatedRows(featureList)));
@@ -182,7 +195,22 @@ public class FeatureListSummaryController {
     lvAppliedMethods.setItems(file.getAppliedMethods());
   }
 
+  /**
+   * Opens the same setup dialog as the feature list context menu, preloaded with the preferences of
+   * the shown feature list.
+   */
+  @FXML
+  void setFeatureListPreferences() {
+    if (featureList == null) {
+      return;
+    }
+    FeatureListPreferencesModule.showSetupAndApply(List.of(featureList));
+  }
+
   public void clear() {
+    // preferences only apply to a feature list, not to a raw data file summary
+    featureList = null;
+    btnSetPreferences.setDisable(true);
     lbFeatureListName.setText("None selected");
     tfNumRows.setText("");
     tfNumAnnotated.setText("");

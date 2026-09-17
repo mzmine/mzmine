@@ -47,6 +47,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardTab;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
@@ -181,6 +182,8 @@ public class MainWindowController {
   public MenuItem openFeatureListMenuItem;
   @FXML
   public MenuItem showFeatureListSummaryMenuItem;
+  @FXML
+  public MenuItem setFeatureListPreferencesMenuItem;
   @FXML
   public MenuItem featureListsRenameMenuItem;
   @FXML
@@ -840,6 +843,10 @@ public class MainWindowController {
         e.printStackTrace();
       }
     }
+  }
+
+  public void handleSetFeatureListPreferences(Event event) {
+    FeatureListPreferencesModule.showSetupAndApply(featureListsList.getSelectedItems());
   }
 
   public void handleShowFileSummary(Event event) {

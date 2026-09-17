@@ -415,6 +415,16 @@ public class IonNetwork implements Comparable<IonNetwork> {
   }
 
   /**
+   * The lowest row ID of all rows in this network. Rows IDs are unique within a feature list, so
+   * this identifies a network independent of its mutable network ID.
+   *
+   * @return the lowest row ID or -1 if this network is empty
+   */
+  public int getLowestID() {
+    return lowestID;
+  }
+
+  /**
    * row has smallest id?
    *
    * @param row

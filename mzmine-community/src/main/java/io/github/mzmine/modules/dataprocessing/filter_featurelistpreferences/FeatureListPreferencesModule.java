@@ -27,12 +27,17 @@ package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,5 +55,30 @@ public class FeatureListPreferencesModule extends TaskPerFeatureListModule {
       @NotNull FeatureList featureList) {
     return new FeatureListPreferencesTask(storage, moduleCallDate,
         (FeatureListPreferencesParameters) parameters, this.getClass(), featureList);
+  }
+
+  /**
+   * Opens the parameter setup dialog preloaded with the preferences of the first feature list and
+   * applies the result to all of them. Called from the feature list context menu and from the
+   * feature list summary.
+   *
+   * @param featureLists the feature lists to redefine, nothing happens if empty
+   */
+  public static void showSetupAndApply(@NotNull final List<? extends FeatureList> featureLists) {
+    final List<ModularFeatureList> modular = featureLists.stream()
+        .filter(ModularFeatureList.class::isInstance).map(ModularFeatureList.class::cast).distinct()
+        .toList();
+    if (modular.isEmpty()) {
+      return;
+    }
+
+    // the dialog starts on the preferences that are currently in effect for the first list
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
+        modular.getFirst().getPreferences());
+    param.setParameter(FeatureListPreferencesParameters.flists, new FeatureListsSelection(modular));
+
+    if (param.showSetupDialog(true) == ExitCode.OK) {
+      MZmineCore.runMZmineModule(FeatureListPreferencesModule.class, param);
+    }
   }
 }
