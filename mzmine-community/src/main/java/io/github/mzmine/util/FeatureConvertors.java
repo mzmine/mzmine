@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -248,18 +248,7 @@ public class FeatureConvertors {
     //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }
+    QualityParameters.calculateAndSetQualityParameters(modularFeature);
 
     return modularFeature;
   }

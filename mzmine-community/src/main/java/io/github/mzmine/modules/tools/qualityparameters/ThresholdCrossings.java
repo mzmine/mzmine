@@ -25,38 +25,45 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
- * The x values (retention time or mobility) at which a peak crosses a given intensity threshold.
- * The crossings are searched from the outer edges of the peak inwards towards the apex, see
- * {@link QualityParameters#findThresholdCrossings(double, double[], double[])}.
+ * The x values (retention time or mobility) at which a peak crosses the intensity thresholds of all
+ * peak shape quality parameters. All of them are collected in a single pass over the peak, see
+ * {@link QualityParameters#findThresholdCrossings(float[], double[])}.
  * <p>
- * A side that never drops below the threshold within the data has no crossing. The edge and
+ * The crossings are searched from the outer edges of the peak inwards towards the apex. A side that
+ * never drops below a threshold within the data has no crossing at that threshold. The edge and
  * extrapolated values are provided so that callers can apply their own fallback for such sides.
+ * <p>
+ * decision: a crossing that does not exist is null rather than NaN. A primitive field is therefore
+ * one that always has a value, and a missing one cannot silently travel through arithmetic.
  *
- * @param apexX              x value of the most intense data point
- * @param leftX              crossing left of the apex, NaN if the peak never drops below the
- *                           threshold on the left
- * @param rightX             crossing right of the apex, NaN if the peak never drops below the
- *                           threshold on the right
- * @param leftEdgeX          x value of the first data point, i.e. the width that was actually
- *                           observed on the left
- * @param rightEdgeX         x value of the last data point, i.e. the width that was actually
- *                           observed on the right
- * @param leftExtrapolatedX  estimated crossing of the left flank if the peak were not cut off,
- *                           from a least squares fit over that flank and capped at a multiple of
- *                           the observed half width, NaN if the flank does not rise towards the
- *                           apex
- * @param rightExtrapolatedX same as {@code leftExtrapolatedX} for the right flank
+ * @param apexX                x value of the most intense data point
+ * @param firstX               x value of the first data point, i.e. the width that was actually
+ *                             observed on the left
+ * @param lastX                x value of the last data point, i.e. the width that was actually
+ *                             observed on the right
+ * @param leftX50              crossing of 50 % of the apex intensity left of the apex, null if the
+ *                             peak never drops that low on the left
+ * @param rightX50             same as {@code leftX50} right of the apex
+ * @param leftX10              crossing of 10 % of the apex intensity left of the apex, null if the
+ *                             peak never drops that low on the left
+ * @param rightX10             same as {@code leftX10} right of the apex
+ * @param leftX5               crossing of 5 % of the apex intensity left of the apex, null if the
+ *                             peak never drops that low on the left
+ * @param rightX5              same as {@code leftX5} right of the apex
+ * @param leftExtrapolatedX50  estimated crossing of 50 % of the apex intensity on the left flank if
+ *                             the peak were not cut off, from a least squares fit over that flank
+ *                             and capped at a multiple of the observed half width, null if the
+ *                             flank is too flat or does not rise towards the apex. Only the FWHM
+ *                             extrapolates, so the lower thresholds carry no such estimate.
+ * @param rightExtrapolatedX50 same as {@code leftExtrapolatedX50} for the right flank
  */
-public record ThresholdCrossings(double apexX, double leftX, double rightX, double leftEdgeX,
-                                 double rightEdgeX, double leftExtrapolatedX,
-                                 double rightExtrapolatedX) {
+public record ThresholdCrossings(float apexX, float firstX, float lastX, @Nullable Float leftX50,
+                                 @Nullable Float rightX50, @Nullable Float leftX10,
+                                 @Nullable Float rightX10, @Nullable Float leftX5,
+                                 @Nullable Float rightX5, @Nullable Float leftExtrapolatedX50,
+                                 @Nullable Float rightExtrapolatedX50) {
 
-  public boolean hasLeftCrossing() {
-    return !Double.isNaN(leftX);
-  }
-
-  public boolean hasRightCrossing() {
-    return !Double.isNaN(rightX);
-  }
 }

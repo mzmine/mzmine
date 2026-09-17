@@ -36,29 +36,37 @@ import org.junit.jupiter.api.Test;
  */
 class QualityParametersTest {
 
-  private static final double EPS = 1e-6;
+  /**
+   * the results are floats, so the tolerance has to stay above the float precision of the widest
+   * trace used here
+   */
+  private static final double EPS = 1e-5;
 
   /**
    * @return x values 0, 1, 2, ... matching the length of the intensities
    */
-  private static double[] x(final double[] intensities) {
-    final double[] x = new double[intensities.length];
+  private static float[] x(final double[] intensities) {
+    final float[] x = new float[intensities.length];
     for (int i = 0; i < x.length; i++) {
       x[i] = i;
     }
     return x;
   }
 
-  private static double fwhm(final double[] intensities) {
-    return QualityParameters.calculateFWHM(x(intensities), intensities);
+  private static PeakQuality quality(final double[] intensities) {
+    return QualityParameters.calculateQualityParameters(x(intensities), intensities);
   }
 
-  private static double tailingFactor(final double[] intensities) {
-    return QualityParameters.calculateTailingFactor(x(intensities), intensities);
+  private static Float fwhm(final double[] intensities) {
+    return quality(intensities).fwhm();
   }
 
-  private static double asymmetryFactor(final double[] intensities) {
-    return QualityParameters.calculateAsymmetryFactor(x(intensities), intensities);
+  private static Float tailingFactor(final double[] intensities) {
+    return quality(intensities).tailing();
+  }
+
+  private static Float asymmetryFactor(final double[] intensities) {
+    return quality(intensities).asymmetry();
   }
 
   @Test
@@ -144,8 +152,8 @@ class QualityParametersTest {
         {60, 61, 62, 100, 50, 20, 5}};
     for (final double[] trace : traces) {
       final double observedRange = trace.length - 1.0;
-      final double width = fwhm(trace);
-      Assertions.assertFalse(Double.isNaN(width), "no width for a usable trace");
+      final Float width = fwhm(trace);
+      Assertions.assertNotNull(width, "no width for a usable trace");
       Assertions.assertTrue(width <= 2 * observedRange + EPS,
           "width %s exceeds twice the observed range %s".formatted(width, observedRange));
     }
@@ -213,13 +221,17 @@ class QualityParametersTest {
   }
 
   @Test
-  @DisplayName("traces without a usable shape return NaN")
+  @DisplayName("traces without a usable shape return null")
   void testDegenerateTraces() {
-    Assertions.assertTrue(
-        Double.isNaN(QualityParameters.calculateFWHM(new double[]{0, 1}, new double[]{100, 50})));
-    Assertions.assertTrue(Double.isNaN(fwhm(new double[]{0, 0, 0, 0})));
-    Assertions.assertTrue(
-        Double.isNaN(QualityParameters.calculateFWHM(new double[]{0, 1, 2}, new double[]{0, 100})));
+    // too few data points and no intensity at all
+    Assertions.assertNull(
+        QualityParameters.calculateQualityParameters(new float[]{0, 1}, new double[]{100, 50})
+            .fwhm());
+    Assertions.assertNull(fwhm(new double[]{0, 0, 0, 0}));
+    // x and intensities of different length is a programming error, not a degenerate peak
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> QualityParameters.calculateQualityParameters(new float[]{0, 1, 2},
+            new double[]{0, 100}));
   }
 
   @Test
@@ -241,12 +253,12 @@ class QualityParametersTest {
   }
 
   @Test
-  @DisplayName("tailing and asymmetry factor are NaN when a flank is cut off")
-  void testCutOffFlankGivesNaNForTailingAndAsymmetry() {
+  @DisplayName("tailing and asymmetry factor are null when a flank is cut off")
+  void testCutOffFlankGivesNullForTailingAndAsymmetry() {
     // the left flank never drops to 5 % or 10 % of the apex
     final double[] cutOffLeft = {60, 80, 100, 50, 5, 0, 0};
-    Assertions.assertTrue(Double.isNaN(tailingFactor(cutOffLeft)));
-    Assertions.assertTrue(Double.isNaN(asymmetryFactor(cutOffLeft)));
+    Assertions.assertNull(tailingFactor(cutOffLeft));
+    Assertions.assertNull(asymmetryFactor(cutOffLeft));
     // the FWHM is still reported because the missing flank is mirrored
     Assertions.assertEquals(3.0, fwhm(cutOffLeft), EPS);
   }
