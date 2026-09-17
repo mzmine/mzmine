@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.util.collections.BinarySearch;
 import java.util.Arrays;
@@ -114,7 +115,8 @@ public interface MassSpectrum extends Iterable<DataPoint> {
   @Nullable Range<Double> getDataPointMZRange();
 
   /**
-   * @return The sum of intensities of all data points or null if the spectrum has 0 data points.
+   * @return The sum of intensities of all data points.
+   * 0 or null if the spectrum has no data points.
    */
   @Nullable Double getTIC();
 

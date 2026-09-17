@@ -216,14 +216,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   @Override
   public @Nullable Double getTIC() {
-    if (tic != null) {
-      return tic;
-    }
     if (intensityValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
     }
-    tic = Arrays.stream(getIntensityValues(new double[getNumberOfDataPoints()])).sum();
     return tic;
   }
 
@@ -647,6 +643,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
         this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
             specData.intensities());
+        this.tic = Arrays.stream(specData.intensities()).sum();
       }
 
     } catch (MSDKException | IOException e) {
@@ -798,6 +795,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       this.wavelengthValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
       this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
           specData.intensities());
+      this.tic = Arrays.stream(specData.intensities()).sum();
 
     } catch (MSDKException | IOException e) {
       logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));

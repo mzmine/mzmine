@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.correlation.InternalTypedRowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -379,7 +380,9 @@ public class FeatureNetworkGenerator {
   }
 
   private void addMS2SimEdges(Node a, Node b, RowsRelationship sim, double dmz) {
-    EdgeType type = EdgeType.of(sim.getType());
+    EdgeType type = (sim instanceof InternalTypedRowsRelationship typedSim) ?
+        EdgeType.of(typedSim.getInternalType()) : EdgeType.of(sim.getType());
+
     double score = sim.getScore();
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
