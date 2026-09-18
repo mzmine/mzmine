@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -121,7 +121,7 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
 
       entries.add(
           new FeatureIntegrationData(file, feature != null ? feature.getFeatureData() : null,
-              chromatogram, additionalData));
+              chromatogram, additionalData, mzRange));
       processed++;
     }
   }
@@ -141,7 +141,7 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
       return IonTimeSeries.EMPTY;
     }
 
-    if (file instanceof IMSRawDataFile ims && (FeatureUtils.isMrm(feature))) {
+    if (file instanceof IMSRawDataFile ims) {
       final int previousBinningWith = BinningMobilogramDataAccess.getPreviousBinningWidth(flist,
           ims.getMobilityType());
       var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
