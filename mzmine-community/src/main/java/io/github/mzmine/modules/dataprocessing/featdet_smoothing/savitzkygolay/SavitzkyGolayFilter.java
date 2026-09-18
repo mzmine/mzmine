@@ -145,9 +145,10 @@ public class SavitzkyGolayFilter {
    * @param weights the filter weights.
    * @param out     the output buffer (must be at least {@code to} long, may be the same length as
    *                {@code in}).
+   * @param neverBelowZero if true, output will never be below zero
    */
   public static void convolve(final double[] in, final int from, final int to,
-      final double[] weights, final double[] out) {
+      final double[] weights, final double[] out, boolean neverBelowZero) {
 
     final int fullWidth = weights.length;
     final int halfWidth = (fullWidth - 1) / 2;
@@ -167,6 +168,10 @@ public class SavitzkyGolayFilter {
       }
 
       out[i] = sum;
+      if (neverBelowZero) {
+        out[i] = Math.max(out[i], 0.0);
+      }
+
     }
   }
 
