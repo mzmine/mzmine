@@ -48,6 +48,7 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ExtraColumnHand
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -604,6 +605,37 @@ public class CSVParsingUtils {
         .withIgnoreQuotations(true).build()
         : new RFC4180ParserBuilder().withSeparator(separator).build();
     return new CSVReaderBuilder(reader).withCSVParser(parser).build();
+  }
+
+  /**
+   * Reader that parses by the rules of RFC4180, so quoted fields may contain the separator and line
+   * breaks.
+   *
+   * @param separator column separator
+   */
+  public static @NotNull CSVReader createDefaultReader(final Reader reader, final char separator) {
+    return createCsvReader(reader, separator, false);
+  }
+
+  /**
+   * Reader for a file of unknown encoding, see {@link CharsetUtils#newBufferedReader(File)}.
+   * Closing the returned reader closes the file.
+   *
+   * @param separator column separator, {@link FieldSeparator#AUTO} is determined by
+   *                  {@link #autoDetermineSeparatorDefaultFallback(File)}
+   */
+  public static @NotNull CSVReader createDefaultReader(final File file,
+      final FieldSeparator separator) throws IOException {
+    final char sep = separator.isAuto() ? autoDetermineSeparatorDefaultFallback(file)
+        : separator.separatorChar();
+
+    final Reader reader = CharsetUtils.newBufferedReader(file);
+    try {
+      return createDefaultReader(reader, sep);
+    } catch (RuntimeException e) {
+      reader.close();
+      throw e;
+    }
   }
 
   public static String[][] readDataMapToColumns(final File file, final String sep)
