@@ -548,33 +548,6 @@ public class CompoundAnnotationUtils {
   }
 
   /**
-   * Sorts annotations of a single row by descending confidence (the AQS of
-   * {@link AnnotationSummary}) as defined by {@link FeatureList#getAnnotationSortConfig()}. Use
-   * this after appending new annotations to a row so that the complete list - previous and new
-   * annotations - is ranked consistently.
-   *
-   * @param row         the row the annotations belong to, needed to score them
-   * @param annotations annotations of this row, the input list is left untouched
-   * @return a new mutable list sorted best first
-   */
-  @SuppressWarnings("unchecked")
-  public static <T extends FeatureAnnotation> @NotNull List<T> sortByDescendingConfidence(
-      @NotNull final FeatureListRow row, @NotNull final List<T> annotations) {
-    if (annotations.size() < 2) {
-      // nothing to order, skip scoring the single annotation
-      return new ArrayList<>(annotations);
-    }
-
-    final Comparator<@Nullable AnnotationSummary> sorter = row.getFeatureList()
-        .getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
-    // decorate-sort-undecorate: an AnnotationSummary caches its scores, so each annotation is
-    // scored once instead of on every comparison
-    return annotations.stream().map(a -> AnnotationSummary.of(row, a)).sorted(sorter)
-        // annotation is never null here because the input annotations are not null
-        .map(summary -> (T) summary.annotation()).collect(Collectors.toCollection(ArrayList::new));
-  }
-
-  /**
    * @param includeUnannotated if false, not annotated rows are dropped in the returned stream.
    * @return A stream of the highest ranked {@link AnnotationSummary}s per row.
    */

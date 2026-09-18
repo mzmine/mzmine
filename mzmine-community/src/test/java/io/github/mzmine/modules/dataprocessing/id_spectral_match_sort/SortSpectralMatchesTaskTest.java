@@ -29,9 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -40,32 +38,27 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.List;
 import javafx.scene.paint.Color;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests that {@link SortSpectralMatchesTask#sortIdentities} ranks the complete list of a row by the
- * annotation quality score (AQS) of the feature list's annotation sorter, not by the raw spectral
- * similarity score.
+ * Tests that {@link SortSpectralMatchesTask#sortIdentities} ranks the complete list of a row by
+ * similarity score, also for matches that were already on the row before the last search.
  */
 class SortSpectralMatchesTaskTest {
 
   private static final double ROW_MZ = 300.1234;
-  private static final float ROW_RT = 5f;
 
-  private ModularFeatureList flist;
   private ModularFeatureListRow row;
 
-  private static SpectralDBAnnotation match(final double cosine, @Nullable final Float libraryRt) {
+  private static SpectralDBAnnotation match(final double cosine) {
     final SpectralLibraryEntry entry = new SpectralDBEntry(null, new double[]{100d, 200d},
         new double[]{1d, 1d});
-    entry.putIfNotNull(DBEntryField.NAME, "cosine " + cosine + " rt " + libraryRt);
+    entry.putIfNotNull(DBEntryField.NAME, "cosine " + cosine);
     entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, ROW_MZ);
-    entry.putIfNotNull(DBEntryField.RT, libraryRt);
 
     return new SpectralDBAnnotation(entry, new SpectralSimilarity("test", cosine, 2, 1d), null,
-        null, ROW_MZ, ROW_RT, null);
+        null, ROW_MZ, null, null);
   }
 
   private static List<String> names(final List<SpectralDBAnnotation> matches) {
@@ -74,55 +67,47 @@ class SortSpectralMatchesTaskTest {
 
   @BeforeEach
   void setUp() {
-    flist = new ModularFeatureList("flist", null,
+    final ModularFeatureList flist = new ModularFeatureList("flist", null,
         new RawDataFileImpl("file", null, null, Color.BLACK));
-    // RT needs to be a row type, otherwise the RT score is inactive for the whole feature list
-    flist.addRowType(DataTypes.get(MZType.class), DataTypes.get(RTType.class));
-
     row = new ModularFeatureListRow(flist, 1);
     row.set(MZType.class, ROW_MZ);
-    row.set(RTType.class, ROW_RT);
     flist.addRow(row);
   }
 
   @Test
   void sortsCompleteListAfterNewMatchesWereAppended() {
-    final SpectralDBAnnotation weak = match(0.30, null);
-    final SpectralDBAnnotation strongNoRt = match(0.90, null);
-    final SpectralDBAnnotation rtMatch = match(0.50, ROW_RT);
+    final SpectralDBAnnotation strong = match(0.90);
+    final SpectralDBAnnotation medium = match(0.50);
+    final SpectralDBAnnotation weak = match(0.30);
 
-    // a previous search already annotated the row
-    row.addSpectralLibraryMatches(List.of(weak));
-    // a second search appends more matches at the end of the list
-    row.addSpectralLibraryMatches(List.of(strongNoRt, rtMatch));
+    // a previous search already annotated the row with the best match of all
+    row.addSpectralLibraryMatches(List.of(strong));
+    // a second search appends weaker matches at the end of the list
+    row.addSpectralLibraryMatches(List.of(weak, medium));
 
     SortSpectralMatchesTask.sortIdentities(row);
 
-    // the RT match wins although its cosine is the lowest of the two new matches, and the old
-    // weak match is pushed to the end - so the whole list was ranked, not only the new matches
-    assertEquals(names(List.of(rtMatch, strongNoRt, weak)), names(row.getSpectralLibraryMatches()));
+    // the new matches are ranked against the previous one, not only among themselves
+    assertEquals(names(List.of(strong, medium, weak)), names(row.getSpectralLibraryMatches()));
   }
 
   @Test
   void filtersByMinSimilarityAndKeepsListSorted() {
-    final SpectralDBAnnotation weak = match(0.30, null);
-    final SpectralDBAnnotation strongNoRt = match(0.90, null);
-    final SpectralDBAnnotation rtMatch = match(0.50, ROW_RT);
-    row.addSpectralLibraryMatches(List.of(weak, strongNoRt, rtMatch));
+    row.addSpectralLibraryMatches(List.of(match(0.30), match(0.90), match(0.50)));
 
     SortSpectralMatchesTask.sortIdentities(row, true, 0.4);
 
-    assertEquals(names(List.of(rtMatch, strongNoRt)), names(row.getSpectralLibraryMatches()));
+    assertEquals(names(List.of(match(0.90), match(0.50))), names(row.getSpectralLibraryMatches()));
   }
 
   @Test
   void sortedListStaysMutableForFollowingSearches() {
-    row.addSpectralLibraryMatches(List.of(match(0.30, null)));
+    row.addSpectralLibraryMatches(List.of(match(0.30)));
     SortSpectralMatchesTask.sortIdentities(row);
 
     // appending to a row modifies the stored list in place, so sorting must not store an
     // immutable list
-    row.addSpectralLibraryMatches(List.of(match(0.90, null)));
+    row.addSpectralLibraryMatches(List.of(match(0.90)));
     assertEquals(2, row.getSpectralLibraryMatches().size());
   }
 }

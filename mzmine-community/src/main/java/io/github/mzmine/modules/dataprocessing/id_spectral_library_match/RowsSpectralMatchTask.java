@@ -446,7 +446,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * Match row against all entries, add matches, sort all matches of the row by AQS
+   * Match row against all entries, add matches, sort all matches of the row by score
    *
    * @param entries combined library entries
    * @param row     target row
@@ -521,7 +521,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         }
       }
 
-      // add new identities and re-rank all matches of this row based on AQS, previous searches included
+      // add new identities and re-sort all matches of this row, previous searches included
       if (ids != null) {
         addIdentities(row, ids);
         SortSpectralMatchesTask.sortIdentities(row);
