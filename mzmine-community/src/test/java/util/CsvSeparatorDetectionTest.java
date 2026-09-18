@@ -41,6 +41,8 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Auto detection of the column separator and of the file encoding in
@@ -237,5 +239,69 @@ public class CsvSeparatorDetectionTest {
     final List<String[]> rows = CSVParsingUtils.readData(file, ",");
     assertEquals(3, rows.size());
     assertArrayEquals(new String[]{"Glucose", "ok"}, rows.getLast());
+  }
+
+  /**
+   * Every candidate separator occurs in the values, but only inside quoted fields. The quotes must
+   * hide them from the detection, whichever of them is the real separator.
+   */
+  @ParameterizedTest
+  @ValueSource(chars = {',', ';', '\t', '|'})
+  void testAllSeparatorsInsideQuotedValues(char separator) throws IOException, CsvException {
+    final String sep = String.valueOf(separator);
+    final String value = "a, b; c\td|e";
+    final String content = String.join("\n", //
+        "name" + sep + "note" + sep + "rt", //
+        "Caffeine" + sep + inQuotes(value) + sep + "3.2", //
+        "Glucose" + sep + inQuotes(value) + sep + "1.1", //
+        "Sucrose" + sep + inQuotes(value) + sep + "4.7") + "\n";
+
+    // named .csv on purpose, the extension must not decide this
+    final File file = write("quoted-%d.csv".formatted((int) separator), content);
+
+    assertEquals(separator, CSVParsingUtils.autoDetermineSeparator(file));
+
+    final List<String[]> rows = CSVParsingUtils.readDataAutoSeparator(file);
+    assertEquals(4, rows.size());
+    assertArrayEquals(new String[]{"Caffeine", value, "3.2"}, rows.get(1));
+  }
+
+  @Test
+  void testDecoySeparatorOnEveryLine() throws IOException, CsvException {
+    // the semicolon is not quoted and splits every line into the same number of columns, just like
+    // the tab. Of two equally consistent separators the one with more columns wins
+    final File file = write("decoy.csv", """
+        name\tnote; unit\trt
+        Caffeine\t25 °C; dry\t3.2
+        Glucose\t30 °C; wet\t1.1
+        """);
+
+    assertEquals('\t', CSVParsingUtils.autoDetermineSeparator(file));
+
+    final List<String[]> rows = CSVParsingUtils.readDataAutoSeparator(file);
+    assertArrayEquals(new String[]{"Caffeine", "25 °C; dry", "3.2"}, rows.get(1));
+  }
+
+  @Test
+  void testQuotedValuesHideAMoreFrequentSeparator() throws IOException, CsvException {
+    // the values contain more commas than the file has semicolons, but all of them are quoted, so
+    // the comma does not split anything and is not even a candidate
+    final File file = write("hidden.csv", """
+        name;note
+        Caffeine;"1,2,3,4,5"
+        Glucose;"6,7,8,9,0"
+        """);
+
+    assertEquals(';', CSVParsingUtils.autoDetermineSeparator(file));
+
+    final List<String[]> rows = CSVParsingUtils.readDataAutoSeparator(file);
+    assertArrayEquals(new String[]{"Caffeine", "1,2,3,4,5"}, rows.get(1));
+  }
+
+  /**
+   * @return the value in quotes, as a tool would write a field that contains a separator
+   */
+  private static String inQuotes(final String value) {
+    return "\"" + value + "\"";
   }
 }
