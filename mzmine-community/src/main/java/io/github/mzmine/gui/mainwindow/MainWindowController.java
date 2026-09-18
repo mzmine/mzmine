@@ -112,7 +112,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -824,24 +823,11 @@ public class MainWindowController {
   }
 
   public void handleShowFeatureListSummary(Event event) {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
-
     List<FeatureList> selectedValues = featureListsList.getSelectedItems();
     for (FeatureList selectedValue : selectedValues) {
-      try {
-        AnchorPane pane = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("Feature list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
-        stage.setScene(new Scene(pane));
-        stage.getScene().getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-        FeatureListSummaryController controller = loader.getController();
-        controller.setFeatureList((ModularFeatureList) selectedValue);
-        stage.show();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      final FeatureListSummaryController controller = new FeatureListSummaryController();
+      controller.setFeatureList((ModularFeatureList) selectedValue);
+      showSummaryStage("Feature list summary - " + selectedValue.getName(), controller.buildView());
     }
   }
 
@@ -850,25 +836,22 @@ public class MainWindowController {
   }
 
   public void handleShowFileSummary(Event event) {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
-
     List<RawDataFile> selectedValues = getRawDataList().getSelectedItems();
     for (RawDataFile selectedValue : selectedValues) {
-      try {
-        AnchorPane pane = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("MS data file list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
-        stage.setScene(new Scene(pane));
-        stage.getScene().getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-        FeatureListSummaryController controller = loader.getController();
-        controller.setRawDataFile(selectedValue);
-        stage.show();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      final FeatureListSummaryController controller = new FeatureListSummaryController();
+      controller.setRawDataFile(selectedValue);
+      showSummaryStage("MS data file summary - " + selectedValue.getName(), controller.buildView());
     }
+  }
+
+  private void showSummaryStage(@NotNull String title, @NotNull Region content) {
+    final Stage stage = new Stage();
+    stage.setTitle(title);
+    stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
+    stage.setScene(new Scene(content));
+    stage.getScene().getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    stage.show();
   }
 
   public void handleShowIntegrationDashboard(Event event) {
