@@ -43,7 +43,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -124,9 +123,7 @@ public class CCSUtils {
    */
   public static List<CCSCalibrant> getCalibrantsFromCSV(final File file)
       throws IOException, CsvException {
-    final FileReader fileReader = new FileReader(file);
     final List<String[]> content = CSVParsingUtils.readData(file, ";");
-    fileReader.close();
 
     final MZType mzType = DataTypes.get(MZType.class);
     final io.github.mzmine.datamodel.features.types.numbers.MobilityType mobilityType = DataTypes.get(
