@@ -227,7 +227,7 @@ public class FeatureListSummaryController extends FxController<FeatureListSummar
           warnings.add("""
               Module at position %d (%s) cannot be executed in batch mode.
               Executing this batch will not lead to exactly the same results.
-              """.formatted(appliedMethods.indexOf(item)));
+              """.formatted(appliedMethods.indexOf(item), item.getModule().getName()));
         }
       }
     }
