@@ -109,7 +109,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.featureLists = parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getValue(CSVExportModularParameters.fieldSeparator).separator();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);

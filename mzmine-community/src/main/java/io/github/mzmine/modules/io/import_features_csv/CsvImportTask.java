@@ -43,8 +43,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.io.CharsetUtils;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -84,9 +85,10 @@ public class CsvImportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    try {
-      FileReader fileReader = new FileReader(fileName);
-      CSVReader csvReader = new CSVReader(fileReader);
+    // the charset is detected, a FileReader would use the platform default charset and therefore
+    // read the same file differently on different systems
+    try (BufferedReader fileReader = CharsetUtils.newBufferedReader(fileName);
+        CSVReader csvReader = new CSVReader(fileReader)) {
       ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage,
           rawDataFile);
       String[] dataLine;
@@ -167,7 +169,6 @@ public class CsvImportTask extends AbstractTask {
           new SimpleFeatureListAppliedMethod(CsvImportModule.class, parameters,
               getModuleCallDate()));
 
-      fileReader.close();
       project.addFeatureList(newFeatureList);
     } catch (Exception e) {
       e.printStackTrace();

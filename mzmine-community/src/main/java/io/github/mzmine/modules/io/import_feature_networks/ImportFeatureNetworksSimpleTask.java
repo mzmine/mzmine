@@ -41,11 +41,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.io.CharsetUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -151,8 +151,8 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   protected void process() {
     rowIdMap = FeatureListUtils.getRowIdMap(featureList);
 
-    try (Reader reader = Files.newBufferedReader(inputFile.toPath())) {
-      separator = ',';
+    try (Reader reader = CharsetUtils.newBufferedReader(inputFile)) {
+      separator = CSVParsingUtils.autoDetermineSeparatorDefaultFallback(inputFile);
       try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
           new RFC4180ParserBuilder().withSeparator(separator).build()).build()) {
         loadEdges(csvReader);

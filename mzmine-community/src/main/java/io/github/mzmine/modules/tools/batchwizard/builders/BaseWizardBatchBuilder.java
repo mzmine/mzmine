@@ -205,6 +205,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
@@ -466,7 +467,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(CSVExportModularParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(CSVExportModularParameters.fieldSeparator, ",");
+    param.setParameter(CSVExportModularParameters.fieldSeparator, FieldSeparator.COMMA);
     param.setParameter(CSVExportModularParameters.idSeparator, ";");
     param.setParameter(CSVExportModularParameters.omitEmptyColumns, true);
     param.setParameter(CSVExportModularParameters.filter, FeatureListRowsFilter.ALL);
@@ -1429,8 +1430,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(LocalCSVDatabaseSearchParameters.peakLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(LocalCSVDatabaseSearchParameters.dataBaseFile, csvLibraryFile);
-    param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator,
-        csvLibraryFile.getName().toLowerCase().endsWith(".csv") ? "," : "\\t");
+    // the separator is detected from the file itself, no need to guess it from the extension
+    param.setParameter(LocalCSVDatabaseSearchParameters.fieldSeparator, FieldSeparator.AUTO);
     param.setParameter(LocalCSVDatabaseSearchParameters.extraColumns,
         new ComboWithStringInputValue<>(HandleExtraColumnsOptions.IGNORE, null));
     param.setParameter(LocalCSVDatabaseSearchParameters.filterSamples,

@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.StringUtils;
-import io.github.mzmine.util.io.CSVUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -95,7 +94,7 @@ public class ProjectMetadataReader {
     // different file formats are supported.
     // see test/resources/metadata
     // first two lines are optional (description / type) otherwise try to cast to type
-    char sep = CSVUtils.detectSeparatorFromName(file);
+    char sep = CSVParsingUtils.autoDetermineSeparatorDefaultFallback(file);
 
     try {
       List<String[]> lines = CSVParsingUtils.readData(file, String.valueOf(sep));

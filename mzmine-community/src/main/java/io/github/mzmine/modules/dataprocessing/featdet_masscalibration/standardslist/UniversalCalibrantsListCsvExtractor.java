@@ -27,10 +27,10 @@ package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standard
 
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.util.CSVParsingUtils;
+import io.github.mzmine.util.io.CharsetUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -84,8 +84,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
     this.extractedData = new ArrayList<>();
 
-    try (final BufferedReader bufferedReader = new BufferedReader(
-        new InputStreamReader(inputStream))) {
+    try (final BufferedReader bufferedReader = CharsetUtils.newBufferedReader(inputStream)) {
       List<String[]> lines = CSVParsingUtils.readData(bufferedReader, ",");
       for (String[] lineValues : lines) {
         try {

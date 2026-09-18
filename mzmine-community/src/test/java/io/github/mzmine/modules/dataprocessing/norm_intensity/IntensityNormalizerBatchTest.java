@@ -44,6 +44,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Doub
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -338,7 +339,7 @@ class IntensityNormalizerBatchTest {
     // Step 2: IS normalization via StandardCompounds (isRow)
     final ParameterSet isParams = StandardCompoundNormalizationTypeParameters.create(
         List.of(SampleType.values()), StandardUsageType.Nearest, 1.0d,
-        writeStandardsFile(isRow), ",", new MZTolerance(0.25, 0d),
+        writeStandardsFile(isRow), FieldSeparator.COMMA, new MZTolerance(0.25, 0d),
         new RTTolerance(0.25f, RTTolerance.Unit.MINUTES), new MobilityTolerance(0.25f),
         StandardCompoundNormalizationMode.REQUIRE_N_SAMPLES);
 
