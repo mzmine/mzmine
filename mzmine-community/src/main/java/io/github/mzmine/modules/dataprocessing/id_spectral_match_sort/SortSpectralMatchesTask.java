@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,11 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class SortSpectralMatchesTask extends AbstractTask {
@@ -64,7 +63,7 @@ public class SortSpectralMatchesTask extends AbstractTask {
   }
 
   /**
-   * Sort database matches by score
+   * Sort all database matches of a row by the annotation quality score (AQS)
    *
    * @param row
    */
@@ -73,25 +72,29 @@ public class SortSpectralMatchesTask extends AbstractTask {
   }
 
   /**
-   * Sort database matches by score
+   * Sort all database matches of a row by the annotation quality score (AQS). Sorting always covers
+   * the complete list of the row, so appending new matches and calling this afterwards leaves
+   * previous and new matches ranked consistently.
    *
    * @param row
    * @param filterMinSimilarity
-   * @param minScore
+   * @param minScore            minimum spectral similarity score, only applied if
+   *                            filterMinSimilarity
    */
   public static void sortIdentities(@NotNull FeatureListRow row, boolean filterMinSimilarity,
       double minScore) {
-    // filter for SpectralDBFeatureIdentity and write to map
     List<SpectralDBAnnotation> matches = row.getSpectralLibraryMatches();
     if (matches == null || matches.isEmpty()) {
       return;
     }
 
-    // reversed order: by similarity score
-    matches = matches.stream()
-        .filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore)
-        .sorted(Comparator.comparingDouble(SpectralDBAnnotation::getScore).reversed())
-        .collect(Collectors.toList());
+    if (filterMinSimilarity) {
+      matches = matches.stream().filter(m -> m.getSimilarity().getScore() >= minScore).toList();
+    }
+
+    // rank by the AQS of the annotation sorter configured on the feature list, so that library
+    // matches are ordered the same way as annotations of all other types
+    matches = CompoundAnnotationUtils.sortByDescendingConfidence(row, matches);
 
     // set sorted list, caching of isotope pattern and other properties is called in row
     row.setSpectralLibraryMatch(matches);

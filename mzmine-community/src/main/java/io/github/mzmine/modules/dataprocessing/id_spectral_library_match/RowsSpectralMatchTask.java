@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -370,8 +370,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * Match a single row against all entries, add matches, sort them by score. Only used if this
-   * search is triggered by {@link SingleSpectrumLibrarySearchModule}.
+   * Match a single scan against all entries and add the matches. Only used if this search is
+   * triggered by {@link SingleSpectrumLibrarySearchModule}.
    *
    * @param entries combined library entries
    * @param scan    target scan
@@ -446,7 +446,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * Match row against all entries, add matches, sort them by score
+   * Match row against all entries, add matches, sort all matches of the row by AQS
    *
    * @param entries combined library entries
    * @param row     target row
@@ -521,7 +521,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         }
       }
 
-      // add and sort identities based on similarity score
+      // add new identities and re-rank all matches of this row based on AQS, previous searches included
       if (ids != null) {
         addIdentities(row, ids);
         SortSpectralMatchesTask.sortIdentities(row);

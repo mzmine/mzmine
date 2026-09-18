@@ -328,4 +328,16 @@ public record NistSearchConfig(@Nullable File nistDirectory, @NotNull NistSearch
   public @NotNull List<String> libraryNames() {
     return libraries().stream().map(NistLibrary::name).toList();
   }
+
+  /**
+   * The database name reported on every match, so that an annotation states which NIST release it
+   * came from. The searched library of a single hit is kept in its comment.
+   *
+   * @return the versioned name of the installation, e.g. {@code NIST26}, or {@code NIST} if the
+   * directory is not a {@code NISTxx} directory.
+   */
+  public @NotNull String databaseName() {
+    final int version = nistDirectory == null ? 0 : installationVersion(nistDirectory);
+    return version == 0 ? "NIST" : "NIST" + version;
+  }
 }
