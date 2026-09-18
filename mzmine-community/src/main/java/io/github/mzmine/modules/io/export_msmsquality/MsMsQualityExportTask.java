@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -266,7 +266,9 @@ public class MsMsQualityExportTask extends AbstractTask {
 
       final IonType adductType = annotation.getAdductType();
       if (adductType != null) {
-        molecularFormula = adductType.addToFormula(molecularFormula, true);
+        // keep the neutral formula if the ion type cannot be applied to it
+        // is a good approximation of the allowed atoms
+        molecularFormula = adductType.addToFormula(molecularFormula, true).orElse(molecularFormula);
       }
 
       final double[][] filtered = factorOfLowest.getMassValues(msmsScan);

@@ -279,26 +279,30 @@ public sealed interface IonPart permits IonPartDefinition, IonPartSilentCharge, 
   /**
    * @param formula changed in place
    * @param ionize  ionize formula if part has charge
+   * @return true if this part was fully applied. false if this part is a loss that cannot be
+   * subtracted from formula. formula might be partially changed then
    */
-  default void addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
+  default boolean addToFormula(@NotNull IMolecularFormula formula, boolean ionize) {
     final int formulaCharge = requireNonNullElse(formula.getCharge(), 0);
     if (ionize) {
       formula.setCharge(formulaCharge + totalCharge());
     }
     if (singleFormula() == null) {
-      return;
+      return true;
     }
 
     final IMolecularFormula chargedSingleFormula = chargedSingleCDKFormula();
     if (chargedSingleFormula == null) {
-      return; // cannot subtract if formula unknown or failed to parse formula
+      // string formula was set but parsed formula is null, error
+      return false; // cannot subtract if formula unknown or failed to parse formula
     }
     final int absCount = Math.abs(count());
     if (isLoss()) {
-      FormulaUtils.subtractFormula(formula, chargedSingleFormula, absCount);
+      return FormulaUtils.subtractFormula(formula, chargedSingleFormula, absCount).isPresent();
     } else {
       FormulaUtils.addFormula(formula, chargedSingleFormula, absCount);
     }
+    return true;
   }
 
   public enum Type {

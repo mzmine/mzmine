@@ -280,9 +280,12 @@ public class FormulaUtils {
     return getMonoisotopicMass(molFormula, charge);
   }
 
-  public static String ionizeFormula(String formula, IonizationType ionType) {
-    final IMolecularFormula form = ionType.ionizeFormula(formula);
-    return getFormulaString(form);
+  /**
+   * @return the ionized formula string or null if the ionization cannot be applied to formula
+   */
+  public static @Nullable String ionizeFormula(@NotNull String formula,
+      @NotNull IonizationType ionType) {
+    return ionType.ionizeFormula(formula).map(FormulaUtils::getFormulaString).orElse(null);
   }
 
   /**
@@ -664,68 +667,114 @@ public class FormulaUtils {
 
   /**
    * @param result is going to be changed. is also the returned value
+   * @return the changed result formula or an empty optional if the subtraction was not possible.
+   * Note that {@code result} may already be partially modified in that case, see
+   * {@link #subtractFormula(IMolecularFormula, IMolecularFormula, int, boolean, boolean)}
    */
-  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub) {
+  public static @NotNull Optional<IMolecularFormula> subtractFormula(
+      @Nullable IMolecularFormula result, @Nullable IMolecularFormula sub) {
     return subtractFormula(result, sub, 1);
   }
 
   /**
-   *
+   * @param result is going to be changed. is also the returned value
+   * @return the changed result formula or an empty optional if the subtraction was not possible.
+   * Note that {@code result} may already be partially modified in that case, see
+   * {@link #subtractFormula(IMolecularFormula, IMolecularFormula, int, boolean, boolean)}
+   */
+  public static @NotNull Optional<IMolecularFormula> subtractFormula(
+      @Nullable IMolecularFormula result, @Nullable IMolecularFormula sub, boolean clone) {
+    return subtractFormula(result, sub, 1, clone);
+  }
+
+  /**
    * @param result        is going to be changed. is also the returned value
    * @param sub           subtract this formula * multiplier
    * @param subMultiplier multiply each isotope in sub by this number
+   * @return the changed result formula or an empty optional if the subtraction was not possible.
+   * Note that {@code result} may already be partially modified in that case, see
+   * {@link #subtractFormula(IMolecularFormula, IMolecularFormula, int, boolean, boolean)}
    */
-  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
-      int subMultiplier) {
+  public static @NotNull Optional<IMolecularFormula> subtractFormula(
+      @Nullable IMolecularFormula result, @Nullable IMolecularFormula sub, int subMultiplier) {
     return subtractFormula(result, sub, subMultiplier, false);
   }
 
   /**
+   * @param result        the input formula that may be cloned or directly changed
+   * @param sub           subtract this formula * multiplier
+   * @param subMultiplier multiply each isotope in sub by this number
+   * @param clone         clone the input formula to protect input from change. Otherwise do an
+   *                      inplace operation on result
+   * @return the input result formula if clone is false otherwise a copy. Empty if the subtraction
+   * was not possible, see
+   * {@link #subtractFormula(IMolecularFormula, IMolecularFormula, int, boolean, boolean)}
+   */
+  public static @NotNull Optional<IMolecularFormula> subtractFormula(
+      @Nullable IMolecularFormula result, @Nullable IMolecularFormula sub, int subMultiplier,
+      boolean clone) {
+    return subtractFormula(result, sub, subMultiplier, clone, false);
+  }
+
+  /**
+   * Subtracts {@code sub * subMultiplier} from {@code result}. An isotope with a defined mass
+   * number is removed exactly first and then falls back to another isotope of the same element.
    *
    * @param result        the input formula that may be cloned or directly changed
    * @param sub           subtract this formula * multiplier
    * @param subMultiplier multiply each isotope in sub by this number
    * @param clone         clone the input formula to protect input from change. Otherwise do an
    *                      inplace operation on result
-   * @return the input result formula if clone is false otherwise a copy
+   * @param verbose       log all isotopes that could not be removed instead of failing on the
+   *                      first
+   * @return the input result formula if clone is false otherwise a copy. An empty optional if
+   * {@code result} or {@code sub} is null, if cloning failed, or if the subtraction would require
+   * more atoms of an element than are available. <b>Attention:</b> with {@code clone == false} the
+   * input {@code result} may already be partially modified when an empty optional is returned, so
+   * callers that need the original must pass {@code clone == true}.
    */
-  public static IMolecularFormula subtractFormula(IMolecularFormula result, IMolecularFormula sub,
-      int subMultiplier, boolean clone) {
-    if (clone) {
-      result = cloneFormula(result);
-    }
-
-    for (IIsotope isotopeToRemove : sub.isotopes()) {
-      int count = sub.getIsotopeCount(isotopeToRemove) * subMultiplier;
-      addOrRemoveIsotope(result, isotopeToRemove, -count, true);
-    }
-    final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
-    final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
-    result.setCharge(resultCharge - subtractCharge);
-    return result;
-  }
-
-  /**
-   * Subtracts {@code sub} from a clone of {@code result}, or returns an empty optional if the
-   * subtraction would require more atoms of an element than are available.
-   * <p>
-   * Isotope removal follows the same rules as {@link #subtractFormula(IMolecularFormula,
-   * IMolecularFormula)}: an isotope with a defined mass number is removed exactly first and then
-   * falls back to another isotope of the same element. Neither input formula is modified.
-   */
-  public static @NotNull Optional<IMolecularFormula> subtractFormulaIfPossible(
-      final @Nullable IMolecularFormula result, final @Nullable IMolecularFormula sub) {
-    if (result == null || sub == null) {
+  public static @NotNull Optional<IMolecularFormula> subtractFormula(
+      @Nullable IMolecularFormula result, @Nullable IMolecularFormula sub, int subMultiplier,
+      boolean clone, boolean verbose) {
+    if (result == null) {
       return Optional.empty();
     }
-
-    for (final IIsotope isotopeToRemove : sub.isotopes()) {
-      final String element = isotopeToRemove.getSymbol();
-      if (countElement(result, element) < countElement(sub, element)) {
+    if (clone) {
+      result = cloneFormula(result);
+      if (result == null) {
         return Optional.empty();
       }
     }
-    return Optional.of(subtractFormula(result, sub, 1, true));
+    if (sub == null) {
+      return Optional.of(result);
+    }
+
+    StringBuilder message = new StringBuilder();
+    int missingIsotopes = 0;
+
+    for (IIsotope isotopeToRemove : sub.isotopes()) {
+      int count = sub.getIsotopeCount(isotopeToRemove) * subMultiplier;
+      final boolean success = addOrRemoveIsotope(result, isotopeToRemove, -count, true);
+      if (!success) {
+        if (!verbose) {
+          return Optional.empty();
+        }
+        missingIsotopes++;
+        message.append(isotopeToRemove.toString()).append(" ");
+      }
+    }
+
+    if (missingIsotopes > 0) {
+      logger.fine("""
+          Could not subtract isotopes from remainder formula: %s
+          Isotopes: %s""".formatted(FormulaUtils.getFormulaString(result), message.toString()));
+      return Optional.empty();
+    }
+
+    final Integer resultCharge = requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = requireNonNullElse(sub.getCharge(), 0) * subMultiplier;
+    result.setCharge(resultCharge - subtractCharge);
+    return Optional.of(result);
   }
 
   /**
@@ -740,13 +789,14 @@ public class FormulaUtils {
    *                                      isotope will be removed. This is important if the result
    *                                      formula has no massNumbers defined or only has major
    *                                      isotopes
+   * @return true if the isotope was added or removed, false if isotope could not be removed
    */
-  public static void addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
+  public static boolean addOrRemoveIsotope(IMolecularFormula result, IIsotope isotopeToChange,
       int count, boolean removeMajorForMissingIsotopes) {
     boolean adding = count > 0;
     if (adding) {
       result.addIsotope(isotopeToChange, count);
-      return;
+      return true;
     }
 
     // removing, trying first with the exact isotope like [13]C
@@ -757,23 +807,22 @@ public class FormulaUtils {
         if (equalElementIsotopes(isotopeToChange, isotope)) {
           int realCount = result.getIsotopeCount(isotope);
           int remaining = realCount + count; // count is negative
-          if (remaining <= 0) {
+          if (remaining == 0) {
             result.removeIsotope(isotope);
+            return true;
+          } else if (remaining < 0) {
             // reduce count but not all were removed so search for more isotopes that match
-            count = remaining; // negative again
+            result.removeIsotope(isotope);
+            count = remaining; // count negative again to remove other isotopes
           } else {
             // this is captured in a test to make sure this call is valid in the future as well
             result.addIsotope(isotope, count); // count is negative will remove elements
-            return;
+            return true;
           }
         }
       }
       if (!removeMajorForMissingIsotopes) {
-        logger.fine(
-            "Could not remove %d of isotope %s from formula %s. Will continue with the formula as is.".formatted(
-                -count, isotopeToChange, FormulaUtils.getFormulaString(result)));
-
-        return;
+        return false;
       }
     }
     // Remove the rest of the count from the first element with the same symbol - does not matter
@@ -783,16 +832,21 @@ public class FormulaUtils {
       if (equalElementSymbols(isotopeToChange, isotope)) {
         int realCount = result.getIsotopeCount(isotope);
         int remaining = realCount + count; // count is negative
-        if (remaining <= 0) {
+        if (remaining == 0) {
           result.removeIsotope(isotope);
+          return true;
+        } else if (remaining < 0) {
           // reduce count but not all were removed so search for more isotopes that match
+          result.removeIsotope(isotope);
           count = remaining; // negative again
         } else {
           result.addIsotope(isotope, count); // count is negative will remove elements
-          return;
+          return true;
         }
       }
     }
+    // there are still remaining to remove, but nothing matching found
+    return false;
   }
 
   /**
@@ -1049,7 +1103,8 @@ public class FormulaUtils {
     }
     // ionize formula
     // considering both 2M etc
-    return annotation.getAdductType().addToFormula(molecularFormula, true);
+    // null if the ion type cannot be applied to the neutral formula
+    return annotation.getAdductType().addToFormula(molecularFormula, true).orElse(null);
   }
 
   /**
