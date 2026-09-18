@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,12 +39,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.io.CharsetUtils;
-import java.io.BufferedReader;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
@@ -85,10 +85,9 @@ public class CsvImportTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // the charset is detected, a FileReader would use the platform default charset and therefore
-    // read the same file differently on different systems
-    try (BufferedReader fileReader = CharsetUtils.newBufferedReader(fileName);
-        CSVReader csvReader = new CSVReader(fileReader)) {
+    // this format is always comma separated, the charset is detected by the reader
+    try (CSVReader csvReader = CSVParsingUtils.createDefaultReader(fileName,
+        FieldSeparator.COMMA)) {
       ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage,
           rawDataFile);
       String[] dataLine;

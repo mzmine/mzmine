@@ -94,10 +94,8 @@ public class ProjectMetadataReader {
     // different file formats are supported.
     // see test/resources/metadata
     // first two lines are optional (description / type) otherwise try to cast to type
-    char sep = CSVParsingUtils.autoDetermineSeparatorDefaultFallback(file);
-
     try {
-      List<String[]> lines = CSVParsingUtils.readData(file, String.valueOf(sep));
+      List<String[]> lines = CSVParsingUtils.readData(file, CSVParsingUtils.AUTO_SEPARATOR);
 
       lines = extractRemoveHeaderTitlesAndTypes(lines);
       if (!errors.isEmpty()) {
