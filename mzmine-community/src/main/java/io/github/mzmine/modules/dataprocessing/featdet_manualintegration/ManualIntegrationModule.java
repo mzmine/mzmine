@@ -23,29 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.dash_integration;
+package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
-import java.util.List;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @param file           The raw data file
- * @param feature        the integrated feature as shown in the feature table. Null if the feature
- *                       was not detected.
- * @param chromatogram   the chromatogram within 2x the rt range of the row
- * @param additionalData additional chromatograms, e.g. from mrm traces. May be empty
- * @param mzRange        the m/z window used to extract the chromatogram. Needed to reproduce a
- *                       manual integration.
+ * Indicates in the applied methods that manual integration was performed.
  */
-public record FeatureIntegrationData(@NotNull RawDataFile file,
-                                     @Nullable IntensityTimeSeries feature,
-                                     @NotNull IntensityTimeSeries chromatogram,
-                                     @NotNull List<IntensityTimeSeriesToXYProvider> additionalData,
-                                     @NotNull Range<Double> mzRange) {
+public class ManualIntegrationModule implements MZmineModule {
 
+  private static final Logger logger = Logger.getLogger(ManualIntegrationModule.class.getName());
+
+  @Override
+  public @NotNull String getName() {
+    return "Integration dashboard - Manual integration";
+  }
+
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ManualIntegrationParameters.class;
+  }
 }
