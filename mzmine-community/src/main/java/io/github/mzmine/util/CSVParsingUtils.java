@@ -95,7 +95,7 @@ public class CSVParsingUtils {
   /**
    * Number of non-empty lines inspected to determine the separator of a file.
    */
-  private static final int SEPARATOR_DETECTION_LINES = 50;
+  private static final int SEPARATOR_DETECTION_LINES = 40;
 
   /**
    * Upper limit of characters read to determine the separator, in case of very long lines.

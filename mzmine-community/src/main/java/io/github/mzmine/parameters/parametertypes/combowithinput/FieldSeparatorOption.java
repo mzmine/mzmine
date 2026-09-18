@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
+import io.github.mzmine.util.CSVParsingUtils;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,10 +38,9 @@ public enum FieldSeparatorOption implements UniqueIdSupplier {
 
   /**
    * Only for reading files, the separator is determined by
-   * {@link io.github.mzmine.util.CSVParsingUtils#autoDetermineSeparator(java.io.File)}.
+   * {@link CSVParsingUtils#autoDetermineSeparator(File)}.
    */
-  AUTO,
-  COMMA, SEMICOLON, TAB, SPACE,
+  AUTO, COMMA, SEMICOLON, TAB, SPACE,
   /**
    * Any other separator, defined by the embedded text field.
    */
@@ -106,8 +107,8 @@ public enum FieldSeparatorOption implements UniqueIdSupplier {
       case COMMA -> ",".equals(separator);
       case SEMICOLON -> ";".equals(separator);
       // "\\t" is the escaped tab that users had to type into the old text field
-      case TAB -> "\t".equals(separator) || "\\t".equals(separator) || "tab".equalsIgnoreCase(
-          separator);
+      case TAB ->
+          "\t".equals(separator) || "\\t".equals(separator) || "tab".equalsIgnoreCase(separator);
       case SPACE -> " ".equals(separator) || "space".equalsIgnoreCase(separator);
       case CUSTOM -> false; // only used as fallback
     };

@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.util.CSVParsingUtils;
+import java.io.File;
 import java.util.Collection;
 import org.w3c.dom.Element;
 
@@ -33,7 +35,7 @@ import org.w3c.dom.Element;
  * Column separator of tabular text files. Offers the separators that actually occur in the wild and
  * a custom text field for everything else. Files that are read also offer
  * {@link FieldSeparatorOption#AUTO}, which is the default because tools and locales disagree on the
- * separator, see {@link io.github.mzmine.util.CSVParsingUtils#autoDetermineSeparator(java.io.File)}.
+ * separator, see {@link CSVParsingUtils#autoDetermineSeparator(File)}.
  * <p>
  * Replaces the plain string parameters that were used before. Their values are still loaded, see
  * {@link #loadValueFromXML(Element)}.
@@ -45,8 +47,6 @@ public class FieldSeparatorParameter extends
 
   public FieldSeparatorParameter(final String name, final String description,
       final FieldSeparatorOption[] options, final FieldSeparator defaultValue) {
-    // the embedded parameter defines name and description of this parameter and is the text field
-    // that is shown for the custom option
     super(new StringParameter(name, description, "", false, false, 4), options,
         FieldSeparatorOption.CUSTOM, defaultValue);
   }
@@ -93,9 +93,9 @@ public class FieldSeparatorParameter extends
   /**
    * Before this parameter existed, the separator was a plain string parameter that stored the
    * separator as text content, e.g. {@code <parameter name="Field separator">,</parameter>}. Such
-   * values are mapped onto the matching option, or onto
-   * {@link FieldSeparatorOption#CUSTOM}. Options that this parameter does not offer, like
-   * {@link FieldSeparatorOption#AUTO} for an export, fall back to the default value.
+   * values are mapped onto the matching option, or onto {@link FieldSeparatorOption#CUSTOM}.
+   * Options that this parameter does not offer, like {@link FieldSeparatorOption#AUTO} for an
+   * export, fall back to the default value.
    */
   @Override
   public void loadValueFromXML(final Element xmlElement) {
