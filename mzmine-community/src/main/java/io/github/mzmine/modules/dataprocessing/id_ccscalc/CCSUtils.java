@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -64,7 +65,6 @@ public class CCSUtils {
   // could be an option for TIMS
 
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
-  private static final TDFUtils tdfUtils = new TDFUtils();
 
   private CCSUtils() {
   }
@@ -108,7 +108,7 @@ public class CCSUtils {
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return tdfUtils.calculateCCS(mobility, charge, mz);
+    return TDFUtils.calculateCCS(mobility, charge, mz);
   }
 
   public static Float logUnsupportedMobilityUnit() {
