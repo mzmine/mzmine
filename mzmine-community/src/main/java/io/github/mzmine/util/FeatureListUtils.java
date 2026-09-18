@@ -238,7 +238,7 @@ public class FeatureListUtils {
       rows = rows.stream().sorted(MZ_ASCENDING).toList();
     }
 
-    IndexRange indexRange = BinarySearch.indexRange(mzRange, rows, FeatureListRow::getAverageMZ);
+    IndexRange indexRange = BinarySearch.indexRange(mzRange, rows, (row) -> row.getAverageMzOrDefault(0));
     if (indexRange.isEmpty()) {
       return List.of();
     }

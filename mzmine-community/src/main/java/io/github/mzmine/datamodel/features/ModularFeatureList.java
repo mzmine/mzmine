@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummarySortConfig;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularFeatureListRowsSchema;
@@ -579,15 +581,24 @@ public class ModularFeatureList implements FeatureList {
     return getRowsInsideScanAndMZRange(rtRange, all);
   }
 
+  /**
+   *
+   * @param rtRange Retention time range as `Range.closed`
+   * @param mzRange m/z range as `Range.closed`
+   * @return all matching rows
+   */
   @Override
   public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
     List<FeatureListRow> rows = new ArrayList<>();
-    for (var row : getRows()) {
-      Float rt = row.getAverageRT();
-      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+    var simpleRTRange = SimpleFloatRange.of(rtRange);
+    var simpleMZrange = SimpleDoubleRange.of(mzRange);
+    for (var row : featureListRows) {
+      float rt = row.getAverageRTOrElse(Float.NaN);
+      if (Float.isNaN(rt) || (simpleRTRange.contains(rt) && simpleMZrange.contains(
+          row.getAverageMzOrDefault(0)))) {
         rows.add(row);
-      } else if (rt > rtRange.upperEndpoint()) {
+      } else if (rt > simpleRTRange.upper()) {
         break;
       }
     }

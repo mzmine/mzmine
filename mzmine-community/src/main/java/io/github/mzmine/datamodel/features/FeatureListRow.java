@@ -165,9 +165,17 @@ public interface FeatureListRow extends ModularDataModel {
   boolean hasFeature(RawDataFile rawData);
 
   /**
-   * Returns average M/Z for features on this row
+   * Returns average M/Z for features on this row. Prefer {@link #getAverageMzOrDefault(double)}
+   * if M/Z is present, or a primitive fallback value is desired.
    */
   Double getAverageMZ();
+
+  /**
+   * Returns average M/Z for features on this row.
+   *
+   * @param defaultValue returned if this row has no m/z
+   */
+  double getAverageMzOrDefault(double defaultValue);
 
   /**
    * Sets average mz for this row
@@ -175,9 +183,17 @@ public interface FeatureListRow extends ModularDataModel {
   void setAverageMZ(Double averageMZ);
 
   /**
-   * Returns average RT for features on this row
+   * Returns average RT for features on this row. Prefer {@link #getAverageRTOrElse(float)}
+   * if RT is present, or a fallback value is desired.
    */
   Float getAverageRT();
+
+  /**
+   * Returns average RT for features on this row.
+   *
+   * @param defaultValue returned if this row has no RT
+   */
+  float getAverageRTOrElse(float defaultValue);
 
   /**
    * Returns average RI for features on this row
