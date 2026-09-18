@@ -51,3 +51,31 @@ WriteFile "utf16be-bom.csv" (Table "," $lf $false) (New-Object System.Text.Unico
 WriteFile "utf16le-nobom.tsv" (Table "`t" $lf $false) (New-Object System.Text.UnicodeEncoding($false, $false))
 WriteFile "utf8-decimal-comma.csv" (Table ";" $crlf $true) (New-Object System.Text.UTF8Encoding($false))
 ```
+
+## The excel exports
+
+The `micometa_` files are one metadata sheet, saved once with every format that the excel save as
+dialog offers. They were exported by hand, not by the script above, so do not re-save them. All of
+them contain the same table, which is plain ascii, so what is tested here is the separator, the
+encoding and the line ending.
+
+| file                     | encoding       | separator | line ends | saved as                                   |
+|--------------------------|----------------|-----------|-----------|--------------------------------------------|
+| `micometa_csv.csv`       | ascii          | `,`       | CRLF      | CSV (comma delimited)                      |
+| `micometa_doscsv.csv`    | ascii          | `,`       | CRLF      | CSV (MS-DOS)                               |
+| `micometa_maccsv.csv`    | ascii          | `,`       | CR        | CSV (Macintosh)                            |
+| `micometa_utf8.csv`      | UTF-8 + BOM    | `,`       | CRLF      | CSV UTF-8                                  |
+| `micometa_tab.txt`       | ascii          | tab       | CRLF      | Text (tab delimited)                       |
+| `micometa_dos.txt`       | ascii          | tab       | CRLF      | Text (MS-DOS)                              |
+| `micometa_mac.txt`       | ascii          | tab       | CR        | Text (Macintosh)                           |
+| `micometa_unicode.txt`   | UTF-16LE + BOM | tab       | CRLF      | Unicode Text                               |
+| `micometa_semicolon.csv` | ascii          | `;`       | CRLF      | CSV (comma delimited) of a european excel  |
+| `micometa_faketab.csv`   | ascii          | tab       | CRLF      | Text (tab delimited), then renamed to .csv |
+
+The macintosh formats separate their rows with a lone carriage return, `micometa_maccsv.csv` then
+ends the file with CRLF anyway. Ascii is valid UTF-8, so the detection reports UTF-8 for the files
+that excel wrote as windows-1252.
+
+The last two are named `.csv` but are not comma separated, which is what a european excel and a
+renamed tab export look like. They are there to keep the detection from just trusting the file
+extension.

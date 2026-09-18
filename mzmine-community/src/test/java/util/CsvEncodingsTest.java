@@ -27,8 +27,13 @@ package util;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.io.CharsetUtils;
 import java.io.File;
@@ -38,6 +43,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
@@ -48,8 +54,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Real files in different encodings and with different separators, see
- * test/resources/csv/encodings. All of them contain the same little table, so every file must parse
- * into {@link #EXPECTED} no matter how it was written.
+ * test/resources/csv/encodings. Two groups of files, each written in every format its tool
+ * offers: the small table of {@link #EXPECTED} and the metadata sheet of
+ * {@link #EXPECTED_METADATA_SHEET} that was saved with every entry of the excel save as dialog.
+ * All files of a group must parse into the same rows, no matter how they were written.
  * <p>
  * The files are marked as binary in .gitattributes, otherwise git would normalize their line
  * endings and break the utf-16 files.
@@ -62,6 +70,37 @@ public class CsvEncodingsTest {
       {"name", "mz", "note"}, //
       {"Öl", "195.0877", "25 °C"}, // Öl, 25 °C
       {"Glucose", "180.0634", "30 µm"}}; // 30 µm
+
+  /**
+   * Content of all micometa_ files, see {@link #excelExports()}.
+   */
+  private static final String[][] EXPECTED_METADATA_SHEET = new String[][]{ //
+      {"filename", "species", "condition"}, //
+      {"171103_PMA_TK_M1_01.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_M1_02.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_M1_03.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_M1_04.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_M1_05.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_M1_06.mzML", "Pseudomonas aeruginosa", "M1"}, //
+      {"171103_PMA_TK_PA14_01.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_PA14_02.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_PA14_03.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_PA14_04.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_PA14_05.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_PA14_06.mzML", "Pseudomonas aeruginosa", "PA14"}, //
+      {"171103_PMA_TK_QC_01.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_02.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_03.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_04.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_05.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_06.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_07.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_QC_08.mzML", "nd", "QC"}, //
+      {"171103_PMA_TK_media_02.mzML", "nd", "media"}, //
+      {"171103_PMA_TK_media_03.mzML", "nd", "media"}, //
+      {"171103_PMA_TK_media_04.mzML", "nd", "media"}, //
+      {"171103_PMA_TK_media_05.mzML", "nd", "media"}, //
+      {"171103_PMA_TK_media_06.mzML", "nd", "media"}};
 
   /**
    * @param file             resource name
@@ -148,5 +187,120 @@ public class CsvEncodingsTest {
     final List<String[]> rows = CSVParsingUtils.readDataAutoSeparator(file);
     assertEquals(3, rows.size());
     assertArrayEquals(new String[]{"Öl", "195,0877", "25 °C"}, rows.get(1));
+  }
+
+  /**
+   * The same metadata sheet, saved once with every format that excel offers in its save as dialog.
+   * The content is plain ascii, what differs is the encoding, the separator and the line ending,
+   * which is a lone carriage return in the macintosh formats.
+   *
+   * @param savedAs    how the file was made, the entry in the excel save as dialog
+   * @param lineEnding the line ending excel wrote, git would normalize it without .gitattributes
+   */
+  private record ExcelExport(String file, Charset charset, char separator, String lineEnding,
+                             String savedAs) {
+
+    @Override
+    public String toString() {
+      return "%s (%s)".formatted(file, savedAs);
+    }
+  }
+
+  private static Stream<ExcelExport> excelExports() {
+    // the ascii files are written as windows-1252 by excel, but plain ascii is valid utf-8 and is
+    // decoded identically, so the detection reports utf-8
+    final Charset utf8 = StandardCharsets.UTF_8;
+    return Stream.of( //
+        new ExcelExport("micometa_csv.csv", utf8, ',', "\r\n", "CSV (comma delimited)"), //
+        new ExcelExport("micometa_doscsv.csv", utf8, ',', "\r\n", "CSV (MS-DOS)"), //
+        new ExcelExport("micometa_maccsv.csv", utf8, ',', "\r", "CSV (Macintosh)"), //
+        new ExcelExport("micometa_utf8.csv", utf8, ',', "\r\n", "CSV UTF-8"), //
+        new ExcelExport("micometa_tab.txt", utf8, '\t', "\r\n", "Text (tab delimited)"), //
+        new ExcelExport("micometa_dos.txt", utf8, '\t', "\r\n", "Text (MS-DOS)"), //
+        new ExcelExport("micometa_mac.txt", utf8, '\t', "\r", "Text (Macintosh)"), //
+        new ExcelExport("micometa_unicode.txt", StandardCharsets.UTF_16LE, '\t', "\r\n",
+            "Unicode Text"), //
+        // the extension promises a comma, the detection has to win over it
+        new ExcelExport("micometa_semicolon.csv", utf8, ';', "\r\n",
+            "CSV (comma delimited) of a european excel"), //
+        new ExcelExport("micometa_faketab.csv", utf8, '\t', "\r\n",
+            "Text (tab delimited), then renamed to .csv"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("excelExports")
+  void testExcelExportStillHasItsLineEndings(ExcelExport expected) throws IOException {
+    final String text = Files.readString(resource(expected.file()).toPath(), expected.charset());
+    // the last line is terminated differently by some of the formats, e.g. the macintosh csv
+    // separates its rows with a carriage return but ends the file with CRLF. Only the separators
+    // between the rows are checked
+    final String rows = text.stripTrailing();
+    final String rest = rows.replace(expected.lineEnding(), "");
+
+    assertTrue(rows.contains(expected.lineEnding()),
+        "%s does not separate its rows with %s any more. Did git normalize it?".formatted(
+            expected.file(),
+            HexFormat.of().formatHex(expected.lineEnding().getBytes(StandardCharsets.US_ASCII))));
+    assertFalse(rest.contains("\r") || rest.contains("\n"),
+        "%s mixes line endings now. Did git normalize it?".formatted(expected.file()));
+  }
+
+  @ParameterizedTest
+  @MethodSource("excelExports")
+  void testDetectCharsetOfExcelExport(ExcelExport expected) {
+    assertEquals(expected.charset(), CharsetUtils.detectCharset(resource(expected.file())));
+  }
+
+  @ParameterizedTest
+  @MethodSource("excelExports")
+  void testDetectSeparatorOfExcelExport(ExcelExport expected) {
+    assertEquals(expected.separator(),
+        CSVParsingUtils.autoDetermineSeparator(resource(expected.file())));
+  }
+
+  @ParameterizedTest
+  @MethodSource("excelExports")
+  void testReadExcelExportWithAutoDetection(ExcelExport expected) throws IOException, CsvException {
+    assertRowsAreTheMetadataSheet(expected.file(),
+        CSVParsingUtils.readDataAutoSeparator(resource(expected.file())));
+  }
+
+  @ParameterizedTest
+  @MethodSource("excelExports")
+  void testReadExcelExportWithCsvReader(ExcelExport expected) throws IOException, CsvException {
+    // the streaming reader used by the importers, once with auto detection and once with the
+    // separator defined in the parameters
+    final FieldSeparator defined = FieldSeparator.parse(String.valueOf(expected.separator()));
+
+    for (FieldSeparator separator : List.of(FieldSeparator.AUTO, defined)) {
+      final List<String[]> rows = new ArrayList<>();
+      try (CSVReader reader = CSVParsingUtils.createDefaultReader(resource(expected.file()),
+          separator)) {
+        String[] row;
+        while ((row = reader.readNext()) != null) {
+          rows.add(row);
+        }
+      }
+      assertRowsAreTheMetadataSheet("%s (%s)".formatted(expected.file(), separator), rows);
+    }
+  }
+
+  @Test
+  void testDetectedSeparatorWinsOverTheFileExtension() {
+    // both files are named .csv but are not comma separated. Without detection they would be read
+    // as a single column, because the extension is all that is left to go by
+    for (String name : List.of("micometa_semicolon.csv", "micometa_faketab.csv")) {
+      final File file = resource(name);
+
+      assertEquals(',', CSVParsingUtils.defaultSeparatorForExtension(file), name);
+      assertNotEquals(',', CSVParsingUtils.autoDetermineSeparator(file), name);
+    }
+  }
+
+  private static void assertRowsAreTheMetadataSheet(String file, List<String[]> rows) {
+    assertEquals(EXPECTED_METADATA_SHEET.length, rows.size(), file);
+    for (int i = 0; i < EXPECTED_METADATA_SHEET.length; i++) {
+      assertArrayEquals(EXPECTED_METADATA_SHEET[i], rows.get(i), "row %d of %s".formatted(i, file));
+    }
   }
 }
