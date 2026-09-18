@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,15 +23,47 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.identities.iontype.networks;
+package io.github.mzmine.datamodel.identities.iontype;
+
+
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import java.util.Comparator;
 
 /**
+ * Sort ion identity networks
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class AbstractIonNetworkRelation implements IonNetworkRelation {
+public class IonNetworkSorter implements Comparator<IonNetwork> {
+
+  private final SortingProperty property;
+  private final SortingDirection direction;
+
+  public IonNetworkSorter(SortingProperty property, SortingDirection direction) {
+    this.property = property;
+    this.direction = direction;
+  }
 
   @Override
-  public String toString() {
-    return getDescription();
+  public int compare(IonNetwork a, IonNetwork b) {
+    Double va = getValue(a);
+    Double vb = getValue(b);
+
+    if (direction == SortingDirection.Ascending) {
+      return va.compareTo(vb);
+    } else {
+      return vb.compareTo(va);
+    }
   }
+
+  private Double getValue(IonNetwork net) {
+    return switch (property) {
+      case Height, Area, Intensity -> net.getHeightSum();
+      case MZ -> net.getNeutralMass();
+      case RT -> net.getAvgRT();
+      case ID -> (double) net.getID();
+    };
+  }
+
 }

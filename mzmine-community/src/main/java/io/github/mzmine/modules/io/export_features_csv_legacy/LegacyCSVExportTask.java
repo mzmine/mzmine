@@ -545,7 +545,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           if (ion2 == null || ion2.getNetwork() == null) {
             line.append(fieldSeparator);
           } else {
-            line.append(mzForm.format(ion2.getNetwork().calcNeutralMass())).append(fieldSeparator);
+            line.append(mzForm.format(ion2.getNetwork().getNeutralMass())).append(fieldSeparator);
           }
           break;
       }

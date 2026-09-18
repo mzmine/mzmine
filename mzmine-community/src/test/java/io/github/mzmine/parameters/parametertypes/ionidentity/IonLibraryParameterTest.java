@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.datamodel.identities.iontype.UnmodifiableIonLibrary;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsParameters;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -195,33 +194,8 @@ class IonLibraryParameterTest {
   }
 
   /**
-   * Batches written before {@link IonLibraryParameter#cloneParameter()} kept the custom name carry
-   * the default name, because parameter sets are cloned before saving. Those files must still
-   * load.
-   */
-  @Test
-  void loadLegacyClonedParameterName() throws Exception {
-    final IonLibrary library = IonLibraries.MZMINE_DEFAULT_NEG_FULL;
-    final IonNetRelationsParameters params = new IonNetRelationsParameters();
-    params.setParameter(IonNetRelationsParameters.ionLibrary, library);
-
-    // simulate the old file where the clone had dropped the custom name
-    final String xml = ParameterUtils.saveValuesToXMLString(params)
-        .replace("name=\"" + IonNetRelationsParameters.ionLibrary.getName() + "\"",
-            "name=\"" + IonLibraryParameter.DEFAULT_NAME + "\"");
-    Assertions.assertTrue(xml.contains("name=\"" + IonLibraryParameter.DEFAULT_NAME + "\""));
-
-    final IonNetRelationsParameters loaded = new IonNetRelationsParameters();
-    loaded.setParameter(IonNetRelationsParameters.ionLibrary,
-        IonLibraries.MZMINE_DEFAULT_DUAL_POLARITY_FULL);
-    ParameterUtils.loadValuesFromXMLString(loaded, xml);
-
-    assertEquals(library, loaded.getValue(IonNetRelationsParameters.ionLibrary));
-  }
-
-  /**
-   * Same as {@link #loadLegacyClonedParameterName()} but for an {@link OptionalParameter} wrapped
-   * library, which is how existing batch files store the main ions of the refinement step.
+   * for an {@link OptionalParameter} wrapped library, which is how existing batch files store the
+   * main ions of the refinement step.
    */
   @Test
   void loadLegacyClonedParameterNameInOptionalParameter() throws Exception {

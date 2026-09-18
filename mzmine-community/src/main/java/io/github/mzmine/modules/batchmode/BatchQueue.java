@@ -128,6 +128,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
     boolean noModuleVersion = false;
 
     final Map<String, String> oldModuleNamesMap = ModuleMappingUtils.getOldModuleNamesMap();
+    final Map<String, RemovedModule> removedModules = ModuleMappingUtils.getRemovedModules();
 
     // Process the batch step elements.
     final NodeList nodes = xmlElement.getElementsByTagName(BATCH_STEP_ELEMENT);
@@ -138,6 +139,18 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       final String methodName = stepElement.getAttribute(METHOD_ELEMENT);
 
       logger.fine("Loading batch step: " + methodName);
+
+      // steps of removed modules are dropped so that the rest of the batch still loads
+      final RemovedModule removed = removedModules.get(methodName);
+      if (removed != null) {
+        final String warning = """
+            Skipping batch step '%s' because this module was removed from mzmine (%s).
+            %s""".formatted(removed.name(), removed.className(), removed.description());
+        errorMessages.add(warning);
+        logger.warning(warning);
+        continue;
+      }
+
       // Find a matching module.
       MZmineModule moduleFound = null;
       for (MZmineModule module : allModules) {

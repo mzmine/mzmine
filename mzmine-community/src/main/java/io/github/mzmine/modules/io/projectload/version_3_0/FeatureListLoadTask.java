@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.identities.iontype.project_io.IonNetworksLoader;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingModule;
 import io.github.mzmine.modules.dataprocessing.filter_sortannotations.PreferredAnnotationRankingParameters;
@@ -206,6 +207,9 @@ public class FeatureListLoadTask extends AbstractTask {
 
         loadR2RNetworkingMaps(flist, flistFile);
 
+        // after the rows exist, they can be resolved by ID and get their ion identities back
+        loadIonNetworks(flist, flistFile);
+
         // TODO maybe remove so that ModularFeatureList.getFeatureList can be unmodifiable
         // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
         flist.replaceCachedFilesAndScans();
@@ -235,6 +239,21 @@ public class FeatureListLoadTask extends AbstractTask {
         flist -> flist.setExcludedFromBatchLast(!mostRecentStepFeatureLists.contains(flist)));
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void loadIonNetworks(ModularFeatureList flist, File flistFile) {
+    final File iinFile = new File(flistFile.toString()
+        .replace(FeatureListSaveTask.DATA_FILE_SUFFIX, FeatureListSaveTask.IIN_FILE_SUFFIX));
+    if (!iinFile.exists()) {
+      // older projects predate ion identity network persistence - silently skip
+      return;
+    }
+    try (InputStream in = new FileInputStream(iinFile)) {
+      IonNetworksLoader.load(in, flist);
+    } catch (IOException | XMLStreamException e) {
+      logger.log(Level.WARNING,
+          "Failed to load ion identity networks for feature list " + flist.getName(), e);
+    }
   }
 
   private void loadR2RNetworkingMaps(ModularFeatureList flist, File flistFile) {

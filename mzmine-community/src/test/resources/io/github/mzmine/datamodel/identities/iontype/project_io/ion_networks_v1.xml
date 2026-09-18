@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ionnetworks>
+  <ionlibrary>{"id":"6eca9ec0-65a6-432e-9bc7-34ca7881e349","origin":{"kind":"local"},"name":"ion identity networks of this feature list","savedDate":[2026,9,17,12,1,0,388938500],"lastUpdatedDate":[2026,9,17,12,1,0,377640200],"parts":[{"id":0,"name":"H","formula":"H","mass":1.00727645209073,"charge":1},{"id":1,"name":"K","formula":"K","mass":38.96315810009073,"charge":1},{"id":2,"name":"Na","formula":"Na","mass":22.98922070009073,"charge":1}],"ionTypes":[{"parts":[{"id":0,"count":1}],"molecules":1},{"parts":[{"id":2,"count":1}],"molecules":1},{"parts":[{"id":1,"count":1}],"molecules":1}]}</ionlibrary>
+  <ionnetwork id="10">
+    <consensus_formulas>
+      <result_formula>
+        <molecular_formula_identity searched_neutral_mass="200.0">C10H15N</molecular_formula_identity>
+        <isotope_score>NULL_VALUE</isotope_score>
+        <msms_score>NULL_VALUE</msms_score>
+      </result_formula>
+    </consensus_formulas>
+  </ionnetwork>
+  <ionnetwork id="20"/>
+  <row id="1">
+    <ion network="10" iontype="0">
+      <ion_formulas>
+        <result_formula>
+          <molecular_formula_identity searched_neutral_mass="201.00727645209074">C10H16N</molecular_formula_identity>
+          <isotope_score>NULL_VALUE</isotope_score>
+          <msms_score>NULL_VALUE</msms_score>
+        </result_formula>
+      </ion_formulas>
+    </ion>
+  </row>
+  <row id="2">
+    <ion network="20" iontype="0"/>
+    <ion network="10" iontype="1"/>
+  </row>
+  <row id="3">
+    <ion network="20" iontype="2"/>
+  </row>
+</ionnetworks>
