@@ -147,7 +147,8 @@ class FeatureIntegrationDataCalcTask extends FxUpdateTask<IntegrationDashboardMo
       var chrom = IonTimeSeriesUtils.extractIonMobilogramTimeSeries(
           new MobilityScanDataAccess(ims, MobilityScanDataType.MASS_LIST,
               (List<Frame>) flist.getSeletedScans(file)), mzRange, extendedRtRange,
-          row.getMobilityRange(), flist.getMemoryMapStorage(),
+          feature != null ? feature.getMobilityRange() : row.getMobilityRange(),
+          flist.getMemoryMapStorage(),
           new BinningMobilogramDataAccess(ims, previousBinningWith));
       chromatogram = (IonTimeSeries<? extends Scan>) model.getPostProcessingMethod().apply(chrom);
     } else {
