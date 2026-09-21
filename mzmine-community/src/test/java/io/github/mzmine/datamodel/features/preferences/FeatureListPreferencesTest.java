@@ -33,9 +33,11 @@ import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.Fea
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
 import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -187,62 +189,76 @@ class FeatureListPreferencesTest {
   }
 
   /**
-   * The module parameters wrap every preference in a {@link DefaultOffCustomParameter}. A fresh
-   * parameter set is on DEFAULT and therefore resolves to the mzmine default.
+   * The module parameters wrap every preference in a {@link DefaultOffCustomParameter}. A set that
+   * is opened for a feature list redefines nothing, but preloads the custom inputs with the
+   * preferences that are in effect.
    */
   @Test
-  void testModuleParametersStartOnDefault() {
-    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+  void testKeepAllAsIsStartsOnKeepAsIsWithCurrentInputs() {
+    final FeatureListPreferences current = new FeatureListPreferences(
+        SampleTypeFilter.ofValues("some other group"),
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
 
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences());
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.keepAllAsIs(
+        current);
+
+    for (Parameter<?> parameter : param.getParameters()) {
+      checkSelectedOption(parameter, DefaultOffCustomOption.KEEP_AS_IS);
+    }
+    // the custom inputs show what is in effect, so switching to CUSTOM starts on that value
+    Assertions.assertEquals(current.getRsdSampleTypeFilter(),
+        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue().custom());
+    Assertions.assertEquals(current.getIonTypeRanking(),
+        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue().custom());
+  }
+
+  private static void checkSelectedOption(Parameter<?> parameter, DefaultOffCustomOption expected) {
+    switch (parameter) {
+      case DefaultOffCustomParameter p ->
+          Assertions.assertEquals(expected, p.getValue().getSelectedOption());
+      default -> {
+      }
+    }
   }
 
   /**
-   * A preference that differs from the mzmine default has to come back as CUSTOM, otherwise the
-   * dialog would silently reset it to the default.
+   * CUSTOM applies the typed value, no matter which preferences the feature list has.
    */
   @Test
-  void testModuleParametersUseCustomForNonDefaultValues() {
-    final IonTypeRanking onlySodium = new IonTypeRanking(
-        List.of(IonPartFrequency.of(IonParts.NA, 1f)));
+  void testCustomValuesAreApplied() {
     final FeatureListPreferences preferences = new FeatureListPreferences(
-        SampleTypeFilter.ofValues("some other group"), onlySodium);
+        SampleTypeFilter.ofValues("some other group"),
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
 
-    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
-        preferences);
+    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+    param.setParameter(FeatureListPreferencesParameters.rsdSampleTypes,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.CUSTOM,
+            preferences.getRsdSampleTypeFilter()));
+    param.setParameter(FeatureListPreferencesParameters.ionTypeRanking,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.CUSTOM,
+            preferences.getIonTypeRanking()));
 
-    Assertions.assertEquals(DefaultOffCustomOption.CUSTOM,
-        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(DefaultOffCustomOption.CUSTOM,
-        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
-            .getSelectedOption());
-    // resolving returns the custom values again, this is what the task applies
-    Assertions.assertEquals(preferences, param.toPreferences());
+    Assertions.assertEquals(preferences,
+        param.toPreferences(FeatureListPreferences.createDefault()));
   }
 
   /**
-   * Values that still are the mzmine default stay on DEFAULT, so a later change of the mzmine
-   * default is picked up instead of being pinned to the old value.
+   * DEFAULT applies the mzmine default, so a later change of that default is picked up instead of
+   * being pinned to the value the feature list has.
    */
   @Test
-  void testModuleParametersKeepDefaultForDefaultValues() {
-    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
-        FeatureListPreferences.createDefault());
+  void testDefaultAppliesTheMzmineDefault() {
+    final FeatureListPreferences current = new FeatureListPreferences(
+        SampleTypeFilter.ofValues("some other group"),
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
 
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences());
+    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+    param.setParameter(FeatureListPreferencesParameters.rsdSampleTypes,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, null));
+    param.setParameter(FeatureListPreferencesParameters.ionTypeRanking,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, null));
+
+    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences(current));
   }
 
   @Test

@@ -43,6 +43,8 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
       @NotNull final ParameterSet parameters) {
     this.module = module;
     this.parameters = parameters;
+    // from here on the parameters are the stored configuration of this step and are not reset
+    parameters.setAsBatchStepParameters();
   }
 
   @Override

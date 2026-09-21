@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.compoundlist;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummaryOrder;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -58,12 +59,23 @@ public interface CompoundRepresentativeSelector {
   }
 
   /**
+   * Ranks {@link AnnotationSummary} best first by the {@link AnnotationSummaryOrder} of the feature
+   * list, the same order the AQS column sorts by. Summaries without an annotation sort last.
+   *
+   * @param members never empty. The sort config is shared by the whole feature list, so any member
+   *                defines the ranking
+   */
+  static @NotNull Comparator<@Nullable AnnotationSummary> annotationQualityBestFirst(
+      @NotNull final List<FeatureListRow> members) {
+    return members.getFirst().getFeatureList().getAnnotationSortConfig().sortOrder()
+        .getComparatorHighFirst();
+  }
+
+  /**
    * @return the row with the best preferred annotation or null if no member is annotated
    */
   static @Nullable FeatureListRow pickBestAnnotated(@NotNull final List<FeatureListRow> members) {
-    // sort config is shared by the whole feature list, so any member defines the ranking
-    final Comparator<@Nullable AnnotationSummary> bestFirst = members.getFirst().getFeatureList()
-        .getAnnotationSortConfig().sortOrder().getComparatorHighFirst();
+    final Comparator<@Nullable AnnotationSummary> bestFirst = annotationQualityBestFirst(members);
     // equally confident annotations are decided by intensity
     final Comparator<@NotNull AnnotationSummary> annotationThenIntensity = bestFirst.thenComparing(
         summary -> CompoundRepresentativeSelector.heightOrZero(summary.row()),
