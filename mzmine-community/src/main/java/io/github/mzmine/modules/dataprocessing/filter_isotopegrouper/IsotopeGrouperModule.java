@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,7 +94,7 @@ public class IsotopeGrouperModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
         "Isotope grouping is retention time and mobility-aware and must run after feature resolving.",
         ModuleOrderRule.ifPresentMustRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.FEATURE_RESOLVING))));

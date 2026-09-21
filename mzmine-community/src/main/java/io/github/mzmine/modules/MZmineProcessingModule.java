@@ -37,8 +37,9 @@ public interface MZmineProcessingModule extends MZmineRunnableModule {
 
   /**
    * Describes valid or recommended positions of this module in a processing pipeline. Every
-   * applicable recommendation is evaluated independently, and any violation is reported. Modules
-   * without ordering requirements do not need to override this method.
+   * recommendation is evaluated independently, and any violation is reported. A recommendation
+   * built with {@link ModuleOrderRecommendation#anyOf} is satisfied when any of its alternatives is
+   * satisfied. Modules without ordering requirements do not need to override this method.
    */
   default @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of();

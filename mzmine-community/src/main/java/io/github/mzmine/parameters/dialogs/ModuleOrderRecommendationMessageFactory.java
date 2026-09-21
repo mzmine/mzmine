@@ -30,8 +30,9 @@ import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.order.AnyOfModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.batchmode.order.SingleModuleOrderRecommendation;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,15 +75,33 @@ public final class ModuleOrderRecommendationMessageFactory {
     messageNodes.add(FxTexts.boldText(module.getName()));
     messageNodes.add(FxTexts.linebreak());
     for (int i = 0; i < recommendations.size(); i++) {
-      final ModuleOrderRecommendation recommendation = recommendations.get(i);
-      messageNodes.add(FxTexts.text(recommendation.rationale() + "\n"));
-      final ModuleOrderRule rule = recommendation.rule();
-      messageNodes.add(FxTexts.text("• " + rule.description(module.getName()) + "\n"));
+      addRecommendation(messageNodes, module, recommendations.get(i));
       if (i + 1 < recommendations.size()) {
         messageNodes.add(FxTexts.linebreak());
       }
     }
     return FxTextFlows.newTextFlowInAccordion("Processing order", false,
         messageNodes.toArray(Node[]::new));
+  }
+
+  private static void addRecommendation(@NotNull final List<Node> messageNodes,
+      @NotNull final MZmineProcessingModule module,
+      @NotNull final ModuleOrderRecommendation recommendation) {
+    switch (recommendation) {
+      case SingleModuleOrderRecommendation single -> {
+        messageNodes.add(FxTexts.text(single.rationale() + "\n"));
+        messageNodes.add(FxTexts.text("• " + single.rule().description(module.getName()) + "\n"));
+      }
+      // Combined recommendations render each alternative individually, separated by "or".
+      case AnyOfModuleOrderRecommendation any -> {
+        final List<ModuleOrderRecommendation> alternatives = any.alternatives();
+        for (int i = 0; i < alternatives.size(); i++) {
+          if (i > 0) {
+            messageNodes.add(FxTexts.text("  or\n"));
+          }
+          addRecommendation(messageNodes, module, alternatives.get(i));
+        }
+      }
+    }
   }
 }

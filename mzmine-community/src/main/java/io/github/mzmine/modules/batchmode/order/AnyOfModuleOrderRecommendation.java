@@ -30,17 +30,21 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Result of evaluating one (possibly combined) recommendation. {@code violations} is non-empty only
- * when {@code status} is {@link ModuleOrderRuleStatus#VIOLATION} and lists every violated
- * alternative in declaration order.
+ * A {@link ModuleOrderRecommendation} that combines several alternatives with OR semantics: the
+ * recommendation is satisfied as soon as any alternative is satisfied. It only warns when no
+ * alternative passes and at least one is violated; when every alternative is not applicable it is
+ * ignored. Each alternative keeps its own rationale and rule.
+ *
+ * @param alternatives the interchangeable recommendations, at least two
  */
-record ModuleOrderRecommendationEvaluation(@NotNull ModuleOrderRecommendation recommendation,
-                                           @NotNull ModuleOrderRuleStatus status,
-                                           @NotNull List<@NotNull ModuleOrderRuleViolation> violations) {
+public record AnyOfModuleOrderRecommendation(
+    @NotNull List<@NotNull ModuleOrderRecommendation> alternatives) implements
+    ModuleOrderRecommendation {
 
-  ModuleOrderRecommendationEvaluation {
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(status);
-    violations = List.copyOf(Objects.requireNonNull(violations));
+  public AnyOfModuleOrderRecommendation {
+    alternatives = List.copyOf(Objects.requireNonNull(alternatives));
+    if (alternatives.size() < 2) {
+      throw new IllegalArgumentException("anyOf requires at least two recommendations");
+    }
   }
 }

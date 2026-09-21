@@ -71,7 +71,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
         "Feature resolving cannot be applied to an aligned feature list.",
         ModuleOrderRule.ifPresentMustRunBefore(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));

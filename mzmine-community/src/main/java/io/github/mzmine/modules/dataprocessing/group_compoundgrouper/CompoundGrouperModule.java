@@ -86,7 +86,7 @@ public class CompoundGrouperModule implements MZmineProcessingModule {
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
     return List.of(
-        new ModuleOrderRecommendation("Requires ion identity networking and correlation grouping",
+        ModuleOrderRecommendation.of("Requires ion identity networking and correlation grouping",
             ModuleOrderRule.mustRunAfter(IonNetworkingModule.class)));
   }
 }

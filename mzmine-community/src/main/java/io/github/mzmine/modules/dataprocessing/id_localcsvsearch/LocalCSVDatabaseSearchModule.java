@@ -29,9 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
-import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -84,8 +82,6 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation("Annotations are not preserved during alignment",
-        ModuleOrderRule.ifPresentShouldRunAfter(
-            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+    return List.of(ModuleOrderRecommendation.BEFORE_ALIGNMENT_OR_LIB_EXPORT);
   }
 }

@@ -34,6 +34,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,39 +93,101 @@ public final class BatchModuleOrderValidator {
       @NotNull final List<BatchModuleOrderIssue> issues) {
     final List<ModuleOrderRecommendationEvaluation> violations = new ArrayList<>();
     for (final ModuleOrderRecommendation recommendation : recommendations) {
-      final ModuleOrderRule rule = recommendation.rule();
-      final ModuleOrderRuleEvaluation evaluation = evaluateRule(batchQueue, segment, stepIndex,
-          rule);
-      switch (evaluation.status()) {
-        case VIOLATION ->
-            violations.add(new ModuleOrderRecommendationEvaluation(recommendation, evaluation));
-        case PASS, NOT_APPLICABLE -> {
-        }
+      final ModuleOrderRecommendationEvaluation evaluation = evaluateRecommendation(batchQueue,
+          segment, stepIndex, recommendation);
+      if (evaluation.status() == ModuleOrderRuleStatus.VIOLATION) {
+        violations.add(evaluation);
       }
     }
 
-    // decision: A passing rule never suppresses another rule's violation. Only failed rules are
-    // ranked to select the least severe user-facing problem.
+    // decision: A passing alternative suppresses only its own recommendation, never a violation in
+    // another recommendation. Only failed recommendations are ranked to select the least severe
+    // user-facing problem, ranked by their most severe violated alternative.
     final ModuleOrderRecommendationEvaluation selectedViolation = violations.stream().min(
-            Comparator.comparingInt(
-                evaluation -> severityRank(ModuleOrderRules.level(evaluation.ruleEvaluation().rule()))))
+            Comparator.comparingInt(evaluation -> severityRank(
+                ModuleOrderRules.level(representativeViolation(evaluation).ruleEvaluation().rule()))))
         .orElse(null);
     if (selectedViolation == null) {
       return;
     }
 
     final ModuleOrderRecommendation recommendation = selectedViolation.recommendation();
-    final ModuleOrderRuleEvaluation ruleEvaluation = selectedViolation.ruleEvaluation();
-    final ModuleOrderRule selectedRule = ruleEvaluation.rule();
-    final String ruleDescription = ruleEvaluation.ruleDescription();
-    final String rationale = asSentence(recommendation.rationale());
-    final String pipelineText =
-        showPipelineIndex ? "pipeline %d, ".formatted(segmentIndex + 1) : "";
-    final String message = "Step %d, %s%s. %s".formatted(stepIndex + 1, pipelineText,
-        ruleDescription, rationale);
+    final ModuleOrderRule selectedRule = representativeViolation(selectedViolation).ruleEvaluation()
+        .rule();
+    final String pipelineSuffix =
+        showPipelineIndex ? ", pipeline %d".formatted(segmentIndex + 1) : "";
+    final String message = formatIssueMessage(stepIndex + 1, pipelineSuffix,
+        selectedViolation.violations());
     issues.add(
         new BatchModuleOrderIssue(ModuleOrderRules.level(selectedRule), segmentIndex, stepIndex,
             module.getName(), recommendation, selectedRule, message));
+  }
+
+  /**
+   * Formats the user-facing issue message. A single violation is reported inline. Several
+   * alternatives of a combined recommendation are listed as {@code step.index} bullets separated by
+   * "or", because satisfying any one of them resolves the warning.
+   */
+  private static @NotNull String formatIssueMessage(final int stepNumber,
+      @NotNull final String pipelineSuffix,
+      @NotNull final List<@NotNull ModuleOrderRuleViolation> violations) {
+    if (violations.size() == 1) {
+      final ModuleOrderRuleViolation violation = violations.getFirst();
+      return "Step %d%s, %s. %s".formatted(stepNumber, pipelineSuffix,
+          violation.ruleEvaluation().ruleDescription(), asSentence(violation.rationale()));
+    }
+    final String bullets = IntStream.range(0, violations.size()).mapToObj(index -> {
+      final ModuleOrderRuleViolation violation = violations.get(index);
+      return "\u2022 %d.%d - %s. %s".formatted(stepNumber, index + 1,
+          violation.ruleEvaluation().ruleDescription(), asSentence(violation.rationale()));
+    }).collect(Collectors.joining("\n   or\n"));
+    return "Step %d%s:\n%s".formatted(stepNumber, pipelineSuffix, bullets);
+  }
+
+  /**
+   * Evaluates a recommendation. {@link AnyOfModuleOrderRecommendation} uses OR semantics: any
+   * passing alternative satisfies it, an alternative violation only counts when none pass, and it
+   * is not applicable when every alternative is not applicable.
+   */
+  private static @NotNull ModuleOrderRecommendationEvaluation evaluateRecommendation(
+      @NotNull final BatchQueue batchQueue, @NotNull final IndexRange segment, final int stepIndex,
+      @NotNull final ModuleOrderRecommendation recommendation) {
+    return switch (recommendation) {
+      case SingleModuleOrderRecommendation single -> {
+        final ModuleOrderRuleEvaluation ruleEvaluation = evaluateRule(batchQueue, segment,
+            stepIndex, single.rule());
+        final List<ModuleOrderRuleViolation> violations =
+            ruleEvaluation.status() == ModuleOrderRuleStatus.VIOLATION ? List.of(
+                new ModuleOrderRuleViolation(single.rationale(), ruleEvaluation)) : List.of();
+        yield new ModuleOrderRecommendationEvaluation(single, ruleEvaluation.status(), violations);
+      }
+      case AnyOfModuleOrderRecommendation any -> {
+        final List<ModuleOrderRecommendationEvaluation> alternatives = any.alternatives().stream()
+            .map(alternative -> evaluateRecommendation(batchQueue, segment, stepIndex, alternative))
+            .toList();
+        if (alternatives.stream()
+            .anyMatch(evaluation -> evaluation.status() == ModuleOrderRuleStatus.PASS)) {
+          yield new ModuleOrderRecommendationEvaluation(any, ModuleOrderRuleStatus.PASS, List.of());
+        }
+        final List<ModuleOrderRuleViolation> violations = alternatives.stream()
+            .flatMap(evaluation -> evaluation.violations().stream()).toList();
+        final ModuleOrderRuleStatus status =
+            violations.isEmpty() ? ModuleOrderRuleStatus.NOT_APPLICABLE
+                : ModuleOrderRuleStatus.VIOLATION;
+        yield new ModuleOrderRecommendationEvaluation(any, status, violations);
+      }
+    };
+  }
+
+  /**
+   * The most severe violated alternative, which drives the reported importance level of a combined
+   * recommendation.
+   */
+  private static @NotNull ModuleOrderRuleViolation representativeViolation(
+      @NotNull final ModuleOrderRecommendationEvaluation evaluation) {
+    return evaluation.violations().stream().max(Comparator.comparingInt(
+            violation -> severityRank(ModuleOrderRules.level(violation.ruleEvaluation().rule()))))
+        .orElseThrow();
   }
 
   private static @NotNull ModuleOrderRuleEvaluation evaluateRule(

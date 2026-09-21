@@ -29,6 +29,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
@@ -54,7 +55,8 @@ public enum Ms2ScanPairingCondition implements ModuleOrderCondition {
       @NotNull final MZmineProcessingStep<? extends MZmineProcessingModule> step) {
     return step.getModule() instanceof GroupMS2Module
         || step.getModule() instanceof DiaMs2CorrModule || hasResolverMs2ScanPairing(step)
-        || step.getModule() instanceof SpectralDeconvolutionGCModule;
+        || step.getModule() instanceof SpectralDeconvolutionGCModule
+        || step.getModule() instanceof MsnTreeFeatureDetectionModule;
   }
 
   private static boolean hasResolverMs2ScanPairing(@NotNull final MZmineProcessingStep<?> step) {

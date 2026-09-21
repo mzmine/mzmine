@@ -272,11 +272,79 @@ class BatchModuleOrderValidatorTest {
   }
 
   private static ModuleOrderRecommendation recommendation(final ModuleOrderRule rule) {
-    return new ModuleOrderRecommendation("Test rationale", rule);
+    return ModuleOrderRecommendation.of("Test rationale", rule);
+  }
+
+  private static ModuleOrderRecommendation anyOf(final ModuleOrderRule first,
+      final ModuleOrderRule second) {
+    return ModuleOrderRecommendation.anyOf(ModuleOrderRecommendation.of("Rationale A", first),
+        ModuleOrderRecommendation.of("Rationale B", second));
   }
 
   private static ModuleOrderRecommendation otherRecommendation(final ModuleOrderRule rule) {
-    return new ModuleOrderRecommendation("Other rationale", rule);
+    return ModuleOrderRecommendation.of("Other rationale", rule);
+  }
+
+  @Test
+  void combinedRecommendationIsSatisfiedWhenAnyAlternativePasses() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        anyOf(ModuleOrderRule.ifPresentShouldRunAfter(TestAnchorModule.class),
+            ModuleOrderRule.ifPresentShouldRunBefore(TestOtherAnchorModule.class)));
+
+    // First alternative violated, but the second passes -> whole recommendation is satisfied.
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(
+        queue(subject, new TestAnchorModule(), new TestOtherAnchorModule())).hasIssues());
+    // Second alternative violated, but the first passes -> whole recommendation is satisfied.
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(
+        queue(new TestAnchorModule(), new TestOtherAnchorModule(), subject)).hasIssues());
+  }
+
+  @Test
+  void combinedRecommendationIsIgnoredWhenAllAlternativesAreNotApplicable() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        anyOf(ModuleOrderRule.ifPresentShouldRunAfter(TestAnchorModule.class),
+            ModuleOrderRule.ifPresentShouldRunBefore(TestOtherAnchorModule.class)));
+
+    Assertions.assertFalse(BatchModuleOrderValidator.validate(queue(subject)).hasIssues());
+  }
+
+  @Test
+  void combinedRecommendationWarnsWithEachRationaleWhenNoAlternativePasses() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        anyOf(ModuleOrderRule.ifPresentShouldRunAfter(TestAnchorModule.class),
+            ModuleOrderRule.ifPresentShouldRunBefore(TestOtherAnchorModule.class)));
+
+    // Other anchor before and anchor after the subject violates both alternatives.
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(
+        queue(new TestOtherAnchorModule(), subject, new TestAnchorModule()));
+
+    Assertions.assertEquals(1, result.issues().size());
+    // Subject is step 2, so violated alternatives are listed as 2.1 and 2.2 bullets.
+    final String message = result.issues().getFirst().message();
+    Assertions.assertTrue(message.startsWith("Step 2:"));
+    Assertions.assertTrue(message.contains("2.1 - "));
+    Assertions.assertTrue(message.contains("2.2 - "));
+    Assertions.assertTrue(message.contains("Rationale A"));
+    Assertions.assertTrue(message.contains("Rationale B"));
+    Assertions.assertTrue(message.contains("\n   or\n"));
+    Assertions.assertEquals(ModuleOrderLevel.SHOULD, result.issues().getFirst().level());
+  }
+
+  @Test
+  void combinedRecommendationCanMixImportanceLevels() {
+    final TestSubjectModule subject = new TestSubjectModule(
+        anyOf(ModuleOrderRule.ifPresentMustRunAfter(TestAnchorModule.class),
+            ModuleOrderRule.ifPresentShouldRunBefore(TestOtherAnchorModule.class)));
+
+    final BatchModuleOrderValidationResult result = BatchModuleOrderValidator.validate(
+        queue(new TestOtherAnchorModule(), subject, new TestAnchorModule()));
+
+    Assertions.assertEquals(1, result.issues().size());
+    // The most severe violated alternative drives the reported importance level.
+    Assertions.assertEquals(ModuleOrderLevel.MUST, result.issues().getFirst().level());
+    final String message = result.issues().getFirst().message();
+    Assertions.assertTrue(message.contains("MUST run after"));
+    Assertions.assertTrue(message.contains("should run before"));
   }
 
   private static BatchQueue queue(final MZmineProcessingModule... modules) {

@@ -86,7 +86,7 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
         "Gap filling/Secondary feature finding must run after sample alignment. Without prior alignment gap filling does not change anything.",
         ModuleOrderRule.mustRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
