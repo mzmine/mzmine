@@ -72,8 +72,9 @@ public class FeatureListPreferencesModule extends TaskPerFeatureListModule {
       return;
     }
 
-    // the dialog starts on the preferences that are currently in effect for the first list
-    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
+    // the dialog redefines nothing, the custom inputs start on the preferences that are currently
+    // in effect for the first list
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.keepAllAsIs(
         modular.getFirst().getPreferences());
     param.setParameter(FeatureListPreferencesParameters.flists, new FeatureListsSelection(modular));
 

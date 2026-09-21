@@ -80,6 +80,13 @@ public class SimpleParameterSet implements ParameterSet {
   private boolean skipSensitiveParameters = false;
 
   /**
+   * false as long as this set is a scratch copy, like the one of the module configuration that
+   * every setup dialog reuses. Not copied by {@link #cloneParameterSet()}, a clone is a scratch
+   * copy again until it becomes the configuration of a batch step.
+   */
+  private boolean batchStepParameters = false;
+
+  /**
    * Error messages populated during loading from xml. This value is not cloned. Do not include in
    * hashCode or equals.
    */
@@ -116,6 +123,19 @@ public class SimpleParameterSet implements ParameterSet {
         ((ParameterContainer) parameter).setSkipSensitiveParameters(skipSensitiveParameters);
       }
     }
+  }
+
+  @Override
+  public void setAsBatchStepParameters() {
+    batchStepParameters = true;
+  }
+
+  /**
+   * @return true if this set is the stored configuration of a batch step, which keeps the selection
+   * of the user instead of starting over whenever the setup dialog is opened
+   */
+  public boolean isBatchStepParameters() {
+    return batchStepParameters;
   }
 
   @Override

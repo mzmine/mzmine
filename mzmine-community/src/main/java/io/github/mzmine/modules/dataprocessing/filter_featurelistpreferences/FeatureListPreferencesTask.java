@@ -58,8 +58,15 @@ public class FeatureListPreferencesTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final FeatureListPreferences preferences = param.toPreferences();
-    final boolean rankingChanged = !flist.getPreferences().getIonTypeRanking()
+    // parameters on KEEP_AS_IS define no value, those preferences are taken from the feature list
+    final FeatureListPreferences current = flist.getPreferences();
+    final FeatureListPreferences preferences = param.toPreferences(current);
+    if (preferences.equals(current)) {
+      // nothing to apply, e.g. all parameters are on KEEP_AS_IS
+      return;
+    }
+
+    final boolean rankingChanged = !current.getIonTypeRanking()
         .equals(preferences.getIonTypeRanking());
 
     flist.setPreferences(preferences);

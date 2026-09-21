@@ -261,6 +261,18 @@ public interface ParameterSet extends ParameterContainer {
   ExitCode showSetupDialog(boolean valueCheckRequired);
 
   /**
+   * Called when this parameter set becomes the configuration of a batch queue step, either by
+   * adding the step, by loading a queue, or by copying a step. Parameter sets that start over
+   * whenever their setup dialog is opened use this to show the selection of the user instead.
+   */
+  void setAsBatchStepParameters();
+
+  /**
+   * @return true if this set is the stored configuration of a batch step
+   */
+  boolean isBatchStepParameters();
+
+  /**
    * Set the value of a parameter
    *
    * @param parameter the parameter to change
