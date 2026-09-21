@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -105,6 +105,8 @@ public class IonNetworkRefinementParameters extends SimpleParameterSet {
     final Map<String, Parameter<?>> map = super.getNameParameterMap();
     map.put(DELETE_SMALL_NO_MAJOR_LEGACY.getName(), DELETE_SMALL_NO_MAJOR_LEGACY);
     map.put("Delete rows witout ion id", getParameter(DELETE_ROWS_WITHOUT_ID));
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    map.put(IonLibraryParameter.DEFAULT_NAME, getParameter(mainIonLibrary));
     return map;
   }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -26,6 +27,8 @@ package io.github.mzmine.parameters.parametertypes.combowithinput;
 
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +52,7 @@ public class DefaultOffCustomParameter<V> extends
   protected final @Nullable V defaultValue;
   protected final @Nullable V offValue;
   protected final boolean includeOff;
+  protected final boolean includeKeepAsIs;
 
   /**
    * @param embeddedParameter the parameter providing the input field (name, description,
@@ -60,7 +64,7 @@ public class DefaultOffCustomParameter<V> extends
    */
   public DefaultOffCustomParameter(@NotNull UserParameter<V, ?> embeddedParameter,
       @Nullable V defaultValue, @Nullable V offValue) {
-    this(embeddedParameter, defaultValue, offValue, true);
+    this(embeddedParameter, defaultValue, offValue, true, false);
   }
 
   /**
@@ -76,17 +80,47 @@ public class DefaultOffCustomParameter<V> extends
    */
   public DefaultOffCustomParameter(@NotNull UserParameter<V, ?> embeddedParameter,
       @Nullable V defaultValue, @Nullable V offValue, boolean includeOff) {
-    super(embeddedParameter, optionsFor(includeOff), DefaultOffCustomOption.CUSTOM,
-        new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, defaultValue));
+    this(embeddedParameter, defaultValue, offValue, includeOff, false);
+  }
+
+  /**
+   * @param embeddedParameter the parameter providing the input field (name, description,
+   *                          validation, …)
+   * @param defaultValue      returned by {@link #resolveValue()} when
+   *                          {@link DefaultOffCustomOption#DEFAULT} is selected; may be
+   *                          {@code null}
+   * @param offValue          returned by {@link #resolveValue()} when
+   *                          {@link DefaultOffCustomOption#OFF} is selected; may be {@code null}
+   * @param includeOff        if {@code false} the {@link DefaultOffCustomOption#OFF} entry is
+   *                          omitted from the combo-box choices
+   * @param includeKeepAsIs   if {@code true} the {@link DefaultOffCustomOption#KEEP_AS_IS} entry is
+   *                          added as the first choice and is selected initially. It resolves to
+   *                          {@code null}, the caller has to keep the value that is already in
+   *                          effect, see {@link #isKeepAsIs()}
+   */
+  public DefaultOffCustomParameter(@NotNull UserParameter<V, ?> embeddedParameter,
+      @Nullable V defaultValue, @Nullable V offValue, boolean includeOff, boolean includeKeepAsIs) {
+    super(embeddedParameter, optionsFor(includeOff, includeKeepAsIs), DefaultOffCustomOption.CUSTOM,
+        new DefaultOffCustomValue<>(
+            includeKeepAsIs ? DefaultOffCustomOption.KEEP_AS_IS : DefaultOffCustomOption.DEFAULT,
+            defaultValue));
     this.defaultValue = defaultValue;
     this.offValue = offValue;
     this.includeOff = includeOff;
+    this.includeKeepAsIs = includeKeepAsIs;
   }
 
-  private static DefaultOffCustomOption[] optionsFor(boolean includeOff) {
-    return includeOff ? DefaultOffCustomOption.values()
-        : new DefaultOffCustomOption[]{DefaultOffCustomOption.DEFAULT,
-            DefaultOffCustomOption.CUSTOM};
+  private static DefaultOffCustomOption[] optionsFor(boolean includeOff, boolean includeKeepAsIs) {
+    final List<DefaultOffCustomOption> options = new ArrayList<>(4);
+    if (includeKeepAsIs) {
+      options.add(DefaultOffCustomOption.KEEP_AS_IS);
+    }
+    options.add(DefaultOffCustomOption.DEFAULT);
+    if (includeOff) {
+      options.add(DefaultOffCustomOption.OFF);
+    }
+    options.add(DefaultOffCustomOption.CUSTOM);
+    return options.toArray(DefaultOffCustomOption[]::new);
   }
 
   /**
@@ -94,15 +128,26 @@ public class DefaultOffCustomParameter<V> extends
    * {@link #defaultValue} and {@link #offValue} fields.
    *
    * @return the resolved value; may be {@code null} when {@link DefaultOffCustomOption#OFF} or
-   * {@link DefaultOffCustomOption#DEFAULT} is selected and the corresponding value is {@code null}
+   * {@link DefaultOffCustomOption#DEFAULT} is selected and the corresponding value is
+   * {@code null}, and always for {@link DefaultOffCustomOption#KEEP_AS_IS} which defines no value
    */
   @Nullable
   public V resolveValue() {
     return switch (value.getSelectedOption()) {
+      // defines no value, the caller keeps the value that is already in effect
+      case KEEP_AS_IS -> null;
       case DEFAULT -> defaultValue;
       case OFF -> offValue;
       case CUSTOM -> value.getEmbeddedValue();
     };
+  }
+
+  /**
+   * @return true if {@link DefaultOffCustomOption#KEEP_AS_IS} is selected and the caller therefore
+   * has to keep the value that is already in effect instead of applying {@link #resolveValue()}
+   */
+  public boolean isKeepAsIs() {
+    return value != null && value.getSelectedOption() == DefaultOffCustomOption.KEEP_AS_IS;
   }
 
   public @Nullable V getDefaultValue() {
@@ -125,7 +170,7 @@ public class DefaultOffCustomParameter<V> extends
     embeddedClone.setValue(value.custom());
 
     final DefaultOffCustomParameter<V> clone = new DefaultOffCustomParameter<>(embeddedClone,
-        defaultValue, offValue, includeOff);
+        defaultValue, offValue, includeOff, includeKeepAsIs);
     final DefaultOffCustomValue<V> currentValue = getValue();
     clone.setValue(
         new DefaultOffCustomValue<>(currentValue.getSelectedOption(), currentValue.custom()));
@@ -145,6 +190,11 @@ public class DefaultOffCustomParameter<V> extends
 
     UniqueIdSupplier uniqueId = (UniqueIdSupplier) value.getSelectedOption();
     xmlElement.setAttribute("selected", uniqueId.getUniqueID());
+
+    if (isKeepAsIs()) {
+      // there is no resolved value, the value in effect at the target is kept on load as well
+      return;
+    }
 
     // save the actual resolved value, no matter what the setting was. We may change "default" or
     // "off" values in the future.
@@ -174,6 +224,11 @@ public class DefaultOffCustomParameter<V> extends
       return;
     }
 
+    if (!choices.contains(option)) {
+      // an option this parameter does not offer, e.g. a config written while it still had it
+      option = DefaultOffCustomOption.DEFAULT;
+    }
+
     NodeList actualValueList = xmlElement.getElementsByTagName("actual_value");
     V actualValue = null;
     if (actualValueList.getLength() > 0) {
@@ -189,6 +244,8 @@ public class DefaultOffCustomParameter<V> extends
     }
 
     switch (option) {
+      case KEEP_AS_IS ->
+          setValue(createValue(DefaultOffCustomOption.KEEP_AS_IS, embeddedParameter));
       case DEFAULT -> {
         if (!Objects.equals(actualValue, defaultValue)) {
           // default changed, set to custom

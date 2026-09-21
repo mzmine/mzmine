@@ -1,0 +1,74 @@
+Name: Forchlorfenuron
+Synon: $:00in-source
+DB#: WA000268
+InChIKey: GPXLRLUVLMHHIK-UHFFFAOYSA-N
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 247.9
+Instrument_type: LC-ESI-QQ
+Instrument: QuattroPremier XE, Waters
+Ion_mode: P
+Collision_energy: 40 V
+Formula: C12H10ClN3O
+MW: 247
+ExactMass: 247.05123962
+Comments: "SMILES=O=C(Nc(c2)cccc2)Nc(c1)cc(Cl)nc1" "cas=68157-60-8" "InChI=InChI=1S/C12H10ClN3O/c13-11-8-10(6-7-14-11)16-12(17)15-9-4-2-1-3-5-9/h1-8H,(H2,14,15,16,17)" "computed SMILES=ClC1=NC=CC(=C1)NC(O)=NC=2C=CC=CC2" "computed [2M+H-H2O]+=477.09510924" "computed [2M+K]+=533.20077924" "computed [M+H]+=248.05920962" "computed [2M+Na]+=517.09224924" "computed [2M+Cl]-=529.55547924" "computed [2M+HAc-H]-=553.14650924" "computed [M-H20-H]-=228.03284961999998" "computed [M-H]-=246.04396362" "computed [2M-H]-=493.09520324" "computed [M+Na]+=270.04100962" "computed [M+H-H2O]+=230.04386961999998" "computed [2M+NH4]+=512.14105924" "computed [M+Cl]-=282.50423962" "computed [M+NH4]+=265.08981962" "computed [M+K]+=286.14953962" "computed [2M+H]+=495.11044924" "computed [M+HAc-H]-=306.09526962" "accession=WA000268" "date=2016.01.19 (Created 2007.08.01, modified 2011.05.06)" "author=Nihon Waters K.K." "license=CC BY-NC" "exact mass=247.05124" "find peak=ignore rel.int. < 5" "computed spectral entropy=1.2715845455405868" "computed normalized entropy=0.6115029059741504" "computed mass accuracy=642.2332392092957" "computed mass error=-0.1592096199999844" "SPLASH=splash10-0006-9100000000-4e4d26b6874ad575a844" "submitter=submitter = Nihon Waters (Nihon Waters K.K.)" "MoNA Rating=4.166666666666666"
+Num Peaks: 8
+66 30.630631
+76 3.903904
+90 3.103103
+93 100.000000
+94 1.601602
+119 8.608609
+129 18.418418
+155 2.002002
+
+
+Name: Forchlorfenuron
+Synon: $:00in-source
+DB#: WA000267
+InChIKey: GPXLRLUVLMHHIK-UHFFFAOYSA-N
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 247.9
+Instrument_type: LC-ESI-QQ
+Instrument: QuattroPremier XE, Waters
+Ion_mode: P
+Collision_energy: 30 V
+Formula: C12H10ClN3O
+MW: 247
+ExactMass: 247.05123962
+Comments: "SMILES=O=C(Nc(c2)cccc2)Nc(c1)cc(Cl)nc1" "cas=68157-60-8" "InChI=InChI=1S/C12H10ClN3O/c13-11-8-10(6-7-14-11)16-12(17)15-9-4-2-1-3-5-9/h1-8H,(H2,14,15,16,17)" "computed SMILES=ClC1=NC=CC(=C1)NC(O)=NC=2C=CC=CC2" "computed [2M+H-H2O]+=477.09510924" "computed [2M+K]+=533.20077924" "computed [M+H]+=248.05920962" "computed [2M+Na]+=517.09224924" "computed [2M+Cl]-=529.55547924" "computed [2M+HAc-H]-=553.14650924" "computed [M-H20-H]-=228.03284961999998" "computed [M-H]-=246.04396362" "computed [2M-H]-=493.09520324" "computed [M+Na]+=270.04100962" "computed [M+H-H2O]+=230.04386961999998" "computed [2M+NH4]+=512.14105924" "computed [M+Cl]-=282.50423962" "computed [M+NH4]+=265.08981962" "computed [M+K]+=286.14953962" "computed [2M+H]+=495.11044924" "computed [M+HAc-H]-=306.09526962" "accession=WA000267" "date=2016.01.19 (Created 2007.08.01, modified 2011.05.06)" "author=Nihon Waters K.K." "license=CC BY-NC" "exact mass=247.05124" "find peak=ignore rel.int. < 5" "computed spectral entropy=1.2014486210345874" "computed normalized entropy=0.5777746558164943" "computed mass accuracy=642.2332392092957" "computed mass error=-0.1592096199999844" "SPLASH=splash10-002f-9600000000-cdeb29cbe6609b7a073a" "submitter=submitter = Nihon Waters (Nihon Waters K.K.)" "MoNA Rating=4.166666666666666"
+Num Peaks: 8
+66 6.306306
+76 1.201201
+93 100.000000
+94 1.201201
+119 8.608609
+129 61.961962
+130 1.201201
+155 9.409409
+
+
+Name: Forchlorfenuron
+Synon: $:00in-source
+DB#: WA000266
+InChIKey: GPXLRLUVLMHHIK-UHFFFAOYSA-N
+Precursor_type: [M+H]+
+Spectrum_type: MS2
+PrecursorMZ: 247.9
+Instrument_type: LC-ESI-QQ
+Instrument: QuattroPremier XE, Waters
+Ion_mode: P
+Collision_energy: 20 V
+Formula: C12H10ClN3O
+MW: 247
+ExactMass: 247.05123962
+Comments: "SMILES=O=C(Nc(c2)cccc2)Nc(c1)cc(Cl)nc1" "cas=68157-60-8" "InChI=InChI=1S/C12H10ClN3O/c13-11-8-10(6-7-14-11)16-12(17)15-9-4-2-1-3-5-9/h1-8H,(H2,14,15,16,17)" "computed SMILES=ClC1=NC=CC(=C1)NC(O)=NC=2C=CC=CC2" "computed [2M+H-H2O]+=477.09510924" "computed [2M+K]+=533.20077924" "computed [M+H]+=248.05920962" "computed [2M+Na]+=517.09224924" "computed [2M+Cl]-=529.55547924" "computed [2M+HAc-H]-=553.14650924" "computed [M-H20-H]-=228.03284961999998" "computed [M-H]-=246.04396362" "computed [2M-H]-=493.09520324" "computed [M+Na]+=270.04100962" "computed [M+H-H2O]+=230.04386961999998" "computed [2M+NH4]+=512.14105924" "computed [M+Cl]-=282.50423962" "computed [M+NH4]+=265.08981962" "computed [M+K]+=286.14953962" "computed [2M+H]+=495.11044924" "computed [M+HAc-H]-=306.09526962" "accession=WA000266" "date=2016.01.19 (Created 2007.08.01, modified 2011.05.06)" "author=Nihon Waters K.K." "license=CC BY-NC" "exact mass=247.05124" "find peak=ignore rel.int. < 5" "computed spectral entropy=0.8493914241493299" "computed normalized entropy=0.4740543799192387" "computed mass accuracy=642.2332392092957" "computed mass error=-0.1592096199999844" "SPLASH=splash10-004i-1900000000-2a20925c26f4ea507fe9" "submitter=submitter = Nihon Waters (Nihon Waters K.K.)" "MoNA Rating=4.166666666666666"
+Num Peaks: 6
+93 17.217217
+94 0.800801
+119 0.800801
+129 100.000000
+130 1.201201
+155 16.816817

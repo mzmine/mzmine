@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GroupMS2Module implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Group MS2 scans with features";
+  public static final String MODULE_NAME = "Group MS2 scans with features";
   private static final String MODULE_DESCRIPTION = "This method assigns all MS2 scans within range to all features in this feature list";
 
   @Override

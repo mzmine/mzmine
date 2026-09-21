@@ -421,8 +421,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     return eligibleFrames;
   }
 
-  public Double getTIC() {
-    // TODO: this could be precomputed once
+  public double getTIC() {
     return ArrayUtils.sum(intensities, 0, currentNumberOfDataPoints);
   }
 

@@ -133,9 +133,8 @@ public class SimpleMassSpectrum implements MassSpectrum {
     return mzRange;
   }
 
-  @Nullable
   @Override
-  public Double getTIC() {
+  public double getTIC() {
     if (tic == null) {
       tic = Arrays.stream(intensityValues).sum();
     }

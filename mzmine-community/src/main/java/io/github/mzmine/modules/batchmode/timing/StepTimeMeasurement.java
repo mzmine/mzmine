@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,13 @@ import io.github.mzmine.main.ConfigService;
 import java.time.Duration;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @param step            1-based step number, 0 for measurements that cover a whole batch instead
+ *                        of a single step
+ * @param secondsToFinish wall-clock seconds the step took
+ * @param name            module name of the step
+ * @param usedHeapGB      used heap (GB) after the step, or null if not tracked
+ */
 public record StepTimeMeasurement(int step, double secondsToFinish, String name,
                                   @Nullable String usedHeapGB) {
 
@@ -46,8 +53,7 @@ public record StepTimeMeasurement(int step, double secondsToFinish, String name,
   @Override
   public String toString() {
     String heap = usedHeapGB == null ? "" : " (used heap: %s GB)".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds to finish%s".formatted(step + 1, name, secondsToFinish,
-        heap);
+    return "Step %d: %s took %.3f seconds to finish%s".formatted(step, name, secondsToFinish, heap);
   }
 
 }

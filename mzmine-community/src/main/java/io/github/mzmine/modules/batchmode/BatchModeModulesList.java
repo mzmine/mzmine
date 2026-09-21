@@ -117,7 +117,6 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formul
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
@@ -129,6 +128,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_analog_search
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.norm_intensity.IntensityNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_ri.RICalculationModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
@@ -360,6 +360,7 @@ public class BatchModeModulesList {
           IntensityNormalizerModule.class, //
           RTCorrectionModule.class, //
           ScanRtCorrectionModule.class, //
+          RemoveScanRtCorrectionModule.class, //
           RICalculationModule.class, //
 
           /*
@@ -381,7 +382,6 @@ public class BatchModeModulesList {
           IonNetworkMSMSCheckModule.class, //
           FormulaPredictionIonNetworkModule.class, //
           CreateAvgNetworkFormulasModule.class, //
-          IonNetRelationsModule.class, //
           OnlineLcReactivityModule.class, //
           ClearIonIdentitiesModule.class, //
 

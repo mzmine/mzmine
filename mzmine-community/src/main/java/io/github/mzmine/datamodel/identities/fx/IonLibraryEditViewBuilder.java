@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 import static javafx.geometry.Insets.EMPTY;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.AddIons;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.CloseTab;
 import io.github.mzmine.datamodel.identities.fx.IonLibraryEditEvent.ComposeAddLibraries;
@@ -45,6 +46,7 @@ import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.components.util.FxLayout.GridColumnGrow;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.javafx.validation.FxValidation;
 import java.util.List;
@@ -91,7 +93,16 @@ class IonLibraryEditViewBuilder extends FxViewBuilder<IonLibraryEditModel> {
     final BorderPane mainPane = newBorderPane(
         createCenterControlsAccordion(typesList, model.getIonTypes(),
             parentModel.getPartsDefinitions()));
-    mainPane.setTop(newVBox(newBoldTitle(model.titleProperty()), topMenu));
+
+    final var titlePane = newHBox(Insets.EMPTY,
+        FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, FxIconUtil.DEFAULT_LARGE_ICON_SIZE,
+            """
+                Add ion types to this library from the global ions, by defining new ion types, or by adding whole libraries.
+                Save overwrites the original library, save copy requires a new name and keeps the original.
+                Click to open the documentation.""", IonsDocumentation.DEFINE_TYPES),
+        newBoldTitle(model.titleProperty()));
+
+    mainPane.setTop(newVBox(titlePane, topMenu));
     mainPane.setLeft(typesList);
     return mainPane;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,14 +30,18 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.io.CountingInputStream;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -80,10 +84,20 @@ public class GnpsMgfParser extends SpectralDBTextParser {
 
   private final static Logger logger = Logger.getLogger(GnpsMgfParser.class.getName());
 
+  private static final int READ_BUFFER = 1 << 16;
+
+  /**
+   * String.split only has a fast path for a single character separator, so this one is compiled
+   * once instead of on every signal line.
+   */
+  private static final Pattern SIGNAL_SEPARATOR = Pattern.compile("\\s+");
+
   @Override
   public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
       @NotNull SpectralLibrary library) throws IOException {
-    super.parse(mainTask, dataBaseFile, library);
+    // progress from the bytes consumed instead of the line counting pass of the super
+    // implementation, which would read the whole file a second time
+    initByteProgress(dataBaseFile);
     logger.info("Parsing mgf spectral library " + dataBaseFile.getAbsolutePath());
 
     final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
@@ -104,7 +118,11 @@ public class GnpsMgfParser extends SpectralDBTextParser {
     boolean skipEntryError = false;
 
     // create db
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+    // progress by counting bytes instead of 2 reads on lines
+    try (CountingInputStream counting = new CountingInputStream(
+        new BufferedInputStream(new FileInputStream(dataBaseFile),
+            READ_BUFFER)); BufferedReader br = new BufferedReader(
+        new InputStreamReader(counting, StandardCharsets.UTF_8))) {
       for (String l; (l = br.readLine()) != null; ) {
         l = l.trim();
         // main task was canceled?
@@ -150,7 +168,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
                     break;
                   case DATA:
                     // split for any white space (tab or space ...)
-                    String[] data = l.split("\\s+");
+                    String[] data = SIGNAL_SEPARATOR.split(l);
                     if (data.length < 2) {
                       // no data anymore
                       state = State.WAIT_FOR_META;
@@ -231,7 +249,9 @@ public class GnpsMgfParser extends SpectralDBTextParser {
           state = State.WAIT_FOR_META;
         }
         processedLines.incrementAndGet();
+        processedBytes.set(counting.getCount());
       }
+      finishByteProgress();
       // finish and process all entries
       finish();
 

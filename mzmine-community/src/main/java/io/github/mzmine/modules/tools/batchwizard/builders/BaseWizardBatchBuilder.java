@@ -76,9 +76,11 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMs2AdvancedParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.AutomaticIsotopeFinderParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.CarbonModelAlgorithmParameters;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModeOptions;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
-import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
@@ -132,8 +134,11 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTCorrectionParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.RTMeasure;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRtCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.MultilinearRawFileRtCalibrationParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
@@ -182,6 +187,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSp
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExportParameters;
@@ -228,8 +235,10 @@ import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectral
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -276,6 +285,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // lipid annotation
   private final boolean annotateLipids;
   protected final boolean predictFormulas;
+  private final boolean batchHasQcs;
   protected File csvLibraryFile;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
@@ -289,6 +299,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     metadataFile = getOptional(params, DataImportWizardParameters.metadataFile);
     extractMetadataParams = getOptionalParameters(params,
         DataImportWizardParameters.extractMetadata).orElse(null);
+    final Map<@NotNull SampleType, List<File>> groupedSamples = Arrays.stream(dataFiles)
+        .collect(Collectors.groupingBy(f -> SampleType.guessFromName(f.getName())));
+    final @Nullable List<File> qcs = groupedSamples.get(SampleType.QC);
+    batchHasQcs = qcs != null && qcs.size() >= 2;
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -399,20 +413,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     noiseLevelMs1 = Math.min(minFeatureHeight, noiseLevelMs1);
 
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
-    param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
     var scanSelection = new ScanSelection(1, RangeUtils.toFloatRange(cropRtRange),
         polarity.toScanPolaritySelection());
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scanSelection);
 
-    param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
-    param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
-    param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
-    param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, noiseLevelMs1);
-    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minFeatureHeight);
+    var param = ADAPChromatogramBuilderParameters.create(
+        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES), scanSelection,
+        minRtDataPoints, mzTolScans, "eics", noiseLevelMs1, minFeatureHeight, true);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
@@ -704,9 +711,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CorrelateGroupingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
-    // for now we set this to keep as this was the initial state before handle original parameter was added
-    // some workflows depend on the inital feature list to be present
-    param.setParameter(CorrelateGroupingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    // now that IonIdentity and IonNetwork and R2RMap are saved we can use REMOVE or user set
+    param.setParameter(CorrelateGroupingParameters.handleOriginal, handleOriginalFeatureLists);
 
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
@@ -1182,22 +1188,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
-  protected void makeAndAddRetentionTimeCalibration(BatchQueue q, MZTolerance mzTolInterSample,
-      RTTolerance interSampleRtTol, OriginalFeatureListOption handleOriginalFeatureLists) {
+  protected void makeAndAddScanRtCorrectionStep(final @NotNull BatchQueue q,
+      final @NotNull MZTolerance mzTolInterSample, final @NotNull RTTolerance interSampleRtTol) {
 
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(RTCorrectionModule.class).cloneParameterSet();
-    param.setParameter(RTCorrectionParameters.featureLists,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
-    param.setParameter(RTCorrectionParameters.RTTolerance, interSampleRtTol);
-    param.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
-    param.setParameter(RTCorrectionParameters.handleOriginal, handleOriginalFeatureLists);
-    param.setParameter(RTCorrectionParameters.suffix, "rt_cal");
+    final ParameterSet correctorParam = MultilinearRawFileRtCalibrationParameters.create(0.1);
 
-    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(RTCorrectionModule.class), param);
-    q.add(step);
+    final SampleTypeFilter sampleTypeFilter =
+        batchHasQcs ? SampleTypeFilter.qc() : SampleTypeFilter.of(SampleType.QC, SampleType.SAMPLE);
+
+    final RTCorrectionParameters scanRtParams = RTCorrectionParameters.create(
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS), //
+        mzTolInterSample, //
+        new RTTolerance(interSampleRtTol.getToleranceInMinutes() * 2, Unit.MINUTES), //
+        minFeatureHeight * 5, //
+        true, //
+        sampleTypeFilter, //
+        RTMeasure.MEDIAN, //
+        RtCorrectionFunctions.MultiLinearCorrection, //
+        correctorParam);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ScanRtCorrectionModule.class),
+        scanRtParams));
   }
 
   /**
@@ -1297,12 +1308,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     param.setParameter(IsotopeFinderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(IsotopeFinderParameters.isotopeMzTolerance, mzTolFeaturesIntraSample);
-    param.setParameter(IsotopeFinderParameters.maxCharge, 1);
-    param.setParameter(IsotopeFinderParameters.scanRange, ScanRange.SINGLE_MOST_INTENSE);
-    param.setParameter(IsotopeFinderParameters.elements,
-        List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S")));
+    // the automatic algorithm only needs the tolerance and the charge range, the rest defaults to
+    // H, C, N, O, S with the standard carbon-model envelope
+    final ParameterSet isoAlgorithm = param.getParameter(IsotopeFinderParameters.mode)
+        .setOptionGetParameters(IsotopeFinderModeOptions.AUTOMATIC);
+
+    AutomaticIsotopeFinderParameters.setAll(isoAlgorithm,
+        CarbonModelAlgorithmParameters.DEFAULT_REQUIRE_C13, mzTolScans,
+        CarbonModelAlgorithmParameters.DEFAULT_MAX_CHARGE);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
         param));

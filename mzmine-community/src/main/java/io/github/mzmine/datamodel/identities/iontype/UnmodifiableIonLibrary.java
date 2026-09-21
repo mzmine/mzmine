@@ -84,7 +84,7 @@ public class UnmodifiableIonLibrary implements IonLibrary {
     this.origin = origin;
     this.name = name;
     List<IonType> sorted = new ArrayList<>(ions);
-    sorted.sort(IonTypeSorting.MOLECULES_THEN_CHARGE_THEN_MASS.getComparator());
+    sorted.sort(IonTypeSorting.getIonTypeDefault().getComparator());
     this.ions = Collections.unmodifiableList(sorted);
     this.lastUpdatedDate = lastUpdatedDate;
   }

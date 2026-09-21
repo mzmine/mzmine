@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.BuildingIonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonParts;
@@ -101,7 +102,7 @@ public class SimpleSeederComponentizerTest {
    * network through {@code row.getIonIdentities()}.
    */
   private static IonNetwork buildNetwork(final int id, final Object[][] rowIonPairs) {
-    final IonNetwork net = new IonNetwork(id);
+    final BuildingIonNetwork net = new BuildingIonNetwork(id);
     for (final Object[] pair : rowIonPairs) {
       final ModularFeatureListRow row = (ModularFeatureListRow) pair[0];
       final IonType ionType = (IonType) pair[1];
@@ -109,7 +110,7 @@ public class SimpleSeederComponentizerTest {
       net.put(row, ion);
       row.addIonIdentity(ion);
     }
-    return net;
+    return net.setNetworkToAllRows();
   }
 
   /**

@@ -605,13 +605,17 @@ public final class GlobalIonLibraryService {
     return applyLockedChange(() -> {
       final Map<@NotNull UUID, IonLibrary> newIds = newLibs.stream()
           .collect(Collectors.toMap(IonLibrary::id, Function.identity()));
-      // remove all libraries that are not part of newLibs, they were deleted
-      final List<IonLibrary> libsToRemove = libraries.values().stream()
-          .filter(lib -> {
-            if(lib.isInternalLibrary()) return false;
-            final IonLibrary newLib = newIds.get(lib.id());
-            return newLib!=null && !lib.equals(newLib); // has actually changed
-          }).toList();
+      // remove all libraries that are not part of newLibs, they were deleted.
+      // changed libraries are removed here as well and re-added below, so that the stale preset
+      // file (which may still carry the old name) is deleted first
+      final List<IonLibrary> libsToRemove = libraries.values().stream().filter(lib -> {
+        if (lib.isInternalLibrary()) {
+          return false;
+        }
+        final IonLibrary newLib = newIds.get(lib.id());
+        // deleted by the user or content/name has actually changed
+        return newLib == null || !lib.equals(newLib);
+      }).toList();
 
       boolean wasChanged = removeLibraries(libsToRemove);
 

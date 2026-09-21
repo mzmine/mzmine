@@ -164,6 +164,9 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
       return;
     }
 
+    // check MS1 correlation map for a direct correlation edge between the rows
+    final R2RMap<RowsRelationship> ms1Map = pkl.getMs1CorrelationMap().orElse(null);
+
     int c = 0;
     for (IonIdentity ad : ident) {
       // do not test the unmodified
@@ -176,9 +179,6 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
 
       // for all rows in network
       List<FeatureListRow> rows = net.getRows();
-
-      // check MS1 correlation map for a direct correlation edge between the rows
-      final R2RMap<RowsRelationship> ms1Map = pkl.getMs1CorrelationMap().orElse(null);
 
       if (rows != null) {
         for (FeatureListRow parent : rows) {

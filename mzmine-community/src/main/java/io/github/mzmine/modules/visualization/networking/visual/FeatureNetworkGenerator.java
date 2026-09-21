@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
@@ -159,9 +158,6 @@ public class FeatureNetworkGenerator {
         for (IonNetwork net : nets) {
           addIonNetwork(net, added);
         }
-
-        // add relations
-        addNetworkRelationsEdges(nets);
       }
 
       // add all types of row 2 row relation ships:
@@ -402,46 +398,6 @@ public class FeatureNetworkGenerator {
 
   private double deltaMZ(FeatureListRow a, FeatureListRow b) {
     return Math.abs(a.getAverageMZ() - b.getAverageMZ());
-  }
-
-  /**
-   * Adds all relational edges between networks
-   */
-  private void addNetworkRelationsEdges(IonNetwork[] nets) {
-    for (IonNetwork net : nets) {
-      if (net.getRelations() != null) {
-
-        net.getRelations().values().stream()
-            // only do it once
-            .filter(rel -> rel.isLowestIDNetwork(net)).forEach(this::addRelationEdges);
-      }
-    }
-  }
-
-  /**
-   * Adds all the edges of an relation between the networks
-   */
-  private void addRelationEdges(IonNetworkRelation rel) {
-    IonNetwork[] nets = rel.getAllNetworks();
-    for (int i = 0; i < nets.length - 1; i++) {
-      IonNetwork netA = nets[i];
-      for (int j = i + 1; j < nets.length; j++) {
-        IonNetwork netB = nets[j];
-        Node a = getNeutralMolNode(netA, false);
-        Node b = getNeutralMolNode(netB, false);
-        if (a != null && b != null) {
-          // b has higher mass
-          if (netA.getNeutralMass() > netB.getNeutralMass()) {
-            Node tmp = a;
-            a = b;
-            b = tmp;
-          }
-          double dmz = Math.abs(netA.getNeutralMass() - netB.getNeutralMass());
-          String edgeLabel = rel.getDescription();
-          addNewEdge(a, b, EdgeType.NETWORK_RELATIONS, edgeLabel, true, dmz);
-        }
-      }
-    }
   }
 
   /**

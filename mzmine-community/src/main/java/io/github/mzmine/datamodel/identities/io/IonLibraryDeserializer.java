@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,6 @@ public class IonLibraryDeserializer extends JsonDeserializer<IonLibrary> {
   @Override
   public IonLibrary deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
     StorableIonLibrary storable = p.readValueAs(StorableIonLibrary.class);
-    return IonLibraryIO.convert(storable);
+    return IonLibraryIO.convert(storable).library();
   }
 }

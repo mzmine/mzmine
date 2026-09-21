@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -281,7 +281,7 @@ public class IonTimeSeriesUtils {
       final List<MobilityScan> scans = new ArrayList<>();
       while (access.hasNextMobilityScan()) {
         MobilityScan scan = access.nextMobilityScan();
-        if (mobilityRange != null || mobilityRange.contains((float) scan.getMobility())) {
+        if (mobilityRange == null || mobilityRange.contains((float) scan.getMobility())) {
           final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
           if (closestPeakIndex < 0) {
             // empty scan
