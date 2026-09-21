@@ -122,7 +122,7 @@ public abstract class ComboWithInputParameter<EnumType extends UniqueIdSupplier,
   public void setValueFromComponent(ComboWithInputComponent<EnumType> component) {
     var option = component.getSelectedOption();
     // check the selected option in component
-    if (Objects.equals(option, inputTrigger)) {
+    if (inputTriggers.contains(option)) {
       Node embeddedComponent = component.getEmbeddedComponent();
       ((UserParameter) this.embeddedParameter).setValueFromComponent(embeddedComponent);
     }
