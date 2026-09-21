@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendations;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.dataprocessing.filter_scan_merge_select.SpectraMergeSelectParameter;
@@ -134,6 +135,6 @@ public class NistMsSearchModule implements MZmineProcessingModule {
     return List.of(ModuleOrderRecommendation.of(
             "NIST MS search requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
-        ModuleOrderRecommendation.BEFORE_ALIGNMENT_OR_LIB_EXPORT);
+        ModuleOrderRecommendations.BEFORE_ALIGNMENT_OR_LIB_EXPORT);
   }
 }

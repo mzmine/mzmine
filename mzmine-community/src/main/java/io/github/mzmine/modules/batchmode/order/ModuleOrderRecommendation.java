@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,13 +36,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface ModuleOrderRecommendation permits SingleModuleOrderRecommendation,
     AnyOfModuleOrderRecommendation {
-
-  public static final ModuleOrderRecommendation BEFORE_ALIGNMENT_OR_LIB_EXPORT = ModuleOrderRecommendation.anyOf(
-      ModuleOrderRecommendation.of("Annotations are not preserved during alignment",
-          ModuleOrderRule.ifPresentShouldRunAfter(
-              ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))),
-      ModuleOrderRecommendation.of("The library generation requires prior annotation.",
-          ModuleOrderRule.ifPresentMustRunBefore(LibraryBatchGenerationModule.class)));
 
   /**
    * A recommendation satisfied by a single ordering rule.
