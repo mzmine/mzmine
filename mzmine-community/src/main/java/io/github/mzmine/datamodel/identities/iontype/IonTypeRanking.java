@@ -104,8 +104,9 @@ public final class IonTypeRanking {
     return new IonTypeRanking(new ArrayList<>(List.of(
         // positive
         IonPartFrequency.of(IonParts.H, 1f), //
+        // 0.86 keeps [M+Na]+ above [M+H-H2O]+, which scores mean(H=1, H2O=0.7) = 0.85
+        IonPartFrequency.of(IonParts.NA, 0.86f), //
         IonPartFrequency.of(IonParts.NH4, 0.7f), //
-        IonPartFrequency.of(IonParts.NA, 0.71f), //
         IonPartFrequency.of(IonParts.K, 0.35f), //
         IonPartFrequency.of(IonParts.CA, 0.2f), //
         IonPartFrequency.of(IonParts.MG, 0.15f), //
