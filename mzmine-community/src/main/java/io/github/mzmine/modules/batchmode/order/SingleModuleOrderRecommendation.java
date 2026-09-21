@@ -25,22 +25,21 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Result of evaluating one (possibly combined) recommendation. {@code violations} is non-empty only
- * when {@code status} is {@link ModuleOrderRuleStatus#VIOLATION} and lists every violated
- * alternative in declaration order.
+ * A {@link ModuleOrderRecommendation} that is satisfied by a single ordering rule.
+ *
+ * @param rationale explanation of why the placement matters
+ * @param rule      ordering rule for this placement
  */
-record ModuleOrderRecommendationEvaluation(@NotNull ModuleOrderRecommendation recommendation,
-                                           @NotNull ModuleOrderRuleStatus status,
-                                           @NotNull List<@NotNull ModuleOrderRuleViolation> violations) {
+public record SingleModuleOrderRecommendation(@NotNull String rationale,
+                                              @NotNull ModuleOrderRule rule) implements
+    ModuleOrderRecommendation {
 
-  ModuleOrderRecommendationEvaluation {
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(status);
-    violations = List.copyOf(Objects.requireNonNull(violations));
+  public SingleModuleOrderRecommendation {
+    if (rationale.isBlank()) {
+      throw new IllegalArgumentException("The rationale must not be blank");
+    }
   }
 }

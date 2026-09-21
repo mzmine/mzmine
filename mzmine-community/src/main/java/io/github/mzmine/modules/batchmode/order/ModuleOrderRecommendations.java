@@ -25,22 +25,20 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import java.util.List;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
+import static io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition.of;
+import static io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation.anyOf;
+import static io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation.of;
+import static io.github.mzmine.modules.batchmode.order.ModuleOrderRule.ifPresentMustRunBefore;
+import static io.github.mzmine.modules.batchmode.order.ModuleOrderRule.ifPresentShouldRunAfter;
 
-/**
- * Result of evaluating one (possibly combined) recommendation. {@code violations} is non-empty only
- * when {@code status} is {@link ModuleOrderRuleStatus#VIOLATION} and lists every violated
- * alternative in declaration order.
- */
-record ModuleOrderRecommendationEvaluation(@NotNull ModuleOrderRecommendation recommendation,
-                                           @NotNull ModuleOrderRuleStatus status,
-                                           @NotNull List<@NotNull ModuleOrderRuleViolation> violations) {
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
 
-  ModuleOrderRecommendationEvaluation {
-    Objects.requireNonNull(recommendation);
-    Objects.requireNonNull(status);
-    violations = List.copyOf(Objects.requireNonNull(violations));
-  }
+public class ModuleOrderRecommendations {
+
+  public static final ModuleOrderRecommendation BEFORE_ALIGNMENT_OR_LIB_EXPORT = anyOf(
+      of("Annotations are not preserved during alignment",
+          ifPresentShouldRunAfter(of(MZmineModuleCategory.ALIGNMENT))),
+      of("The library generation requires prior annotation.",
+          ifPresentMustRunBefore(LibraryBatchGenerationModule.class)));
 }

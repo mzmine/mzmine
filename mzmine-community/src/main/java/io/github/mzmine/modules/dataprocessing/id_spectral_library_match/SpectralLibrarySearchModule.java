@@ -31,19 +31,17 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.batchmode.order.ModuleCategoryOrderCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
+import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendations;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
 import io.github.mzmine.modules.batchmode.order.Ms2ScanPairingCondition;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
-
 import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchModule implements MZmineProcessingModule {
@@ -103,11 +101,9 @@ public class SpectralLibrarySearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
-            "Spectral networking requires that MS2 spectra are assigned to features.",
+    return List.of(ModuleOrderRecommendation.of(
+            "Spectral library search requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
-        new ModuleOrderRecommendation("Annotations are not preserved during alignment",
-            ModuleOrderRule.ifPresentShouldRunAfter(
-                ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+        ModuleOrderRecommendations.BEFORE_ALIGNMENT_OR_LIB_EXPORT);
   }
 }

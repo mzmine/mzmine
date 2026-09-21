@@ -44,8 +44,7 @@ import org.junit.jupiter.api.Test;
 class MassDetectionConditionTest {
 
   private static @NotNull TestSubjectModule massListConsumer() {
-    return new TestSubjectModule(
-        new ModuleOrderRecommendation("The test module requires mass lists",
+    return new TestSubjectModule(ModuleOrderRecommendation.of("The test module requires mass lists",
             ModuleOrderRule.mustRunAfter(MassDetectionCondition.MSany)));
   }
 

@@ -101,10 +101,10 @@ public class MainSpectralNetworkingModule extends AbstractProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
             "Spectral networking requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
-        new ModuleOrderRecommendation("Spectral networks are not preserved during alignment",
+        ModuleOrderRecommendation.of("Spectral networks are not preserved during alignment",
             ModuleOrderRule.ifPresentMustRunAfter(
                 ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }

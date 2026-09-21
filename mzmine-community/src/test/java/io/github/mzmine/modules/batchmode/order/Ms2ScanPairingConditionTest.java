@@ -87,7 +87,7 @@ class Ms2ScanPairingConditionTest {
 
   private static @NotNull TestSubjectModule ms2Consumer() {
     return new TestSubjectModule(
-        new ModuleOrderRecommendation("The test module requires paired MS2 scans",
+        ModuleOrderRecommendation.of("The test module requires paired MS2 scans",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)));
   }
 

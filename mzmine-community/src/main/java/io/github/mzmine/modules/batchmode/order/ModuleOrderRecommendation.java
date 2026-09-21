@@ -25,23 +25,35 @@
 
 package io.github.mzmine.modules.batchmode.order;
 
-import java.util.Objects;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * One placement recommendation for a module. All applicable recommendations returned by a module
- * are evaluated independently.
- *
- * @param rationale explanation of why the placement matters
- * @param rule      ordering rule for this placement
+ * One placement recommendation for a module. All recommendations returned by a module are evaluated
+ * independently. Use {@link #of} for a single ordering rule, or {@link #anyOf} to combine several
+ * recommendations with OR semantics: the combined recommendation is satisfied as soon as any of its
+ * alternatives is satisfied, and each alternative keeps its own rationale.
  */
-public record ModuleOrderRecommendation(@NotNull String rationale, @NotNull ModuleOrderRule rule) {
+public sealed interface ModuleOrderRecommendation permits SingleModuleOrderRecommendation,
+    AnyOfModuleOrderRecommendation {
 
-  public ModuleOrderRecommendation {
-    Objects.requireNonNull(rationale);
-    Objects.requireNonNull(rule);
-    if (rationale.isBlank()) {
-      throw new IllegalArgumentException("The rationale must not be blank");
-    }
+  /**
+   * A recommendation satisfied by a single ordering rule.
+   *
+   * @param rationale explanation of why the placement matters
+   * @param rule      ordering rule for this placement
+   */
+  static @NotNull ModuleOrderRecommendation of(@NotNull final String rationale,
+      @NotNull final ModuleOrderRule rule) {
+    return new SingleModuleOrderRecommendation(rationale, rule);
+  }
+
+  /**
+   * A recommendation satisfied when any of the given alternatives is satisfied. Each alternative
+   * keeps its own rationale and rule, so different placements can be explained individually.
+   */
+  static @NotNull ModuleOrderRecommendation anyOf(
+      @NotNull final ModuleOrderRecommendation... alternatives) {
+    return new AnyOfModuleOrderRecommendation(List.of(alternatives));
   }
 }

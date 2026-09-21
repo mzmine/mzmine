@@ -84,7 +84,7 @@ public class CorrelateGroupingModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
         "Correlation grouping results are lost during alignment and should therefore run after it",
         ModuleOrderRule.ifPresentShouldRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));

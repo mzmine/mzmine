@@ -86,10 +86,10 @@ public class AnalogSpectralLibrarySearchModule extends AbstractProcessingModule 
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
             "Analog search requires that MS2 spectra are assigned to features.",
             ModuleOrderRule.mustRunAfter(Ms2ScanPairingCondition.INSTANCE)),
-        new ModuleOrderRecommendation("Annotations are not preserved during alignment",
+        ModuleOrderRecommendation.of("Annotations are not preserved during alignment",
             ModuleOrderRule.ifPresentShouldRunAfter(
                 ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }

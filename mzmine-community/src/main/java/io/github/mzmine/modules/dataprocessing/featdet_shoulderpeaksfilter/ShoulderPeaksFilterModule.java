@@ -59,7 +59,7 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull List<@NotNull ModuleOrderRecommendation> getModuleOrderRecommendations() {
-    return List.of(new ModuleOrderRecommendation(
+    return List.of(ModuleOrderRecommendation.of(
         "The shoulder-peak filter requires centroided and noise filtered data",
         ModuleOrderRule.mustRunAfter(MassDetectionCondition.MSany)));
   }

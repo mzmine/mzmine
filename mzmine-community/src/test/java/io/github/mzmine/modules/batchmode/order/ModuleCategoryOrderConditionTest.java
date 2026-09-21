@@ -70,10 +70,16 @@ class ModuleCategoryOrderConditionTest {
     Assertions.assertFalse(messages.get(3).contains("Other-pipeline alignment"));
   }
 
+  private static TestSubjectModule subjectAfterAlignment() {
+    return new TestSubjectModule(ModuleOrderRecommendation.of("Test rationale",
+        ModuleOrderRule.mustRunAfter(
+            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
+  }
+
   @Test
   void ifPresentConditionIsIgnoredWhenNoAnchorMatches() {
     final TestSubjectModule subject = new TestSubjectModule(
-        new ModuleOrderRecommendation("Test rationale", ModuleOrderRule.ifPresentShouldRunAfter(
+        ModuleOrderRecommendation.of("Test rationale", ModuleOrderRule.ifPresentShouldRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
 
     Assertions.assertTrue(
@@ -83,7 +89,7 @@ class ModuleCategoryOrderConditionTest {
   @Test
   void ifPresentConditionWarnsWhenMatchingAnchorIsInTheWrongPosition() {
     final TestSubjectModule subject = new TestSubjectModule(
-        new ModuleOrderRecommendation("Test rationale", ModuleOrderRule.ifPresentShouldRunAfter(
+        ModuleOrderRecommendation.of("Test rationale", ModuleOrderRule.ifPresentShouldRunAfter(
             ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
     final BatchQueue queue = queue(subject,
         new TestOrderModule("Test alignment", MZmineModuleCategory.ALIGNMENT));
@@ -93,12 +99,6 @@ class ModuleCategoryOrderConditionTest {
     Assertions.assertTrue(
         messages.get(0)
             .contains("Subject should run after Test alignment (step 2) (if present)"));
-  }
-
-  private static TestSubjectModule subjectAfterAlignment() {
-    return new TestSubjectModule(new ModuleOrderRecommendation("Test rationale",
-        ModuleOrderRule.mustRunAfter(
-            ModuleCategoryOrderCondition.of(MZmineModuleCategory.ALIGNMENT))));
   }
 
   private static BatchQueue queue(final MZmineProcessingModule... modules) {
