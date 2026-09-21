@@ -42,7 +42,18 @@ import org.jetbrains.annotations.NotNull;
  * Accepts mass detection as a preceding batch step or as part of advanced spectral data import.
  */
 public enum MassDetectionCondition implements ModuleOrderCondition {
-  MS1(MSLevel.MSONE), MSn(MSLevel.MSMS), MSany(MSLevel.MSANY);
+  /**
+   * Mass detection specifically on ms1.
+   */
+  MS1(MSLevel.MSONE),
+  /**
+   * Mass detection specifically on ms level 2 and/or higher
+   */
+  MSn(MSLevel.MSMS),
+  /**
+   * Mass detection executed on any ms level (1 and 2 or higher are ok).
+   */
+  MSany(MSLevel.MSANY);
 
   final MSLevel msLevel;
 
@@ -72,7 +83,7 @@ public enum MassDetectionCondition implements ModuleOrderCondition {
     return switch (this) {
       case MS1 -> msLevelFilter.accept(1);
       case MSn -> msLevelFilter.accept(2);
-      case MSany -> msLevelFilter.accept(1) && msLevelFilter.accept(2);
+      case MSany -> msLevelFilter.accept(1) || msLevelFilter.accept(2);
     };
   }
 
