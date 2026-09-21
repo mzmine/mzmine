@@ -23,12 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.spectraldb.parser.mzmine;
+package io.github.mzmine.util.spectraldb.parser.gnps;
 
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,43 +35,44 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class MZmineJsonParserTest {
-
-  private static final File file = new File(
-      MZmineJsonParserTest.class.getClassLoader().getResource("json/mzmine.json").getFile());
+/**
+ * Guards the streaming parse of the nested peaks_json string in {@link SpectrumDeserializer}.
+ */
+class SpectrumDeserializerTest {
 
   @Test
-  void testParse() throws IOException {
+  void testPeaksJson() throws IOException {
+    final File file = new File(
+        SpectrumDeserializerTest.class.getClassLoader().getResource("json/GNPS-FAULKNERLEGACY.json")
+            .getFile());
     final SpectralLibrary library = new SpectralLibrary(null, file);
 
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
-    final boolean parsed = new MZmineJsonParser(0,
-        (newList, alreadyProcessed) -> entries.addAll(newList), true).parse(null, file, library);
+    new GNPSJsonParser(0, (newList, done) -> entries.addAll(newList), false).parse(null, file,
+        library);
 
-    Assertions.assertTrue(parsed);
-    Assertions.assertEquals(53, entries.size());
+    Assertions.assertEquals(127, entries.size());
+    Assertions.assertEquals(7547,
+        entries.stream().mapToInt(SpectralLibraryEntry::getNumberOfDataPoints).sum());
 
-    // covers the different json value types: string, int, double, float, array, nested object
     final SpectralLibraryEntry first = entries.getFirst();
-    Assertions.assertEquals(
-        "N-cyclopropyl-4-(5,6,7,8-tetrahydroquinazolin-4-yl)morpholine-2-carboxamide",
-        first.<String>getOrElse(DBEntryField.NAME, null));
-    Assertions.assertEquals("C16H22N4O2", first.<String>getOrElse(DBEntryField.FORMULA, null));
-    Assertions.assertEquals(Integer.valueOf(2),
-        first.<Integer>getOrElse(DBEntryField.MS_LEVEL, null));
-    Assertions.assertEquals(Integer.valueOf(1),
-        first.<Integer>getOrElse(DBEntryField.CHARGE, null));
-    Assertions.assertEquals(303.181552, first.getAsDouble(DBEntryField.PRECURSOR_MZ).orElseThrow(),
-        1e-9);
-    Assertions.assertEquals(1.7176243f, first.getAsFloat(DBEntryField.RT).orElseThrow(), 1e-6f);
-    Assertions.assertEquals(List.of(20.0f, 60.0f, 40.0f),
-        first.<Object>getOrElse(DBEntryField.COLLISION_ENERGY, null));
-    Assertions.assertEquals(202, first.getNumberOfDataPoints());
-    Assertions.assertEquals(40.525691, first.getMzValue(0), 1e-9);
+    Assertions.assertEquals("CCMSLIB00000081017",
+        first.<String>getOrElse(DBEntryField.ENTRY_ID, null));
+    Assertions.assertEquals(73, first.getNumberOfDataPoints());
 
-    // every entry must carry a spectrum
+    // exact values, the fast double parser must agree with Double.parseDouble bit for bit
+    Assertions.assertEquals(105.068466, first.getMzValue(0));
+    Assertions.assertEquals(458.062897, first.getIntensityValue(0));
+    Assertions.assertEquals(440.063141, first.getMzValue(72));
+    Assertions.assertEquals(25.894171, first.getIntensityValue(72));
+
+    // mz values must stay sorted, which only holds if pairs are not shifted
     for (final SpectralLibraryEntry entry : entries) {
-      Assertions.assertTrue(entry.getNumberOfDataPoints() > 0);
+      final double[] mzs = entry.getMzValues(new double[0]);
+      for (int i = 1; i < mzs.length; i++) {
+        Assertions.assertTrue(mzs[i - 1] <= mzs[i],
+            "mz values not sorted in " + entry.getOrElse(DBEntryField.ENTRY_ID, "?"));
+      }
     }
   }
 }

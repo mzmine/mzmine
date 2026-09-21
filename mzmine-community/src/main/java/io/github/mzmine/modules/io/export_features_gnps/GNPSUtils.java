@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,23 +25,20 @@
 
 package io.github.mzmine.modules.io.export_features_gnps;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
-import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import io.github.mzmine.util.web.RequestResponse;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -171,34 +168,27 @@ public class GNPSUtils {
   }
 
   @NotNull
-  private static SpectralLibraryEntry parseJsonToSpectrum(String jsonSpec) {
-    try (JsonReader reader = Json.createReader(new StringReader(jsonSpec))) {
-      JsonObject json = reader.readObject();
-      // GNPS has different json return types just try to read the first one which is used for USI
-      // then the other that is used for library spectra
-      if (json.containsKey("peaks")) {
-        // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
-        JsonArray peaks = json.getJsonArray("peaks");
-        DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(peaks);
-        final double precursorMz = json.getJsonNumber("precursor_mz").doubleValue();
-        final int charge = json.getJsonNumber("precursor_charge").intValue();
-        return SpectralLibraryEntryFactory.create(null, precursorMz, charge, spectrum);
-      } else {
-        // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
-        // library ID
-        final JsonObject info = json.getJsonObject("spectruminfo");
-        final String spectrumString = info.getJsonString("peaks_json").getString();
-        try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
-          final DataPoint[] spectrum = MZmineJsonParser.getDataPointsFromJsonArray(
-              specReader.readArray());
+  private static SpectralLibraryEntry parseJsonToSpectrum(String jsonSpec) throws IOException {
+    final JsonNode json = JsonUtils.MAPPER.readTree(jsonSpec);
+    // GNPS has different json return types just try to read the first one which is used for USI
+    // then the other that is used for library spectra
+    if (json.has("peaks")) {
+      // https://metabolomics-usi.ucsd.edu/json/?usi1=mzspec%3AGNPS%3AGNPS-LIBRARY%3Aaccession%3ACCMSLIB00000579622
+      final DataPoint[] spectrum = getDataPointsFromJsonArray(json.get("peaks"));
+      final double precursorMz = json.get("precursor_mz").doubleValue();
+      final int charge = json.get("precursor_charge").intValue();
+      return SpectralLibraryEntryFactory.create(null, precursorMz, charge, spectrum);
+    } else {
+      // https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737
+      // library ID
+      final String spectrumString = json.get("spectruminfo").get("peaks_json").textValue();
+      final DataPoint[] spectrum = getDataPointsFromJsonArray(
+          JsonUtils.MAPPER.readTree(spectrumString));
 
-          // precursor mz
-          final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
-          final double precursorMz = Double.parseDouble(
-              annotations.getJsonString("Precursor_MZ").getString());
-          return SpectralLibraryEntryFactory.create(null, precursorMz, spectrum);
-        }
-      }
+      // precursor mz
+      final JsonNode annotations = json.get("annotations").get(0);
+      final double precursorMz = Double.parseDouble(annotations.get("Precursor_MZ").textValue());
+      return SpectralLibraryEntryFactory.create(null, precursorMz, spectrum);
     }
   }
 
@@ -448,5 +438,29 @@ public class GNPSUtils {
   public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  /**
+   * Data points of a json array of [mz, intensity] pairs, or null if they cannot be read.
+   */
+  @Nullable
+  private static DataPoint[] getDataPointsFromJsonArray(@Nullable final JsonNode data) {
+    if (data == null || !data.isArray()) {
+      return null;
+    }
+
+    final DataPoint[] dps = new DataPoint[data.size()];
+    try {
+      for (int i = 0; i < data.size(); i++) {
+        final JsonNode dataPoint = data.get(i);
+        final double mz = dataPoint.get(0).doubleValue();
+        final double intensity = dataPoint.get(1).doubleValue();
+        dps[i] = new SimpleDataPoint(mz, intensity);
+      }
+      return dps;
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Cannot convert DP values to doubles", e);
+      return null;
+    }
   }
 }

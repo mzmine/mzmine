@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,9 @@
 
 package io.github.mzmine.util.io;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -37,9 +39,18 @@ public class JsonUtils {
 
   /**
    * thread safe single instance. Better to reuse as it is costly and caches etc
+   * <p>
+   * {@link StreamReadFeature#USE_FAST_DOUBLE_PARSER} swaps {@link Double#parseDouble} for the
+   * bundled FastDoubleParser. It is opt in only because jackson 2.x keeps it off by default, not
+   * because it is lossy: both are correctly rounded and were verified to agree bit for bit.
    */
-  public static final ObjectMapper MAPPER = new ObjectMapper();
+  public static final ObjectMapper MAPPER = new ObjectMapper(
+      JsonFactory.builder().enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER).build());
 
+  /**
+   * thread safe single instance. Better to reuse as it is costly and caches etc
+   */
+  public static final JsonFactory FACTORY = JsonUtils.MAPPER.getFactory();
 
   /**
    * Write json string to file or throw {@link RuntimeException}. Will replace the text in the

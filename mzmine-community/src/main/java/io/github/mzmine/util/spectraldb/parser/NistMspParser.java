@@ -30,26 +30,40 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.util.io.CountingInputStream;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NistMspParser extends SpectralDBTextParser {
 
   private static final Logger logger = Logger.getLogger(NistMspParser.class.getName());
+
+  private static final int READ_BUFFER = 1 << 16;
+
+  /**
+   * String.split only has a fast path for a single character separator, everything else compiles
+   * the regex again on every call. These run on every line of the file so they are compiled once.
+   */
+  private static final Pattern KEY_VALUE_SEPARATOR = Pattern.compile(": ");
+  private static final Pattern SIGNAL_SEPARATOR = Pattern.compile("[ \t]+");
 
   public NistMspParser(int bufferEntries, LibraryEntryProcessor processor,
       boolean extensiveErrorLogging) {
@@ -60,7 +74,9 @@ public class NistMspParser extends SpectralDBTextParser {
   @Override
   public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
       @NotNull SpectralLibrary library) throws IOException {
-    super.parse(mainTask, dataBaseFile, library);
+    // progress from the bytes consumed instead of the line counting pass of the super
+    // implementation, which would read the whole file a second time
+    initByteProgress(dataBaseFile);
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
 
     // metadata fields and data points
@@ -78,7 +94,10 @@ public class NistMspParser extends SpectralDBTextParser {
     final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
 
     // read DB file
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+    try (CountingInputStream counting = new CountingInputStream(
+        new BufferedInputStream(new FileInputStream(dataBaseFile),
+            READ_BUFFER)); BufferedReader br = new BufferedReader(
+        new InputStreamReader(counting, StandardCharsets.UTF_8))) {
       for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
@@ -87,7 +106,7 @@ public class NistMspParser extends SpectralDBTextParser {
         try {
           if (!l.isBlank()) {
             // meta data?
-            sep = isData ? EMPTY : l.split(": ", 2);
+            sep = isData ? EMPTY : KEY_VALUE_SEPARATOR.split(l, 2);
             if (sep.length > 1) {
               extractMetaData(errors, fields, l, sep);
             } else {
@@ -140,12 +159,14 @@ public class NistMspParser extends SpectralDBTextParser {
           fatalEntryError = false;
         }
         processedLines.incrementAndGet();
+        processedBytes.set(counting.getCount());
       }
       // add last entry
       if (!fields.isEmpty() && !dps.isEmpty()) {
         addEntryAndReset(errors, fatalEntryError, library, fields, dps);
       }
 
+      finishByteProgress();
       // finish and process all entries
       finish();
 
@@ -184,7 +205,7 @@ public class NistMspParser extends SpectralDBTextParser {
     // comment possible as mz intensity"
     String[] dataAndComment = line.split("\"");
     // split by space or tab
-    String[] data = dataAndComment[0].trim().split("[ \t]+");
+    String[] data = SIGNAL_SEPARATOR.split(dataAndComment[0].trim());
     // there might be a comment after the data points
     if (data.length >= 2) {
       return new SimpleDataPoint(Double.parseDouble(data[0].trim()),

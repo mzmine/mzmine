@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,24 +25,22 @@
 
 package io.github.mzmine.util.spectraldb.parser;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonValue;
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -50,9 +48,16 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Parses the mzmine spectral library json, a json lines format with one library entry per line.
+ */
 public class MZmineJsonParser extends SpectralDBTextParser {
 
   private final static Logger logger = Logger.getLogger(MZmineJsonParser.class.getName());
+
+  private static final String PEAKS_KEY = "peaks";
+  private static final int READ_BUFFER = 1 << 16;
+  private static final int INITIAL_SIGNALS = 128;
 
   public MZmineJsonParser(int bufferEntries, LibraryEntryProcessor processor,
       boolean extensiveErrorLogging) {
@@ -62,7 +67,9 @@ public class MZmineJsonParser extends SpectralDBTextParser {
   @Override
   public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
       @NotNull SpectralLibrary library) throws IOException {
-    super.parse(mainTask, dataBaseFile, library);
+    // byte progress instead of the line counting pass of the super implementation, which would
+    // read the whole file a second time
+    initByteProgress(dataBaseFile);
 
     logger.info("Parsing MZmine spectral library " + dataBaseFile.getAbsolutePath());
 
@@ -71,16 +78,26 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     int correct = 0;
     int error = 0;
     // create db
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null; ) {
+    // decision: one parser for the whole file instead of one per line. json lines is a sequence of
+    // root level objects, which jackson reads natively, and feeding it bytes lets its utf-8 parser
+    // decode inline instead of building a String for every line first.
+    try (InputStream in = new BufferedInputStream(new FileInputStream(dataBaseFile),
+        READ_BUFFER); JsonParser p = JsonUtils.FACTORY.createParser(in)) {
+      // the format is json lines, but some libraries wrap the same entries in one big json array.
+      // Stepping into that array makes both read as a sequence of entry objects
+      JsonToken first = p.nextToken();
+      if (first == JsonToken.START_ARRAY) {
+        first = p.nextToken();
+      }
+
+      for (JsonToken token = first; token == JsonToken.START_OBJECT; token = p.nextToken()) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
         }
 
-        try (JsonReader reader = Json.createReader(new StringReader(l))) {
-          JsonObject json = reader.readObject();
-          SpectralLibraryEntry entry = getDBEntry(errors, library, json);
+        try {
+          SpectralLibraryEntry entry = getDBEntry(errors, library, p);
           if (entry != null) {
             correct++;
             // add entry and process
@@ -97,6 +114,8 @@ public class MZmineJsonParser extends SpectralDBTextParser {
           }
 
           error++;
+          // the entry may have failed part way through, drop the rest of it
+          p.skipChildren();
         }
         // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
@@ -104,8 +123,10 @@ public class MZmineJsonParser extends SpectralDBTextParser {
           return false;
         }
         processedLines.incrementAndGet();
+        processedBytes.set(p.currentLocation().getByteOffset());
       }
     }
+    finishByteProgress();
     // finish and process last entries
     finish();
 
@@ -115,112 +136,176 @@ public class MZmineJsonParser extends SpectralDBTextParser {
     return true;
   }
 
+  /**
+   * Reads one library entry. The parser is positioned on its opening brace and is left on the
+   * matching closing brace.
+   *
+   * @return the entry or null if it carried no signals
+   */
   @Nullable
-  private static Object getValue(final JsonObject main, final DBEntryField f, final String id) {
-    Object o = null;
-    JsonValue value = main.get(id);
-    switch (value.getValueType()) {
-      case OBJECT -> {
-        o = f.convertValue(main.get(id).toString());
+  private SpectralLibraryEntry getDBEntry(@NotNull final LibraryParsingErrors errors,
+      @NotNull final SpectralLibrary library, @NotNull final JsonParser p) throws IOException {
+    final Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
+    double[] mzs = null;
+    double[] intensities = null;
+
+    while (p.nextToken() == JsonToken.FIELD_NAME) {
+      final String id = p.currentName();
+      final JsonToken value = p.nextToken();
+
+      if (PEAKS_KEY.equals(id)) {
+        final double[][] signals = readSignals(p);
+        mzs = signals[0];
+        intensities = signals[1];
+        continue;
       }
-      case STRING -> o =  f.convertValue(main.getString(id));
-      case NUMBER -> {
-        o = main.getJsonNumber(id);
-        if (f.getObjectClass().equals(Integer.class)) {
-          o = ((JsonNumber) o).intValue();
-        } else if (f.getObjectClass().equals(Float.class)) {
-          o = (float) ((JsonNumber) o).doubleValue();
-        } else if (f.getObjectClass().equals(Double.class)) {
-          o = ((JsonNumber) o).doubleValue();
-        } else if (f.getObjectClass().equals(Long.class)) {
-          o = ((JsonNumber) o).longValue();
-        } else {
-          o = f.convertValue(main.get(id).toString());
+
+      final DBEntryField f = DBEntryField.forMZmineJsonIDExact(id);
+      if (f == null) {
+        // nested values of unknown keys still need to be consumed
+        p.skipChildren();
+        continue;
+      }
+
+      Object o = null;
+      try {
+        o = getValue(p, value, f);
+        // add value
+        if (o != null) {
+          map.put(f, o);
         }
-      }
-      case TRUE -> {
-        o = true;
-      }
-      case FALSE -> {
-        o = false;
-      }
-      case NULL -> {
-        o = null;
-      }
-      case ARRAY -> {
-        o = f.convertValue(main.getJsonArray(id).toString());
+      } catch (Exception e) {
+        errors.addValueParsingError(f, id, o == null ? "null value" : o.toString());
+        // pushed logging to later in the errors object to not overflow log
       }
     }
+
+    if (mzs == null) {
+      errors.addUnknownException("Error parsing data points");
+      return null;
+    }
+    return SpectralLibraryEntryFactory.create(library.getStorage(), map, mzs, intensities);
+  }
+
+  /**
+   * Reads the peaks array, an array of [mz, intensity] pairs. The parser is positioned on its
+   * opening bracket.
+   *
+   * @return mz values in [0] and intensities in [1]
+   */
+  private static double[][] readSignals(@NotNull final JsonParser p) throws IOException {
+    if (p.currentToken() != JsonToken.START_ARRAY) {
+      throw new IOException("peaks is no json array");
+    }
+
+    double[] mzs = new double[INITIAL_SIGNALS];
+    double[] intensities = new double[INITIAL_SIGNALS];
+    int n = 0;
+
+    while (p.nextToken() == JsonToken.START_ARRAY) {
+      if (n == mzs.length) {
+        mzs = Arrays.copyOf(mzs, n * 2);
+        intensities = Arrays.copyOf(intensities, n * 2);
+      }
+      p.nextToken();
+      mzs[n] = p.getDoubleValue();
+      p.nextToken();
+      intensities[n] = p.getDoubleValue();
+      n++;
+
+      // tolerate additional values in a signal, only mz and intensity are used
+      for (JsonToken t = p.nextToken(); t != JsonToken.END_ARRAY; t = p.nextToken()) {
+        if (t == null) {
+          throw new IOException("peaks ended inside a signal");
+        }
+      }
+    }
+    return new double[][]{Arrays.copyOf(mzs, n), Arrays.copyOf(intensities, n)};
+  }
+
+  /**
+   * @param value the token of the value, the parser is positioned on it
+   */
+  @Nullable
+  private static Object getValue(@NotNull final JsonParser p, @NotNull final JsonToken value,
+      @NotNull final DBEntryField f) throws IOException {
+    final Object o = switch (value) {
+      case VALUE_STRING -> f.convertValue(p.getText());
+      case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
+        final Class<?> clazz = f.getObjectClass();
+        if (clazz.equals(Integer.class)) {
+          yield p.getIntValue();
+        } else if (clazz.equals(Float.class)) {
+          yield (float) p.getDoubleValue();
+        } else if (clazz.equals(Double.class)) {
+          yield p.getDoubleValue();
+        } else if (clazz.equals(Long.class)) {
+          yield p.getLongValue();
+        } else {
+          // getText is the number exactly as written in the file
+          yield f.convertValue(p.getText());
+        }
+      }
+      case VALUE_TRUE -> Boolean.TRUE;
+      case VALUE_FALSE -> Boolean.FALSE;
+      case VALUE_NULL -> null;
+      // objects and arrays are converted from their json text
+      case START_OBJECT, START_ARRAY -> f.convertValue(copyRawJson(p));
+      default -> null;
+    };
     if (o != null && o.equals("N/A")) {
       return null;
     }
     return o;
   }
 
-  private static JsonNumber getDoubleValue(final JsonObject main, final String id) {
-    return main.getJsonNumber(id);
-  }
-
-  private SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
-      JsonObject main) {
-    // extract dps
-    DataPoint[] dps = getDataPoints(main);
-    if (dps == null) {
-      errors.addUnknownException("Error parsing data points");
-      return null;
-    }
-
-    // extract meta data
-    Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
-    for (DBEntryField f : DBEntryField.values()) {
-      String id = f.getMZmineJsonID();
-      if (id != null && !id.isEmpty() && main.containsKey(id)) {
-
-        Object o = null;
-        try {
-          o = getValue(main, f, id);
-          // add value
-          if (o != null) {
-            map.put(f, o);
+  /**
+   * Nested arrays and objects are handed to {@link DBEntryField#convertValue(String)} as json text.
+   * Copies the structure the parser sits on, writing numbers with the notation they have in the
+   * file so nothing is reformatted on the way through a double. Leaves the parser on the closing
+   * bracket.
+   *
+   * @return the json text of the structure the parser is positioned on
+   */
+  private static String copyRawJson(@NotNull final JsonParser p) throws IOException {
+    final StringWriter out = new StringWriter(64);
+    try (JsonGenerator gen = JsonUtils.FACTORY.createGenerator(out)) {
+      int depth = 0;
+      for (JsonToken t = p.currentToken(); ; t = p.nextToken()) {
+        if (t == null) {
+          throw new IOException("Json ended inside a nested value");
+        }
+        switch (t) {
+          case START_OBJECT -> {
+            gen.writeStartObject();
+            depth++;
           }
-        } catch (Exception e) {
-          errors.addValueParsingError(f, id, o == null ? "null value" : o.toString());
-          // pushed logging to later in the errors object to not overflow log
+          case END_OBJECT -> {
+            gen.writeEndObject();
+            depth--;
+          }
+          case START_ARRAY -> {
+            gen.writeStartArray();
+            depth++;
+          }
+          case END_ARRAY -> {
+            gen.writeEndArray();
+            depth--;
+          }
+          case FIELD_NAME -> gen.writeFieldName(p.currentName());
+          case VALUE_STRING -> gen.writeString(p.getText());
+          // as written in the file, jackson would otherwise render it back from a double
+          case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> gen.writeNumber(p.getText());
+          case VALUE_TRUE -> gen.writeBoolean(true);
+          case VALUE_FALSE -> gen.writeBoolean(false);
+          case VALUE_NULL -> gen.writeNull();
+          default -> throw new IOException("Unexpected token in nested value: " + t);
+        }
+        if (depth == 0) {
+          break;
         }
       }
     }
-
-    return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
-  }
-
-  public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {
-    if (data == null) {
-      return null;
-    }
-
-    DataPoint[] dps = new DataPoint[data.size()];
-    try {
-      for (int i = 0; i < data.size(); i++) {
-        final JsonArray dataPoint = data.getJsonArray(i);
-        double mz = dataPoint.getJsonNumber(0).doubleValue();
-        double intensity = dataPoint.getJsonNumber(1).doubleValue();
-        dps[i] = new SimpleDataPoint(mz, intensity);
-      }
-      return dps;
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Cannot convert DP values to doubles", e);
-      return null;
-    }
-  }
-
-  /**
-   * Data points or null
-   *
-   * @param main
-   * @return
-   */
-  private DataPoint[] getDataPoints(JsonObject main) {
-    JsonArray data = main.getJsonArray("peaks");
-    return getDataPointsFromJsonArray(data);
+    return out.toString();
   }
 }
