@@ -104,7 +104,8 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     return switch (version) {
       // only mention the major change - the detection itself is different, not just the parameters
       case 2 -> """
-          The isotope finder was reworked: the detection algorithm now searches all plausible isotope \
+          The isotope finder was reworked, this generally requires no update in parameters.
+          The detection algorithm now searches all plausible isotope \
           signals around the feature m/z, selects the most probable charge state, and bounds the \
           pattern with modelled relative intensities. Results therefore differ from earlier versions \
           and are generally more complete and more reliable.""";
