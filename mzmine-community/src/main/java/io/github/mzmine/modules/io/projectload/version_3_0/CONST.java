@@ -106,6 +106,12 @@ public class CONST {
    */
   public static final String XML_VERSION_ATTR = "version";
 
+  /**
+   * Ranges
+   */
+  public static final String RANGE_LOWER_ATTR = "lower";
+  public static final String RANGE_UPPER_ATTR = "upper";
+
   private CONST() {
   }
 }

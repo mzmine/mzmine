@@ -23,32 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.dash_integration;
+package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import java.util.Collection;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class IntegrationDashboardTab extends SimpleTab {
+/**
+ * Indicates in the applied methods that manual integration was performed.
+ */
+public class ManualIntegrationModule implements MZmineModule {
 
-  final IntegrationDashboardController controller;
+  private static final Logger logger = Logger.getLogger(ManualIntegrationModule.class.getName());
 
-  public IntegrationDashboardTab() {
-    super("Integration dashboard");
-    controller = new IntegrationDashboardController();
-    setContent(controller.buildView());
-    // commit any pending manual integrations as an applied method when the tab is closed
-    setOnClosed(_ -> {
-      controller.commitAppliedMethod();
-      setOnClosed(null);
-    });
+  @Override
+  public @NotNull String getName() {
+    return "Integration dashboard - Manual integration";
   }
 
   @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    super.onFeatureListSelectionChanged(featureLists);
-    controller.setFeatureList(featureLists.isEmpty() ? null
-        : (ModularFeatureList) featureLists.stream().toList().getFirst());
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ManualIntegrationParameters.class;
   }
 }

@@ -23,32 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.dash_integration;
+package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import java.util.Collection;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class IntegrationDashboardTab extends SimpleTab {
+/**
+ * Identifies a {@link FeatureListRow} for reproducible manual integration. The {@link #rowId()} is
+ * the primary key; {@link #mz()}, {@link #rt()} and {@link #mobility()} serve as a fallback match
+ * when row IDs have shifted (e.g. after re-alignment).
+ *
+ * @param rowId    the row id at capture time
+ * @param mz       the average m/z of the row
+ * @param rt       the average retention time of the row
+ * @param mobility the average mobility of the row, or null for non-IMS data
+ */
+public record FeatureRecord(int rowId, double mz, float rt, @Nullable Float mobility) {
 
-  final IntegrationDashboardController controller;
-
-  public IntegrationDashboardTab() {
-    super("Integration dashboard");
-    controller = new IntegrationDashboardController();
-    setContent(controller.buildView());
-    // commit any pending manual integrations as an applied method when the tab is closed
-    setOnClosed(_ -> {
-      controller.commitAppliedMethod();
-      setOnClosed(null);
-    });
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    super.onFeatureListSelectionChanged(featureLists);
-    controller.setFeatureList(featureLists.isEmpty() ? null
-        : (ModularFeatureList) featureLists.stream().toList().getFirst());
+  /**
+   * Captures the identity of the given row.
+   */
+  public static @NotNull FeatureRecord of(@NotNull FeatureListRow row) {
+    return new FeatureRecord(row.getID(), row.getAverageMZ(), row.getAverageRT(),
+        row.getAverageMobility());
   }
 }
