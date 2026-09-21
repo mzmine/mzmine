@@ -26,38 +26,75 @@
 package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomValue;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Every preference is a {@link DefaultOffCustomParameter} without the OFF option and starts on
+ * {@link DefaultOffCustomOption#DEFAULT}. A preference always has to have a value, so OFF makes no
+ * sense, and DEFAULT lets the mzmine default change without every project pinning the old value.
+ * The custom input starts on the same default so switching to CUSTOM shows the value that was in
+ * effect.
+ */
 public class FeatureListPreferencesParameters extends SimpleParameterSet {
+
+  private static final @NotNull FeatureListPreferences DEFAULTS = FeatureListPreferences.createDefault();
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final SampleTypeFilterParameter rsdSampleTypes = new SampleTypeFilterParameter(
-      "Samples for RSD columns", """
-      Select all sample types (in %s metadata column) that are used to calculate the relative standard deviation (RSD)
-      columns, e.g., the area RSD. The sample type is defined by the sample type column in the
-      metadata (CTRL/CMD + M).""".formatted(MetadataColumn.SAMPLE_TYPE_HEADER),
-      SampleTypeFilter.qc(), true);
+  public static final DefaultOffCustomParameter<SampleTypeFilter> rsdSampleTypes = new DefaultOffCustomParameter<>(
+      FeatureListPreferencesDtoParameters.rsdSampleTypes.cloneParameter(),
+      DEFAULTS.getRsdSampleTypeFilter(), null, false);
+
+  public static final DefaultOffCustomParameter<IonTypeRanking> ionTypeRanking = new DefaultOffCustomParameter<>(
+      FeatureListPreferencesDtoParameters.ionTypeRanking.cloneParameter(),
+      DEFAULTS.getIonTypeRanking(), null, false);
 
   public FeatureListPreferencesParameters() {
-    super(flists, rsdSampleTypes);
+    super(flists, rsdSampleTypes, ionTypeRanking);
   }
 
+  /**
+   * Resolves every parameter, so the mzmine default is used where
+   * {@link DefaultOffCustomOption#DEFAULT} is selected and the typed value where
+   * {@link DefaultOffCustomOption#CUSTOM} is.
+   */
   public @NotNull FeatureListPreferences toPreferences() {
-    return new FeatureListPreferences(getValue(rsdSampleTypes));
+    return new FeatureListPreferences(
+        Objects.requireNonNullElse(getParameter(rsdSampleTypes).resolveValue(),
+            DEFAULTS.getRsdSampleTypeFilter()),
+        Objects.requireNonNullElse(getParameter(ionTypeRanking).resolveValue(),
+            DEFAULTS.getIonTypeRanking()));
   }
 
   public static @NotNull FeatureListPreferencesParameters fromPreferences(
       @NotNull final FeatureListPreferences preferences) {
     final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
-    param.setParameter(rsdSampleTypes, preferences.getRsdSampleTypeFilter());
+    param.setParameter(rsdSampleTypes,
+        defaultOrCustom(rsdSampleTypes, preferences.getRsdSampleTypeFilter()));
+    param.setParameter(ionTypeRanking,
+        defaultOrCustom(ionTypeRanking, preferences.getIonTypeRanking()));
     return param;
+  }
+
+  /**
+   * @return DEFAULT if the value still is the mzmine default, otherwise CUSTOM with that value. The
+   * custom value is always set so the input field shows the value that is in effect.
+   */
+  private static <V> @NotNull DefaultOffCustomValue<V> defaultOrCustom(
+      @NotNull final DefaultOffCustomParameter<V> parameter, @NotNull final V value) {
+    final DefaultOffCustomOption option =
+        Objects.equals(value, parameter.getDefaultValue()) ? DefaultOffCustomOption.DEFAULT
+            : DefaultOffCustomOption.CUSTOM;
+    return new DefaultOffCustomValue<>(option, value);
   }
 
   @Override

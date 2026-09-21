@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,6 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
-import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -54,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -63,7 +60,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ExportCorrAnnotationTask extends AbstractTask {
 
@@ -77,7 +73,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   private final boolean allInOneFile;
   private final double minR;
   private boolean exportAnnotationEdges = true;
-  private boolean exportIinRelationships = false;
   private boolean mergeLists = false;
 
   private final List<File> exportedFiles = new ArrayList<>();
@@ -96,8 +91,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     filename = parameterSet.getParameter(ExportCorrAnnotationParameters.filename).getValue();
     exportAnnotationEdges = parameterSet.getParameter(ExportCorrAnnotationParameters.exportIIN)
         .getValue();
-    exportIinRelationships = parameterSet.getParameter(
-        ExportCorrAnnotationParameters.exportIINRelationship).getValue();
     filter = parameterSet.getParameter(ExportCorrAnnotationParameters.filter).getValue();
     exportTypes = parameterSet.getParameter(ExportCorrAnnotationParameters.exportTypes).getValue();
     allInOneFile = parameterSet.getParameter(ExportCorrAnnotationParameters.allInOneFile)
@@ -109,8 +102,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    * Create the task.
    */
   public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
-      FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships,
-      boolean mergeLists, boolean allInOneFile, @NotNull Instant moduleCallDate) {
+      FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean mergeLists,
+      boolean allInOneFile, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureLists = featureLists;
     this.filename = filename;
@@ -118,7 +111,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     this.minR = minR;
     this.filter = filter;
     this.exportAnnotationEdges = exportAnnotationEdges;
-    this.exportIinRelationships = exportIinRelationships;
     this.mergeLists = mergeLists;
     exportTypes = new Type[0];
   }
@@ -196,111 +188,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       }
     } catch (Exception e) {
       throw new MSDKRuntimeException(e);
-    }
-  }
-
-  public boolean exportIINRelationships(FeatureList pkl, File filename, Double progress,
-      AbstractTask task) {
-    LOG.fine("Export IIN relationships edge file");
-
-    try {
-      StringBuilder ann = createHeader();
-
-      AtomicInteger added = new AtomicInteger(0);
-
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(pkl, true);
-      for (IonNetwork n : nets) {
-        Map<IonNetwork, IonNetworkRelation> relations = n.getRelations();
-        if (relations != null && !relations.isEmpty()) {
-          for (Map.Entry<IonNetwork, IonNetworkRelation> rel : relations.entrySet()) {
-            // export all relations where n.id is smaller than the related network
-            if (rel.getValue().isLowestIDNetwork(n)) {
-              // relationship can be between multiple nets
-              for (IonNetwork net2 : rel.getValue().getAllNetworks()) {
-                if (net2.equals(n)) {
-                  continue;
-                }
-
-                // find best two nodes
-                FeatureListRow[] rows = getBestRelatedRows(n, net2);
-                // export lowest mz -> highest mz
-                if (rows[0].getAverageMZ() > rows[1].getAverageMZ()) {
-                  exportEdge(ann, "IIN M relationship", rows[1].getID(), rows[0].getID(), "0", //
-                      rel.getValue().getName(net2));
-                } else {
-                  exportEdge(ann, "IIN M relationship", rows[0].getID(), rows[1].getID(), "0", //
-                      rel.getValue().getName(n));
-                }
-
-                added.incrementAndGet();
-              }
-            }
-          }
-        }
-      }
-      LOG.info("IIN relationship edges exported " + added.get());
-
-      // export ann edges
-      // Filename
-      if (added.get() > 0) {
-        String CString = "{}";
-        boolean check = filename.getPath().contains(CString);
-        if (check) {
-          File curFile = filename;
-          String cleanPlName = pkl.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-          String newFilename = filename.getPath().replaceAll(Pattern.quote(CString), cleanPlName);
-          curFile = new File(newFilename);
-          writeToFile(ann.toString(), curFile, "_edges_iin_relations");
-        } else {
-          writeToFile(ann.toString(), filename, "_edges_iin_relations");
-        }
-        return true;
-      } else {
-        return false;
-      }
-    } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
-    }
-  }
-
-  /**
-   * Filters rows by row filter (MS/MS, IIN, ...) and finds the pair with the highest intensity sum
-   * to represent the relationship between the two {@link IonNetwork}
-   *
-   * @param netA network a
-   * @param netB network netB
-   * @return an array[2] of the representative rows for netA and netB or null if there was no
-   * relationship or no pair of rows matching the filter
-   */
-  @Nullable
-  private FeatureListRow[] getBestRelatedRows(IonNetwork netA, IonNetwork netB) {
-    FeatureListRow[] rows = new FeatureListRow[2];
-    double sumIntensity = 0;
-    for (var entryA : netA.getNodes()) {
-      FeatureListRow rowA = entryA.row();
-      if (filter.accept(rowA)) {
-        IonIdentity iinA = entryA.ion();
-        for (var entryB : netB.getNodes()) {
-          FeatureListRow rowB = entryB.row();
-          if (filter.accept(rowB)) {
-            IonIdentity iinB = entryB.ion();
-            if (iinA.equalsIonType(iinB.getIonType())) {
-              // find pair with the highest sum intensity (that match the row filter)
-              double sum = rowA.getMaxHeight() + rowB.getMaxHeight();
-              if (sum >= sumIntensity) {
-                sumIntensity = sum;
-                rows[0] = rowA;
-                rows[1] = rowB;
-              }
-            }
-          }
-        }
-      }
-    }
-    if (rows[0] == null) {
-      return null;
-    } else {
-      return rows;
     }
   }
 
@@ -446,11 +333,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       // export edges of annotations
       if (exportAnnotationEdges) {
         exportIonIdentityEdges(featureList, filename, progress, this);
-      }
-
-      // relationships between ion identity networks (+O) ...
-      if (exportIinRelationships) {
-        exportIINRelationships(featureList, filename, progress, this);
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,15 +29,20 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.BaselineCorrectors;
+import io.github.mzmine.modules.dataprocessing.featdet_manualintegration.ManualIntegrationModule;
+import io.github.mzmine.modules.dataprocessing.featdet_manualintegration.ManualIntegrationParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.FeatureSmoothingOptions;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -47,19 +53,29 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.project.ProjectService;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IntegrationDashboardController extends FxController<IntegrationDashboardModel> {
+
+  // hands each dashboard instance (= session) a unique id, so an applied method can be tied to the
+  // session that produced it
+  private static final AtomicInteger SESSION_COUNTER = new AtomicInteger(0);
+
+  private final int sessionId = SESSION_COUNTER.incrementAndGet();
 
   public IntegrationDashboardController() {
     super(new IntegrationDashboardModel());
@@ -69,6 +85,15 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
       model.postProcessingMethodProperty().set(extractPostProcessingMethod(flist));
       updateSortedFiles();
     });
+
+    // commit pending manual integrations to the old feature list before switching, then start fresh
+    model.featureListProperty().addListener((_, oldFlist, _) -> {
+      commitManualIntegrationsTo(oldFlist);
+      model.clearManualIntegrations();
+    });
+
+    // commit accumulated manual integrations as a single applied method when the selected row changes
+    model.rowProperty().addListener((_, _, _) -> commitAppliedMethod());
 
     model.sortOptionProperty().subscribe(_ -> updateSortedFiles());
 
@@ -158,6 +183,45 @@ public class IntegrationDashboardController extends FxController<IntegrationDash
       return;
     }
     model.setFeatureList(flist);
+  }
+
+  /**
+   * Commits the manual integrations accumulated in this session to the current feature list as a
+   * single {@link ManualIntegrationModule} applied method. Safe to call repeatedly - a previous
+   * dashboard applied method is replaced rather than duplicated.
+   */
+  public void commitAppliedMethod() {
+    commitManualIntegrationsTo(model.getFeatureList());
+  }
+
+  private void commitManualIntegrationsTo(@Nullable ModularFeatureList flist) {
+    if (flist == null || !model.hasManualIntegrations()) {
+      return;
+    }
+
+    final ParameterSet params = ConfigService.getConfiguration()
+        .getModuleParameters(ManualIntegrationModule.class).cloneParameterSet();
+    params.getParameter(ManualIntegrationParameters.flists)
+        .setValue(FeatureListsSelectionType.SPECIFIC_FEATURELISTS, new FeatureList[]{flist});
+    params.getParameter(ManualIntegrationParameters.entries)
+        .setValue(model.getManualIntegrations());
+    params.setParameter(ManualIntegrationParameters.applyPostProcessing,
+        model.isApplyPostProcessing());
+    params.setParameter(ManualIntegrationParameters.sessionId, sessionId);
+
+    // replace, not duplicate, but only this session's own record and only if it is still the last
+    // applied method. A reopened dashboard (new session id) or a record buried under later steps is
+    // left untouched, so a new record is appended instead.
+    final ObservableList<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
+    if (!methods.isEmpty()) {
+      final FeatureListAppliedMethod last = methods.getLast();
+      if (last.getModule() instanceof ManualIntegrationModule && Objects.equals(sessionId,
+          last.getParameters().getValue(ManualIntegrationParameters.sessionId))) {
+        methods.removeLast();
+      }
+    }
+    flist.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(ManualIntegrationModule.class, params, Instant.now()));
   }
 
   public <S extends Scan, T extends IonTimeSeries<S>> Function<@NotNull T, @NotNull T> extractPostProcessingMethod(

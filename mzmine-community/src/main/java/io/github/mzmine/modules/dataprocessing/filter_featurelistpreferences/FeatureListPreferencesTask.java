@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -58,7 +59,17 @@ public class FeatureListPreferencesTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     final FeatureListPreferences preferences = param.toPreferences();
+    final boolean rankingChanged = !flist.getPreferences().getIonTypeRanking()
+        .equals(preferences.getIonTypeRanking());
+
     flist.setPreferences(preferences);
+
+    if (rankingChanged) {
+      // the ion identities of a row are stored best first, so a new ranking has to reorder them.
+      // sortIonIdentities reads the ranking from the preferences that were just set
+      IonNetworkLogic.sortIonIdentities(flist);
+    }
+
     // derived columns like the RSD are computed on demand, therefore refresh the visible cells
     FeatureTableFXUtil.updateCellsForFeatureList(flist);
   }

@@ -93,6 +93,11 @@ public class MergedSpectrum implements MassSpectrum {
    */
   public int removedScansByLowCosine;
 
+  /**
+   * Total Ion Current
+   */
+  private final double tic;
+
   private final static MergedSpectrum EMPTY = new MergedSpectrum(new MergedDataPoint[0],
       new RawDataFile[0], new int[0], 0d, PolarityType.UNKNOWN, 0, 0, 0, 0d);
 
@@ -138,6 +143,7 @@ public class MergedSpectrum implements MassSpectrum {
     this.removedScansByLowCosine = 0;
     this.removedScansByLowQuality = 0;
     this.precursorMz = Objects.requireNonNullElse(single.getPrecursorMz(), 0d);
+    this.tic = Arrays.stream(data).mapToDouble(p -> p.intensity).sum();
   }
 
   public MergedSpectrum(MergedDataPoint[] data, RawDataFile[] origins, int[] scanIds,
@@ -152,6 +158,7 @@ public class MergedSpectrum implements MassSpectrum {
     this.removedScansByLowCosine = removedScansByLowCosine;
     this.polarity = polarity;
     this.precursorCharge = precursorCharge;
+    this.tic = Arrays.stream(data).mapToDouble(p -> p.intensity).sum();
   }
 
   @Override
@@ -260,11 +267,7 @@ public class MergedSpectrum implements MassSpectrum {
   /**
    * @return calculate the total ion count of this merged spectrum
    */
-  public Double getTIC() {
-    double tic = 0d;
-    for (MergedDataPoint p : data) {
-      tic += p.intensity;
-    }
+  public double getTIC() {
     return tic;
   }
 

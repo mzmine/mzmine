@@ -47,6 +47,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.compounddashboard.CompoundDashboardTab;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.io.export_merge_libraries.MergeLibrariesModule;
@@ -111,7 +112,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -181,6 +181,8 @@ public class MainWindowController {
   public MenuItem openFeatureListMenuItem;
   @FXML
   public MenuItem showFeatureListSummaryMenuItem;
+  @FXML
+  public MenuItem setFeatureListPreferencesMenuItem;
   @FXML
   public MenuItem featureListsRenameMenuItem;
   @FXML
@@ -821,47 +823,35 @@ public class MainWindowController {
   }
 
   public void handleShowFeatureListSummary(Event event) {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
-
     List<FeatureList> selectedValues = featureListsList.getSelectedItems();
     for (FeatureList selectedValue : selectedValues) {
-      try {
-        AnchorPane pane = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("Feature list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
-        stage.setScene(new Scene(pane));
-        stage.getScene().getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-        FeatureListSummaryController controller = loader.getController();
-        controller.setFeatureList((ModularFeatureList) selectedValue);
-        stage.show();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      final FeatureListSummaryController controller = new FeatureListSummaryController();
+      controller.setFeatureList((ModularFeatureList) selectedValue);
+      showSummaryStage("Feature list summary - " + selectedValue.getName(), controller.buildView());
     }
   }
 
-  public void handleShowFileSummary(Event event) {
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
+  public void handleSetFeatureListPreferences(Event event) {
+    FeatureListPreferencesModule.showSetupAndApply(featureListsList.getSelectedItems());
+  }
 
+  public void handleShowFileSummary(Event event) {
     List<RawDataFile> selectedValues = getRawDataList().getSelectedItems();
     for (RawDataFile selectedValue : selectedValues) {
-      try {
-        AnchorPane pane = loader.load();
-        Stage stage = new Stage();
-        stage.setTitle("MS data file list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
-        stage.setScene(new Scene(pane));
-        stage.getScene().getStylesheets()
-            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-        FeatureListSummaryController controller = loader.getController();
-        controller.setRawDataFile(selectedValue);
-        stage.show();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      final FeatureListSummaryController controller = new FeatureListSummaryController();
+      controller.setRawDataFile(selectedValue);
+      showSummaryStage("MS data file summary - " + selectedValue.getName(), controller.buildView());
     }
+  }
+
+  private void showSummaryStage(@NotNull String title, @NotNull Region content) {
+    final Stage stage = new Stage();
+    stage.setTitle(title);
+    stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
+    stage.setScene(new Scene(content));
+    stage.getScene().getStylesheets()
+        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    stage.show();
   }
 
   public void handleShowIntegrationDashboard(Event event) {

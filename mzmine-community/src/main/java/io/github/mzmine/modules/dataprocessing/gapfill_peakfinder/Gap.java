@@ -25,11 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.gapfilling.GapFillMzMatchDuplicateType;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
@@ -53,8 +55,9 @@ public class Gap {
   protected FeatureListRow featureListRow;
   protected RawDataFile rawDataFile;
 
-  protected Range<Double> mzRange;
-  protected Range<Float> rtRange;
+  protected final SimpleDoubleRange mzRange;
+  protected final double mzCenter;
+  protected SimpleFloatRange rtRange;
   private final boolean validateRtShape;
   protected double intTolerance;
 
@@ -69,13 +72,13 @@ public class Gap {
    * @param mzRange M/Z coordinate of this empty gap
    * @param rtRange RT coordinate of this empty gap
    */
-  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, double intTolerance) {
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, SimpleDoubleRange mzRange,
+      SimpleFloatRange rtRange, double intTolerance) {
     this(peakListRow, rawDataFile, mzRange, rtRange, intTolerance, true);
   }
 
-  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, Range<Double> mzRange,
-      Range<Float> rtRange, double intTolerance, boolean validateRtShape) {
+  public Gap(FeatureListRow peakListRow, RawDataFile rawDataFile, SimpleDoubleRange mzRange,
+      SimpleFloatRange rtRange, double intTolerance, boolean validateRtShape) {
 
     this.featureListRow = peakListRow;
     this.rawDataFile = rawDataFile;
@@ -83,6 +86,7 @@ public class Gap {
     this.mzRange = mzRange;
     this.rtRange = rtRange;
     this.validateRtShape = validateRtShape;
+    this.mzCenter = RangeUtils.rangeCenter(mzRange);
   }
 
   public void offerNextScan(Scan scan) {
@@ -102,7 +106,7 @@ public class Gap {
       currentDataPoint = new GapDataPointImpl(scan, basePeak.getMZ(), scanRT,
           basePeak.getIntensity());
     } else {
-      currentDataPoint = new GapDataPointImpl(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
+      currentDataPoint = new GapDataPointImpl(scan, mzCenter, scanRT, 0);
     }
 
     // If we have not yet started, just create a new peak
@@ -188,7 +192,8 @@ public class Gap {
     // make the columns available in the feature table (addFeatureType de-dupes by class)
     flist.addFeatureType(new GapFillMzMatchDuplicateType());
 
-    final List<FeatureListRow> candidates = flist.getRowsInsideScanAndMZRange(rtRange, mzRange);
+    final List<FeatureListRow> candidates = FeatureListUtils.getRowsInsideScanAndMZRange(flist,
+        rtRange, mzRange);
 
     final List<Integer> mzIds = new ArrayList<>();
     for (final FeatureListRow other : candidates) {
@@ -258,8 +263,8 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() < rtRange.lowerEndpoint()) {
-      double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
+    if (dp.getRT() < rtRange.lower()) {
+      double prevInt = currentPeakDataPoints.getLast().getIntensity();
       if (dp.getIntensity() > (prevInt * (1 - intTolerance))) {
         return true;
       }
@@ -269,8 +274,8 @@ public class Gap {
       return true;
     }
 
-    if (dp.getRT() > rtRange.upperEndpoint()) {
-      double prevInt = currentPeakDataPoints.get(currentPeakDataPoints.size() - 1).getIntensity();
+    if (dp.getRT() > rtRange.upper()) {
+      double prevInt = currentPeakDataPoints.getLast().getIntensity();
       if (dp.getIntensity() < (prevInt * (1 + intTolerance))) {
         return true;
       }

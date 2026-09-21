@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,13 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesEvent.CreateNewLibrary;
 import io.github.mzmine.datamodel.identities.global.GlobalIonLibraryService;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
 import io.github.mzmine.datamodel.identities.iontype.IonPart;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.property.ReadOnlyListProperty;
@@ -97,6 +99,16 @@ public class GlobalIonLibrariesController extends FxController<GlobalIonLibrarie
 
   public void updateModel() {
     interactor.updateModel();
+  }
+
+  /**
+   * Opens the ion libraries tab in the main window and starts a new library in the edit pane. Used
+   * by other components, e.g., the ion library parameter, to jump straight into library creation.
+   */
+  public void showTabAndCreateNewLibrary() {
+    GlobalIonLibrariesTab.showTab();
+    // showTab adds the tab later, so open the edit pane after the tab is in place
+    FxThread.runLater(() -> interactor.handleEvent(new CreateNewLibrary()));
   }
 
 }

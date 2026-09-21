@@ -78,7 +78,7 @@ public class LocalMaxGaussianModule implements MassDetectorPreprocessorModule,
     for (final IndexRange range : ranges) {
       // confined to [min, maxExclusive) so consecutive ranges do not bleed into each other
       SavitzkyGolayFilter.convolve(intensities, range.min(), range.maxExclusive(), weights,
-          smoothed);
+          smoothed, false); // gaussian smoothing never below 0 by design
     }
     return smoothed;
   }

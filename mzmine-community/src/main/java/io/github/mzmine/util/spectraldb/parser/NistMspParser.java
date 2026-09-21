@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.io.CountingInputStream;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -222,17 +223,18 @@ public class NistMspParser extends SpectralDBTextParser {
    * @param line   String with metadata
    * @param sep    separated by ':'
    */
-  private void extractMetaData(LibraryParsingErrors errors, Map<DBEntryField, Object> fields,
-      String line, String[] sep) {
-    String key = sep[0].trim();
-    DBEntryField field = DBEntryField.forID(key);
+  private void extractMetaData(@NotNull final LibraryParsingErrors errors,
+      @NotNull final Map<DBEntryField, Object> fields, @NotNull final String line,
+      @NotNull final String[] sep) {
+    final String key = sep[0].trim();
+    final DBEntryField field = DBEntryField.forID(key);
     if (field == null) {
       if (!key.isBlank()) {
         errors.addUnknownKey(key);
       }
     } else {
       // spe +2 for colon and space
-      String content = sep[1].trim();
+      final String content = sep[1].trim();
       if (!content.isEmpty()) {
         try {
           // convert into value type
@@ -246,7 +248,13 @@ public class NistMspParser extends SpectralDBTextParser {
             value = field.convertValue(content);
           }
           if (value != null) {
-            fields.put(field, value);
+            if (field == DBEntryField.SYNONYMS && fields.get(field) instanceof List<?> previous
+                && value instanceof List<?> synonyms) {
+              // MSP stores additional synonyms on repeated Synon lines.
+              fields.put(field, CollectionUtils.combineUniqueStrings(previous, synonyms));
+            } else {
+              fields.put(field, value);
+            }
           }
         } catch (Exception e) {
           errors.addValueParsingError(field, key, content);

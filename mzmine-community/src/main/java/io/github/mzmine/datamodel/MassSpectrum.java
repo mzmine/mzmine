@@ -114,10 +114,9 @@ public interface MassSpectrum extends Iterable<DataPoint> {
   @Nullable Range<Double> getDataPointMZRange();
 
   /**
-   * @return The sum of intensities of all data points or null if the spectrum has 0 data points.
+   * @return The sum of intensities of all data points. 0 if the spectrum has no data points.
    */
-  @Nullable Double getTIC();
-
+  double getTIC();
 
   /**
    * Searches for the given mz value - or the closest available signal in this spectrum. Copied from

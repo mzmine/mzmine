@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.project_io.R2RNetworkingMapsSaver;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
+import io.github.mzmine.datamodel.identities.iontype.project_io.IonNetworksSaver;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -80,6 +83,7 @@ public class FeatureListSaveTask extends AbstractTask {
   public static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   public static final String DATA_FILE_SUFFIX = "_data.xml";
   public static final String R2R_FILE_SUFFIX = "_r2r.json";
+  public static final String IIN_FILE_SUFFIX = "_iin.xml";
   public static final String FLIST_FOLDER = "featurelists/";
   private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
@@ -110,6 +114,10 @@ public class FeatureListSaveTask extends AbstractTask {
     return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + R2R_FILE_SUFFIX;
   }
 
+  public static String getIinFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + IIN_FILE_SUFFIX;
+  }
+
   @Override
   public String getTaskDescription() {
     return "Saving feature list " + flist.getName();
@@ -132,7 +140,28 @@ public class FeatureListSaveTask extends AbstractTask {
 
     saveR2RNetworkingMaps();
 
+    saveIonNetworks();
+
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean saveIonNetworks() {
+    // networks are only reachable through the ion identities of the rows, so derive them here
+    final List<IonNetwork> networks = IonNetworkLogic.getAllNetworksList(flist.getRows(), null,
+        false);
+    if (networks.isEmpty()) {
+      return true;
+    }
+    try {
+      zos.putNextEntry(new ZipEntry(getIinFileName(flist.getName())));
+      IonNetworksSaver.save(networks, zos);
+    } catch (IOException | XMLStreamException e) {
+      logger.log(Level.SEVERE,
+          "Failed to save ion identity networks for feature list " + flist.getName(), e);
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
+    return true;
   }
 
   private boolean saveR2RNetworkingMaps() {

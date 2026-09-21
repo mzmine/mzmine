@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType
 import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -102,7 +103,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum DBEntryField {
   // Compound specific
-  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
+  ENTRY_ID, NAME, SYNONYMS(List.class), COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
       Double.class), IUPAC_NAME, INTERNAL_ID,
 
   // structure
@@ -416,7 +417,7 @@ public enum DBEntryField {
       case JsonStringType _ -> JSON_STRING;
       case AcquisitionMethodType _ -> ACQUISITION_METHOD;
       case RIRecordType _ -> RETENTION_INDEX;
-//        case SynonymType _ -> DBEntryField.SYNONYM;
+      case SynonymsType _ -> SYNONYMS;
       default -> UNSPECIFIED;
     };
   }
@@ -455,7 +456,7 @@ public enum DBEntryField {
     return switch (this) {
       case UNSPECIFIED, ACQUISITION, SOFTWARE, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
            INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, //
-           CHEMSPIDER, MONA_ID, GNPS_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+           CHEMSPIDER, MONA_ID, GNPS_ID, RESOLUTION, FRAGMENTATION_METHOD, //
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
@@ -463,6 +464,7 @@ public enum DBEntryField {
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID ->
           StringType.class;
       case COMMENT -> CommentType.class;
+      case SYNONYMS -> SynonymsType.class;
       case CAS -> CASType.class;
       case PUBCHEM -> PubChemIdType.class;
       case ENTRY_ID -> EntryIdType.class;
@@ -927,7 +929,11 @@ public enum DBEntryField {
    * @return the original value or Double, Float, Integer
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
-  public Object convertValue(String content) throws NumberFormatException {
+  public @Nullable Object convertValue(@Nullable final String content)
+      throws NumberFormatException {
+    if (this == SYNONYMS) {
+      return SynonymsType.parse(content);
+    }
     if (this == MS_LEVEL) {
       if (content.toLowerCase().startsWith("ms")) {
         // sometimes for example in MS the ms level is gives as MS or MS2

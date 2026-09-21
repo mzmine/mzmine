@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,371 +25,436 @@
 
 package io.github.mzmine.modules.tools.qualityparameters;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
-import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityFwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
-import io.github.mzmine.util.DataPointUtils;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Calculates quality parameters for each peak in a feature list: - Full width at half maximum
  * (FWHM) - Tailing Factor - Asymmetry factor
+ * <p>
+ * All three parameters are derived from the same {@link ThresholdCrossings}, so a peak only has to
+ * be scanned once, see {@link #findThresholdCrossings(float[], double[])}. They are returned
+ * together as a {@link PeakQuality}, in which a parameter that cannot be determined is null.
  */
 public class QualityParameters {
 
-  public static void calculateAndSetModularQualityParameters(ModularFeatureList flist) {
+  private static final double FWHM_HEIGHT_FRACTION = 0.5;
+  private static final double TAILING_HEIGHT_FRACTION = 0.05;
+  private static final double ASYMMETRY_HEIGHT_FRACTION = 0.1;
+  /**
+   * All height fractions the quality parameters need, searched in a single walk per flank. The
+   * order matches the indices below.
+   */
+  private static final double[] HEIGHT_FRACTIONS = {FWHM_HEIGHT_FRACTION, ASYMMETRY_HEIGHT_FRACTION,
+      TAILING_HEIGHT_FRACTION};
+  private static final int FWHM_INDEX = 0;
+  private static final int ASYMMETRY_INDEX = 1;
+  private static final int TAILING_INDEX = 2;
+  /**
+   * A flank whose minimum intensity stays above this fraction of the apex intensity is too flat to
+   * tell where the peak would reach the threshold. Such a flank is limited to the observed data
+   * instead of being extrapolated.
+   */
+  private static final double FLAT_FLANK_FRACTION = 0.85;
+  /**
+   * Upper limit for the estimated half width of a flank that never reaches the threshold, as a
+   * multiple of the half width that was actually observed on that flank. A gaussian peak that is
+   * cut off at 84 % of its apex intensity is twice as wide as the observed part, which is roughly
+   * where {@link #FLAT_FLANK_FRACTION} already stops the extrapolation. This cap therefore mostly
+   * catches flanks that are not gaussian or whose fit is dominated by noise. It also bounds the
+   * FWHM to twice the observed peak width.
+   */
+  private static final double MAX_EXTRAPOLATION_FACTOR = 2.0;
+
+  /**
+   * @throws IllegalArgumentException if a feature of the list is not initialized
+   */
+  public static void calculateAndSetModularQualityParameters(
+      @NotNull final ModularFeatureList flist) {
     // add quality columns to flist - feature columns
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
-
-    flist.streamFeatures().forEach(peak -> {
-      Float height = peak.getHeight();
-      Float rt = peak.getRT();
-
-      List<Scan> scanNumbers = peak.getScanNumbers();
-      RawDataFile dataFile = peak.getRawDataFile();
-      IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
-      if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
-          || dps.getNumberOfValues() < 3) {
-        return;
-      }
-
-      if (dps.getNumberOfValues() < 3) {
-        return;
-      }
-
-      Range<Float> rtRange = peak.get(RTRangeType.class);
-      if (rtRange == null) {
-        rtRange = Range.singleton(rt);
-      }
-
-      height = peak.getHeight();
-      rt = peak.getRT();
-      double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValueBuffer());
-
-      // FWHM
-      double[] rtValues = peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile,
-          rtRange);
-      Double fwhm = rtValues[1] - rtValues[0];
-      if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
-        fwhm = null;
-      }
-      if (fwhm != null) {
-        peak.set(FwhmType.class, (fwhm.floatValue()));
-      }
-
-      // Tailing Factor - TF
-      double[] rtValues2 = peakFindRTs(height * 0.05, rt, scanNumbers, intensities, dataFile,
-          rtRange);
-      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
-      if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
-        tf = null;
-      }
-      if (tf != null) {
-        peak.set(TailingFactorType.class, (tf.floatValue()));
-      }
-
-      // Asymmetry factor - AF
-      double[] rtValues3 = peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile,
-          rtRange);
-      Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
-      if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
-        af = null;
-      }
-      if (af != null) {
-        peak.set(AsymmetryFactorType.class, (af.floatValue()));
-      }
-    });
+    flist.streamFeatures().forEach(QualityParameters::calculateAndSetQualityParameters);
   }
 
-  public static float calculateFWHM(Feature feature) {
-    if (feature == null) {
-      return Float.NaN;
-    }
-    Float height = feature.getHeight();
-    Float rt = feature.getRT();
+  /**
+   * Calculates FWHM, asymmetry factor and tailing factor in a single pass over the feature data and
+   * sets all three.
+   * <p>
+   * decision: a parameter that cannot be determined is set to null instead of being skipped, so
+   * that the value of an earlier run is removed rather than kept next to the new ones.
+   *
+   * @throws IllegalArgumentException if the feature values are not initialized
+   */
+  public static void calculateAndSetQualityParameters(@NotNull final ModularFeature feature) {
+    final PeakQuality quality = calculateQualityParameters(feature);
+    feature.set(FwhmType.class, quality.fwhm());
+    feature.set(AsymmetryFactorType.class, quality.asymmetry());
+    feature.set(TailingFactorType.class, quality.tailing());
 
-    List<Scan> scanNumbers = feature.getScanNumbers();
-    RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
-        feature.getFeatureData().getIntensityValueBuffer());
-    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
-        || intensities.length == 0) {
-      throw new IllegalArgumentException("Modular feature values are not initialized.");
+    if (feature.getFeatureData() instanceof IonMobilogramTimeSeries imts) {
+      final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();
+      // since version 4.10, null removes the value of an earlier run
+      feature.set(MobilityFwhmType.class, QualityParameters.calculateFWHM(summedMobilogram));
     }
-
-    if (intensities.length < 3) {
-      return Float.NaN;
-    }
-
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
-    if (rtRange == null) {
-      rtRange = Range.singleton(rt);
-    }
-
-    height = feature.getHeight();
-    rt = feature.getRT();
-
-    // FWHM
-    double[] rtValues = peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
-    if (rtValues.length < 2) {
-      return Float.NaN;
-    }
-    double fwhm = rtValues[1] - rtValues[0];
-    if (fwhm <= 0 || Double.isInfinite(fwhm)) {
-      return Float.NaN;
-    }
-
-    return (float) fwhm;
   }
 
-  public static float calculateTailingFactor(Feature feature) {
-    if (feature == null) {
-      return Float.NaN;
-    }
-    Float height = feature.getHeight();
-    Float rt = feature.getRT();
-
-    List<Scan> scanNumbers = feature.getScanNumbers();
-    RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
-        feature.getFeatureData().getIntensityValueBuffer());
-
-    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
-        || intensities.length == 0) {
-      throw new IllegalArgumentException("Modular feature values are not initialized.");
-    }
-
-    if (intensities.length < 3) {
-      return Float.NaN;
-    }
-
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
-    if (rtRange == null) {
-      rtRange = Range.singleton(rt);
-    }
-
-    height = feature.getHeight();
-    rt = feature.getRT();
-
-    // Tailing Factor - TF
-    double[] rtValues = peakFindRTs(height * 0.05, rt, scanNumbers, intensities, dataFile, rtRange);
-    double tf = (rtValues[1] - rtValues[0]) / (2 * (rt - rtValues[0]));
-    if (tf <= 0 || Double.isInfinite(tf)) {
-      return Float.NaN;
-    }
-
-    return (float) tf;
+  /**
+   * @return all quality parameters of the feature, {@link PeakQuality#EMPTY} if its trace holds too
+   * few data points
+   * @throws IllegalArgumentException if the feature values are not initialized
+   */
+  @NotNull
+  public static PeakQuality calculateQualityParameters(@NotNull final Feature feature) {
+    final IonTimeSeries<? extends Scan> series = requireInitializedTrace(feature);
+    return series == null ? PeakQuality.EMPTY
+        : calculateQualityParameters(extractX(series), extractIntensities(series));
   }
 
-  public static float calculateAsymmetryFactor(Feature feature) {
-    if (feature == null) {
-      return Float.NaN;
-    }
-    Float height = feature.getHeight();
-    Float rt = feature.getRT();
-
-    List<Scan> scanNumbers = feature.getScanNumbers();
-    RawDataFile dataFile = feature.getRawDataFile();
-    double[] intensities = DataPointUtils.getDoubleBufferAsArray(
-        feature.getFeatureData().getIntensityValueBuffer());
-    if (height == null || rt == null || dataFile == null || scanNumbers.isEmpty()
-        || intensities.length == 0) {
-      throw new IllegalArgumentException("Modular feature values are not initialized.");
-    }
-    if (intensities.length < 3) {
-      return Float.NaN;
-    }
-
-    Range<Float> rtRange = feature.getRawDataPointsRTRange();
-    if (rtRange == null) {
-      rtRange = Range.singleton(rt);
-    }
-
-    height = feature.getHeight();
-    rt = feature.getRT();
-
-    // Asymmetry factor - AF
-    double[] rtValues = peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile, rtRange);
-    double af = (rtValues[1] - rt) / (rt - rtValues[0]);
-    if (af <= 0 || Double.isInfinite(af)) {
-      af = Double.NaN;
-    }
-
-    return (float) af;
+  /**
+   * @param x           x values (retention time), ascending with index
+   * @param intensities intensities, same length as {@code x}
+   * @return all quality parameters of the peak, {@link PeakQuality#EMPTY} if the trace is too short
+   * or carries no intensity
+   */
+  @NotNull
+  public static PeakQuality calculateQualityParameters(final float @NotNull [] x,
+      final double @NotNull [] intensities) {
+    final ThresholdCrossings c = findThresholdCrossings(x, intensities);
+    return c == null ? PeakQuality.EMPTY
+        : new PeakQuality(calculateFWHM(c), calculateAsymmetryFactor(c), calculateTailingFactor(c));
   }
 
-  private static double[] peakFindRTs(double intensity, float featureRT, List<Scan> scanNumbers,
-      List<DataPoint> dps, RawDataFile dataFile, Range<Float> rtRange) {
-    return peakFindRTs(intensity, featureRT, scanNumbers, dps.toArray(DataPoint[]::new), //
-        dataFile, //
-        Range.closed(rtRange.lowerEndpoint().doubleValue(), rtRange.upperEndpoint().doubleValue()));
+  /**
+   * The FWHM is the only quality parameter that is meaningful for a mobilogram.
+   *
+   * @return the full width at half maximum in mobility units, or null if it cannot be determined
+   */
+  @Nullable
+  public static Float calculateFWHM(@Nullable final SummedIntensityMobilitySeries series) {
+    if (series == null || series.getNumberOfValues() < 3) {
+      return null;
+    }
+    // assumption: mobility values are ascending with index, guaranteed by the series
+    final float[] mobilities = new float[series.getNumberOfValues()];
+    for (int i = 0; i < mobilities.length; i++) {
+      mobilities[i] = (float) series.getMobility(i);
+    }
+    final double[] intensities = series.getIntensityValues(new double[series.getNumberOfValues()]);
+    return calculateFWHM(findThresholdCrossings(mobilities, intensities));
   }
 
-  private static double[] peakFindRTs(double intensity, double featureRT, List<Scan> scanNumbers,
-      DataPoint[] dps, RawDataFile dataFile, Range<Double> rtRange) {
+  /**
+   * Full width at half maximum.
+   * <p>
+   * decision: a side that never drops below half the apex intensity, e.g. because the peak is cut
+   * off or because a co-eluting peak fills up one flank, is mirrored from the opposite side. The
+   * mirrored width is never narrower than what was actually observed on that side. If neither side
+   * drops below half maximum, both flanks are extrapolated down to the threshold, see
+   * {@link #extrapolateToThreshold(double, float[], double[], int, int)}.
+   * <p>
+   * The result never exceeds twice the observed x range of the peak.
+   *
+   * @param c the crossings of the peak, or null if it has none
+   * @return the width or null if it cannot be determined
+   */
+  @Nullable
+  public static Float calculateFWHM(@Nullable final ThresholdCrossings c) {
+    if (c == null) {
+      return null;
+    }
+    final float[] bounds = resolveFwhmBoundsWithFallbacks(c);
+    final float fwhm = bounds[1] - bounds[0];
+    return fwhm > 0 && !Float.isInfinite(fwhm) ? fwhm : null;
+  }
 
-    assert scanNumbers != null;
-    assert dps != null;
-    assert dataFile != null;
-    assert rtRange != null;
+  /**
+   * Tailing factor at 5 % of the apex intensity.
+   * <p>
+   * decision: unlike the FWHM, a missing side is not mirrored here. Mirroring would force the
+   * factor to exactly 1 and thus claim a perfectly symmetric peak, which is the opposite of what
+   * this parameter is meant to detect. An undetermined side yields null instead.
+   *
+   * @param c the crossings of the peak, or null if it has none
+   * @return the tailing factor or null if it cannot be determined
+   */
+  @Nullable
+  public static Float calculateTailingFactor(@Nullable final ThresholdCrossings c) {
+    if (c == null || c.leftX5() == null || c.rightX5() == null) {
+      return null;
+    }
+    final float left = c.leftX5();
+    final float tf = (c.rightX5() - left) / (2 * (c.apexX() - left));
+    return tf > 0 && !Float.isInfinite(tf) ? tf : null;
+  }
 
-    double x1 = 0, x2 = 0, x3 = 0, x4 = 0, y1 = 0, y2 = 0, y3 = 0, y4 = 0;
-    double lastDiff1 = intensity;
-    double lastDiff2 = intensity;
-    double currentDiff;
-    double currentRT;
+  /**
+   * Asymmetry factor at 10 % of the apex intensity. See
+   * {@link #calculateTailingFactor(ThresholdCrossings)} for why a missing side is not mirrored.
+   *
+   * @param c the crossings of the peak, or null if it has none
+   * @return the asymmetry factor or null if it cannot be determined
+   */
+  @Nullable
+  public static Float calculateAsymmetryFactor(@Nullable final ThresholdCrossings c) {
+    if (c == null || c.leftX10() == null || c.rightX10() == null) {
+      return null;
+    }
+    final float apex = c.apexX();
+    final float af = (c.rightX10() - apex) / (apex - c.leftX10());
+    return af > 0 && !Float.isInfinite(af) ? af : null;
+  }
 
-    // Find the data points closet to input intensity on both side of the
-    // peak apex
-    DataPoint lastDP = dps[0];
-    double lastRT = scanNumbers.get(0).getRetentionTime();
-    DataPoint dp = dps[1];
-    double rt = scanNumbers.get(1).getRetentionTime();
-    for (int i = 1; i < scanNumbers.size() - 1; i++) {
-      DataPoint nextDP = dps[i + 1];
-      double nextRT = scanNumbers.get(i + 1).getRetentionTime();
+  /**
+   * Searches the x values at which the signal crosses every height fraction the quality parameters
+   * need, i.e. 50 % for the FWHM, 10 % for the asymmetry factor and 5 % for the tailing factor.
+   * <p>
+   * decision: the search starts at both outer edges and walks inwards towards the apex, stopping at
+   * the first crossing of each threshold. The whole trace is treated as a single peak because peak
+   * picking already decided its boundaries. Interior valleys of a split peak and single data points
+   * that drop to zero, e.g. because of detector defects, therefore do not truncate the peak.
+   * <p>
+   * decision: all thresholds are collected in the same walk, so each flank is visited once no
+   * matter how many quality parameters are calculated from the result.
+   *
+   * @param x           x values, ascending with index
+   * @param intensities intensities, same length as {@code x}
+   * @return the crossings or null if the trace is too short or carries no intensity
+   */
+  @Nullable
+  public static ThresholdCrossings findThresholdCrossings(final float @NotNull [] x,
+      final double @NotNull [] intensities) {
+    if (x.length < 3) {
+      return null;
+    }
+    if (x.length != intensities.length) {
+      throw new IllegalArgumentException("x and intensities must have the same length");
+    }
 
-      if (dp != null) {
-        currentDiff = Math.abs(intensity - dp.getIntensity());
-        currentRT = scanNumbers.get(i).getRetentionTime();
-        if (currentDiff < lastDiff1 && currentDiff > 0 && currentRT <= featureRT
-            && nextDP != null) {
-          x1 = rt;
-          y1 = dp.getIntensity();
-          x2 = nextRT;
-          y2 = nextDP.getIntensity();
-          lastDiff1 = currentDiff;
-        } else if (currentDiff < lastDiff2 && currentDiff > 0 && currentRT >= featureRT
-            && lastDP != null) {
-          x3 = lastRT;
-          y3 = lastDP.getIntensity();
-          x4 = rt;
-          y4 = dp.getIntensity();
-          lastDiff2 = currentDiff;
+    final int apex = indexOfMax(intensities);
+    if (intensities[apex] <= 0) {
+      return null;
+    }
+    final double[] thresholds = new double[HEIGHT_FRACTIONS.length];
+    for (int t = 0; t < thresholds.length; t++) {
+      thresholds[t] = intensities[apex] * HEIGHT_FRACTIONS[t];
+    }
+    final int last = x.length - 1;
+
+    final Float[] left = findCrossings(thresholds, x, intensities, 0, apex);
+    final Float[] right = findCrossings(thresholds, x, intensities, last, apex);
+
+    // only the FWHM falls back to an extrapolated flank, so the lower thresholds are not fitted
+    final double halfMaximum = thresholds[FWHM_INDEX];
+    return new ThresholdCrossings(x[apex], x[0], x[last], //
+        left[FWHM_INDEX], right[FWHM_INDEX], //
+        left[ASYMMETRY_INDEX], right[ASYMMETRY_INDEX], //
+        left[TAILING_INDEX], right[TAILING_INDEX], //
+        extrapolateToThreshold(halfMaximum, x, intensities, 0, apex), //
+        extrapolateToThreshold(halfMaximum, x, intensities, last, apex));
+  }
+
+  /**
+   * Walks from the outer data point {@code edge} towards the apex (both inclusive) and interpolates
+   * the first crossing of every threshold. A single walk covers all of them because the data point
+   * that first reaches a low threshold never lies further inside than the one that first reaches a
+   * higher threshold.
+   *
+   * @return one crossing per threshold, in the order of {@code thresholds}, null for a threshold
+   * that the trace already exceeds at the edge, i.e., a side that is cut off
+   */
+  @NotNull
+  private static Float[] findCrossings(final double @NotNull [] thresholds,
+      final float @NotNull [] x, final double @NotNull [] intensities, final int edge,
+      final int apex) {
+    final Float @Nullable [] crossings = new Float[thresholds.length];
+
+    final boolean[] crossed = new boolean[thresholds.length];
+    int open = thresholds.length;
+
+    final int step = edge < apex ? 1 : -1;
+    for (int i = edge; open > 0; i += step) {
+      for (int t = 0; t < thresholds.length; t++) {
+        if (crossed[t] || intensities[i] < thresholds[t]) {
+          continue;
+        }
+        crossed[t] = true;
+        open--;
+        if (i == edge) {
+          // the outermost data point is already above the threshold, this side is cut off
+          crossings[t] = intensities[i] == thresholds[t] ? x[i] : null;
+        } else {
+          // intensities[outer] < threshold <= intensities[i], so this always interpolates
+          final int outer = i - step;
+          crossings[t] = interpolateX(x[outer], intensities[outer], x[i], intensities[i],
+              thresholds[t]);
         }
       }
-      // set to next
-      lastDP = dp;
-      lastRT = rt;
-      dp = nextDP;
-      rt = nextRT;
+      if (i == apex) {
+        // the apex is at or above every threshold, so all of them are resolved by now
+        break;
+      }
     }
-
-    // Calculate RT value for input intensity based on linear regression
-    double slope, intercept, rt1, rt2;
-    if (y1 > 0) {
-      slope = (y2 - y1) / (x2 - x1);
-      intercept = y1 - (slope * x1);
-      rt1 = (intensity - intercept) / slope;
-    } else if (x2 > 0) { // Straight drop of peak to 0 intensity
-      rt1 = x2;
-    } else {
-      rt1 = rtRange.lowerEndpoint();
-    }
-    if (y4 > 0) {
-      slope = (y4 - y3) / (x4 - x3);
-      intercept = y3 - (slope * x3);
-      rt2 = (intensity - intercept) / slope;
-    } else if (x3 > 0) { // Straight drop of peak to 0 intensity
-      rt2 = x3;
-    } else {
-      rt2 = rtRange.upperEndpoint();
-    }
-
-    return new double[]{rt1, rt2};
+    return crossings;
   }
 
-  private static double[] peakFindRTs(double intensity, double featureRT, List<Scan> scanNumbers,
-      double[] intensities, RawDataFile dataFile, Range<Float> rtRange) {
+  /**
+   * Estimates where one flank would cross the threshold if the peak were not cut off. Only used
+   * when that flank never drops below the threshold within the data.
+   * <p>
+   * decision: the slope is a least squares fit over all data points of the flank rather than the
+   * line through the two outermost points, so that a single noisy edge data point cannot dominate
+   * the estimate.
+   * <p>
+   * decision: a flank that never descends below {@link #FLAT_FLANK_FRACTION} of the apex intensity
+   * is not extrapolated at all. Such a flank carries no usable information about where the
+   * threshold would be reached, and a linear extrapolation of it reaches arbitrarily far. The
+   * caller then falls back to the observed data range for that flank.
+   * <p>
+   * decision: for all other flanks the estimated half width is capped at
+   * {@link #MAX_EXTRAPOLATION_FACTOR} times the half width that was actually observed.
+   *
+   * @param edge index of the outermost data point of the flank
+   * @param apex index of the apex
+   * @return the estimated crossing, or null if the flank holds no data points, is too flat, or does
+   * not rise towards the apex
+   */
+  @Nullable
+  private static Float extrapolateToThreshold(final double threshold, final float @NotNull [] x,
+      final double @NotNull [] intensities, final int edge, final int apex) {
+    if (edge == apex) {
+      return null;
+    }
+    final int step = edge < apex ? 1 : -1;
+    final int end = apex + step;
 
-    assert scanNumbers != null;
-    assert intensities != null;
-    assert dataFile != null;
-    assert rtRange != null;
+    int n = 0;
+    double sumX = 0;
+    double sumY = 0;
+    double minIntensity = Double.MAX_VALUE;
+    for (int i = edge; i != end; i += step) {
+      sumX += x[i];
+      sumY += intensities[i];
+      minIntensity = Math.min(minIntensity, intensities[i]);
+      n++;
+    }
+    // an almost flat flank never descended far enough to tell where it would reach the threshold
+    if (minIntensity >= intensities[apex] * FLAT_FLANK_FRACTION) {
+      return null;
+    }
+    final double meanX = sumX / n;
+    final double meanY = sumY / n;
 
-    double y1 = 0, y2 = 0, y3 = 0, y4 = 0;
-    float x1 = 0, x2 = 0, x3 = 0, x4 = 0;
-    double lastDiff1 = intensity;
-    double lastDiff2 = intensity;
-    double currentDiff;
-    float currentRT;
-
-    if (intensities.length < 2) {
-      return new double[]{featureRT};
+    double sumXy = 0;
+    double sumXx = 0;
+    for (int i = edge; i != end; i += step) {
+      final double dx = x[i] - meanX;
+      sumXy += dx * (intensities[i] - meanY);
+      sumXx += dx * dx;
+    }
+    if (sumXx == 0) {
+      return null;
+    }
+    final double slope = sumXy / sumXx;
+    // the fitted line must rise towards the apex, no matter which flank it describes
+    if (slope * (x[apex] - x[edge]) <= 0) {
+      return null;
     }
 
-    // Find the data points closet to input intensity on both side of the
-    // peak apex
-//    DataPoint lastDP = dps[0];
-    double lastIntensity = intensities[0];
-    float lastRT = scanNumbers.get(0).getRetentionTime();
-//    DataPoint dp = dps[1];
-    double currentIntensity = intensities[1];
-    float rt = scanNumbers.get(1).getRetentionTime();
-    for (int i = 1; i < scanNumbers.size() - 1; i++) {
-//      DataPoint nextDP = dps[i + 1];
-      double nextIntensity = intensities[i + 1];
-      float nextRT = scanNumbers.get(i + 1).getRetentionTime();
+    final double apexX = x[apex];
+    final double observedHalfWidth = Math.abs(apexX - x[edge]);
+    final double fittedHalfWidth = Math.abs(meanX + (threshold - meanY) / slope - apexX);
+    // the flank stays above the threshold, so the crossing cannot lie inside the observed data
+    final double halfWidth = Math.clamp(fittedHalfWidth, observedHalfWidth,
+        MAX_EXTRAPOLATION_FACTOR * observedHalfWidth);
+    return (float) (edge < apex ? apexX - halfWidth : apexX + halfWidth);
+  }
 
-//      if (dp != null) {
-      currentDiff = Math.abs(intensity - currentIntensity);
-      currentRT = scanNumbers.get(i).getRetentionTime();
-      if (currentDiff < lastDiff1 && currentDiff > 0 && currentRT <= featureRT
-        /*&& nextDP != null*/) {
-        x1 = rt;
-        y1 = currentIntensity;
-        x2 = nextRT;
-        y2 = nextIntensity;
-        lastDiff1 = currentDiff;
-      } else if (currentDiff < lastDiff2 && currentDiff > 0 && currentRT >= featureRT
-        /* && lastDP != null*/) {
-        x3 = lastRT;
-        y3 = lastIntensity;
-        x4 = rt;
-        y4 = currentIntensity;
-        lastDiff2 = currentDiff;
+  /**
+   * Resolves the half maximum crossings into a left and a right bound, mirroring a side that never
+   * reaches the threshold.
+   * <p>
+   * decision: a mirrored side is at least as wide as the side that did cross and at least as wide
+   * as the data that was actually observed on the missing side, whichever is larger.
+   */
+  private static float @NotNull [] resolveFwhmBoundsWithFallbacks(
+      @NotNull final ThresholdCrossings c) {
+    final float apex = c.apexX();
+    final Float left = c.leftX50();
+    final Float right = c.rightX50();
+    if (left != null && right != null) {
+      return new float[]{left, right};
+    }
+    if (left != null) {
+      final float halfWidth = Math.max(apex - left, c.lastX() - apex);
+      return new float[]{left, apex + halfWidth};
+    }
+    if (right != null) {
+      final float halfWidth = Math.max(right - apex, apex - c.firstX());
+      return new float[]{apex - halfWidth, right};
+    }
+    // neither side reaches the threshold: extrapolate both outer flanks and fall back to the
+    // observed edges if a flank does not rise towards the apex
+    final Float leftFit = c.leftExtrapolatedX50();
+    final Float rightFit = c.rightExtrapolatedX50();
+    return new float[]{leftFit != null ? leftFit : c.firstX(),
+        rightFit != null ? rightFit : c.lastX()};
+  }
+
+  /**
+   * @return the x value at which the line through both points reaches {@code targetY}
+   */
+  private static float interpolateX(final float x1, final double y1, final float x2,
+      final double y2, final double targetY) {
+    return (float) (x1 + (targetY - y1) * (x2 - x1) / (y2 - y1));
+  }
+
+  private static int indexOfMax(final double @NotNull [] values) {
+    int maxIndex = 0;
+    for (int i = 1; i < values.length; i++) {
+      if (values[i] > values[maxIndex]) {
+        maxIndex = i;
       }
-//      }
-      // set to next
-//      lastDP = dp;
-      lastIntensity = currentIntensity;
-      lastRT = rt;
-//      dp = nextDP;
-      currentIntensity = nextIntensity;
-      rt = nextRT;
     }
+    return maxIndex;
+  }
 
-    // Calculate RT value for input intensity based on linear regression
-    double slope, intercept, rt1, rt2;
-    if (y1 > 0) {
-      slope = (y2 - y1) / (x2 - x1);
-      intercept = y1 - (slope * x1);
-      rt1 = (intensity - intercept) / slope;
-    } else if (x2 > 0) { // Straight drop of peak to 0 intensity
-      rt1 = x2;
-    } else {
-      rt1 = rtRange.lowerEndpoint();
+  private static float @NotNull [] extractX(@NotNull final IonTimeSeries<? extends Scan> series) {
+    final float[] x = new float[series.getNumberOfValues()];
+    for (int i = 0; i < x.length; i++) {
+      x[i] = series.getRetentionTime(i);
     }
-    if (y4 > 0) {
-      slope = (y4 - y3) / (x4 - x3);
-      intercept = y3 - (slope * x3);
-      rt2 = (intensity - intercept) / slope;
-    } else if (x3 > 0) { // Straight drop of peak to 0 intensity
-      rt2 = x3;
-    } else {
-      rt2 = rtRange.upperEndpoint();
-    }
+    return x;
+  }
 
-    return new double[]{rt1, rt2};
+  private static double @NotNull [] extractIntensities(
+      @NotNull final IonTimeSeries<? extends Scan> series) {
+    return series.getIntensityValues(new double[series.getNumberOfValues()]);
+  }
+
+  /**
+   * @return the feature data, or null if it holds too few values to calculate quality parameters
+   * @throws IllegalArgumentException if the feature values are not initialized
+   */
+  @Nullable
+  private static IonTimeSeries<? extends Scan> requireInitializedTrace(
+      @NotNull final Feature feature) {
+    final IonTimeSeries<? extends Scan> series = feature.getFeatureData();
+    if (series == null || feature.getHeight() == null || feature.getRT() == null
+        || feature.getRawDataFile() == null || feature.getScanNumbers().isEmpty()) {
+      throw new IllegalArgumentException("Modular feature values are not initialized.");
+    }
+    return series.getNumberOfValues() < 3 ? null : series;
   }
 
   /**
@@ -442,74 +507,5 @@ public class QualityParameters {
       final double nPoints) {
     final int changes = getSignChanges(startIndex, endIndexExclusive, y);
     return (double) changes / ((endIndexExclusive - startIndex) / (double) nPoints);
-  }
-
-  public static float calculateFWHM(SummedIntensityMobilitySeries series) {
-    if (series == null) {
-      return Float.NaN;
-    }
-
-    if (series.getNumberOfValues() < 3) {
-      return Float.NaN;
-    }
-
-    // Extract intensity and mobility values
-    double[] intensities = DataPointUtils.getDoubleBufferAsArray(series.getIntensityValueBuffer());
-    double[] mobilities = DataPointUtils.getDoubleBufferAsArray(series.getMobilityValues());
-
-    if (intensities.length < 3 || mobilities.length < 3) {
-      return Float.NaN;
-    }
-
-    // Find the peak maximum
-    double maxIntensity = 0;
-    int maxIndex = 0;
-    for (int i = 0; i < intensities.length; i++) {
-      if (intensities[i] > maxIntensity) {
-        maxIntensity = intensities[i];
-        maxIndex = i;
-      }
-    }
-
-    double halfMaxIntensity = maxIntensity / 2.0;
-    double peakMobility = mobilities[maxIndex];
-
-    // Find mobility values at half maximum intensity
-    double mob1 = mobilities[0];
-    double mob2 = mobilities[mobilities.length - 1];
-
-    double lastDiff1 = halfMaxIntensity;
-    double lastDiff2 = halfMaxIntensity;
-
-    // Find left side (before peak)
-    for (int i = 0; i < maxIndex - 1; i++) {
-      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
-      if (currentDiff < lastDiff1 && mobilities[i] <= peakMobility) {
-        // Linear interpolation between i and i+1
-        double slope = (intensities[i + 1] - intensities[i]) / (mobilities[i + 1] - mobilities[i]);
-        double intercept = intensities[i] - (slope * mobilities[i]);
-        mob1 = (halfMaxIntensity - intercept) / slope;
-        lastDiff1 = currentDiff;
-      }
-    }
-
-    // Find right side (after peak)
-    for (int i = maxIndex + 1; i < intensities.length - 1; i++) {
-      double currentDiff = Math.abs(halfMaxIntensity - intensities[i]);
-      if (currentDiff < lastDiff2 && mobilities[i] >= peakMobility) {
-        // Linear interpolation between i-1 and i
-        double slope = (intensities[i] - intensities[i - 1]) / (mobilities[i] - mobilities[i - 1]);
-        double intercept = intensities[i - 1] - (slope * mobilities[i - 1]);
-        mob2 = (halfMaxIntensity - intercept) / slope;
-        lastDiff2 = currentDiff;
-      }
-    }
-
-    double fwhm = mob2 - mob1;
-    if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
-      return Float.NaN;
-    }
-
-    return (float) fwhm;
   }
 }
