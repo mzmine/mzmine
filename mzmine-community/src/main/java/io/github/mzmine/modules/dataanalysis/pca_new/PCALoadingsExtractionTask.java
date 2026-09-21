@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,14 +45,16 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Path2D;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
 
   private final MZmineProject project;
+  private final ModularFeatureList sourceFlist;
   private final ModularFeatureList resultFlist;
 
   protected PCALoadingsExtractionTask(@Nullable MemoryMapStorage storage,
@@ -60,9 +62,9 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
       @NotNull Class<? extends MZmineModule> moduleClass, MZmineProject project) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.project = project;
-    resultFlist = FeatureListUtils.createCopy(
-        parameters.getValue(PCALoadingsExtractionParameters.flist).getMatchingFeatureLists()[0],
-        " extracted", storage, false);
+    sourceFlist = parameters.getValue(PCALoadingsExtractionParameters.flist)
+        .getMatchingFeatureLists()[0];
+    resultFlist = FeatureListUtils.createCopy(sourceFlist, " extracted", storage, false);
   }
 
   @Override
@@ -92,18 +94,22 @@ public class PCALoadingsExtractionTask extends AbstractFeatureListTask {
     final List<Path2D> regions = param.getValue(PCALoadingsExtractionParameters.regions).stream()
         .map(RegionSelectionListener::getShape).toList();
 
-    List<FeatureListRow> rows = new ArrayList<>();
+    // identity map, so a row that falls into several regions is only copied once
+    final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>();
     for (Path2D region : regions) {
       for (PCALoadingsProvider loadings : loadingProviders) {
         for (int i = 0; i < loadings.getValueCount(); i++) {
           if (region.contains(loadings.getDomainValue(i), loadings.getRangeValue(i))) {
-            rows.add(new ModularFeatureListRow(resultFlist,
-                (ModularFeatureListRow) loadings.getItemObject(i), true));
+            rowMapping.computeIfAbsent(loadings.getItemObject(i),
+                src -> new ModularFeatureListRow(resultFlist, (ModularFeatureListRow) src, true));
           }
         }
       }
     }
-    resultFlist.setRowsApplySort(rows);
+    resultFlist.setRowsApplySort(rowMapping.values().toArray(FeatureListRow[]::new));
+
+    // the relationship maps and the ion identity networks reference rows directly
+    FeatureListUtils.transferRowRelationsAndIIN(sourceFlist, resultFlist, rowMapping::get);
     project.addFeatureList(resultFlist);
   }
 

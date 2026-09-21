@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -100,5 +102,37 @@ public class R2RNetworkingMaps {
     for (final Entry<String, R2RMap<RowsRelationship>> map : maps.getRowsMaps().entrySet()) {
       addAllRowsRelationships(map.getValue(), map.getKey());
     }
+  }
+
+  /**
+   * All relationships of these maps, recreated between the mapped rows. Needed when a feature list
+   * is copied, because both the map keys (the row IDs) and the relationships themselves reference
+   * the rows of the original feature list.
+   * <p>
+   * Relationships are dropped when at least one of their two rows was not copied.
+   *
+   * @param originalToNewRow maps a row of the original feature list to its row in the copy, or to
+   *                         null if that row was not copied
+   * @return a new instance, empty if no relationship survived
+   */
+  public @NotNull R2RNetworkingMaps createRemappedCopy(
+      @NotNull final Function<FeatureListRow, ? extends FeatureListRow> originalToNewRow) {
+    final R2RNetworkingMaps copy = new R2RNetworkingMaps();
+    for (final Entry<String, R2RMap<RowsRelationship>> entry : r2rMaps.entrySet()) {
+      final R2RMap<RowsRelationship> mapped = new R2RMap<>();
+      for (final RowsRelationship rel : entry.getValue().values()) {
+        final FeatureListRow a = originalToNewRow.apply(rel.getRowA());
+        final FeatureListRow b = originalToNewRow.apply(rel.getRowB());
+        if (a == null || b == null) {
+          continue;
+        }
+        // the key is derived from the new row IDs, which may differ after renumbering
+        mapped.add(a, b, rel.withRows(a, b));
+      }
+      if (!mapped.isEmpty()) {
+        copy.addAllRowsRelationships(mapped, entry.getKey());
+      }
+    }
+    return copy;
   }
 }

@@ -33,8 +33,11 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -319,5 +322,82 @@ public class IonNetworkLogic {
       renumbered.add(nets.get(i).withID(i));
     }
     return renumbered;
+  }
+
+  /**
+   * Recreates the ion identity networks of {@code sourceRows} on their copied rows and replaces the
+   * ion identities of those copies.
+   * <p>
+   * A copied row initially still holds the {@link IonIdentity} instances of its source row, and
+   * those point through {@link IonIdentity#getNetwork()} at the rows of the original feature list.
+   * Left alone, the copy would describe networks of foreign rows, which is why every copy of a
+   * feature list that copies rows has to call this.
+   * <p>
+   * A network is dropped when it is empty, like when all member rows were filtered out before copy.
+   * Ion identities of dropped networks are removed from the copied rows.
+   *
+   * @param sourceRows the rows of the original feature list
+   * @param rowMapping maps a source row to its copy, or to null if that row was not copied
+   */
+  public static void remapIonNetworks(@NotNull final List<FeatureListRow> sourceRows,
+      @NotNull final Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    // keyed by identity on purpose: rows of one network often share an ion type, and those ion
+    // identities compare equal by IonIdentity#compareTo. Each one still has to map to its own copy.
+    final Map<IonIdentity, IonIdentity> ionMapping = new IdentityHashMap<>();
+
+    for (final IonNetwork net : getAllNetworksList(sourceRows, null, false)) {
+      final List<IonNetworkNode> newNodes = new ArrayList<>(net.size());
+      final List<IonIdentity> sourceIons = new ArrayList<>(net.size());
+      for (final IonNetworkNode node : net.getNodes()) {
+        final FeatureListRow newRow = rowMapping.apply(node.row());
+        if (newRow == null) {
+          continue;
+        }
+        newNodes.add(new IonNetworkNode(newRow, copyIon(node.ion())));
+        sourceIons.add(node.ion());
+      }
+      if (newNodes.size() < 1) {
+        continue;
+      }
+      // re-points the copied ions at the new network
+      new SimpleIonNetwork(net.getID(), newNodes, net.getMolFormulas()).setNetworkToAllRows();
+      for (int i = 0; i < newNodes.size(); i++) {
+        ionMapping.put(sourceIons.get(i), newNodes.get(i).ion());
+      }
+    }
+
+    for (final FeatureListRow sourceRow : sourceRows) {
+      final FeatureListRow newRow = rowMapping.apply(sourceRow);
+      if (newRow == null) {
+        continue;
+      }
+      final List<IonIdentity> sourceIons = sourceRow.getIonIdentities();
+      if (sourceIons.isEmpty()) {
+        continue;
+      }
+      // keep the order, the first ion identity is the preferred one
+      final List<IonIdentity> newIons = new ArrayList<>(sourceIons.size());
+      for (final IonIdentity sourceIon : sourceIons) {
+        final IonIdentity mapped = ionMapping.get(sourceIon);
+        if (mapped != null) {
+          newIons.add(mapped);
+        } else if (sourceIon.getNetwork() == null) {
+          // not part of any network, so there is nothing to remap - still copy it so that the
+          // copied row does not share a mutable ion identity with its source
+          newIons.add(copyIon(sourceIon));
+        }
+        // otherwise its network did not survive the copy and the ion identity is dropped
+      }
+      newRow.setIonIdentities(newIons.isEmpty() ? null : List.copyOf(newIons));
+    }
+  }
+
+  /**
+   * A copy without the network back reference, which is set once the new network exists.
+   */
+  private static @NotNull IonIdentity copyIon(@NotNull final IonIdentity ion) {
+    final IonIdentity copy = new IonIdentity(ion.getIonType());
+    copy.addMolFormulas(ion.getMolFormulas());
+    return copy;
   }
 }
