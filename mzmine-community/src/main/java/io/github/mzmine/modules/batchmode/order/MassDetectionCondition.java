@@ -83,7 +83,7 @@ public enum MassDetectionCondition implements ModuleOrderCondition {
     return switch (this) {
       case MS1 -> msLevelFilter.accept(1);
       case MSn -> msLevelFilter.accept(2);
-      case MSany -> msLevelFilter.accept(1) || msLevelFilter.accept(2);
+      case MSany -> true;
     };
   }
 
