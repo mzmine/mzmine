@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
@@ -131,10 +130,7 @@ public class SimpleParameterSet implements ParameterSet {
     batchStepParameters = true;
   }
 
-  /**
-   * @return true if this set is the stored configuration of a batch step in
-   * {@link MZmineProcessingStep}
-   */
+  @Override
   public boolean isBatchStepParameters() {
     return batchStepParameters;
   }
