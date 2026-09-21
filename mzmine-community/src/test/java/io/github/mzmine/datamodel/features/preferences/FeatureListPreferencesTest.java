@@ -33,7 +33,9 @@ import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.Fea
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.DefaultOffCustomParameter;
 import io.github.mzmine.util.XMLUtils;
@@ -192,15 +194,25 @@ class FeatureListPreferencesTest {
    */
   @Test
   void testModuleParametersStartOnDefault() {
-    final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
+    final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.fromPreferences(
+        FeatureListPreferences.createDefault());
 
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(DefaultOffCustomOption.DEFAULT,
-        param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue()
-            .getSelectedOption());
-    Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences());
+    for (Parameter<?> parameter : param.getParameters()) {
+      checkParameterDefault(parameter);
+    }
+  }
+
+  private static void checkParameterDefault(Parameter<?> parameter) {
+    switch (parameter) {
+      case DefaultOffCustomParameter p ->
+          Assertions.assertEquals(DefaultOffCustomOption.DEFAULT, p.getValue().getSelectedOption());
+      case OptionalParameter p -> {
+        Assertions.assertEquals(Boolean.FALSE, p.getValue());
+        checkParameterDefault(p.getEmbeddedParameter());
+      }
+      default -> {
+      }
+    }
   }
 
   /**
