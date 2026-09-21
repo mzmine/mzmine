@@ -947,7 +947,9 @@ public class FeatureListUtils {
   }
 
   /**
-   * Copies all input rows into the new feature list.
+   * Copies all input rows into the new feature list, sorted by
+   * {@link #getDefaultRowSorter(FeatureList)}: a new feature list is expected to be sorted.
+   * Renumbering in that order.
    *
    * @return maps each source row to its copy. Pass this to
    * {@link #transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Function)} to also transfer
@@ -956,15 +958,17 @@ public class FeatureListUtils {
   public static Map<FeatureListRow, ModularFeatureListRow> copyRows(
       final Collection<? extends FeatureListRow> rowsToCopy,
       final ModularFeatureList newFeatureList, final boolean renumberIDs) {
-    // sort so that the rows are definitly sorted by default sorting for renumbering
-    final Comparator<FeatureListRow> rowSorter = getDefaultRowSorter(newFeatureList);
-    List<FeatureListRow> sortedRowsToKeep = new ArrayList<>(rowsToCopy);
-    sortedRowsToKeep.sort(rowSorter);
+    final List<FeatureListRow> orderedRows = new ArrayList<>(rowsToCopy);
+    orderedRows.sort(getDefaultRowSorter(newFeatureList));
 
     final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>(
         rowsToCopy.size());
     int id = 1;
-    for (final FeatureListRow row : sortedRowsToKeep) {
+    for (final FeatureListRow row : orderedRows) {
+      if (rowMapping.containsKey(row)) {
+        // the same row may be selected more than once, e.g. by two regions or by two compounds
+        continue;
+      }
       ModularFeatureListRow copy = new ModularFeatureListRow(newFeatureList,
           renumberIDs ? id : row.getID(), (ModularFeatureListRow) row, true);
       newFeatureList.addRow(copy);
@@ -1023,16 +1027,6 @@ public class FeatureListUtils {
   public static void transferRowRelationsAndIIN(@NotNull FeatureList source,
       @NotNull ModularFeatureList target,
       @NotNull Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
-    for (FeatureListRow row : target.getRows()) {
-      final FeatureListRow other = rowMapping.apply(row);
-      if (other != null && other == row) {
-        // row mapping is source -> target so if the target row returns an entry then both are the same
-        // then we can skip remapping
-        // this is the case when algorithm ran in place
-        return;
-      }
-    }
-
     // remap before clearing: the maps of source and target are the same instance when a feature
     // list is filtered in place
     final R2RNetworkingMaps remapped = source.getRowMaps().createRemappedCopy(rowMapping);

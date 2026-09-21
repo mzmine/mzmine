@@ -30,10 +30,10 @@ import static io.github.mzmine.modules.dataprocessing.norm_intensity.NormIntensi
 import static io.github.mzmine.util.FeatureListTestUtils.addRow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -365,34 +365,32 @@ class IntensityNormalizerBatchTest {
     // 0.5, 0.55, 0.3, 0.14, 0.16, so the median level is 0.3. Every file is scaled by that same
     // level, the relative corrections between the files are unchanged.
     final double isReferenceLevel = 0.3d;
-    double[] row0 = new double[]{2.1777596473693848 * isReferenceLevel,
+    double[] isRowNorm = new double[]{2.1777596473693848 * isReferenceLevel,
         1.1977678537368774 * isReferenceLevel, 1.1977678537368774 * isReferenceLevel,
         1.0162878036499023 * isReferenceLevel, 0.580735981464386 * isReferenceLevel};
-    double[] row1 = new double[]{21.777597427368164 * isReferenceLevel,
+    double[] regularRowNorm = new double[]{21.777597427368164 * isReferenceLevel,
         21.777597427368164 * isReferenceLevel, 11.977678298950195 * isReferenceLevel,
         21.777597427368164 * isReferenceLevel, 21.777597427368164 * isReferenceLevel};
 
+    // the rows of the output are sorted by the default row sorter, which is not the order they were
+    // added in, so address them by their ID. The IDs are kept by the copy.
+    final FeatureListRow outIsRow = out.findRowByID(isRow.getID());
+    final FeatureListRow outRegularRow = out.findRowByID(2);
+    assertNotNull(outIsRow);
+    assertNotNull(outRegularRow);
+
     for (int i = 0; i < allFiles.size(); i++) {
       final RawDataFile file = allFiles.get(i);
-        final float norm0 = featureNormalizedHeight(out, 0, file);
-        final float norm1 = featureNormalizedHeight(out, 1, file);
-      assertEquals(row0[i], norm0, 1e-3f, "isNorm should be equal");
-      assertEquals(row1[i], norm1, 1e-3f, "isNorm should be equal");
+      assertEquals(isRowNorm[i], featureNormalizedHeight(outIsRow, file), 1e-3f,
+          "isNorm should be equal");
+      assertEquals(regularRowNorm[i], featureNormalizedHeight(outRegularRow, file), 1e-3f,
+          "isNorm should be equal");
     }
 
     // the standards are resolved once for the whole feature list, not once per batch, so the
     // matched row must carry exactly one annotation even though there are two batches
-    assertEquals(1, out.getRow(0).getCompoundAnnotations().size(),
+    assertEquals(1, outIsRow.getCompoundAnnotations().size(),
         "IS row must be annotated once, not once per batch");
-
-    // The IS row (index 0) has different normalized values — just verify it is set and positive.
-    for (RawDataFile file : allFiles) {
-      final ModularFeature isFeature = (ModularFeature) out.getRow(0).getFeature(file);
-      assertNotNull(isFeature);
-      final Float isNorm = isFeature.get(NormalizedHeightType.class);
-      assertNotNull(isNorm, "IS row must have a normalized height for " + file.getName());
-      assertTrue(isNorm > 0f, "IS row normalized height must be positive for " + file.getName());
-    }
   }
 
   private static @NotNull MetadataNormalizationConfig getMetadataNormalizationConfig() {
@@ -403,12 +401,17 @@ class IntensityNormalizerBatchTest {
 
   private static float featureNormalizedHeight(ModularFeatureList list, int rowIndex,
       RawDataFile file) {
-    final ModularFeature feature = (ModularFeature) list.getRow(rowIndex).getFeature(file);
+    return featureNormalizedHeight(list.getRow(rowIndex), file);
+  }
+
+  private static float featureNormalizedHeight(FeatureListRow row, RawDataFile file) {
+    final ModularFeature feature = (ModularFeature) row.getFeature(file);
     assertNotNull(feature,
-        "Feature must exist for row %d, file %s".formatted(rowIndex, file.getName()));
+        "Feature must exist for row %d, file %s".formatted(row.getID(), file.getName()));
     final Float value = feature.get(NormalizedHeightType.class);
     assertNotNull(value,
-        "NormalizedHeightType must be set for row %d, file %s".formatted(rowIndex, file.getName()));
+        "NormalizedHeightType must be set for row %d, file %s".formatted(row.getID(),
+            file.getName()));
     return value;
   }
 

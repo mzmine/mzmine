@@ -110,6 +110,10 @@ public class R2RNetworkingMaps {
    * the rows of the original feature list.
    * <p>
    * Relationships are dropped when at least one of their two rows was not copied.
+   * <p>
+   * The keys are always recomputed, because renumbering changes the row IDs they are derived from.
+   * A relationship whose two rows map to themselves, which is the case when a feature list is
+   * filtered in place, is reused instead of recreated.
    *
    * @param originalToNewRow maps a row of the original feature list to its row in the copy, or to
    *                         null if that row was not copied
@@ -127,7 +131,9 @@ public class R2RNetworkingMaps {
           continue;
         }
         // the key is derived from the new row IDs, which may differ after renumbering
-        mapped.add(a, b, rel.withRows(a, b));
+        final boolean sameRows = a == rel.getRowA() && b == rel.getRowB();
+        final RowsRelationship newRelation = sameRows ? rel : rel.withRows(a, b);
+        mapped.add(a, b, newRelation);
       }
       if (!mapped.isEmpty()) {
         copy.addAllRowsRelationships(mapped, entry.getKey());
