@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -308,8 +309,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
       return; // no extraction window available, cannot reproduce
     }
     final ManualIntegrationEntry manual = new ManualIntegrationEntry(FeatureRecord.of(row),
-        new RawDataFilePlaceholder(file), entry.mzRange(), rtRange, row.getMobilityRange(),
-        deleted);
+        new RawDataFilePlaceholder(file), entry.mzRange(), SimpleRange.ofFloat(rtRange),
+        SimpleRange.ofFloat(row.getMobilityRange()), deleted);
     dashboardModel.putManualIntegration(row.getID(), file, manual);
   }
 
@@ -372,7 +373,8 @@ public class IntegrationDashboardViewBuilder extends FxViewBuilder<IntegrationDa
     final List<IntegrationDashboardSortOption> options = new ArrayList<>();
     columns.forEach(col -> options.add(IntegrationDashboardSortOption.of(col)));
     options.add(IntegrationDashboardSortOption.of(IntegrationDashboardAreaSortDirection.ASCENDING));
-    options.add(IntegrationDashboardSortOption.of(IntegrationDashboardAreaSortDirection.DESCENDING));
+    options.add(
+        IntegrationDashboardSortOption.of(IntegrationDashboardAreaSortDirection.DESCENDING));
 
     final Label lblSortBy = FxLabels.newLabel("Sort files by:");
     ComboBox<IntegrationDashboardSortOption> cmbSort = new ComboBox<>(

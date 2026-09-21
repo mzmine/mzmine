@@ -25,12 +25,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -47,6 +50,9 @@ import org.w3c.dom.NodeList;
 public class ManualIntegrationEntriesParameter implements
     UserParameter<List<ManualIntegrationEntry>, ManualIntegrationEntriesComponent> {
 
+  private static final Logger logger = Logger.getLogger(
+      ManualIntegrationEntriesParameter.class.getName());
+
   private static final String ENTRY_ELEMENT = "entry";
   private static final String RAWFILE_ELEMENT = "rawfile";
   private static final String MZ_ELEMENT = "mz";
@@ -57,8 +63,6 @@ public class ManualIntegrationEntriesParameter implements
   private static final String ROW_RT_ATTR = "rowRt";
   private static final String ROW_MOBILITY_ATTR = "rowMobility";
   private static final String DELETED_ATTR = "deleted";
-  private static final String LOWER_ATTR = "lower";
-  private static final String UPPER_ATTR = "upper";
 
   private final String name;
   private final String description;
@@ -72,53 +76,6 @@ public class ManualIntegrationEntriesParameter implements
   public ManualIntegrationEntriesParameter(@NotNull String name, @NotNull String description) {
     this.name = name;
     this.description = description;
-  }
-
-  private static void appendDoubleRange(@NotNull Element parent, @NotNull String tag,
-      @NotNull Range<Double> range) {
-    final Element element = parent.getOwnerDocument().createElement(tag);
-    element.setAttribute(LOWER_ATTR, String.valueOf(range.lowerEndpoint()));
-    element.setAttribute(UPPER_ATTR, String.valueOf(range.upperEndpoint()));
-    parent.appendChild(element);
-  }
-
-  private static void appendFloatRange(@NotNull Element parent, @NotNull String tag,
-      @NotNull Range<Float> range) {
-    final Element element = parent.getOwnerDocument().createElement(tag);
-    element.setAttribute(LOWER_ATTR, String.valueOf(range.lowerEndpoint()));
-    element.setAttribute(UPPER_ATTR, String.valueOf(range.upperEndpoint()));
-    parent.appendChild(element);
-  }
-
-  private static @Nullable Range<Double> loadDoubleRange(@NotNull Element entryElement,
-      @NotNull String tag) {
-    final Element element = childElement(entryElement, tag);
-    if (element == null) {
-      return null;
-    }
-    return Range.closed(Double.parseDouble(element.getAttribute(LOWER_ATTR)),
-        Double.parseDouble(element.getAttribute(UPPER_ATTR)));
-  }
-
-  private static @Nullable Range<Float> loadFloatRange(@NotNull Element entryElement,
-      @NotNull String tag) {
-    final Element element = childElement(entryElement, tag);
-    if (element == null) {
-      return null;
-    }
-    return Range.closed(Float.parseFloat(element.getAttribute(LOWER_ATTR)),
-        Float.parseFloat(element.getAttribute(UPPER_ATTR)));
-  }
-
-  // decision: only consider direct children so the entry's own range elements are read, not another entry's
-  private static @Nullable Element childElement(@NotNull Element parent, @NotNull String tag) {
-    final NodeList children = parent.getElementsByTagName(tag);
-    for (int i = 0; i < children.getLength(); i++) {
-      if (children.item(i) instanceof Element element && element.getParentNode() == parent) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @Override
@@ -159,12 +116,12 @@ public class ManualIntegrationEntriesParameter implements
       entry.rawFile().saveToXML(rawFileElement);
       entryElement.appendChild(rawFileElement);
 
-      appendDoubleRange(entryElement, MZ_ELEMENT, entry.mzRange());
+      XMLUtils.appendSimpleDoubleRange(entryElement, MZ_ELEMENT, entry.mzRange());
       if (entry.rtRange() != null) {
-        appendFloatRange(entryElement, RT_ELEMENT, entry.rtRange());
+        XMLUtils.appendSimpleFloatRange(entryElement, RT_ELEMENT, entry.rtRange());
       }
       if (entry.mobilityRange() != null) {
-        appendFloatRange(entryElement, MOBILITY_ELEMENT, entry.mobilityRange());
+        XMLUtils.appendSimpleFloatRange(entryElement, MOBILITY_ELEMENT, entry.mobilityRange());
       }
 
       xmlElement.appendChild(entryElement);
@@ -189,9 +146,19 @@ public class ManualIntegrationEntriesParameter implements
           .item(0);
       final RawDataFilePlaceholder rawFile = RawDataFilePlaceholder.loadFromXML(rawFileElement);
 
-      final Range<Double> mzRange = loadDoubleRange(entryElement, MZ_ELEMENT);
-      final Range<Float> rtRange = loadFloatRange(entryElement, RT_ELEMENT);
-      final Range<Float> mobilityRange = loadFloatRange(entryElement, MOBILITY_ELEMENT);
+      final SimpleDoubleRange mzRange = XMLUtils.loadSimpleDoubleRange(
+          XMLUtils.childElement(entryElement, MZ_ELEMENT));
+      final SimpleFloatRange rtRange = XMLUtils.loadSimpleFloatRange(
+          XMLUtils.childElement(entryElement, RT_ELEMENT));
+      final SimpleFloatRange mobilityRange = XMLUtils.loadSimpleFloatRange(
+          XMLUtils.childElement(entryElement, MOBILITY_ELEMENT));
+
+      if (mzRange == null || rtRange == null || mobilityRange == null) {
+        logger.warning(
+            "Manual integration in file %s for row %d cannot be loaded. Invalid integration ranges.".formatted(
+                rawFile.getName(), rowId));
+        continue;
+      }
 
       loaded.add(
           new ManualIntegrationEntry(new FeatureRecord(rowId, rowMz, rowRt, rowMobility), rawFile,

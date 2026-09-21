@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manualintegration;
 
-import com.google.common.collect.Range;
+import static io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import static io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
+
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +48,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public record ManualIntegrationEntry(@NotNull FeatureRecord feature,
                                      @NotNull RawDataFilePlaceholder rawFile,
-                                     @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
-                                     @Nullable Range<Float> mobilityRange, boolean deleted) {
+                                     @NotNull SimpleDoubleRange mzRange,
+                                     @Nullable SimpleFloatRange rtRange,
+                                     @Nullable SimpleFloatRange mobilityRange, boolean deleted) {
 
 }

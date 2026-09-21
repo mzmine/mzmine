@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.visualization.dash_integration;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import java.util.List;
@@ -46,6 +46,6 @@ public record FeatureIntegrationData(@NotNull RawDataFile file,
                                      @Nullable IntensityTimeSeries feature,
                                      @NotNull IntensityTimeSeries chromatogram,
                                      @NotNull List<IntensityTimeSeriesToXYProvider> additionalData,
-                                     @NotNull Range<Double> mzRange) {
+                                     @NotNull SimpleDoubleRange mzRange) {
 
 }
