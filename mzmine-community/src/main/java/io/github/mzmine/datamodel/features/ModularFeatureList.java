@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.TagDataType;
 import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -77,6 +78,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -147,7 +151,8 @@ public class ModularFeatureList implements FeatureList {
    * User defined preferences, never null, defaults to
    * {@link FeatureListPreferences#createDefault()}
    */
-  private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
+  private final @NotNull ObjectProperty<@NotNull FeatureListPreferences> preferences = new SimpleObjectProperty<>(
+      FeatureListPreferences.createDefault());
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -214,7 +219,7 @@ public class ModularFeatureList implements FeatureList {
     this.memoryMapStorage = storage;
 
     // only a few standard types
-    addRowType(new IDType());
+    addRowType(new IDType(), new TagDataType());
     addDefaultListeners();
   }
 
@@ -1091,12 +1096,16 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public @NotNull FeatureListPreferences getPreferences() {
-    return preferences;
+    return preferences.get();
   }
 
   @Override
   public void setPreferences(@NotNull final FeatureListPreferences preferences) {
-    this.preferences = preferences;
+    this.preferences.set(preferences);
+  }
+
+  public @NotNull ReadOnlyObjectProperty<FeatureListPreferences> preferencesProperty() {
+    return preferences;
   }
 
   @Override
