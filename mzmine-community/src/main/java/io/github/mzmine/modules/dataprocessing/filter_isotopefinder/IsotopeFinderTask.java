@@ -25,27 +25,24 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import io.github.mzmine.datamodel.Frame;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.CrossScanRefiner;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.DetectionResult;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.engine.IsotopeFinderEngine;
@@ -57,6 +54,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,14 +70,32 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 /**
- * Detects isotope patterns and charge states per feature. Starts at the feature m/z, searches the
- * most intense MS1 (or best mobility) scan bidirectionally, selects the most probable charge via the
- * {@link IsotopeFinderEngine}, and optionally refines the pattern across the scans within the
- * feature FWHM.
+ * Detects isotope patterns and charge states per feature. Starts at the feature m/z, searches one
+ * spectrum bidirectionally, selects the most probable charge via the {@link IsotopeFinderEngine},
+ * and optionally refines the pattern across the scans within the feature FWHM.
+ * <p>
+ * The searched spectrum is the most intense MS1 scan, or, for ion mobility features, the mobility
+ * scans within the mobility FWHM merged into one mobility resolved spectrum - see
+ * {@link #mergeMobilityFwhmSpectrum}.
  */
 class IsotopeFinderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(IsotopeFinderTask.class.getName());
+
+  /**
+   * The retention time scope IMS features are merged over. Not a user parameter - flip this to
+   * compare the two on real data.
+   */
+  static final ImsMergeScope IMS_MERGE_SCOPE = ImsMergeScope.RT_FWHM;
+
+  /**
+   * Half width of the m/z window the IMS merge is restricted to, around the feature m/z. Generous
+   * on purpose: the pattern search walks outwards from the feature signal as long as it keeps
+   * finding plausible isotope spacings, so this must comfortably exceed the widest pattern to be
+   * found.
+   */
+  private static final double IMS_MERGE_MZ_WINDOW_DA = 50d;
+
   private final ModularFeatureList featureList;
 
   private final ParameterSet parameters;
@@ -187,7 +203,8 @@ class IsotopeFinderTask extends AbstractTask {
   private long processRawDataFile(@NotNull final RawDataFile raw) {
     final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
         featureList.getSeletedScans(raw));
-    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
+    final boolean imsEnabled = raw instanceof IMSRawDataFile && featureList.hasFeatureType(
+        io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
 
     long detected = 0;
 
@@ -211,13 +228,14 @@ class IsotopeFinderTask extends AbstractTask {
           polarity = PolarityType.UNKNOWN;
         }
 
-        Scan spectrum = findBestScanOrMobilityScan(scans, mobScans, feature);
-        DetectionResult result = engine.detect(spectrum, mz, height, polarity);
-        if (result == null && mobScans != null) {
-          // for IMS features, do a second attempt in the frame if nothing was found in mobility
-          spectrum = findBestScanOrMobilityScan(scans, null, feature);
-          result = engine.detect(spectrum, mz, height, polarity);
-        }
+        // IMS features are searched in a mobility resolved spectrum merged over the mobility FWHM,
+        // whose intensities cover only a part of the feature -> normalize back to the feature height
+        final MassSpectrum mergedMobility =
+            imsEnabled ? mergeMobilityFwhmSpectrum(feature, mz) : null;
+        final MassSpectrum spectrum =
+            mergedMobility != null ? mergedMobility : positionScanAccess(scans, feature);
+        final DetectionResult result = engine.detect(spectrum, mz, height, polarity,
+            mergedMobility != null);
         if (result == null) {
           processedRows.incrementAndGet();
           continue;
@@ -243,12 +261,12 @@ class IsotopeFinderTask extends AbstractTask {
         final IsotopePattern assembled = IsotopeFinderEngine.assemble(patterns);
         // these must agree: downstream consumers (formula prediction, CCS) read one or the other.
         // Logged rather than thrown so one odd feature cannot abort the run.
-        if (assembled.getCharge() != result.bestCharge() && chargeMismatchLogged.compareAndSet(false,
-            true)) {
+        if (assembled.getCharge() != result.bestCharge() && chargeMismatchLogged.compareAndSet(
+            false, true)) {
           logger.warning(String.format(
               "Isotope finder: preferred pattern charge %d disagrees with the selected charge %d "
-                  + "(feature m/z %.4f). Further occurrences are not logged.", assembled.getCharge(),
-              result.bestCharge(), mz));
+                  + "(feature m/z %.4f). Further occurrences are not logged.",
+              assembled.getCharge(), result.bestCharge(), mz));
         }
         feature.setIsotopePattern(assembled);
         feature.setCharge(result.bestCharge());
@@ -299,31 +317,64 @@ class IsotopeFinderTask extends AbstractTask {
     return result;
   }
 
+  /**
+   * @return the data access, positioned on the feature's representative (apex) scan. For IMS this
+   * is the apex frame, which is NOT mobility resolved - only used when no mobility merged spectrum
+   * can be built.
+   */
   @NotNull
-  private Scan findBestScanOrMobilityScan(ScanDataAccess scans,
-      @Nullable MobilityScanDataAccess mobScans, @NotNull Feature feature) {
-
-    final Scan maxScan = feature.getRepresentativeScan();
-    final int scanIndex = scans.indexOf(maxScan);
-    scans.jumpToIndex(scanIndex);
-
-    final boolean mobility = feature.getMobility() != null;
-    MobilityScan mobilityScan = null;
-    if (mobility && mobScans != null) {
-      final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
-      if (bestMobilityScan != null) {
-        mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
-      }
-    }
-
-    return mobilityScan != null ? mobScans : scans;
+  private Scan positionScanAccess(@NotNull ScanDataAccess scans, @NotNull Feature feature) {
+    scans.jumpToIndex(scans.indexOf(feature.getRepresentativeScan()));
+    return scans;
   }
 
+  /**
+   * The mobility resolved spectrum an IMS feature is searched in: the mass lists of the feature's
+   * mobility scans within the mobility FWHM, merged over {@link #IMS_MERGE_SCOPE} frames.
+   * <p>
+   * A single mobility scan carries too little signal for weak M+1/M+2 peaks to clear mass
+   * detection, and the frame spectrum is not mobility resolved, so it drags in every co-eluting
+   * ion. Merging the FWHM keeps the mobility selectivity and recovers the counting statistics.
+   *
+   * @param mz the feature m/z, the merge is restricted to a window around it - see
+   *           {@link #IMS_MERGE_MZ_WINDOW_DA}.
+   * @return the merged spectrum, or null if the feature is not ion mobility data or none of its
+   * mobility scans has a mass list.
+   */
   @Nullable
-  private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
-    return
-        raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
-            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
-            (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+  private MassSpectrum mergeMobilityFwhmSpectrum(@NotNull final Feature feature, final double mz) {
+    if (feature.getMobility() == null
+        || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
+      return null;
+    }
+
+    // no FWHM (e.g. a mobilogram of one or two points) -> merge everything the feature covers.
+    // extractSummedMobilityScanFromMassLists skips mobility scans without feature intensity, so the
+    // full range still only contains scans this feature is actually present in.
+    final Range<Float> mobilityRange = Objects.requireNonNullElse(
+        IonMobilityUtils.getMobilityFWHM(series.getSummedMobilogram()), Range.all());
+
+    final Range<Float> rtRange = switch (IMS_MERGE_SCOPE) {
+      case APEX_FRAME -> {
+        final Scan apex = feature.getRepresentativeScan();
+        // a closed range on the exact apex RT, so only that frame's mobility scans pass
+        yield apex == null ? Range.all() : Range.singleton(apex.getRetentionTime());
+      }
+      case RT_FWHM -> {
+        final Float rt = feature.getRT();
+        final Float fwhm = feature.getFWHM();
+        yield rt == null || fwhm == null ? Range.all()
+            : Range.closed(rt - fwhm / 2f, rt + fwhm / 2f);
+      }
+    };
+
+    // the engine only reads around the feature m/z, and merging is by far the most expensive step
+    // per feature, so hand it only that window
+    final Range<Double> mzRange = Range.closed(mz - IMS_MERGE_MZ_WINDOW_DA,
+        mz + IMS_MERGE_MZ_WINDOW_DA);
+
+    // no memory map storage: the merged spectrum is per feature scratch data, not kept anywhere
+    return SpectraMerging.extractSummedMobilityScanFromMassLists(feature,
+        SpectraMerging.defaultMs1MergeTol, mobilityRange, rtRange, mzRange, null);
   }
 }

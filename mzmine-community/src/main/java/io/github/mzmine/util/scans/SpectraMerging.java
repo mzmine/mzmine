@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,7 +42,9 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
@@ -128,6 +130,24 @@ public class SpectraMerging {
       @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
       @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
       @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks) {
+    return calculatedMergedMzsAndIntensities(source, tolerance, intensityMergingType,
+        mzCenterFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks, null);
+  }
+
+  /**
+   * @param mzRange only data points inside this range are merged, null merges the full spectra.
+   *                Restricting it is a pure optimization for callers that read only a window of the
+   *                merged spectrum: the merged values inside the range are unaffected, because
+   *                merging never combines data points further apart than {@code tolerance}.
+   * @see #calculatedMergedMzsAndIntensities(Collection, MZTolerance, IntensityMergingType,
+   * CenterFunction, Double, Double, Integer)
+   */
+  public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
+      @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
+      @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks,
+      @Nullable final Range<Double> mzRange) {
 
     if (source.isEmpty()) {
       return new double[][]{new double[0], new double[0]};
@@ -146,6 +166,9 @@ public class SpectraMerging {
       spectrum.getIntensityValues(rawIntensities);
 
       for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+        if (mzRange != null && !mzRange.contains(rawMzs[i])) {
+          continue;
+        }
         if (inputNoiseLevel == null || rawIntensities[i] > inputNoiseLevel) {
           final IndexedDataPoint dp = new IndexedDataPoint(rawMzs[i], rawIntensities[i], index);
           dataPoints.add(dp);
@@ -399,6 +422,66 @@ public class SpectraMerging {
     final double[][] merged = calculatedMergedMzsAndIntensities(scans, tolerance,
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null);
 
+    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
+  }
+
+  /**
+   * Like {@link #extractSummedMobilityScan(ModularFeature, MZTolerance, Range, Range,
+   * MemoryMapStorage)}, but merges the {@link MassList}s of the feature's mobility scans instead of
+   * their raw data, so the merged spectrum carries the same signals a mass-list based module sees in
+   * the individual scans. Mobility scans without intensity in this feature are skipped, so a
+   * {@link Range#all()} mobility range means "everything this feature covers" rather than the whole
+   * frame.
+   * <p>
+   * Kept separate from {@link #extractSummedMobilityScan} so callers of that one (which merges raw
+   * data, see its todo) keep their current behavior.
+   *
+   * @param mobilityRange the mobility window to merge, e.g. the mobility FWHM.
+   * @param rtRange       the retention time window to merge the mobility scans of.
+   * @param mzRange       optional m/z window, see
+   *                      {@link #calculatedMergedMzsAndIntensities(Collection, MZTolerance,
+   *                      IntensityMergingType, CenterFunction, Double, Double, Integer, Range)}.
+   * @return the merged spectrum, or null if the feature is not ion mobility data, or if none of its
+   * mobility scans has a mass list.
+   */
+  @Nullable
+  public static MergedMassSpectrum extractSummedMobilityScanFromMassLists(@NotNull final Feature f,
+      @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
+      @NotNull final Range<Float> rtRange, @Nullable final Range<Double> mzRange,
+      @Nullable final MemoryMapStorage storage) {
+    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
+      return null;
+    }
+
+    final List<MobilityScan> scans = new ArrayList<>();
+    final List<MassList> massLists = new ArrayList<>();
+    for (final IonMobilitySeries mobilogram : series.getMobilograms()) {
+      for (int i = 0; i < mobilogram.getNumberOfValues(); i++) {
+        if (mobilogram.getIntensity(i) <= 0d) {
+          continue; // the feature has no signal here, so the scan only adds unrelated ions
+        }
+        final MobilityScan scan = mobilogram.getSpectrum(i);
+        if (!mobilityRange.contains((float) scan.getMobility()) || !rtRange.contains(
+            scan.getRetentionTime())) {
+          continue;
+        }
+        final MassList massList = scan.getMassList();
+        if (massList != null) {
+          scans.add(scan);
+          massLists.add(massList);
+        }
+      }
+    }
+    if (massLists.isEmpty()) {
+      return null;
+    }
+
+    final double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+        IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null, null, mzRange);
+
+    // the source spectra are the scans, not their mass lists: SimpleMergedMassSpectrum derives the
+    // raw file, polarity and RT from source spectra that are Scans.
     return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
         IntensityMergingType.SUMMED, DEFAULT_CENTER_FUNCTION, MergingType.ALL_ENERGIES);
   }
