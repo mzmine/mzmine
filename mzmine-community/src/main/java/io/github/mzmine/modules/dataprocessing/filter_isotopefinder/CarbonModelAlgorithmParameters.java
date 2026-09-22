@@ -57,7 +57,7 @@ public class CarbonModelAlgorithmParameters extends SimpleParameterSet {
   public static final ElementDetectionMode DEFAULT_ELEMENT_DETECTION_MODE = ElementDetectionMode.USER_PLUS_AUTO;
   public static final MZTolerance DEFAULT_MZ_TOLERANCE = MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA;
   public static final int DEFAULT_MAX_CHARGE = 3;
-  public static final boolean DEFAULT_REQUIRE_C13 = false;
+  public static final boolean DEFAULT_REQUIRE_C13 = true;
   public static final boolean DEFAULT_EXPLAINABLE_SIGNALS_ONLY = false;
   public static final boolean DEFAULT_FWHM_REFINE = false;
 
