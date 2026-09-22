@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -120,7 +120,8 @@ public class SimpleChartUtility {
 
   /**
    * Applies the chart theme from the {@link MZmineConfiguration} to a renderer. This method can be
-   * safely used in renderer constructors to be up-to-date, all exceptions are caught.
+   * safely used in renderer constructors to be up-to-date, all exceptions are caught. Ideally call
+   * first in the constructor so renderer-specific values are not overridden.
    */
   public static void tryApplyDefaultChartThemeToRenderer(AbstractRenderer r) {
     if (r == null) {
