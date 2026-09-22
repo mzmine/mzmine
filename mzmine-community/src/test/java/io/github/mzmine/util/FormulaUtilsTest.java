@@ -288,7 +288,7 @@ class FormulaUtilsTest {
 
   @Test
   void parseFormulaString() {
-    parseFormula("D2O", true);
+    parseFormula("D2O", false); // D is a synonym for [2H]
     parseFormula("TEST", true); //
     parseFormula("GGG", true); //
     parseFormula("H2o", true);
@@ -306,6 +306,130 @@ class FormulaUtilsTest {
     return f;
   }
 
+
+  /**
+   * D and T are no element symbols but common synonyms for the hydrogen isotopes, so they are read
+   * as [2H] and [3H]. All notations end up in the same formula and are formatted as [2]H.
+   */
+  @Test
+  void parseDeuteriumFormula() {
+    assertEquals("[2]H2O", FormulaUtils.getFormulaString(parseFormula("D2O", false)));
+    assertEquals("[2]H2O", FormulaUtils.getFormulaString(parseFormula("[2H]2O", false)));
+    assertEquals("[2]H2O", FormulaUtils.getFormulaString(parseFormula("[2]H2O", false)));
+    assertEquals("[2]H", FormulaUtils.getFormulaString(parseFormula("[2H]", false)));
+    assertEquals("[2]H", FormulaUtils.getFormulaString(parseFormula("D", false)));
+    assertEquals("C[2]H4O", FormulaUtils.getFormulaString(parseFormula("CD3OD", false)));
+    // tritium
+    assertEquals("[3]H2O", FormulaUtils.getFormulaString(parseFormula("T2O", false)));
+    assertEquals("[3]H2O", FormulaUtils.getFormulaString(parseFormula("[3H]2O", false)));
+    // mixed with regular hydrogen
+    assertEquals("H[2]HO", FormulaUtils.getFormulaString(parseFormula("HDO", false)));
+
+    // charge still parses next to the isotope
+    assertEquals("[[2]H2O]+", FormulaUtils.getFormulaString(parseFormula("[2H]2O+", false), true));
+    assertEquals("[[2]H2O]+",
+        FormulaUtils.getFormulaString(parseFormula("[[2H]2O]+", false), true));
+    assertEquals("[[2]H2O]+", FormulaUtils.getFormulaString(parseFormula("D2O+", false), true));
+    assertEquals("[[2]H2O]2-", FormulaUtils.getFormulaString(parseFormula("[D2O]2-", false), true));
+  }
+
+  /**
+   * The synonyms must not swallow the first letter of a two letter element.
+   */
+  @Test
+  void parseElementsStartingWithSynonymLetter() {
+    assertTrue(FormulaUtils.containsElement(parseFormula("Dy", false), "Dy"));
+    assertTrue(FormulaUtils.containsElement(parseFormula("Ti", false), "Ti"));
+    assertTrue(FormulaUtils.containsElement(parseFormula("H2Te", false), "Te"));
+    assertEquals(2, FormulaUtils.countElement(parseFormula("H2Te", false), "H"));
+
+    // an element and a synonym next to each other
+    final IMolecularFormula dyD3 = parseFormula("DyD3", false);
+    assertEquals(1, FormulaUtils.countElement(dyD3, "Dy"));
+    assertEquals(3, FormulaUtils.countElement(dyD3, "H"));
+    assertEquals(3, FormulaUtils.getIsotopes(dyD3).stream()
+        .filter(i -> "H".equals(i.getSymbol()) && i.getMassNumber() == 2)
+        .mapToInt(i -> dyD3.getIsotopeCount(i)).sum());
+  }
+
+  @Test
+  void deuteriumMass() {
+    assertEquals(2.014101778, FormulaUtils.getMonoisotopicMass(formula("[2]H")), 0.000001);
+    assertEquals(3.016049278, FormulaUtils.getMonoisotopicMass(formula("[3]H")), 0.000001);
+    // the isotope brackets are kept, only the brackets of the charge notation are removed
+    assertEquals(2.014101778, FormulaUtils.getMonoisotopicMass(formula("[2H]")), 0.000001);
+    assertEquals(2.014101778, FormulaUtils.getMonoisotopicMass(formula("[[2H]]")), 0.000001);
+    assertEquals(2.014101778, FormulaUtils.getMonoisotopicMass(formula("D")), 0.000001);
+    assertEquals(20.023118176, FormulaUtils.getMonoisotopicMass(formula("D2O")), 0.000001);
+    // heavy water is 2 * 1.00627 heavier than water
+    assertEquals(18.010564684, FormulaUtils.getMonoisotopicMass(formula("H2O")), 0.000001);
+    assertEquals(20.023118176, FormulaUtils.getMonoisotopicMass(formula("[2H]2O")), 0.000001);
+    // methanol-d4
+    assertEquals(36.051321732, FormulaUtils.getMonoisotopicMass(formula("C[2H]4O")), 0.000001);
+  }
+
+  /**
+   * Deuterium behaves like a specified [13C]: parsing keeps it, only the explicit
+   * {@link FormulaUtils#replaceAllToMajorIsotopes} exchanges it for 1H.
+   */
+  @Test
+  void deuteriumAndMajorIsotopes() {
+    final IMolecularFormula d2o = FormulaUtils.parse("[2H]2O");
+    assertEquals("H2O", FormulaUtils.getFormulaString(FormulaUtils.replaceAllToMajorIsotopes(d2o)));
+    assertEquals("[2]H2O", FormulaUtils.getFormulaString(
+        FormulaUtils.createMajorIsotopeMolFormulaWithCharge("[2H]2O")));
+  }
+
+  @Test
+  void deuteriumIsotopeAbundance() {
+    final List<IIsotope> isotopes = FormulaUtils.getIsotopes(FormulaUtils.parse("H[2H]"));
+    assertEquals(2, isotopes.size());
+
+    IIsotope iso = isotopes.get(0);
+    assertEquals("H", iso.getSymbol());
+    assertEquals(1, iso.getAtomicNumber());
+    assertEquals(1, iso.getMassNumber());
+    assertEquals(1.007825032, iso.getExactMass(), 0.0000001d);
+
+    iso = isotopes.get(1);
+    assertEquals("H", iso.getSymbol());
+    assertEquals(1, iso.getAtomicNumber());
+    assertEquals(2, iso.getMassNumber());
+    assertEquals(2.014101778, iso.getExactMass(), 0.0000001d);
+    assertEquals(0.0115, iso.getNaturalAbundance(), 0.0001d);
+  }
+
+  /**
+   * Element based methods see deuterium as hydrogen, there is no D element.
+   */
+  @Test
+  void deuteriumCountsAsHydrogenElement() {
+    final IMolecularFormula d2o = FormulaUtils.parse("[2H]2O");
+    assertTrue(FormulaUtils.containsElement(d2o, "H"));
+    assertFalse(FormulaUtils.containsElement(d2o, "D"));
+    assertEquals(2, FormulaUtils.countElement(d2o, "H"));
+
+    final IMolecularFormula hdo = FormulaUtils.parse("H[2H]O");
+    assertEquals(2, FormulaUtils.countElement(hdo, "H"));
+  }
+
+  @Test
+  void addAndSubtractDeuterium() {
+    // isotopes are kept apart when adding
+    assertEquals("H2[2]H2O", FormulaUtils.getFormulaString(
+        FormulaUtils.addFormula(FormulaUtils.parse("H2O"), FormulaUtils.parse("[2H]2"), 1, true)));
+    assertEquals("[2]H4O", FormulaUtils.getFormulaString(
+        FormulaUtils.addFormula(FormulaUtils.parse("[2H]2O"), FormulaUtils.parse("[2H]2"), 1,
+            true)));
+
+    // subtraction prefers the light isotope and only then falls back to deuterium
+    assertEquals("[2]H2O", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(FormulaUtils.parse("H2[2H]2O"), FormulaUtils.parse("H2"), 1,
+            true).orElseThrow()));
+    assertEquals("O", FormulaUtils.getFormulaString(
+        FormulaUtils.subtractFormula(FormulaUtils.parse("[2H]2O"), FormulaUtils.parse("H2"), 1,
+            true).orElseThrow()));
+  }
 
   @Test
   void containsElement() {
