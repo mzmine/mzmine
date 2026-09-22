@@ -45,6 +45,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 
 /**
@@ -137,10 +138,12 @@ public class ImageChartCell extends ChartCell<SimpleXYZScatterPlot<?>> {
     axis.setAutoRangeStickyZero(false);
     axis.setAutoRangeIncludesZero(false);
     chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
-
     axis.setVisible(!hideAxes);
     chart.setLegendVisible(!hideAxes);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+
+    chart.getXYPlot().setAxisOffset(RectangleInsets.ZERO_INSETS);
+    chart.setShowCrosshair(false);
 
     return chart;
   }

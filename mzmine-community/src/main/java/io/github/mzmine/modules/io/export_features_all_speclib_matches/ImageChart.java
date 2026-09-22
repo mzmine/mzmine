@@ -43,6 +43,7 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 
 /*
@@ -92,6 +93,8 @@ class ImageChart extends BufferedChartNode {
         : GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
 
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+    chart.getXYPlot().setAxisOffset(RectangleInsets.ZERO_INSETS);
+    chart.setShowCrosshair(false);
 
     setChartCreateImage(chart, (int) width, GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
   }
