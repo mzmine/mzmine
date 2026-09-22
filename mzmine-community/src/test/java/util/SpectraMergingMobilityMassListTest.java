@@ -34,6 +34,9 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
@@ -44,6 +47,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +70,8 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void mergesMassListsOfAllFramesAndMobilities() {
-    final MergedMassSpectrum merged = merge(true, Range.all(), Range.all(), null);
+    final MergedMassSpectrum merged = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        null);
 
     Assertions.assertNotNull(merged);
     Assertions.assertEquals(2, merged.getNumberOfDataPoints());
@@ -80,12 +85,14 @@ public class SpectraMergingMobilityMassListTest {
   @Test
   void skipsMobilityScansWithoutFeatureIntensity() {
     // mobility 1 has no feature intensity in any frame, so restricting to it yields nothing
-    Assertions.assertNull(merge(true, Range.closed(0.5f, 1.5f), Range.all(), null));
+    Assertions.assertNull(
+        merge(true, SimpleRange.ofFloat(0.5f, 1.5f), SimpleFloatRange.all(), null));
   }
 
   @Test
   void restrictsToMobilityRange() {
-    final MergedMassSpectrum merged = merge(true, Range.closed(2.5f, 3.5f), Range.all(), null);
+    final MergedMassSpectrum merged = merge(true, SimpleRange.ofFloat(2.5f, 3.5f),
+        SimpleFloatRange.all(), null);
 
     Assertions.assertNotNull(merged);
     // 3 frames x 1 mobility scan
@@ -94,7 +101,8 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void restrictsToRtRange() {
-    final MergedMassSpectrum merged = merge(true, Range.all(), Range.singleton(2f), null);
+    final MergedMassSpectrum merged = merge(true, SimpleFloatRange.all(), SimpleRange.singleton(2f),
+        null);
 
     Assertions.assertNotNull(merged);
     // 1 frame x 2 mobility scans
@@ -103,8 +111,8 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void restrictsToMzWindow() {
-    final MergedMassSpectrum merged = merge(true, Range.all(), Range.all(),
-        Range.closed(50d, 150d));
+    final MergedMassSpectrum merged = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        SimpleRange.ofDouble(50d, 150d));
 
     Assertions.assertNotNull(merged);
     Assertions.assertEquals(1, merged.getNumberOfDataPoints());
@@ -114,11 +122,13 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void returnsNullWithoutMassLists() {
-    Assertions.assertNull(merge(false, Range.all(), Range.all(), null));
+    Assertions.assertThrows(MissingMassListException.class,
+        () -> merge(false, SimpleFloatRange.all(), SimpleFloatRange.all(), null));
   }
 
   private static MergedMassSpectrum merge(final boolean withMassLists,
-      final Range<Float> mobilityRange, final Range<Float> rtRange, final Range<Double> mzRange) {
+      final SimpleFloatRange mobilityRange, final SimpleFloatRange rtRange,
+      final SimpleDoubleRange mzRange) {
     return SpectraMerging.extractSummedMobilityScanFromMassLists(feature(withMassLists), TOL,
         mobilityRange, rtRange, mzRange, null);
   }
@@ -156,9 +166,10 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void mzRangeDoesNotChangeMergedValuesInsideIt() {
-    final MergedMassSpectrum full = merge(true, Range.all(), Range.all(), null);
-    final MergedMassSpectrum windowed = merge(true, Range.all(), Range.all(),
-        Range.closed(150d, 250d));
+    final MergedMassSpectrum full = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        null);
+    final MergedMassSpectrum windowed = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        SimpleRange.ofDouble(150d, 250d));
 
     Assertions.assertNotNull(full);
     Assertions.assertNotNull(windowed);
@@ -169,7 +180,8 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void sourceSpectraAreTheMobilityScans() {
-    final MergedMassSpectrum merged = merge(true, Range.all(), Range.all(), null);
+    final MergedMassSpectrum merged = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        null);
 
     Assertions.assertNotNull(merged);
     Assertions.assertEquals(6, merged.getSourceSpectra().size());
@@ -182,7 +194,8 @@ public class SpectraMergingMobilityMassListTest {
 
   @Test
   void framesAreAllIncludedByDefault() {
-    final MergedMassSpectrum merged = merge(true, Range.all(), Range.all(), null);
+    final MergedMassSpectrum merged = merge(true, SimpleFloatRange.all(), SimpleFloatRange.all(),
+        null);
 
     Assertions.assertNotNull(merged);
     Assertions.assertEquals(3,

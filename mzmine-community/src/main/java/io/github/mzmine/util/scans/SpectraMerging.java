@@ -42,6 +42,9 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -59,6 +62,7 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
@@ -131,7 +135,7 @@ public class SpectraMerging {
       @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
       @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks) {
     return calculatedMergedMzsAndIntensities(source, tolerance, intensityMergingType,
-        mzCenterFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks, null);
+        mzCenterFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks, (SimpleDoubleRange) null);
   }
 
   /**
@@ -148,6 +152,25 @@ public class SpectraMerging {
       @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
       @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks,
       @Nullable final Range<Double> mzRange) {
+    return calculatedMergedMzsAndIntensities(source, tolerance, intensityMergingType,
+        mzCenterFunction, inputNoiseLevel, outputNoiseLevel, minNumPeaks,
+        SimpleRange.ofDouble(mzRange));
+  }
+
+  /**
+   * @param mzRange only data points inside this range are merged, null merges the full spectra.
+   *                Restricting it is a pure optimization for callers that read only a window of the
+   *                merged spectrum: the merged values inside the range are unaffected, because
+   *                merging never combines data points further apart than {@code tolerance}.
+   * @see #calculatedMergedMzsAndIntensities(Collection, MZTolerance, IntensityMergingType,
+   * CenterFunction, Double, Double, Integer)
+   */
+  public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
+      @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
+      @NotNull final SpectraMerging.IntensityMergingType intensityMergingType,
+      @NotNull final CenterFunction mzCenterFunction, @Nullable final Double inputNoiseLevel,
+      @Nullable final Double outputNoiseLevel, @Nullable final Integer minNumPeaks,
+      @Nullable final SimpleDoubleRange mzRange) {
 
     if (source.isEmpty()) {
       return new double[][]{new double[0], new double[0]};
@@ -427,10 +450,11 @@ public class SpectraMerging {
   }
 
   /**
-   * Like {@link #extractSummedMobilityScan(ModularFeature, MZTolerance, Range, Range,
+   * Like
+   * {@link #extractSummedMobilityScan(ModularFeature, MZTolerance, Range, Range,
    * MemoryMapStorage)}, but merges the {@link MassList}s of the feature's mobility scans instead of
-   * their raw data, so the merged spectrum carries the same signals a mass-list based module sees in
-   * the individual scans. Mobility scans without intensity in this feature are skipped, so a
+   * their raw data, so the merged spectrum carries the same signals a mass-list based module sees
+   * in the individual scans. Mobility scans without intensity in this feature are skipped, so a
    * {@link Range#all()} mobility range means "everything this feature covers" rather than the whole
    * frame.
    * <p>
@@ -447,8 +471,8 @@ public class SpectraMerging {
    */
   @Nullable
   public static MergedMassSpectrum extractSummedMobilityScanFromMassLists(@NotNull final Feature f,
-      @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
-      @NotNull final Range<Float> rtRange, @Nullable final Range<Double> mzRange,
+      @NotNull final MZTolerance tolerance, @NotNull final SimpleFloatRange mobilityRange,
+      @NotNull final SimpleFloatRange rtRange, @Nullable final SimpleDoubleRange mzRange,
       @Nullable final MemoryMapStorage storage) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
@@ -467,10 +491,11 @@ public class SpectraMerging {
           continue;
         }
         final MassList massList = scan.getMassList();
-        if (massList != null) {
-          scans.add(scan);
-          massLists.add(massList);
+        if (massList == null) {
+          throw new MissingMassListException("Missing mass list on mobility scans", scan);
         }
+        scans.add(scan);
+        massLists.add(massList);
       }
     }
     if (massLists.isEmpty()) {

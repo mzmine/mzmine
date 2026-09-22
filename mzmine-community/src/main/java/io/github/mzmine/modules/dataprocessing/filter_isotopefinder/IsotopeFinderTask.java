@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import com.google.common.collect.Range;
+import static io.github.mzmine.modules.tools.qualityparameters.QualityParameters.calculateFWHMRange;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -35,6 +37,9 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
@@ -53,7 +58,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -94,7 +98,7 @@ class IsotopeFinderTask extends AbstractTask {
    * finding plausible isotope spacings, so this must comfortably exceed the widest pattern to be
    * found.
    */
-  private static final double IMS_MERGE_MZ_WINDOW_DA = 50d;
+  private static final double IMS_MERGE_MZ_WINDOW_DA = 40d;
 
   private final ModularFeatureList featureList;
 
@@ -319,8 +323,8 @@ class IsotopeFinderTask extends AbstractTask {
 
   /**
    * @return the data access, positioned on the feature's representative (apex) scan. For IMS this
-   * is the apex frame, which is NOT mobility resolved - only used when no mobility merged spectrum
-   * can be built.
+   * is the apex frame, which is NOT mobility resolved, so we will use the FWHM mobility range of
+   * the frame.
    */
   @NotNull
   private Scan positionScanAccess(@NotNull ScanDataAccess scans, @NotNull Feature feature) {
@@ -351,29 +355,31 @@ class IsotopeFinderTask extends AbstractTask {
     // no FWHM (e.g. a mobilogram of one or two points) -> merge everything the feature covers.
     // extractSummedMobilityScanFromMassLists skips mobility scans without feature intensity, so the
     // full range still only contains scans this feature is actually present in.
-    final Range<Float> mobilityRange = Objects.requireNonNullElse(
-        IonMobilityUtils.getMobilityFWHM(series.getSummedMobilogram()), Range.all());
+    final SimpleFloatRange mobilityRange = requireNonNullElse(
+        calculateFWHMRange(series.getSummedMobilogram()), SimpleFloatRange.ALL);
 
-    final Range<Float> rtRange = switch (IMS_MERGE_SCOPE) {
+    final SimpleFloatRange rtRange = switch (IMS_MERGE_SCOPE) {
       case APEX_FRAME -> {
         final Scan apex = feature.getRepresentativeScan();
         // a closed range on the exact apex RT, so only that frame's mobility scans pass
-        yield apex == null ? Range.all() : Range.singleton(apex.getRetentionTime());
+        yield apex == null ? SimpleFloatRange.all()
+            : SimpleRange.singleton(apex.getRetentionTime());
       }
       case RT_FWHM -> {
         final Float rt = feature.getRT();
         final Float fwhm = feature.getFWHM();
-        yield rt == null || fwhm == null ? Range.all()
-            : Range.closed(rt - fwhm / 2f, rt + fwhm / 2f);
+        yield rt == null || fwhm == null ? SimpleFloatRange.all()
+            : SimpleRange.ofFloat(rt - fwhm / 2f, rt + fwhm / 2f);
       }
     };
 
     // the engine only reads around the feature m/z, and merging is by far the most expensive step
     // per feature, so hand it only that window
-    final Range<Double> mzRange = Range.closed(mz - IMS_MERGE_MZ_WINDOW_DA,
+    final SimpleDoubleRange mzRange = SimpleRange.ofDouble(mz - IMS_MERGE_MZ_WINDOW_DA,
         mz + IMS_MERGE_MZ_WINDOW_DA);
 
     // no memory map storage: the merged spectrum is per feature scratch data, not kept anywhere
+    // TODO need to check if we can decide for a better tolerance from the applied methods
     return SpectraMerging.extractSummedMobilityScanFromMassLists(feature,
         SpectraMerging.defaultMs1MergeTol, mobilityRange, rtRange, mzRange, null);
   }
