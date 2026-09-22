@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
 
 
+import io.github.mzmine.datamodel.identities.fx.GlobalIonLibrariesTab;
 import io.github.mzmine.datamodel.identities.iontype.IonLibraries;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_compoundgrouper.CompoundGrouperModule;
@@ -44,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonNetworkingParameters extends SimpleParameterSet {
 
@@ -187,5 +189,16 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   @Override
   public int getVersion() {
     return 2;
+  }
+
+  @Override
+  public @Nullable String getVersionMessage(int version) {
+    return switch (version) {
+      case 2 -> """
+          Harmonized the selection to ion libraries that may be defined in the %s tab. \
+          Old ions selection were converted to a library but it is recommended to update \
+          the parameters to select a new ion library.""".formatted(GlobalIonLibrariesTab.HEADER);
+      default -> null;
+    };
   }
 }
