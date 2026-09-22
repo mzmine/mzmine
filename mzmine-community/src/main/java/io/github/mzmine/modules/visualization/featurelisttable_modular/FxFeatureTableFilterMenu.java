@@ -30,11 +30,13 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoG
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxPopOvers;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -65,6 +67,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import javafx.util.Subscription;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.validation.ValidationSupport;
@@ -81,6 +84,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   private final FxFeatureTableController parentController;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;
+  private @Nullable Subscription tagPreferencesSubscription;
 
   public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel,
       @NotNull FxFeatureTableController parentController) {
@@ -131,7 +135,24 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   }
 
   private FlowPane createFilters() {
-    RowTypeFilterComponent rowTypeFilter = new RowTypeFilterParameter().createEditingComponent();
+    final RowTypeFilterComponent rowTypeFilter = new RowTypeFilterParameter().createEditingComponent(
+        true, FeatureListPreferences.DEFAULT_TAG_LABELS.size());
+    parentModel.featureListProperty().subscribe(featureList -> {
+      if (tagPreferencesSubscription != null) {
+        tagPreferencesSubscription.unsubscribe();
+        tagPreferencesSubscription = null;
+      }
+      if (featureList == null) {
+        rowTypeFilter.setTagCount(FeatureListPreferences.DEFAULT_TAG_LABELS.size());
+        return;
+      }
+      tagPreferencesSubscription = featureList.preferencesProperty()
+          .subscribe(preferences -> FxThread.runLater(() -> {
+            if (parentModel.getFeatureList() == featureList) {
+              rowTypeFilter.setTagCount(preferences.getTagLabels().size());
+            }
+          }));
+    });
     model.specialRowTypeFilterProperty().bindBidirectional(rowTypeFilter.valueProperty());
 
     final TextField idField = newAutoGrowTextField(model.idFilterProperty(), "1,5-6",

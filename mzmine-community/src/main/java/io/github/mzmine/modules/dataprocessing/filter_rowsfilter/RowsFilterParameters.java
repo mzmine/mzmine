@@ -304,7 +304,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-
   /**
    * A default parameter set with all options off
    */

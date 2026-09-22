@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -39,6 +40,17 @@
     -fx-background-radius: 0;
     -fx-text-fill: -fx-text-base-color;
     -fx-background-insets: 2px;
+}
+
+/* Per-tag colors are supplied as looked-up colors on each checkbox. */
+.tag-check-box > .box,
+.tag-check-box:selected > .box {
+    -fx-background-color: -tag-color;
+    -fx-border-color: -tag-color;
+}
+
+.tag-check-box:selected > .box > .mark {
+    -fx-background-color: -tag-mark-color;
 }
 
 .error-label {
