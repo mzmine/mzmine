@@ -62,6 +62,7 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
@@ -188,10 +189,17 @@ public class SpectraMerging {
       spectrum.getMzValues(rawMzs);
       spectrum.getIntensityValues(rawIntensities);
 
-      for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
-        if (mzRange != null && !mzRange.contains(rawMzs[i])) {
-          continue;
-        }
+      final int start, endExclusive;
+      if (mzRange != null) {
+        start = spectrum.binarySearch(mzRange.lower(), DefaultTo.GREATER_EQUALS);
+        endExclusive = 1 + spectrum.binarySearch(mzRange.upper(), DefaultTo.LESS_EQUALS, start,
+            spectrum.getNumberOfDataPoints());
+      } else {
+        start = 0;
+        endExclusive = spectrum.getNumberOfDataPoints();
+      }
+
+      for (int i = start; i < endExclusive; i++) {
         if (inputNoiseLevel == null || rawIntensities[i] > inputNoiseLevel) {
           final IndexedDataPoint dp = new IndexedDataPoint(rawMzs[i], rawIntensities[i], index);
           dataPoints.add(dp);
