@@ -57,6 +57,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -87,7 +88,7 @@ public class MirrorChartFactory {
    * direct match (within tolerance) or modified (outside tolerance, aligned via the precursor
    * shift). Independent of the matcher's tolerance — visualization-only.
    */
-  private static final MZTolerance ML_VIZ_TOLERANCE = new MZTolerance(0.01, 15);
+  private static final MZTolerance ML_VIZ_TOLERANCE = new MZTolerance(0.9, 0);
   private static final Logger logger = Logger.getLogger(MirrorChartFactory.class.getName());
 
   /**
@@ -163,10 +164,10 @@ public class MirrorChartFactory {
       // 4 tiers: ORIGINAL (filtered out), FILTERED (unaligned), ALIGNED (direct), ALIGNED_MODIFIED
       final SignalAlignmentAnnotation[] anns = SignalAlignmentAnnotation.classify(alignedPairs,
           ML_VIZ_TOLERANCE);
-      final List<DataPoint> qDirect = new java.util.ArrayList<>();
-      final List<DataPoint> qModified = new java.util.ArrayList<>();
-      final List<DataPoint> lDirect = new java.util.ArrayList<>();
-      final List<DataPoint> lModified = new java.util.ArrayList<>();
+      final List<DataPoint> qDirect = new ArrayList<>();
+      final List<DataPoint> qModified = new ArrayList<>();
+      final List<DataPoint> lDirect = new ArrayList<>();
+      final List<DataPoint> lModified = new ArrayList<>();
       for (int p = 0; p < anns.length; p++) {
         switch (anns[p]) {
           case MATCH -> {
