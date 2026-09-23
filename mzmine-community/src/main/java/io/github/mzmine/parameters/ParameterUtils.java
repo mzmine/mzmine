@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -632,8 +633,11 @@ public class ParameterUtils {
       final Document document = XMLUtils.newDocument();
       final Element element = document.createElement("parameterset");
       document.appendChild(element);
+      // without the version, loading assumes version 1 and reports all version changes since
+      // this was the case in the ModulePresets
+      element.setAttribute(BatchQueue.MODULE_VERSION_ATTR,
+          String.valueOf(parameterSet.getVersion()));
 
-      // Serialize batch queue.
       parameterSet.saveValuesToXML(element);
       return XMLUtils.saveToString(document);
     } catch (Exception exception) {
