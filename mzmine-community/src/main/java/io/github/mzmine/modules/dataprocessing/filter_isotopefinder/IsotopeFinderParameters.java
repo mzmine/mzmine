@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.Parameter;
@@ -147,11 +149,10 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     // which is that algorithm with defaults plus exactly these two values.
     final ParameterSet automatic = getParameter(mode).setOptionGetParameters(
         IsotopeFinderModeOptions.AUTOMATIC);
-    if (tolerance != null) {
-      automatic.setParameter(AutomaticIsotopeFinderParameters.isotopeMzTolerance, tolerance);
-    }
-    if (legacyCharge != null) {
-      automatic.setParameter(AutomaticIsotopeFinderParameters.maxCharge, legacyCharge);
-    }
+
+    AutomaticIsotopeFinderParameters.setAll(automatic,
+        CarbonModelAlgorithmParameters.DEFAULT_REQUIRE_C13,
+        requireNonNullElse(tolerance, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA),
+        requireNonNullElse(legacyCharge, 3));
   }
 }
