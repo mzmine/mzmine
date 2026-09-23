@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
+import io.github.mzmine.javafx.validation.DecorationTargetProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -40,7 +42,8 @@ import org.jetbrains.annotations.NotNull;
  * Combo is on the top and center is free for additional controls
  */
 public class WizardMassDetectorComponent extends
-    CustomComboComponent<MassDetectorWizardOptions, WizardMassDetectorNoiseLevels> {
+    CustomComboComponent<MassDetectorWizardOptions, WizardMassDetectorNoiseLevels> implements
+    DecorationTargetProvider {
 
   private final NumberFormat factorFormat = new DecimalFormat("0.00");
 
@@ -122,6 +125,14 @@ public class WizardMassDetectorComponent extends
   public void setToolTipText(String toolTip) {
     txtMsn.setTooltip(new Tooltip(toolTip));
     txtMs1.setTooltip(new Tooltip(toolTip));
+  }
+
+  /**
+   * The grid of noise levels grows with the window, decorate the first input instead.
+   */
+  @Override
+  public @NotNull Node getDecorationTarget() {
+    return txtMs1;
   }
 
 }

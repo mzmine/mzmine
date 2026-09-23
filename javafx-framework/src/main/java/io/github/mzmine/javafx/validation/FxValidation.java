@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,14 @@ import static java.util.Objects.requireNonNullElse;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.TextInputControl;
+import javafx.util.Subscription;
+import org.controlsfx.control.decoration.Decoration;
+import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.CompoundValidationDecoration;
@@ -41,13 +47,58 @@ import org.jetbrains.annotations.NotNull;
 
 public class FxValidation {
 
+  private static final IconValidationDecoration ICON_DECORATOR = new IconValidationDecoration();
   private static final ValidationDecoration DEFAULT_DECORATOR = new CompoundValidationDecoration(
-      new StyleClassValidationDecoration(), new IconValidationDecoration());
+      new StyleClassValidationDecoration(), ICON_DECORATOR);
 
   public static ValidationSupport newValidationSupport() {
     final ValidationSupport support = new ValidationSupport();
     support.setValidationDecorator(DEFAULT_DECORATOR);
     return support;
+  }
+
+  /**
+   * Adds a message icon with tooltip to any node. {@link ValidationSupport} only works on
+   * {@link Control}s with a value extractor. Use
+   * {@link DecorationTargetProvider#findDecorationTarget(Node)} to find a suitable target within a
+   * composite component.
+   * <p>
+   * The decoration is intentionally not flagged as a validation decoration so that
+   * {@link ValidationSupport#redecorate()} on the same node does not remove it.
+   * <p>
+   * May be called before the target is shown, the decoration is then added once the target is part
+   * of a scene.
+   *
+   * @param target a {@link Parent}, usually a {@link Control}
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription addMessageDecoration(@NotNull Node target,
+      @NotNull Severity severity, @NotNull String message, @NotNull Pos pos) {
+    final Decoration decoration = new TooltipFixGraphicDecoration(
+        ICON_DECORATOR.createDecorationNode(severity, message), pos);
+    return SceneAwareDecoration.add(target, decoration);
+  }
+
+  /**
+   * Marks a node with a checkmark, e.g., to show that its value was changed automatically.
+   *
+   * @param target  a {@link Parent}, usually a {@link Control}
+   * @param message tooltip message
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription markChanged(@NotNull Node target, @NotNull String message) {
+    return addMessageDecoration(target, Severity.OK, message, Pos.TOP_RIGHT);
+  }
+
+  /**
+   * Marks a node with an error icon, e.g., to show that its value is invalid.
+   *
+   * @param target  a {@link Parent}, usually a {@link Control}
+   * @param message tooltip message
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription markError(@NotNull Node target, @NotNull String message) {
+    return addMessageDecoration(target, Severity.ERROR, message, Pos.TOP_RIGHT);
   }
 
   public static void registerErrorValidator(@NotNull Control field,

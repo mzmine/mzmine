@@ -109,6 +109,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
   // parameter change delay
   private final PauseTransition parameterChangeDelay = new PauseTransition(Duration.millis(75));
+  // marks invalid component values, only used if valueCheckRequired
+  private final ParameterComponentValidator componentValidator = new ParameterComponentValidator();
 
   /**
    * Help window for this setup dialog. Initially null, until the user clicks the Help button.
@@ -181,7 +183,11 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
 //    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
     // use Platform.runLater directly and not FxThread. Platform does extra checks
-    parameterChangeDelay.setOnFinished(_ -> Platform.runLater(this::parametersChanged));
+    parameterChangeDelay.setOnFinished(_ -> Platform.runLater(() -> {
+      // validate here and not in parametersChanged, which is overridden without calling super
+      validateComponentValues();
+      parametersChanged();
+    }));
 
     // Main panel which holds all the components in a grid
     mainPane = this;
@@ -391,15 +397,43 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
 
       // add to map to reflect changes
       parametersAndComponents.put(p.getName(), comp.component());
+      componentValidator.register(comp);
     }
 
+    // show invalid initial values
+    validateComponentValues();
     return paramsPane;
+  }
+
+  /**
+   * Checks the values of all components with {@link Parameter#checkValue} and marks invalid ones
+   * with an error icon. Called automatically on changes. Only if {@link #isValueCheckRequired()}.
+   * The actual parameters are not changed.
+   */
+  public void validateComponentValues() {
+    // decision: panes without required value check (e.g., batch mode) may contain intentionally
+    // incomplete values
+    if (valueCheckRequired) {
+      componentValidator.validate();
+    }
   }
 
   @SuppressWarnings("unchecked")
   public <ComponentType extends Node> ComponentType getComponentForParameter(
       UserParameter<?, ComponentType> p) {
     return (ComponentType) parametersAndComponents.get(p.getName());
+  }
+
+  /**
+   * @param p parameter, resolved by name
+   * @return the node to attach decorations to, e.g., validation icons, or null if the parameter has
+   * no component in this pane
+   * @see UserParameter#getDecorationTarget(Node)
+   */
+  public <ComponentType extends Node> @Nullable Node getDecorationTarget(
+      @NotNull UserParameter<?, ComponentType> p) {
+    final ComponentType component = getComponentForParameter(p);
+    return component == null ? null : p.getDecorationTarget(component);
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
