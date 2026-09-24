@@ -29,6 +29,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -59,7 +60,19 @@ public class IconValidationDecoration extends GraphicValidationDecoration {
    * bound to a {@link Control} target. Enables decorating any node, e.g., layout panes.
    */
   public @NotNull Node createDecorationNode(@NotNull Severity severity, @NotNull String text) {
-    FontIcon graphic = getGraphicBySeverity(severity);
+    return createDecorationNode(severity, text, null);
+  }
+
+  /**
+   * Creates the icon node with tooltip without requiring a {@link ValidationMessage}, which is
+   * bound to a {@link Control} target. Enables decorating any node, e.g., layout panes.
+   *
+   * @param color icon color, e.g., the positive or negative color of a color palette. null for the
+   *              default color of the severity
+   */
+  public @NotNull Node createDecorationNode(@NotNull Severity severity, @NotNull String text,
+      @Nullable Color color) {
+    FontIcon graphic = getGraphicBySeverity(severity, color);
     Label label = new Label();
     label.setPadding(new Insets(6, 6, 0, 0));
     label.setGraphic(graphic);
@@ -69,13 +82,34 @@ public class IconValidationDecoration extends GraphicValidationDecoration {
   }
 
   protected FontIcon getGraphicBySeverity(Severity severity) {
-    int size = 12;
+    return getGraphicBySeverity(severity, null);
+  }
+
+  /**
+   * @param color icon color or null for the default color of the severity
+   */
+  protected @NotNull FontIcon getGraphicBySeverity(@NotNull Severity severity,
+      @Nullable Color color) {
+    return FxIconUtil.getFontIcon(getIconBySeverity(severity), 12,
+        Objects.requireNonNullElse(color, getDefaultColor(severity)));
+  }
+
+  protected @NotNull FxIcons getIconBySeverity(@NotNull Severity severity) {
     return switch (severity) {
-      case ERROR -> FxIconUtil.getFontIcon(FxIcons.X_CIRCLE_FILL, size, Color.RED);
-      case WARNING -> FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_CIRCLE_FILL, size, Color.GOLD);
-      case INFO -> FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE_FILL, size, Color.LIGHTSTEELBLUE);
+      case ERROR -> FxIcons.X_CIRCLE_FILL;
+      case WARNING -> FxIcons.EXCLAMATION_CIRCLE_FILL;
+      case INFO -> FxIcons.INFO_CIRCLE_FILL;
+      case OK -> FxIcons.CHECK_CIRCLE_FILL;
+    };
+  }
+
+  protected @NotNull Color getDefaultColor(@NotNull Severity severity) {
+    return switch (severity) {
+      case ERROR -> Color.RED;
+      case WARNING -> Color.GOLD;
+      case INFO -> Color.LIGHTSTEELBLUE;
       // decision: fixed color as there is no color palette access in the javafx-framework
-      case OK -> FxIconUtil.getFontIcon(FxIcons.CHECK_CIRCLE_FILL, size, Color.MEDIUMSEAGREEN);
+      case OK -> Color.MEDIUMSEAGREEN;
     };
   }
 

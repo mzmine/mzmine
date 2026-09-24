@@ -35,6 +35,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.paint.Color;
 import javafx.util.Subscription;
 import org.controlsfx.control.decoration.Decoration;
 import org.controlsfx.validation.Severity;
@@ -44,6 +45,7 @@ import org.controlsfx.validation.decoration.CompoundValidationDecoration;
 import org.controlsfx.validation.decoration.StyleClassValidationDecoration;
 import org.controlsfx.validation.decoration.ValidationDecoration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FxValidation {
 
@@ -74,8 +76,22 @@ public class FxValidation {
    */
   public static @NotNull Subscription addMessageDecoration(@NotNull Node target,
       @NotNull Severity severity, @NotNull String message, @NotNull Pos pos) {
+    return addMessageDecoration(target, severity, message, pos, null);
+  }
+
+  /**
+   * Same as {@link #addMessageDecoration(Node, Severity, String, Pos)} with a custom icon color.
+   *
+   * @param target a {@link Parent}, usually a {@link Control}
+   * @param color  icon color, e.g., the positive or negative color of a color palette. null for the
+   *               default color of the severity
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription addMessageDecoration(@NotNull Node target,
+      @NotNull Severity severity, @NotNull String message, @NotNull Pos pos,
+      @Nullable Color color) {
     final Decoration decoration = new TooltipFixGraphicDecoration(
-        ICON_DECORATOR.createDecorationNode(severity, message), pos);
+        ICON_DECORATOR.createDecorationNode(severity, message, color), pos);
     return SceneAwareDecoration.add(target, decoration);
   }
 
@@ -87,7 +103,20 @@ public class FxValidation {
    * @return subscription to remove the decoration
    */
   public static @NotNull Subscription markChanged(@NotNull Node target, @NotNull String message) {
-    return addMessageDecoration(target, Severity.OK, message, Pos.TOP_RIGHT);
+    return markChanged(target, message, null);
+  }
+
+  /**
+   * Marks a node with a checkmark, e.g., to show that its value was changed automatically.
+   *
+   * @param target  a {@link Parent}, usually a {@link Control}
+   * @param message tooltip message
+   * @param color   icon color, e.g., the positive color of a color palette. null for the default
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription markChanged(@NotNull Node target, @NotNull String message,
+      @Nullable Color color) {
+    return addMessageDecoration(target, Severity.OK, message, Pos.TOP_RIGHT, color);
   }
 
   /**
@@ -98,7 +127,20 @@ public class FxValidation {
    * @return subscription to remove the decoration
    */
   public static @NotNull Subscription markError(@NotNull Node target, @NotNull String message) {
-    return addMessageDecoration(target, Severity.ERROR, message, Pos.TOP_RIGHT);
+    return markError(target, message, null);
+  }
+
+  /**
+   * Marks a node with an error icon, e.g., to show that its value is invalid.
+   *
+   * @param target  a {@link Parent}, usually a {@link Control}
+   * @param message tooltip message
+   * @param color   icon color, e.g., the negative color of a color palette. null for the default
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription markError(@NotNull Node target, @NotNull String message,
+      @Nullable Color color) {
+    return addMessageDecoration(target, Severity.ERROR, message, Pos.TOP_RIGHT, color);
   }
 
   public static void registerErrorValidator(@NotNull Control field,

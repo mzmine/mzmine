@@ -26,6 +26,7 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.javafx.validation.FxValidation;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
@@ -141,7 +142,7 @@ class ParameterComponentValidator {
       return;
     }
     final Node target = getDecorationTarget(comp);
-    errorDecorations.put(name,
-        new ComponentDecoration(FxValidation.markError(target, error), error));
+    errorDecorations.put(name, new ComponentDecoration(FxValidation.markError(target, error,
+        ConfigService.getDefaultColorPalette().getNegativeColor()), error));
   }
 }
