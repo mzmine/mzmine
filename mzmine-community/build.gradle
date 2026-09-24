@@ -226,7 +226,6 @@ dependencies {
 
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'net.sourceforge.jmol:jmol:14.31.10'
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
