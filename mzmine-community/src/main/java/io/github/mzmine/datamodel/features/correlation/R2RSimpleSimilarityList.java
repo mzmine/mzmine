@@ -107,4 +107,12 @@ public final class R2RSimpleSimilarityList extends AbstractRowsRelationship {
   public @NotNull String getAnnotation() {
     return "sim=" + getScoreFormatted();
   }
+
+  @Override
+  public @NotNull R2RSimpleSimilarityList withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    final R2RSimpleSimilarityList copy = new R2RSimpleSimilarityList(a, b, type);
+    copy.similarities.addAll(similarities);
+    return copy;
+  }
 }

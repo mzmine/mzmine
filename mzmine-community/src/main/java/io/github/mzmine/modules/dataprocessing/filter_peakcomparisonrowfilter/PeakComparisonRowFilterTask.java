@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,15 +30,18 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -136,22 +139,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    */
   private FeatureList filterPeakListRows(final FeatureList peakList) {
 
-    // Create new feature list.
-    final ModularFeatureList newPeakList = new ModularFeatureList(
-        peakList.getName() + ' '
-            + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
-        getMemoryMapStorage(), peakList.getRawDataFiles());
-
-    // Copy previous applied methods.
-    for (final FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
-
-      newPeakList.addDescriptionOfAppliedTask(method);
-    }
-
-    // Add task description to peakList.
-    newPeakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(),
-            PeakComparisonRowFilterModule.class, parameters, getModuleCallDate()));
+    // collect the rows that pass, the filtered feature list is created from them below
+    final List<FeatureListRow> rowsToKeep = new ArrayList<>();
 
     // Get parameters.
     final boolean evalutateFoldChange =
@@ -257,10 +246,20 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
       }
 
       // Good row?
-      if (allCriteriaMatched)
-        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row.getID(), row, true));
+      if (allCriteriaMatched) {
+        rowsToKeep.add(row);
+      }
 
     }
+
+    // also transfers the metadata, the relationship maps and the ion identity networks
+    final ModularFeatureList newPeakList = FeatureListUtils.createCopyWithRows(peakList, null,
+        parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
+        getMemoryMapStorage(), rowsToKeep, false);
+
+    // Add task description to peakList.
+    newPeakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(getTaskDescription(),
+        PeakComparisonRowFilterModule.class, parameters, getModuleCallDate()));
 
     return newPeakList;
   }

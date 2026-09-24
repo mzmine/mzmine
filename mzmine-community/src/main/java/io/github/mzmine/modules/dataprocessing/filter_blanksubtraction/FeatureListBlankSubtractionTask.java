@@ -49,7 +49,9 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -165,6 +167,11 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     final List<FeatureListRow> notBackgroundAlignedFeaturesListRows = new ArrayList<>();
     final List<FeatureListRow> backgroundAlignedFeaturesListRows = new ArrayList<>();
+    // each original row maps to its row in the result lists, needed to transfer the relationship
+    // maps and the ion identity networks, which reference rows directly. A row may end up in only
+    // one of the two lists, or in neither.
+    final Map<FeatureListRow, FeatureListRow> notBackgroundRowMapping = new IdentityHashMap<>();
+    final Map<FeatureListRow, FeatureListRow> backgroundRowMapping = new IdentityHashMap<>();
     for (FeatureListRow originalRow : originalFeatureList.getRows()) {
 
       final List<Feature> notBackgroundFeaturesOfCurrentRow = getRowFeatures(originalRow,
@@ -238,6 +245,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
         }
         notBackgroundAlignedFeaturesListRows.add(featureListRow);
+        notBackgroundRowMapping.put(originalRow, featureListRow);
       }
 
       //
@@ -261,6 +269,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
 
         backgroundAlignedFeaturesListRows.add(featureListRow);
+        backgroundRowMapping.put(originalRow, featureListRow);
       }
 
       processedRows.getAndIncrement();
@@ -270,6 +279,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     // create the filtered list so that the next step can use it
     notBackgroundAlignedFeaturesListRows.sort(FeatureListRowSorter.DEFAULT_RT);
     notBackgroundAlignedFeaturesListRows.forEach(notBackgroundAlignedFeaturesList::addRow);
+    FeatureListUtils.transferRowRelationsAndIIN(originalFeatureList,
+        notBackgroundAlignedFeaturesList, notBackgroundRowMapping);
 
     final SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
         FeatureListBlankSubtractionModule.class, parameters, getModuleCallDate());
@@ -283,6 +294,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     if (this.createDeletedFeatureList) {
       backgroundAlignedFeaturesListRows.sort(FeatureListRowSorter.DEFAULT_RT);
       backgroundAlignedFeaturesListRows.forEach(backgroundAlignedFeaturesList::addRow);
+      FeatureListUtils.transferRowRelationsAndIIN(originalFeatureList,
+          backgroundAlignedFeaturesList, backgroundRowMapping);
 
       backgroundAlignedFeaturesList.getAppliedMethods().add(appliedMethod);
       project.addFeatureList(backgroundAlignedFeaturesList);
