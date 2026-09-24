@@ -78,9 +78,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -151,8 +148,7 @@ public class ModularFeatureList implements FeatureList {
    * User defined preferences, never null, defaults to
    * {@link FeatureListPreferences#createDefault()}
    */
-  private final @NotNull ObjectProperty<@NotNull FeatureListPreferences> preferences = new SimpleObjectProperty<>(
-      FeatureListPreferences.createDefault());
+  private volatile @NotNull FeatureListPreferences preferences = FeatureListPreferences.createDefault();
 
   private final AtomicLong structuralVersion = new AtomicLong(0);
   @Nullable
@@ -1096,16 +1092,12 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public @NotNull FeatureListPreferences getPreferences() {
-    return preferences.get();
+    return preferences;
   }
 
   @Override
   public void setPreferences(@NotNull final FeatureListPreferences preferences) {
-    this.preferences.set(preferences);
-  }
-
-  public @NotNull ReadOnlyObjectProperty<FeatureListPreferences> preferencesProperty() {
-    return preferences;
+    this.preferences = preferences;
   }
 
   @Override

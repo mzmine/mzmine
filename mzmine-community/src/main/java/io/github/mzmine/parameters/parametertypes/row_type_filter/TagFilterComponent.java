@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.fx.TagCheckBoxFactory;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public final class TagFilterComponent extends GridPane implements ValuePropertyC
 
   private final @NotNull ObjectProperty<BitSet> value = new SimpleObjectProperty<>(new BitSet());
   private final @NotNull List<CheckBox> checkBoxes = new ArrayList<>();
+  private @NotNull List<String> tagLabels = FeatureListPreferences.DEFAULT_TAG_LABELS;
   private boolean synchronizing;
 
   public TagFilterComponent(final int tagCount) {
@@ -75,15 +77,31 @@ public final class TagFilterComponent extends GridPane implements ValuePropertyC
 
     for (int index = 0; index < checkBoxes.size(); index++) {
       final CheckBox checkBox = checkBoxes.get(index);
-      TagCheckBoxFactory.setLabel(checkBox, "Tag index " + index);
       GridPane.setColumnIndex(checkBox, index % GRID_WIDTH);
       GridPane.setRowIndex(checkBox, index / GRID_WIDTH);
     }
     getChildren().setAll(checkBoxes);
+    updateLabels();
 
     final BitSet trimmed = getValue();
     trimmed.clear(tagCount, Math.max(tagCount, trimmed.length()));
     setValue(trimmed);
+  }
+
+  public void setTagLabels(@NotNull final List<String> labels) {
+    tagLabels = List.copyOf(labels);
+    if (checkBoxes.size() == tagLabels.size()) {
+      updateLabels();
+    } else {
+      setTagCount(tagLabels.size());
+    }
+  }
+
+  private void updateLabels() {
+    for (int index = 0; index < checkBoxes.size(); index++) {
+      final String label = index < tagLabels.size() ? tagLabels.get(index) : "Tag index " + index;
+      TagCheckBoxFactory.setLabel(checkBoxes.get(index), label);
+    }
   }
 
   public void ensureTagCount(final int tagCount) {

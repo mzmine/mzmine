@@ -26,11 +26,8 @@
 package datamodel;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.TagDataType;
 import java.util.BitSet;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -60,21 +57,5 @@ class TagDataTypeTest {
     tags.set(5);
 
     Assertions.assertEquals("1, 6", new TagDataType().getFormattedExportString(tags));
-  }
-
-  @Test
-  void testPreferencesPropertyPublishesChangedTagCount() {
-    final ModularFeatureList featureList = new ModularFeatureList("test", null);
-    final FeatureListPreferences current = featureList.getPreferences();
-    final FeatureListPreferences updated = new FeatureListPreferences(
-        current.getRsdSampleTypeFilter(), current.getIonTypeRanking(),
-        List.of("0", "1", "2", "3", "4", "5", "6"));
-    final AtomicInteger observedTagCount = new AtomicInteger();
-    featureList.preferencesProperty()
-        .subscribe(preferences -> observedTagCount.set(preferences.getTagLabels().size()));
-
-    featureList.setPreferences(updated);
-
-    Assertions.assertEquals(7, observedTagCount.get());
   }
 }
