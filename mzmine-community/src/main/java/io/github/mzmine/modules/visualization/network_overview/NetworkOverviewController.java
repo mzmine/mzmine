@@ -108,6 +108,26 @@ public class NetworkOverviewController {
     this.focussedRows = FXCollections.observableArrayList();
   }
 
+  public @NotNull ObservableList<FeatureListRow> getFocussedRows() {
+    return focussedRows;
+  }
+
+  /**
+   * Sets up the overview using a pre-built {@link FeatureNetworkController} whose graph data was
+   * created on a task thread. All remaining setup still runs on the GUI thread.
+   */
+  public void setUpWithNetworkController(@NotNull FeatureNetworkController networkController,
+      @NotNull ModularFeatureList featureList, @Nullable FeatureTableFX externalTable,
+      @Nullable List<? extends FeatureListRow> focussedRows) throws IOException {
+    if (setUpCalled) {
+      throw new IllegalStateException(
+          "Cannot setup NetworkOverviewController twice. Create a new one.");
+    }
+    setUpCalled = true;
+    this.networkController = networkController;
+    doSetUp(featureList, externalTable, focussedRows);
+  }
+
   public void setUp(@NotNull ModularFeatureList featureList, @Nullable FeatureTableFX externalTable,
       @Nullable List<? extends FeatureListRow> focussedRows, final NetworkOverviewFlavor flavor)
       throws IOException {
@@ -116,9 +136,14 @@ public class NetworkOverviewController {
           "Cannot setup NetworkOverviewController twice. Create a new one.");
     }
     setUpCalled = true;
-
-    // create network
+    // create network (heavy – blocks GUI thread; prefer setUpWithNetworkController for async use)
     networkController = FeatureNetworkController.create(featureList, this.focussedRows, flavor);
+    doSetUp(featureList, externalTable, focussedRows);
+  }
+
+  private void doSetUp(@NotNull ModularFeatureList featureList,
+      @Nullable FeatureTableFX externalTable, @Nullable List<? extends FeatureListRow> focussedRows)
+      throws IOException {
     pnNetwork.setCenter(networkController.getMainPane());
 
     // create edge table
@@ -147,9 +172,6 @@ public class NetworkOverviewController {
 
     LipidAnnotationMatchTabOld lipidAnnotationMatchTabOld = new LipidAnnotationMatchTabOld(
         internalTable);
-
-    // set content to panes
-    // tabEdges.
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(gridAnnotations);
