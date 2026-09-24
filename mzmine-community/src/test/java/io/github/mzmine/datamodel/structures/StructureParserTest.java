@@ -339,4 +339,267 @@ class StructureParserTest {
         molInchi.inchiKey()));
   }
 
+  /// Mo(CO)5 bound to a bicyclic C7 hydrocarbon, as a V2000 connection table. decision: this block
+  /// starts directly at the counts line, the three molfile header lines (title, program, comment)
+  /// are missing. That is how several databases hand out molfiles, so it is the case worth
+  /// testing.
+  private static final String MOL_V2000 = """
+       18 20  0  0  0  0  0  0  0  0999 V2000
+         15.0000  -17.0000    0.0000 O   0  0  0     0  3  0  0  0  0
+         11.0000   -1.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+         36.0000   -1.0000    0.0000 O   0  0  0     0  3  0  0  0  0
+         21.0000    7.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+         40.0000   15.0000    0.0000 O   0  0  0     0  3  0  0  0  0
+         23.0000   15.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+         36.0000   32.0000    0.0000 O   0  0  0     0  3  0  0  0  0
+         21.0000   24.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+         23.0000   44.0000    0.0000 O   0  0  0     0  3  0  0  0  0
+         15.0000   29.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+          6.0000   15.0000    0.0000 Mo  0  0  0     0  7  0  0  0  0
+         -4.0000   -4.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+        -22.0000    8.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+         -9.0000   16.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+        -27.0000   28.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+          5.0000   33.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+        -12.0000   46.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+        -40.0000   24.0000    0.0000 C   0  0  0     0  0  0  0  0  0
+        1  2  3  0  0  0  0
+        2 11  1  0  0  0  0
+        3  4  3  0  0  0  0
+        4 11  1  0  0  0  0
+        5  6  3  0  0  0  0
+        6 11  1  0  0  0  0
+        7  8  3  0  0  0  0
+        8 11  1  0  0  0  0
+        9 10  3  0  0  0  0
+       10 11  1  0  0  0  0
+       11 12  1  0  0  0  0
+       11 13  1  0  0  0  0
+       12 14  1  0  0  0  0
+       12 13  1  0  0  0  0
+       13 15  1  0  0  0  0
+       14 16  1  0  0  0  0
+       14 18  1  0  0  0  0
+       15 17  1  0  0  0  0
+       15 18  1  0  0  0  0
+       16 17  1  0  0  0  0
+      M  END""";
+
+  /// the same molecule as {@link #MOL_V2000} written as a V3000 connection table, where the counts
+  /// line no longer carries the counts and the tables moved into the M V30 CTAB block. Also without
+  /// header lines.
+  private static final String MOL_V3000 = """
+        0  0  0     0  0            999 V3000
+      M  V30 BEGIN CTAB
+      M  V30 COUNTS 18 20 0 0 0
+      M  V30 BEGIN ATOM
+      M  V30 1 O 15 -17 0 0
+      M  V30 2 C 11 -1 0 0
+      M  V30 3 O 36 -1 0 0
+      M  V30 4 C 21 7 0 0
+      M  V30 5 O 40 15 0 0
+      M  V30 6 C 23 15 0 0
+      M  V30 7 O 36 32 0 0
+      M  V30 8 C 21 24 0 0
+      M  V30 9 O 23 44 0 0
+      M  V30 10 C 15 29 0 0
+      M  V30 11 Mo 6 15 0 0
+      M  V30 12 C -4 -4 0 0
+      M  V30 13 C -22 8 0 0
+      M  V30 14 C -9 16 0 0
+      M  V30 15 C -27 28 0 0
+      M  V30 16 C 5 33 0 0
+      M  V30 17 C -12 46 0 0
+      M  V30 18 C -40 24 0 0
+      M  V30 END ATOM
+      M  V30 BEGIN BOND
+      M  V30 1 3 1 2
+      M  V30 2 1 2 11
+      M  V30 3 3 3 4
+      M  V30 4 1 4 11
+      M  V30 5 3 5 6
+      M  V30 6 1 6 11
+      M  V30 7 3 7 8
+      M  V30 8 1 8 11
+      M  V30 9 3 9 10
+      M  V30 10 1 10 11
+      M  V30 11 1 11 12
+      M  V30 12 1 11 13
+      M  V30 13 1 12 14
+      M  V30 14 1 12 13
+      M  V30 15 1 13 15
+      M  V30 16 1 14 16
+      M  V30 17 1 14 18
+      M  V30 18 1 15 17
+      M  V30 19 1 15 18
+      M  V30 20 1 16 17
+      M  V30 END BOND
+      M  V30 END CTAB
+      M  END""";
+
+  private static final String MOL_HEADER_LINES = "some title\n  mzmine\ncomment line\n";
+
+  private static final String MOL_FORMULA = "C12H10[98]MoO5";
+  private static final String MOL_SMILES = "C1CC2CC1C3C2[Mo]3(C#O)(C#O)(C#O)(C#O)C#O";
+  private static final String MOL_INCHI_KEY = "PFCFPDWTNAFVLP-UHFFFAOYSA-N";
+
+  record MolFlavor(String name, String molBlock) {
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  /// all of these describe the same molecule. The format version comes from the counts line and
+  /// missing header lines are padded, so every flavor has to parse to the same structure.
+  final static List<MolFlavor> molFlavors = List.of( //
+      new MolFlavor("V2000 without header lines", MOL_V2000) //
+      , new MolFlavor("V2000 with header lines", MOL_HEADER_LINES + MOL_V2000) //
+      // a title line alone is what some exports write, the counts line then sits at index 1
+      , new MolFlavor("V2000 with title line only", "some title\n" + MOL_V2000) //
+      , new MolFlavor("V2000 with crlf line endings", MOL_V2000.replace("\n", "\r\n")) //
+      , new MolFlavor("V3000 without header lines", MOL_V3000) //
+      , new MolFlavor("V3000 with header lines", MOL_HEADER_LINES + MOL_V3000) //
+      , new MolFlavor("V3000 with crlf line endings", MOL_V3000.replace("\n", "\r\n")) //
+  );
+
+  @ParameterizedTest
+  @FieldSource(value = "molFlavors")
+  void parseMolFlavors(MolFlavor flavor) {
+    final MolecularStructure structure = StructureParser.silent().parseMol(flavor.molBlock());
+    Assertions.assertNotNull(structure, flavor.name());
+
+    // the full connection table was read, not just the part before a misaligned counts line
+    Assertions.assertEquals(18, structure.structure().getAtomCount(), flavor.name());
+    Assertions.assertEquals(20, structure.structure().getBondCount(), flavor.name());
+
+    Assertions.assertEquals(MOL_FORMULA, structure.formulaString(), flavor.name());
+    Assertions.assertEquals(0, structure.totalFormalCharge(), flavor.name());
+    Assertions.assertEquals(MOL_SMILES, structure.canonicalSmiles(), flavor.name());
+    Assertions.assertEquals(MOL_SMILES, structure.isomericSmiles(), flavor.name());
+    Assertions.assertEquals(MOL_INCHI_KEY, structure.inchiKey(), flavor.name());
+  }
+
+  @Test
+  void parseMol() {
+    final MolecularStructure structure = StructureParser.silent().parseMol(MOL_V2000);
+    Assertions.assertNotNull(structure);
+
+    Assertions.assertEquals(18, structure.structure().getAtomCount());
+    Assertions.assertEquals(20, structure.structure().getBondCount());
+    Assertions.assertEquals(MOL_FORMULA, structure.formulaString());
+    Assertions.assertEquals(0, structure.totalFormalCharge());
+    Assertions.assertEquals(MOL_SMILES, structure.canonicalSmiles());
+    Assertions.assertEquals(MOL_SMILES, structure.isomericSmiles());
+    Assertions.assertEquals(MOL_INCHI_KEY, structure.inchiKey());
+  }
+
+  /// the metal is kept, see HarmonizationOptions.DEFAULT with MetalPolicy.KEEP_CENTRAL_IONS, and
+  /// the molfile route has to agree with the smiles route on the same molecule
+  @Test
+  void parseMolMatchesSmiles() {
+    final MolecularStructure fromMol = StructureParser.silent().parseMol(MOL_V2000);
+    Assertions.assertNotNull(fromMol);
+    final MolecularStructure fromSmiles = StructureParser.silent()
+        .parseStructure(fromMol.canonicalSmiles(), StructureInputType.SMILES);
+    Assertions.assertNotNull(fromSmiles);
+
+    Assertions.assertEquals(fromSmiles.formulaString(), fromMol.formulaString());
+    Assertions.assertEquals(fromSmiles.inchiKey(), fromMol.inchiKey());
+    Assertions.assertEquals(fromSmiles.canonicalSmiles(), fromMol.canonicalSmiles());
+    Assertions.assertEquals(fromSmiles.monoIsotopicMass(), fromMol.monoIsotopicMass(), 1e-8);
+  }
+
+  @Test
+  void parseMolInvalid() {
+    final StructureParser parser = StructureParser.silent();
+    Assertions.assertNull(parser.parseMol(null));
+    Assertions.assertNull(parser.parseMol(""));
+    Assertions.assertNull(parser.parseMol("   "));
+    Assertions.assertNull(parser.parseMol("CCCO"), "smiles is not a molfile");
+    // a molblock cut off mid atom block makes MDLV2000Reader throw a raw NullPointerException
+    Assertions.assertNull(parser.parseMol(MOL_V2000.substring(0, 300)));
+    Assertions.assertNull(parser.parseMol(MOL_V3000.substring(0, 300)));
+  }
+
+  /// the version tag decides which reader is used, so a body that does not match its tag is
+  /// rejected instead of silently parsed as a truncated structure
+  @Test
+  void parseMolWrongVersionTag() {
+    final StructureParser parser = StructureParser.silent();
+    Assertions.assertNull(parser.parseMol(MOL_V2000.replace("V2000", "V3000")),
+        "V2000 body tagged as V3000");
+    Assertions.assertNull(parser.parseMol(MOL_V3000.replace("V3000", "V2000")),
+        "V3000 body tagged as V2000");
+  }
+
+  /// the clean cache deduplicates on the isomeric smiles, so inputs that describe the same molecule
+  /// share one instance no matter how they were written. decision: none of these inputs is a clean
+  /// form of the molecule, otherwise the first cache lookup would hit before deduplication and the
+  /// test would pass without it.
+  @Test
+  void parseStructureReusesInstanceForSameMolecule() {
+    final StructureParser parser = StructureParser.silent();
+    final MolecularStructure a = parser.parseStructure("OC(=O)CCCCCCCC", StructureInputType.SMILES);
+    final MolecularStructure b = parser.parseStructure("C(CCCCCCCC)(=O)O",
+        StructureInputType.SMILES);
+    final MolecularStructure c = parser.parseStructure("CCCCCCCCC(=O)[OH]",
+        StructureInputType.SMILES);
+    Assertions.assertNotNull(a);
+
+    Assertions.assertEquals("CCCCCCCCC(=O)O", a.isomericSmiles());
+    Assertions.assertSame(a, b, "second writing of the same molecule");
+    Assertions.assertSame(a, c, "third writing of the same molecule");
+    // the isomeric smiles is a clean key, so it resolves to the very same instance as well
+    Assertions.assertSame(a, parser.parseStructure(a.isomericSmiles(), StructureInputType.SMILES));
+  }
+
+  /// a different molecule must not be deduplicated onto an existing instance
+  @Test
+  void parseStructureKeepsInstancesForDifferentMolecules() {
+    final StructureParser parser = StructureParser.silent();
+    final MolecularStructure nonanoic = parser.parseStructure("OC(=O)CCCCCCCC",
+        StructureInputType.SMILES);
+    final MolecularStructure decanoic = parser.parseStructure("OC(=O)CCCCCCCCC",
+        StructureInputType.SMILES);
+    Assertions.assertNotNull(nonanoic);
+    Assertions.assertNotNull(decanoic);
+
+    Assertions.assertNotSame(nonanoic, decanoic);
+    Assertions.assertNotEquals(nonanoic.isomericSmiles(), decanoic.isomericSmiles());
+  }
+
+  /// the canonical smiles drops stereo, so it is deliberately not a clean cache key. Serving it
+  /// would hand a stereo free input back whichever stereoisomer was parsed before it.
+  @Test
+  void canonicalSmilesIsNotACleanCacheKey() {
+    final StructureParser parser = StructureParser.silent();
+    // parse the stereo defined molecule first so its canonical smiles could pollute the cache
+    final MolecularStructure stereo = parser.parseStructure("C/C=C/CCCCCCCC",
+        StructureInputType.SMILES);
+    Assertions.assertNotNull(stereo);
+    final String canonicalSmiles = stereo.canonicalSmiles();
+    Assertions.assertNotEquals(canonicalSmiles, stereo.isomericSmiles(),
+        "test needs a molecule whose canonical smiles differs from its isomeric smiles");
+
+    // the canonical smiles as input describes the molecule without the double bond geometry
+    final MolecularStructure withoutStereo = parser.parseStructure(canonicalSmiles,
+        StructureInputType.SMILES);
+    Assertions.assertNotNull(withoutStereo);
+
+    Assertions.assertNotSame(stereo, withoutStereo);
+    Assertions.assertNotEquals(stereo.isomericSmiles(), withoutStereo.isomericSmiles());
+    Assertions.assertNotEquals(stereo.inchiKey(), withoutStereo.inchiKey());
+    // without any stereo to write, both smiles flavors give the same string
+    Assertions.assertEquals(canonicalSmiles, withoutStereo.isomericSmiles());
+
+    // and the cached result equals what a parse without any cache gives
+    final MolecularStructure uncached = parser.parseStructureWithoutCache(canonicalSmiles,
+        StructureInputType.SMILES);
+    Assertions.assertNotNull(uncached);
+    Assertions.assertEquals(uncached.inchiKey(), withoutStereo.inchiKey());
+    Assertions.assertEquals(uncached.isomericSmiles(), withoutStereo.isomericSmiles());
+  }
+
 }
