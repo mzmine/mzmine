@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,6 +64,7 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
   private final boolean isTransparent;
 
   public PseudoSpectraRenderer(Color color, boolean isTransparent) {
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
 
     this.isTransparent = isTransparent;
 
@@ -99,8 +100,6 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
         g2.fill(new Rectangle2D.Double(bar.getX() - 1.5 / 2d, bar.getY(), 1.5, bar.getHeight()));
       }
     });
-
-    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   @Override

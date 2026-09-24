@@ -30,6 +30,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
+import io.mzio.mzmine.startup.MZmineExit;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
@@ -126,7 +127,7 @@ class ArgsToConfigUtils {
       }
     } catch (Exception exception) {
       logger.warning("Issue while reading keep in memory option from CLI argument");
-      System.exit(1);
+      MZmineExit.exit(1);
       return;
     }
 
@@ -225,7 +226,7 @@ class ArgsToConfigUtils {
       DesktopService.getDesktop().displayMessage(
           "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
       if (!isCliBatchProcessing) {
-        System.exit(1);
+        MZmineExit.exit(1);
         return true;
       }
     }
@@ -237,12 +238,12 @@ class ArgsToConfigUtils {
       if (!ConfigService.saveUserConfig()) {
         logger.severe(
             "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
-        System.exit(1);
+        MZmineExit.exit(1);
         return true;
       } else {
         logger.info("User login successful, user configuration is saved with the new user "
             + currentUserName);
-        System.exit(0);
+        MZmineExit.exit(0);
         return true;
       }
     }

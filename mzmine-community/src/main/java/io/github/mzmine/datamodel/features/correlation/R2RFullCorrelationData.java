@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * row to row correlation (2 rows) Intensity profile and Feature shape correlation
@@ -273,5 +275,12 @@ public final class R2RFullCorrelationData extends R2RCorrelationData {
 
   public R2RSimpleCorrelationData toSimpleCorrelationData() {
     return new R2RSimpleCorrelationData(this);
+  }
+
+  @Override
+  public @NotNull R2RFullCorrelationData withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RFullCorrelationData(a, b, heightCorr,
+        corrFeatureShape == null ? null : new LinkedHashMap<>(corrFeatureShape));
   }
 }

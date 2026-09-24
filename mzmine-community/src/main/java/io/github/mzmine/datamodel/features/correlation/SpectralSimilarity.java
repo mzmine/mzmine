@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,4 +35,13 @@ package io.github.mzmine.datamodel.features.correlation;
 public record SpectralSimilarity(double cosine, int overlap, int sizeA, int sizeB,
                                  double explainedIntensityA, double explainedIntensityB) {
 
+  /**
+   * The same similarity with the two spectra exchanged. Needed when a
+   * {@link RowsRelationship#withRows} reorders the two rows, so that the size and explained
+   * intensity keep describing the same row.
+   */
+  public SpectralSimilarity swapAB() {
+    return new SpectralSimilarity(cosine, overlap, sizeB, sizeA, explainedIntensityB,
+        explainedIntensityA);
+  }
 }

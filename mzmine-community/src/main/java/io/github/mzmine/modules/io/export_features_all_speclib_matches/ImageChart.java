@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,12 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.graphicalnodes;
+package io.github.mzmine.modules.io.export_features_all_speclib_matches;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.BufferedChartNode;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
@@ -42,14 +43,15 @@ import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.Range;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class ImageChart extends BufferedChartNode {
+class ImageChart extends BufferedChartNode {
 
-  public ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
+  ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
     FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(f);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
     // checked in ImagingChart.class
@@ -91,6 +93,8 @@ public class ImageChart extends BufferedChartNode {
         : GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
 
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+    chart.getXYPlot().setAxisOffset(RectangleInsets.ZERO_INSETS);
+    chart.setShowCrosshair(false);
 
     setChartCreateImage(chart, (int) width, GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,8 +43,9 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Path2D;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,19 +107,23 @@ public class VolcanoPlotRegionExtractionTask extends AbstractFeatureListTask {
         .filter(ds -> ds.getValueProvider() instanceof VolcanoDatasetProvider)
         .map(ds -> (VolcanoDatasetProvider) ds.getValueProvider()).toList();
 
-    List<FeatureListRow> rows = new ArrayList<>();
+    // identity map, so a row that falls into several regions is only copied once
+    final Map<FeatureListRow, ModularFeatureListRow> rowMapping = new IdentityHashMap<>();
     for (VolcanoDatasetProvider ds : datasets) {
       for (int i = 0; i < ds.getValueCount(); i++) {
         final RowSignificanceTestResult testResult = ds.getItemObject(i);
         final int finalI = i;
         if (regions.stream().anyMatch(
             region -> region.contains(ds.getDomainValue(finalI), ds.getRangeValue(finalI)))) {
-          rows.add(new ModularFeatureListRow(resultFlist, (ModularFeatureListRow) testResult.row(),
-              true));
+          rowMapping.computeIfAbsent(testResult.row(),
+              src -> new ModularFeatureListRow(resultFlist, (ModularFeatureListRow) src, true));
         }
       }
     }
-    resultFlist.setRowsApplySort(rows);
+    resultFlist.setRowsApplySort(rowMapping.values().toArray(FeatureListRow[]::new));
+
+    // the relationship maps and the ion identity networks reference rows directly
+    FeatureListUtils.transferRowRelationsAndIIN(flist, resultFlist, rowMapping::get);
     project.addFeatureList(resultFlist);
   }
 
