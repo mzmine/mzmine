@@ -643,6 +643,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
         this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
             specData.intensities());
+        this.tic = Arrays.stream(specData.intensities()).sum();
       }
 
     } catch (MSDKException | IOException e) {

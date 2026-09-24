@@ -26,6 +26,7 @@
 package io.github.mzmine.util.scans;
 
 import static io.github.mzmine.util.spectraldb.entry.DBEntryField.MERGED_SPEC_TYPE;
+import static java.util.Comparator.comparingDouble;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsLast;
 import static java.util.Objects.requireNonNullElse;
@@ -868,7 +869,8 @@ public class ScanUtils {
 
   /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
-   * within given m/z range
+   * within given m/z range. Note: If iterating over many/all ranges,
+   * {@link #listMS2ScansSortedByPrecursorMz(RawDataFile)} should be used.
    *
    * @return stream sorted by default sorting (highest TIC)
    */
@@ -878,8 +880,8 @@ public class ScanUtils {
   }
 
   /**
-   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
-   * within given m/z range. Applies sorting if sorter is not null
+   * Finds all MS/MS scans on MS2 level within given retention time range (if given) and with
+   * precursor m/z within given m/z range. Applies sorting if sorter is not null
    *
    * @param sorter sorted stream see {@link FragmentScanSorter}. Unsorted if null
    * @return sorted stream
@@ -887,9 +889,15 @@ public class ScanUtils {
   public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
       @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange,
       @Nullable Comparator<Scan> sorter) {
+    // We roll our own sorting to support jitting/inlining and avoid boxing to Float/Double
+    float rtRangeMin = (rtRange != null) ? rtRange.lowerEndpoint() : Float.NEGATIVE_INFINITY;
+    float rtRangeMax = (rtRange != null) ? rtRange.upperEndpoint() : Float.POSITIVE_INFINITY;
+    double mzRangeMin = mzRange.lowerEndpoint();
+    double mzRangeMax = mzRange.upperEndpoint();
 
-    final Stream<Scan> stream = dataFile.getScanNumbers(2).stream()
-        .filter(s -> matchesMS2Scan(s, rtRange, mzRange));
+    final Stream<Scan> stream = dataFile.stream()
+        .filter(s -> s.getMSLevel() == 2)
+        .filter(s -> matchesMS2Scan(s, rtRangeMin, rtRangeMax, mzRangeMin, mzRangeMax));
     return sorter == null ? stream : stream.sorted(sorter);
   }
 
@@ -903,17 +911,75 @@ public class ScanUtils {
   }
 
   /**
+   * Gets all MS2 level scans, sorted ascending by {@link Scan#getPrecursorMz()} (nulls last).
+   *
+   * @return immutable list.
+   */
+  public static @NotNull List<Scan> listMS2ScansSortedByPrecursorMz(
+      @NotNull final RawDataFile dataFile) {
+    return dataFile.stream()
+        .filter(s -> s.getMSLevel() == 2)
+        .sorted(Comparator.comparing(Scan::getPrecursorMz, nullsLast(naturalOrder())))
+        .toList();
+  }
+
+  /**
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range (and potentially sorts them).
+   *
+   * @param ms2SortedByPrecursorMz List of Scans sorted ascending by precursor mz, can e.g. be
+   *                               obtained by
+   *                               {@link #listMS2ScansSortedByPrecursorMz(RawDataFile)}
+   * @param rtRange                both bounds inclusive, null to not filter by rt
+   * @param mzRange                precursor m/z window, both bounds inclusive
+   * @param sorter                 see {@link FragmentScanSorter}. Left in ascending precursor m/z
+   *                               order if null
+   * @return a new mutable list, empty if nothing matches
+   */
+  public static @NotNull List<Scan> findMS2FragmentScans(
+      @NotNull final List<Scan> ms2SortedByPrecursorMz,
+      @Nullable final Range<Float> rtRange,
+      @NotNull final Range<Double> mzRange,
+      @Nullable final Comparator<Scan> sorter) {
+    final float rtRangeMin = rtRange != null ? rtRange.lowerEndpoint() : Float.NEGATIVE_INFINITY;
+    final float rtRangeMax = rtRange != null ? rtRange.upperEndpoint() : Float.POSITIVE_INFINITY;
+
+    List<Scan> matchingScans = BinarySearch.indexRange(mzRange, ms2SortedByPrecursorMz,
+            Scan::getPrecursorMz).sublist(ms2SortedByPrecursorMz);
+    final List<Scan> matches = new ArrayList<>(matchingScans.size());
+    for (Scan scan : matchingScans) {
+      final float rt = scan.getRetentionTime();
+      if (rtRangeMin <= rt && rt <= rtRangeMax) {
+        matches.add(scan);
+      }
+    }
+    if (sorter != null) {
+      matches.sort(sorter);
+    }
+    return matches;
+  }
+
+  /**
    * Checks if scan precursor mz and rt is in ranges
    *
-   * @param s tested scan
+   * @param s          tested scan
+   * @param rtRangeMin minimum RT
+   * @param rtRangeMax maximum RT
+   * @param mzRangeMin minimum MZ
+   * @param mzRangeMax maximum MZ
    * @return true if scan precursor mz is in range and rt
    */
-  public static boolean matchesMS2Scan(Scan s, Range<Float> rtRange, Range<Double> mzRange) {
-    if (rtRange != null && !rtRange.contains(s.getRetentionTime())) {
+  private static boolean matchesMS2Scan(Scan s,
+      float rtRangeMin,
+      float rtRangeMax,
+      double mzRangeMin,
+      double mzRangeMax) {
+    final float rt = s.getRetentionTime();
+    if (rt < rtRangeMin || rt > rtRangeMax) {
       return false;
     }
-    final Double precursorMz = s.getPrecursorMz();
-    return precursorMz != null && mzRange.contains(precursorMz);
+    final double precursorMz = s.getPrecursorMz();
+    return precursorMz >= mzRangeMin && precursorMz <= mzRangeMax;
   }
 
   /**
