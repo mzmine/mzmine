@@ -2594,23 +2594,6 @@
             ]
         },
         {
-            "moduleName": "org.eclipse.parsson:jakarta.json",
-            "moduleVersion": "1.1.0",
-            "moduleUrls": [
-                "https://www.eclipse.org"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Eclipse Public License - v 2.0",
-                    "moduleLicenseUrl": "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt"
-                },
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
-                    "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
             "moduleName": "org.freehep:freehep-graphics2d",
             "moduleVersion": "2.4",
             "moduleLicenses": [

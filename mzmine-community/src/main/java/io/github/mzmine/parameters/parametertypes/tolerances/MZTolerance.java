@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.Collection;
 import java.util.Objects;
@@ -103,6 +105,17 @@ public class MZTolerance {
     return Math.max(ppmTolerance, mzTolerance / (mzValue / MILLION));
   }
 
+  public SimpleDoubleRange getSimpleToleranceRange(final double mzValue) {
+    final double absoluteTolerance = getMzToleranceForMass(mzValue);
+    return SimpleRange.ofDouble(mzValue - absoluteTolerance, mzValue + absoluteTolerance);
+  }
+
+  public SimpleDoubleRange getSimpleToleranceRange(final Range<Double> mzRange) {
+    return SimpleRange.ofDouble(
+        mzRange.lowerEndpoint() - getMzToleranceForMass(mzRange.lowerEndpoint()),
+        mzRange.upperEndpoint() + getMzToleranceForMass(mzRange.upperEndpoint()));
+  }
+
   public Range<Double> getToleranceRange(final double mzValue) {
     final double absoluteTolerance = getMzToleranceForMass(mzValue);
     return Range.closed(mzValue - absoluteTolerance, mzValue + absoluteTolerance);
@@ -117,6 +130,24 @@ public class MZTolerance {
     final double dist = Math.abs(mz1 - mz2);
     // absolute then relative tolerance check
     return dist <= mzTolerance || dist <= mz1 / MILLION * ppmTolerance;
+  }
+
+  /**
+   * Like {@link #checkWithinTolerance(double, double)} but widens (or tightens) both the absolute
+   * and the relative tolerance by {@code factor}. Useful when a neighbouring heavy isotope (e.g.
+   * 37Cl/81Br) merges with the expected 13C signal and pulls the observed centroid a few mDa off
+   * the exact grid, so a nominal-tolerance check would wrongly report a missing peak.
+   *
+   * @param mz1    the reference m/z (the relative tolerance is computed on this value).
+   * @param mz2    the tested m/z.
+   * @param factor multiplier applied to both the absolute and the relative tolerance (&gt; 1
+   *               widens, &lt; 1 tightens).
+   * @return whether {@code mz2} lies within the factor-scaled tolerance of {@code mz1}.
+   */
+  public boolean checkWithinTolerance(final double mz1, final double mz2, final double factor) {
+    final double dist = Math.abs(mz1 - mz2);
+    // absolute then relative tolerance check, both scaled by the factor
+    return dist <= mzTolerance * factor || dist <= mz1 / MILLION * ppmTolerance * factor;
   }
 
   @Override

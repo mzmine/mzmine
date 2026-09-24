@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.filter_featurelistpreferences.FeatureListPreferencesParameters;
 import io.github.mzmine.modules.presets.ModulePreset;
 import io.github.mzmine.modules.presets.ModulePresetStore;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -259,6 +261,21 @@ public interface ParameterSet extends ParameterContainer {
   String toString();
 
   ExitCode showSetupDialog(boolean valueCheckRequired);
+
+  /**
+   * Called when this parameter set becomes the configuration of a batch queue step
+   * {@link MZmineProcessingStep}, either by adding the step, by loading a queue, or by copying a
+   * step. So it is false before the step was added and true afterwards.
+   *
+   * See example of use in {@link FeatureListPreferencesParameters#showSetupDialog(boolean)}
+   */
+  void setAsBatchStepParameters();
+
+  /**
+   * @return true if this set is the stored configuration of a batch step in
+   * {@link MZmineProcessingStep}
+   */
+  boolean isBatchStepParameters();
 
   /**
    * Set the value of a parameter

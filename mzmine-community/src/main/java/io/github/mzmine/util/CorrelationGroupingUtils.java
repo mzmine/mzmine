@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -46,6 +46,22 @@ import org.jetbrains.annotations.Nullable;
 public class CorrelationGroupingUtils {
 
   private static final Logger logger = Logger.getLogger(CorrelationGroupingUtils.class.getName());
+
+  /**
+   * Defines a stable order of the correlation edges by the two row IDs. The row IDs are unique
+   * within a feature list and the pair is undirected, so the lower and the higher ID together
+   * identify each edge unambiguously.
+   */
+  private static final Comparator<RowsRelationship> EDGE_SORTER = Comparator.comparingInt(
+      CorrelationGroupingUtils::lowerRowId).thenComparingInt(CorrelationGroupingUtils::higherRowId);
+
+  private static int lowerRowId(@NotNull final RowsRelationship edge) {
+    return Math.min(edge.getRowA().getID(), edge.getRowB().getID());
+  }
+
+  private static int higherRowId(@NotNull final RowsRelationship edge) {
+    return Math.max(edge.getRowA().getID(), edge.getRowB().getID());
+  }
 
   /**
    * Create list of correlated rows (connected components) on demand from the MS1 correlation map of
@@ -73,46 +89,52 @@ public class CorrelationGroupingUtils {
       logger.info(
           "Creating groups for %s with %d edges".formatted(flist.getName(), corrMap.size()));
 
+      // iterate the edges in a defined order instead of the hash order of the map.
+      final List<RowsRelationship> edges = corrMap.values().stream()
+          .filter(R2RCorrelationData.class::isInstance).sorted(EDGE_SORTER).toList();
+
       List<RowGroup> groups = new ArrayList<>();
       HashMap<Integer, RowGroup> used = new HashMap<>();
 
       int nextGroupID = 1;
       // add all connections
-      for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
-        RowsRelationship r2r = e.getValue();
+      for (final RowsRelationship r2r : edges) {
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
-        // row 2749 2852
-        if (r2r instanceof R2RCorrelationData) {
-          // already added?
-          RowGroup group = used.get(rowA.getID());
-          RowGroup group2 = used.get(rowB.getID());
-          // merge groups if both present
-          if (group != null && group2 != null && group.getGroupID() != group2.getGroupID()) {
-            // copy all to group1 and remove g2
-            for (FeatureListRow r : group2.getRows()) {
-              group.add(r);
-              used.put(r.getID(), group);
-            }
-            groups.remove(group2);
-          } else if (group == null && group2 == null) {
-            // create new group with both rows
-            group = new RowGroupSimple(nextGroupID, corrMap);
-            // increment group - the groups are renumbered later
-            nextGroupID++;
-            group.addAll(rowA, rowB);
-            groups.add(group);
-            // mark as used
-            used.put(rowA.getID(), group);
-            used.put(rowB.getID(), group);
-          } else if (group2 == null) {
-            group.add(rowB);
-            used.put(rowB.getID(), group);
-          } else if (group == null) {
-            group2.add(rowA);
-            used.put(rowA.getID(), group2);
+        // already added?
+        RowGroup group = used.get(rowA.getID());
+        RowGroup group2 = used.get(rowB.getID());
+        // merge groups if both present
+        if (group != null && group2 != null && group.getGroupID() != group2.getGroupID()) {
+          // copy all to group1 and remove g2
+          for (FeatureListRow r : group2.getRows()) {
+            group.add(r);
+            used.put(r.getID(), group);
           }
+          groups.remove(group2);
+        } else if (group == null && group2 == null) {
+          // create new group with both rows
+          group = new RowGroupSimple(nextGroupID, corrMap);
+          // increment group - the groups are renumbered later
+          nextGroupID++;
+          group.addAll(rowA, rowB);
+          groups.add(group);
+          // mark as used
+          used.put(rowA.getID(), group);
+          used.put(rowB.getID(), group);
+        } else if (group2 == null) {
+          group.add(rowB);
+          used.put(rowB.getID(), group);
+        } else if (group == null) {
+          group2.add(rowA);
+          used.put(rowA.getID(), group2);
         }
+      }
+
+      // rows are appended in the order the edges connect them - sort them into the canonical
+      // order so that consumers looping over all row pairs produce reproducible results
+      for (final RowGroup group : groups) {
+        group.sortRows();
       }
       // sort by retention time, group size and lowest row id to make sure it is stable
       groups.sort(Comparator.comparing(RowGroup::calcAverageRetentionTime,

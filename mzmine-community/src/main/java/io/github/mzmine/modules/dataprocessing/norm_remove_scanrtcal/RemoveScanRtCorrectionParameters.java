@@ -42,7 +42,9 @@ public class RemoveScanRtCorrectionParameters extends SimpleParameterSet {
   public static final RawDataFilesParameter files = new RawDataFilesParameter();
 
   public RemoveScanRtCorrectionParameters() {
-    super(files);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/norm_remove_scanrtcal/remove_scan_rt_correction.html",
+        files);
   }
 
   @Override

@@ -74,6 +74,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -102,7 +103,16 @@ public class BatchTask extends AbstractTask {
   // collected in parallel to stepTimes - temp file (MemoryMapStorage) statistics per step
   private final List<StepStorageMeasurement> stepStorageStats = new ArrayList<>();
   private final boolean runGCafterBatchStep;
+  // guards against logging the final summary twice, as run() has multiple exit paths
+  private boolean summaryPrinted = false;
   private int processedSteps;
+  /**
+   * 1-based number of the step within the current dataset that is running, or of the last step that
+   * ran once the batch has stopped. 0 before the first step starts. Unlike {@link #processedSteps}
+   * this is not advanced after a step, so error messages logged after the batch stopped still name
+   * the step that actually failed.
+   */
+  private int currentStepNumber = 0;
   private @Nullable List<File> subDirectories;
   private List<RawDataFile> createdDataFiles;
   private List<RawDataFile> previousCreatedDataFiles;
@@ -212,6 +222,8 @@ public class BatchTask extends AbstractTask {
                   getErrorMessage()));
         }
       }
+      // still report the steps that did finish before the exception
+      finishBatchMeasurements(batchStart, false);
       return;
     }
 
@@ -219,18 +231,38 @@ public class BatchTask extends AbstractTask {
       logger.log(Level.WARNING, getErrorMessage());
     }
 
+    // isCanceled() is also true for ERROR
     if (isCanceled()) {
+      finishBatchMeasurements(batchStart, false);
       return;
     }
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
-    Duration duration = Duration.between(batchStart, Instant.now());
+    finishBatchMeasurements(batchStart, true);
+  }
+
+  /**
+   * Appends the {@link #WHOLE_BATCH_NAME} summary row and logs all measurements. Called on every
+   * exit path of {@link #run()} so that the numbers of the finished steps are also reported when
+   * the batch stopped early. Only the first call produces output.
+   *
+   * @param batchStart      start of the batch, used for the whole batch wall clock time
+   * @param finishedSuccess false if the batch stopped early by exception, error or cancel
+   */
+  private void finishBatchMeasurements(@NotNull final Instant batchStart,
+      final boolean finishedSuccess) {
+    if (summaryPrinted) {
+      return;
+    }
+    summaryPrinted = true;
+
+    final Duration duration = Duration.between(batchStart, Instant.now());
     if (runGCafterBatchStep) {
       System.gc();
     }
     stepTimes.add(new StepTimeMeasurement(0, WHOLE_BATCH_NAME, duration, runGCafterBatchStep));
-    printBatchMeasurements();
+    printBatchMeasurements(finishedSuccess);
   }
 
   private void runBatchQueue() {
@@ -247,7 +279,7 @@ public class BatchTask extends AbstractTask {
 
         // print and reset per-dataset step measurements (timing + temp file usage)
         if (!stepStorageStats.isEmpty()) {
-          printBatchMeasurements();
+          printBatchMeasurements(getStatus() == TaskStatus.FINISHED);
           stepTimes.clear();
           stepStorageStats.clear();
         }
@@ -294,8 +326,9 @@ public class BatchTask extends AbstractTask {
         }
       }
 
-      // run step
+      // run step stepNumber (0 based)
       final int stepNumber = i % stepsPerDataset;
+      currentStepNumber = stepNumber + 1;
       Instant start = Instant.now();
       final MemoryMapSnapshot storageBefore = MemoryMapStorageStats.snapshot();
 
@@ -308,12 +341,15 @@ public class BatchTask extends AbstractTask {
         System.gc();
       }
       final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
-      stepTimes.add(
-          new StepTimeMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
-              duration, runGCafterBatchStep));
-      stepStorageStats.add(
-          new StepStorageMeasurement(stepNumber + 1, queue.get(stepNumber).getModule().getName(),
-              storageBefore, storageAfter));
+      final String stepName = queue.get(stepNumber).getModule().getName();
+      final StepTimeMeasurement stepTime = new StepTimeMeasurement(stepNumber + 1, stepName,
+          duration, runGCafterBatchStep);
+      final StepStorageMeasurement stepStorage = new StepStorageMeasurement(stepNumber + 1,
+          stepName, storageBefore, storageAfter);
+      stepTimes.add(stepTime);
+      stepStorageStats.add(stepStorage);
+      // log each finished step right away so the measurements survive a failing or canceled batch
+      logStepMeasurement(new StepMeasurement(stepTime, stepStorage));
 
       // If we are canceled or ran into error, stop here
       if (getStatus() == TaskStatus.ERROR) {
@@ -336,11 +372,11 @@ public class BatchTask extends AbstractTask {
 
   /**
    * Timing, heap and temp file usage of all collected steps, followed by a
-   * {@link #WHOLE_BATCH_NAME} summary row. Pairs {@link #stepTimes} and {@link #stepStorageStats} by
-   * index. The summary row uses the measured wall clock of the whole batch (which also covers
+   * {@link #WHOLE_BATCH_NAME} summary row. Pairs {@link #stepTimes} and {@link #stepStorageStats}
+   * by index. The summary row uses the measured wall clock of the whole batch (which also covers
    * overhead outside of the steps) and falls back to the sum of the step times while the batch is
-   * still running. Its storage columns are the sums of the per-step deltas, its live columns are the
-   * latest snapshot and therefore not a sum.
+   * still running. Its storage columns are the sums of the per-step deltas, its live columns are
+   * the latest snapshot and therefore not a sum.
    *
    * @return an unmodifiable list, empty while no step has finished yet
    */
@@ -377,17 +413,52 @@ public class BatchTask extends AbstractTask {
   }
 
   /**
-   * Logs {@link #getStepMeasurements()} as a single CSV.
+   * Logs the measurement of a single finished step. Called directly after each step so that timing
+   * and memory numbers are available even if a later step fails or the batch is canceled before
+   * {@link #printBatchMeasurements(boolean)} runs.
    */
-  private void printBatchMeasurements() {
+  private void logStepMeasurement(@NotNull final StepMeasurement measurement) {
+    logger.info(measurement.toString());
+  }
+
+  /**
+   * Logs {@link #getStepMeasurements()} as a single CSV.
+   *
+   * @param finishedSuccess false adds a marker below the summary so that partial measurements of a
+   *                        batch that stopped early are not mistaken for a full run
+   */
+  private void printBatchMeasurements(final boolean finishedSuccess) {
     final List<StepMeasurement> measurements = getStepMeasurements();
     if (measurements.isEmpty()) {
+      // not a single step finished - still report why the batch stopped
+      if (!finishedSuccess) {
+        logger.info(incompleteBatchMarker());
+      }
       return;
     }
     final String csv = CsvWriter.writeToString(measurements, StepMeasurement.class, '\t', true);
+    final String marker = finishedSuccess ? ""
+        : "\n%s The %s row covers the wall clock time until the batch stopped, its temp file columns only sum the steps listed above.".formatted(
+            incompleteBatchMarker(), WHOLE_BATCH_NAME);
+    // stripTrailing drops the trailing row separator so that the marker ends up on its own line
     logger.info("""
         Batch step measurements (timing + temp file usage)
-        %s""".formatted(csv));
+        %s%s""".formatted(csv.stripTrailing(), marker));
+  }
+
+  /**
+   * Names the reason the batch stopped and how far it got, logged below an incomplete summary.
+   */
+  private @NotNull String incompleteBatchMarker() {
+    final String reason = switch (getStatus()) {
+      case ERROR -> "error: " + Objects.requireNonNullElse(getErrorMessage(), "unknown");
+      case CANCELED -> "canceled";
+      // the batch may still be running when a dataset summary is printed in advanced batch mode
+      case WAITING, PROCESSING, FINISHED -> "stopped early";
+    };
+    // currentStepNumber, not processedSteps, as the latter already counts the step that failed
+    return "INCOMPLETE BATCH: stopped in step %d of %d (%s).".formatted(
+        Math.max(currentStepNumber, 1), totalSteps, reason);
   }
 
   private static double round3(final double value) {
@@ -642,17 +713,17 @@ public class BatchTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
+    // 1 before the first step started, so that the description does not read "step 0"
+    final int step = Math.max(currentStepNumber, 1);
     if (datasets > 1) {
       if (stepsPerDataset == 0) {
         return "Batch mode";
       } else {
-        return String.format("Batch step %d/%d of dataset %d/%d",
-            Math.min(processedSteps % stepsPerDataset + 1, totalSteps), stepsPerDataset,
+        return String.format("Batch step %d/%d of dataset %d/%d", step, stepsPerDataset,
             currentDataset + 1, datasets);
       }
     } else {
-      return String.format("Batch step %d/%d", Math.min(processedSteps + 1, totalSteps),
-          totalSteps);
+      return String.format("Batch step %d/%d", step, totalSteps);
     }
   }
 

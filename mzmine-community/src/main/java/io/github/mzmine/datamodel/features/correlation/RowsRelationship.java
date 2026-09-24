@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public sealed interface RowsRelationship permits AbstractRowsRelationship {
+public sealed interface RowsRelationship extends RowPair permits AbstractRowsRelationship {
 
   /**
    * Score of this row 2 row relationship
@@ -101,6 +101,7 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
    *
    * @return the first row
    */
+  @Override
   @NotNull FeatureListRow getRowA();
 
   /**
@@ -108,17 +109,22 @@ public sealed interface RowsRelationship permits AbstractRowsRelationship {
    *
    * @return the second row
    */
+  @Override
   @NotNull FeatureListRow getRowB();
 
-  default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
-    if (getRowA().equals(correlatedRow)) {
-      return getRowB();
-    } else if (getRowB().equals(correlatedRow)) {
-      return getRowA();
-    }
-    throw new RuntimeException("Given row is not part of this row relationship");
-  }
-
+  /**
+   * An equal relationship between two other rows. Used to transfer relationships onto the copied
+   * rows of a new feature list, because every relationship references its two rows directly.
+   * <p>
+   * Implementations must not modify this instance. Any payload that describes one of the two rows
+   * has to follow that row, because {@link AbstractRowsRelationship} orders the rows by ID and the
+   * new rows may be ordered differently, e.g. after renumbering.
+   *
+   * @param a the row that replaces {@link #getRowA()}
+   * @param b the row that replaces {@link #getRowB()}
+   * @return a new relationship of the same type and score between a and b
+   */
+  @NotNull RowsRelationship withRows(@NotNull FeatureListRow a, @NotNull FeatureListRow b);
 
   /**
    * All types of relationships

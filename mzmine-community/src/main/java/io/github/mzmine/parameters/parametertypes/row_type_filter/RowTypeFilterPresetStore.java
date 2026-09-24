@@ -62,6 +62,10 @@ public class RowTypeFilterPresetStore extends AbstractJsonPresetStore<RowTypeFil
         createPreset("PC", LIPID, EQUAL, "PC"), //
         createPreset("Unsaturated lipids", LIPID, EQUAL, "C>0:>0"), //
         createPreset("Oxidized lipids", LIPID, EQUAL, "C>0:>=0;>0"), //
+        createPreset("Trialkylsilyl (SiR3)", SMARTS, CONTAINS,
+            "[Si]([#6])([#6])([#6])[#7,#8,#16]"), //
+        createPreset("Trimethylsilyl (SiMe3)", SMARTS, CONTAINS,
+            "[Si]([CH3])([CH3])([CH3])[#7,#8,#16]"), //
         createPreset("Halide (F, Cl, Br, I)", SMARTS, CONTAINS, "[#6][F,Cl,Br,I]"), //
         createPreset("Amino acid", SMARTS, CONTAINS, "[NX3,NX4+][CX4H]([*])[CX3](=[OX1])[O,N]"), //
         createPreset("Sulfate", SMARTS, CONTAINS,

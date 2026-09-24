@@ -59,4 +59,9 @@ public final class R2RSimpleSimilarity extends InternalTypedRowsRelationship {
     return "score=" + getScoreFormatted();
   }
 
+  @Override
+  public @NotNull R2RSimpleSimilarity withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RSimpleSimilarity(a, b, getInternalType(), similarity);
+  }
 }

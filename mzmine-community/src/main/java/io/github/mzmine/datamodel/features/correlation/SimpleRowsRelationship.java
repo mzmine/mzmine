@@ -59,4 +59,10 @@ public final class SimpleRowsRelationship extends AbstractRowsRelationship {
   public @NotNull String getAnnotation() {
     return annotation;
   }
+
+  @Override
+  public @NotNull SimpleRowsRelationship withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new SimpleRowsRelationship(a, b, score, type, annotation);
+  }
 }

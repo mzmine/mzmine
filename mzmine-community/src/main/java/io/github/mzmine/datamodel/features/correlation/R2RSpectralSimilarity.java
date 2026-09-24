@@ -65,4 +65,11 @@ public final class R2RSpectralSimilarity extends InternalTypedRowsRelationship {
     return "cos=" + getScoreFormatted();
   }
 
+  @Override
+  public @NotNull R2RSpectralSimilarity withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RSpectralSimilarity(a, b, getInternalType(),
+        swapsRows(a, b) ? similarity.swapAB() : similarity);
+  }
+
 }

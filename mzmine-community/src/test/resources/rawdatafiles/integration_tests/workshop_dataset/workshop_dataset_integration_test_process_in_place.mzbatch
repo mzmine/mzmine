@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<batch mzmine_version="4.10.57">
+<batch mzmine_version="4.10.85">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" module_name="Import MS data" parameter_version="1">
         <parameter name="File names">
             <file>D:\git\mzmine3\mzmine-community\src\test\resources\rawdatafiles\integration_tests\workshop_dataset\171103_PMA_TK_QC_04-4to5min.mzML</file>
@@ -46,6 +46,9 @@
                     <parameter name="Intensity calculation">Height</parameter>
                     <parameter name="Smoothing" selected_item="none">
                         <module name="none"/>
+                        <module name="gaussian">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
                         <module name="savitzky_golay">
                             <parameter name="Width (points)">5</parameter>
                         </module>
@@ -81,6 +84,9 @@
                     <parameter name="Intensity calculation">Height</parameter>
                     <parameter name="Smoothing" selected_item="none">
                         <module name="none"/>
+                        <module name="gaussian">
+                            <parameter name="Width (points)">5</parameter>
+                        </module>
                         <module name="savitzky_golay">
                             <parameter name="Width (points)">5</parameter>
                         </module>
@@ -149,6 +155,9 @@
                 <parameter name="Intensity calculation">Height</parameter>
                 <parameter name="Smoothing" selected_item="none">
                     <module name="none"/>
+                    <module name="gaussian">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
                     <module name="savitzky_golay">
                         <parameter name="Width (points)">5</parameter>
                     </module>
@@ -202,6 +211,9 @@
                 <parameter name="Intensity calculation">Height</parameter>
                 <parameter name="Smoothing" selected_item="none">
                     <module name="none"/>
+                    <module name="gaussian">
+                        <parameter name="Width (points)">5</parameter>
+                    </module>
                     <module name="savitzky_golay">
                         <parameter name="Width (points)">5</parameter>
                     </module>
@@ -245,6 +257,7 @@
             <ppmtolerance>10.0</ppmtolerance>
         </parameter>
         <parameter name="Suffix">eics</parameter>
+        <parameter name="Clear previous RT corrections">true</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule" module_name="Smoothing" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
@@ -309,15 +322,18 @@
         <parameter name="Never remove feature with MS2">true</parameter>
         <parameter name="Original feature list">PROCESS IN PLACE</parameter>
     </batchstep>
-    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" module_name="Isotopic peaks finder" parameter_version="1">
+    <batchstep method="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule" module_name="Isotopic peaks finder" parameter_version="2">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
-        <parameter name="Chemical elements">H,C,N,O,S</parameter>
-        <parameter name="m/z tolerance (feature-to-scan)">
-            <absolutetolerance>0.0015</absolutetolerance>
-            <ppmtolerance>10.0</ppmtolerance>
+        <parameter name="Algorithm" selected_item="automatic">
+            <module name="automatic">
+                <parameter name="m/z tolerance (feature-to-scan)">
+                    <absolutetolerance>0.0015</absolutetolerance>
+                    <ppmtolerance>10.0</ppmtolerance>
+                </parameter>
+                <parameter name="Require 13C isotope peak">true</parameter>
+                <parameter name="Maximum charge of isotope m/z">5</parameter>
+            </module>
         </parameter>
-        <parameter name="Maximum charge of isotope m/z">5</parameter>
-        <parameter name="Search in scans">SINGLE MOST INTENSE</parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule" module_name="Join aligner" parameter_version="1">
         <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
@@ -535,7 +551,7 @@
             <ionLibrary id="1944315c-6b03-4b87-8479-0c699ce35a7b">
                 <origin kind="local"/>
                 <name>Legacy library imported</name>
-                <savedDate>2026-09-02T16:16:29.1269065</savedDate>
+                <savedDate>2026-09-22T17:04:25.2892867</savedDate>
                 <lastUpdatedDate>2026-05-28T16:18:03.8610782</lastUpdatedDate>
                 <parts>
                     <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
@@ -596,12 +612,12 @@
         </parameter>
         <parameter name="Annotation refinement" selected="true">
             <parameter name="Minimum size" selected="false">2</parameter>
-            <parameter libraryVersion="2" name="Ion library" selected="true">
+            <parameter libraryVersion="2" name="Require main ions library" selected="true">
                 <ionLibrary id="ea03009b-5b2e-3fcc-958b-4d42d7715dd2">
                     <origin kind="builtin"/>
                     <name>mzmine default main ions (+/-)</name>
-                    <savedDate>2026-09-02T16:16:29.1279074</savedDate>
-                    <lastUpdatedDate>2026-09-02T15:57:46.3460729</lastUpdatedDate>
+                    <savedDate>2026-09-22T17:04:25.2902844</savedDate>
+                    <lastUpdatedDate>2026-09-22T16:59:35.0249543</lastUpdatedDate>
                     <parts>
                         <parts charge="0" formula="H2O" id="0" mass="18.010564684" name="H2O"/>
                         <parts charge="1" formula="H" id="1" mass="1.00727645209073" name="H"/>

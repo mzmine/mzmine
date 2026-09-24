@@ -175,7 +175,8 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
     this.helpURL = parameters.getClass().getResource("help/help.html");
-    this.footerMessage = message;
+    this.footerMessage = ModuleOrderRecommendationMessageFactory.combineWithExistingMessage(
+        parameters, message);
 
     // use FxThread runlater to run on the fxthread. Otherwise we cannot call dialog.showAndWait.
 //    java.lang.IllegalStateException: showAndWait is not allowed during animation or layout processing
