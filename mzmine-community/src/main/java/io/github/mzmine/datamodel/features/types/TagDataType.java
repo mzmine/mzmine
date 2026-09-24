@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Row tags represented by an interactive grid of checkboxes in the feature table.
+ * Row tags represented by an interactive, wrapping row of checkboxes in the feature table.
  */
 public class TagDataType extends DataType<BitSet> {
 
@@ -116,8 +116,6 @@ public class TagDataType extends DataType<BitSet> {
         final BitSet tags = row.get(TagDataType.this);
         return new SimpleObjectProperty<>(tags == null ? new BitSet() : tags);
       });
-      column.setMaxWidth(50);
-      column.setMinWidth(50);
     }
     return column;
   }
