@@ -1005,24 +1005,11 @@ public class FeatureListUtils {
   }
 
   /**
-   * Transfers everything that references feature list rows directly and therefore cannot simply be
-   * shared with the source: the row-to-row relationship maps ({@link FeatureList#getRowMaps()}) and
-   * the ion identity networks. Both are recreated against the rows of the target.
-   * <p>
-   * This has to be called by every module that copies rows into a new feature list, because a
-   * copied row initially still carries the ion identities of its source row, and the relationship
-   * maps are keyed by row ID. Without it, the new feature list silently describes relations between
-   * the rows of the original list, and correlation groups, ion identity networks and everything
-   * derived from them are lost.
-   * <p>
-   * {@code source} and {@code target} may be the same feature list, for a module that filters rows
-   * in place: removing rows or renumbering their IDs invalidates the relationship map keys just the
-   * same. The relationship maps of the target are therefore replaced, not merged.
-   *
    * @param source     the feature list the rows were copied from
    * @param target     the feature list holding the copied rows, may be {@code source} itself
    * @param rowMapping maps a source row to its row in the target, or to null if that row is gone.
    *                   Relations of rows that are not mapped are dropped.
+   * @see FeatureListUtils#transferRowRelationsAndIIN(FeatureList, ModularFeatureList, Map)
    */
   public static void transferRowRelationsAndIIN(@NotNull FeatureList source,
       @NotNull ModularFeatureList target,
