@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -112,21 +113,70 @@ public record OtherTraceSelection(@Nullable ChromatogramType chromatogramType,
     }
   }
 
-  private static String clean(@Nullable String pattern, boolean needsCleaning) {
+  private static @Nullable String clean(@Nullable String pattern, boolean needsCleaning) {
     if (StringUtils.isBlank(pattern)) {
       return null;
     }
     if (!needsCleaning) {
       return pattern;
     }
-    // clean old versions of this selection that were saved with the pattern
-    pattern = pattern.replaceAll("\\^", "");
-    pattern = pattern.replaceAll("\\\\Q", "");
-    pattern = pattern.replaceAll("\\\\E", "");
-    pattern = pattern.replaceAll("\\$", "");
-    pattern = pattern.replaceAll("\\\\", "");
+    // old versions of this selection saved the regex created from the wildcard pattern. Loading
+    // such a selection created the regex again, so the pattern may be wrapped multiple times.
+    String wildcards = pattern;
+    while (wildcards.startsWith("^\\Q") && wildcards.endsWith("\\E$")) {
+      final String unwrapped = legacyRegexToWildcards(wildcards);
+      if (unwrapped == null) {
+        break;
+      }
+      wildcards = unwrapped;
+    }
 
-    return pattern;
+    if (wildcards.equals(pattern)) {
+      // decision: not in the format of TextUtils#createRegexFromWildcards, strip regex characters
+      wildcards = wildcards.replaceAll("\\^", "");
+      wildcards = wildcards.replaceAll("\\\\Q", "");
+      wildcards = wildcards.replaceAll("\\\\E", "");
+      wildcards = wildcards.replaceAll("\\$", "");
+      wildcards = wildcards.replaceAll("\\\\", "");
+    }
+
+    return StringUtils.isBlank(wildcards) ? null : wildcards;
+  }
+
+  /**
+   * Reverts {@link TextUtils#createRegexFromWildcards(String)}, which creates
+   * {@code ^\Qsection\E.*\Qsection\E$}. {@link java.util.regex.Pattern#quote(String)} escapes
+   * {@code \E} within a section as {@code \E\\E\Q}.
+   *
+   * @return the wildcard pattern or null if the regex is not in the expected format.
+   */
+  private static @Nullable String legacyRegexToWildcards(@NotNull String regex) {
+    final String body = regex.substring(1, regex.length() - 1);
+    final StringBuilder wildcards = new StringBuilder();
+    int i = 0;
+    while (i < body.length()) {
+      if (body.startsWith("\\Q", i)) {
+        final int end = body.indexOf("\\E", i + 2);
+        if (end < 0) {
+          return null;
+        }
+        wildcards.append(body, i + 2, end);
+        i = end + 2;
+      } else if (body.startsWith(".*", i)) {
+        wildcards.append('*');
+        i += 2;
+      } else if (body.startsWith("\\\\", i)) {
+        wildcards.append('\\');
+        i += 2;
+      } else if (body.charAt(i) == 'E') {
+        // the E of an escaped \E within a quoted section
+        wildcards.append('E');
+        i++;
+      } else {
+        return null;
+      }
+    }
+    return wildcards.toString();
   }
 
   /**
