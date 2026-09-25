@@ -33,8 +33,6 @@ import io.github.mzmine.javafx.components.factories.MenuItems;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.modules.visualization.surface3d.data.Surface3DBounds;
-import io.github.mzmine.modules.visualization.surface3d.data.Surface3DRegion;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DSeries;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
@@ -56,10 +54,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -70,8 +66,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Compact side panel: one row to add m/z overlays, one row per overlay with its options in a
- * menu, and a collapsible region section. Rarely used actions live in the header menu.
+ * Compact side panel: one row to add m/z overlays and one row per overlay with its options in a
+ * menu. Rarely used actions are icon buttons in the header.
  */
 final class Surface3DOverlayPanel extends VBox {
 
@@ -86,21 +82,10 @@ final class Surface3DOverlayPanel extends VBox {
   private final Label mzError = FxLabels.newLabel(FxLabels.Styles.ERROR, "");
   private final Button addFiles;
   private final Button resetMz;
-  private final TitledPane regionSection;
-  private final Label regionXLabel = new Label("X");
-  private final Label regionYLabel = new Label("Y");
-  private final TextField regionXMin = regionField();
-  private final TextField regionXMax = regionField();
-  private final TextField regionYMin = regionField();
-  private final TextField regionYMax = regionField();
-  private final Label regionError = FxLabels.newLabel(FxLabels.Styles.ERROR, "");
-  private final Button fullRange;
   private @Nullable Consumer<List<Range<Double>>> onAddMz;
   private @Nullable Runnable onResetMz;
   private @Nullable Runnable onAddFiles;
   private @Nullable Consumer<String> onRemove;
-  private @Nullable Consumer<Surface3DRegion> onRegion;
-  private @Nullable Surface3DBounds bounds;
 
   Surface3DOverlayPanel() {
     super(6);
@@ -160,33 +145,8 @@ final class Surface3DOverlayPanel extends VBox {
     scroll.getStyleClass().add("edge-to-edge");
     VBox.setVgrow(scroll, Priority.ALWAYS);
 
-    final GridPane regionGrid = new GridPane(4, 4);
-    regionGrid.addRow(0, regionXLabel, regionXMin, new Label("–"), regionXMax);
-    regionGrid.addRow(1, regionYLabel, regionYMin, new Label("–"), regionYMax);
-    regionXLabel.setMaxWidth(90);
-    regionYLabel.setMaxWidth(90);
-    final Button apply = FxButtons.createButton("Apply", "Resample the entered region",
-        this::applyRegion);
-    fullRange = FxButtons.createButton("Full range", "Show all data again", () -> {
-      if (onRegion != null) {
-        onRegion.accept(Surface3DRegion.FULL);
-      }
-    });
-    FxLayout.bindManagedToVisible(regionError);
-    regionError.setVisible(false);
-    regionError.setWrapText(true);
-    final VBox regionContent = FxLayout.newVBox(Insets.EMPTY, regionGrid,
-        FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, apply, fullRange), regionError);
-    regionContent.setSpacing(6);
-    regionSection = new TitledPane("Region", regionContent);
-    regionSection.setExpanded(false);
-    regionSection.setAnimated(false);
-    regionSection.setTooltip(new Tooltip(
-        "Ctrl/⌘ + drag on the floor to select a region. Smaller regions show more detail."));
-    FxLayout.bindManagedToVisible(regionSection);
-    regionSection.setVisible(false);
 
-    getChildren().addAll(header, mzRow, mzError, scroll, regionSection);
+    getChildren().addAll(header, mzRow, mzError, scroll);
   }
 
   /**
@@ -199,12 +159,6 @@ final class Surface3DOverlayPanel extends VBox {
         });
     button.setOnAction(_ -> menu.show(button, Side.BOTTOM, 0, 0));
     return button;
-  }
-
-  private static @NotNull TextField regionField() {
-    final TextField field = new TextField();
-    field.setPrefColumnCount(5);
-    return field;
   }
 
   private void updateActions() {
@@ -245,38 +199,6 @@ final class Surface3DOverlayPanel extends VBox {
 
   void setOnRemove(@Nullable final Consumer<String> listener) {
     onRemove = listener;
-  }
-
-  void setOnRegion(@Nullable final Consumer<Surface3DRegion> listener) {
-    onRegion = listener;
-    regionSection.setVisible(listener != null);
-  }
-
-  /**
-   * Shows the region in the fields, with the data extent as prompt text.
-   */
-  void setRegion(@NotNull final Surface3DRegion region, @Nullable final Surface3DBounds bounds,
-      @NotNull final String xLabel, @NotNull final String yLabel) {
-    this.bounds = bounds;
-    regionXLabel.setText(xLabel);
-    regionYLabel.setText(yLabel);
-    regionXLabel.setTooltip(new Tooltip(xLabel));
-    regionYLabel.setTooltip(new Tooltip(yLabel));
-    show(regionXMin, regionXMax, region.x(), bounds == null ? null
-        : Range.closed(bounds.xMin(), bounds.xMax()));
-    show(regionYMin, regionYMax, region.y(), bounds == null ? null
-        : Range.closed(bounds.yMin(), bounds.yMax()));
-    fullRange.setDisable(region.isFull());
-    regionSection.setText(region.isFull() ? "Region" : "Region · zoomed");
-    regionError.setVisible(false);
-  }
-
-  private static void show(@NotNull final TextField min, @NotNull final TextField max,
-      @Nullable final Range<Double> value, @Nullable final Range<Double> extent) {
-    min.setText(value == null ? "" : Surface3DAxes.format(value.lowerEndpoint()));
-    max.setText(value == null ? "" : Surface3DAxes.format(value.upperEndpoint()));
-    min.setPromptText(extent == null ? "" : Surface3DAxes.format(extent.lowerEndpoint()));
-    max.setPromptText(extent == null ? "" : Surface3DAxes.format(extent.upperEndpoint()));
   }
 
   void setSeries(@NotNull final List<Surface3DSeries> series,
@@ -402,45 +324,6 @@ final class Surface3DOverlayPanel extends VBox {
       onAddMz.accept(ranges);
     } catch (final IllegalArgumentException ex) {
       showError(mzError, ex.getMessage());
-    }
-  }
-
-  private void applyRegion() {
-    if (onRegion == null) {
-      return;
-    }
-    try {
-      final Range<Double> x = parse(regionXMin, regionXMax,
-          bounds == null ? null : Range.closed(bounds.xMin(), bounds.xMax()));
-      final Range<Double> y = parse(regionYMin, regionYMax,
-          bounds == null ? null : Range.closed(bounds.yMin(), bounds.yMax()));
-      onRegion.accept(new Surface3DRegion(x, y));
-    } catch (final IllegalArgumentException ex) {
-      showError(regionError, ex.getMessage());
-    }
-  }
-
-  /**
-   * @return null if both fields are blank, blank fields otherwise default to the data extent
-   */
-  private static @Nullable Range<Double> parse(@NotNull final TextField min,
-      @NotNull final TextField max, @Nullable final Range<Double> extent) {
-    final String lowerText = min.getText().trim();
-    final String upperText = max.getText().trim();
-    if (lowerText.isEmpty() && upperText.isEmpty()) {
-      return null;
-    }
-    try {
-      final double lower = lowerText.isEmpty() && extent != null ? extent.lowerEndpoint()
-          : Double.parseDouble(lowerText);
-      final double upper = upperText.isEmpty() && extent != null ? extent.upperEndpoint()
-          : Double.parseDouble(upperText);
-      if (!(upper > lower)) {
-        throw new IllegalArgumentException("The region maximum must exceed the minimum");
-      }
-      return Range.closed(lower, upper);
-    } catch (final NumberFormatException ex) {
-      throw new IllegalArgumentException("Enter numeric region limits");
     }
   }
 

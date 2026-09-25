@@ -188,4 +188,40 @@ class Surface3DMeshTest {
     assertEquals(0.51, fromLowest.height(image, 1e5), 0.01);
     assertEquals(0, fromLowest.height(image, 0));
   }
+
+  @Test
+  void flatScaleGivesEveryValueTheSameHeight() {
+    final Surface3DData image = new Surface3DData(Surface3DData.coordinates(2, 0, 10),
+        Surface3DData.coordinates(1, 0, 0), "X", "Y", true);
+    image.addMaximum(0, 0, 10);
+    image.addMaximum(1, 0, 1e6);
+    final Surface3DScale flat = new Surface3DScale(Surface3DBounds.of(List.of(image)),
+        PaintScaleTransform.LINEAR, false, 0, 0, true);
+    assertEquals(Surface3DScale.FLAT_HEIGHT, flat.height(image, 10));
+    assertEquals(Surface3DScale.FLAT_HEIGHT, flat.height(image, 1e6));
+    assertEquals(0, flat.height(image, 0));
+    // colors keep the intensity
+    assertEquals(1, flat.color(image, 1e6), 1e-9);
+  }
+
+  @Test
+  void flatCellsOfConsecutiveScansTouch() {
+    // irregular scan times, signal in two scans and one m/z bin
+    final Surface3DData data = new Surface3DData(new double[]{1, 1.2, 1.7, 2}, new double[]{400,
+        400.1, 400.2}, "RT", "m/z", false);
+    for (int x = 0; x < 4; x++) {
+      data.markColumn(x);
+    }
+    data.addMaximum(1, 1, 100);
+    data.addMaximum(2, 1, 50);
+    final Surface3DScale flat = new Surface3DScale(Surface3DBounds.of(List.of(data)),
+        PaintScaleTransform.LINEAR, false, 0.01, 0, true);
+    final Surface3DMesh mesh = Surface3DMesh.build(data, flat, () -> false);
+    // two cells, sharing the two corners on the boundary between the scans
+    assertEquals(4, mesh.triangles());
+    assertEquals(6, mesh.points().length / 3);
+    assertEquals(1.45, data.xLow(2), 1e-9);
+    assertEquals(1.45, data.xHigh(1), 1e-9);
+    assertEquals(0.9, data.xLow(0), 1e-9);
+  }
 }

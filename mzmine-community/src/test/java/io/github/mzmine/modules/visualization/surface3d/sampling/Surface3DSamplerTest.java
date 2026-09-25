@@ -147,6 +147,21 @@ public class Surface3DSamplerTest {
   }
 
   @Test
+  void ms2ScansDoNotBreakMs1Traces() {
+    // DDA: MS2 scans between the MS1 scans of a trace
+    final Scan ms1a = mock(Scan.class);
+    final Scan ms2 = mock(Scan.class);
+    final Scan ms1b = mock(Scan.class);
+    when(ms1a.getMSLevel()).thenReturn(1);
+    when(ms2.getMSLevel()).thenReturn(2);
+    when(ms1b.getMSLevel()).thenReturn(1);
+    assertEquals(List.of(ms1a, ms1b),
+        Surface3DSampler.lowestMsLevel(new Scan[]{ms1a, ms2, ms1b}));
+    // only MS2 selected: the MS2 scans
+    assertEquals(List.of(ms2), Surface3DSampler.lowestMsLevel(new Scan[]{ms2}));
+  }
+
+  @Test
   void framesAreSelectedByRetentionTimeOrIntensity() {
     final Frame early = mock(Frame.class);
     final Frame late = mock(Frame.class);

@@ -89,8 +89,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.Pos;
 import javafx.scene.AmbientLight;
+import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
@@ -117,6 +119,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -148,6 +151,13 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(Surface3DPlot.class.getName());
   private static final double DEFAULT_TILT = 38;
+  // sample points per axis to find the visible data window
+  private static final int VISIBLE_STEPS = 24;
+  // closest and farthest camera distance to the viewed point: fitted views are ~1250 away, so
+  // zooming in reaches more than 10000 times (user request)
+  private static final double MIN_DISTANCE = 0.05;
+  private static final double MAX_DISTANCE = 4000;
+  private static final double MIN_BOX_PIXELS = 3;
   private static final double DEFAULT_TURN = -32;
   private static final int FIT_DIVISIONS = 12;
   private static final int MAX_HOVER_ROWS = 8;
@@ -166,6 +176,11 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private final Spinner<Integer> gridColumns = new Spinner<>(0, 20, 0);
   private final Spinner<Integer> gridRows = new Spinner<>(0, 20, 0);
   private @Nullable Surface3DAxesSpec axesSpec;
+  // scale of marker line widths, follows the zoom like the axes
+  private double lineScale = 1;
+  // 2D view: margins of the fitted plot area to the viewport edges, so the area follows resizing
+  private @Nullable Insets plotInsets;
+
   private final Group model = new Group(axes.geometry(), extraAxesGroup, surfaces, markers,
       slices);
   private final Rotate tilt = new Rotate(DEFAULT_TILT, Rotate.X_AXIS);
@@ -252,7 +267,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private @Nullable Surface3DBounds bounds;
   private @Nullable Surface3DScale scale;
   private @Nullable Consumer<Surface3DDetail> detailListener;
-  private @Nullable Consumer<Surface3DRegion> regionListener;
   private @Nullable Consumer<Surface3DSelection> selectionListener;
   private @Nullable BiConsumer<String, Color> colorListener;
   private @Nullable Surface3DSelection selection;
@@ -261,7 +275,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   // decision: without preferences, units follow the mzmine default style, e.g. "Intensity / %"
   private UnitFormat unitFormat = UnitFormat.DIVIDE;
   private @Nullable Node detailPane;
-  private Surface3DRegion region = Surface3DRegion.FULL;
   private @Nullable Point3D regionStart;
   private @Nullable Point3D regionEnd;
   private boolean closed;
@@ -269,13 +282,22 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private double dragX;
   private double dragY;
   private boolean dragged;
-  private double fittedDistance = 1250;
+  private final boolean flat;
   private boolean autoFit = true;
   // side by side tile the camera is fitted to, -1 fits all
   private int focusedTile = -1;
   private List<Point3D> fittingPoints = List.of();
 
   public Surface3DPlot(@NotNull final SimpleColorPalette palette) {
+    this(palette, false);
+  }
+
+  /**
+   * @param flat 2D view: a fixed top view of flat geometry colored by intensity, without heights,
+   *             rotation, or lighting, and without the controls that only apply in 3D
+   */
+  public Surface3DPlot(@NotNull final SimpleColorPalette palette, final boolean flat) {
+    this.flat = flat;
     final int threads = Math.clamp(Runtime.getRuntime().availableProcessors() - 1, 1, 4);
     final ThreadPoolExecutor pool = new ThreadPoolExecutor(threads, threads, 30, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), runnable -> {
@@ -298,8 +320,17 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final PointLight front = new PointLight(Color.rgb(85, 90, 100));
     front.setTranslateY(-150);
     front.setTranslateZ(-1400);
-    final Group world = new Group(model, new AmbientLight(Color.rgb(110, 110, 110)), key, fill,
-        front);
+    // decision: the 2D view is unlit, so colors match the paint scale exactly
+    final Group world = flat ? new Group(model, new AmbientLight(Color.WHITE))
+        : new Group(model, new AmbientLight(Color.rgb(110, 110, 110)), key, fill, front);
+    if (flat) {
+      // a plane facing the camera projects without perspective distortion, like a 2D image
+      tilt.setAngle(90);
+      turn.setAngle(0);
+      // decision: coplanar floor, grid, data, and markers draw in scene order, a depth test
+      // needs lifted layers, which drift apart from the axes at deep zoom
+      model.setDepthTest(DepthTest.DISABLE);
+    }
     scene = new SubScene(world, 900, 650, true, SceneAntialiasing.BALANCED);
     camera.setNearClip(10);
     camera.setFarClip(10000);
@@ -418,6 +449,9 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
             this::resetView),
         viewButton("top", "bi-grid-3x3", "Top view onto the coordinate plane (T)", this::topView),
         frontButton, sideButton);
+    // the 2D view has one fixed camera
+    views.setVisible(!flat);
+    views.setManaged(!flat);
     frontButton.setId("surface3d-view-front");
     frontButton.setOnAction(_ -> frontView());
     sideButton.setId("surface3d-view-side");
@@ -484,13 +518,21 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final Button save = FxButtons.createButton(null, FxIcons.SAVE, "Save the current view as PNG",
         this::saveImage);
     final Label help = new Label(null, FxIconUtil.getFontIcon(FxIcons.QUESTION_CIRCLE));
-    final Tooltip helpTip = new Tooltip("""
-        Drag: rotate · Shift/right-drag or two-finger scroll: pan
+    final String common = """
         Mouse wheel or pinch: zoom at the cursor
         Side by side: double-click a tile to fit it, double-click elsewhere for all
         Click: show the spectrum at this position
-        Spectrum: click a signal to show its m/z, Ctrl/⌘ + click to add or remove m/z
-        Ctrl/⌘ + drag on the floor: select a region
+        Spectrum: click a signal to show its m/z, Ctrl/⌘ + click to add or remove m/z,
+        Ctrl/⌘ + drag to add an m/z window
+        """;
+    final Tooltip helpTip = new Tooltip(flat ? """
+        Drag, arrow keys, or two-finger scroll: pan
+        """ + common + """
+        Ctrl/⌘ + drag: zoom to a box
+        Double-click or R: fit view · +/−: zoom""" : """
+        Drag: rotate · Shift/right-drag or two-finger scroll: pan
+        """ + common + """
+        Ctrl/⌘ + drag on the floor: zoom to a box
         Double-click or R: fit view · T/F/S: top, front, side
         Arrow keys: rotate · +/−: zoom""");
     helpTip.setShowDelay(Duration.millis(150));
@@ -519,6 +561,9 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       if (value == Surface3DLayout.OVERLAY && series.size() > 1) {
         coloring.setValue(Surface3DColoring.SAMPLE);
       }
+      // decision: tiles change their size and place, so the zoom of the former layout is lost
+      autoFit = true;
+      focusedTile = -1;
       updateDisplayControls();
       rebuild();
     });
@@ -581,16 +626,19 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final Surface3DLayout mode = layout.get();
     displayGrid.getChildren().clear();
     int row = 0;
-    if (heightSlider != null) {
+    if (heightSlider != null && !flat) {
       displayGrid.addRow(row++, new Label("Height"), heightSlider);
     }
     // decision (user request): logarithmic heights only make sense for images
     if (!imaging && !current.isEmpty() && transform.getValue() != PaintScaleTransform.LINEAR) {
       transform.setValue(PaintScaleTransform.LINEAR);
     }
-    if (imaging) {
+    // transformation and baseline change heights only, which the 2D view does not have
+    if (imaging && !flat) {
       displayGrid.addRow(row++, new Label("Transform"), transform);
       displayGrid.addRow(row++, new Label("Heights"), fromLowest);
+    }
+    if (imaging) {
       if (normalizationListener != null) {
         displayGrid.addRow(row++, new Label("Normalize"), intensityNormalization);
       }
@@ -633,8 +681,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
    */
   private void updateProfileButtons(@NotNull final List<Surface3DSeries> current,
       final boolean imaging) {
-    frontButton.setVisible(!imaging);
-    sideButton.setVisible(!imaging);
+    frontButton.setVisible(!imaging && !flat);
+    sideButton.setVisible(!imaging && !flat);
     final Surface3DData first = current.isEmpty() ? null : current.getFirst().data();
     final Surface3DAxisKind x = first == null ? Surface3DAxisKind.RETENTION_TIME
         : first.xKind();
@@ -702,8 +750,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       dragX = event.getSceneX();
       dragY = event.getSceneY();
       dragged = false;
-      if (event.isShortcutDown() && event.getButton() == MouseButton.PRIMARY
-          && regionListener != null && bounds != null) {
+      // Ctrl/⌘ + drag zooms to a box on the floor
+      if (event.isShortcutDown() && event.getButton() == MouseButton.PRIMARY && bounds != null) {
         regionTile = tileAtFloor(ray(event));
         markers.getTransforms().setAll(regionTile.transforms());
         regionStart = Surface3DPicker.floor(regionTile.toLocal(ray(event)), true);
@@ -721,7 +769,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       autoFit = false;
       final double dx = event.getSceneX() - dragX;
       final double dy = event.getSceneY() - dragY;
-      if (event.isShiftDown() || event.getButton() == MouseButton.SECONDARY
+      // the 2D view cannot rotate, dragging pans
+      if (flat || event.isShiftDown() || event.getButton() == MouseButton.SECONDARY
           || event.getButton() == MouseButton.MIDDLE) {
         final double factor = -camera.getTranslateZ() / 1050;
         model.setTranslateX(model.getTranslateX() + dx * factor);
@@ -732,14 +781,19 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       }
       dragX = event.getSceneX();
       dragY = event.getSceneY();
+      // the axes stay at the view edges while dragging
+      updateAxesFrame();
       projectAxes();
     });
     scene.setOnMouseReleased(event -> {
       if (regionStart != null) {
-        finishRegion();
+        zoomToBox();
         return;
       }
-      if (!dragged) {
+      if (dragged) {
+        // a new view may show another part of the data
+        requestDetail();
+      } else {
         if (event.getButton() == MouseButton.PRIMARY && !event.isShortcutDown()) {
           select(event.getX(), event.getY());
         }
@@ -816,7 +870,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     model.setTranslateX(model.getTranslateX() + dx * factor);
     model.setTranslateY(model.getTranslateY() + dy * factor);
     hideHover();
-    projectAxes();
+    requestDetail();
   }
 
   /**
@@ -835,8 +889,9 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       return;
     }
     // moving the camera along the cursor ray keeps the target under the cursor
-    final double z = Math.clamp(target.getZ() + (cameraPosition.getZ() - target.getZ()) / factor,
-        -4000, -250);
+    final double distance = Math.clamp((target.getZ() - cameraPosition.getZ()) / factor,
+        MIN_DISTANCE, MAX_DISTANCE);
+    final double z = target.getZ() - distance;
     final double effective = (cameraPosition.getZ() - target.getZ()) / (z - target.getZ());
     if (!(effective > 0) || !Double.isFinite(effective)) {
       return;
@@ -847,7 +902,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     camera.setTranslateY(moved.getY());
     camera.setTranslateZ(moved.getZ());
     hideHover();
-    projectAxes();
     requestDetail();
   }
 
@@ -897,18 +951,42 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     requestDetail();
   }
 
+  /**
+   * Zooms towards the viewport center.
+   */
   private void zoom(final double factor) {
     if (!(factor > 0) || !Double.isFinite(factor)) {
       return;
     }
+    if (worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2) != null) {
+      zoomAt(factor, scene.getWidth() / 2, scene.getHeight() / 2);
+      return;
+    }
     autoFit = false;
-    camera.setTranslateZ(Math.clamp(camera.getTranslateZ() / factor, -4000, -250));
+    camera.setTranslateZ(-Math.clamp(-camera.getTranslateZ() / factor, MIN_DISTANCE,
+        MAX_DISTANCE));
     hideHover();
-    projectAxes();
     requestDetail();
   }
 
+  /**
+   * Near and far clipping planes follow the distance to the viewed point, so that close-ups are
+   * not clipped and the depth buffer keeps its precision.
+   */
+  private void updateClipping() {
+    final Point3D center = worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2);
+    final double distance = center == null ? -camera.getTranslateZ()
+        : Math.max(MIN_DISTANCE, center.getZ() - camera.getTranslateZ());
+    camera.setNearClip(Math.clamp(distance * 0.01, MIN_DISTANCE * 0.01, 10));
+    camera.setFarClip(Math.max(10000, distance * 100));
+  }
+
   private void rotate(final double turnDelta, final double tiltDelta) {
+    if (flat) {
+      // arrow keys move the 2D view instead
+      pan(-turnDelta * 8, tiltDelta * 8);
+      return;
+    }
     autoFit = false;
     turn.setAngle(turn.getAngle() + turnDelta);
     tilt.setAngle(Math.clamp(tilt.getAngle() + tiltDelta, 0, 90));
@@ -938,19 +1016,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   public void setOnRemoveSeries(@Nullable final Consumer<String> listener) {
     panel.setOnRemove(listener);
-  }
-
-  /**
-   * Enables region selection. The listener should resample the data inside the region.
-   */
-  public void setOnRegionChanged(@Nullable final Consumer<Surface3DRegion> listener) {
-    regionListener = listener;
-    panel.setOnRegion(listener);
-  }
-
-  public void setRegion(@NotNull final Surface3DRegion region) {
-    this.region = region;
-    updateRegionPanel();
   }
 
   /**
@@ -1222,12 +1287,14 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       final double top = sliceTop(i);
       final Group marker = new Group();
       if (sliceMode != Surface3DSliceMode.Y) {
-        marker.getChildren().addAll(slicePlane(0.6, top, DEPTH, x, 0),
-            sliceLine(0.7, DEPTH, x, 0, -top), sliceLine(0.5, DEPTH, x, 0, -0.3));
+        marker.getChildren().addAll(slicePlane(0.6 * lineScale, top, DEPTH, x, 0),
+            sliceLine(0.7 * lineScale, DEPTH, x, 0, -top),
+            sliceLine(0.5 * lineScale, DEPTH, x, 0, -0.3 * lineScale));
       }
       if (sliceMode != Surface3DSliceMode.X) {
-        marker.getChildren().addAll(slicePlane(WIDTH, top, 0.6, 0, z),
-            sliceLine(WIDTH, 0.7, 0, z, -top), sliceLine(WIDTH, 0.5, 0, z, -0.3));
+        marker.getChildren().addAll(slicePlane(WIDTH, top, 0.6 * lineScale, 0, z),
+            sliceLine(WIDTH, 0.7 * lineScale, 0, z, -top),
+            sliceLine(WIDTH, 0.5 * lineScale, 0, z, -0.3 * lineScale));
       }
       marker.getTransforms().setAll(markerTiles.get(i).transforms());
       slices.getChildren().add(marker);
@@ -1274,7 +1341,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   private @NotNull Box sliceLine(final double width, final double depth, final double x,
       final double z, final double y) {
-    final Box line = new Box(width, 0.5, depth);
+    final Box line = new Box(width, 0.5 * lineScale, depth);
     line.setTranslateX(x);
     line.setTranslateZ(z);
     line.setTranslateY(y);
@@ -1303,7 +1370,10 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     // overlay gradients start at the background color
     gradients.clear();
     updateMaterials();
-    scene.setFill(Color.web(dark ? "#1b1f24" : "#f8fafc"));
+    final Color background = Color.web(dark ? "#1b1f24" : "#f8fafc");
+    scene.setFill(background);
+    // the clipped 2D view shows the viewport around its plot area
+    viewport.setBackground(Background.fill(background));
     axes.setDark(dark);
     extraAxes.forEach(value -> value.setDark(dark));
     final String bubble = dark
@@ -1318,18 +1388,22 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   }
 
   public @NotNull Surface3DDetail detail() {
+    // decision: the 2D view samples logical pixels, cells of one physical pixel on HiDPI
+    // screens still drop out between rows
     final double outputScale =
-        getScene() != null && getScene().getWindow() != null ? getScene().getWindow()
+        !flat && getScene() != null && getScene().getWindow() != null ? getScene().getWindow()
             .getOutputScaleX() : 1;
     return new Surface3DDetail(Math.max(600, viewport.getWidth()) * outputScale,
         Math.max(400, viewport.getHeight()) * outputScale,
-        fittedDistance / -camera.getTranslateZ(), Math.max(1, series.size()));
+        Math.max(1, series.size()), flat);
   }
 
   private void requestDetail() {
     if (autoFit) {
       fitView();
     }
+    updateClipping();
+    updateAxesFrame();
     projectAxes();
     if (detailListener != null && !closed) {
       detailListener.accept(detail());
@@ -1464,7 +1538,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     series = values;
     updateDisplayControls();
     bounds = Surface3DBounds.of(series.stream().map(Surface3DSeries::data).toList());
-    updateRegionPanel();
     rebuild();
   }
 
@@ -1498,15 +1571,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     return state;
   }
 
-  private void updateRegionPanel() {
-    if (series.isEmpty()) {
-      panel.setRegion(region, null, "X", "Y");
-      return;
-    }
-    final Surface3DData first = series.getFirst().data();
-    panel.setRegion(region, bounds, first.xLabel(), first.yLabel());
-  }
-
   private void showEmpty(@NotNull final String message) {
     placeholder.setText(message);
     placeholder.setVisible(true);
@@ -1517,9 +1581,10 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       return;
     }
     final double noise = noiseFloor.getValue() / 100;
-    final Surface3DScale target = new Surface3DScale(bounds,
+    final Surface3DScale target = flat ? new Surface3DScale(bounds, PaintScaleTransform.LINEAR,
+        normalized.isSelected(), noise, 0, true) : new Surface3DScale(bounds,
         Objects.requireNonNullElse(transform.getValue(), PaintScaleTransform.LINEAR),
-        normalized.isSelected(), noise, baseline(bounds, normalized.isSelected(), noise));
+        normalized.isSelected(), noise, baseline(bounds, normalized.isSelected(), noise), false);
     final int request = generation.incrementAndGet();
     final BooleanSupplier canceled = () -> generation.get() != request || closed;
     final List<Surface3DSeries> snapshot = series;
@@ -1673,7 +1738,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         first.xKind(), first.yKind(),
         relative ? unitFormat.format("Relative intensity", "%") : "Intensity",
         relative ? target.logarithmic() ? 0 : 100 : target.bounds().maximum(), target.baseline(),
-        target.transform(), relative ? Surface3DFormat.PLAIN : format);
+        target.transform(), relative ? Surface3DFormat.PLAIN : format,
+        axesSpec == null ? null : axesSpec.frame());
     axes.rebuild(axesSpec);
     extraAxes.forEach(value -> value.rebuild(axesSpec));
     applyLayout();
@@ -1729,7 +1795,14 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final double dataX = Surface3DPicker.dataX(scale.bounds(), hit.x());
     final double dataY = Surface3DPicker.dataY(scale.bounds(), hit.z());
     updateSliceMarker(new Surface3DSelection(dataX, dataY));
-    dropLine.setVisible(hit.target() != null && hit.y() < -0.5);
+    final double t = lineScale;
+    dropLine.setVisible(hit.target() != null && hit.y() < -0.5 * t);
+    dropLine.setWidth(0.9 * t);
+    dropLine.setDepth(0.9 * t);
+    crossX.setHeight(0.35 * t);
+    crossX.setDepth(0.35 * t);
+    crossZ.setWidth(0.35 * t);
+    crossZ.setHeight(0.35 * t);
     if (dropLine.isVisible()) {
       dropLine.setHeight(-hit.y());
       dropLine.setTranslateX(hit.x());
@@ -1892,28 +1965,254 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       regionBox.setVisible(false);
       return;
     }
-    regionBox.setWidth(Math.max(0.5, Math.abs(regionEnd.getX() - regionStart.getX())));
-    regionBox.setDepth(Math.max(0.5, Math.abs(regionEnd.getZ() - regionStart.getZ())));
+    final double minimum = 0.5 * lineScale;
+    regionBox.setWidth(Math.max(minimum, Math.abs(regionEnd.getX() - regionStart.getX())));
+    regionBox.setDepth(Math.max(minimum, Math.abs(regionEnd.getZ() - regionStart.getZ())));
     regionBox.setTranslateX((regionEnd.getX() + regionStart.getX()) / 2);
     regionBox.setTranslateZ((regionEnd.getZ() + regionStart.getZ()) / 2);
-    regionBox.setTranslateY(-0.4);
+    // decision (user request): the box reaches above the highest data point, a box on the floor
+    // is hidden below the data; the 2D view draws it after the data anyway
+    final int tile = Math.max(0, tiles.indexOf(regionTile));
+    final double height = flat ? minimum : Math.max(minimum, sliceTop(tile));
+    regionBox.setHeight(height);
+    regionBox.setTranslateY(-height / 2);
     regionBox.setVisible(true);
   }
 
-  private void finishRegion() {
+  /**
+   * Fits the camera to the dragged box (user decision: zooming replaces selecting subsets). The
+   * visible range is then shown in full detail.
+   */
+  private void zoomToBox() {
     final Point3D start = regionStart;
     final Point3D end = regionEnd;
     cancelRegion();
-    if (start == null || end == null || bounds == null || regionListener == null
-        || Math.abs(end.getX() - start.getX()) < WIDTH * 0.01
-        || Math.abs(end.getZ() - start.getZ()) < DEPTH * 0.01) {
+    // a box of a few pixels on screen is a click, not a drag
+    if (start == null || end == null || screenDistance(start, new Point3D(end.getX(), 0,
+        start.getZ())) < MIN_BOX_PIXELS || screenDistance(start, new Point3D(start.getX(), 0,
+        end.getZ())) < MIN_BOX_PIXELS) {
       return;
     }
-    final double x0 = Surface3DPicker.dataX(bounds, Math.min(start.getX(), end.getX()));
-    final double x1 = Surface3DPicker.dataX(bounds, Math.max(start.getX(), end.getX()));
-    final double y0 = Surface3DPicker.dataY(bounds, Math.min(start.getZ(), end.getZ()));
-    final double y1 = Surface3DPicker.dataY(bounds, Math.max(start.getZ(), end.getZ()));
-    regionListener.accept(new Surface3DRegion(Range.closed(x0, x1), Range.closed(y0, y1)));
+    final List<Point3D> corners = new ArrayList<>();
+    final List<Point3D> modelCorners = new ArrayList<>();
+    for (final double x : new double[]{start.getX(), end.getX()}) {
+      for (final double z : new double[]{start.getZ(), end.getZ()}) {
+        final Point3D corner = regionTile.toModel(new Point3D(x, 0, z));
+        modelCorners.add(corner);
+        corners.add(model.localToParent(corner));
+      }
+    }
+    autoFit = false;
+    focusedTile = -1;
+    fitCamera(corners);
+    if (flat) {
+      fitPlotArea(corners, modelCorners);
+    }
+    hideHover();
+    requestDetail();
+  }
+
+  /**
+   * Moves the camera of the top view so that the fitted box fills the fixed plot area of the 2D
+   * view instead of the viewport.
+   *
+   * @param corners      box corners in camera coordinates, already fitted to the viewport
+   * @param modelCorners the same corners in model coordinates
+   */
+  private void fitPlotArea(@NotNull final List<Point3D> corners,
+      @NotNull final List<Point3D> modelCorners) {
+    final Rectangle2D area = plotArea();
+    if (area == null) {
+      return;
+    }
+    final double[] screen = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE,
+        -Double.MAX_VALUE};
+    for (final Point3D corner : modelCorners) {
+      final Point3D sceneCorner = model.localToScene(corner, true);
+      if (sceneCorner == null) {
+        return;
+      }
+      final Point2D local = scene.sceneToLocal(sceneCorner.getX(), sceneCorner.getY());
+      include(screen, local.getX(), local.getY());
+    }
+    double minX = Double.MAX_VALUE;
+    double maxX = -Double.MAX_VALUE;
+    double depth = 0;
+    for (final Point3D corner : corners) {
+      minX = Math.min(minX, corner.getX());
+      maxX = Math.max(maxX, corner.getX());
+      depth += corner.getZ() / corners.size();
+    }
+    final double screenWidth = screen[1] - screen[0];
+    final double screenHeight = screen[3] - screen[2];
+    if (!(screenWidth > 0) || !(screenHeight > 0) || !(maxX > minX)) {
+      return;
+    }
+    // assumption: the flat top view projects both axes with the same pixels per unit
+    final double factor = Math.min(area.getWidth() / screenWidth,
+        area.getHeight() / screenHeight);
+    final double distance = Math.max(MIN_DISTANCE, (depth - camera.getTranslateZ()) / factor);
+    final double pixelsPerUnit = screenWidth / (maxX - minX) * (depth - camera.getTranslateZ())
+        / distance;
+    final double boxX = (screen[0] + screen[1]) / 2;
+    final double boxY = (screen[2] + screen[3]) / 2;
+    camera.setTranslateX(camera.getTranslateX() - (area.getMinX() + area.getWidth() / 2 - boxX)
+        / pixelsPerUnit);
+    camera.setTranslateY(camera.getTranslateY() - (area.getMinY() + area.getHeight() / 2 - boxY)
+        / pixelsPerUnit);
+    camera.setTranslateZ(depth - distance);
+  }
+
+  /**
+   * @return screen distance of two local points of the zoom box tile
+   */
+  private double screenDistance(@NotNull final Point3D a, @NotNull final Point3D b) {
+    final Point3D sa = model.localToScene(regionTile.toModel(a), true);
+    final Point3D sb = model.localToScene(regionTile.toModel(b), true);
+    return sa == null || sb == null ? 0 : Math.hypot(sa.getX() - sb.getX(), sa.getY() - sb.getY());
+  }
+
+  /**
+   * @return the data window visible in the viewport, full if nearly all data are visible
+   */
+  public @NotNull Surface3DRegion visibleWindow() {
+    // the 2D view clips everything outside its fixed plot area
+    final double[] area = flat ? plotAreaFloor() : null;
+    final double[] floor = area != null ? area : visibleFloor();
+    final Surface3DBounds current = bounds;
+    if (floor == null || current == null || nearlyAll(floor)) {
+      return Surface3DRegion.FULL;
+    }
+    return toData(current, floor);
+  }
+
+  /**
+   * @return the visible part of the floor in local coordinates {x0, x1, z0, z1}, null if unknown.
+   * Rays through the viewport corners, edge centers, and center are exact for the top view and
+   * for zoomed tiles. If a ray misses, e.g. towards the horizon of a tilted view, floor and top
+   * points of every tile are projected instead.
+   */
+  private double @Nullable [] visibleFloor() {
+    if (bounds == null || series.isEmpty() || scene.getWidth() <= 0 || scene.getHeight() <= 0) {
+      return null;
+    }
+    final List<Surface3DTile> shown =
+        layout.getValue().composite() ? List.of(Surface3DTile.IDENTITY) : tiles;
+    final double[] extent = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE,
+        -Double.MAX_VALUE};
+    boolean all = true;
+    for (int i = 0; i <= 2 && all; i++) {
+      for (int j = 0; j <= 2 && all; j++) {
+        final Surface3DPicker.Ray ray = Surface3DPicker.ray(camera, scene.getWidth(),
+            scene.getHeight(), scene.getWidth() * i / 2, scene.getHeight() * j / 2, model);
+        Point3D hit = null;
+        for (final Surface3DTile tile : shown) {
+          hit = Surface3DPicker.floor(tile.toLocal(ray), false);
+          if (hit != null) {
+            break;
+          }
+        }
+        if (hit == null) {
+          all = false;
+        } else {
+          include(extent, hit.getX(), hit.getZ());
+        }
+      }
+    }
+    if (!all) {
+      extent[0] = extent[2] = Double.MAX_VALUE;
+      extent[1] = extent[3] = -Double.MAX_VALUE;
+      projectFloor(shown, extent);
+    }
+    return extent[0] > extent[1] ? null : extent;
+  }
+
+  /**
+   * Adds the floor and top sample points of the tiles that are visible in the viewport.
+   */
+  private void projectFloor(@NotNull final List<Surface3DTile> shown,
+      final double @NotNull [] extent) {
+    final Bounds view = viewport.localToScene(viewport.getLayoutBounds());
+    final int steps = VISIBLE_STEPS;
+    for (final Surface3DTile tile : shown) {
+      for (int i = 0; i <= steps; i++) {
+        final double x = (i / (double) steps - 0.5) * WIDTH;
+        for (int j = 0; j <= steps; j++) {
+          final double z = (j / (double) steps - 0.5) * DEPTH;
+          for (final double y : flat ? new double[]{0} : new double[]{0, -Surface3DMesh.HEIGHT}) {
+            final Point3D local = tile.toModel(new Point3D(x, y, z));
+            if (model.localToParent(local).getZ()
+                <= camera.getTranslateZ() + camera.getNearClip()) {
+              continue;
+            }
+            final Point3D screen = model.localToScene(local, true);
+            if (screen != null && view.contains(screen.getX(), screen.getY())) {
+              include(extent, x, z);
+            }
+          }
+        }
+      }
+    }
+    if (extent[0] <= extent[1]) {
+      // points between the samples may be visible too
+      extent[0] = Math.max(-WIDTH / 2, extent[0] - WIDTH / steps);
+      extent[1] = Math.min(WIDTH / 2, extent[1] + WIDTH / steps);
+      extent[2] = Math.max(-DEPTH / 2, extent[2] - DEPTH / steps);
+      extent[3] = Math.min(DEPTH / 2, extent[3] + DEPTH / steps);
+    }
+  }
+
+  private static void include(final double @NotNull [] extent, final double x, final double z) {
+    extent[0] = Math.min(extent[0], x);
+    extent[1] = Math.max(extent[1], x);
+    extent[2] = Math.min(extent[2], z);
+    extent[3] = Math.max(extent[3], z);
+  }
+
+  private static boolean nearlyAll(final double @NotNull [] floor) {
+    return floor[1] - floor[0] >= WIDTH * 0.9 && floor[3] - floor[2] >= DEPTH * 0.9;
+  }
+
+  private static @NotNull Surface3DRegion toData(@NotNull final Surface3DBounds current,
+      final double @NotNull [] floor) {
+    return new Surface3DRegion(
+        Range.closed(Surface3DPicker.dataX(current, floor[0]),
+            Surface3DPicker.dataX(current, floor[1])),
+        Range.closed(Surface3DPicker.dataY(current, floor[2]),
+            Surface3DPicker.dataY(current, floor[3])));
+  }
+
+  /**
+   * The 2D view keeps a fixed plot area like a zoomed chart (user decision): the axes stay where
+   * the fitted view placed them and only their tick values change, and data outside the area are
+   * clipped instead of covering the tick labels. The 3D view keeps its axes at the data edges.
+   */
+  private void updateAxesFrame() {
+    final Surface3DAxesSpec spec = axesSpec;
+    final Surface3DBounds current = bounds;
+    if (spec == null || current == null) {
+      return;
+    }
+    updateClip();
+    Surface3DRegion frame = null;
+    lineScale = 1;
+    final double[] plotFloor = plotAreaFloor();
+    // side by side 2D tiles without focus have no plot area, their lines still follow the zoom
+    final double[] area = plotFloor != null ? plotFloor : visibleFloor();
+    if (area != null) {
+      final boolean complete = area[0] <= -WIDTH / 2 + 1e-9 && area[1] >= WIDTH / 2 - 1e-9
+          && area[2] <= -DEPTH / 2 + 1e-9 && area[3] >= DEPTH / 2 - 1e-9;
+      if (!complete && area[1] > area[0] && area[3] > area[2]) {
+        lineScale = Math.min(1, Surface3DAxes.thickness(area));
+        frame = plotFloor != null ? toData(current, area) : null;
+      }
+    }
+    if (Objects.equals(frame, spec.frame())) {
+      return;
+    }
+    axesSpec = spec.withFrame(frame);
+    allAxes().forEach(value -> value.rebuild(axesSpec));
+    projectAxes();
   }
 
   private void cancelRegion() {
@@ -2017,8 +2316,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   private void resetView() {
     focusedTile = -1;
-    tilt.setAngle(DEFAULT_TILT);
-    turn.setAngle(DEFAULT_TURN);
+    tilt.setAngle(flat ? 90 : DEFAULT_TILT);
+    turn.setAngle(flat ? 0 : DEFAULT_TURN);
     applyPreset();
   }
 
@@ -2267,6 +2566,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     if (viewport.getHeight() <= 0 || viewport.getWidth() <= 0) {
       return;
     }
+    // the fit places the axes at the data edges and defines the plot area of the 2D view
+    resetAxesFrame();
     final List<Point3D> corners = new ArrayList<>();
     final boolean focused = layout.get() == Surface3DLayout.GRID && focusedTile >= 0
         && focusedTile < tiled.size() && focusedTile < tiles.size()
@@ -2292,6 +2593,114 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         corners.add(model.localToParent(value.geometry().localToParent(point)));
       }
     }
+    fitCamera(corners);
+    if (flat) {
+      updatePlotArea();
+    }
+  }
+
+  private void resetAxesFrame() {
+    final Surface3DAxesSpec spec = axesSpec;
+    lineScale = 1;
+    if (spec != null && spec.frame() != null) {
+      axesSpec = spec.withFrame(null);
+      allAxes().forEach(value -> value.rebuild(axesSpec));
+    }
+  }
+
+  /**
+   * @return the tile with a fixed plot area in the 2D view: the only tile or the focused one. Side
+   * by side tiles without focus keep their axes at the data edges, like in 3D.
+   */
+  private @Nullable Surface3DTile plotTile() {
+    if (!flat) {
+      return null;
+    }
+    if (focusedTile >= 0 && focusedTile < tiles.size()) {
+      return tiles.get(focusedTile);
+    }
+    return tiles.size() == 1 ? tiles.getFirst() : null;
+  }
+
+  /**
+   * Stores the margins of the fitted plot floor to the viewport edges.
+   */
+  private void updatePlotArea() {
+    final Surface3DTile tile = plotTile();
+    plotInsets = null;
+    if (tile != null) {
+      final double[] screen = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE,
+          -Double.MAX_VALUE};
+      for (final double x : new double[]{-WIDTH / 2, WIDTH / 2}) {
+        for (final double z : new double[]{-DEPTH / 2, DEPTH / 2}) {
+          final Point3D sceneCorner = model.localToScene(tile.toModel(new Point3D(x, 0, z)), true);
+          if (sceneCorner != null) {
+            final Point2D local = scene.sceneToLocal(sceneCorner.getX(), sceneCorner.getY());
+            include(screen, local.getX(), local.getY());
+          }
+        }
+      }
+      if (screen[1] > screen[0] && screen[3] > screen[2]) {
+        plotInsets = new Insets(screen[2], scene.getWidth() - screen[1],
+            scene.getHeight() - screen[3], screen[0]);
+      }
+    }
+    updateClip();
+  }
+
+  /**
+   * @return screen area of the fixed 2D plot in the current viewport, null if there is none
+   */
+  private @Nullable Rectangle2D plotArea() {
+    final Insets insets = plotInsets;
+    if (insets == null || plotTile() == null) {
+      return null;
+    }
+    final double width = scene.getWidth() - insets.getLeft() - insets.getRight();
+    final double height = scene.getHeight() - insets.getTop() - insets.getBottom();
+    return width > 0 && height > 0 ? new Rectangle2D(insets.getLeft(), insets.getTop(), width,
+        height) : null;
+  }
+
+  /**
+   * Clips the 2D view to its plot area, so zoomed data do not cover the tick labels.
+   */
+  private void updateClip() {
+    final Rectangle2D area = plotArea();
+    // a small margin keeps the axis lines at the border
+    scene.setClip(area == null ? null : new Rectangle(area.getMinX() - 2, area.getMinY() - 2,
+        area.getWidth() + 4, area.getHeight() + 4));
+  }
+
+  /**
+   * @return local floor {x0, x1, z0, z1} shown in the plot area of the 2D view, null without a
+   * fixed plot area
+   */
+  private double @Nullable [] plotAreaFloor() {
+    final Rectangle2D area = plotArea();
+    final Surface3DTile tile = plotTile();
+    if (area == null || tile == null) {
+      return null;
+    }
+    final double[] extent = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE,
+        -Double.MAX_VALUE};
+    for (final double x : new double[]{area.getMinX(), area.getMaxX()}) {
+      for (final double y : new double[]{area.getMinY(), area.getMaxY()}) {
+        final Point3D hit = Surface3DPicker.floor(tile.toLocal(
+            Surface3DPicker.ray(camera, scene.getWidth(), scene.getHeight(), x, y, model)), true);
+        if (hit == null) {
+          return null;
+        }
+        include(extent, hit.getX(), hit.getZ());
+      }
+    }
+    return extent;
+  }
+
+  /**
+   * Places the camera so that all points are visible.
+   */
+  private void fitCamera(@NotNull final List<Point3D> corners) {
     if (corners.isEmpty()) {
       return;
     }
@@ -2309,15 +2718,15 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final double cy = (minY + maxY) / 2;
     final double tangent = Math.tan(Math.toRadians(camera.getFieldOfView() / 2)) * 0.84;
     final double aspect = viewport.getWidth() / viewport.getHeight();
-    double z = -250;
+    double z = Double.MAX_VALUE;
     for (final Point3D point : corners) {
-      z = Math.min(z, point.getZ() - Math.max(Math.abs(point.getY() - cy) / tangent,
-          Math.abs(point.getX() - cx) / (tangent * aspect)));
+      final double fitted = Math.max(Math.abs(point.getY() - cy) / tangent,
+          Math.abs(point.getX() - cx) / (tangent * aspect));
+      z = Math.min(z, point.getZ() - Math.max(MIN_DISTANCE, fitted));
     }
     camera.setTranslateX(cx);
     camera.setTranslateY(cy);
     camera.setTranslateZ(z);
-    fittedDistance = -z;
   }
 
   private void saveImage() {
@@ -2325,8 +2734,9 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       return;
     }
     final FileChooser chooser = FxFileChooser.newFileChooser(
-        List.of(new FileChooser.ExtensionFilter("PNG image", "*.png")), null, "Save 3D view");
-    chooser.setInitialFileName("3d-view.png");
+        List.of(new FileChooser.ExtensionFilter("PNG image", "*.png")), null,
+        flat ? "Save 2D view" : "Save 3D view");
+    chooser.setInitialFileName(flat ? "2d-view.png" : "3d-view.png");
     final File file = chooser.showSaveDialog(getScene().getWindow());
     if (file == null) {
       return;

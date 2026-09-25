@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.surface3d.data;
 
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Numeric coordinates and nonnegative intensity, with missing values represented explicitly.
@@ -48,7 +49,11 @@ public final class Surface3DData {
   private double maximum;
   // lowest positive intensity, computed on first use
   private double minimum = Double.NaN;
-  private boolean viewLimited;
+  // explicit cell extents of merged grids, whose cells differ in size; null derives them
+  private double @Nullable [] xLows;
+  private double @Nullable [] xHighs;
+  private double @Nullable [] yLows;
+  private double @Nullable [] yHighs;
   private Surface3DAxisKind xKind = Surface3DAxisKind.OTHER;
   private Surface3DAxisKind yKind = Surface3DAxisKind.OTHER;
 
@@ -201,11 +206,144 @@ public final class Surface3DData {
   }
 
   public int binX(final double value) {
-    return nearest(value, x, xStep, pixels);
+    return xLows == null ? nearest(value, x, xStep, pixels)
+        : cell(value, x, xLows, xHighs, pixels);
   }
 
   public int binY(final double value) {
-    return nearest(value, y, yStep, pixels);
+    return yLows == null ? nearest(value, y, yStep, pixels)
+        : cell(value, y, yLows, yHighs, pixels);
+  }
+
+  /**
+   * @return the cell with explicit extents that contains the value, for other data the nearest
+   * one within the coordinate range
+   */
+  private static int cell(final double value, final double @NotNull [] centers,
+      final double @NotNull [] lows, final double @Nullable [] highs, final boolean pixels) {
+    if (!(value >= (pixels ? lows[0] : centers[0])) || !(value <= (pixels
+        ? highs[highs.length - 1] : centers[centers.length - 1]))) {
+      return -1;
+    }
+    int index = Arrays.binarySearch(lows, value);
+    index = index >= 0 ? index : Math.max(0, -index - 2);
+    if (value <= highs[index]) {
+      return index;
+    }
+    // between separated cells
+    if (pixels) {
+      return -1;
+    }
+    return index + 1 < centers.length
+        && centers[index + 1] - value < value - centers[index] ? index + 1 : index;
+  }
+
+  /**
+   * @return lower boundary of the cell of the x coordinate
+   */
+  public double xLow(final int index) {
+    return xLows != null ? xLows[index] : low(x, index, pixels, pixelWidth);
+  }
+
+  public double xHigh(final int index) {
+    return xHighs != null ? xHighs[index] : high(x, index, pixels, pixelWidth);
+  }
+
+  public double yLow(final int index) {
+    return yLows != null ? yLows[index] : low(y, index, pixels, pixelHeight);
+  }
+
+  public double yHigh(final int index) {
+    return yHighs != null ? yHighs[index] : high(y, index, pixels, pixelHeight);
+  }
+
+  /**
+   * Pixels span their size around the center. Other cells reach halfway to their neighbors, and
+   * as far beyond the first and last coordinate as the spacing to their neighbor.
+   */
+  private static double low(final double @NotNull [] values, final int i, final boolean pixels,
+      final double size) {
+    if (pixels) {
+      return values[i] - size / 2;
+    }
+    if (values.length == 1) {
+      return values[0] - singleHalfWidth(values[0]);
+    }
+    return i == 0 ? values[0] - (values[1] - values[0]) / 2 : (values[i - 1] + values[i]) / 2;
+  }
+
+  private static double high(final double @NotNull [] values, final int i, final boolean pixels,
+      final double size) {
+    if (pixels) {
+      return values[i] + size / 2;
+    }
+    final int n = values.length;
+    if (n == 1) {
+      return values[0] + singleHalfWidth(values[0]);
+    }
+    return i == n - 1 ? values[n - 1] + (values[n - 1] - values[n - 2]) / 2
+        : (values[i] + values[i + 1]) / 2;
+  }
+
+  // assumption: a single row or column gets a narrow band of 1 % of its coordinate
+  private static double singleHalfWidth(final double value) {
+    return Math.max(Math.abs(value) * 0.005, 0.5e-3);
+  }
+
+  /**
+   * Takes the cell extents of another grid with the same coordinates, e.g. of merged overlays.
+   */
+  public void copyCellExtents(@NotNull final Surface3DData other) {
+    if (Arrays.equals(x, other.x)) {
+      xLows = other.xLows;
+      xHighs = other.xHighs;
+    }
+    if (Arrays.equals(y, other.y)) {
+      yLows = other.yLows;
+      yHighs = other.yHighs;
+    }
+  }
+
+  /**
+   * Combines coarse data of the complete range with finer data of a window, e.g. after zooming
+   * in: window cells replace the base cells they cover, base cells at the window border are
+   * clipped to it. The result keeps the coordinate range of the base, so the view does not move,
+   * and panning beyond the window shows the coarse data instead of nothing.
+   *
+   * @param window data of the same overlay sampled inside a window of the base range
+   */
+  public static @NotNull Surface3DData merge(@NotNull final Surface3DData base,
+      @NotNull final Surface3DData window) {
+    final Surface3DMergedAxis xs = Surface3DMergedAxis.of(base.x, base::xLow, base::xHigh,
+        window.x, window::xLow, window::xHigh, base::binX);
+    final Surface3DMergedAxis ys = Surface3DMergedAxis.of(base.y, base::yLow, base::yHigh,
+        window.y, window::yLow, window::yHigh, base::binY);
+    final Surface3DData result = new Surface3DData(xs.centers(), ys.centers(), base.xLabel,
+        base.yLabel, base.pixels);
+    result.xLows = xs.lows();
+    result.xHighs = xs.highs();
+    result.yLows = ys.lows();
+    result.yHighs = ys.highs();
+    result.pixelWidth = base.pixelWidth;
+    result.pixelHeight = base.pixelHeight;
+    result.xKind = base.xKind;
+    result.yKind = base.yKind;
+    for (int row = 0; row < result.height(); row++) {
+      for (int column = 0; column < result.width(); column++) {
+        final int wx = xs.window()[column];
+        final int wy = ys.window()[row];
+        final boolean inWindow = wx >= 0 && wy >= 0;
+        final Surface3DData source = inWindow ? window : base;
+        final int sx = inWindow ? wx : xs.base()[column];
+        final int sy = inWindow ? wy : ys.base()[row];
+        if (sx < 0 || sy < 0 || !source.isPresent(sx, sy)) {
+          continue;
+        }
+        result.present[row * result.width() + column] = true;
+        result.addMaximum(column, row, source.intensity(sx, sy));
+      }
+    }
+    return result;
   }
 
   /**
@@ -235,6 +373,10 @@ public final class Surface3DData {
    */
   public @NotNull Surface3DData transpose() {
     final Surface3DData result = new Surface3DData(y, x, yLabel, xLabel, pixels);
+    result.xLows = yLows;
+    result.xHighs = yHighs;
+    result.yLows = xLows;
+    result.yHighs = xHighs;
     for (int row = 0; row < height(); row++) {
       for (int column = 0; column < width(); column++) {
         final int source = row * width() + column;
@@ -246,7 +388,6 @@ public final class Surface3DData {
     result.maximum = maximum;
     result.pixelWidth = pixelHeight;
     result.pixelHeight = pixelWidth;
-    result.viewLimited = viewLimited;
     result.xKind = yKind;
     result.yKind = xKind;
     return result;
@@ -283,7 +424,6 @@ public final class Surface3DData {
     if (pixels) {
       result.setPixelSize(pixelWidth * factorX, pixelHeight * factorY);
     }
-    result.viewLimited = viewLimited;
     result.xKind = xKind;
     result.yKind = yKind;
     return result;
@@ -298,6 +438,10 @@ public final class Surface3DData {
       throw new IllegalArgumentException("One value per cell required");
     }
     final Surface3DData result = new Surface3DData(x, y, xLabel, yLabel, pixels);
+    result.xLows = xLows;
+    result.xHighs = xHighs;
+    result.yLows = yLows;
+    result.yHighs = yHighs;
     for (int i = 0; i < values.length; i++) {
       if (present[i]) {
         result.present[i] = true;
@@ -306,7 +450,6 @@ public final class Surface3DData {
     }
     result.pixelWidth = pixelWidth;
     result.pixelHeight = pixelHeight;
-    result.viewLimited = viewLimited;
     result.xKind = xKind;
     result.yKind = yKind;
     return result;
@@ -406,18 +549,6 @@ public final class Surface3DData {
     }
     pixelWidth = width;
     pixelHeight = height;
-  }
-
-  /**
-   * @return true if a larger viewport or zoom would yield a finer grid. False when the grid is
-   * native or already limited by the render budget, so resampling would not add detail.
-   */
-  public boolean viewLimited() {
-    return viewLimited;
-  }
-
-  public void setViewLimited(final boolean viewLimited) {
-    this.viewLimited = viewLimited;
   }
 
   public boolean isPresent(final int column, final int row) {

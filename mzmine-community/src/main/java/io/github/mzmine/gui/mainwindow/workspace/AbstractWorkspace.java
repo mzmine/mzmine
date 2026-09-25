@@ -140,8 +140,8 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.surface3d.Surface2DVisualizerModule;
 import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
 import io.github.mzmine.util.javafx.ModuleMenuItem;
@@ -336,7 +336,7 @@ public abstract class AbstractWorkspace implements Workspace {
         SpectraVisualizerModule.class, FrameVisualizerModule.class);
 
     addSeparator(rawDataVis);
-    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
+    addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, Surface2DVisualizerModule.class,
         Surface3DVisualizerModule.class, MsMsVisualizerModule.class,
         MassvoltammogramFromFileModule.class);
     addSeparator(rawDataVis);

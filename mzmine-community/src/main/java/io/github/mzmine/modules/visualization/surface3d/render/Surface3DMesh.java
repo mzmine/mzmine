@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.surface3d.render;
 
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DBounds;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DData;
+import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -86,7 +87,12 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
       @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
       @Nullable final Owners owners, final float @Nullable [] mix) {
     final Owners flat = mix == null ? owners : null;
-    return data.pixels() ? pixels(data, scale, canceled, flat, mix)
+    if (data.pixels()) {
+      return pixels(data, scale, canceled, flat, mix);
+    }
+    // decision: the 2D view draws cells like the former 2D plot, a surface would fade to the
+    // floor between neighboring scans
+    return scale.flat() ? cells(data, scale, canceled, flat, mix)
         : surface(data, scale, canceled, flat, mix);
   }
 
@@ -336,7 +342,8 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         cells++;
         triangles += 2;
         final double value = data.intensity(x, y);
-        if (value <= 0 || scale.height(data, value) <= 0) {
+        // flat pixels of the 2D view have no walls
+        if (value <= 0 || scale.flat() || scale.height(data, value) <= 0) {
           continue;
         }
         int mask = 0;
@@ -373,10 +380,10 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         }
         final double value = data.intensity(x, y);
         final float top = (float) (-scale.height(data, value) * HEIGHT);
-        final float x0 = (float) localX(bounds, data.xValue(x) - data.pixelWidth() / 2);
-        final float x1 = (float) localX(bounds, data.xValue(x) + data.pixelWidth() / 2);
-        final float z0 = (float) localZ(bounds, data.yValue(y) - data.pixelHeight() / 2);
-        final float z1 = (float) localZ(bounds, data.yValue(y) + data.pixelHeight() / 2);
+        final float x0 = (float) localX(bounds, data.xLow(x));
+        final float x1 = (float) localX(bounds, data.xHigh(x));
+        final float z0 = (float) localZ(bounds, data.yLow(y));
+        final float z1 = (float) localZ(bounds, data.yHigh(y));
         final int t;
         if (mix != null) {
           texture[cell * 2] = mixCoordinate(mix[(y * width + x) * 2]);
@@ -427,6 +434,96 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
   }
 
   /**
+   * Flat cells for the 2D view of non-pixel data: every value fills the space halfway to its
+   * neighbors, so consecutive scans touch however far the view is zoomed in, like the nearest scan
+   * fill of the former 2D plot. Neighboring cells share corner points.
+   */
+  private static @NotNull Surface3DMesh cells(@NotNull final Surface3DData data,
+      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
+      @Nullable final Owners owners, final float @Nullable [] mix) {
+    final Surface3DBounds bounds = scale.bounds();
+    final int width = data.width();
+    final int height = data.height();
+    // cells tile the axes, the outer halves stay on the floor of the plot
+    final float[] xs = new float[width + 1];
+    for (int x = 0; x <= width; x++) {
+      xs[x] = (float) Math.clamp(localX(bounds, x < width ? data.xLow(x) : data.xHigh(x - 1)),
+          -WIDTH / 2, WIDTH / 2);
+    }
+    final float[] zs = new float[height + 1];
+    for (int y = 0; y <= height; y++) {
+      zs[y] = (float) Math.clamp(localZ(bounds, y < height ? data.yLow(y) : data.yHigh(y - 1)),
+          -DEPTH / 2, DEPTH / 2);
+    }
+    int cells = 0;
+    for (int y = 0; y < height; y++) {
+      checkCanceled(canceled);
+      for (int x = 0; x < width; x++) {
+        if (visible(data, scale, x, y)) {
+          cells++;
+        }
+      }
+    }
+    // corner points are created on first use, so that only referenced points are kept
+    final int[] corners = new int[(width + 1) * (height + 1)];
+    Arrays.fill(corners, -1);
+    final float[] points = new float[Math.min(corners.length, cells * 4) * 3];
+    final float[] texture = owners != null ? owners.texture() : new float[cells * 2];
+    final int[] faces = new int[cells * 2 * 9];
+    final float top = (float) (-Surface3DScale.FLAT_HEIGHT * HEIGHT);
+    final int[] vertices = {0};
+    int cell = 0;
+    int next = 0;
+    for (int y = 0; y < height; y++) {
+      checkCanceled(canceled);
+      for (int x = 0; x < width; x++) {
+        if (!visible(data, scale, x, y)) {
+          continue;
+        }
+        final int t;
+        if (mix != null) {
+          texture[cell * 2] = mixCoordinate(mix[(y * width + x) * 2]);
+          texture[cell * 2 + 1] = mixCoordinate(mix[(y * width + x) * 2 + 1]);
+          t = cell;
+        } else if (owners == null) {
+          texture[cell * 2] = textureU(scale.color(data, data.intensity(x, y)));
+          texture[cell * 2 + 1] = 0.5f;
+          t = cell;
+        } else {
+          t = owners.at(y * width + x);
+        }
+        final int a = corner(corners, points, vertices, width, x, y, xs, zs, top);
+        final int b = corner(corners, points, vertices, width, x + 1, y, xs, zs, top);
+        final int c = corner(corners, points, vertices, width, x, y + 1, xs, zs, top);
+        final int d = corner(corners, points, vertices, width, x + 1, y + 1, xs, zs, top);
+        next = pixelTriangle(faces, next, a, b, c, 0, t);
+        next = pixelTriangle(faces, next, b, d, c, 0, t);
+        cell++;
+      }
+    }
+    return new Surface3DMesh(Arrays.copyOf(points, vertices[0] * 3),
+        PIXEL_NORMALS.clone(), texture, faces);
+  }
+
+  /**
+   * @return true if the upper cell starts noticeably after the lower one ends
+   */
+  private static boolean gap(final double upperLow, final double lowerHigh) {
+    return upperLow - lowerHigh > 1e-6 * Math.max(Math.abs(upperLow), 1);
+  }
+
+  private static int corner(final int @NotNull [] corners, final float @NotNull [] points,
+      final int @NotNull [] vertices, final int width, final int x, final int y,
+      final float @NotNull [] xs, final float @NotNull [] zs, final float top) {
+    final int key = y * (width + 1) + x;
+    if (corners[key] < 0) {
+      corners[key] = vertices[0];
+      vertices[0] = point(points, vertices[0], xs[x], top, zs[y]);
+    }
+    return corners[key];
+  }
+
+  /**
    * @return true for measured pixels above the noise floor. Measured zeros are kept unless a
    * noise floor is set.
    */
@@ -442,11 +539,11 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         ny)) {
       return true;
     }
-    // non-adjacent coordinates leave a visible gap between the columns
-    if (nx != x && Math.abs(data.xValue(nx) - data.xValue(x)) > data.pixelWidth() * 1.01) {
+    // non-adjacent cells leave a visible gap between the columns
+    if (nx != x && gap(data.xLow(Math.max(x, nx)), data.xHigh(Math.min(x, nx)))) {
       return true;
     }
-    if (ny != y && Math.abs(data.yValue(ny) - data.yValue(y)) > data.pixelHeight() * 1.01) {
+    if (ny != y && gap(data.yLow(Math.max(y, ny)), data.yHigh(Math.min(y, ny)))) {
       return true;
     }
     return data.intensity(nx, ny) < value;

@@ -30,7 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Coordinate window of the displayed axes. Null ranges select the full data extent.
+ * Coordinate window of the displayed axes, e.g. the visible part of a zoomed view. Null ranges
+ * select the full data extent.
  */
 public record Surface3DRegion(@Nullable Range<Double> x, @Nullable Range<Double> y) {
 
@@ -38,6 +39,46 @@ public record Surface3DRegion(@Nullable Range<Double> x, @Nullable Range<Double>
 
   public boolean isFull() {
     return x == null && y == null;
+  }
+
+  /**
+   * @param share of the width and height added on each side
+   * @return a larger window, this if full
+   */
+  public @NotNull Surface3DRegion expand(final double share) {
+    return new Surface3DRegion(expand(x, share), expand(y, share));
+  }
+
+  private static @Nullable Range<Double> expand(@Nullable final Range<Double> range,
+      final double share) {
+    if (range == null) {
+      return null;
+    }
+    final double margin = (range.upperEndpoint() - range.lowerEndpoint()) * share;
+    return Range.closed(range.lowerEndpoint() - margin, range.upperEndpoint() + margin);
+  }
+
+  /**
+   * @return true if this window contains the other one, a null range contains everything
+   */
+  public boolean encloses(@NotNull final Surface3DRegion other) {
+    return encloses(x, other.x) && encloses(y, other.y);
+  }
+
+  private static boolean encloses(@Nullable final Range<Double> range,
+      @Nullable final Range<Double> other) {
+    return range == null || (other != null && range.encloses(other));
+  }
+
+  /**
+   * @return extent along x, infinite for a full axis
+   */
+  public double width() {
+    return x == null ? Double.POSITIVE_INFINITY : x.upperEndpoint() - x.lowerEndpoint();
+  }
+
+  public double height() {
+    return y == null ? Double.POSITIVE_INFINITY : y.upperEndpoint() - y.lowerEndpoint();
   }
 
   public static boolean contains(@Nullable final Range<Double> range, final double value) {

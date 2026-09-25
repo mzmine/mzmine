@@ -202,8 +202,8 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.surface3d.Surface2DVisualizerModule;
 import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.reporting.jasper.ReportingModule;
 import java.util.ArrayList;
@@ -480,7 +480,7 @@ public class BatchModeModulesList {
           SpectraVisualizerModule.class, //
           FrameVisualizerModule.class, //
           ChromatogramVisualizerModule.class, //
-          TwoDVisualizerModule.class, //
+          Surface2DVisualizerModule.class, //
           Surface3DVisualizerModule.class, //
           MassvoltammogramFromFileModule.class, //
           MassvoltammogramFromFeatureListModule.class, //

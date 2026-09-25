@@ -88,16 +88,17 @@ public class Surface3DVisualizerModule implements MZmineRunnableModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    return open(parameters, List.of());
+    return open(parameters, List.of(), false);
   }
 
   /**
    * Opens the visualizer after checking 3D support and matching data dimensions.
    *
    * @param mzRanges initial m/z overlays, empty for the complete m/z range of the parameters
+   * @param flat     the 2D view of {@link Surface2DVisualizerModule}
    */
-  public static @NotNull ExitCode open(@NotNull final ParameterSet parameters,
-      @NotNull final List<Range<Double>> mzRanges) {
+  static @NotNull ExitCode open(@NotNull final ParameterSet parameters,
+      @NotNull final List<Range<Double>> mzRanges, final boolean flat) {
     if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
       MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
@@ -129,7 +130,7 @@ public class Surface3DVisualizerModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
     MZmineCore.getDesktop()
-        .addTab(new Surface3DVisualizerTab(files, parameters.cloneParameterSet(), mzRanges));
+        .addTab(new Surface3DVisualizerTab(files, parameters.cloneParameterSet(), mzRanges, flat));
     return ExitCode.OK;
   }
 
@@ -137,8 +138,11 @@ public class Surface3DVisualizerModule implements MZmineRunnableModule {
    * Opens the visualizer for selected features: one overlay per feature m/z range for every raw
    * file of the features, restricted to their retention time range and polarity. Overlapping m/z
    * ranges are merged; imaging data ignore the retention time.
+   *
+   * @param flat the 2D view of {@link Surface2DVisualizerModule}
    */
-  public static void showFeatures(@NotNull final List<? extends Feature> features) {
+  public static void showFeatures(@NotNull final List<? extends Feature> features,
+      final boolean flat) {
     if (features.isEmpty()) {
       return;
     }
@@ -153,8 +157,9 @@ public class Surface3DVisualizerModule implements MZmineRunnableModule {
     // decision: features of different polarities show all scans
     final PolarityType polarity = polarities.size() == 1 ? polarities.getFirst() : PolarityType.ANY;
     // decision: a copy, feature ranges must not become the defaults of the module dialog
-    final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(Surface3DVisualizerModule.class).cloneParameterSet();
+    final ParameterSet parameters = ConfigService.getConfiguration().getModuleParameters(
+        flat ? Surface2DVisualizerModule.class : Surface3DVisualizerModule.class)
+        .cloneParameterSet();
     parameters.getParameter(Surface3DVisualizerParameters.dataFile)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files);
     // imaging features show images, all others retention time
@@ -168,7 +173,7 @@ public class Surface3DVisualizerModule implements MZmineRunnableModule {
     merged.stream().reduce(Range::span).ifPresent(
         span -> parameters.getParameter(Surface3DVisualizerParameters.mzRange).setValue(span));
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
-      open(parameters, merged);
+      open(parameters, merged, flat);
     }
   }
 }

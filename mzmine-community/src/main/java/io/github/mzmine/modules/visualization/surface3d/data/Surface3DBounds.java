@@ -38,13 +38,11 @@ public record Surface3DBounds(double xMin, double xMax, double yMin, double yMax
       throw new IllegalArgumentException("No surface data");
     }
     return new Surface3DBounds(
-        data.stream().mapToDouble(d -> d.xMin() - (d.pixels() ? d.pixelWidth() / 2 : 0)).min()
+        data.stream().mapToDouble(d -> d.pixels() ? d.xLow(0) : d.xMin()).min().orElseThrow(),
+        data.stream().mapToDouble(d -> d.pixels() ? d.xHigh(d.width() - 1) : d.xMax()).max()
             .orElseThrow(),
-        data.stream().mapToDouble(d -> d.xMax() + (d.pixels() ? d.pixelWidth() / 2 : 0)).max()
-            .orElseThrow(),
-        data.stream().mapToDouble(d -> d.yMin() - (d.pixels() ? d.pixelHeight() / 2 : 0)).min()
-            .orElseThrow(),
-        data.stream().mapToDouble(d -> d.yMax() + (d.pixels() ? d.pixelHeight() / 2 : 0)).max()
+        data.stream().mapToDouble(d -> d.pixels() ? d.yLow(0) : d.yMin()).min().orElseThrow(),
+        data.stream().mapToDouble(d -> d.pixels() ? d.yHigh(d.height() - 1) : d.yMax()).max()
             .orElseThrow(), data.stream().mapToDouble(Surface3DData::maximum).max().orElseThrow());
   }
 

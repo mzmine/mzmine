@@ -69,10 +69,9 @@ import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWin
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import io.github.mzmine.modules.visualization.surface3d.Surface2DVisualizerModule;
 import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
 import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerParameters;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -669,16 +668,16 @@ public class MainWindowController {
   }
 
   public void handleShow2DPlot(Event event) {
-    logger.finest("Activated Show 2D plot menu item");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    logger.finest("Activated Show 2D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(TwoDVisualizerModule.class);
-    parameters.getParameter(TwoDVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
-            selectedFiles.toArray(new RawDataFile[0]));
+        .getModuleParameters(Surface2DVisualizerModule.class);
+    // follow the selection, specific files would remain the default of the module dialog
+    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+        .setValue(RawDataFilesSelectionType.GUI_SELECTED_FILES);
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
+      MZmineCore.runMZmineModule(Surface2DVisualizerModule.class,
+          parameters.cloneParameterSet());
     }
   }
 

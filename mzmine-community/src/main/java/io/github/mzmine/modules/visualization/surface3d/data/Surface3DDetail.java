@@ -30,10 +30,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * View-dependent sampling density. There is no fixed limit on either coordinate axis; the total
  * vertex count across all overlays is bounded so that rotating and zooming stay fluid.
+ *
+ * @param flat 2D view: at most one sample per screen pixel, like the former 2D plot
  */
-public record Surface3DDetail(double width, double height, double zoom, int samples) {
+public record Surface3DDetail(double width, double height, int samples, boolean flat) {
 
-  public static final Surface3DDetail DEFAULT = new Surface3DDetail(1200, 800, 1, 1);
+  // the plot area of the 2D view is smaller than the viewport, cells should cover a pixel
+  private static final double FLAT_PLOT_FRACTION = 0.7;
+
+  public static final Surface3DDetail DEFAULT = new Surface3DDetail(1200, 800, 1);
+
+  public Surface3DDetail(final double width, final double height, final int samples) {
+    this(width, height, samples, false);
+  }
 
   // decision: beyond ~1 M grid vertices per view, extra vertices are sub-pixel but the GPU
   // upload, JavaFX vertex buffer generation, and frame time keep growing.
@@ -52,10 +61,18 @@ public record Surface3DDetail(double width, double height, double zoom, int samp
 
   @NotNull GridSize grid(final int nativeX, final int nativeY, final boolean pixels,
       final long memory) {
-    final double scale = Math.max(1, zoom);
-    final int viewX = (int) Math.ceil(Math.max(400, width) * scale);
-    // the spectral axis gets more samples than screen pixels, bins retain maxima of narrow peaks
-    final int viewY = (int) Math.ceil(Math.max(600, Math.max(width, height) * 1.6) * scale);
+    final int viewX;
+    final int viewY;
+    if (flat) {
+      // decision: cells thinner than a pixel are not drawn, so centroids jittering between fine
+      // m/z bins would appear as dashed traces. Bins of a pixel keep the maximum of the pixel.
+      viewX = (int) Math.ceil(Math.max(400, width * FLAT_PLOT_FRACTION));
+      viewY = (int) Math.ceil(Math.max(300, height * FLAT_PLOT_FRACTION));
+    } else {
+      viewX = (int) Math.ceil(Math.max(400, width));
+      // the spectral axis gets more samples than screen pixels, bins retain maxima of narrow peaks
+      viewY = (int) Math.ceil(Math.max(600, Math.max(width, height) * 1.6));
+    }
     int x = Math.max(1, Math.min(nativeX, viewX));
     int y = Math.max(1, Math.min(nativeY, viewY));
     // Memory guard for data, mesh arrays, JavaFX copies and GPU buffers, plus a render budget.
@@ -69,14 +86,10 @@ public record Surface3DDetail(double width, double height, double zoom, int samp
       x = Math.max(Math.min(2, nativeX), (int) (x * factor));
       y = Math.max(Math.min(2, nativeY), (int) (y * factor));
     }
-    final boolean viewLimited = !reduced && (viewX < nativeX || viewY < nativeY);
-    return new GridSize(x, y, viewLimited);
+    return new GridSize(x, y);
   }
 
-  /**
-   * @param viewLimited true if a larger view or zoom would increase the grid size
-   */
-  public record GridSize(int x, int y, boolean viewLimited) {
+  public record GridSize(int x, int y) {
 
   }
 }

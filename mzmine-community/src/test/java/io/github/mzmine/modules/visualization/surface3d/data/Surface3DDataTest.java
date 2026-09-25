@@ -61,19 +61,83 @@ class Surface3DDataTest {
   }
 
   @Test
-  void detailGrowsWithViewportAndZoomAndHasNo300Limit() {
-    final var small = new Surface3DDetail(500, 400, 1, 1).grid(2000, 2000, false,
+  void detailGrowsWithViewportAndHasNo300Limit() {
+    final var small = new Surface3DDetail(500, 400, 1).grid(2000, 2000, false,
         256L * 1024 * 1024);
-    final var large = new Surface3DDetail(1000, 700, 1, 1).grid(2000, 2000, false,
+    final var large = new Surface3DDetail(1000, 700, 1).grid(2000, 2000, false,
         256L * 1024 * 1024);
     assertTrue(large.y() > 300);
     assertTrue(large.x() > small.x());
-    final var zoom = new Surface3DDetail(1000, 700, 2, 1).grid(20, 10000, false,
+    assertEquals(20, new Surface3DDetail(1000, 700, 1).grid(20, 10000, false,
+        256L * 1024 * 1024).x());
+  }
+
+  @Test
+  void flatDetailHasNoBinsFinerThanScreenPixels() {
+    // 20000 useful m/z bins, a 1000 x 700 pixel view
+    final var surface = new Surface3DDetail(1000, 700, 1).grid(200, 20000, false,
         256L * 1024 * 1024);
-    final var normal = new Surface3DDetail(1000, 700, 1, 1).grid(20, 10000, false,
+    final var flat = new Surface3DDetail(1000, 700, 1, true).grid(200, 20000, false,
         256L * 1024 * 1024);
-    assertEquals(20, zoom.x());
-    assertTrue(zoom.y() > normal.y());
+    assertTrue(surface.y() > 700);
+    assertTrue(flat.y() <= 700);
+  }
+
+  @Test
+  void mergedWindowReplacesBaseCellsAndKeepsTheRange() {
+    // coarse base 0..100 and a fine window 40..60
+    final Surface3DData base = new Surface3DData(Surface3DData.coordinates(11, 0, 100),
+        Surface3DData.coordinates(11, 0, 100), "X", "Y", false);
+    final Surface3DData window = new Surface3DData(Surface3DData.coordinates(21, 40, 60),
+        Surface3DData.coordinates(21, 40, 60), "X", "Y", false);
+    for (int x = 0; x < 11; x++) {
+      for (int y = 0; y < 11; y++) {
+        base.addMaximum(x, y, 1);
+      }
+    }
+    for (int x = 0; x < 21; x++) {
+      for (int y = 0; y < 21; y++) {
+        window.addMaximum(x, y, 2);
+      }
+    }
+    final Surface3DData merged = Surface3DData.merge(base, window);
+    assertEquals(0, merged.xMin(), 1e-9);
+    assertEquals(100, merged.xMax(), 1e-9);
+    // cells tile the axis without gaps or overlaps
+    for (int i = 1; i < merged.width(); i++) {
+      assertEquals(merged.xHigh(i - 1), merged.xLow(i), 1e-9);
+    }
+    assertEquals(2, merged.intensity(merged.binX(50), merged.binY(50)));
+    assertEquals(1, merged.intensity(merged.binX(10), merged.binY(50)));
+    assertEquals(1, merged.intensity(merged.binX(50), merged.binY(90)));
+  }
+
+  @Test
+  void mergedPixelBlocksAreClippedAtTheWindow() {
+    // 20 native pixels of 10, merged to blocks of 4 in the base, native in the window 80..120
+    final Surface3DData base = new Surface3DData(
+        Surface3DData.blockCoordinates(Surface3DData.coordinates(20, 0, 190), 4, 10),
+        new double[]{0}, "X", "Y", true);
+    base.setPixelSize(40, 10);
+    final Surface3DData window = new Surface3DData(Surface3DData.coordinates(5, 80, 120),
+        new double[]{0}, "X", "Y", true);
+    window.setPixelSize(10, 10);
+    for (int x = 0; x < base.width(); x++) {
+      base.addMaximum(x, 0, 1);
+    }
+    for (int x = 0; x < window.width(); x++) {
+      window.addMaximum(x, 0, 2);
+    }
+    final Surface3DData merged = Surface3DData.merge(base, window);
+    assertEquals(base.xLow(0), merged.xLow(0), 1e-9);
+    assertEquals(base.xHigh(base.width() - 1), merged.xHigh(merged.width() - 1), 1e-9);
+    for (int i = 1; i < merged.width(); i++) {
+      assertTrue(merged.xLow(i) >= merged.xHigh(i - 1) - 1e-9);
+    }
+    assertEquals(2, merged.intensity(merged.binX(100), 0));
+    assertEquals(1, merged.intensity(merged.binX(20), 0));
+    // the window border cuts a base block, which keeps its part outside
+    assertEquals(1, merged.intensity(merged.binX(71), 0));
   }
 
   @Test

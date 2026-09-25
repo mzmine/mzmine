@@ -28,7 +28,9 @@ package io.github.mzmine.modules.visualization.surface3d.plot;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DAxisKind;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DBounds;
+import io.github.mzmine.modules.visualization.surface3d.data.Surface3DRegion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Everything an axes instance needs to rebuild itself, so that zoom-dependent tick counts can be
@@ -39,6 +41,14 @@ record Surface3DAxesSpec(@NotNull Surface3DBounds bounds, @NotNull String xLabel
                          @NotNull Surface3DAxisKind yKind, @NotNull String intensityLabel,
                          double intensityMaximum, double intensityBaseline,
                          @NotNull PaintScaleTransform transform,
-                         @NotNull Surface3DFormat format) {
+                         @NotNull Surface3DFormat format, @Nullable Surface3DRegion frame) {
 
+  /**
+   * @param frame data window the axes are drawn around, e.g. the visible part of a zoomed view;
+   *              null for the complete range
+   */
+  @NotNull Surface3DAxesSpec withFrame(@Nullable final Surface3DRegion frame) {
+    return new Surface3DAxesSpec(bounds, xLabel, yLabel, xKind, yKind, intensityLabel,
+        intensityMaximum, intensityBaseline, transform, format, frame);
+  }
 }

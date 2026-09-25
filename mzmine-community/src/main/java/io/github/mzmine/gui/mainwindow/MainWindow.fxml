@@ -105,7 +105,7 @@
                                 text="Show chromatogram"/>
                               <MenuItem onAction="#handleShowMsSpectrum"
                                 text="Show mass spectrum"/>
-                              <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
+                              <MenuItem onAction="#handleShow2DPlot" text="Show 2D visualizer"/>
                               <MenuItem onAction="#handleShow3DPlot" text="Show 3D visualizer"/>
                               <MenuItem onAction="#handleShowMsMsPlot"
                                 text="Show MS/MS scatter plot"/>

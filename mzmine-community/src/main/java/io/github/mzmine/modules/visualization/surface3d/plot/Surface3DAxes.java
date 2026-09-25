@@ -31,7 +31,9 @@ import static io.github.mzmine.modules.visualization.surface3d.render.Surface3DM
 
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DBounds;
+import io.github.mzmine.modules.visualization.surface3d.data.Surface3DRegion;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DMesh;
+import io.github.mzmine.modules.visualization.surface3d.render.Surface3DPicker;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DScale;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DScreenGeometry;
 import java.util.ArrayList;
@@ -78,6 +80,8 @@ final class Surface3DAxes {
   private String textColor = "#334155";
   private boolean intensityVisible = true;
   private @Nullable Surface3DAxesSpec spec;
+  // local {x0, x1, z0, z1} the axes are drawn around
+  private double @NotNull [] frame = {-WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2};
   private int xTicks = 6;
   private int yTicks = 6;
   private int intensityTicks = 5;
@@ -119,6 +123,30 @@ final class Surface3DAxes {
     sized.clear();
   }
 
+  /**
+   * @return local {x0, x1, z0, z1} of the frame, the complete floor without one
+   */
+  private static double @NotNull [] frame(@NotNull final Surface3DAxesSpec spec) {
+    final Surface3DRegion frame = spec.frame();
+    if (frame == null || frame.x() == null || frame.y() == null) {
+      return new double[]{-WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2};
+    }
+    final Surface3DBounds bounds = spec.bounds();
+    return new double[]{
+        Math.clamp(Surface3DMesh.localX(bounds, frame.x().lowerEndpoint()), -WIDTH / 2, WIDTH / 2),
+        Math.clamp(Surface3DMesh.localX(bounds, frame.x().upperEndpoint()), -WIDTH / 2, WIDTH / 2),
+        Math.clamp(Surface3DMesh.localZ(bounds, frame.y().lowerEndpoint()), -DEPTH / 2, DEPTH / 2),
+        Math.clamp(Surface3DMesh.localZ(bounds, frame.y().upperEndpoint()), -DEPTH / 2,
+            DEPTH / 2)};
+  }
+
+  /**
+   * @return scale of line widths and label offsets, 1 for the complete floor
+   */
+  static double thickness(final double @NotNull [] frame) {
+    return Math.max(1e-6, Math.min((frame[1] - frame[0]) / WIDTH, (frame[3] - frame[2]) / DEPTH));
+  }
+
   void rebuild(@NotNull final Surface3DAxesSpec spec) {
     this.spec = spec;
     build(spec);
@@ -131,37 +159,50 @@ final class Surface3DAxes {
     clearContent();
     intensityAxis.getChildren().clear();
     geometry.getChildren().add(intensityAxis);
+    frame = frame(spec);
+    final double x0 = frame[0];
+    final double x1 = frame[1];
+    final double z0 = frame[2];
+    final double z1 = frame[3];
+    // decision: line thickness follows the frame, so lines keep their width on screen when the
+    // axes follow a deeply zoomed view
+    final double t = thickness(frame);
     final Box plane = new Box(WIDTH, 0.25, DEPTH);
     plane.setTranslateY(1.5);
     plane.setMaterial(floor);
     geometry.getChildren().add(plane);
-    line(WIDTH, 0.8, 0.8, 0, 0, -DEPTH / 2, axis);
-    line(0.8, 0.8, DEPTH, -WIDTH / 2, 0, 0, axis);
+    line(x1 - x0, 0.8 * t, 0.8 * t, (x0 + x1) / 2, 0, z0, axis);
+    line(0.8 * t, 0.8 * t, z1 - z0, x0, 0, (z0 + z1) / 2, axis);
     // the vertical axis stands in the back corner, clear of the y tick labels and the data
-    intensityLine(0.8, HEIGHT, 0.8, -WIDTH / 2, -HEIGHT / 2, DEPTH / 2);
+    intensityLine(0.8 * t, HEIGHT, 0.8 * t, x0, -HEIGHT / 2, z1);
 
     // decision: titles first, so the overlap pass keeps them in favor of single ticks
-    label(spec.xLabel(), 0, 8, -DEPTH / 2 - 44, Axis.X, true);
-    label(spec.yLabel(), -WIDTH / 2 - 66, 8, 0, Axis.Y, true);
+    label(spec.xLabel(), (x0 + x1) / 2, 8 * t, z0 - 44 * t, Axis.X, true);
+    label(spec.yLabel(), x0 - 66 * t, 8 * t, (z0 + z1) / 2, Axis.Y, true);
     label(transform == PaintScaleTransform.LINEAR ? spec.intensityLabel()
             : spec.intensityLabel() + " · " + transform.name().toLowerCase(Locale.ROOT),
-        -WIDTH / 2 - 20, -HEIGHT - 24, DEPTH / 2, Axis.INTENSITY, true);
+        x0 - 20 * t, -HEIGHT - 24, z1, Axis.INTENSITY, true);
 
-    final double xStep = Surface3DTicks.step(bounds.xMin(), bounds.xMax(), xTicks);
-    for (final double value : Surface3DTicks.ticks(bounds.xMin(), bounds.xMax(), xTicks)) {
+    // ticks cover the framed part of the data
+    final double xMin = Surface3DPicker.dataX(bounds, x0);
+    final double xMax = Surface3DPicker.dataX(bounds, x1);
+    final double xStep = Surface3DTicks.step(xMin, xMax, xTicks);
+    for (final double value : Surface3DTicks.ticks(xMin, xMax, xTicks)) {
       final double x = Surface3DMesh.localX(bounds, value);
-      line(0.45, 0.45, DEPTH, x, 0.8, 0, grid);
-      line(0.7, 0.7, 5, x, 0, -DEPTH / 2 - 2.5, axis);
-      tick(format.value(value, spec.xKind(), xStep), new Point3D(x, 0, -DEPTH / 2),
-          new Point3D(x, 4, -DEPTH / 2 - 14), Axis.X);
+      line(0.45 * t, 0.45 * t, z1 - z0, x, 0.8 * t, (z0 + z1) / 2, grid);
+      line(0.7 * t, 0.7 * t, 5 * t, x, 0, z0 - 2.5 * t, axis);
+      tick(format.value(value, spec.xKind(), xStep), new Point3D(x, 0, z0),
+          new Point3D(x, 4 * t, z0 - 14 * t), Axis.X);
     }
-    final double yStep = Surface3DTicks.step(bounds.yMin(), bounds.yMax(), yTicks);
-    for (final double value : Surface3DTicks.ticks(bounds.yMin(), bounds.yMax(), yTicks)) {
+    final double yMin = Surface3DPicker.dataY(bounds, z0);
+    final double yMax = Surface3DPicker.dataY(bounds, z1);
+    final double yStep = Surface3DTicks.step(yMin, yMax, yTicks);
+    for (final double value : Surface3DTicks.ticks(yMin, yMax, yTicks)) {
       final double z = Surface3DMesh.localZ(bounds, value);
-      line(WIDTH, 0.45, 0.45, 0, 0.8, z, grid);
-      line(5, 0.7, 0.7, -WIDTH / 2 - 2.5, 0, z, axis);
-      tick(format.value(value, spec.yKind(), yStep), new Point3D(-WIDTH / 2, 0, z),
-          new Point3D(-WIDTH / 2 - 22, 4, z), Axis.Y);
+      line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, 0.8 * t, z, grid);
+      line(5 * t, 0.7 * t, 0.7 * t, x0 - 2.5 * t, 0, z, axis);
+      tick(format.value(value, spec.yKind(), yStep), new Point3D(x0, 0, z),
+          new Point3D(x0 - 22 * t, 4 * t, z), Axis.Y);
     }
     final double maximum = spec.intensityMaximum();
     if (maximum > 0) {
@@ -174,11 +215,11 @@ final class Surface3DAxes {
           continue;
         }
         // same mapping as the surface, so ticks stay calibrated for every transformation
-        final double t = Surface3DScale.height(transform, value, maximum,
+        final double height = Surface3DScale.height(transform, value, maximum,
             spec.intensityBaseline());
-        intensityLine(6, 0.7, 0.7, -WIDTH / 2 - 3, -HEIGHT * t, DEPTH / 2);
-        tick(format.intensity(value), new Point3D(-WIDTH / 2, -HEIGHT * t, DEPTH / 2),
-            new Point3D(-WIDTH / 2 - 35, -HEIGHT * t, DEPTH / 2 + 2), Axis.INTENSITY);
+        intensityLine(6 * t, 0.7 * t, 0.7 * t, x0 - 3 * t, -HEIGHT * height, z1);
+        tick(format.intensity(value), new Point3D(x0, -HEIGHT * height, z1),
+            new Point3D(x0 - 35 * t, -HEIGHT * height, z1 + 2 * t), Axis.INTENSITY);
       }
     }
     setIntensityVisible(intensityVisible);
@@ -248,23 +289,28 @@ final class Surface3DAxes {
       return;
     }
     // hide the labels of axes that point towards the viewer, they would overlap each other
-    final double x = scale(new Point3D(-WIDTH / 2, 0, -DEPTH / 2),
-        new Point3D(WIDTH / 2, 0, -DEPTH / 2), WIDTH);
-    final double y = scale(new Point3D(-WIDTH / 2, 0, -DEPTH / 2),
-        new Point3D(-WIDTH / 2, 0, DEPTH / 2), DEPTH);
-    final double intensity = intensityVisible ? scale(new Point3D(-WIDTH / 2, 0, DEPTH / 2),
-        new Point3D(-WIDTH / 2, -HEIGHT, DEPTH / 2), HEIGHT) : 0;
-    updateTickCounts(x * WIDTH, y * DEPTH, intensity * HEIGHT);
+    final double x0 = frame[0];
+    final double x1 = frame[1];
+    final double z0 = frame[2];
+    final double z1 = frame[3];
+    final double width = x1 - x0;
+    final double depth = z1 - z0;
+    final double x = scale(new Point3D(x0, 0, z0), new Point3D(x1, 0, z0), width);
+    final double y = scale(new Point3D(x0, 0, z0), new Point3D(x0, 0, z1), depth);
+    final double intensity = intensityVisible ? scale(new Point3D(x0, 0, z1),
+        new Point3D(x0, -HEIGHT, z1), HEIGHT) : 0;
+    updateTickCounts(x * width, y * depth, intensity * HEIGHT);
     final double reference = Math.max(x, Math.max(y, intensity));
-    final boolean xReadable = readable(x, WIDTH, reference);
-    final boolean yReadable = readable(y, DEPTH, reference);
+    final boolean xReadable = readable(x, width, reference);
+    final boolean yReadable = readable(y, depth, reference);
     final boolean intensityReadable = readable(intensity, HEIGHT, reference);
-    final Point2D xNormal = outwardNormal(new Point3D(-WIDTH / 2, 0, -DEPTH / 2),
-        new Point3D(WIDTH / 2, 0, -DEPTH / 2));
-    final Point2D yNormal = outwardNormal(new Point3D(-WIDTH / 2, 0, -DEPTH / 2),
-        new Point3D(-WIDTH / 2, 0, DEPTH / 2));
-    final Point2D intensityNormal = outwardNormal(new Point3D(-WIDTH / 2, 0, DEPTH / 2),
-        new Point3D(-WIDTH / 2, -HEIGHT, DEPTH / 2));
+    final Point3D inside = new Point3D((x0 + x1) / 2, 0, (z0 + z1) / 2);
+    final Point2D xNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x1, 0, z0),
+        inside);
+    final Point2D yNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x0, 0, z1),
+        inside);
+    final Point2D intensityNormal = outwardNormal(new Point3D(x0, 0, z1),
+        new Point3D(x0, -HEIGHT, z1), inside);
     for (final Anchor anchor : anchors) {
       final Label label = anchor.label();
       final boolean visible = switch (anchor.axis()) {
@@ -304,8 +350,8 @@ final class Surface3DAxes {
       }
       label.relocate(center.getX() - label.getWidth() / 2, center.getY() - label.getHeight() / 2);
     }
-    placeTitle(Axis.X, new Point3D(0, 0, -DEPTH / 2), xNormal);
-    placeTitle(Axis.Y, new Point3D(-WIDTH / 2, 0, 0), yNormal);
+    placeTitle(Axis.X, new Point3D((x0 + x1) / 2, 0, z0), xNormal);
+    placeTitle(Axis.Y, new Point3D(x0, 0, (z0 + z1) / 2), yNormal);
   }
 
   /**
@@ -313,10 +359,10 @@ final class Surface3DAxes {
    * collapses to a point
    */
   private @Nullable Point2D outwardNormal(@NotNull final Point3D start,
-      @NotNull final Point3D end) {
+      @NotNull final Point3D end, @NotNull final Point3D inside) {
     final Point2D a = screen(start);
     final Point2D b = screen(end);
-    final Point2D center = screen(new Point3D(0, 0, 0));
+    final Point2D center = screen(inside);
     if (a == null || b == null || center == null) {
       return null;
     }

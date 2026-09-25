@@ -114,7 +114,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
-import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
@@ -687,16 +686,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     showCorrelatedImageFeaturesItem.visibleProperty().bind(hasImagingData);
     showCorrelatedImageFeaturesItem.setOnAction(_ -> showCorrelatedImageFeatures());
 
-    final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
+    final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D visualizer",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null);
-    show2DItem.setOnAction(_ -> TwoDVisualizerModule.show2DVisualizerSetupDialog(
-        selectedOrBestFeature.getRawDataFile(), selectedOrBestFeature.getRawDataPointsMZRange(),
-        selectedOrBestFeature.getRawDataPointsRTRange(),
-        selectedOrBestFeature.getRepresentativePolarity()));
+    show2DItem.setOnAction(openFeatureVisualizer(true));
 
     final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D visualizer",
         () -> selectedRow != null);
-    show3DItem.setOnAction(open3DFeaturePlot());
+    show3DItem.setOnAction(openFeatureVisualizer(false));
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module", () -> !selectedRows.isEmpty() && selectedRow != null);
@@ -857,14 +853,17 @@ public class FeatureTableContextMenu extends ContextMenu {
             showCorrelatedImageFeaturesItem);
   }
 
-  private @NotNull EventHandler<ActionEvent> open3DFeaturePlot() {
+  /**
+   * @param flat the 2D visualizer instead of the 3D visualizer
+   */
+  private @NotNull EventHandler<ActionEvent> openFeatureVisualizer(final boolean flat) {
     return _ -> {
       final List<Feature> features = getSelectedOrBestFeatures();
       if (features.isEmpty()) {
         return;
       }
 
-      Surface3DVisualizerModule.showFeatures(features);
+      Surface3DVisualizerModule.showFeatures(features, flat);
     };
   }
 

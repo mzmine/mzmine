@@ -127,7 +127,7 @@ public final class Surface3DSampler {
     }
     return switch (mode) {
       case AUTOMATIC -> throw new IllegalStateException("Automatic mode must be resolved");
-      case LC_MS -> spectra(Arrays.asList(scans), Scan::getRetentionTime,
+      case LC_MS -> spectra(lowestMsLevel(scans), Scan::getRetentionTime,
           axisLabel("Retention time", "min"),
           Surface3DAxisKind.RETENTION_TIME, false, mzRanges, region, normalization,
           detail, progress);
@@ -199,6 +199,17 @@ public final class Surface3DSampler {
     return ConfigService.getConfiguration().getUnitFormat().format(label, unit);
   }
 
+  /**
+   * @return the scans of the lowest MS level in the selection, usually MS1
+   */
+  public static @NotNull List<Scan> lowestMsLevel(final Scan @NotNull [] scans) {
+    // decision (user request): scans of another MS level are not zeros between the scans of a
+    // trace, e.g. MS2 scans of DDA data between MS1 scans. As columns they would break every
+    // trace along retention time.
+    final int level = Arrays.stream(scans).mapToInt(Scan::getMSLevel).min().orElse(1);
+    return Arrays.stream(scans).filter(scan -> scan.getMSLevel() == level).toList();
+  }
+
   public static @NotNull Range<Double> defaultMzRange(@NotNull final RawDataFile file,
       @NotNull final ParameterSet parameters) {
     final Range<Double> selected = parameters.getValue(Surface3DVisualizerParameters.mzRange);
@@ -250,7 +261,6 @@ public final class Surface3DSampler {
       result[i] = new Surface3DData(Surface3DData.reduceCoordinates(nativeX, size.x()),
           Surface3DData.coordinates(size.y(), visible.lowerEndpoint(), visible.upperEndpoint()),
           coordinateLabel, MZ_LABEL, false);
-      result[i].setViewLimited(size.viewLimited());
       result[i].setAxisKinds(coordinateKind, Surface3DAxisKind.MZ);
     }
     for (int s = 0; s < scans.size(); s++) {
@@ -364,7 +374,6 @@ public final class Surface3DSampler {
       final String unit = physical ? "µm" : "pixel";
       result[i] = new Surface3DData(x, y, axisLabel("X", unit), axisLabel("Y", unit), true);
       result[i].setPixelSize(stepX * factorX, stepY * factorY);
-      result[i].setViewLimited(size.viewLimited());
     }
     final SpectrumBuffers buffers = new SpectrumBuffers();
     for (int s = 0; s < pixels.size(); s++) {

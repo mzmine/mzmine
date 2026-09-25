@@ -40,16 +40,29 @@ import org.jetbrains.annotations.NotNull;
  * @param noiseFloor fraction of the maximum below which no geometry is created
  * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show
  *                   the differences above the lowest pixels. 0 starts heights at zero intensity.
+ * @param flat       2D view: every value has the same small height, intensity is only shown by
+ *                   color
  */
 public record Surface3DScale(@NotNull Surface3DBounds bounds,
                              @NotNull PaintScaleTransform transform, boolean normalized,
-                             double noiseFloor, double baseline) {
+                             double noiseFloor, double baseline, boolean flat) {
 
   /**
    * Height of values at or below the baseline: columns without height are not drawn, so the
    * lowest pixels remain thin tiles.
    */
   public static final double BASE_HEIGHT = 0.02;
+  /**
+   * Height of all values in the 2D view. The 2D view draws without depth test in scene order,
+   * so data cover the floor without a lift that would cause parallax when zoomed in deeply.
+   */
+  public static final double FLAT_HEIGHT = 1e-6;
+
+  public Surface3DScale(@NotNull final Surface3DBounds bounds,
+      @NotNull final PaintScaleTransform transform, final boolean normalized,
+      final double noiseFloor, final double baseline) {
+    this(bounds, transform, normalized, noiseFloor, baseline, false);
+  }
 
   public Surface3DScale(@NotNull final Surface3DBounds bounds, final boolean logarithmic,
       final boolean normalized) {
@@ -94,6 +107,10 @@ public record Surface3DScale(@NotNull Surface3DBounds bounds,
    * @return height in [0, 1]
    */
   public double height(@NotNull final Surface3DData data, final double value) {
+    if (flat) {
+      // measured zeros stay flat at the floor, like in 3D
+      return value > 0 ? FLAT_HEIGHT : 0;
+    }
     return height(transform, value, maximum(data), baseline);
   }
 
@@ -146,7 +163,8 @@ public record Surface3DScale(@NotNull Surface3DBounds bounds,
   public boolean sameGeometry(@NotNull final Surface3DScale other,
       @NotNull final Surface3DData data) {
     return transform == other.transform && normalized == other.normalized
-        && noiseFloor == other.noiseFloor && baseline == other.baseline && bounds.xMin() == other.bounds.xMin()
+        && noiseFloor == other.noiseFloor && baseline == other.baseline && flat == other.flat
+        && bounds.xMin() == other.bounds.xMin()
         && bounds.xMax() == other.bounds.xMax() && bounds.yMin() == other.bounds.yMin()
         && bounds.yMax() == other.bounds.yMax() && maximum(data) == other.maximum(data);
   }

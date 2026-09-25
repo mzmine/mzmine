@@ -92,10 +92,19 @@ class Surface3DVisualizerTab extends MZmineTab {
 
   private final List<RawDataFile> files = new ArrayList<>();
   private final List<Surface3DLayer> layers = new ArrayList<>();
+  // coarse data of the complete range, the view when zoomed out
   private final Map<String, Surface3DData> sampled = new HashMap<>();
-  // layers without data inside the current region
+  // base merged with full detail of the visible window after zooming in
+  private final Map<String, Surface3DData> detailed = new HashMap<>();
+  // the window of the detailed data, full if none
+  private Surface3DRegion focus = Surface3DRegion.FULL;
+  // layers without data in their m/z range
   private final Set<String> outside = new HashSet<>();
   private static final int MAX_SPECTRA = 6;
+  // share of the window size added on each side, so that small pans need no read
+  private static final double WINDOW_MARGIN = 0.25;
+  // the window is read again when the visible range is smaller than this share of it
+  private static final double MIN_ZOOM_SHARE = 0.4;
 
   private final Surface3DPlot plot;
   private final @NotNull ParameterSet parameters;
@@ -109,14 +118,15 @@ class Surface3DVisualizerTab extends MZmineTab {
   // the first frame is resolved
   private @NotNull Surface3DFrames frames = new Surface3DFrames();
   private final @NotNull Surface3DDataMode mode;
-  private final PauseTransition detailDelay = new PauseTransition(Duration.millis(500));
+  // 2D view without heights
+  private final boolean flat;
+  private final PauseTransition detailDelay = new PauseTransition(Duration.millis(300));
   private final ChangeListener<Boolean> darkModeListener = (_, _, dark) -> updateDarkMode(dark);
   // decision: weak, tabs removed via their context menu are not closed and must not stay reachable
   private final WeakChangeListener<Boolean> weakDarkModeListener = new WeakChangeListener<>(
       darkModeListener);
   private @Nullable SamplingTask samplingTask;
   private @Nullable Surface3DDetail sampledDetail;
-  private Surface3DRegion region = Surface3DRegion.FULL;
   // decision: the imaging normalization and transformation only apply to imaging data
   private ImageNormalization normalization = ImageNormalization.NO_NORMALIZATION;
   private int nextLayer;
@@ -126,15 +136,18 @@ class Surface3DVisualizerTab extends MZmineTab {
    * @param files    at least one file, all with the same data dimensions
    * @param mzRanges initial m/z overlays for every file, e.g. of selected features. Empty shows
    *                 the complete m/z range of the parameters.
+   * @param flat     2D view: a fixed top view without heights
    */
   Surface3DVisualizerTab(final RawDataFile @NotNull [] files,
-      @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges) {
-    super(title(files), false, false);
+      @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges,
+      final boolean flat) {
+    super(title(files, flat), false, false);
+    this.flat = flat;
     this.parameters = parameters.cloneParameterSet();
     mode = Surface3DSampler.resolveMode(files[0],
         parameters.getValue(Surface3DVisualizerParameters.mode));
     final SimpleColorPalette palette = parameters.getValue(Surface3DVisualizerParameters.palette);
-    plot = new Surface3DPlot(palette);
+    plot = new Surface3DPlot(palette, flat);
     // assumption: the preferences hold the complete list including custom paint scales
     plot.setPaintScales(paintScales(List.of(palette)));
     plot.setPaintScale(palette);
@@ -172,7 +185,6 @@ class Surface3DVisualizerTab extends MZmineTab {
     }
     plot.setOnRemoveSeries(this::removeLayer);
     plot.setOnSeriesColorChanged(this::onColorChanged);
-    plot.setOnRegionChanged(this::setRegion);
     for (final RawDataFile file : Arrays.stream(files).distinct().toList()) {
       this.files.add(file);
       if (mzRanges.isEmpty()) {
@@ -186,17 +198,19 @@ class Surface3DVisualizerTab extends MZmineTab {
     Platform.runLater(() -> load(false));
   }
 
-  private static @NotNull String title(final RawDataFile @NotNull [] files) {
+  private static @NotNull String title(final RawDataFile @NotNull [] files, final boolean flat) {
+    final String prefix = flat ? "2D" : "3D";
     if (files.length == 0) {
-      return "3D visualizer";
+      return prefix + " visualizer";
     }
-    return "3D " + files[0].getName() + (files.length > 1 ? " +" + (files.length - 1) : "");
+    return prefix + " " + files[0].getName() + (files.length > 1 ? " +" + (files.length - 1)
+        : "");
   }
 
   private void initTab() {
     plot.setNumberFormats(ConfigService.getGuiFormats());
     plot.setUnitFormat(ConfigService.getConfiguration().getUnitFormat());
-    if (mode == Surface3DDataMode.IMAGING) {
+    if (mode == Surface3DDataMode.IMAGING && !flat) {
       // decision (user request): images read best as flat log-scaled reliefs
       plot.setTransform(PaintScaleTransform.LOG10);
       plot.setHeightScale(plot.minimumHeightScale());
@@ -328,6 +342,7 @@ class Surface3DVisualizerTab extends MZmineTab {
       }
     }
     sampled.keySet().retainAll(layers.stream().map(Surface3DLayer::id).toList());
+    detailed.keySet().retainAll(sampled.keySet());
     if (changed) {
       load(false);
     } else {
@@ -343,6 +358,7 @@ class Surface3DVisualizerTab extends MZmineTab {
     }
     layers.remove(layer);
     sampled.remove(id);
+    detailed.remove(id);
     outside.remove(id);
     if (layers.stream().noneMatch(l -> l.file().equals(layer.file()))) {
       files.remove(layer.file());
@@ -362,8 +378,7 @@ class Surface3DVisualizerTab extends MZmineTab {
       return;
     }
     layers.clear();
-    sampled.clear();
-    outside.clear();
+    clearSampled();
     for (final RawDataFile file : files) {
       for (final Range<Double> range : ranges) {
         addLayer(file, range);
@@ -380,8 +395,7 @@ class Surface3DVisualizerTab extends MZmineTab {
       return;
     }
     layers.clear();
-    sampled.clear();
-    outside.clear();
+    clearSampled();
     files.forEach(this::addDefaultLayer);
     load(false);
   }
@@ -419,6 +433,7 @@ class Surface3DVisualizerTab extends MZmineTab {
     layers.removeAll(removed);
     for (final Surface3DLayer layer : removed) {
       sampled.remove(layer.id());
+      detailed.remove(layer.id());
       outside.remove(layer.id());
     }
     for (final RawDataFile file : files) {
@@ -611,24 +626,82 @@ class Surface3DVisualizerTab extends MZmineTab {
     }
   }
 
-  private void setRegion(@NotNull final Surface3DRegion region) {
-    this.region = region;
-    plot.setRegion(region);
-    load(true);
+  private void clearSampled() {
+    sampled.clear();
+    detailed.clear();
+    outside.clear();
+    focus = Surface3DRegion.FULL;
   }
 
+  /**
+   * Shows the visible data window in full detail once the view has settled (user request: zoom
+   * like the former 2D plot instead of selecting subsets). Reading raw data is expensive, so
+   * the event is debounced, only one read runs at a time, and the window is only read again when
+   * the view leaves it or zooms in well beyond its resolution. Zoomed out, the base is shown
+   * without reading.
+   */
   private void onDetailChanged() {
-    final Surface3DDetail previous = sampledDetail;
-    if (closed || previous == null || samplingTask != null) {
+    if (closed || sampledDetail == null) {
       return;
     }
-    // only a view-limited grid gains detail from a larger view or zoom
-    final boolean viewLimited = sampled.values().stream().anyMatch(Surface3DData::viewLimited);
-    final Surface3DDetail detail = plot.detail();
-    if (viewLimited && (detail.width() * detail.zoom() > previous.width() * previous.zoom() * 1.2
-        || detail.height() * detail.zoom() > previous.height() * previous.zoom() * 1.2)) {
-      load(true);
+    final SamplingTask running = samplingTask;
+    if (running != null && running.window.isFull()) {
+      // the base is still read, it requests the window when done
+      return;
     }
+    final Surface3DRegion visible = plot.visibleWindow();
+    if (visible.isFull()) {
+      if (!focus.isFull() || running != null) {
+        cancelSampling();
+        plot.setLoading(null, 0);
+        focus = Surface3DRegion.FULL;
+        detailed.clear();
+        publish();
+      }
+      return;
+    }
+    final boolean complete = layers.stream().allMatch(
+        layer -> !sampled.containsKey(layer.id()) || detailed.containsKey(layer.id()));
+    if ((complete && covers(focus, visible)) || (running != null && covers(running.window,
+        visible))) {
+      return;
+    }
+    loadWindow(visible.expand(WINDOW_MARGIN));
+  }
+
+  /**
+   * @return true if the window contains the visible range at a similar resolution
+   */
+  private static boolean covers(@NotNull final Surface3DRegion window,
+      @NotNull final Surface3DRegion visible) {
+    return !window.isFull() && window.encloses(visible)
+        && visible.width() >= window.width() * MIN_ZOOM_SHARE
+        && visible.height() >= window.height() * MIN_ZOOM_SHARE;
+  }
+
+  /**
+   * Reads the window of every overlay and merges it with the base.
+   */
+  private void loadWindow(@NotNull final Surface3DRegion window) {
+    final Map<RawDataFile, List<Surface3DLayer>> read = new LinkedHashMap<>();
+    for (final Surface3DLayer layer : layers) {
+      if (sampled.containsKey(layer.id())) {
+        read.computeIfAbsent(layer.file(), _ -> new ArrayList<>()).add(layer);
+      }
+    }
+    if (read.isEmpty()) {
+      return;
+    }
+    final Surface3DDetail view = plot.detail();
+    // decision: the window and the coarse base outside it share the render budget
+    final Surface3DDetail detail = new Surface3DDetail(view.width(), view.height(),
+        2 * Math.max(1, layers.size()), view.flat());
+    cancelSampling();
+    final SamplingTask task = new SamplingTask(read, Map.of(), Map.copyOf(sampled), parameters,
+        detail, window, normalization, frames, "Adjusting detail…");
+    samplingTask = task;
+    plot.setLoading("Adjusting detail…", -1);
+    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
   }
 
   /**
@@ -640,11 +713,11 @@ class Surface3DVisualizerTab extends MZmineTab {
     }
     updateFrame();
     final Surface3DDetail view = plot.detail();
-    final Surface3DDetail detail = new Surface3DDetail(view.width(), view.height(), view.zoom(),
-        Math.max(1, layers.size()));
+    // the base covers the complete range at the resolution of the zoomed out view
+    final Surface3DDetail detail = new Surface3DDetail(view.width(), view.height(),
+        Math.max(1, layers.size()), view.flat());
     if (all) {
-      sampled.clear();
-      outside.clear();
+      clearSampled();
     }
     final Map<RawDataFile, List<Surface3DLayer>> missing = new LinkedHashMap<>();
     for (final Surface3DLayer layer : layers) {
@@ -669,8 +742,8 @@ class Surface3DVisualizerTab extends MZmineTab {
     final int count = missing.values().stream().mapToInt(List::size).sum();
     final String message = "Reading " + count + (count == 1 ? " overlay" : " overlays") + " from "
         + missing.size() + (missing.size() == 1 ? " sample…" : " samples…");
-    final SamplingTask task = new SamplingTask(missing, shrink, parameters, detail, region,
-        normalization, frames, message);
+    final SamplingTask task = new SamplingTask(missing, shrink, Map.of(), parameters, detail,
+        Surface3DRegion.FULL, normalization, frames, message);
     samplingTask = task;
     plot.setLoading(missing.isEmpty() ? "Adjusting detail…" : message,
         missing.isEmpty() ? -1 : 0);
@@ -687,7 +760,8 @@ class Surface3DVisualizerTab extends MZmineTab {
   private void publish() {
     final List<Surface3DSeries> series = new ArrayList<>();
     for (final Surface3DLayer layer : layers) {
-      final Surface3DData data = sampled.get(layer.id());
+      final Surface3DData data = focus.isFull() ? sampled.get(layer.id())
+          : detailed.getOrDefault(layer.id(), sampled.get(layer.id()));
       if (data != null) {
         series.add(layer.toSeries(data));
       }
@@ -699,7 +773,7 @@ class Surface3DVisualizerTab extends MZmineTab {
     }
     updateDetail(series);
     if (series.isEmpty() && !layers.isEmpty() && !outside.isEmpty()) {
-      plot.setStatus("No data inside the selected region. Use Full range to show all data.");
+      plot.setStatus("No data in the selected m/z ranges");
     }
   }
 
@@ -746,9 +820,12 @@ class Surface3DVisualizerTab extends MZmineTab {
 
     private final Map<RawDataFile, List<Surface3DLayer>> missing;
     private final Map<String, Surface3DData> shrink;
+    // bases to merge window data into, empty for base reads
+    private final Map<String, Surface3DData> bases;
     private final ParameterSet settings;
     private final Surface3DDetail detail;
-    private final Surface3DRegion taskRegion;
+    // full for base reads
+    private final Surface3DRegion window;
     private final ImageNormalization taskNormalization;
     private final Surface3DFrames taskFrames;
     private final String message;
@@ -757,8 +834,9 @@ class Surface3DVisualizerTab extends MZmineTab {
     private volatile double reported;
 
     private SamplingTask(@NotNull final Map<RawDataFile, List<Surface3DLayer>> missing,
-        @NotNull final Map<String, Surface3DData> shrink, @NotNull final ParameterSet settings,
-        @NotNull final Surface3DDetail detail, @NotNull final Surface3DRegion region,
+        @NotNull final Map<String, Surface3DData> shrink,
+        @NotNull final Map<String, Surface3DData> bases, @NotNull final ParameterSet settings,
+        @NotNull final Surface3DDetail detail, @NotNull final Surface3DRegion window,
         @NotNull final ImageNormalization normalization,
         @NotNull final Surface3DFrames frames, @NotNull final String message) {
       super(null, Instant.now());
@@ -766,7 +844,8 @@ class Surface3DVisualizerTab extends MZmineTab {
       this.shrink = shrink;
       this.settings = settings;
       this.detail = detail;
-      this.taskRegion = region;
+      this.bases = bases;
+      this.window = window;
       this.taskNormalization = normalization;
       this.taskFrames = frames;
       this.message = message;
@@ -835,7 +914,7 @@ class Surface3DVisualizerTab extends MZmineTab {
           try {
             data = Surface3DSampler.sample(file, settings,
                 fileLayers.stream().map(Surface3DLayer::mzRange).toList(),
-                taskRegion, taskNormalization, taskFrames, detail,
+                window, taskNormalization, taskFrames, detail,
                 new Surface3DSampler.Progress() {
                   @Override
                   public boolean canceled() {
@@ -854,10 +933,19 @@ class Surface3DVisualizerTab extends MZmineTab {
             return;
           }
           for (int i = 0; i < data.length; i++) {
-            if (data[i] == null) {
-              empty.add(fileLayers.get(i).id());
+            final String id = fileLayers.get(i).id();
+            if (window.isFull()) {
+              if (data[i] == null) {
+                empty.add(id);
+              } else {
+                results.put(id, data[i]);
+              }
             } else {
-              results.put(fileLayers.get(i).id(), data[i]);
+              // no signal in the window keeps the coarse base
+              final Surface3DData base = bases.get(id);
+              if (base != null) {
+                results.put(id, data[i] == null ? base : Surface3DData.merge(base, data[i]));
+              }
             }
           }
         });
@@ -879,11 +967,21 @@ class Surface3DVisualizerTab extends MZmineTab {
               .toList());
           results.keySet().retainAll(current);
           empty.retainAll(current);
-          sampled.putAll(results);
-          outside.addAll(empty);
-          sampledDetail = detail;
           plot.setLoading(null, 0);
-          publish();
+          if (window.isFull()) {
+            sampled.putAll(results);
+            outside.addAll(empty);
+            sampledDetail = detail;
+            // detail of a zoomed view belongs to the previous base
+            detailed.clear();
+            focus = Surface3DRegion.FULL;
+            publish();
+            detailDelay.playFromStart();
+          } else {
+            detailed.putAll(results);
+            focus = window;
+            publish();
+          }
           if (!skipped.isEmpty()) {
             final var first = skipped.entrySet().iterator().next();
             plot.setStatus(first.getValue() + " in " + String.join(", ", skipped.keySet())

@@ -171,8 +171,8 @@ public final class Surface3DPicker {
     if (column < 0 || row < 0 || !data.isPresent(column, row)) {
       return Double.NaN;
     }
-    if (data.pixels() && (Math.abs(data.xValue(column) - dataX) > data.pixelWidth() / 2
-        || Math.abs(data.yValue(row) - dataY) > data.pixelHeight() / 2)) {
+    if (data.pixels() && (dataX < data.xLow(column) || dataX > data.xHigh(column)
+        || dataY < data.yLow(row) || dataY > data.yHigh(row))) {
       return Double.NaN;
     }
     final float value = data.intensity(column, row);

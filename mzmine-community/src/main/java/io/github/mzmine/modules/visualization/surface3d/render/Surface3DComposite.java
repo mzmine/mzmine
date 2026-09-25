@@ -77,6 +77,8 @@ public record Surface3DComposite(@NotNull Surface3DData data, @NotNull Surface3D
         union(sources.stream().map(s -> ys(s.data())).toList()), height);
     final Surface3DData data = new Surface3DData(x, y, first.xLabel(), first.yLabel(), pixels);
     data.setAxisKinds(first.xKind(), first.yKind());
+    // merged cells of a zoomed view differ in size
+    data.copyCellExtents(first);
     if (pixels) {
       data.setPixelSize(sources.stream().mapToDouble(s -> s.data().pixelWidth()).min().orElse(1),
           sources.stream().mapToDouble(s -> s.data().pixelHeight()).min().orElse(1));
@@ -148,7 +150,7 @@ public record Surface3DComposite(@NotNull Surface3DData data, @NotNull Surface3D
     final Surface3DBounds b = overlays.bounds();
     final double maximum = overlays.normalized() ? data.maximum() : b.maximum();
     return new Surface3DScale(new Surface3DBounds(b.xMin(), b.xMax(), b.yMin(), b.yMax(), maximum),
-        overlays.transform(), false, overlays.noiseFloor(), overlays.baseline());
+        overlays.transform(), false, overlays.noiseFloor(), overlays.baseline(), overlays.flat());
   }
 
   private static double @NotNull [] xs(@NotNull final Surface3DData data) {

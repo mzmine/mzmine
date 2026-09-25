@@ -117,7 +117,8 @@ public final class Surface3DSpectrumSource {
     final Scan[] scans = Surface3DSampler.scanSelection(parameters, mode).getMatchingScans(file);
     return switch (mode) {
       case AUTOMATIC, LC_MS -> {
-        final Scan[] sorted = Arrays.stream(scans)
+        // the same scans as the 3D view
+        final Scan[] sorted = Surface3DSampler.lowestMsLevel(scans).stream()
             .filter(scan -> Float.isFinite(scan.getRetentionTime()))
             .sorted(Comparator.comparingDouble(Scan::getRetentionTime)).toArray(Scan[]::new);
         final double[] times = Arrays.stream(sorted).mapToDouble(Scan::getRetentionTime).toArray();
