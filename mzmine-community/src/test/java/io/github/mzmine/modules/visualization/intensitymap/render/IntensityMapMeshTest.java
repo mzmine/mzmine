@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -198,13 +199,13 @@ class IntensityMapMeshTest {
         IntensityMapGrid.coordinates(1, 0, 0), "X", "Y", true);
     image.addMaximum(0, 0, 10);
     image.addMaximum(1, 0, 1e6);
-    final IntensityMapScale flat = new IntensityMapScale(IntensityMapBounds.of(List.of(image)),
-        PaintScaleTransform.LINEAR, false, 0, 0, true);
-    assertEquals(0, flat.height(image, 10));
-    assertEquals(0, flat.height(image, 1e6));
-    assertEquals(0, flat.height(image, 0));
+    final IntensityMapScale topView = new IntensityMapScale(IntensityMapBounds.of(List.of(image)),
+        PaintScaleTransform.LINEAR, false, 0, 0, IntensityMapProjection.TOP_VIEW);
+    assertEquals(0, topView.height(image, 10));
+    assertEquals(0, topView.height(image, 1e6));
+    assertEquals(0, topView.height(image, 0));
     // colors keep the intensity
-    assertEquals(1, flat.color(image, 1e6), 1e-9);
+    assertEquals(1, topView.color(image, 1e6), 1e-9);
   }
 
   @Test
@@ -217,9 +218,9 @@ class IntensityMapMeshTest {
     }
     data.addMaximum(1, 1, 100);
     data.addMaximum(2, 1, 50);
-    final IntensityMapScale flat = new IntensityMapScale(IntensityMapBounds.of(List.of(data)),
-        PaintScaleTransform.LINEAR, false, 0.01, 0, true);
-    final IntensityMapMesh mesh = IntensityMapMesh.build(data, flat, () -> false);
+    final IntensityMapScale topView = new IntensityMapScale(IntensityMapBounds.of(List.of(data)),
+        PaintScaleTransform.LINEAR, false, 0.01, 0, IntensityMapProjection.TOP_VIEW);
+    final IntensityMapMesh mesh = IntensityMapMesh.build(data, topView, () -> false);
     // two cells, sharing the two corners on the boundary between the scans
     assertEquals(4, mesh.triangles());
     assertEquals(6, mesh.points().length / 3);

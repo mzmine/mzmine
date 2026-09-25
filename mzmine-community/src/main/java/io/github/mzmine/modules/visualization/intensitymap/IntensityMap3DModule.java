@@ -35,6 +35,9 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPerspective;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapTopView;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapLayer;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapSampler;
 import io.github.mzmine.parameters.ParameterSet;
@@ -87,17 +90,18 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    return open(parameters, List.of(), false);
+    return open(parameters, List.of(), IntensityMapProjection.PERSPECTIVE);
   }
 
   /**
    * Opens the visualizer after checking 3D support and matching data dimensions.
    *
-   * @param mzRanges initial m/z overlays, empty for the complete m/z range of the parameters
-   * @param flat     the 2D view of {@link IntensityMap2DModule}
+   * @param mzRanges   initial m/z overlays, empty for the complete m/z range of the parameters
+   * @param projection the 3D view, or the 2D view of {@link IntensityMap2DModule}
    */
   static @NotNull ExitCode open(@NotNull final ParameterSet parameters,
-      @NotNull final List<Range<Double>> mzRanges, final boolean flat) {
+      @NotNull final List<Range<Double>> mzRanges,
+      @NotNull final IntensityMapProjection projection) {
     if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
       MZmineCore.getDesktop().displayErrorMessage("The platform does not provide 3D support.");
       return ExitCode.ERROR;
@@ -131,7 +135,7 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
     MZmineCore.getDesktop()
-        .addTab(new IntensityMapTab(files, parameters.cloneParameterSet(), mzRanges, flat));
+        .addTab(new IntensityMapTab(files, parameters.cloneParameterSet(), mzRanges, projection));
     return ExitCode.OK;
   }
 
@@ -140,10 +144,10 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
    * file of the features, restricted to their retention time range and polarity. Overlapping m/z
    * ranges are merged; imaging data ignore the retention time.
    *
-   * @param flat the 2D view of {@link IntensityMap2DModule}
+   * @param projection the 3D view, or the 2D view of {@link IntensityMap2DModule}
    */
   public static void showFeatures(@NotNull final List<? extends Feature> features,
-      final boolean flat) {
+      @NotNull final IntensityMapProjection projection) {
     if (features.isEmpty()) {
       return;
     }
@@ -158,8 +162,12 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
     // decision: features of different polarities show all scans
     final PolarityType polarity = polarities.size() == 1 ? polarities.getFirst() : PolarityType.ANY;
     // decision: a copy, feature ranges must not become the defaults of the module dialog
-    final ParameterSet parameters = ConfigService.getConfiguration()
-        .getModuleParameters(flat ? IntensityMap2DModule.class : IntensityMap3DModule.class)
+    // each view keeps its own module settings
+    final Class<? extends MZmineRunnableModule> module = switch (projection) {
+      case IntensityMapTopView _ -> IntensityMap2DModule.class;
+      case IntensityMapPerspective _ -> IntensityMap3DModule.class;
+    };
+    final ParameterSet parameters = ConfigService.getConfiguration().getModuleParameters(module)
         .cloneParameterSet();
     parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files);
@@ -173,7 +181,7 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
     merged.stream().reduce(Range::span)
         .ifPresent(span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
-      open(parameters, merged, flat);
+      open(parameters, merged, projection);
     }
   }
 }

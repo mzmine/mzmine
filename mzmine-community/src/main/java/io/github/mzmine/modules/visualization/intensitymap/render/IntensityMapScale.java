@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.intensitymap.render;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,12 +41,13 @@ import org.jetbrains.annotations.NotNull;
  * @param noiseFloor fraction of the maximum below which no geometry is created
  * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show the
  *                   differences above the lowest pixels. 0 starts heights at zero intensity.
- * @param flat       2D view: all values lie in the plane without height, intensity is only shown by
- *                   color
+ * @param projection the view; without heights all values lie in the plane and intensity is only
+ *                   shown by color
  */
 public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
                                 @NotNull PaintScaleTransform transform, boolean normalized,
-                                double noiseFloor, double baseline, boolean flat) {
+                                double noiseFloor, double baseline,
+                                @NotNull IntensityMapProjection projection) {
 
   /**
    * Height of values at or below the baseline: columns without height are not drawn, so the lowest
@@ -56,7 +58,7 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
   public IntensityMapScale(@NotNull final IntensityMapBounds bounds,
       @NotNull final PaintScaleTransform transform, final boolean normalized,
       final double noiseFloor, final double baseline) {
-    this(bounds, transform, normalized, noiseFloor, baseline, false);
+    this(bounds, transform, normalized, noiseFloor, baseline, IntensityMapProjection.PERSPECTIVE);
   }
 
   public IntensityMapScale(@NotNull final IntensityMapBounds bounds, final boolean logarithmic,
@@ -102,7 +104,7 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
    * @return height in [0, 1]
    */
   public double height(@NotNull final IntensityMapGrid data, final double value) {
-    if (flat) {
+    if (!projection.heights()) {
       // decision (user request): the 2D view is a plane, it draws in scene order without depth
       // test, so data cover the floor without any height
       return 0;
@@ -159,9 +161,9 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
   public boolean sameGeometry(@NotNull final IntensityMapScale other,
       @NotNull final IntensityMapGrid data) {
     return transform == other.transform && normalized == other.normalized
-        && noiseFloor == other.noiseFloor && baseline == other.baseline && flat == other.flat
-        && bounds.xMin() == other.bounds.xMin() && bounds.xMax() == other.bounds.xMax()
-        && bounds.yMin() == other.bounds.yMin() && bounds.yMax() == other.bounds.yMax()
-        && maximum(data) == other.maximum(data);
+        && noiseFloor == other.noiseFloor && baseline == other.baseline && projection.equals(
+        other.projection) && bounds.xMin() == other.bounds.xMin()
+        && bounds.xMax() == other.bounds.xMax() && bounds.yMin() == other.bounds.yMin()
+        && bounds.yMax() == other.bounds.yMax() && maximum(data) == other.maximum(data);
   }
 }

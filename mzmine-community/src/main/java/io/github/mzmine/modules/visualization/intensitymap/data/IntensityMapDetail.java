@@ -31,17 +31,15 @@ import org.jetbrains.annotations.NotNull;
  * View-dependent sampling density. There is no fixed limit on either coordinate axis; the total
  * vertex count across all overlays is bounded so that rotating and zooming stay fluid.
  *
- * @param flat 2D view: at most one sample per screen pixel, like the former 2D plot
+ * @param projection the view, which decides the samples per screen pixel
  */
-public record IntensityMapDetail(double width, double height, int samples, boolean flat) {
-
-  // the plot area of the 2D view is smaller than the viewport, cells should cover a pixel
-  private static final double FLAT_PLOT_FRACTION = 0.7;
+public record IntensityMapDetail(double width, double height, int samples,
+                                 @NotNull IntensityMapProjection projection) {
 
   public static final IntensityMapDetail DEFAULT = new IntensityMapDetail(1200, 800, 1);
 
   public IntensityMapDetail(final double width, final double height, final int samples) {
-    this(width, height, samples, false);
+    this(width, height, samples, IntensityMapProjection.PERSPECTIVE);
   }
 
   // decision: beyond ~1 M grid vertices per view, extra vertices are sub-pixel but the GPU
@@ -61,18 +59,8 @@ public record IntensityMapDetail(double width, double height, int samples, boole
 
   @NotNull GridSize grid(final int nativeX, final int nativeY, final boolean pixels,
       final long memory) {
-    final int viewX;
-    final int viewY;
-    if (flat) {
-      // decision: cells thinner than a pixel are not drawn, so centroids jittering between fine
-      // m/z bins would appear as dashed traces. Bins of a pixel keep the maximum of the pixel.
-      viewX = (int) Math.ceil(Math.max(400, width * FLAT_PLOT_FRACTION));
-      viewY = (int) Math.ceil(Math.max(300, height * FLAT_PLOT_FRACTION));
-    } else {
-      viewX = (int) Math.ceil(Math.max(400, width));
-      // the spectral axis gets more samples than screen pixels, bins retain maxima of narrow peaks
-      viewY = (int) Math.ceil(Math.max(600, Math.max(width, height) * 1.6));
-    }
+    final int viewX = projection.viewColumns(width);
+    final int viewY = projection.viewRows(width, height);
     int x = Math.max(1, Math.min(nativeX, viewX));
     int y = Math.max(1, Math.min(nativeY, viewY));
     // Memory guard for data, mesh arrays, JavaFX copies and GPU buffers, plus a render budget.

@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.intensitymap.render;
 
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPerspective;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapTopView;
 import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.function.BooleanSupplier;
@@ -66,9 +68,12 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
     if (data.pixels()) {
       return pixels(data, scale, canceled);
     }
-    // decision: the 2D view draws cells like the former 2D plot, a surface would fade to the
-    // floor between neighboring scans
-    return scale.flat() ? cells(data, scale, canceled) : surface(data, scale, canceled);
+    return switch (scale.projection()) {
+      // decision: the 2D view draws cells like the former 2D plot, a surface would fade to the
+      // floor between neighboring scans
+      case IntensityMapTopView _ -> cells(data, scale, canceled);
+      case IntensityMapPerspective _ -> surface(data, scale, canceled);
+    };
   }
 
   /**
@@ -250,7 +255,7 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
         triangles += 2;
         final double value = data.intensity(x, y);
         // flat pixels of the 2D view have no walls
-        if (value <= 0 || scale.flat() || scale.height(data, value) <= 0) {
+        if (value <= 0 || !scale.projection().heights() || scale.height(data, value) <= 0) {
           continue;
         }
         int mask = 0;

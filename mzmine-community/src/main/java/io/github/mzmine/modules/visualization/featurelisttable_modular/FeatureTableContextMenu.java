@@ -98,6 +98,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
@@ -666,7 +667,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     showImageFeatureItem.visibleProperty().bind(hasImagingData);
     // the 2D visualizer replaced the image viewer
     showImageFeatureItem.setOnAction(
-        _ -> IntensityMap3DModule.showFeatures(List.of(selectedOrBestFeature), true));
+        _ -> IntensityMap3DModule.showFeatures(List.of(selectedOrBestFeature),
+            IntensityMapProjection.TOP_VIEW));
 
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
@@ -678,11 +680,11 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D visualizer",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null);
-    show2DItem.setOnAction(openFeatureVisualizer(true));
+    show2DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.TOP_VIEW));
 
     final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D visualizer",
         () -> selectedRow != null);
-    show3DItem.setOnAction(openFeatureVisualizer(false));
+    show3DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.PERSPECTIVE));
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
         "Plot using Intensity plot module", () -> !selectedRows.isEmpty() && selectedRow != null);
@@ -844,16 +846,17 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   /**
-   * @param flat the 2D visualizer instead of the 3D visualizer
+   * @param projection the 2D or the 3D visualizer
    */
-  private @NotNull EventHandler<ActionEvent> openFeatureVisualizer(final boolean flat) {
+  private @NotNull EventHandler<ActionEvent> openFeatureVisualizer(
+      @NotNull final IntensityMapProjection projection) {
     return _ -> {
       final List<Feature> features = getSelectedOrBestFeatures();
       if (features.isEmpty()) {
         return;
       }
 
-      IntensityMap3DModule.showFeatures(features, flat);
+      IntensityMap3DModule.showFeatures(features, projection);
     };
   }
 

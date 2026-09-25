@@ -42,6 +42,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.intensitymap.chromatogram.IntensityMapChromatogramPane;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPosition;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapFrameCache;
@@ -96,8 +97,8 @@ class IntensityMapTab extends MZmineTab {
   // the first frame is resolved
   private @NotNull IntensityMapFrameCache frames = new IntensityMapFrameCache();
   private final @NotNull IntensityMapDimensions mode;
-  // 2D view without heights
-  private final boolean flat;
+  // the 3D or the 2D view
+  private final IntensityMapProjection projection;
   private final ChangeListener<Boolean> darkModeListener = (_, _, dark) -> updateDarkMode(dark);
   // decision: weak, tabs removed via their context menu are not closed and must not stay reachable
   private final WeakChangeListener<Boolean> weakDarkModeListener = new WeakChangeListener<>(
@@ -108,15 +109,16 @@ class IntensityMapTab extends MZmineTab {
   private boolean closed;
 
   /**
-   * @param files    at least one file, all with the same data dimensions
-   * @param mzRanges initial m/z overlays for every file, e.g. of selected features. Empty shows the
-   *                 complete m/z range of the parameters.
-   * @param flat     2D view: a fixed top view without heights
+   * @param files      at least one file, all with the same data dimensions
+   * @param mzRanges   initial m/z overlays for every file, e.g. of selected features. Empty shows
+   *                   the complete m/z range of the parameters.
+   * @param projection the 3D view, or the 2D view: a fixed top view without heights
    */
   IntensityMapTab(final RawDataFile @NotNull [] files, @NotNull final ParameterSet parameters,
-      @NotNull final List<Range<Double>> mzRanges, final boolean flat) {
-    super(title(files, flat), false, false);
-    this.flat = flat;
+      @NotNull final List<Range<Double>> mzRanges,
+      @NotNull final IntensityMapProjection projection) {
+    super(title(files, projection), false, false);
+    this.projection = projection;
     this.parameters = parameters.cloneParameterSet();
     mode = IntensityMapSampler.resolveMode(files[0],
         parameters.getValue(IntensityMapParameters.mode));
@@ -124,7 +126,7 @@ class IntensityMapTab extends MZmineTab {
     // of the preferences like other mzmine heatmaps
     final SimpleColorPalette palette = ConfigService.getConfiguration()
         .getDefaultPaintScalePalette();
-    plot = new IntensityMapPlot(palette, flat);
+    plot = new IntensityMapPlot(palette, projection);
     loader = new IntensityMapDetailLoader(plot, this.parameters, () -> layers, () -> normalization,
         () -> frames, this::publish);
     // assumption: the preferences hold the complete list including custom paint scales
@@ -177,8 +179,9 @@ class IntensityMapTab extends MZmineTab {
     Platform.runLater(() -> load(false));
   }
 
-  private static @NotNull String title(final RawDataFile @NotNull [] files, final boolean flat) {
-    final String prefix = flat ? "2D" : "3D";
+  private static @NotNull String title(final RawDataFile @NotNull [] files,
+      @NotNull final IntensityMapProjection projection) {
+    final String prefix = projection.label();
     if (files.length == 0) {
       return prefix + " visualizer";
     }
@@ -188,7 +191,7 @@ class IntensityMapTab extends MZmineTab {
   private void initTab() {
     plot.setNumberFormats(ConfigService.getGuiFormats());
     plot.setUnitFormat(ConfigService.getConfiguration().getUnitFormat());
-    if (mode == IntensityMapDimensions.IMAGING && !flat) {
+    if (mode == IntensityMapDimensions.IMAGING && projection.heights()) {
       // decision (user request): images read best as flat log-scaled reliefs
       plot.setTransform(PaintScaleTransform.LOG10);
       plot.setHeightScale(plot.minimumHeightScale());

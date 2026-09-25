@@ -77,10 +77,10 @@ class IntensityMapGridTest {
     // 20000 useful m/z bins, a 1000 x 700 pixel view
     final var surface = new IntensityMapDetail(1000, 700, 1).grid(200, 20000, false,
         256L * 1024 * 1024);
-    final var flat = new IntensityMapDetail(1000, 700, 1, true).grid(200, 20000, false,
-        256L * 1024 * 1024);
+    final var topView = new IntensityMapDetail(1000, 700, 1, IntensityMapProjection.TOP_VIEW).grid(
+        200, 20000, false, 256L * 1024 * 1024);
     assertTrue(surface.y() > 700);
-    assertTrue(flat.y() <= 700);
+    assertTrue(topView.y() <= 700);
   }
 
   @Test

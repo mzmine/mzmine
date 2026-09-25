@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import java.util.List;
 import javafx.geometry.Point3D;
@@ -89,7 +90,7 @@ class IntensityMapPickerTest {
     upper.addMaximum(10, 10, 5);
     final IntensityMapScale scale = new IntensityMapScale(
         IntensityMapBounds.of(List.of(lower, upper)), PaintScaleTransform.LINEAR, false, 0, 0,
-        true);
+        IntensityMapProjection.TOP_VIEW);
     final IntensityMapPicker.Target first = new IntensityMapPicker.Target(
         new IntensityMapSeries("lower", lower, Color.RED), scale);
     final IntensityMapPicker.Target last = new IntensityMapPicker.Target(

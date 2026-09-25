@@ -167,7 +167,7 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
     final List<IntensityMapLayer> current = layers.get();
     // the base covers the complete range at the resolution of the zoomed out view
     final IntensityMapDetail detail = new IntensityMapDetail(view.width(), view.height(),
-        Math.max(1, current.size()), view.flat());
+        Math.max(1, current.size()), view.projection());
     if (all) {
       clear();
     }
@@ -255,7 +255,7 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
     final IntensityMapDetail view = plot.detail();
     // decision: the window and the coarse base outside it share the render budget
     final IntensityMapDetail detail = new IntensityMapDetail(view.width(), view.height(),
-        2 * Math.max(1, current.size()), view.flat());
+        2 * Math.max(1, current.size()), view.projection());
     cancel();
     start(new IntensityMapSamplingTask(read, Map.of(), Map.copyOf(sampled), parameters, detail,
         window, normalization.get(), frames.get(), "Adjusting detail…", this));

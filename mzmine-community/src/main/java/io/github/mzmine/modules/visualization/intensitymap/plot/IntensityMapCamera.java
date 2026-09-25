@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.DEPTH;
 import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.WIDTH;
 
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPicker;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
@@ -51,8 +52,6 @@ import org.jetbrains.annotations.Nullable;
  */
 final class IntensityMapCamera {
 
-  static final double DEFAULT_TILT = 38;
-  static final double DEFAULT_TURN = -32;
   // closest and farthest camera distance to the viewed point: fitted views are ~1250 away, so
   // zooming in reaches more than 10000 times (user request)
   private static final double MIN_DISTANCE = 0.05;
@@ -61,31 +60,24 @@ final class IntensityMapCamera {
   private static final int VISIBLE_STEPS = 24;
 
   private final PerspectiveCamera camera = new PerspectiveCamera(true);
-  private final Rotate tilt = new Rotate(DEFAULT_TILT, Rotate.X_AXIS);
-  private final Rotate turn = new Rotate(DEFAULT_TURN, Rotate.Y_AXIS);
+  private final Rotate tilt = new Rotate(0, Rotate.X_AXIS);
+  private final Rotate turn = new Rotate(0, Rotate.Y_AXIS);
   private final Scale heightScale = new Scale(1, 1, 1, 0, 0, 0);
   private final Group model;
   private final SubScene scene;
   private final Region viewport;
-  private final boolean flat;
+  private final IntensityMapProjection projection;
   // the camera follows the data until the user navigates
   private boolean autoFit = true;
 
-  /**
-   * @param flat the 2D view: a fixed top view, which cannot rotate
-   */
   IntensityMapCamera(@NotNull final Group model, @NotNull final SubScene scene,
-      @NotNull final Region viewport, final boolean flat) {
+      @NotNull final Region viewport, @NotNull final IntensityMapProjection projection) {
     this.model = model;
     this.scene = scene;
     this.viewport = viewport;
-    this.flat = flat;
+    this.projection = projection;
     model.getTransforms().addAll(tilt, turn, heightScale);
-    if (flat) {
-      // a plane facing the camera projects without perspective distortion, like a 2D image
-      tilt.setAngle(90);
-      turn.setAngle(0);
-    }
+    resetAngles();
     camera.setNearClip(10);
     camera.setFarClip(10000);
     camera.setTranslateZ(-1250);
@@ -128,10 +120,10 @@ final class IntensityMapCamera {
   }
 
   /**
-   * The default perspective, or the top view of the 2D view.
+   * The default angles of the projection.
    */
   void resetAngles() {
-    setAngles(flat ? 90 : DEFAULT_TILT, flat ? 0 : DEFAULT_TURN);
+    setAngles(projection.defaultTilt(), projection.defaultTurn());
   }
 
   void resetPan() {
@@ -154,7 +146,7 @@ final class IntensityMapCamera {
    */
   void drag(final double dx, final double dy, final boolean pan) {
     // the 2D view cannot rotate, dragging pans
-    if (flat || pan) {
+    if (!projection.rotatable() || pan) {
       pan(dx, dy);
       return;
     }
@@ -362,8 +354,8 @@ final class IntensityMapCamera {
         final double x = (i / (double) steps - 0.5) * WIDTH;
         for (int j = 0; j <= steps; j++) {
           final double z = (j / (double) steps - 0.5) * DEPTH;
-          for (final double y : flat ? new double[]{0}
-              : new double[]{0, -IntensityMapMesh.HEIGHT}) {
+          for (final double y : projection.heights() ? new double[]{0, -IntensityMapMesh.HEIGHT}
+              : new double[]{0}) {
             final Point3D local = tile.toModel(new Point3D(x, y, z));
             if (model.localToParent(local).getZ()
                 <= camera.getTranslateZ() + camera.getNearClip()) {

@@ -31,7 +31,9 @@ import static io.github.mzmine.modules.visualization.intensitymap.render.Intensi
 
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPerspective;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapTopView;
 import java.util.List;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
@@ -119,9 +121,19 @@ public final class IntensityMapPicker {
   }
 
   public static @Nullable Hit pick(@NotNull final Ray ray, @NotNull final List<Target> targets) {
-    if (!targets.isEmpty() && targets.getFirst().scale().flat()) {
-      return pickFlat(ray, targets);
+    if (targets.isEmpty()) {
+      return march(ray, targets);
     }
+    return switch (targets.getFirst().scale().projection()) {
+      case IntensityMapTopView _ -> pickPlane(ray, targets);
+      case IntensityMapPerspective _ -> march(ray, targets);
+    };
+  }
+
+  /**
+   * Marches the ray through the height fields and refines the first hit by bisection.
+   */
+  private static @Nullable Hit march(@NotNull final Ray ray, @NotNull final List<Target> targets) {
     final double[] range = {0, Double.MAX_VALUE};
     if (!slab(ray.origin().getX(), ray.direction().getX(), -WIDTH / 2, WIDTH / 2, range) || !slab(
         ray.origin().getY(), ray.direction().getY(), -HEIGHT * 1.05, 0.5, range) || !slab(
@@ -165,7 +177,7 @@ public final class IntensityMapPicker {
    * The 2D view has no heights: the hit is the floor point, its target the overlay drawn last with
    * signal there, which is the one on top.
    */
-  private static @Nullable Hit pickFlat(@NotNull final Ray ray,
+  private static @Nullable Hit pickPlane(@NotNull final Ray ray,
       @NotNull final List<Target> targets) {
     final Point3D floor = floor(ray, false);
     if (floor == null) {

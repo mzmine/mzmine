@@ -38,6 +38,7 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapAxisKind;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSmoothing;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -88,7 +89,7 @@ final class IntensityMapControls {
   // decision: 0.1 % hides the noise carpet of typical overlays while keeping real signals
   private static final double DEFAULT_NOISE_PERCENT = 0.1;
 
-  private final boolean flat;
+  private final IntensityMapProjection projection;
   private final Slider heightSlider = new Slider(0.2, 3, 1);
   // same transformations and normalizations as the imaging preferences
   private final ComboBox<PaintScaleTransform> transform = FxComboBox.createComboBox(
@@ -125,11 +126,12 @@ final class IntensityMapControls {
   private boolean layoutChosen;
 
   /**
-   * @param palette initial paint scale
-   * @param flat    the 2D view, without height controls and camera presets
+   * @param palette    initial paint scale
+   * @param projection height controls and camera presets only apply to projections with them
    */
-  IntensityMapControls(@NotNull final SimpleColorPalette palette, final boolean flat) {
-    this.flat = flat;
+  IntensityMapControls(@NotNull final SimpleColorPalette palette,
+      @NotNull final IntensityMapProjection projection) {
+    this.projection = projection;
     heightSlider.setPrefWidth(150);
     heightSlider.setTooltip(new Tooltip("Vertical exaggeration; intensities retain their scale"));
     transform.setValue(PaintScaleTransform.LINEAR);
@@ -215,8 +217,8 @@ final class IntensityMapControls {
         viewButton("top", "bi-grid-3x3", "Top view onto the coordinate plane (T)",
             actions.topView()), frontButton, sideButton);
     // the 2D view has one fixed camera
-    views.setVisible(!flat);
-    views.setManaged(!flat);
+    views.setVisible(projection.rotatable());
+    views.setManaged(projection.rotatable());
     final Button display = FxButtons.createButton("Display",
         "Height, log scale, normalization, and colors", () -> {
         });
@@ -270,16 +272,16 @@ final class IntensityMapControls {
         Spectrum: click a signal to show its m/z, Ctrl/⌘ + click to add or remove m/z,
         Ctrl/⌘ + drag to add an m/z window
         """;
-    final Tooltip helpTip = new Tooltip(flat ? """
-        Drag, arrow keys, or two-finger scroll: pan
-        """ + common + """
-        Ctrl/⌘ + drag: zoom to a box
-        Double-click or R: fit view · +/−: zoom""" : """
+    final Tooltip helpTip = new Tooltip(projection.rotatable() ? """
         Drag: rotate · Shift/right-drag or two-finger scroll: pan
         """ + common + """
         Ctrl/⌘ + drag on the floor: zoom to a box
         Double-click or R: fit view · T/F/S: top, front, side
-        Arrow keys: rotate · +/−: zoom""");
+        Arrow keys: rotate · +/−: zoom""" : """
+        Drag, arrow keys, or two-finger scroll: pan
+        """ + common + """
+        Ctrl/⌘ + drag: zoom to a box
+        Double-click or R: fit view · +/−: zoom""");
     helpTip.setShowDelay(Duration.millis(150));
     help.setTooltip(helpTip);
     return help;
@@ -356,7 +358,7 @@ final class IntensityMapControls {
     final IntensityMapLayout mode = layout.get();
     displayGrid.getChildren().clear();
     int row = 0;
-    if (!flat) {
+    if (projection.heights()) {
       displayGrid.addRow(row++, new Label("Height"), heightSlider);
     }
     // decision (user request): logarithmic heights only make sense for images
@@ -364,7 +366,7 @@ final class IntensityMapControls {
       transform.setValue(PaintScaleTransform.LINEAR);
     }
     // transformation and baseline change heights only, which the 2D view does not have
-    if (imaging && !flat) {
+    if (imaging && projection.heights()) {
       displayGrid.addRow(row++, new Label("Transform"), transform);
       displayGrid.addRow(row++, new Label("Heights"), fromLowest);
     }
@@ -391,8 +393,8 @@ final class IntensityMapControls {
    */
   private void updateProfileButtons(@NotNull final List<IntensityMapSeries> current,
       final boolean imaging) {
-    frontButton.setVisible(!imaging && !flat);
-    sideButton.setVisible(!imaging && !flat);
+    frontButton.setVisible(!imaging && projection.rotatable());
+    sideButton.setVisible(!imaging && projection.rotatable());
     final IntensityMapGrid first = current.isEmpty() ? null : current.getFirst().data();
     final IntensityMapAxisKind x =
         first == null ? IntensityMapAxisKind.RETENTION_TIME : first.xKind();

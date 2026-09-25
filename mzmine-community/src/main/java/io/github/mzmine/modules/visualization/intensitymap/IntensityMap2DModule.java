@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.intensitymap;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -67,6 +68,6 @@ public class IntensityMap2DModule implements MZmineRunnableModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    return IntensityMap3DModule.open(parameters, List.of(), true);
+    return IntensityMap3DModule.open(parameters, List.of(), IntensityMapProjection.TOP_VIEW);
   }
 }
