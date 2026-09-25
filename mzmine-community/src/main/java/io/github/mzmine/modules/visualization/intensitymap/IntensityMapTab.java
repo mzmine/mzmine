@@ -37,14 +37,11 @@ import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.intensitymap.chromatogram.IntensityMapChromatogramPane;
-import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPosition;
-import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapFrameCache;
@@ -54,37 +51,28 @@ import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMap
 import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMapSpectrumPane;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Owns the overlay layers (raw file and m/z range), the raw-data tasks, and the lifetime of the
- * reusable 3D plot. Sampled layers are cached, so adding or removing overlays only reads the raw
- * data of new layers.
+ * Owns the overlay layers (raw file and m/z range), the spectrum or chromatogram pane, and the
+ * lifetime of the reusable plot. The sampled data are cached by {@link IntensityMapDetailLoader},
+ * so adding or removing overlays only reads the raw data of new layers.
  */
 class IntensityMapTab extends MZmineTab {
 
@@ -92,21 +80,11 @@ class IntensityMapTab extends MZmineTab {
 
   private final List<RawDataFile> files = new ArrayList<>();
   private final List<IntensityMapLayer> layers = new ArrayList<>();
-  // coarse data of the complete range, the view when zoomed out
-  private final Map<String, IntensityMapGrid> sampled = new HashMap<>();
-  // base merged with full detail of the visible window after zooming in
-  private final Map<String, IntensityMapGrid> detailed = new HashMap<>();
-  // the window of the detailed data, full if none
-  private IntensityMapRegion focus = IntensityMapRegion.FULL;
-  // layers without data in their m/z range
-  private final Set<String> outside = new HashSet<>();
   private static final int MAX_SPECTRA = 6;
-  // share of the window size added on each side, so that small pans need no read
-  private static final double WINDOW_MARGIN = 0.25;
-  // the window is read again when the visible range is smaller than this share of it
-  private static final double MIN_ZOOM_SHARE = 0.4;
 
   private final IntensityMapPlot plot;
+  // sampled data of the layers, also of the zoomed window
+  private final IntensityMapDetailLoader loader;
   private final @NotNull ParameterSet parameters;
   private final @Nullable IntensityMapSpectrumLookup spectrumSource;
   private final @Nullable IntensityMapSpectrumPane spectrumPane;
@@ -120,13 +98,10 @@ class IntensityMapTab extends MZmineTab {
   private final @NotNull IntensityMapDimensions mode;
   // 2D view without heights
   private final boolean flat;
-  private final PauseTransition detailDelay = new PauseTransition(Duration.millis(300));
   private final ChangeListener<Boolean> darkModeListener = (_, _, dark) -> updateDarkMode(dark);
   // decision: weak, tabs removed via their context menu are not closed and must not stay reachable
   private final WeakChangeListener<Boolean> weakDarkModeListener = new WeakChangeListener<>(
       darkModeListener);
-  private @Nullable SamplingTask samplingTask;
-  private @Nullable IntensityMapDetail sampledDetail;
   // decision: the imaging normalization and transformation only apply to imaging data
   private ImageNormalization normalization = ImageNormalization.NO_NORMALIZATION;
   private int nextLayer;
@@ -150,6 +125,8 @@ class IntensityMapTab extends MZmineTab {
     final SimpleColorPalette palette = ConfigService.getConfiguration()
         .getDefaultPaintScalePalette();
     plot = new IntensityMapPlot(palette, flat);
+    loader = new IntensityMapDetailLoader(plot, this.parameters, () -> layers, () -> normalization,
+        () -> frames, this::publish);
     // assumption: the preferences hold the complete list including custom paint scales
     plot.setPaintScales(paintScales(palette));
     plot.setPaintScale(palette);
@@ -220,8 +197,7 @@ class IntensityMapTab extends MZmineTab {
     }
     setContent(plot);
     setOnClosed(_ -> close());
-    detailDelay.setOnFinished(_ -> onDetailChanged());
-    plot.setDetailListener(_ -> detailDelay.playFromStart());
+    plot.setDetailListener(_ -> loader.viewChanged());
     ConfigService.isDarkModeProperty().addListener(weakDarkModeListener);
     updateDarkMode(ConfigService.isDarkModeProperty().get());
   }
@@ -340,8 +316,7 @@ class IntensityMapTab extends MZmineTab {
         changed |= addLayer(file, range);
       }
     }
-    sampled.keySet().retainAll(layers.stream().map(IntensityMapLayer::id).toList());
-    detailed.keySet().retainAll(sampled.keySet());
+    loader.retain(layers.stream().map(IntensityMapLayer::id).toList());
     if (changed) {
       load(false);
     } else {
@@ -356,15 +331,13 @@ class IntensityMapTab extends MZmineTab {
       return;
     }
     layers.remove(layer);
-    sampled.remove(id);
-    detailed.remove(id);
-    outside.remove(id);
+    loader.remove(id);
     if (layers.stream().noneMatch(l -> l.file().equals(layer.file()))) {
       files.remove(layer.file());
     }
     // decision: while reading, the cache may be cleared for resampling; publishing now would
     // empty the view and reset the overlay settings. The running task publishes when done.
-    if (samplingTask == null) {
+    if (!loader.isLoading()) {
       publish();
     }
   }
@@ -377,7 +350,7 @@ class IntensityMapTab extends MZmineTab {
       return;
     }
     layers.clear();
-    clearSampled();
+    loader.clear();
     for (final RawDataFile file : files) {
       for (final Range<Double> range : ranges) {
         addLayer(file, range);
@@ -394,7 +367,7 @@ class IntensityMapTab extends MZmineTab {
       return;
     }
     layers.clear();
-    clearSampled();
+    loader.clear();
     files.forEach(this::addDefaultLayer);
     load(false);
   }
@@ -431,9 +404,7 @@ class IntensityMapTab extends MZmineTab {
   private void removeLayers(@NotNull final List<IntensityMapLayer> removed) {
     layers.removeAll(removed);
     for (final IntensityMapLayer layer : removed) {
-      sampled.remove(layer.id());
-      detailed.remove(layer.id());
-      outside.remove(layer.id());
+      loader.remove(layer.id());
     }
     for (final RawDataFile file : files) {
       if (layers.stream().noneMatch(layer -> layer.file().equals(file))) {
@@ -626,84 +597,6 @@ class IntensityMapTab extends MZmineTab {
     }
   }
 
-  private void clearSampled() {
-    sampled.clear();
-    detailed.clear();
-    outside.clear();
-    focus = IntensityMapRegion.FULL;
-  }
-
-  /**
-   * Shows the visible data window in full detail once the view has settled (user request: zoom like
-   * the former 2D plot instead of selecting subsets). Reading raw data is expensive, so the event
-   * is debounced, only one read runs at a time, and the window is only read again when the view
-   * leaves it or zooms in well beyond its resolution. Zoomed out, the base is shown without
-   * reading.
-   */
-  private void onDetailChanged() {
-    if (closed || sampledDetail == null) {
-      return;
-    }
-    final SamplingTask running = samplingTask;
-    if (running != null && running.window.isFull()) {
-      // the base is still read, it requests the window when done
-      return;
-    }
-    final IntensityMapRegion visible = plot.visibleWindow();
-    if (visible.isFull()) {
-      if (!focus.isFull() || running != null) {
-        cancelSampling();
-        plot.setLoading(null, 0);
-        focus = IntensityMapRegion.FULL;
-        detailed.clear();
-        publish();
-      }
-      return;
-    }
-    final boolean complete = layers.stream()
-        .allMatch(layer -> !sampled.containsKey(layer.id()) || detailed.containsKey(layer.id()));
-    if ((complete && covers(focus, visible)) || (running != null && covers(running.window,
-        visible))) {
-      return;
-    }
-    loadWindow(visible.expand(WINDOW_MARGIN));
-  }
-
-  /**
-   * @return true if the window contains the visible range at a similar resolution
-   */
-  private static boolean covers(@NotNull final IntensityMapRegion window,
-      @NotNull final IntensityMapRegion visible) {
-    return !window.isFull() && window.encloses(visible)
-        && visible.width() >= window.width() * MIN_ZOOM_SHARE
-        && visible.height() >= window.height() * MIN_ZOOM_SHARE;
-  }
-
-  /**
-   * Reads the window of every overlay and merges it with the base.
-   */
-  private void loadWindow(@NotNull final IntensityMapRegion window) {
-    final Map<RawDataFile, List<IntensityMapLayer>> read = new LinkedHashMap<>();
-    for (final IntensityMapLayer layer : layers) {
-      if (sampled.containsKey(layer.id())) {
-        read.computeIfAbsent(layer.file(), _ -> new ArrayList<>()).add(layer);
-      }
-    }
-    if (read.isEmpty()) {
-      return;
-    }
-    final IntensityMapDetail view = plot.detail();
-    // decision: the window and the coarse base outside it share the render budget
-    final IntensityMapDetail detail = new IntensityMapDetail(view.width(), view.height(),
-        2 * Math.max(1, layers.size()), view.flat());
-    cancelSampling();
-    final SamplingTask task = new SamplingTask(read, Map.of(), Map.copyOf(sampled), parameters,
-        detail, window, normalization, frames, "Adjusting detail…");
-    samplingTask = task;
-    plot.setLoading("Adjusting detail…", -1);
-    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
-  }
-
   /**
    * @param all resample every layer, otherwise only layers without data
    */
@@ -712,56 +605,13 @@ class IntensityMapTab extends MZmineTab {
       return;
     }
     updateFrame();
-    final IntensityMapDetail view = plot.detail();
-    // the base covers the complete range at the resolution of the zoomed out view
-    final IntensityMapDetail detail = new IntensityMapDetail(view.width(), view.height(),
-        Math.max(1, layers.size()), view.flat());
-    if (all) {
-      clearSampled();
-    }
-    final Map<RawDataFile, List<IntensityMapLayer>> missing = new LinkedHashMap<>();
-    for (final IntensityMapLayer layer : layers) {
-      if (!sampled.containsKey(layer.id()) && !outside.contains(layer.id())) {
-        missing.computeIfAbsent(layer.file(), _ -> new ArrayList<>()).add(layer);
-      }
-    }
-    // existing layers shrink to their share of the render budget without re-reading raw data
-    final Map<String, IntensityMapGrid> shrink = new HashMap<>();
-    for (final var entry : sampled.entrySet()) {
-      final IntensityMapGrid data = entry.getValue();
-      final var size = detail.grid(data.width(), data.height(), data.pixels());
-      if (size.x() < data.width() || size.y() < data.height()) {
-        shrink.put(entry.getKey(), data);
-      }
-    }
-    cancelSampling();
-    if (missing.isEmpty() && shrink.isEmpty()) {
-      publish();
-      return;
-    }
-    final int count = missing.values().stream().mapToInt(List::size).sum();
-    final String message =
-        "Reading " + count + (count == 1 ? " overlay" : " overlays") + " from " + missing.size() + (
-            missing.size() == 1 ? " sample…" : " samples…");
-    final SamplingTask task = new SamplingTask(missing, shrink, Map.of(), parameters, detail,
-        IntensityMapRegion.FULL, normalization, frames, message);
-    samplingTask = task;
-    plot.setLoading(missing.isEmpty() ? "Adjusting detail…" : message, missing.isEmpty() ? -1 : 0);
-    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
-  }
-
-  private void cancelSampling() {
-    if (samplingTask != null) {
-      samplingTask.cancel();
-      samplingTask = null;
-    }
+    loader.load(all);
   }
 
   private void publish() {
     final List<IntensityMapSeries> series = new ArrayList<>();
     for (final IntensityMapLayer layer : layers) {
-      final IntensityMapGrid data = focus.isFull() ? sampled.get(layer.id())
-          : detailed.getOrDefault(layer.id(), sampled.get(layer.id()));
+      final IntensityMapGrid data = loader.data(layer.id());
       if (data != null) {
         series.add(layer.toSeries(data));
       }
@@ -772,15 +622,14 @@ class IntensityMapTab extends MZmineTab {
       plot.setStatus(ex.getMessage());
     }
     updateDetail(series);
-    if (series.isEmpty() && !layers.isEmpty() && !outside.isEmpty()) {
+    if (series.isEmpty() && !layers.isEmpty() && loader.hasEmptyLayers()) {
       plot.setStatus("No data in the selected m/z ranges");
     }
   }
 
   private void close() {
     closed = true;
-    detailDelay.stop();
-    cancelSampling();
+    loader.close();
     chromatogramGeneration++;
     ConfigService.isDarkModeProperty().removeListener(weakDarkModeListener);
     plot.close();
@@ -814,197 +663,5 @@ class IntensityMapTab extends MZmineTab {
   @Override
   public void onAlignedFeatureListSelectionChanged(
       @NotNull final Collection<? extends FeatureList> selected) {
-  }
-
-  private final class SamplingTask extends AbstractTask {
-
-    private final Map<RawDataFile, List<IntensityMapLayer>> missing;
-    private final Map<String, IntensityMapGrid> shrink;
-    // bases to merge window data into, empty for base reads
-    private final Map<String, IntensityMapGrid> bases;
-    private final ParameterSet settings;
-    private final IntensityMapDetail detail;
-    // full for base reads
-    private final IntensityMapRegion window;
-    private final ImageNormalization taskNormalization;
-    private final IntensityMapFrameCache taskFrames;
-    private final String message;
-    private final Map<RawDataFile, Double> fileProgress = new ConcurrentHashMap<>();
-    private volatile double progress;
-    private volatile double reported;
-
-    private SamplingTask(@NotNull final Map<RawDataFile, List<IntensityMapLayer>> missing,
-        @NotNull final Map<String, IntensityMapGrid> shrink,
-        @NotNull final Map<String, IntensityMapGrid> bases, @NotNull final ParameterSet settings,
-        @NotNull final IntensityMapDetail detail, @NotNull final IntensityMapRegion window,
-        @NotNull final ImageNormalization normalization,
-        @NotNull final IntensityMapFrameCache frames, @NotNull final String message) {
-      super(null, Instant.now());
-      this.missing = missing;
-      this.shrink = shrink;
-      this.settings = settings;
-      this.detail = detail;
-      this.bases = bases;
-      this.window = window;
-      this.taskNormalization = normalization;
-      this.taskFrames = frames;
-      this.message = message;
-    }
-
-    @Override
-    public @NotNull String getTaskDescription() {
-      return "Reading 3D overlays";
-    }
-
-    @Override
-    public double getFinishedPercentage() {
-      return progress;
-    }
-
-    private void advance(@NotNull final RawDataFile file, final int completed, final int total) {
-      fileProgress.put(file, total == 0 ? 1 : (double) completed / total);
-      progress = fileProgress.values().stream().mapToDouble(Double::doubleValue).sum() / Math.max(1,
-          missing.size());
-      // throttle FX updates
-      if (progress - reported >= 0.02) {
-        reported = progress;
-        final double value = progress;
-        Platform.runLater(() -> {
-          if (samplingTask == this) {
-            plot.setLoading(message, value);
-          }
-        });
-      }
-    }
-
-    /**
-     * Clears the loading state if this task is still the current one, e.g. after it was canceled in
-     * the task manager.
-     */
-    private void release() {
-      Platform.runLater(() -> {
-        if (!closed && samplingTask == this) {
-          samplingTask = null;
-          plot.setLoading(null, 0);
-        }
-      });
-    }
-
-    @Override
-    public void run() {
-      if (isCanceled()) {
-        release();
-        return;
-      }
-      setStatus(TaskStatus.PROCESSING);
-      try {
-        final Map<String, IntensityMapGrid> results = new ConcurrentHashMap<>();
-        final Set<String> empty = ConcurrentHashMap.newKeySet();
-        final Map<String, String> skipped = new ConcurrentHashMap<>();
-        for (final var entry : shrink.entrySet()) {
-          final IntensityMapGrid data = entry.getValue();
-          final var size = detail.grid(data.width(), data.height(), data.pixels());
-          results.put(entry.getKey(), data.downsample(size.x(), size.y()));
-        }
-        // files are independent, reading them in parallel scales with overlaid samples
-        missing.entrySet().parallelStream().forEach(entry -> {
-          final RawDataFile file = entry.getKey();
-          final List<IntensityMapLayer> fileLayers = entry.getValue();
-          final IntensityMapGrid[] data;
-          try {
-            data = IntensityMapSampler.sample(file, settings,
-                fileLayers.stream().map(IntensityMapLayer::mzRange).toList(), window,
-                taskNormalization, taskFrames, detail, new IntensityMapSampler.Progress() {
-                  @Override
-                  public boolean canceled() {
-                    return isCanceled();
-                  }
-
-                  @Override
-                  public void advance(final int completed, final int total) {
-                    SamplingTask.this.advance(file, completed, total);
-                  }
-                });
-          } catch (final IllegalArgumentException ex) {
-            // decision: one file without matching scans must not hide all other samples
-            skipped.put(file.getName(), ex.getMessage());
-            fileLayers.forEach(layer -> empty.add(layer.id()));
-            return;
-          }
-          for (int i = 0; i < data.length; i++) {
-            final String id = fileLayers.get(i).id();
-            if (window.isFull()) {
-              if (data[i] == null) {
-                empty.add(id);
-              } else {
-                results.put(id, data[i]);
-              }
-            } else {
-              // no signal in the window keeps the coarse base
-              final IntensityMapGrid base = bases.get(id);
-              if (base != null) {
-                results.put(id, data[i] == null ? base : IntensityMapGrid.merge(base, data[i]));
-              }
-            }
-          }
-        });
-        if (isCanceled()) {
-          release();
-          return;
-        }
-        Platform.runLater(() -> {
-          if (closed || samplingTask != this) {
-            return;
-          }
-          samplingTask = null;
-          if (isCanceled()) {
-            plot.setLoading(null, 0);
-            return;
-          }
-          // overlays removed while reading
-          final Set<String> current = new HashSet<>(
-              layers.stream().map(IntensityMapLayer::id).toList());
-          results.keySet().retainAll(current);
-          empty.retainAll(current);
-          plot.setLoading(null, 0);
-          if (window.isFull()) {
-            sampled.putAll(results);
-            outside.addAll(empty);
-            sampledDetail = detail;
-            // detail of a zoomed view belongs to the previous base
-            detailed.clear();
-            focus = IntensityMapRegion.FULL;
-            publish();
-            detailDelay.playFromStart();
-          } else {
-            detailed.putAll(results);
-            focus = window;
-            publish();
-          }
-          if (!skipped.isEmpty()) {
-            final var first = skipped.entrySet().iterator().next();
-            plot.setStatus(first.getValue() + " in " + String.join(", ", skipped.keySet())
-                + ". Adjust the scan selection of the module.");
-          }
-        });
-        setStatus(TaskStatus.FINISHED);
-      } catch (final RuntimeException ex) {
-        if (isCanceled() || ex instanceof CancellationException
-            || ex.getCause() instanceof CancellationException) {
-          cancel();
-          release();
-          return;
-        }
-        logger.log(Level.WARNING, "3D sampling failed", ex);
-        error("3D sampling failed: " + ex.getMessage(), ex);
-        Platform.runLater(() -> {
-          if (!closed && samplingTask == this) {
-            samplingTask = null;
-            plot.setLoading(null, 0);
-            plot.setStatus(getErrorMessage());
-          }
-        });
-      }
-    }
   }
 }
