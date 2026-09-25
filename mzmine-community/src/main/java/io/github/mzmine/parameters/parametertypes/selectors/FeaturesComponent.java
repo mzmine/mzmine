@@ -49,8 +49,7 @@ import org.controlsfx.control.CheckListView;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @author akshaj This class represents the component which shows Features in the parameter setup
- * dialog of Fx3DVisualizer.
+ * @author akshaj Component that shows the selected features in a parameter setup dialog.
  */
 public class FeaturesComponent extends HBox {
 

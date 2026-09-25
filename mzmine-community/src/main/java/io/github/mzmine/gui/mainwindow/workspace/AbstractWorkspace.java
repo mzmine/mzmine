@@ -119,7 +119,6 @@ import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDash
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
@@ -141,6 +140,7 @@ import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import io.github.mzmine.util.javafx.FxMenuUtil;
@@ -337,7 +337,7 @@ public abstract class AbstractWorkspace implements Workspace {
 
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, TwoDVisualizerModule.class,
-        Fx3DVisualizerModule.class, MsMsVisualizerModule.class,
+        Surface3DVisualizerModule.class, MsMsVisualizerModule.class,
         MassvoltammogramFromFileModule.class);
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, RawDataSummaryModule.class, ScanHistogramModule.class,

@@ -42,8 +42,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
- * @author akshaj This class represents the parameter Features in the parameter setup dialog of the
- * Fx3DVisualizer.
+ * @author akshaj Parameter to select features in a parameter setup dialog.
  */
 public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesComponent> {
 

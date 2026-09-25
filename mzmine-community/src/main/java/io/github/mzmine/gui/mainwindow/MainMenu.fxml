@@ -520,8 +520,8 @@
         userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
       <MenuItem text="2D plot" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
-      <MenuItem text="3D plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+      <MenuItem text="3D visualizer" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule"/>
       <MenuItem onAction="#runModule" text="MS/MS scatter plot"
         userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
       <MenuItem text="Massvoltammogram (raw data)" onAction="#runModule"

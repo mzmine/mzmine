@@ -94,7 +94,6 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ColocatedImageVisualizerTab;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
@@ -114,6 +113,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
+import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
@@ -694,7 +694,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         selectedOrBestFeature.getRawDataPointsRTRange(),
         selectedOrBestFeature.getRepresentativePolarity()));
 
-    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
+    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D visualizer",
+        () -> selectedRow != null);
     show3DItem.setOnAction(open3DFeaturePlot());
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
@@ -863,15 +864,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         return;
       }
 
-      final RawDataFile[] dataFiles = features.stream().map(Feature::getRawDataFile)
-          .toArray(RawDataFile[]::new);
-
-      final Range<Double> mzRange = features.stream().map(Feature::getRawDataPointsMZRange)
-          .reduce(Range::span).orElse(null);
-      final Range<Float> rtRange = features.stream().map(Feature::getRawDataPointsRTRange)
-          .reduce(Range::span).orElse(null);
-
-      Fx3DVisualizerModule.setupNew3DVisualizer(dataFiles, mzRange, rtRange, features);
+      Surface3DVisualizerModule.showFeatures(features);
     };
   }
 

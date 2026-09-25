@@ -57,8 +57,6 @@ import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashbo
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
-import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
@@ -71,6 +69,8 @@ import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWin
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
+import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
+import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -683,16 +683,16 @@ public class MainWindowController {
   }
 
   public void handleShow3DPlot(Event event) {
-    logger.finest("Activated Show 3D plot menu item");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    logger.finest("Activated Show 3D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(Fx3DVisualizerModule.class);
-    parameters.getParameter(Fx3DVisualizerParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
-            selectedFiles.toArray(new RawDataFile[0]));
+        .getModuleParameters(Surface3DVisualizerModule.class);
+    // follow the selection, specific files would remain the default of the module dialog
+    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+        .setValue(RawDataFilesSelectionType.GUI_SELECTED_FILES);
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(Fx3DVisualizerModule.class, parameters);
+      MZmineCore.runMZmineModule(Surface3DVisualizerModule.class,
+          parameters.cloneParameterSet());
     }
   }
 

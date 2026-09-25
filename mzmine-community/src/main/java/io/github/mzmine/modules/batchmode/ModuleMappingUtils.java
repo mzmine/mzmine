@@ -57,7 +57,9 @@ public class ModuleMappingUtils {
         new RemovedModule(
             "io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule",
             "Relations between ion identity networks",
-            "Removed as it was rarely used and made load/save of ions impossible. All other ion identity networking steps are unaffected."));
+            "Removed as it was rarely used and made load/save of ions impossible. All other ion identity networking steps are unaffected."),
+        new RemovedModule("io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule",
+            "3D plot", "Replaced by the 3D visualizer."));
 
     final Map<String, RemovedModule> map = HashMap.newHashMap(removed.size());
     for (final RemovedModule module : removed) {
