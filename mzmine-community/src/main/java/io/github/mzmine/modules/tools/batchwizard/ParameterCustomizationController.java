@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -30,7 +31,9 @@ import io.github.mzmine.modules.tools.batchwizard.ParameterCustomizationModel.Ov
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * MVCI controller for the parameter customization pane. Owns all business logic and updates the
@@ -66,5 +69,9 @@ public class ParameterCustomizationController extends FxController<ParameterCust
                 override.scope()), override);
       }
     });
+  }
+
+  public @Nullable Node getCachedNodeForDecoration() {
+    return model.getNodeForDecoration();
   }
 }

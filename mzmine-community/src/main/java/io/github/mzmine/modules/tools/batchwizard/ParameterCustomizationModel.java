@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -79,6 +80,8 @@ public class ParameterCustomizationModel {
   private final ObjectProperty<Class<? extends MZmineRunnableModule>> scrollToModuleRequest = new SimpleObjectProperty<>();
   // Set by the controller to request the view to select a parameter by name in the list.
   private final StringProperty parameterNameToSelect = new SimpleStringProperty();
+
+  private final ObjectProperty<@Nullable Node> nodeForDecoration = new SimpleObjectProperty<>();
 
   // --- selectedModule ---
 
@@ -198,5 +201,17 @@ public class ParameterCustomizationModel {
     // Reset to null first to ensure the subscribe fires even if the same name is requested again.
     parameterNameToSelect.set(null);
     parameterNameToSelect.set(name);
+  }
+
+  public @Nullable Node getNodeForDecoration() {
+    return nodeForDecoration.get();
+  }
+
+  public void setNodeForDecoration(@Nullable Node node) {
+    nodeForDecoration.set(node);
+  }
+
+  public ObjectProperty<@Nullable Node> nodeForDecorationProperty() {
+    return nodeForDecoration;
   }
 }

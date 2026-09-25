@@ -256,8 +256,7 @@ public class SimpleParameterSet implements ParameterSet {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
       // this is done in batch mode where no data is loaded when the parameters are checked
-      if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
-          || p instanceof FeatureListsParameter)) {
+      if (skipRawDataAndFeatureListParameters && ParameterUtils.skipForBatchModeValidation(p)) {
         continue;
       }
 
