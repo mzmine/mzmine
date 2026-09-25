@@ -127,12 +127,8 @@ public class WizardMassDetectorComponent extends
     txtMs1.setTooltip(new Tooltip(toolTip));
   }
 
-  /**
-   * The grid of noise levels grows with the window, decorate the first input instead.
-   */
-  @Override
   public @NotNull Node getDecorationTarget() {
-    return txtMs1;
+    return comboBox;
   }
 
 }
