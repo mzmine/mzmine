@@ -60,9 +60,9 @@ public final class IntensityMapPicker {
   }
 
   /**
-   * @param x local model coordinate
-   * @param y local model coordinate, negative above the floor
-   * @param z local model coordinate
+   * @param x      local model coordinate
+   * @param y      local model coordinate, negative above the floor
+   * @param z      local model coordinate
    * @param target the surface that was hit, null for the floor
    * @param t      ray parameter of the hit, compares distances of hits along one ray
    */
@@ -123,9 +123,9 @@ public final class IntensityMapPicker {
       return pickFlat(ray, targets);
     }
     final double[] range = {0, Double.MAX_VALUE};
-    if (!slab(ray.origin().getX(), ray.direction().getX(), -WIDTH / 2, WIDTH / 2, range)
-        || !slab(ray.origin().getY(), ray.direction().getY(), -HEIGHT * 1.05, 0.5, range)
-        || !slab(ray.origin().getZ(), ray.direction().getZ(), -DEPTH / 2, DEPTH / 2, range)) {
+    if (!slab(ray.origin().getX(), ray.direction().getX(), -WIDTH / 2, WIDTH / 2, range) || !slab(
+        ray.origin().getY(), ray.direction().getY(), -HEIGHT * 1.05, 0.5, range) || !slab(
+        ray.origin().getZ(), ray.direction().getZ(), -DEPTH / 2, DEPTH / 2, range)) {
       return null;
     }
     final double step = (range[1] - range[0]) / STEPS;
@@ -162,8 +162,8 @@ public final class IntensityMapPicker {
   }
 
   /**
-   * The 2D view has no heights: the hit is the floor point, its target the overlay drawn last
-   * with signal there, which is the one on top.
+   * The 2D view has no heights: the hit is the floor point, its target the overlay drawn last with
+   * signal there, which is the one on top.
    */
   private static @Nullable Hit pickFlat(@NotNull final Ray ray,
       @NotNull final List<Target> targets) {
@@ -191,8 +191,8 @@ public final class IntensityMapPicker {
   }
 
   /**
-   * @return intensity of the target at the local position, NaN if not measured there or below
-   * the noise floor
+   * @return intensity of the target at the local position, NaN if not measured there or below the
+   * noise floor
    */
   private static double value(@NotNull final Target target, final double x, final double z) {
     final IntensityMapGrid data = target.series().data();

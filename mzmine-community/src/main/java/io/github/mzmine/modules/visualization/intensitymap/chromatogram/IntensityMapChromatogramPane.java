@@ -50,13 +50,12 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base peak chromatogram of the mobility frames. Clicking a retention time selects the frame shown
- * in the 3D view; Ctrl/⌘ + drag selects a retention time range whose frames are averaged, like
- * the frame selection of the ion mobility raw data overview.
+ * in the 3D view; Ctrl/⌘ + drag selects a retention time range whose frames are averaged, like the
+ * frame selection of the ion mobility raw data overview.
  */
 public final class IntensityMapChromatogramPane extends BorderPane {
 
-  public static final String HINT =
-      "Click to show the closest frame · Ctrl/⌘ + drag to average the frames of a range";
+  public static final String HINT = "Click to show the closest frame · Ctrl/⌘ + drag to average the frames of a range";
   private static final java.awt.Color ACCENT = FxColorUtil.fxColorToAWT(IntensityMapPlot.ACCENT);
 
   private final TICPlot chromatogram = new TICPlot();
@@ -77,8 +76,8 @@ public final class IntensityMapChromatogramPane extends BorderPane {
     chromatogram.getXYPlot().setShowCursorCrosshair(false, false);
     drag = new IntensityMapRangeDrag(chromatogram, range -> {
       if (listener != null) {
-        listener.accept(Range.closed(range.lowerEndpoint().floatValue(),
-            range.upperEndpoint().floatValue()));
+        listener.accept(
+            Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue()));
       }
     }, () -> chromatogram.applyWithNotifyChanges(false, this::applyMarker));
     // a separate cursor so that repeated clicks on the same retention time are still reported

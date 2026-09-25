@@ -147,8 +147,8 @@ public final class IntensityMapGrid {
   }
 
   /**
-   * Regular block centers for merging pixels. Unlike picking every n-th coordinate, whole
-   * blocks tile the image without gaps, which otherwise show as grid lines between pixels.
+   * Regular block centers for merging pixels. Unlike picking every n-th coordinate, whole blocks
+   * tile the image without gaps, which otherwise show as grid lines between pixels.
    *
    * @return uniformly spaced coordinates with a spacing of factor * step
    */
@@ -206,23 +206,21 @@ public final class IntensityMapGrid {
   }
 
   public int binX(final double value) {
-    return xLows == null ? nearest(value, x, xStep, pixels)
-        : cell(value, x, xLows, xHighs, pixels);
+    return xLows == null ? nearest(value, x, xStep, pixels) : cell(value, x, xLows, xHighs, pixels);
   }
 
   public int binY(final double value) {
-    return yLows == null ? nearest(value, y, yStep, pixels)
-        : cell(value, y, yLows, yHighs, pixels);
+    return yLows == null ? nearest(value, y, yStep, pixels) : cell(value, y, yLows, yHighs, pixels);
   }
 
   /**
-   * @return the cell with explicit extents that contains the value, for other data the nearest
-   * one within the coordinate range
+   * @return the cell with explicit extents that contains the value, for other data the nearest one
+   * within the coordinate range
    */
   private static int cell(final double value, final double @NotNull [] centers,
       final double @NotNull [] lows, final double @Nullable [] highs, final boolean pixels) {
-    if (!(value >= (pixels ? lows[0] : centers[0])) || !(value <= (pixels
-        ? highs[highs.length - 1] : centers[centers.length - 1]))) {
+    if (!(value >= (pixels ? lows[0] : centers[0])) || !(value <= (pixels ? highs[highs.length - 1]
+        : centers[centers.length - 1]))) {
       return -1;
     }
     int index = Arrays.binarySearch(lows, value);
@@ -234,8 +232,8 @@ public final class IntensityMapGrid {
     if (pixels) {
       return -1;
     }
-    return index + 1 < centers.length
-        && centers[index + 1] - value < value - centers[index] ? index + 1 : index;
+    return index + 1 < centers.length && centers[index + 1] - value < value - centers[index] ? index
+        + 1 : index;
   }
 
   /**
@@ -258,8 +256,8 @@ public final class IntensityMapGrid {
   }
 
   /**
-   * Pixels span their size around the center. Other cells reach halfway to their neighbors, and
-   * as far beyond the first and last coordinate as the spacing to their neighbor.
+   * Pixels span their size around the center. Other cells reach halfway to their neighbors, and as
+   * far beyond the first and last coordinate as the spacing to their neighbor.
    */
   private static double low(final double @NotNull [] values, final int i, final boolean pixels,
       final double size) {
@@ -291,10 +289,10 @@ public final class IntensityMapGrid {
   }
 
   /**
-   * Combines coarse data of the complete range with finer data of a window, e.g. after zooming
-   * in: window cells replace the base cells they cover, base cells at the window border are
-   * clipped to it. The result keeps the coordinate range of the base, so the view does not move,
-   * and panning beyond the window shows the coarse data instead of nothing.
+   * Combines coarse data of the complete range with finer data of a window, e.g. after zooming in:
+   * window cells replace the base cells they cover, base cells at the window border are clipped to
+   * it. The result keeps the coordinate range of the base, so the view does not move, and panning
+   * beyond the window shows the coarse data instead of nothing.
    *
    * @param window data of the same overlay sampled inside a window of the base range
    */
@@ -336,8 +334,8 @@ public final class IntensityMapGrid {
    * @param pixels pixel cells extend half a step beyond their centers: merged pixel blocks are
    *               centered inside their outermost pixels, which would otherwise be dropped
    */
-  private static int nearest(final double value, final double @NotNull [] values,
-      final double step, final boolean pixels) {
+  private static int nearest(final double value, final double @NotNull [] values, final double step,
+      final boolean pixels) {
     final double margin = pixels && step > 0 ? step / 2 : 0;
     if (!(value >= values[0] - margin) || !(value <= values[values.length - 1] + margin)) {
       return -1;
@@ -391,10 +389,11 @@ public final class IntensityMapGrid {
     // pixels merge in whole blocks, other data keep measured coordinates
     final int factorX = pixels ? blockFactor(x, maxWidth, pixelWidth) : 1;
     final int factorY = pixels ? blockFactor(y, maxHeight, pixelHeight) : 1;
-    final IntensityMapGrid result = pixels ? new IntensityMapGrid(
-        blockCoordinates(x, factorX, pixelWidth), blockCoordinates(y, factorY, pixelHeight), xLabel,
-        yLabel, true) : new IntensityMapGrid(reduceCoordinates(x, maxWidth),
-        reduceCoordinates(y, maxHeight), xLabel, yLabel, false);
+    final IntensityMapGrid result =
+        pixels ? new IntensityMapGrid(blockCoordinates(x, factorX, pixelWidth),
+            blockCoordinates(y, factorY, pixelHeight), xLabel, yLabel, true)
+            : new IntensityMapGrid(reduceCoordinates(x, maxWidth), reduceCoordinates(y, maxHeight),
+                xLabel, yLabel, false);
     for (int row = 0; row < height(); row++) {
       final int targetRow = result.binY(y[row]);
       for (int column = 0; column < width(); column++) {
@@ -452,7 +451,8 @@ public final class IntensityMapGrid {
   /**
    * Selects the number formats of the axes.
    */
-  public void setAxisKinds(@NotNull final IntensityMapAxisKind x, @NotNull final IntensityMapAxisKind y) {
+  public void setAxisKinds(@NotNull final IntensityMapAxisKind x,
+      @NotNull final IntensityMapAxisKind y) {
     xKind = x;
     yKind = y;
   }

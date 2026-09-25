@@ -38,18 +38,18 @@ import org.jetbrains.annotations.NotNull;
  * @param transform  the paint scale transformation of the imaging preferences, applied to the
  *                   height only
  * @param noiseFloor fraction of the maximum below which no geometry is created
- * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show
- *                   the differences above the lowest pixels. 0 starts heights at zero intensity.
- * @param flat       2D view: all values lie in the plane without height, intensity is only
- *                   shown by color
+ * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show the
+ *                   differences above the lowest pixels. 0 starts heights at zero intensity.
+ * @param flat       2D view: all values lie in the plane without height, intensity is only shown by
+ *                   color
  */
 public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
-                             @NotNull PaintScaleTransform transform, boolean normalized,
-                             double noiseFloor, double baseline, boolean flat) {
+                                @NotNull PaintScaleTransform transform, boolean normalized,
+                                double noiseFloor, double baseline, boolean flat) {
 
   /**
-   * Height of values at or below the baseline: columns without height are not drawn, so the
-   * lowest pixels remain thin tiles.
+   * Height of values at or below the baseline: columns without height are not drawn, so the lowest
+   * pixels remain thin tiles.
    */
   public static final double BASE_HEIGHT = 0.02;
 
@@ -130,8 +130,8 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
   }
 
   /**
-   * @return linear paint scale position in [0, 1]. The transformation only changes the height,
-   * so that colors keep their linear meaning (user decision).
+   * @return linear paint scale position in [0, 1]. The transformation only changes the height, so
+   * that colors keep their linear meaning (user decision).
    */
   public double color(@NotNull final IntensityMapGrid data, final double value) {
     final double maximum = maximum(data);
@@ -160,8 +160,8 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
       @NotNull final IntensityMapGrid data) {
     return transform == other.transform && normalized == other.normalized
         && noiseFloor == other.noiseFloor && baseline == other.baseline && flat == other.flat
-        && bounds.xMin() == other.bounds.xMin()
-        && bounds.xMax() == other.bounds.xMax() && bounds.yMin() == other.bounds.yMin()
-        && bounds.yMax() == other.bounds.yMax() && maximum(data) == other.maximum(data);
+        && bounds.xMin() == other.bounds.xMin() && bounds.xMax() == other.bounds.xMax()
+        && bounds.yMin() == other.bounds.yMin() && bounds.yMax() == other.bounds.yMax()
+        && maximum(data) == other.maximum(data);
   }
 }

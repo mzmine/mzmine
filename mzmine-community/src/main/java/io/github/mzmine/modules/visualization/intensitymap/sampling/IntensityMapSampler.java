@@ -87,8 +87,8 @@ public final class IntensityMapSampler {
   public static @NotNull IntensityMapGrid sample(@NotNull final RawDataFile file,
       @NotNull final ParameterSet parameters, @NotNull final Range<Double> mzRange,
       @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
-    final IntensityMapGrid data = sample(file, parameters, List.of(mzRange), IntensityMapRegion.FULL,
-        detail, progress)[0];
+    final IntensityMapGrid data = sample(file, parameters, List.of(mzRange),
+        IntensityMapRegion.FULL, detail, progress)[0];
     if (data == null) {
       throw new IllegalArgumentException("No data in the selected m/z range");
     }
@@ -96,8 +96,8 @@ public final class IntensityMapSampler {
   }
 
   /**
-   * @param mzRanges  one overlay per range, read in one pass over the spectra
-   * @param region    window in displayed coordinates
+   * @param mzRanges one overlay per range, read in one pass over the spectra
+   * @param region   window in displayed coordinates
    * @return one entry per range, null if the range lies outside the region
    */
   public static @Nullable IntensityMapGrid @NotNull [] sample(@NotNull final RawDataFile file,
@@ -116,8 +116,8 @@ public final class IntensityMapSampler {
   public static @Nullable IntensityMapGrid @NotNull [] sample(@NotNull final RawDataFile file,
       @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges,
       @NotNull final IntensityMapRegion region, @NotNull final ImageNormalization normalization,
-      @NotNull final IntensityMapFrameCache frames,
-      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+      @NotNull final IntensityMapFrameCache frames, @NotNull final IntensityMapDetail detail,
+      @NotNull final Progress progress) {
     final IntensityMapDimensions mode = resolveMode(file,
         parameters.getValue(IntensityMapParameters.mode));
     final ScanSelection selection = scanSelection(parameters, mode);
@@ -127,10 +127,10 @@ public final class IntensityMapSampler {
     }
     return switch (mode) {
       case AUTOMATIC -> throw new IllegalStateException("Automatic mode must be resolved");
-      case LC_MS -> spectra(lowestMsLevel(scans), Scan::getRetentionTime,
-          axisLabel("Retention time", "min"),
-          IntensityMapAxisKind.RETENTION_TIME, false, mzRanges, region, normalization,
-          detail, progress);
+      case LC_MS ->
+          spectra(lowestMsLevel(scans), Scan::getRetentionTime, axisLabel("Retention time", "min"),
+              IntensityMapAxisKind.RETENTION_TIME, false, mzRanges, region, normalization, detail,
+              progress);
       case MOBILITY_FRAME -> {
         if (!(file instanceof IMSRawDataFile)) {
           throw new IllegalArgumentException("The selected file has no ion mobility frames");
@@ -140,8 +140,8 @@ public final class IntensityMapSampler {
             frame.getMobilityType() == null ? "" : frame.getMobilityType().getUnit();
         // decision: m/z horizontal and mobility in depth, like the usual IMS heatmaps
         yield spectra(frame.getSortedMobilityScans(), scan -> ((MobilityScan) scan).getMobility(),
-            axisLabel("Mobility", unit), IntensityMapAxisKind.MOBILITY,
-            true, mzRanges, region, normalization, detail, progress);
+            axisLabel("Mobility", unit), IntensityMapAxisKind.MOBILITY, true, mzRanges, region,
+            normalization, detail, progress);
       }
       case IMAGING -> {
         if (!(file instanceof ImagingRawDataFile imaging)) {
@@ -153,22 +153,21 @@ public final class IntensityMapSampler {
   }
 
   /**
-   * @return the scan selection of the parameters. For imaging the retention time filter is
-   * removed: pixels have no meaningful retention time (imzML stores 0), so a range left from
-   * LC-MS data would exclude every pixel.
+   * @return the scan selection of the parameters. For imaging the retention time filter is removed:
+   * pixels have no meaningful retention time (imzML stores 0), so a range left from LC-MS data
+   * would exclude every pixel.
    */
   public static @NotNull ScanSelection scanSelection(@NotNull final ParameterSet parameters,
       @NotNull final IntensityMapDimensions mode) {
-    final ScanSelection selection = parameters.getValue(
-        IntensityMapParameters.scanSelection);
+    final ScanSelection selection = parameters.getValue(IntensityMapParameters.scanSelection);
     return mode == IntensityMapDimensions.IMAGING && selection.getScanRTRange() != null
         ? selection.cloneWithNewRtRange(null) : selection;
   }
 
   /**
    * @return the dimensions to show. Imaging files always show images unless a mobility frame is
-   * requested: an LC-MS view of pixels, e.g. from settings stored for LC-MS data, matches no
-   * scans because pixels have no meaningful retention time.
+   * requested: an LC-MS view of pixels, e.g. from settings stored for LC-MS data, matches no scans
+   * because pixels have no meaningful retention time.
    */
   public static @NotNull IntensityMapDimensions resolveMode(@NotNull final RawDataFile file,
       @NotNull final IntensityMapDimensions requested) {
@@ -176,9 +175,9 @@ public final class IntensityMapSampler {
       return requested == IntensityMapDimensions.MOBILITY_FRAME && file instanceof IMSRawDataFile
           ? IntensityMapDimensions.MOBILITY_FRAME : IntensityMapDimensions.IMAGING;
     }
-    return requested == IntensityMapDimensions.AUTOMATIC || requested == IntensityMapDimensions.IMAGING
-        ? IntensityMapDimensions.LC_MS
-        : requested;
+    return
+        requested == IntensityMapDimensions.AUTOMATIC || requested == IntensityMapDimensions.IMAGING
+            ? IntensityMapDimensions.LC_MS : requested;
   }
 
   /**
@@ -349,9 +348,9 @@ public final class IntensityMapSampler {
     // Keep imported coordinates verbatim: never guess zero/one based origins from a sparse image.
     final List<ImagingScan> pixels = Arrays.stream(scans)
         .filter(scan -> scan instanceof ImagingScan).map(scan -> (ImagingScan) scan)
-        .filter(scan -> scan.getCoordinates() != null)
-        .filter(scan -> IntensityMapRegion.contains(region.x(), scan.getCoordinates().getX() * stepX)
-            && IntensityMapRegion.contains(region.y(), scan.getCoordinates().getY() * stepY))
+        .filter(scan -> scan.getCoordinates() != null).filter(
+            scan -> IntensityMapRegion.contains(region.x(), scan.getCoordinates().getX() * stepX)
+                && IntensityMapRegion.contains(region.y(), scan.getCoordinates().getY() * stepY))
         .toList();
     final IntensityMapGrid[] result = new IntensityMapGrid[mzRanges.size()];
     if (pixels.isEmpty()) {

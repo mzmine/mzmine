@@ -52,13 +52,14 @@ class IntensityMapPickerTest {
       data.markColumn(x);
     }
     data.addMaximum(10, 10, 100);
-    final IntensityMapScale scale = new IntensityMapScale(IntensityMapBounds.of(List.of(data)), false,
-        false);
+    final IntensityMapScale scale = new IntensityMapScale(IntensityMapBounds.of(List.of(data)),
+        false, false);
     final IntensityMapPicker.Target target = new IntensityMapPicker.Target(
         new IntensityMapSeries("peak", data, Color.RED), scale);
     // straight down onto the peak center
     final IntensityMapPicker.Hit peak = IntensityMapPicker.pick(
-        new IntensityMapPicker.Ray(new Point3D(0, -1000, 0), new Point3D(0, 1, 0)), List.of(target));
+        new IntensityMapPicker.Ray(new Point3D(0, -1000, 0), new Point3D(0, 1, 0)),
+        List.of(target));
     assertNotNull(peak);
     assertSame(target, peak.target());
     assertEquals(-IntensityMapMesh.HEIGHT, peak.y(), 1);
@@ -86,8 +87,9 @@ class IntensityMapPickerTest {
     lower.addMaximum(10, 10, 100);
     lower.addMaximum(0, 0, 100);
     upper.addMaximum(10, 10, 5);
-    final IntensityMapScale scale = new IntensityMapScale(IntensityMapBounds.of(List.of(lower, upper)),
-        PaintScaleTransform.LINEAR, false, 0, 0, true);
+    final IntensityMapScale scale = new IntensityMapScale(
+        IntensityMapBounds.of(List.of(lower, upper)), PaintScaleTransform.LINEAR, false, 0, 0,
+        true);
     final IntensityMapPicker.Target first = new IntensityMapPicker.Target(
         new IntensityMapSeries("lower", lower, Color.RED), scale);
     final IntensityMapPicker.Target last = new IntensityMapPicker.Target(
@@ -136,17 +138,17 @@ class IntensityMapPickerTest {
   @Test
   void hullOverlapUsesTheOutlineNotTheBoundingBox() {
     // diamond around (10, 10)
-    final List<javafx.geometry.Point2D> hull = IntensityMapScreenGeometry.convexHull(List.of(
-        new javafx.geometry.Point2D(10, 0), new javafx.geometry.Point2D(20, 10),
-        new javafx.geometry.Point2D(10, 20), new javafx.geometry.Point2D(0, 10),
-        new javafx.geometry.Point2D(10, 10)));
+    final List<javafx.geometry.Point2D> hull = IntensityMapScreenGeometry.convexHull(
+        List.of(new javafx.geometry.Point2D(10, 0), new javafx.geometry.Point2D(20, 10),
+            new javafx.geometry.Point2D(10, 20), new javafx.geometry.Point2D(0, 10),
+            new javafx.geometry.Point2D(10, 10)));
     assertEquals(4, hull.size());
-    assertTrue(IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(8, 8, 4, 4),
-        hull));
+    assertTrue(
+        IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(8, 8, 4, 4), hull));
     // inside the bounding box corner, outside the diamond
-    assertTrue(!IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(0, 0, 3, 3),
-        hull));
-    assertTrue(!IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(30, 0, 5, 5),
-        hull));
+    assertTrue(
+        !IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(0, 0, 3, 3), hull));
+    assertTrue(
+        !IntensityMapScreenGeometry.intersects(new javafx.geometry.BoundingBox(30, 0, 5, 5), hull));
   }
 }

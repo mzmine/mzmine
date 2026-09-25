@@ -48,9 +48,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Finds the spectrum behind a position of the 3D view: the scan closest in retention time for
- * LC-MS or the pixel for imaging. Lookups are cached per file, so they are cheap enough for
- * interactive use. Mobility frames show a base peak chromatogram to pick the frame instead.
+ * Finds the spectrum behind a position of the 3D view: the scan closest in retention time for LC-MS
+ * or the pixel for imaging. Lookups are cached per file, so they are cheap enough for interactive
+ * use. Mobility frames show a base peak chromatogram to pick the frame instead.
  */
 public final class IntensityMapSpectrumLookup {
 
@@ -97,8 +97,8 @@ public final class IntensityMapSpectrumLookup {
       case AUTOMATIC, LC_MS ->
           "RT " + formats.rt(scan.getRetentionTime()) + " min · scan #" + scan.getScanNumber();
       case MOBILITY_FRAME -> throw unsupported();
-      case IMAGING -> scan instanceof ImagingScan pixel && pixel.getCoordinates() != null
-          ? "Pixel " + pixel.getCoordinates().getX() + ", " + pixel.getCoordinates().getY()
+      case IMAGING -> scan instanceof ImagingScan pixel && pixel.getCoordinates() != null ? "Pixel "
+          + pixel.getCoordinates().getX() + ", " + pixel.getCoordinates().getY()
           : "Scan #" + scan.getScanNumber();
     };
   }

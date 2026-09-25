@@ -61,16 +61,16 @@ public final class IntensityMapScreenGeometry {
         hull.add(point);
       }
       hull.removeLast();
-      sorted.sort(Comparator.comparingDouble(Point2D::getX).thenComparingDouble(Point2D::getY)
-          .reversed());
+      sorted.sort(
+          Comparator.comparingDouble(Point2D::getX).thenComparingDouble(Point2D::getY).reversed());
     }
     return hull;
   }
 
   private static double cross(@NotNull final Point2D o, @NotNull final Point2D a,
       @NotNull final Point2D b) {
-    return (a.getX() - o.getX()) * (b.getY() - o.getY())
-        - (a.getY() - o.getY()) * (b.getX() - o.getX());
+    return (a.getX() - o.getX()) * (b.getY() - o.getY()) - (a.getY() - o.getY()) * (b.getX()
+        - o.getX());
   }
 
   public static @NotNull Bounds bounds(@NotNull final List<Point2D> hull) {

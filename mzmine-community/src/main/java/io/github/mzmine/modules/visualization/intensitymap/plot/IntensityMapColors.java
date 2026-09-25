@@ -76,8 +76,9 @@ final class IntensityMapColors {
     // decision: colors too close to the background, e.g. yellow on white, end on a shade further
     // from it, so all gradients keep low intensities at the background
     final double contrast = Math.abs(luminance(color) - luminance(background));
-    final Color end = contrast < 0.3 ? color.interpolate(isDark(background) ? Color.WHITE
-        : Color.BLACK, 0.5 - contrast) : color;
+    final Color end =
+        contrast < 0.3 ? color.interpolate(isDark(background) ? Color.WHITE : Color.BLACK,
+            0.5 - contrast) : color;
     return texture(new SimpleColorPalette(background, end));
   }
 
@@ -89,9 +90,9 @@ final class IntensityMapColors {
   }
 
   /**
-   * Clips the colors to a range like the intensity sliders of imaging software: positions below
-   * the low end get the first color, above the high end the last color, and the full color scale
-   * spans the range in between.
+   * Clips the colors to a range like the intensity sliders of imaging software: positions below the
+   * low end get the first color, above the high end the last color, and the full color scale spans
+   * the range in between.
    *
    * @param low  lowest color position in [0, 1]
    * @param high highest color position in [0, 1], above low

@@ -34,8 +34,8 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Parses m/z overlay input such as {@code 400.1234, 512.3-512.5; 600}. Single values become
- * ranges with the given tolerance.
+ * Parses m/z overlay input such as {@code 400.1234, 512.3-512.5; 600}. Single values become ranges
+ * with the given tolerance.
  */
 final class IntensityMapMzInput {
 

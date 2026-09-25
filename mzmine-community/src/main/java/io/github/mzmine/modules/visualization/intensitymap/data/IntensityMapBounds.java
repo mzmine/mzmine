@@ -31,7 +31,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Shared physical axes and intensity scale for every overlaid sample.
  */
-public record IntensityMapBounds(double xMin, double xMax, double yMin, double yMax, double maximum) {
+public record IntensityMapBounds(double xMin, double xMax, double yMin, double yMax,
+                                 double maximum) {
 
   public static @NotNull IntensityMapBounds of(@NotNull final List<IntensityMapGrid> data) {
     if (data.isEmpty()) {
@@ -43,7 +44,8 @@ public record IntensityMapBounds(double xMin, double xMax, double yMin, double y
             .orElseThrow(),
         data.stream().mapToDouble(d -> d.pixels() ? d.yLow(0) : d.yMin()).min().orElseThrow(),
         data.stream().mapToDouble(d -> d.pixels() ? d.yHigh(d.height() - 1) : d.yMax()).max()
-            .orElseThrow(), data.stream().mapToDouble(IntensityMapGrid::maximum).max().orElseThrow());
+            .orElseThrow(),
+        data.stream().mapToDouble(IntensityMapGrid::maximum).max().orElseThrow());
   }
 
   public double normalizeX(final double value) {

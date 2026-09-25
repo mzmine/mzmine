@@ -39,8 +39,8 @@ import org.jetbrains.annotations.NotNull;
  * @param base   index of the base cell containing each merged cell, -1 if none
  */
 record IntensityMapMergedAxis(double @NotNull [] centers, double @NotNull [] lows,
-                           double @NotNull [] highs, int @NotNull [] window,
-                           int @NotNull [] base) {
+                              double @NotNull [] highs, int @NotNull [] window,
+                              int @NotNull [] base) {
 
   // clipped base cells narrower than this fraction of their size are dropped
   private static final double MIN_FRACTION = 1e-6;
@@ -67,8 +67,8 @@ record IntensityMapMergedAxis(double @NotNull [] centers, double @NotNull [] low
       final double low = Math.max(from, windowLow.applyAsDouble(j));
       final double high = Math.min(to, windowHigh.applyAsDouble(j));
       if (high > low || windowCenters.length == 1) {
-        cells.add(new double[]{windowCenters[j], low, high, j,
-            baseBin.applyAsInt(windowCenters[j])});
+        cells.add(
+            new double[]{windowCenters[j], low, high, j, baseBin.applyAsInt(windowCenters[j])});
       }
     }
     for (int i = 0; i < n; i++) {

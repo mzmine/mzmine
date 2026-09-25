@@ -116,8 +116,7 @@ public final class IntensityMapSpectrumPane extends BorderPane {
       }
       final MouseEventWrapper mouse = e.getMouseEvent();
       final boolean additive = mouse != null && (mouse.isMetaDown() || mouse.isControlDown());
-      final Scan scan =
-          cursor.getDataset() instanceof ScanDataSet data ? data.getScan() : null;
+      final Scan scan = cursor.getDataset() instanceof ScanDataSet data ? data.getScan() : null;
       listener.clicked(new Click(cursor.getDomainValue(), scan, additive));
     }));
     setCenter(spectrum);

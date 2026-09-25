@@ -36,8 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * @param description secondary label, for example the extracted m/z range
  */
 public record IntensityMapSeries(@NotNull String id, @NotNull String name,
-                              @NotNull String description, @NotNull IntensityMapGrid data,
-                              @NotNull Color color) {
+                                 @NotNull String description, @NotNull IntensityMapGrid data,
+                                 @NotNull Color color) {
 
   public IntensityMapSeries(@NotNull final String name, @NotNull final IntensityMapGrid data,
       @NotNull final Color color) {

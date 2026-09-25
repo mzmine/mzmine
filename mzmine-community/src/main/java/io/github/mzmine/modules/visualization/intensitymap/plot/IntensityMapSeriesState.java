@@ -114,8 +114,8 @@ final class IntensityMapSeriesState {
   }
 
   /**
-   * @return the texture clipped to the color range; the same instance while nothing changes, so
-   * the texture is not uploaded again
+   * @return the texture clipped to the color range; the same instance while nothing changes, so the
+   * texture is not uploaded again
    */
   @NotNull Image clippedTexture(@NotNull final Image texture) {
     final double low = colorLow.get();

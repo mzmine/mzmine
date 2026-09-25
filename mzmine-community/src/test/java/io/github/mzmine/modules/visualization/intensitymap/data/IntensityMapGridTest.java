@@ -38,8 +38,8 @@ class IntensityMapGridTest {
 
   @Test
   void retainsIrregularAcquisitionCoordinates() {
-    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 1.1, 5}, new double[]{100, 200},
-        "RT", "m/z", false);
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 1.1, 5},
+        new double[]{100, 200}, "RT", "m/z", false);
     assertEquals(1.1, data.xValue(1));
     assertEquals(1, data.binX(1.15));
     assertEquals(2, data.binX(5));
@@ -68,8 +68,8 @@ class IntensityMapGridTest {
         256L * 1024 * 1024);
     assertTrue(large.y() > 300);
     assertTrue(large.x() > small.x());
-    assertEquals(20, new IntensityMapDetail(1000, 700, 1).grid(20, 10000, false,
-        256L * 1024 * 1024).x());
+    assertEquals(20,
+        new IntensityMapDetail(1000, 700, 1).grid(20, 10000, false, 256L * 1024 * 1024).x());
   }
 
   @Test
@@ -210,15 +210,15 @@ class IntensityMapGridTest {
       }
     }
     data.addMaximum(2, 1, 100);
-    final IntensityMapGrid both = new IntensityMapSmoothing(1, IntensityMapSmoothing.Axes.BOTH).apply(data,
-        () -> false);
+    final IntensityMapGrid both = new IntensityMapSmoothing(1,
+        IntensityMapSmoothing.Axes.BOTH).apply(data, () -> false);
     assertTrue(both.intensity(2, 1) < 100);
     assertTrue(both.intensity(1, 1) > 0);
     assertTrue(both.intensity(2, 0) > 0);
     // missing cells stay missing and do not count as zero
     assertTrue(!both.isPresent(4, 1));
-    final IntensityMapGrid alongX = new IntensityMapSmoothing(1, IntensityMapSmoothing.Axes.X).apply(data,
-        () -> false);
+    final IntensityMapGrid alongX = new IntensityMapSmoothing(1,
+        IntensityMapSmoothing.Axes.X).apply(data, () -> false);
     assertTrue(alongX.intensity(1, 1) > 0);
     assertEquals(0, alongX.intensity(2, 0));
     assertTrue(alongX.pixels());

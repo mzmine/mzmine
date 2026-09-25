@@ -76,10 +76,9 @@ final class IntensityMapColorRange extends Region {
     }
     lowLabel.setOpacity(0.75);
     highLabel.setOpacity(0.75);
-    getChildren().addAll(bar, belowRange, aboveRange, lowHandle, highHandle, lowLabel,
-        highLabel);
-    Tooltip.install(this, new Tooltip(
-        "Drag the handles to clip the color range, double-click to reset"));
+    getChildren().addAll(bar, belowRange, aboveRange, lowHandle, highHandle, lowLabel, highLabel);
+    Tooltip.install(this,
+        new Tooltip("Drag the handles to clip the color range, double-click to reset"));
 
     state.colorLowProperty().addListener((_, _, _) -> update());
     state.colorHighProperty().addListener((_, _, _) -> update());
@@ -129,11 +128,11 @@ final class IntensityMapColorRange extends Region {
 
   private void move(final double position) {
     if (draggingLow) {
-      state.colorLowProperty().set(
-          Math.clamp(position, 0, state.colorHighProperty().get() - MIN_SPAN));
+      state.colorLowProperty()
+          .set(Math.clamp(position, 0, state.colorHighProperty().get() - MIN_SPAN));
     } else {
-      state.colorHighProperty().set(
-          Math.clamp(position, state.colorLowProperty().get() + MIN_SPAN, 1));
+      state.colorHighProperty()
+          .set(Math.clamp(position, state.colorLowProperty().get() + MIN_SPAN, 1));
     }
   }
 

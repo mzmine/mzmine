@@ -147,8 +147,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Reusable, interactive 3D plot. All samples use the same physical axes and, unless normalized,
- * the same intensity scale.
+ * Reusable, interactive 3D plot. All samples use the same physical axes and, unless normalized, the
+ * same intensity scale.
  */
 public final class IntensityMapPlot extends BorderPane implements AutoCloseable {
 
@@ -184,8 +184,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   // 2D view: margins of the fitted plot area to the viewport edges, so the area follows resizing
   private @Nullable Insets plotInsets;
 
-  private final Group model = new Group(axes.geometry(), extraAxesGroup, surfaces, markers,
-      slices);
+  private final Group model = new Group(axes.geometry(), extraAxesGroup, surfaces, markers, slices);
   private final Rotate tilt = new Rotate(DEFAULT_TILT, Rotate.X_AXIS);
   private final Rotate turn = new Rotate(DEFAULT_TURN, Rotate.Y_AXIS);
   private final Scale heightScale = new Scale(1, 1, 1, 0, 0, 0);
@@ -466,8 +465,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     displayGrid.setPadding(new Insets(10));
     smoothingRadius.setEditable(true);
     smoothingRadius.setPrefWidth(70);
-    smoothingRadius.setTooltip(new Tooltip(
-        "Gaussian smoothing over this many neighboring data points, 0 is off"));
+    smoothingRadius.setTooltip(
+        new Tooltip("Gaussian smoothing over this many neighboring data points, 0 is off"));
     smoothingRadius.valueProperty().addListener((_, _, _) -> refreshDisplayed());
     smoothingAxes.setValue(IntensityMapSmoothing.Axes.BOTH);
     smoothingAxes.valueProperty().addListener((_, _, _) -> refreshDisplayed());
@@ -504,8 +503,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         "Show tick labels, axis titles, and tile titles; hidden labels free space for the data"));
     showGrid.setSelected(true);
     showGrid.setTooltip(new Tooltip("Show grid lines"));
-    showGrid.selectedProperty().addListener(
-        (_, _, show) -> allAxes().forEach(value -> value.setGridVisible(show)));
+    showGrid.selectedProperty()
+        .addListener((_, _, show) -> allAxes().forEach(value -> value.setGridVisible(show)));
     showLabels.selectedProperty().addListener((_, _, show) -> {
       labelLayer.setVisible(show);
       if (autoFit) {
@@ -572,8 +571,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       rebuild();
     });
     noiseFloor.setPrefWidth(70);
-    final String noiseTip =
-        "Hide signals below this percentage of the maximum, e.g. to remove the noise carpet";
+    final String noiseTip = "Hide signals below this percentage of the maximum, e.g. to remove the noise carpet";
     noiseFloor.setTooltip(new Tooltip(noiseTip));
     final Label noiseLabel = new Label("Noise");
     noiseLabel.setMinWidth(Region.USE_PREF_SIZE);
@@ -622,9 +620,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Shows only the display options that apply to the data and view mode: imaging
-   * transformations and normalization for images, a plain log option otherwise, overlay options
-   * with several overlays, and grid options for side by side.
+   * Shows only the display options that apply to the data and view mode: imaging transformations
+   * and normalization for images, a plain log option otherwise, overlay options with several
+   * overlays, and grid options for side by side.
    */
   private void updateDisplayControls() {
     final List<IntensityMapSeries> current = series.isEmpty() ? rawSeries : series;
@@ -681,26 +679,25 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Profile views match the axes: a peak for retention time or mobility, a spectrum for m/z.
-   * Images have no meaningful profile, so both are hidden.
+   * Profile views match the axes: a peak for retention time or mobility, a spectrum for m/z. Images
+   * have no meaningful profile, so both are hidden.
    */
   private void updateProfileButtons(@NotNull final List<IntensityMapSeries> current,
       final boolean imaging) {
     frontButton.setVisible(!imaging && !flat);
     sideButton.setVisible(!imaging && !flat);
     final IntensityMapGrid first = current.isEmpty() ? null : current.getFirst().data();
-    final IntensityMapAxisKind x = first == null ? IntensityMapAxisKind.RETENTION_TIME
-        : first.xKind();
-    final IntensityMapAxisKind y = first == null ? IntensityMapAxisKind.MZ
-        : first.yKind();
-    frontButton.setGraphic(x == IntensityMapAxisKind.MZ ? IntensityMapIcons.spectrum()
-        : IntensityMapIcons.peak());
-    sideButton.setGraphic(y == IntensityMapAxisKind.MZ ? IntensityMapIcons.spectrum()
-        : IntensityMapIcons.peak());
-    frontTooltip.setText("Front view: " + profileName(x, first == null ? "x" : first.xLabel())
-        + " (F)");
-    sideTooltip.setText("Side view: " + profileName(y, first == null ? "y" : first.yLabel())
-        + " (S)");
+    final IntensityMapAxisKind x =
+        first == null ? IntensityMapAxisKind.RETENTION_TIME : first.xKind();
+    final IntensityMapAxisKind y = first == null ? IntensityMapAxisKind.MZ : first.yKind();
+    frontButton.setGraphic(
+        x == IntensityMapAxisKind.MZ ? IntensityMapIcons.spectrum() : IntensityMapIcons.peak());
+    sideButton.setGraphic(
+        y == IntensityMapAxisKind.MZ ? IntensityMapIcons.spectrum() : IntensityMapIcons.peak());
+    frontTooltip.setText(
+        "Front view: " + profileName(x, first == null ? "x" : first.xLabel()) + " (F)");
+    sideTooltip.setText(
+        "Side view: " + profileName(y, first == null ? "y" : first.yLabel()) + " (S)");
   }
 
   private static @NotNull String profileName(@NotNull final IntensityMapAxisKind kind,
@@ -714,8 +711,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   private static @NotNull String formatPercent(final double value) {
-    return String.format(Locale.ROOT, value < 1 ? "%.2f" : "%.1f", value)
-        .replaceAll("0+$", "").replaceAll("\\.$", "");
+    return String.format(Locale.ROOT, value < 1 ? "%.2f" : "%.1f", value).replaceAll("0+$", "")
+        .replaceAll("\\.$", "");
   }
 
   /**
@@ -821,8 +818,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     scene.setOnScroll(event -> {
       // assumption: trackpads report touches, momentum, or horizontal deltas; mouse wheels
       // do not. Two-finger scrolling pans, the wheel and Ctrl/⌘ + scroll zoom at the cursor.
-      final boolean trackpad = event.getTouchCount() > 0 || event.isInertia()
-          || event.getDeltaX() != 0;
+      final boolean trackpad =
+          event.getTouchCount() > 0 || event.isInertia() || event.getDeltaX() != 0;
       if (trackpad && !event.isShortcutDown()) {
         pan(event.getDeltaX(), event.getDeltaY());
       } else {
@@ -911,8 +908,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * @return the picked surface or floor point under the cursor in world coordinates, or the
-   * point at the depth of the plot center
+   * @return the picked surface or floor point under the cursor in world coordinates, or the point
+   * at the depth of the plot center
    */
   private @Nullable Point3D worldPointAt(final double x, final double y) {
     final TileHit picked = pick(x, y);
@@ -968,15 +965,14 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       return;
     }
     autoFit = false;
-    camera.setTranslateZ(-Math.clamp(-camera.getTranslateZ() / factor, MIN_DISTANCE,
-        MAX_DISTANCE));
+    camera.setTranslateZ(-Math.clamp(-camera.getTranslateZ() / factor, MIN_DISTANCE, MAX_DISTANCE));
     hideHover();
     requestDetail();
   }
 
   /**
-   * Near and far clipping planes follow the distance to the viewed point, so that close-ups are
-   * not clipped and the depth buffer keeps its precision.
+   * Near and far clipping planes follow the distance to the viewed point, so that close-ups are not
+   * clipped and the depth buffer keeps its precision.
    */
   private void updateClipping() {
     final Point3D center = worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2);
@@ -1031,8 +1027,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * @param value start heights at the lowest shown intensity instead of zero, e.g. for images
-   *              whose weakest pixels would otherwise form a tall base
+   * @param value start heights at the lowest shown intensity instead of zero, e.g. for images whose
+   *              weakest pixels would otherwise form a tall base
    */
   public void setHeightsFromLowest(final boolean value) {
     fromLowest.setSelected(value);
@@ -1115,8 +1111,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Expanded, the section shares a split pane with the 3D view. Collapsed, only its header
-   * remains below the 3D view, which gets the full height.
+   * Expanded, the section shares a split pane with the 3D view. Collapsed, only its header remains
+   * below the 3D view, which gets the full height.
    */
   private void layoutDetail() {
     if (!split.getItems().isEmpty() && split.getDividers().size() == 1) {
@@ -1152,8 +1148,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   /**
    * Notifies about overlay colors changed by the user, to keep other views consistent.
    */
-  public void setOnSeriesColorChanged(
-      @Nullable final BiConsumer<String, Color> listener) {
+  public void setOnSeriesColorChanged(@Nullable final BiConsumer<String, Color> listener) {
     colorListener = listener;
   }
 
@@ -1188,8 +1183,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     if (picked == null) {
       return;
     }
-    setSelection(new IntensityMapPosition(IntensityMapPicker.dataX(scale.bounds(), picked.hit().x()),
-        IntensityMapPicker.dataY(scale.bounds(), picked.hit().z())));
+    setSelection(
+        new IntensityMapPosition(IntensityMapPicker.dataX(scale.bounds(), picked.hit().x()),
+            IntensityMapPicker.dataY(scale.bounds(), picked.hit().z())));
     selectionListener.accept(selection);
   }
 
@@ -1400,8 +1396,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * theme of the mzmine preferences
    */
   private @NotNull MenuButton createPlotBackgroundButton() {
-    final MenuButton button = new FxIconButtonBuilder<>(new MenuButton(), "bi-paint-bucket")
-        .build();
+    final MenuButton button = new FxIconButtonBuilder<>(new MenuButton(),
+        "bi-paint-bucket").build();
     button.setTooltip(new Tooltip("Plot background color"));
     final MenuItem theme = MenuItems.create("Default", () -> setPlotBackground(null));
     final MenuItem white = MenuItems.create("White", () -> setPlotBackground(Color.WHITE));
@@ -1437,8 +1433,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         !flat && getScene() != null && getScene().getWindow() != null ? getScene().getWindow()
             .getOutputScaleX() : 1;
     return new IntensityMapDetail(Math.max(600, viewport.getWidth()) * outputScale,
-        Math.max(400, viewport.getHeight()) * outputScale,
-        Math.max(1, series.size()), flat);
+        Math.max(400, viewport.getHeight()) * outputScale, Math.max(1, series.size()), flat);
   }
 
   private void requestDetail() {
@@ -1465,8 +1460,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     loadingBox.setVisible(message != null);
     if (message != null) {
       loadingLabel.setText(message);
-      loadingIndicator.setProgress(progress < 0 ? ProgressIndicator.INDETERMINATE_PROGRESS
-          : Math.min(1, progress));
+      loadingIndicator.setProgress(
+          progress < 0 ? ProgressIndicator.INDETERMINATE_PROGRESS : Math.min(1, progress));
     }
   }
 
@@ -1528,8 +1523,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Smooths the input overlays in the background if needed, then shows them. Results are cached
-   * per overlay, so layout or scale changes do not smooth again.
+   * Smooths the input overlays in the background if needed, then shows them. Results are cached per
+   * overlay, so layout or scale changes do not smooth again.
    */
   private void refreshDisplayed() {
     if (rawSeries.isEmpty() || closed) {
@@ -1548,8 +1543,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       return cached == null || cached.source() != value.data() || !cached.params().equals(params);
     }).toList();
     if (missing.isEmpty()) {
-      showDisplayed(snapshot.stream().map(value -> new IntensityMapSeries(value.id(), value.name(),
-          value.description(), smoothed.get(value.id()).result(), value.color())).toList());
+      showDisplayed(snapshot.stream().map(
+          value -> new IntensityMapSeries(value.id(), value.name(), value.description(),
+              smoothed.get(value.id()).result(), value.color())).toList());
       return;
     }
     final int request = smoothingGeneration.incrementAndGet();
@@ -1618,10 +1614,12 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       return;
     }
     final double noise = noiseFloor.getValue() / 100;
-    final IntensityMapScale target = flat ? new IntensityMapScale(bounds, PaintScaleTransform.LINEAR,
-        normalized.isSelected(), noise, 0, true) : new IntensityMapScale(bounds,
-        Objects.requireNonNullElse(transform.getValue(), PaintScaleTransform.LINEAR),
-        normalized.isSelected(), noise, baseline(bounds, normalized.isSelected(), noise), false);
+    final IntensityMapScale target =
+        flat ? new IntensityMapScale(bounds, PaintScaleTransform.LINEAR, normalized.isSelected(),
+            noise, 0, true) : new IntensityMapScale(bounds,
+            Objects.requireNonNullElse(transform.getValue(), PaintScaleTransform.LINEAR),
+            normalized.isSelected(), noise, baseline(bounds, normalized.isSelected(), noise),
+            false);
     final int request = generation.incrementAndGet();
     final BooleanSupplier canceled = () -> generation.get() != request || closed;
     final List<IntensityMapSeries> snapshot = series;
@@ -1638,8 +1636,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       finish(request, snapshot, target, Map.of());
       return;
     }
-    setLoading("Building " + builds.size() + (builds.size() == 1 ? " surface…" : " surfaces…"),
-        -1);
+    setLoading("Building " + builds.size() + (builds.size() == 1 ? " surface…" : " surfaces…"), -1);
     CompletableFuture.allOf(builds.values().toArray(CompletableFuture[]::new))
         .whenComplete((_, error) -> Platform.runLater(() -> {
           if (closed || generation.get() != request) {
@@ -1754,8 +1751,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       }
     }
     setStatus(String.format(Locale.ROOT, "%d of %d overlays visible · %s triangles · %s", visible,
-        series.size(), triangles >= 1_000_000 ? String.format(Locale.ROOT, "%.1f M",
-            triangles / 1e6) : String.format(Locale.ROOT, "%.0f k", triangles / 1e3),
+        series.size(),
+        triangles >= 1_000_000 ? String.format(Locale.ROOT, "%.1f M", triangles / 1e6)
+            : String.format(Locale.ROOT, "%.0f k", triangles / 1e3),
         scale.normalized() ? "each overlay normalized" : "shared intensity scale"));
   }
 
@@ -1800,9 +1798,10 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
     final IntensityMapGrid first = series.getFirst().data();
     final List<Node> rows = new ArrayList<>();
-    rows.add(hoverLabel(first.xLabel() + "  " + format.value(dataX, first.xKind()) + "     "
-        + first.yLabel() + "  " + format.value(dataY, first.yKind()) + (smoothing().active()
-        ? "     smoothed" : ""), true));
+    rows.add(hoverLabel(
+        first.xLabel() + "  " + format.value(dataX, first.xKind()) + "     " + first.yLabel() + "  "
+            + format.value(dataY, first.yKind()) + (smoothing().active() ? "     smoothed" : ""),
+        true));
     int shown = 0;
     for (final IntensityMapSeries value : visible) {
       if (shown == MAX_HOVER_ROWS) {
@@ -1810,8 +1809,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         break;
       }
       final double intensity = intensityAt(value.data(), dataX, dataY);
-      final String text = value.fullName() + ":  " + (Double.isNaN(intensity) ? "–"
-          : format.intensity(intensity));
+      final String text =
+          value.fullName() + ":  " + (Double.isNaN(intensity) ? "–" : format.intensity(intensity));
       final Label label = hoverLabel(text, value == emphasized);
       final Circle swatch = new Circle(4, seriesColor(value));
       rows.add(FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, swatch, label));
@@ -1822,10 +1821,11 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     // new labels need CSS before they can be measured, otherwise they collapse to an ellipsis
     hoverBox.applyCss();
     hoverBox.autosize();
-    final double left = x + 18 + hoverBox.getWidth() > viewport.getWidth() ? x - 12
-        - hoverBox.getWidth() : x + 18;
-    final double top = y + 18 + hoverBox.getHeight() > viewport.getHeight() ? y - 12
-        - hoverBox.getHeight() : y + 18;
+    final double left =
+        x + 18 + hoverBox.getWidth() > viewport.getWidth() ? x - 12 - hoverBox.getWidth() : x + 18;
+    final double top =
+        y + 18 + hoverBox.getHeight() > viewport.getHeight() ? y - 12 - hoverBox.getHeight()
+            : y + 18;
     hoverBox.relocate(Math.max(4, left), Math.max(4, top));
   }
 
@@ -1886,9 +1886,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     final Point3D end = regionEnd;
     cancelRegion();
     // a box of a few pixels on screen is a click, not a drag
-    if (start == null || end == null || screenDistance(start, new Point3D(end.getX(), 0,
-        start.getZ())) < MIN_BOX_PIXELS || screenDistance(start, new Point3D(start.getX(), 0,
-        end.getZ())) < MIN_BOX_PIXELS) {
+    if (start == null || end == null
+        || screenDistance(start, new Point3D(end.getX(), 0, start.getZ())) < MIN_BOX_PIXELS
+        || screenDistance(start, new Point3D(start.getX(), 0, end.getZ())) < MIN_BOX_PIXELS) {
       return;
     }
     final List<Point3D> corners = new ArrayList<>();
@@ -1947,17 +1947,16 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       return;
     }
     // assumption: the flat top view projects both axes with the same pixels per unit
-    final double factor = Math.min(area.getWidth() / screenWidth,
-        area.getHeight() / screenHeight);
+    final double factor = Math.min(area.getWidth() / screenWidth, area.getHeight() / screenHeight);
     final double distance = Math.max(MIN_DISTANCE, (depth - camera.getTranslateZ()) / factor);
-    final double pixelsPerUnit = screenWidth / (maxX - minX) * (depth - camera.getTranslateZ())
-        / distance;
+    final double pixelsPerUnit =
+        screenWidth / (maxX - minX) * (depth - camera.getTranslateZ()) / distance;
     final double boxX = (screen[0] + screen[1]) / 2;
     final double boxY = (screen[2] + screen[3]) / 2;
-    camera.setTranslateX(camera.getTranslateX() - (area.getMinX() + area.getWidth() / 2 - boxX)
-        / pixelsPerUnit);
-    camera.setTranslateY(camera.getTranslateY() - (area.getMinY() + area.getHeight() / 2 - boxY)
-        / pixelsPerUnit);
+    camera.setTranslateX(
+        camera.getTranslateX() - (area.getMinX() + area.getWidth() / 2 - boxX) / pixelsPerUnit);
+    camera.setTranslateY(
+        camera.getTranslateY() - (area.getMinY() + area.getHeight() / 2 - boxY) / pixelsPerUnit);
     camera.setTranslateZ(depth - distance);
   }
 
@@ -1986,9 +1985,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   /**
    * @return the visible part of the floor in local coordinates {x0, x1, z0, z1}, null if unknown.
-   * Rays through the viewport corners, edge centers, and center are exact for the top view and
-   * for zoomed tiles. If a ray misses, e.g. towards the horizon of a tilted view, floor and top
-   * points of every tile are projected instead.
+   * Rays through the viewport corners, edge centers, and center are exact for the top view and for
+   * zoomed tiles. If a ray misses, e.g. towards the horizon of a tilted view, floor and top points
+   * of every tile are projected instead.
    */
   private double @Nullable [] visibleFloor() {
     if (bounds == null || series.isEmpty() || scene.getWidth() <= 0 || scene.getHeight() <= 0) {
@@ -2036,7 +2035,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         final double x = (i / (double) steps - 0.5) * WIDTH;
         for (int j = 0; j <= steps; j++) {
           final double z = (j / (double) steps - 0.5) * DEPTH;
-          for (final double y : flat ? new double[]{0} : new double[]{0, -IntensityMapMesh.HEIGHT}) {
+          for (final double y : flat ? new double[]{0}
+              : new double[]{0, -IntensityMapMesh.HEIGHT}) {
             final Point3D local = tile.toModel(new Point3D(x, y, z));
             if (model.localToParent(local).getZ()
                 <= camera.getTranslateZ() + camera.getNearClip()) {
@@ -2072,9 +2072,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   private static @NotNull IntensityMapRegion toData(@NotNull final IntensityMapBounds current,
       final double @NotNull [] floor) {
-    return new IntensityMapRegion(
-        Range.closed(IntensityMapPicker.dataX(current, floor[0]),
-            IntensityMapPicker.dataX(current, floor[1])),
+    return new IntensityMapRegion(Range.closed(IntensityMapPicker.dataX(current, floor[0]),
+        IntensityMapPicker.dataX(current, floor[1])),
         Range.closed(IntensityMapPicker.dataY(current, floor[2]),
             IntensityMapPicker.dataY(current, floor[3])));
   }
@@ -2153,8 +2152,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     legendBox.setVisible(byIntensity);
     legendBox.setManaged(byIntensity);
     legend.setImage(texture(palettes.getValue()));
-    legendMaximum.setText(scale.normalized() ? "100 %" : format.intensity(
-        scale.bounds().maximum()));
+    legendMaximum.setText(
+        scale.normalized() ? "100 %" : format.intensity(scale.bounds().maximum()));
   }
 
   /**
@@ -2185,8 +2184,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     final Color color = byIntensity || gradient ? Color.WHITE : overlayColor;
     final double opacity = opacityApplies() ? state.opacityProperty().get() : 1;
     final PhongMaterial material = state.material();
-    material.setDiffuseColor(
-        new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity));
+    material.setDiffuseColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity));
     // the cached texture instances avoid a GPU upload on every slider or color change
     final WritableImage colors;
     if (byIntensity) {
@@ -2251,8 +2249,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
       // tiles can briefly refer to removed overlays until the new layout is applied
       final IntensityMapSeriesState state = states.get(tiled.get(i).id());
-      hulls.add(state == null ? List.of()
-          : tileHull(tiles.get(i), state.envelope(), labelLayer));
+      hulls.add(state == null ? List.of() : tileHull(tiles.get(i), state.envelope(), labelLayer));
     }
     final List<Bounds> occupied = projectTileTitles(hulls);
     for (int i = 0; i < all.size(); i++) {
@@ -2310,15 +2307,13 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * Places tile titles above or below the projected outline of their tile, and only where they
    * cover no other tile, axis label, or title.
    */
-  private @NotNull List<Bounds> projectTileTitles(
-      @NotNull final List<List<Point2D>> hulls) {
+  private @NotNull List<Bounds> projectTileTitles(@NotNull final List<List<Point2D>> hulls) {
     final List<Bounds> obstacles = new ArrayList<>();
     if (tileLabels.isEmpty()) {
       return obstacles;
     }
     final Pane pane = labelLayer;
-    final Bounds area = new BoundingBox(0, 0, pane.getWidth(),
-        pane.getHeight());
+    final Bounds area = new BoundingBox(0, 0, pane.getWidth(), pane.getHeight());
     for (int i = 0; i < tileLabels.size(); i++) {
       final Label label = tileLabels.get(i);
       if (!showLabels.isSelected() || i >= hulls.size() || hulls.get(i).isEmpty()) {
@@ -2332,8 +2327,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       final double left = tile.getCenterX() - width / 2;
       Bounds placed = null;
       for (final double top : new double[]{tile.getMinY() - height - 4, tile.getMaxY() + 4}) {
-        final Bounds candidate = new BoundingBox(left, top,
-            width, height);
+        final Bounds candidate = new BoundingBox(left, top, width, height);
         if (fits(candidate, i, hulls, obstacles, area)) {
           placed = candidate;
           break;
@@ -2350,8 +2344,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   private static boolean fits(@NotNull final Bounds candidate, final int own,
-      @NotNull final List<List<Point2D>> hulls,
-      @NotNull final List<Bounds> obstacles,
+      @NotNull final List<List<Point2D>> hulls, @NotNull final List<Bounds> obstacles,
       @NotNull final Bounds area) {
     if (!area.contains(candidate)) {
       return false;
@@ -2388,9 +2381,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       final int cz = cell / FIT_DIVISIONS;
       for (int dx = 0; dx <= 1; dx++) {
         for (int dz = 0; dz <= 1; dz++) {
-          addScreenPoint(points, tile.toModel(new Point3D(
-              ((cx + dx) / (double) FIT_DIVISIONS - 0.5) * WIDTH, envelope[cell],
-              ((cz + dz) / (double) FIT_DIVISIONS - 0.5) * DEPTH)), pane);
+          addScreenPoint(points, tile.toModel(
+              new Point3D(((cx + dx) / (double) FIT_DIVISIONS - 0.5) * WIDTH, envelope[cell],
+                  ((cz + dz) / (double) FIT_DIVISIONS - 0.5) * DEPTH)), pane);
         }
       }
     }
@@ -2457,9 +2450,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     // the fit places the axes at the data edges and defines the plot area of the 2D view
     resetAxesFrame();
     final List<Point3D> corners = new ArrayList<>();
-    final boolean focused = layout.get() == IntensityMapLayout.GRID && focusedTile >= 0
-        && focusedTile < tiled.size() && focusedTile < tiles.size()
-        && states.get(tiled.get(focusedTile).id()) != null;
+    final boolean focused =
+        layout.get() == IntensityMapLayout.GRID && focusedTile >= 0 && focusedTile < tiled.size()
+            && focusedTile < tiles.size() && states.get(tiled.get(focusedTile).id()) != null;
     if (focused) {
       final List<Point3D> points = new ArrayList<>();
       addEnvelope(points, states.get(tiled.get(focusedTile).id()).envelope(),
@@ -2556,8 +2549,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private void updateClip() {
     final Rectangle2D area = plotArea();
     // a small margin keeps the axis lines at the border
-    scene.setClip(area == null ? null : new Rectangle(area.getMinX() - 2, area.getMinY() - 2,
-        area.getWidth() + 4, area.getHeight() + 4));
+    scene.setClip(area == null ? null
+        : new Rectangle(area.getMinX() - 2, area.getMinY() - 2, area.getWidth() + 4,
+            area.getHeight() + 4));
   }
 
   /**
@@ -2575,7 +2569,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     for (final double x : new double[]{area.getMinX(), area.getMaxX()}) {
       for (final double y : new double[]{area.getMinY(), area.getMaxY()}) {
         final Point3D hit = IntensityMapPicker.floor(tile.toLocal(
-            IntensityMapPicker.ray(camera, scene.getWidth(), scene.getHeight(), x, y, model)), true);
+                IntensityMapPicker.ray(camera, scene.getWidth(), scene.getHeight(), x, y, model)),
+            true);
         if (hit == null) {
           return null;
         }
@@ -2656,7 +2651,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   }
 
-  private record SmoothedData(@NotNull IntensityMapGrid source, @NotNull IntensityMapSmoothing params,
+  private record SmoothedData(@NotNull IntensityMapGrid source,
+                              @NotNull IntensityMapSmoothing params,
                               @NotNull IntensityMapGrid result) {
 
   }

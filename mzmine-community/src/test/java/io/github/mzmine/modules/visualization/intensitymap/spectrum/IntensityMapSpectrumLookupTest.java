@@ -101,8 +101,8 @@ public class IntensityMapSpectrumLookupTest {
       when(scan.getMzValue(i)).thenReturn(mz[i]);
       when(scan.getIntensityValue(i)).thenReturn(intensity[i]);
     }
-    assertEquals(100.01,
-        IntensityMapSpectrumLookup.apex(scan, Range.closed(99.95, 100.05), 100.0), 1e-12);
+    assertEquals(100.01, IntensityMapSpectrumLookup.apex(scan, Range.closed(99.95, 100.05), 100.0),
+        1e-12);
   }
 
   private static @NotNull ParameterSet parameters(@NotNull final RawDataFile file,

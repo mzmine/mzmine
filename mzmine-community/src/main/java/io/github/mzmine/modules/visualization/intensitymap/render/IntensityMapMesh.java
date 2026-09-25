@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * vertices referenced by a face are kept.
  */
 public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] normals,
-                            float @NotNull [] texture, int @NotNull [] faces) {
+                               float @NotNull [] texture, int @NotNull [] faces) {
 
   public static final double WIDTH = 480;
   public static final double DEPTH = 360;
@@ -389,8 +389,8 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
         cell++;
       }
     }
-    return new IntensityMapMesh(Arrays.copyOf(points, vertices[0] * 3),
-        PIXEL_NORMALS.clone(), texture, faces);
+    return new IntensityMapMesh(Arrays.copyOf(points, vertices[0] * 3), PIXEL_NORMALS.clone(),
+        texture, faces);
   }
 
   /**
@@ -412,8 +412,8 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
   }
 
   /**
-   * @return true for measured pixels above the noise floor. Measured zeros are kept unless a
-   * noise floor is set.
+   * @return true for measured pixels above the noise floor. Measured zeros are kept unless a noise
+   * floor is set.
    */
   private static boolean visible(@NotNull final IntensityMapGrid data,
       @NotNull final IntensityMapScale scale, final int x, final int y) {
@@ -448,8 +448,8 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
   /**
    * Height field triangle: point and normal indices are shared, texture indices are separate.
    */
-  private static int triangle(final int @NotNull [] faces, final int next, final int a,
-      final int b, final int c, final int ta, final int tb, final int tc) {
+  private static int triangle(final int @NotNull [] faces, final int next, final int a, final int b,
+      final int c, final int ta, final int tb, final int tc) {
     faces[next] = a;
     faces[next + 1] = a;
     faces[next + 2] = ta;

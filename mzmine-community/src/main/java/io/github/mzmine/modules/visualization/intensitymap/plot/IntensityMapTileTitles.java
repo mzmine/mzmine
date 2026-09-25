@@ -30,8 +30,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Short tile titles: parts shared by all tiles, such as one raw file with several m/z overlays,
- * are left out.
+ * Short tile titles: parts shared by all tiles, such as one raw file with several m/z overlays, are
+ * left out.
  */
 final class IntensityMapTileTitles {
 
@@ -54,8 +54,8 @@ final class IntensityMapTileTitles {
   }
 
   /**
-   * Removes the prefix and suffix shared by all titles, e.g. the date and project of file names
-   * or the file extension, at separator boundaries.
+   * Removes the prefix and suffix shared by all titles, e.g. the date and project of file names or
+   * the file extension, at separator boundaries.
    */
   static @NotNull List<String> distinctParts(@NotNull final List<String> titles) {
     if (titles.size() < 2 || titles.stream().distinct().count() < titles.size()) {
@@ -94,8 +94,8 @@ final class IntensityMapTileTitles {
 
   private static int commonSuffix(@NotNull final String a, @NotNull final String b) {
     int i = 0;
-    while (i < a.length() && i < b.length()
-        && a.charAt(a.length() - 1 - i) == b.charAt(b.length() - 1 - i)) {
+    while (i < a.length() && i < b.length() && a.charAt(a.length() - 1 - i) == b.charAt(
+        b.length() - 1 - i)) {
       i++;
     }
     return i;

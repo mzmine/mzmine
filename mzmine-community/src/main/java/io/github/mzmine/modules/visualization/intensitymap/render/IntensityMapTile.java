@@ -37,8 +37,8 @@ import javafx.scene.transform.Translate;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Placement of one small multiple inside the model. Tiles are scaled uniformly, so a ray keeps
- * its parameter when transformed into a tile and hits of different tiles can be compared.
+ * Placement of one small multiple inside the model. Tiles are scaled uniformly, so a ray keeps its
+ * parameter when transformed into a tile and hits of different tiles can be compared.
  *
  * @param x     center in model coordinates
  * @param z     center in model coordinates
@@ -109,7 +109,6 @@ public record IntensityMapTile(double x, double z, double scale) {
     return new IntensityMapPicker.Ray(
         new Point3D((origin.getX() - x) / scale, origin.getY() / scale,
             (origin.getZ() - z) / scale),
-        new Point3D(direction.getX() / scale, direction.getY() / scale,
-            direction.getZ() / scale));
+        new Point3D(direction.getX() / scale, direction.getY() / scale, direction.getZ() / scale));
   }
 }

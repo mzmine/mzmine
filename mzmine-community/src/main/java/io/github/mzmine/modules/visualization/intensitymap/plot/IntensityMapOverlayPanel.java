@@ -136,8 +136,8 @@ final class IntensityMapOverlayPanel extends VBox {
         "Add m/z overlays for every sample", this::addMz);
     final Label plusMinus = new Label("±");
     plusMinus.setMinWidth(Region.USE_PREF_SIZE);
-    mzRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, mzField, plusMinus,
-        toleranceField, toleranceUnit, add);
+    mzRow = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, mzField, plusMinus, toleranceField,
+        toleranceUnit, add);
     FxLayout.bindManagedToVisible(mzRow);
     mzRow.setVisible(false);
     FxLayout.bindManagedToVisible(mzError);
@@ -150,7 +150,6 @@ final class IntensityMapOverlayPanel extends VBox {
     // decision: keep the theme background, a transparent -fx-background derives unreadable text
     scroll.getStyleClass().add("edge-to-edge");
     VBox.setVgrow(scroll, Priority.ALWAYS);
-
 
     getChildren().addAll(header, mzRow, mzError, scroll);
   }
@@ -267,16 +266,14 @@ final class IntensityMapOverlayPanel extends VBox {
     // decision (user request): every overlay has its own color range, like ion images in SCiLS
     final IntensityMapColorRange range = new IntensityMapColorRange(state,
         intensity -> intensityFormat.apply(intensity));
-    range.visibleProperty().bind(
-        colorRangeEnabled.and(state.colorBarProperty().isNotNull()));
+    range.visibleProperty().bind(colorRangeEnabled.and(state.colorBarProperty().isNotNull()));
     FxLayout.bindManagedToVisible(range);
     text.getChildren().add(range);
     text.setMinWidth(40);
     text.setMaxWidth(Double.MAX_VALUE);
     HBox.setHgrow(text, Priority.ALWAYS);
     Tooltip.install(text, new Tooltip(
-        value.fullName() + "\n" + value.data().width() + " × " + value.data().height()
-            + " grid"));
+        value.fullName() + "\n" + value.data().width() + " × " + value.data().height() + " grid"));
     // clicking the text toggles visibility like a check box label
     text.setOnMouseClicked(event -> {
       if (event.getButton() == MouseButton.PRIMARY) {
@@ -288,24 +285,23 @@ final class IntensityMapOverlayPanel extends VBox {
     opacity.valueProperty().bindBidirectional(state.opacityProperty());
     opacity.setPrefWidth(120);
     final CustomMenuItem opacityItem = new CustomMenuItem(
-        FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, new Label("Opacity"), opacity),
-        false);
+        FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, new Label("Opacity"), opacity), false);
     opacityItem.disableProperty().bind(opacityEnabled.not());
     final ContextMenu menu = new ContextMenu();
     final Button options = menuButton("Opacity, show only this, remove", menu);
-    menu.getItems().setAll(opacityItem, new SeparatorMenuItem(),
-        MenuItems.create("Show only this", () -> {
+    menu.getItems()
+        .setAll(opacityItem, new SeparatorMenuItem(), MenuItems.create("Show only this", () -> {
           for (final var entry : states.entrySet()) {
             entry.getValue().visibleProperty().set(entry.getKey().equals(value.id()));
           }
-        }), MenuItems.create("Show all", () -> states.values()
-            .forEach(other -> other.visibleProperty().set(true))));
+        }), MenuItems.create("Show all",
+            () -> states.values().forEach(other -> other.visibleProperty().set(true))));
     if (onRemove != null) {
       menu.getItems().addAll(new SeparatorMenuItem(),
           MenuItems.create("Remove", () -> onRemove.accept(value.id())));
     }
-    final HBox row = FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(2, 0, 2, 0), 4, color,
-        visible, text, options);
+    final HBox row = FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(2, 0, 2, 0), 4, color, visible,
+        text, options);
     // right click anywhere on the row opens the same options
     row.setOnContextMenuRequested(event -> menu.show(row, event.getScreenX(), event.getScreenY()));
     return row;

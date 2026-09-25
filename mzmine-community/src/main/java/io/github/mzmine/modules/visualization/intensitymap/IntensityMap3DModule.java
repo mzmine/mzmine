@@ -61,8 +61,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class IntensityMap3DModule implements MZmineRunnableModule {
 
-  private static final Logger logger = Logger.getLogger(
-      IntensityMap3DModule.class.getName());
+  private static final Logger logger = Logger.getLogger(IntensityMap3DModule.class.getName());
 
   @Override
   public @NotNull String getName() {
@@ -110,11 +109,13 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
       return ExitCode.ERROR;
     }
     final var selection = parameters.getValue(IntensityMapParameters.dataFile);
-    logger.fine(() -> "3D visualizer opens " + files.length + " files ("
-        + selection.getSelectionType() + "): " + Arrays.stream(files).map(RawDataFile::getName)
-        .collect(Collectors.joining(", ")));
+    logger.fine(
+        () -> "3D visualizer opens " + files.length + " files (" + selection.getSelectionType()
+            + "): " + Arrays.stream(files).map(RawDataFile::getName)
+            .collect(Collectors.joining(", ")));
     final var requested = parameters.getValue(IntensityMapParameters.mode);
-    final Map<IntensityMapDimensions, List<String>> byMode = new EnumMap<>(IntensityMapDimensions.class);
+    final Map<IntensityMapDimensions, List<String>> byMode = new EnumMap<>(
+        IntensityMapDimensions.class);
     for (final RawDataFile file : files) {
       byMode.computeIfAbsent(IntensityMapSampler.resolveMode(file, requested),
           _ -> new ArrayList<>()).add(file.getName());
@@ -152,26 +153,25 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
         .toList();
     final Range<Float> rtRange = features.stream().map(Feature::getRawDataPointsRTRange)
         .reduce(Range::span).orElse(null);
-    final List<PolarityType> polarities = features.stream()
-        .map(Feature::getRepresentativePolarity).distinct().toList();
+    final List<PolarityType> polarities = features.stream().map(Feature::getRepresentativePolarity)
+        .distinct().toList();
     // decision: features of different polarities show all scans
     final PolarityType polarity = polarities.size() == 1 ? polarities.getFirst() : PolarityType.ANY;
     // decision: a copy, feature ranges must not become the defaults of the module dialog
-    final ParameterSet parameters = ConfigService.getConfiguration().getModuleParameters(
-        flat ? IntensityMap2DModule.class : IntensityMap3DModule.class)
+    final ParameterSet parameters = ConfigService.getConfiguration()
+        .getModuleParameters(flat ? IntensityMap2DModule.class : IntensityMap3DModule.class)
         .cloneParameterSet();
     parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files);
     // imaging features show images, all others retention time
-    parameters.getParameter(IntensityMapParameters.mode)
-        .setValue(IntensityMapDimensions.AUTOMATIC);
+    parameters.getParameter(IntensityMapParameters.mode).setValue(IntensityMapDimensions.AUTOMATIC);
     final boolean imaging = Arrays.stream(files).anyMatch(ImagingRawDataFile.class::isInstance);
     parameters.getParameter(IntensityMapParameters.scanSelection).setValue(
         new ScanSelection(1, imaging ? null : rtRange,
             Objects.requireNonNullElse(polarity, PolarityType.ANY)));
     final List<Range<Double>> merged = IntensityMapLayer.mergeOverlapping(mzRanges);
-    merged.stream().reduce(Range::span).ifPresent(
-        span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
+    merged.stream().reduce(Range::span)
+        .ifPresent(span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
       open(parameters, merged, flat);
     }

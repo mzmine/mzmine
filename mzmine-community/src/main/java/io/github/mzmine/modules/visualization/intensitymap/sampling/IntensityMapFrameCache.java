@@ -124,9 +124,9 @@ public final class IntensityMapFrameCache {
       if (!(scan instanceof Frame frame)) {
         continue;
       }
-      final double score = retentionTime == null
-          ? -Objects.requireNonNullElse(frame.getBasePeakIntensity(), 0d)
-          : Math.abs(frame.getRetentionTime() - retentionTime);
+      final double score =
+          retentionTime == null ? -Objects.requireNonNullElse(frame.getBasePeakIntensity(), 0d)
+              : Math.abs(frame.getRetentionTime() - retentionTime);
       if (score < bestScore || best == null) {
         best = frame;
         bestScore = score;

@@ -134,13 +134,12 @@ class IntensityMapTab extends MZmineTab {
 
   /**
    * @param files    at least one file, all with the same data dimensions
-   * @param mzRanges initial m/z overlays for every file, e.g. of selected features. Empty shows
-   *                 the complete m/z range of the parameters.
+   * @param mzRanges initial m/z overlays for every file, e.g. of selected features. Empty shows the
+   *                 complete m/z range of the parameters.
    * @param flat     2D view: a fixed top view without heights
    */
-  IntensityMapTab(final RawDataFile @NotNull [] files,
-      @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges,
-      final boolean flat) {
+  IntensityMapTab(final RawDataFile @NotNull [] files, @NotNull final ParameterSet parameters,
+      @NotNull final List<Range<Double>> mzRanges, final boolean flat) {
     super(title(files, flat), false, false);
     this.flat = flat;
     this.parameters = parameters.cloneParameterSet();
@@ -181,8 +180,8 @@ class IntensityMapTab extends MZmineTab {
       // decision: Ctrl/⌘ adds, as for clicks, so a dragged window joins the shown m/z overlays
       spectrumPane.setRangeListener(range -> addMzRanges(List.of(range)));
       plot.setDetailPane(spectrumPane, "Spectrum");
-      spectrumPane.descriptionProperty().subscribe(value -> plot.setDetailHeader(
-          "Spectrum · " + value, IntensityMapSpectrumPane.HINT));
+      spectrumPane.descriptionProperty().subscribe(
+          value -> plot.setDetailHeader("Spectrum · " + value, IntensityMapSpectrumPane.HINT));
       plot.setSliceMode(spectrumSource.sliceMode());
       plot.setOnSelectionChanged(this::showSpectra);
     }
@@ -206,8 +205,7 @@ class IntensityMapTab extends MZmineTab {
     if (files.length == 0) {
       return prefix + " visualizer";
     }
-    return prefix + " " + files[0].getName() + (files.length > 1 ? " +" + (files.length - 1)
-        : "");
+    return prefix + " " + files[0].getName() + (files.length > 1 ? " +" + (files.length - 1) : "");
   }
 
   private void initTab() {
@@ -582,8 +580,8 @@ class IntensityMapTab extends MZmineTab {
           frames = frames.select(Range.singleton(frame.getRetentionTime()));
         }
         chromatogramPane.setSelected(Range.singleton(frame.getRetentionTime()));
-        position = "RT " + formats.rt(frame.getRetentionTime()) + " min · frame #"
-            + frame.getScanNumber();
+        position =
+            "RT " + formats.rt(frame.getRetentionTime()) + " min · frame #" + frame.getScanNumber();
       } catch (final IllegalArgumentException ex) {
         // no frame matches the scan selection, sampling reports it
         chromatogramPane.setSelected(times);
@@ -592,7 +590,8 @@ class IntensityMapTab extends MZmineTab {
     plot.setDetailHeader("Base peak chromatogram · " + position, IntensityMapChromatogramPane.HINT);
   }
 
-  private static @Nullable IntensityMapPosition maximumPosition(@NotNull final IntensityMapGrid data) {
+  private static @Nullable IntensityMapPosition maximumPosition(
+      @NotNull final IntensityMapGrid data) {
     int best = -1;
     float maximum = -1;
     for (int row = 0; row < data.height(); row++) {
@@ -615,8 +614,8 @@ class IntensityMapTab extends MZmineTab {
     for (int i = 0; i < layers.size(); i++) {
       final IntensityMapLayer layer = layers.get(i);
       if (layer.id().equals(id) && !layer.color().equals(color)) {
-        layers.set(i, new IntensityMapLayer(id, layer.file(), layer.mzRange(), color,
-            layer.fullRange()));
+        layers.set(i,
+            new IntensityMapLayer(id, layer.file(), layer.mzRange(), color, layer.fullRange()));
         updateDetail(List.of());
         final IntensityMapPosition selection = plot.getSelection();
         if (selection != null) {
@@ -635,11 +634,11 @@ class IntensityMapTab extends MZmineTab {
   }
 
   /**
-   * Shows the visible data window in full detail once the view has settled (user request: zoom
-   * like the former 2D plot instead of selecting subsets). Reading raw data is expensive, so
-   * the event is debounced, only one read runs at a time, and the window is only read again when
-   * the view leaves it or zooms in well beyond its resolution. Zoomed out, the base is shown
-   * without reading.
+   * Shows the visible data window in full detail once the view has settled (user request: zoom like
+   * the former 2D plot instead of selecting subsets). Reading raw data is expensive, so the event
+   * is debounced, only one read runs at a time, and the window is only read again when the view
+   * leaves it or zooms in well beyond its resolution. Zoomed out, the base is shown without
+   * reading.
    */
   private void onDetailChanged() {
     if (closed || sampledDetail == null) {
@@ -661,8 +660,8 @@ class IntensityMapTab extends MZmineTab {
       }
       return;
     }
-    final boolean complete = layers.stream().allMatch(
-        layer -> !sampled.containsKey(layer.id()) || detailed.containsKey(layer.id()));
+    final boolean complete = layers.stream()
+        .allMatch(layer -> !sampled.containsKey(layer.id()) || detailed.containsKey(layer.id()));
     if ((complete && covers(focus, visible)) || (running != null && covers(running.window,
         visible))) {
       return;
@@ -741,13 +740,13 @@ class IntensityMapTab extends MZmineTab {
       return;
     }
     final int count = missing.values().stream().mapToInt(List::size).sum();
-    final String message = "Reading " + count + (count == 1 ? " overlay" : " overlays") + " from "
-        + missing.size() + (missing.size() == 1 ? " sample…" : " samples…");
+    final String message =
+        "Reading " + count + (count == 1 ? " overlay" : " overlays") + " from " + missing.size() + (
+            missing.size() == 1 ? " sample…" : " samples…");
     final SamplingTask task = new SamplingTask(missing, shrink, Map.of(), parameters, detail,
         IntensityMapRegion.FULL, normalization, frames, message);
     samplingTask = task;
-    plot.setLoading(missing.isEmpty() ? "Adjusting detail…" : message,
-        missing.isEmpty() ? -1 : 0);
+    plot.setLoading(missing.isEmpty() ? "Adjusting detail…" : message, missing.isEmpty() ? -1 : 0);
     MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
   }
 
@@ -864,8 +863,8 @@ class IntensityMapTab extends MZmineTab {
 
     private void advance(@NotNull final RawDataFile file, final int completed, final int total) {
       fileProgress.put(file, total == 0 ? 1 : (double) completed / total);
-      progress = fileProgress.values().stream().mapToDouble(Double::doubleValue).sum()
-          / Math.max(1, missing.size());
+      progress = fileProgress.values().stream().mapToDouble(Double::doubleValue).sum() / Math.max(1,
+          missing.size());
       // throttle FX updates
       if (progress - reported >= 0.02) {
         reported = progress;
@@ -879,8 +878,8 @@ class IntensityMapTab extends MZmineTab {
     }
 
     /**
-     * Clears the loading state if this task is still the current one, e.g. after it was canceled
-     * in the task manager.
+     * Clears the loading state if this task is still the current one, e.g. after it was canceled in
+     * the task manager.
      */
     private void release() {
       Platform.runLater(() -> {
@@ -914,9 +913,8 @@ class IntensityMapTab extends MZmineTab {
           final IntensityMapGrid[] data;
           try {
             data = IntensityMapSampler.sample(file, settings,
-                fileLayers.stream().map(IntensityMapLayer::mzRange).toList(),
-                window, taskNormalization, taskFrames, detail,
-                new IntensityMapSampler.Progress() {
+                fileLayers.stream().map(IntensityMapLayer::mzRange).toList(), window,
+                taskNormalization, taskFrames, detail, new IntensityMapSampler.Progress() {
                   @Override
                   public boolean canceled() {
                     return isCanceled();
@@ -964,8 +962,8 @@ class IntensityMapTab extends MZmineTab {
             return;
           }
           // overlays removed while reading
-          final Set<String> current = new HashSet<>(layers.stream().map(IntensityMapLayer::id)
-              .toList());
+          final Set<String> current = new HashSet<>(
+              layers.stream().map(IntensityMapLayer::id).toList());
           results.keySet().retainAll(current);
           empty.retainAll(current);
           plot.setLoading(null, 0);

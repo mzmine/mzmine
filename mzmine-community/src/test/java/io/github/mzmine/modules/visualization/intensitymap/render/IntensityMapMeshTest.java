@@ -42,10 +42,10 @@ class IntensityMapMeshTest {
 
   @Test
   void overlaysUsePhysicalPositionsAndSharedIntensity() {
-    final IntensityMapGrid a = new IntensityMapGrid(new double[]{1, 2}, new double[]{100, 101}, "RT",
-        "m/z", false);
-    final IntensityMapGrid b = new IntensityMapGrid(new double[]{2, 4}, new double[]{100, 101}, "RT",
-        "m/z", false);
+    final IntensityMapGrid a = new IntensityMapGrid(new double[]{1, 2}, new double[]{100, 101},
+        "RT", "m/z", false);
+    final IntensityMapGrid b = new IntensityMapGrid(new double[]{2, 4}, new double[]{100, 101},
+        "RT", "m/z", false);
     for (int x = 0; x < 2; x++) {
       a.markColumn(x);
       b.markColumn(x);
@@ -63,21 +63,23 @@ class IntensityMapMeshTest {
 
   @Test
   void missingImagePixelsProduceNoGeometry() {
-    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2}, new double[]{1, 2}, "X", "Y",
-        true);
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2}, new double[]{1, 2}, "X",
+        "Y", true);
     data.addMaximum(0, 0, 5);
-    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)), false);
+    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)),
+        false);
     assertEquals(8 * 3, mesh.points().length); // one pixel column, not a bridged rectangle
     assertEquals(10 * 9, mesh.faces().length);
   }
 
   @Test
   void hiddenWallsBetweenEqualPixelsAreSkipped() {
-    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2}, new double[]{1}, "X", "Y",
-        true);
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2}, new double[]{1}, "X",
+        "Y", true);
     data.addMaximum(0, 0, 5);
     data.addMaximum(1, 0, 5);
-    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)), false);
+    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)),
+        false);
     // two tops plus three exposed walls per column, the shared wall is hidden
     assertEquals(2 * (2 + 3 * 2), mesh.triangles());
   }
@@ -89,7 +91,8 @@ class IntensityMapMeshTest {
       data.markColumn(x);
     }
     data.addMaximum(0, 0, 10);
-    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)), false);
+    final IntensityMapMesh mesh = IntensityMapMesh.build(data, IntensityMapBounds.of(List.of(data)),
+        false);
     assertEquals(4 * 3, mesh.points().length);
     assertEquals(2, mesh.triangles());
     // normals point upwards (negative y)
@@ -177,10 +180,10 @@ class IntensityMapMeshTest {
     image.addMaximum(2, 0, 1e6);
     assertEquals(1e4, image.minimum());
     final IntensityMapBounds bounds = IntensityMapBounds.of(List.of(image));
-    final IntensityMapScale fromZero = new IntensityMapScale(bounds, PaintScaleTransform.LOG10, false,
-        0, 0);
-    final IntensityMapScale fromLowest = new IntensityMapScale(bounds, PaintScaleTransform.LOG10, false,
-        0, image.minimum() / image.maximum());
+    final IntensityMapScale fromZero = new IntensityMapScale(bounds, PaintScaleTransform.LOG10,
+        false, 0, 0);
+    final IntensityMapScale fromLowest = new IntensityMapScale(bounds, PaintScaleTransform.LOG10,
+        false, 0, image.minimum() / image.maximum());
     // log heights put the weakest pixel at two thirds of the maximum
     assertEquals(4 / 6d, fromZero.height(image, 1e4), 1e-3);
     assertEquals(IntensityMapScale.BASE_HEIGHT, fromLowest.height(image, 1e4), 1e-9);
@@ -207,8 +210,8 @@ class IntensityMapMeshTest {
   @Test
   void flatCellsOfConsecutiveScansTouch() {
     // irregular scan times, signal in two scans and one m/z bin
-    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 1.2, 1.7, 2}, new double[]{400,
-        400.1, 400.2}, "RT", "m/z", false);
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 1.2, 1.7, 2},
+        new double[]{400, 400.1, 400.2}, "RT", "m/z", false);
     for (int x = 0; x < 4; x++) {
       data.markColumn(x);
     }

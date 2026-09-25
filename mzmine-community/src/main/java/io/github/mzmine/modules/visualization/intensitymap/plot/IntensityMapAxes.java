@@ -150,9 +150,12 @@ final class IntensityMapAxes {
     }
     final IntensityMapBounds bounds = spec.bounds();
     return new double[]{
-        Math.clamp(IntensityMapMesh.localX(bounds, frame.x().lowerEndpoint()), -WIDTH / 2, WIDTH / 2),
-        Math.clamp(IntensityMapMesh.localX(bounds, frame.x().upperEndpoint()), -WIDTH / 2, WIDTH / 2),
-        Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().lowerEndpoint()), -DEPTH / 2, DEPTH / 2),
+        Math.clamp(IntensityMapMesh.localX(bounds, frame.x().lowerEndpoint()), -WIDTH / 2,
+            WIDTH / 2),
+        Math.clamp(IntensityMapMesh.localX(bounds, frame.x().upperEndpoint()), -WIDTH / 2,
+            WIDTH / 2),
+        Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().lowerEndpoint()), -DEPTH / 2,
+            DEPTH / 2),
         Math.clamp(IntensityMapMesh.localZ(bounds, frame.y().upperEndpoint()), -DEPTH / 2,
             DEPTH / 2)};
   }
@@ -200,8 +203,8 @@ final class IntensityMapAxes {
     label(spec.xLabel(), (x0 + x1) / 2, 8 * t, z0 - 44 * t, Axis.X, true);
     label(spec.yLabel(), x0 - 66 * t, 8 * t, (z0 + z1) / 2, Axis.Y, true);
     label(transform == PaintScaleTransform.LINEAR ? spec.intensityLabel()
-            : spec.intensityLabel() + " · " + transform.name().toLowerCase(Locale.ROOT),
-        x0 - 20 * t, -HEIGHT - 24, z1, Axis.INTENSITY, true);
+            : spec.intensityLabel() + " · " + transform.name().toLowerCase(Locale.ROOT), x0 - 20 * t,
+        -HEIGHT - 24, z1, Axis.INTENSITY, true);
 
     // ticks cover the framed part of the data
     final double xMin = IntensityMapPicker.dataX(bounds, x0);
@@ -228,8 +231,9 @@ final class IntensityMapAxes {
     if (maximum > 0) {
       // heights may start at a baseline instead of zero
       final double lowest = spec.intensityBaseline() * maximum;
-      final double[] ticks = IntensityMapScale.isLogarithmic(transform) ? IntensityMapTicks.logTicks(
-          maximum, intensityTicks) : IntensityMapTicks.ticks(lowest, maximum, intensityTicks);
+      final double[] ticks =
+          IntensityMapScale.isLogarithmic(transform) ? IntensityMapTicks.logTicks(maximum,
+              intensityTicks) : IntensityMapTicks.ticks(lowest, maximum, intensityTicks);
       for (final double value : ticks) {
         if (value <= 0 || value < lowest) {
           continue;
@@ -317,18 +321,16 @@ final class IntensityMapAxes {
     final double depth = z1 - z0;
     final double x = scale(new Point3D(x0, 0, z0), new Point3D(x1, 0, z0), width);
     final double y = scale(new Point3D(x0, 0, z0), new Point3D(x0, 0, z1), depth);
-    final double intensity = intensityVisible ? scale(new Point3D(x0, 0, z1),
-        new Point3D(x0, -HEIGHT, z1), HEIGHT) : 0;
+    final double intensity =
+        intensityVisible ? scale(new Point3D(x0, 0, z1), new Point3D(x0, -HEIGHT, z1), HEIGHT) : 0;
     updateTickCounts(x * width, y * depth, intensity * HEIGHT);
     final double reference = Math.max(x, Math.max(y, intensity));
     final boolean xReadable = readable(x, width, reference);
     final boolean yReadable = readable(y, depth, reference);
     final boolean intensityReadable = readable(intensity, HEIGHT, reference);
     final Point3D inside = new Point3D((x0 + x1) / 2, 0, (z0 + z1) / 2);
-    final Point2D xNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x1, 0, z0),
-        inside);
-    final Point2D yNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x0, 0, z1),
-        inside);
+    final Point2D xNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x1, 0, z0), inside);
+    final Point2D yNormal = outwardNormal(new Point3D(x0, 0, z0), new Point3D(x0, 0, z1), inside);
     final Point2D intensityNormal = outwardNormal(new Point3D(x0, 0, z1),
         new Point3D(x0, -HEIGHT, z1), inside);
     for (final Anchor anchor : anchors) {
@@ -378,8 +380,8 @@ final class IntensityMapAxes {
    * @return screen normal of the axis line pointing away from the plot center, null if the axis
    * collapses to a point
    */
-  private @Nullable Point2D outwardNormal(@NotNull final Point3D start,
-      @NotNull final Point3D end, @NotNull final Point3D inside) {
+  private @Nullable Point2D outwardNormal(@NotNull final Point3D start, @NotNull final Point3D end,
+      @NotNull final Point3D inside) {
     final Point2D a = screen(start);
     final Point2D b = screen(end);
     final Point2D center = screen(inside);
@@ -425,14 +427,13 @@ final class IntensityMapAxes {
       final Label label = anchor.label();
       final Point2D labelCenter = new Point2D(label.getLayoutX() + label.getWidth() / 2,
           label.getLayoutY() + label.getHeight() / 2);
-      distance = Math.max(distance, labelCenter.subtract(axisMiddle).dotProduct(normal)
-          + extent(label, normal));
+      distance = Math.max(distance,
+          labelCenter.subtract(axisMiddle).dotProduct(normal) + extent(label, normal));
     }
     final Label label = title.label();
     final double offset = Math.max(distance, 6) + 6 + extent(label, normal);
     final Point2D position = axisMiddle.add(normal.multiply(offset));
-    label.relocate(position.getX() - label.getWidth() / 2,
-        position.getY() - label.getHeight() / 2);
+    label.relocate(position.getX() - label.getWidth() / 2, position.getY() - label.getHeight() / 2);
   }
 
   /**
@@ -440,8 +441,8 @@ final class IntensityMapAxes {
    * would report overlaps between labels that do not touch
    */
   static @NotNull Bounds layoutBounds(@NotNull final Label label) {
-    return new javafx.geometry.BoundingBox(label.getLayoutX(), label.getLayoutY(),
-        label.getWidth(), label.getHeight());
+    return new javafx.geometry.BoundingBox(label.getLayoutX(), label.getLayoutY(), label.getWidth(),
+        label.getHeight());
   }
 
   private static double extent(@NotNull final Label label, @NotNull final Point2D direction) {
@@ -464,8 +465,9 @@ final class IntensityMapAxes {
     }
     final int x = Math.clamp((int) (xPixels / X_TICK_PIXELS), 2, 10);
     final int y = Math.clamp((int) (yPixels / Y_TICK_PIXELS), 2, 10);
-    final int intensity = intensityVisible ? Math.clamp(
-        (int) (intensityPixels / INTENSITY_TICK_PIXELS), 1, 6) : intensityTicks;
+    final int intensity =
+        intensityVisible ? Math.clamp((int) (intensityPixels / INTENSITY_TICK_PIXELS), 1, 6)
+            : intensityTicks;
     if (x != xTicks || y != yTicks || intensity != intensityTicks) {
       xTicks = x;
       yTicks = y;
@@ -524,8 +526,7 @@ final class IntensityMapAxes {
         : Math.hypot(a.getX() - b.getX(), a.getY() - b.getY()) / length;
   }
 
-  private static boolean readable(final double scale, final double length,
-      final double reference) {
+  private static boolean readable(final double scale, final double length, final double reference) {
     return scale * length >= MIN_AXIS_PIXELS && scale >= reference * MIN_AXIS_RATIO;
   }
 

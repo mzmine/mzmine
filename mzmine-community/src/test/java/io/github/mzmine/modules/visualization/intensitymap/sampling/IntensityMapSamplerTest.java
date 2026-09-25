@@ -114,8 +114,7 @@ public class IntensityMapSamplerTest {
       System.arraycopy(new double[]{4, 9}, 0, buffer, 0, 2);
       return buffer;
     });
-    IntensityMapSampler.sample(file, parameters(file, LC_MS, new Scan[]{first, second}),
-        PROGRESS);
+    IntensityMapSampler.sample(file, parameters(file, LC_MS, new Scan[]{first, second}), PROGRESS);
     assertArrayEquals(new double[]{100, 150}, firstMz);
     assertArrayEquals(new double[]{3, 7}, firstIntensity);
   }
@@ -140,8 +139,7 @@ public class IntensityMapSamplerTest {
     assertTrue(data.yLabel().startsWith("Mobility"));
     assertEquals(11, data.maximum());
     assertEquals(11, data.intensity(data.binX(150), data.binY(1.5)));
-    final ParameterSet noFrames = parameters(file, MOBILITY_FRAME,
-        new Scan[]{mock(Scan.class)});
+    final ParameterSet noFrames = parameters(file, MOBILITY_FRAME, new Scan[]{mock(Scan.class)});
     assertThrows(IllegalArgumentException.class,
         () -> IntensityMapSampler.sample(file, noFrames, PROGRESS));
   }
@@ -178,10 +176,10 @@ public class IntensityMapSamplerTest {
     assertSame(late, frames.select(Range.singleton(1.6f)).frame(scans));
     assertSame(late, frames.select(Range.singleton(99f)).frame(scans));
     // a range with a single frame shows the frame closest to its center
-    assertEquals(java.util.List.of(early), IntensityMapFrameCache.within(scans, Range.closed(0.5f, 1.2f)));
+    assertEquals(java.util.List.of(early),
+        IntensityMapFrameCache.within(scans, Range.closed(0.5f, 1.2f)));
     assertSame(early, frames.select(Range.closed(0.5f, 1.2f)).frame(scans));
-    assertThrows(IllegalArgumentException.class,
-        () -> frames.frame(new Scan[]{mock(Scan.class)}));
+    assertThrows(IllegalArgumentException.class, () -> frames.frame(new Scan[]{mock(Scan.class)}));
   }
 
   @Test
@@ -238,8 +236,8 @@ public class IntensityMapSamplerTest {
 
     final IntensityMapGrid data = IntensityMapSampler.sample(file, parameters,
         List.of(Range.closed(100d, 200d)), IntensityMapRegion.FULL,
-        ImageNormalization.TIC_AVG_NORMALIZATION, new IntensityMapFrameCache(), IntensityMapDetail.DEFAULT,
-        PROGRESS)[0];
+        ImageNormalization.TIC_AVG_NORMALIZATION, new IntensityMapFrameCache(),
+        IntensityMapDetail.DEFAULT, PROGRESS)[0];
 
     // average TIC 20: factors 2 and 2/3
     assertEquals(20, data.intensity(0, data.binY(150)), 1e-4);
@@ -312,8 +310,7 @@ public class IntensityMapSamplerTest {
     final ScanSelection selection = mock(ScanSelection.class);
     when(selection.getMatchingScans(file)).thenReturn(scans);
     when(parameters.getValue(IntensityMapParameters.mode)).thenReturn(mode);
-    when(parameters.getValue(IntensityMapParameters.mzRange)).thenReturn(
-        Range.closed(100d, 200d));
+    when(parameters.getValue(IntensityMapParameters.mzRange)).thenReturn(Range.closed(100d, 200d));
     when(parameters.getValue(IntensityMapParameters.scanSelection)).thenReturn(selection);
     return parameters;
   }

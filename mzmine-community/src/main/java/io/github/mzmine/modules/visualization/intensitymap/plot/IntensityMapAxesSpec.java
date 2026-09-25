@@ -37,11 +37,12 @@ import org.jetbrains.annotations.Nullable;
  * regenerated and several tiles can share one description.
  */
 record IntensityMapAxesSpec(@NotNull IntensityMapBounds bounds, @NotNull String xLabel,
-                         @NotNull String yLabel, @NotNull IntensityMapAxisKind xKind,
-                         @NotNull IntensityMapAxisKind yKind, @NotNull String intensityLabel,
-                         double intensityMaximum, double intensityBaseline,
-                         @NotNull PaintScaleTransform transform,
-                         @NotNull IntensityMapFormat format, @Nullable IntensityMapRegion frame) {
+                            @NotNull String yLabel, @NotNull IntensityMapAxisKind xKind,
+                            @NotNull IntensityMapAxisKind yKind, @NotNull String intensityLabel,
+                            double intensityMaximum, double intensityBaseline,
+                            @NotNull PaintScaleTransform transform,
+                            @NotNull IntensityMapFormat format,
+                            @Nullable IntensityMapRegion frame) {
 
   /**
    * @param frame data window the axes are drawn around, e.g. the visible part of a zoomed view;

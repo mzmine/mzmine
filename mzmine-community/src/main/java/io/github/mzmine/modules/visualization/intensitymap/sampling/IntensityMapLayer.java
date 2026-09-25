@@ -43,7 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * @param fullRange true for the default layer that covers the complete selected m/z range
  */
 public record IntensityMapLayer(@NotNull String id, @NotNull RawDataFile file,
-                      @NotNull Range<Double> mzRange, @NotNull Color color, boolean fullRange) {
+                                @NotNull Range<Double> mzRange, @NotNull Color color,
+                                boolean fullRange) {
 
   public IntensityMapLayer {
     if (!validRange(mzRange)) {
@@ -65,8 +66,8 @@ public record IntensityMapLayer(@NotNull String id, @NotNull RawDataFile file,
   }
 
   public static boolean validRange(@NotNull final Range<Double> range) {
-    return range.hasLowerBound() && range.hasUpperBound() && !range.isEmpty()
-        && Double.isFinite(range.lowerEndpoint()) && Double.isFinite(range.upperEndpoint())
+    return range.hasLowerBound() && range.hasUpperBound() && !range.isEmpty() && Double.isFinite(
+        range.lowerEndpoint()) && Double.isFinite(range.upperEndpoint())
         && range.lowerEndpoint() >= 0;
   }
 
