@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.Abstr
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.ApplyRtCorrectionToRawFileModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.rawfilemethod.ApplyRtCorrectionToRawFileParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -108,6 +109,7 @@ public class RemoveScanRtCorrectionTask extends AbstractRawDataFileTask {
       }
       if (fileWasCorrected) {
         clearedFiles.add(file);
+        ((RawDataFileImpl) file).clearCaches();
       }
     }
   }

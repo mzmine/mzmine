@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,8 +50,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -99,25 +97,19 @@ class SameRangeTask extends AbstractTask {
     // Get feature list columns
     RawDataFile[] columns = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
-    // Create new feature list
-    processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
-        columns);
+    // Copy feature list like in other gap fillers
+    processedPeakList = FeatureListUtils.createCopy(peakList, null, suffix, getMemoryMapStorage(),
+        true, peakList.getRawDataFiles(), false, totalRows,
+        FeatureListUtils.estimateFeatures(totalRows, peakList.getNumberOfRawDataFiles()));
 
-    // do not transfer types add them later
-    FeatureListUtils.transferMetadata(peakList, processedPeakList, false);
-
-    List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
-
-    peakList.stream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
+    processedPeakList.stream().map(r -> (ModularFeatureListRow) r).forEach(row -> {
       // Canceled?
       if (isCanceled()) {
         return;
       }
 
-      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow.getID(),
-          sourceRow, true);
-
       // Copy each peaks and fill gaps
+      boolean rowChanged = false;
       for (RawDataFile column : columns) {
         // Canceled?
         if (isCanceled()) {
@@ -125,21 +117,23 @@ class SameRangeTask extends AbstractTask {
         }
 
         // Get current peak
-        Feature currentPeak = sourceRow.getFeature(column);
+        Feature currentPeak = row.getFeature(column);
 
         // If there is a gap, try to fill it
         if (currentPeak == null || currentPeak.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
-          currentPeak = fillGap(sourceRow, column);
+          currentPeak = fillGap(row, column);
+          if (currentPeak != null) {
+            row.addFeature(column, currentPeak, false);
+            rowChanged = true;
+          }
         }
       }
 
-      outputList.add(newRow);
+      if (rowChanged) {
+        row.applyRowBindings();
+      }
 
       processedRowsAtomic.getAndAdd(1);
-    });
-
-    outputList.forEach(newRow -> {
-      processedPeakList.addRow(newRow);
     });
 
     /* End Parallel Implementation */
@@ -148,6 +142,7 @@ class SameRangeTask extends AbstractTask {
     if (isCanceled()) {
       return;
     }
+
     // Append processed feature list to the project
     handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 

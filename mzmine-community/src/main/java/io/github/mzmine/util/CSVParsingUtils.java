@@ -27,13 +27,16 @@ package io.github.mzmine.util;
 
 import static io.github.mzmine.util.StringUtils.inQuotes;
 
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVParser;
 import com.opencsv.ICSVWriter;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvException;
-import com.opencsv.exceptions.CsvValidationException;
+import com.opencsv.exceptions.CsvMalformedLineException;
+import com.opencsv.exceptions.CsvMultilineLimitBrokenException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -45,18 +48,23 @@ import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.ExtraColumnHand
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.HandleExtraColumnsOptions;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.io.CharsetUtils;
 import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -65,7 +73,10 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +85,35 @@ import org.jetbrains.annotations.Nullable;
 public class CSVParsingUtils {
 
   private static final Logger logger = Logger.getLogger(CSVParsingUtils.class.getName());
+
+  /**
+   * Separators tested by {@link #autoDetermineSeparator(File)}. The order only breaks ties between
+   * equally scored separators, see {@link #candidateSeparators(File)}.
+   */
+  private static final List<Character> POSSIBLE_SEPARATORS = List.of('\t', ',', ';', '|');
+
+  /**
+   * Number of non-empty lines inspected to determine the separator of a file.
+   */
+  private static final int SEPARATOR_DETECTION_LINES = 40;
+
+  /**
+   * Upper limit of characters read to determine the separator, in case of very long lines.
+   */
+  private static final int SEPARATOR_DETECTION_CHARS = 1 << 18; // 256 k characters
+
+  /**
+   * Excel writes an optional "sep=;" line in front of the header to declare the separator of the
+   * file. Trailing whitespace is allowed, but the separator itself may be a tab.
+   */
+  private static final Pattern SEPARATOR_DIRECTIVE = Pattern.compile("sep=(.)\\s*",
+      Pattern.CASE_INSENSITIVE);
+
+  /**
+   * Value of a separator parameter that triggers {@link #autoDetermineSeparator(File)} instead of
+   * using a fixed separator.
+   */
+  public static final String AUTO_SEPARATOR = "auto";
 
 
   /**
@@ -270,23 +310,54 @@ public class CSVParsingUtils {
    */
   public static List<String[]> readData(final File file, final String separator)
       throws IOException, CsvException {
-    try (var reader = Files.newBufferedReader(file.toPath())) {
-
-      skipOptionalBom(reader);
-
-      return readData(reader, separator);
+    final char sep = isAutoSeparator(separator) ? autoDetermineSeparatorDefaultFallback(file)
+        : toSeparatorChar(separator);
+    try (var reader = CharsetUtils.newBufferedReader(file)) {
+      return readData(reader, sep, false);
+    } catch (CsvMalformedLineException | CsvMultilineLimitBrokenException e) {
+      // files with unbalanced quotes, e.g., an inch sign in an unquoted field, cannot be parsed
+      // by the rules of RFC4180. Rather than failing the whole import, read them without quoting.
+      logger.log(Level.WARNING,
+          "Unbalanced quotes in %s, reading the file without quote handling. %s".formatted(file,
+              e.getMessage()));
+      try (var reader = CharsetUtils.newBufferedReader(file)) {
+        return readData(reader, sep, true);
+      }
     }
   }
 
+  /**
+   * Read data until end, using the separator determined by
+   * {@link #autoDetermineSeparatorDefaultFallback(File)}.
+   *
+   * @return List of rows
+   * @throws IOException if read is unsuccessful
+   */
   public static List<String[]> readDataAutoSeparator(final File file)
       throws IOException, CsvException {
-    final Character sep = autoDetermineSeparatorDefaultFallback(file);
+    return readData(file, AUTO_SEPARATOR);
+  }
 
-    try (var reader = Files.newBufferedReader(file.toPath())) {
-      skipOptionalBom(reader);
+  /**
+   * @return true if the separator parameter asks for {@link #autoDetermineSeparator(File)}, which is
+   * the case for null, empty, and {@link #AUTO_SEPARATOR}. Whitespace is not empty, a tab or a
+   * space are valid separators.
+   */
+  public static boolean isAutoSeparator(@Nullable final String separator) {
+    return separator == null || separator.isEmpty() || AUTO_SEPARATOR.equalsIgnoreCase(
+        separator.trim());
+  }
 
-      return readData(reader, sep.toString());
+  /**
+   * @param separator a single character or the escaped tab "\\t"
+   * @return the separator character
+   */
+  public static char toSeparatorChar(@Nullable final String separator) {
+    if (isAutoSeparator(separator)) {
+      throw new IllegalArgumentException(
+          "Automatic separator detection needs a file, see readData(File, String).");
     }
+    return "\\t".equals(separator) ? '\t' : separator.charAt(0);
   }
 
   /**
@@ -306,56 +377,50 @@ public class CSVParsingUtils {
   }
 
   /**
-   * Attempts to automatically determine the file separator of a tabular text file by the first two
-   * lines.
-   * <p></p>
-   * Fallback criteria:
-   * <p></p>
-   * .tsv or .txt files -> \t
-   * <p></p>
-   * .csv -> ,
+   * Attempts to automatically determine the field separator of a tabular text file. An explicit
+   * "sep=;" directive as written by excel wins, otherwise all {@link #POSSIBLE_SEPARATORS} are
+   * tested on the first {@link #SEPARATOR_DETECTION_LINES} lines and the separator that splits the
+   * most lines into the same number of columns wins. Quoted fields, quoted line breaks, and ragged
+   * rows are handled, the file encoding is detected by {@link CharsetUtils}.
    *
-   * @return The determined separator.
+   * @return the determined separator or null if no separator splits the file into more than one
+   * column, e.g., for single column files
    */
   public static @Nullable Character autoDetermineSeparator(@NotNull File file) {
+    final List<String> lines;
+    try {
+      lines = readSampleLines(file, SEPARATOR_DETECTION_LINES, SEPARATOR_DETECTION_CHARS);
+    } catch (IOException e) {
+      logger.log(Level.FINE,
+          "Cannot auto determine the separator of %s, the file cannot be read.".formatted(file), e);
+      return null;
+    }
+    if (lines.isEmpty()) {
+      logger.finest(
+          () -> "Cannot auto determine the separator of %s, the file is empty.".formatted(file));
+      return null;
+    }
+
+    // excel and other tools may declare the separator in an optional first line: sep=;
+    final Character declared = extractSeparatorDirective(lines.getFirst());
+    if (declared != null) {
+      logger.finest(() -> "File %s declares %s as separator.".formatted(file,
+          inQuotes(declared.toString())));
+      return declared;
+    }
+
+    final String sample = String.join("\n", lines);
     Character bestSeparator = null;
-    int maxCols = 1;
-
-    final List<Character> possibleSeparators = List.of('\t', ',', ';');
-    for (Character sep : possibleSeparators) {
-      try (var reader = Files.newBufferedReader(file.toPath())) {
-        skipOptionalBom(reader);
-        // the split line must have more than one entry to auto-determine,
-        // bc otherwise we may think we found the separator, but we just have an array of length 1.
-        // in that case, we default to the most likely option from the file ending
-
-        try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
-            new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
-
-          final String[] splitHeader = csvReader.readNext();
-          final String[] splitLine = csvReader.readNext();
-
-          // first and second line must be the same length if we auto-determine the separator
-          if (splitHeader.length != splitLine.length) {
-            logger.finest(
-                "Line length mismatch for separator %s. header %d, first line %d in file %s.".formatted(
-                    inQuotes(sep.toString()), splitHeader.length, splitLine.length,
-                    file.getName()));
-            continue;
-          }
-
-          if (splitHeader.length > maxCols) {
-            maxCols = splitHeader.length;
-            bestSeparator = sep;
-          }
-        } catch (CsvValidationException e) {
-          throw new RuntimeException(e);
-        }
-      } catch (IOException | NullPointerException e) {
-        // this may happen if the file has less than two lines.
-        logger.log(Level.FINE,
-            "Cannot auto determine file separator for %s. File may be empty or has less than two lines.".formatted(
-                file));
+    SeparatorScore bestScore = null;
+    for (Character sep : candidateSeparators(file)) {
+      final SeparatorScore score = scoreSeparator(sample, sep);
+      // a single column means this separator does not occur outside of quoted fields
+      if (score.columns() < 2) {
+        continue;
+      }
+      if (bestScore == null || score.isBetterThan(bestScore)) {
+        bestSeparator = sep;
+        bestScore = score;
       }
     }
 
@@ -379,10 +444,117 @@ public class CSVParsingUtils {
   }
 
   public static @NotNull Character autoDetermineSeparatorDefaultFallback(@NotNull File file) {
-    // the default file ending for excel export to tab-separated is .txt, so we catch here if the
-    // user did not rename.
-    return autoDetermineSeparatorOrElse(file,
-        f -> f.getName().endsWith(".tsv") || file.getName().endsWith(".txt") ? '\t' : ',');
+    return autoDetermineSeparatorOrElse(file, CSVParsingUtils::defaultSeparatorForExtension);
+  }
+
+  /**
+   * The default file ending for the excel export to tab-separated is .txt, so tab is also the
+   * default for .txt files if the user did not rename them.
+   *
+   * @return tab for .tsv, .tab, and .txt files, comma otherwise
+   */
+  public static @NotNull Character defaultSeparatorForExtension(@NotNull final File file) {
+    final String name = file.getName().toLowerCase();
+    return name.endsWith(".tsv") || name.endsWith(".tab") || name.endsWith(".txt") ? '\t' : ',';
+  }
+
+  /**
+   * @return all {@link #POSSIBLE_SEPARATORS} with the separator matching the file extension first,
+   * so that equally scored separators are decided by the file extension
+   */
+  private static @NotNull List<Character> candidateSeparators(@NotNull final File file) {
+    final Character preferred = defaultSeparatorForExtension(file);
+    return Stream.concat(Stream.of(preferred),
+        POSSIBLE_SEPARATORS.stream().filter(sep -> !sep.equals(preferred))).toList();
+  }
+
+  /**
+   * Rates a separator by how many of the sampled lines are split into the same number of columns.
+   */
+  private static @NotNull SeparatorScore scoreSeparator(@NotNull final String sample,
+      final char separator) {
+    final List<String[]> rows;
+    try (CSVReader reader = createCsvReader(new StringReader(sample), separator, false)) {
+      rows = reader.readAll();
+    } catch (Exception e) {
+      // unbalanced quotes and the like simply disqualify this separator
+      return SeparatorScore.NONE;
+    }
+    if (rows.isEmpty()) {
+      return SeparatorScore.NONE;
+    }
+
+    final Map<Integer, Long> columnHistogram = rows.stream()
+        .collect(Collectors.groupingBy(row -> row.length, Collectors.counting()));
+    // most common number of columns, ties are won by the higher column count
+    final Entry<Integer, Long> mode = columnHistogram.entrySet().stream().max(
+            Comparator.<Entry<Integer, Long>>comparingLong(Entry::getValue).thenComparing(Entry::getKey))
+        .orElseThrow();
+
+    return new SeparatorScore(mode.getKey(), mode.getValue() / (double) rows.size());
+  }
+
+  /**
+   * Reads the beginning of a text file of any encoding, skipping empty lines and an optional byte
+   * order mark.
+   */
+  private static @NotNull List<String> readSampleLines(@NotNull final File file, final int maxLines,
+      final int maxChars) throws IOException {
+    final List<String> lines = new ArrayList<>(Math.min(maxLines, 64));
+    int chars = 0;
+
+    try (BufferedReader reader = CharsetUtils.newBufferedReader(file)) {
+      String line;
+      while (lines.size() < maxLines && chars < maxChars && (line = reader.readLine()) != null) {
+        if (lines.isEmpty() && !line.isEmpty() && line.charAt(0) == '\uFEFF') {
+          line = line.substring(1);
+        }
+        if (line.isBlank()) {
+          continue;
+        }
+        lines.add(line);
+        chars += line.length() + 1;
+      }
+    }
+    return lines;
+  }
+
+  /**
+   * @return the separator declared by an excel style "sep=;" line or null if this is a regular
+   * line
+   */
+  private static @Nullable Character extractSeparatorDirective(@NotNull final String line) {
+    final Matcher matcher = SEPARATOR_DIRECTIVE.matcher(line);
+    return matcher.matches() ? matcher.group(1).charAt(0) : null;
+  }
+
+  /**
+   * @param row       the first parsed row of a file
+   * @param separator the separator used to parse the row, needed to join the row back together in
+   *                  case the declared separator was used for parsing
+   * @return true if this row is an excel style "sep=;" directive and not data
+   */
+  private static boolean isSeparatorDirective(final String[] row, final char separator) {
+    return SEPARATOR_DIRECTIVE.matcher(String.join(String.valueOf(separator), row)).matches();
+  }
+
+  /**
+   * @param columns     the most common number of columns
+   * @param consistency fraction of the sampled lines that are split into {@link #columns} columns
+   */
+  private record SeparatorScore(int columns, double consistency) {
+
+    private static final SeparatorScore NONE = new SeparatorScore(0, 0);
+
+    /**
+     * Lines of equal length are the strongest indicator, the number of columns only breaks ties.
+     * E.g., a european csv file (a;b;c) with decimal commas (1,5;2,5) is split into more columns by
+     * comma, but only the semicolon gives every line the same number of columns.
+     */
+    boolean isBetterThan(@NotNull final SeparatorScore other) {
+      return consistency > other.consistency || (consistency == other.consistency
+                                                 && columns > other.columns);
+    }
   }
 
   /**
@@ -395,18 +567,74 @@ public class CSVParsingUtils {
    */
   public static List<String[]> readData(final BufferedReader reader, final String separator)
       throws IOException, CsvException {
-    char sep = "\\t".equals(separator) ? '\t' : separator.charAt(0);
-    try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
-        new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
+    return readData(reader, toSeparatorChar(separator), false);
+  }
+
+  /**
+   * @param ignoreQuotations quote characters are read as regular characters. Recovers files with
+   *                         unbalanced quotes, but breaks fields that contain the separator.
+   */
+  private static List<String[]> readData(final BufferedReader reader, final char separator,
+      final boolean ignoreQuotations) throws IOException, CsvException {
+    skipOptionalBom(reader);
+
+    try (CSVReader csvReader = createCsvReader(reader, separator, ignoreQuotations)) {
       List<String[]> result = new ArrayList<>(64);
       String[] row;
+      boolean firstRow = true;
       while ((row = csvReader.readNext()) != null) {
         boolean empty = Arrays.stream(row).allMatch(s -> s == null || s.isBlank());
-        if (!empty) {
-          result.add(row);
+        if (empty) {
+          continue;
         }
+        if (firstRow) {
+          firstRow = false;
+          if (isSeparatorDirective(row, separator)) {
+            continue; // "sep=;" line written by excel, not data
+          }
+        }
+        result.add(row);
       }
       return result;
+    }
+  }
+
+  private static @NotNull CSVReader createCsvReader(final Reader reader, final char separator,
+      final boolean ignoreQuotations) {
+    final ICSVParser parser = ignoreQuotations ? new CSVParserBuilder().withSeparator(separator)
+        .withIgnoreQuotations(true).build()
+        : new RFC4180ParserBuilder().withSeparator(separator).build();
+    return new CSVReaderBuilder(reader).withCSVParser(parser).build();
+  }
+
+  /**
+   * Reader that parses by the rules of RFC4180, so quoted fields may contain the separator and line
+   * breaks.
+   *
+   * @param separator column separator
+   */
+  public static @NotNull CSVReader createDefaultReader(final Reader reader, final char separator) {
+    return createCsvReader(reader, separator, false);
+  }
+
+  /**
+   * Reader for a file of unknown encoding, see {@link CharsetUtils#newBufferedReader(File)}.
+   * Closing the returned reader closes the file.
+   *
+   * @param separator column separator, {@link FieldSeparator#AUTO} is determined by
+   *                  {@link #autoDetermineSeparatorDefaultFallback(File)}
+   */
+  public static @NotNull CSVReader createDefaultReader(final File file,
+      final FieldSeparator separator) throws IOException {
+    final char sep = separator.isAuto() ? autoDetermineSeparatorDefaultFallback(file)
+        : separator.separatorChar();
+
+    final Reader reader = CharsetUtils.newBufferedReader(file);
+    try {
+      return createDefaultReader(reader, sep);
+    } catch (RuntimeException e) {
+      reader.close();
+      throw e;
     }
   }
 
@@ -425,26 +653,24 @@ public class CSVParsingUtils {
    */
   public static String[][] readDataMapToColumns(final File file, final String sep, int mapStartLine)
       throws IOException, CsvException {
-    try (var reader = Files.newBufferedReader(file.toPath())) {
-      List<String[]> rows = readData(reader, sep);
-      if (mapStartLine > 0) {
-        rows.subList(0, mapStartLine).clear();
-      }
-
-      // max columns
-      int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
-
-      String[][] data = new String[cols][rows.size()];
-      for (int r = 0; r < rows.size(); r++) {
-        String[] row = rows.get(r);
-        for (int c = 0; c < row.length; c++) {
-          String v = row[c];
-          data[c][r] = v == null || v.isBlank() ? null : v;
-        }
-      }
-
-      return data;
+    List<String[]> rows = readData(file, sep);
+    if (mapStartLine > 0) {
+      rows.subList(0, mapStartLine).clear();
     }
+
+    // max columns
+    int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
+
+    String[][] data = new String[cols][rows.size()];
+    for (int r = 0; r < rows.size(); r++) {
+      String[] row = rows.get(r);
+      for (int c = 0; c < row.length; c++) {
+        String v = row[c];
+        data[c][r] = v == null || v.isBlank() ? null : v;
+      }
+    }
+
+    return data;
   }
 
   /**

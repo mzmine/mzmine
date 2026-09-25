@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,49 +27,81 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.ClearcoreServer;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Shutdown hook - invoked on JRE shutdown. This method saves current configuration to XML and
- * closes (and removes) all opened temporary files.
+ * Shutdown hook - invoked on JRE shutdown in GUI and headless (CLI) mode. Cancels all tasks, closes
+ * (and removes) all opened temporary files and saves the current configuration to XML in GUI mode
+ * only.
  */
-class ShutDownHook extends Thread {
+public final class ShutDownHook extends Thread {
 
   private static final Logger logger = Logger.getLogger(ShutDownHook.class.getName());
+  private static final AtomicBoolean registered = new AtomicBoolean(false);
+
+  private ShutDownHook() {
+    super("mzmine shutdown hook");
+  }
+
+  /**
+   * Registers the mzmine shutdown hooks once. Call as early as possible during startup so that
+   * every way of terminating mzmine runs them.
+   */
+  public static void register() {
+    if (!registered.compareAndSet(false, true)) {
+      return;
+    }
+    Runtime.getRuntime()
+        .addShutdownHook(new Thread(new TmpFileCleanup(), "mzmine temp file cleanup"));
+    Runtime.getRuntime().addShutdownHook(new ShutDownHook());
+  }
 
   @Override
   public void run() {
+    // decision: save the config first - it is fast and the most valuable step if the system kills
+    // the process shortly after starting the shutdown
+    if (MZmineCore.isGUI()) {
+      try {
+        // Save configuration only in GUI mode - headless batch runs must not change the config.
+        // The desktop is headless until the GUI is launched, so early exits do not save either.
+        if (!ConfigService.saveUserConfig()) {
+          logger.log(Level.WARNING, "Could not save config on shutdown");
+        }
+      } catch (Throwable e) {
+        logger.log(Level.WARNING, "Could not save user config on shutdown", e);
+      }
+    }
 
     try {
       ClearcoreServer.terminateSeverIfRunning();
-    } catch (Exception e) {
-      // silent
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, "Could not stop clearcore server", e);
     }
 
     // Cancel all running tasks - this is important because tasks can spawn
-    // additional processes (such as ThermoRawDump.exe on Windows) and these
-    // will block the shutdown of the JVM. If we cancel the tasks, the
-    // processes will be killed immediately.
+    // additional processes (such as ThermoRawDump.exe on Windows) that would otherwise keep
+    // running after the JVM exits. Waits only briefly for tasks to react to the cancellation.
     try {
       TaskService.getController().close();
-
-    } catch (Exception e) {
+    } catch (Throwable e) {
       logger.log(Level.WARNING, "Could not stop all tasks on shutdown", e);
     }
 
-    // Save configuration
-    if (!ConfigService.saveUserConfig()) {
-      logger.log(Level.WARNING, "Could not save config on shutdown");
-    }
-
-    // Close all temporary files
+    // Close all temporary files after tasks are canceled, tasks may still write to them
     RawDataFile[] dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      dataFile.close();
+      try {
+        dataFile.close();
+      } catch (Throwable e) {
+        logger.log(Level.WARNING, "Could not close data file: " + dataFile.getName(), e);
+      }
     }
 
   }

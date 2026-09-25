@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.mzio.mzmine.startup.MZmineExit;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -115,7 +116,7 @@ public class HeadLessDesktop implements MZmineDesktop {
 
   @Override
   public @NotNull ExitCode exit() {
-    System.exit(0);
+    MZmineExit.exit(0);
     return ExitCode.OK;
   }
 

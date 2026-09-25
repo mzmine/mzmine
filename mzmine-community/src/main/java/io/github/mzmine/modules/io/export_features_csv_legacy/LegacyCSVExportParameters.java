@@ -33,6 +33,8 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.CompoundFeatureRowSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
@@ -51,8 +53,8 @@ public class LegacyCSVExportParameters extends SimpleParameterSet {
       "Export data file elements", "Selection of feature's elements to export",
       LegacyExportRowDataFileElement.values());
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the exported file", ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forWriting(
+      "Character used to separate the columns of the exported file.", FieldSeparator.COMMA);
   public static final BooleanParameter exportAllFeatureInfo = new BooleanParameter(
       "Export quantitation results and other information",
       "If checked, all feature-information results for a feature will be exported. ", false);

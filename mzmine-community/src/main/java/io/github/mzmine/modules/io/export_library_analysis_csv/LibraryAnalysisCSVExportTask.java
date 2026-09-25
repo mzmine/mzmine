@@ -105,8 +105,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     libraries = parameters.getParameter(LibraryAnalysisCSVExportParameters.libraries).getValue()
         .getMatchingLibraries();
     fileName = parameters.getParameter(LibraryAnalysisCSVExportParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(LibraryAnalysisCSVExportParameters.fieldSeparator)
-        .getValue();
+    fieldSeparator = parameters.getValue(LibraryAnalysisCSVExportParameters.fieldSeparator)
+        .separator();
     weights = parameters.getValue(LibraryAnalysisCSVExportParameters.weight);
     mzTol = parameters.getValue(LibraryAnalysisCSVExportParameters.mzTolerance);
     minMatchedSignals = parameters.getValue(LibraryAnalysisCSVExportParameters.minMatch);

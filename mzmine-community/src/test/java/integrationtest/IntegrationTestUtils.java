@@ -50,6 +50,7 @@ import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvParame
 import io.github.mzmine.modules.tools.output_compare_csv.CompareModularCsvTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -389,7 +390,7 @@ public class IntegrationTestUtils {
       parameters.setParameter(CSVExportModularParameters.filename, csvExportFile);
     } else {
       final ParameterSet parameters = CSVExportModularParameters.create(csvExportFile,
-          FeatureListRowsFilter.ALL, true, ";", ",",
+          FeatureListRowsFilter.ALL, true, ";", FieldSeparator.COMMA,
           new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS),
           CompoundRowSelection.ALL_FEATURE_ROWS);
       queue.add(

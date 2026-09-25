@@ -103,7 +103,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     this.featureLists = parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     fileName = parameters.getParameter(LegacyCSVExportParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(LegacyCSVExportParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getValue(LegacyCSVExportParameters.fieldSeparator).separator();
     commonElements = parameters.getParameter(LegacyCSVExportParameters.exportCommonItems)
         .getValue();
     dataFileElements = parameters.getParameter(LegacyCSVExportParameters.exportDataFileItems)
