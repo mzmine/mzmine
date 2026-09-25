@@ -27,6 +27,8 @@ package io.github.mzmine.javafx.validation;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.value.ObservableValue;
@@ -90,8 +92,24 @@ public class FxValidation {
   public static @NotNull Subscription addMessageDecoration(@NotNull Node target,
       @NotNull Severity severity, @NotNull String message, @NotNull Pos pos,
       @Nullable Color color) {
+    return addMessageDecoration(target, severity, message, pos, null, color);
+  }
+
+  /**
+   * Same as {@link #addMessageDecoration(Node, Severity, String, Pos)} with a custom icon and
+   * color.
+   *
+   * @param target a {@link Parent}, usually a {@link Control}
+   * @param icon   icon or null for the default icon of the severity
+   * @param color  icon color, e.g., the positive or negative color of a color palette. null for the
+   *               default color of the severity
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription addMessageDecoration(@NotNull Node target,
+      @NotNull Severity severity, @NotNull String message, @NotNull Pos pos,
+      @Nullable IconCodeSupplier icon, @Nullable Color color) {
     final Decoration decoration = new TooltipFixGraphicDecoration(
-        ICON_DECORATOR.createDecorationNode(severity, message, color), pos);
+        ICON_DECORATOR.createDecorationNode(severity, message, icon, color), pos);
     return SceneAwareDecoration.add(target, decoration);
   }
 
@@ -116,7 +134,21 @@ public class FxValidation {
    */
   public static @NotNull Subscription markChanged(@NotNull Node target, @NotNull String message,
       @Nullable Color color) {
-    return addMessageDecoration(target, Severity.OK, message, Pos.TOP_RIGHT, color);
+    return markChanged(target, message, null, color);
+  }
+
+  /**
+   * Marks a node with a custom icon, e.g., to show how its value was changed automatically.
+   *
+   * @param target  a {@link Parent}, usually a {@link Control}
+   * @param message tooltip message
+   * @param icon    icon, e.g., an {@link FxIcons}. null for the default checkmark
+   * @param color   icon color, e.g., the positive color of a color palette. null for the default
+   * @return subscription to remove the decoration
+   */
+  public static @NotNull Subscription markChanged(@NotNull Node target, @NotNull String message,
+      @Nullable IconCodeSupplier icon, @Nullable Color color) {
+    return addMessageDecoration(target, Severity.OK, message, Pos.TOP_RIGHT, icon, color);
   }
 
   /**
