@@ -38,9 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.scene.Node;
 import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -185,11 +183,5 @@ public class ParameterOverridesParameter implements
   @Override
   public Priority getComponentVgrowPriority() {
     return Priority.ALWAYS;
-  }
-
-  @Override
-  public @NotNull Node getDecorationTarget(
-      @NotNull ParameterCustomizationPane parameterCustomizationPane) {
-    return parameterCustomizationPane.getNodeForDecoration();
   }
 }

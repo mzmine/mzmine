@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import io.github.mzmine.javafx.validation.DecorationTargetProvider;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.ParameterOverride;
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * {@link ParameterCustomizationModel}) so that the existing
  * {@link io.github.mzmine.parameters.UserParameter} API is preserved.
  */
-public class ParameterCustomizationPane extends BorderPane {
+public class ParameterCustomizationPane extends BorderPane implements DecorationTargetProvider {
 
   private final ParameterCustomizationController controller;
 
@@ -64,7 +65,8 @@ public class ParameterCustomizationPane extends BorderPane {
     controller.setParameterOverrides(overrides);
   }
 
-  public @NotNull Node getNodeForDecoration() {
+  @Override
+  public @NotNull Node getDecorationTarget() {
     return Objects.requireNonNullElse(controller.getCachedNodeForDecoration(), this);
   }
 }
