@@ -30,6 +30,10 @@ import static io.github.mzmine.javafx.components.factories.FxTextFields.newAutoG
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRowSelection;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.TagDataType;
+import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.components.factories.FxCheckBox;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
@@ -81,6 +85,7 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   private final FxFeatureTableController parentController;
   private final FlowPane filterFlow;
   private final HBox rightButtonMenu;
+  private @NotNull RowTypeFilterComponent rowTypeFilter;
 
   public FxFeatureTableFilterMenu(FxFeatureTableModel parentModel,
       @NotNull FxFeatureTableController parentController) {
@@ -131,7 +136,10 @@ public class FxFeatureTableFilterMenu extends BorderPane {
   }
 
   private FlowPane createFilters() {
-    RowTypeFilterComponent rowTypeFilter = new RowTypeFilterParameter().createEditingComponent();
+    rowTypeFilter = new RowTypeFilterParameter().createEditingComponent(
+        true, FeatureListPreferences.DEFAULT_TAG_LABELS.size());
+    rowTypeFilter.setTagColumnWidthSupplier(this::getTagColumnWidth);
+    parentModel.featureListProperty().subscribe(_ -> refreshTagLabels());
     model.specialRowTypeFilterProperty().bindBidirectional(rowTypeFilter.valueProperty());
 
     final TextField idField = newAutoGrowTextField(model.idFilterProperty(), "1,5-6",
@@ -189,6 +197,23 @@ public class FxFeatureTableFilterMenu extends BorderPane {
         newBoldLabel("m/z="), mzField, //
         newBoldLabel("RT="), rtField, //
         rowTypeFilter);
+  }
+
+  public void refreshTagLabels() {
+    final var featureList = parentModel.getFeatureList();
+    rowTypeFilter.setTagLabels(featureList == null ? FeatureListPreferences.DEFAULT_TAG_LABELS
+        : featureList.getPreferences().getTagLabels());
+  }
+
+  private double getTagColumnWidth() {
+    for (final var entry : parentModel.getFeatureTable().getNewColumnMap().entrySet()) {
+      final var columnId = entry.getValue();
+      if (columnId.getType() == ColumnType.ROW_TYPE && columnId.getDataType() instanceof TagDataType
+          && entry.getKey().getWidth() > 0) {
+        return entry.getKey().getWidth();
+      }
+    }
+    return DataTypes.get(TagDataType.class).getPrefColumnWidth();
   }
 
   private void initValidation(TextField idField, TextField cidField, TextField mzField,

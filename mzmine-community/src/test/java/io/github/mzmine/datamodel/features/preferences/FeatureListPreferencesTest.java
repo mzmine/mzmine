@@ -98,6 +98,8 @@ class FeatureListPreferencesTest {
   void testDefaultIsQcOnly() {
     Assertions.assertEquals(SampleTypeFilter.qc(),
         FeatureListPreferences.createDefault().getRsdSampleTypeFilter());
+    Assertions.assertEquals(List.of("Tag 1", "Tag 2", "Tag 3", "Tag 4", "Tag 5", "Tag 6"),
+        FeatureListPreferences.createDefault().getTagLabels());
   }
 
   @ParameterizedTest(name = "{0}")
@@ -127,7 +129,20 @@ class FeatureListPreferencesTest {
       names.add(((Element) parameters.item(i)).getAttribute(SimpleParameterSet.nameAttribute));
     }
     Assertions.assertEquals(List.of(FeatureListPreferencesDtoParameters.rsdSampleTypes.getName(),
-        FeatureListPreferencesDtoParameters.ionTypeRanking.getName()), names);
+        FeatureListPreferencesDtoParameters.ionTypeRanking.getName(),
+        FeatureListPreferencesDtoParameters.tagLabels.getName()), names);
+  }
+
+  @Test
+  void testTagLabelsRoundTrip() throws ParserConfigurationException {
+    final List<String> labels = List.of("Reviewed", "Needs MS/MS", "Priority, high", "★");
+    final FeatureListPreferences preferences = new FeatureListPreferences(SampleTypeFilter.qc(),
+        IonTypeRanking.createDefault(), labels);
+
+    final FeatureListPreferences loaded = saveAndLoad(preferences);
+
+    Assertions.assertNotNull(loaded);
+    Assertions.assertEquals(labels, loaded.getTagLabels());
   }
 
   @Test
@@ -197,7 +212,8 @@ class FeatureListPreferencesTest {
   void testKeepAllAsIsStartsOnKeepAsIsWithCurrentInputs() {
     final FeatureListPreferences current = new FeatureListPreferences(
         SampleTypeFilter.ofValues("some other group"),
-        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))),
+        List.of("Reviewed", "Priority"));
 
     final FeatureListPreferencesParameters param = FeatureListPreferencesParameters.keepAllAsIs(
         current);
@@ -210,6 +226,8 @@ class FeatureListPreferencesTest {
         param.getParameter(FeatureListPreferencesParameters.rsdSampleTypes).getValue().custom());
     Assertions.assertEquals(current.getIonTypeRanking(),
         param.getParameter(FeatureListPreferencesParameters.ionTypeRanking).getValue().custom());
+    Assertions.assertEquals(current.getTagLabels(),
+        param.getParameter(FeatureListPreferencesParameters.tagLabels).getValue().custom());
   }
 
   private static void checkSelectedOption(Parameter<?> parameter, DefaultOffCustomOption expected) {
@@ -228,7 +246,8 @@ class FeatureListPreferencesTest {
   void testCustomValuesAreApplied() {
     final FeatureListPreferences preferences = new FeatureListPreferences(
         SampleTypeFilter.ofValues("some other group"),
-        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))),
+        List.of("Reviewed", "Priority"));
 
     final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
     param.setParameter(FeatureListPreferencesParameters.rsdSampleTypes,
@@ -237,6 +256,8 @@ class FeatureListPreferencesTest {
     param.setParameter(FeatureListPreferencesParameters.ionTypeRanking,
         new DefaultOffCustomValue<>(DefaultOffCustomOption.CUSTOM,
             preferences.getIonTypeRanking()));
+    param.setParameter(FeatureListPreferencesParameters.tagLabels,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.CUSTOM, preferences.getTagLabels()));
 
     Assertions.assertEquals(preferences,
         param.toPreferences(FeatureListPreferences.createDefault()));
@@ -250,12 +271,15 @@ class FeatureListPreferencesTest {
   void testDefaultAppliesTheMzmineDefault() {
     final FeatureListPreferences current = new FeatureListPreferences(
         SampleTypeFilter.ofValues("some other group"),
-        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))));
+        new IonTypeRanking(List.of(IonPartFrequency.of(IonParts.NA, 1f))),
+        List.of("Reviewed", "Priority"));
 
     final FeatureListPreferencesParameters param = (FeatureListPreferencesParameters) new FeatureListPreferencesParameters().cloneParameterSet();
     param.setParameter(FeatureListPreferencesParameters.rsdSampleTypes,
         new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, null));
     param.setParameter(FeatureListPreferencesParameters.ionTypeRanking,
+        new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, null));
+    param.setParameter(FeatureListPreferencesParameters.tagLabels,
         new DefaultOffCustomValue<>(DefaultOffCustomOption.DEFAULT, null));
 
     Assertions.assertEquals(FeatureListPreferences.createDefault(), param.toPreferences(current));

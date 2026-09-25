@@ -25,6 +25,7 @@
 
 package io.github.mzmine.parameters.parametertypes.row_type_filter;
 
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -35,7 +36,12 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.parameters.parametertypes.StringParameterComponent;
 import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.RowTypeFilter;
+import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.TagRowTypeFilter;
 import io.github.mzmine.util.presets.PresetsButton;
+import java.util.BitSet;
+import java.util.List;
+import java.util.function.DoubleSupplier;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -45,6 +51,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RowTypeFilterComponent extends HBox implements ValuePropertyComponent<RowTypeFilter> {
@@ -54,13 +61,25 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   private final ComboComponent<RowTypeFilterOption> optionCombo;
   private final ComboComponent<MatchingMode> matchingModeCombo;
   private final StringParameterComponent queryField;
+  private final TagFilterComponent tagFilterComponent;
   private final StringProperty queryFormatErrorMessage = new SimpleStringProperty();
 
-  public RowTypeFilterComponent(ComboComponent<RowTypeFilterOption> optionCombo,
-      ComboComponent<MatchingMode> matchingModeCombo, StringParameterComponent queryField,
-      boolean addPresetsMenuButton) {
+  public RowTypeFilterComponent(@NotNull final ComboComponent<RowTypeFilterOption> optionCombo,
+      @NotNull final ComboComponent<MatchingMode> matchingModeCombo,
+      @NotNull final StringParameterComponent queryField, final boolean addPresetsMenuButton) {
+    this(optionCombo, matchingModeCombo, queryField, addPresetsMenuButton,
+        FeatureListPreferences.DEFAULT_TAG_LABELS.size());
+  }
 
-    super(FxLayout.DEFAULT_SPACE, optionCombo, matchingModeCombo, queryField);
+  public RowTypeFilterComponent(@NotNull final ComboComponent<RowTypeFilterOption> optionCombo,
+      @NotNull final ComboComponent<MatchingMode> matchingModeCombo,
+      @NotNull final StringParameterComponent queryField, final boolean addPresetsMenuButton,
+      final int tagCount) {
+
+    super(FxLayout.DEFAULT_SPACE);
+
+    tagFilterComponent = new TagFilterComponent(tagCount);
+    getChildren().setAll(optionCombo, matchingModeCombo, queryField, tagFilterComponent);
 
     FxLayout.applyDefaults(this, Insets.EMPTY);
 
@@ -72,6 +91,13 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     this.optionCombo = optionCombo;
     this.matchingModeCombo = matchingModeCombo;
     this.queryField = queryField;
+
+    final var tagsSelected = Bindings.createBooleanBinding(
+        () -> optionCombo.getValue() == RowTypeFilterOption.TAGS, optionCombo.valueProperty());
+    tagFilterComponent.visibleProperty().bind(tagsSelected);
+    tagFilterComponent.managedProperty().bind(tagsSelected);
+    queryField.visibleProperty().bind(tagsSelected.not());
+    queryField.managedProperty().bind(tagsSelected.not());
 
     setupValidation(queryField);
 
@@ -87,7 +113,8 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 //    PropertyUtils.onChange(this::updateValue, optionCombo.valueProperty(),
 //        matchingModeCombo.valueProperty(), queryField.textProperty());
     PropertyUtils.onChangeDelayedSubscription(this::updateValue, Duration.millis(100),
-        optionCombo.valueProperty(), matchingModeCombo.valueProperty(), queryField.textProperty());
+        optionCombo.valueProperty(), matchingModeCombo.valueProperty(), queryField.textProperty(),
+        tagFilterComponent.valueProperty());
 
     // adjust matching modes to selected type
     optionCombo.valueProperty().subscribe((nv) -> {
@@ -136,10 +163,19 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     if (filter == null) {
       // do not reset the combos, keep selection
       queryField.setText("");
+      tagFilterComponent.setValue(new BitSet());
       return;
     }
     optionCombo.getSelectionModel().select(filter.selectedType());
     matchingModeCombo.getSelectionModel().select(filter.matchingMode());
+    if (filter.selectedType() == RowTypeFilterOption.TAGS) {
+      final BitSet selectedTags = TagRowTypeFilter.parseQuery(filter.query());
+      tagFilterComponent.ensureTagCount(selectedTags.length());
+      tagFilterComponent.setValue(selectedTags);
+      queryField.setText("");
+      return;
+    }
+    tagFilterComponent.setValue(new BitSet());
     final int caretPosition = queryField.getCaretPosition();
     queryField.setText(filter.query());
     if (caretPosition >= 0) {
@@ -150,11 +186,12 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
   private void updateValue() {
     final RowTypeFilterOption type = optionCombo.getValue();
     final MatchingMode mode = matchingModeCombo.getValue();
-    final String query = queryField.getText().trim();
     if (type == null || mode == null) {
       value.set(null);
       return;
     }
+    final String query = type == RowTypeFilterOption.TAGS ? TagRowTypeFilter.formatQuery(
+        tagFilterComponent.getValue()) : queryField.getText().trim();
     try {
       value.set(RowTypeFilter.create(type, mode, query));
       queryFormatErrorMessage.set(null);
@@ -165,7 +202,7 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     }
   }
 
-  public void setValue(@Nullable RowTypeFilter value) {
+  public void setValue(@Nullable final RowTypeFilter value) {
     this.value.set(value);
   }
 
@@ -173,8 +210,20 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
     return value.getValue();
   }
 
+  public void setTagCount(final int tagCount) {
+    tagFilterComponent.setTagCount(tagCount);
+  }
+
+  public void setTagLabels(@NotNull final List<String> labels) {
+    tagFilterComponent.setTagLabels(labels);
+  }
+
+  public void setTagColumnWidthSupplier(@NotNull final DoubleSupplier supplier) {
+    tagFilterComponent.setColumnWidthSupplier(supplier);
+  }
+
   @Override
-  public Property<RowTypeFilter> valueProperty() {
+  public @NotNull Property<RowTypeFilter> valueProperty() {
     return value;
   }
 

@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.TagDataType;
 import io.github.mzmine.datamodel.features.types.annotations.PreferredAnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -214,7 +215,7 @@ public class ModularFeatureList implements FeatureList {
     this.memoryMapStorage = storage;
 
     // only a few standard types
-    addRowType(new IDType());
+    addRowType(new IDType(), new TagDataType());
     addDefaultListeners();
   }
 

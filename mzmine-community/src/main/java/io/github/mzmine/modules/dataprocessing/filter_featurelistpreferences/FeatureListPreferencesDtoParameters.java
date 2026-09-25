@@ -59,8 +59,12 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
 
   public static final IonTypeRankingParameter ionTypeRanking = new IonTypeRankingParameter();
 
+  public static final TagLabelsParameter tagLabels = new TagLabelsParameter("Tag labels", """
+      Ordered labels shown as tooltips for the row tag checkboxes. The number of labels defines the
+      number of checkboxes in the Tags column.""", FeatureListPreferences.DEFAULT_TAG_LABELS);
+
   public FeatureListPreferencesDtoParameters() {
-    super(rsdSampleTypes, ionTypeRanking);
+    super(rsdSampleTypes, ionTypeRanking, tagLabels);
   }
 
   @Nullable
@@ -77,16 +81,18 @@ public class FeatureListPreferencesDtoParameters extends SimpleParameterSet {
     return params;
   }
 
-  public @NotNull FeatureListPreferences toPreferences() {
-    return new FeatureListPreferences(getValue(rsdSampleTypes), getValue(ionTypeRanking));
-  }
-
   public static @NotNull FeatureListPreferencesDtoParameters fromPreferences(
       @NotNull final FeatureListPreferences preferences) {
     final FeatureListPreferencesDtoParameters param = (FeatureListPreferencesDtoParameters) new FeatureListPreferencesDtoParameters().cloneParameterSet();
     param.setParameter(rsdSampleTypes, preferences.getRsdSampleTypeFilter());
     param.setParameter(ionTypeRanking, preferences.getIonTypeRanking());
+    param.setParameter(tagLabels, preferences.getTagLabels());
     return param;
+  }
+
+  public @NotNull FeatureListPreferences toPreferences() {
+    return new FeatureListPreferences(getValue(rsdSampleTypes), getValue(ionTypeRanking),
+        getValue(tagLabels));
   }
 
   @Override
