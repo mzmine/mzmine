@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -37,7 +38,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -182,5 +185,11 @@ public class ParameterOverridesParameter implements
   @Override
   public Priority getComponentVgrowPriority() {
     return Priority.ALWAYS;
+  }
+
+  @Override
+  public @NotNull Node getDecorationTarget(
+      @NotNull ParameterCustomizationPane parameterCustomizationPane) {
+    return parameterCustomizationPane.getNodeForDecoration();
   }
 }
