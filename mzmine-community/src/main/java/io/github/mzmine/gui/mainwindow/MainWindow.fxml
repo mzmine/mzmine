@@ -97,8 +97,6 @@
                                 text="Show raw data summary"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
-                              <MenuItem onAction="#handleShowImageViewer"
-                                text="Show image viewer"/>
 
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleShowChromatogram"

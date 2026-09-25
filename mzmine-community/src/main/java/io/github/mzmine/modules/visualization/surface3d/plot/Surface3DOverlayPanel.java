@@ -39,8 +39,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.DoubleFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -86,6 +89,9 @@ final class Surface3DOverlayPanel extends VBox {
   private @Nullable Runnable onResetMz;
   private @Nullable Runnable onAddFiles;
   private @Nullable Consumer<String> onRemove;
+  private final BooleanProperty opacityEnabled = new SimpleBooleanProperty(false);
+  private final BooleanProperty colorRangeEnabled = new SimpleBooleanProperty(false);
+  private @NotNull DoubleFunction<String> intensityFormat = String::valueOf;
 
   Surface3DOverlayPanel() {
     super(6);
@@ -217,6 +223,24 @@ final class Surface3DOverlayPanel extends VBox {
   }
 
   /**
+   * @param enabled true if the overlay opacity applies to the current layout
+   */
+  void setOpacityEnabled(final boolean enabled) {
+    opacityEnabled.set(enabled);
+  }
+
+  /**
+   * @param enabled true if the overlay colors show intensities, so their range can be clipped
+   */
+  void setColorRangeEnabled(final boolean enabled) {
+    colorRangeEnabled.set(enabled);
+  }
+
+  void setIntensityFormat(@NotNull final DoubleFunction<String> format) {
+    intensityFormat = format;
+  }
+
+  /**
    * One compact row: color, visibility with name, and a menu with opacity, solo and remove.
    */
   private @NotNull HBox row(@NotNull final Surface3DSeries value,
@@ -240,6 +264,13 @@ final class Surface3DOverlayPanel extends VBox {
       description.setOpacity(0.75);
       text.getChildren().add(description);
     }
+    // decision (user request): every overlay has its own color range, like ion images in SCiLS
+    final Surface3DColorRange range = new Surface3DColorRange(state,
+        intensity -> intensityFormat.apply(intensity));
+    range.visibleProperty().bind(
+        colorRangeEnabled.and(state.colorBarProperty().isNotNull()));
+    FxLayout.bindManagedToVisible(range);
+    text.getChildren().add(range);
     text.setMinWidth(40);
     text.setMaxWidth(Double.MAX_VALUE);
     HBox.setHgrow(text, Priority.ALWAYS);
@@ -259,6 +290,7 @@ final class Surface3DOverlayPanel extends VBox {
     final CustomMenuItem opacityItem = new CustomMenuItem(
         FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, new Label("Opacity"), opacity),
         false);
+    opacityItem.disableProperty().bind(opacityEnabled.not());
     final ContextMenu menu = new ContextMenu();
     final Button options = menuButton("Opacity, show only this, remove", menu);
     menu.getItems().setAll(opacityItem, new SeparatorMenuItem(),

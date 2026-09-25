@@ -72,6 +72,7 @@ final class Surface3DAxes {
   private final Group geometry = new Group();
   private final Pane labels = new Pane();
   private final Group intensityAxis = new Group();
+  private final Group gridLines = new Group();
   private final List<Anchor> anchors = new ArrayList<>();
   private final Set<Label> sized = Collections.newSetFromMap(new IdentityHashMap<>());
   private final PhongMaterial grid = new PhongMaterial();
@@ -90,7 +91,7 @@ final class Surface3DAxes {
     labels.setMouseTransparent(true);
     labels.setPickOnBounds(false);
     geometry.setMouseTransparent(true);
-    setDark(false);
+    setColors(false, null);
   }
 
   @NotNull Group geometry() {
@@ -101,10 +102,26 @@ final class Surface3DAxes {
     return labels;
   }
 
-  void setDark(final boolean dark) {
+  void setGridVisible(final boolean visible) {
+    gridLines.setVisible(visible);
+  }
+
+  /**
+   * @return plot background of the theme, the floor below the data
+   */
+  static @NotNull Color defaultFloor(final boolean dark) {
+    return Color.web(dark ? "#262c35" : "#f0f4f9");
+  }
+
+  /**
+   * Lines and text follow the mzmine theme.
+   *
+   * @param floorColor plot background below the data, null for the one of the theme
+   */
+  void setColors(final boolean dark, @Nullable final Color floorColor) {
     grid.setDiffuseColor(Color.web(dark ? "#3a4452" : "#c5d1df"));
     axis.setDiffuseColor(Color.web(dark ? "#8b98aa" : "#64748b"));
-    floor.setDiffuseColor(Color.web(dark ? "#262c35" : "#f0f4f9"));
+    floor.setDiffuseColor(floorColor != null ? floorColor : defaultFloor(dark));
     textColor = dark ? "#d5dbe3" : "#334155";
     for (final Anchor anchor : anchors) {
       style(anchor.label(), anchor.title());
@@ -171,6 +188,9 @@ final class Surface3DAxes {
     plane.setTranslateY(1.5);
     plane.setMaterial(floor);
     geometry.getChildren().add(plane);
+    // the 2D view draws in child order, so grid lines follow the floor
+    gridLines.getChildren().clear();
+    geometry.getChildren().add(gridLines);
     line(x1 - x0, 0.8 * t, 0.8 * t, (x0 + x1) / 2, 0, z0, axis);
     line(0.8 * t, 0.8 * t, z1 - z0, x0, 0, (z0 + z1) / 2, axis);
     // the vertical axis stands in the back corner, clear of the y tick labels and the data
@@ -250,7 +270,7 @@ final class Surface3DAxes {
     line.setTranslateY(y);
     line.setTranslateZ(z);
     line.setMaterial(material);
-    geometry.getChildren().add(line);
+    (material == grid ? gridLines : geometry).getChildren().add(line);
   }
 
   private void label(@NotNull final String text, final double x, final double y, final double z,

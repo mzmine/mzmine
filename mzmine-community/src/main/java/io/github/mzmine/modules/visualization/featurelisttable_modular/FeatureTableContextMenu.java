@@ -64,7 +64,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypes;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
@@ -95,9 +94,6 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.image.ColocatedImageVisualizerTab;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
@@ -668,15 +664,9 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.visibleProperty().bind(hasImagingData);
-    showImageFeatureItem.setOnAction(_ -> {
-      ImageVisualizerParameters params = (ImageVisualizerParameters) ConfigService.getConfiguration()
-          .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
-      params.setParameter(ImageVisualizerParameters.imageNormalization,
-          ConfigService.getConfiguration().getImageNormalization());
-      params.setParameter(ImageVisualizerParameters.imageTransformation,
-          ConfigService.getConfiguration().getImageTransformation());// same as in feature table.
-      MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedOrBestFeature, params));
-    });
+    // the 2D visualizer replaced the image viewer
+    showImageFeatureItem.setOnAction(
+        _ -> Surface3DVisualizerModule.showFeatures(List.of(selectedOrBestFeature), true));
 
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",

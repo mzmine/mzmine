@@ -190,15 +190,15 @@ class Surface3DMeshTest {
   }
 
   @Test
-  void flatScaleGivesEveryValueTheSameHeight() {
+  void flatScaleHasNoHeights() {
     final Surface3DData image = new Surface3DData(Surface3DData.coordinates(2, 0, 10),
         Surface3DData.coordinates(1, 0, 0), "X", "Y", true);
     image.addMaximum(0, 0, 10);
     image.addMaximum(1, 0, 1e6);
     final Surface3DScale flat = new Surface3DScale(Surface3DBounds.of(List.of(image)),
         PaintScaleTransform.LINEAR, false, 0, 0, true);
-    assertEquals(Surface3DScale.FLAT_HEIGHT, flat.height(image, 10));
-    assertEquals(Surface3DScale.FLAT_HEIGHT, flat.height(image, 1e6));
+    assertEquals(0, flat.height(image, 10));
+    assertEquals(0, flat.height(image, 1e6));
     assertEquals(0, flat.height(image, 0));
     // colors keep the intensity
     assertEquals(1, flat.color(image, 1e6), 1e-9);

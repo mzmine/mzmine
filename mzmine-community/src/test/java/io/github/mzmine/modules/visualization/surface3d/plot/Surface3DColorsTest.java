@@ -25,29 +25,34 @@
 
 package io.github.mzmine.modules.visualization.surface3d.plot;
 
-import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * How several overlays share the 3D view.
- */
-enum Surface3DLayout {
-  /**
-   * All overlays at their coordinates. Coincident surfaces hide each other.
-   */
-  OVERLAY("Overlay"),
-  /**
-   * Small multiples with linked rotation and zoom
-   */
-  GRID("Side by side");
+import javafx.scene.paint.Color;
+import org.junit.jupiter.api.Test;
 
-  private final String label;
+class Surface3DColorsTest {
 
-  Surface3DLayout(@NotNull final String label) {
-    this.label = label;
+  @Test
+  void clippedRangeSpansTheWholeColorScale() {
+    assertEquals(0, Surface3DColors.clipped(0.1, 0.2, 0.6), 1e-12);
+    assertEquals(0, Surface3DColors.clipped(0.2, 0.2, 0.6), 1e-12);
+    assertEquals(0.5, Surface3DColors.clipped(0.4, 0.2, 0.6), 1e-12);
+    assertEquals(1, Surface3DColors.clipped(0.6, 0.2, 0.6), 1e-12);
+    assertEquals(1, Surface3DColors.clipped(0.9, 0.2, 0.6), 1e-12);
   }
 
-  @Override
-  public @NotNull String toString() {
-    return label;
+  @Test
+  void fullRangeKeepsColorPositions() {
+    assertEquals(0.37, Surface3DColors.clipped(0.37, 0, 1), 1e-12);
+  }
+
+  @Test
+  void darkBackgroundsAreDetectedByLuminance() {
+    assertTrue(Surface3DColors.isDark(Color.BLACK));
+    assertTrue(Surface3DColors.isDark(Color.web("#1b1f24")));
+    assertFalse(Surface3DColors.isDark(Color.WHITE));
+    assertFalse(Surface3DColors.isDark(Color.web("#f8fafc")));
   }
 }

@@ -40,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
  * @param noiseFloor fraction of the maximum below which no geometry is created
  * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show
  *                   the differences above the lowest pixels. 0 starts heights at zero intensity.
- * @param flat       2D view: every value has the same small height, intensity is only shown by
- *                   color
+ * @param flat       2D view: all values lie in the plane without height, intensity is only
+ *                   shown by color
  */
 public record Surface3DScale(@NotNull Surface3DBounds bounds,
                              @NotNull PaintScaleTransform transform, boolean normalized,
@@ -52,11 +52,6 @@ public record Surface3DScale(@NotNull Surface3DBounds bounds,
    * lowest pixels remain thin tiles.
    */
   public static final double BASE_HEIGHT = 0.02;
-  /**
-   * Height of all values in the 2D view. The 2D view draws without depth test in scene order,
-   * so data cover the floor without a lift that would cause parallax when zoomed in deeply.
-   */
-  public static final double FLAT_HEIGHT = 1e-6;
 
   public Surface3DScale(@NotNull final Surface3DBounds bounds,
       @NotNull final PaintScaleTransform transform, final boolean normalized,
@@ -108,8 +103,9 @@ public record Surface3DScale(@NotNull Surface3DBounds bounds,
    */
   public double height(@NotNull final Surface3DData data, final double value) {
     if (flat) {
-      // measured zeros stay flat at the floor, like in 3D
-      return value > 0 ? FLAT_HEIGHT : 0;
+      // decision (user request): the 2D view is a plane, it draws in scene order without depth
+      // test, so data cover the floor without any height
+      return 0;
     }
     return height(transform, value, maximum(data), baseline);
   }

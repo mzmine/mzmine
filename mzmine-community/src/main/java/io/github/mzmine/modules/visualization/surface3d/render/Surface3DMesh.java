@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Geometry is calculated off the FX thread and uploaded in bulk as
@@ -64,68 +63,12 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
 
   public static @NotNull Surface3DMesh build(@NotNull final Surface3DData data,
       @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled) {
-    return build(data, scale, canceled, null);
-  }
-
-  /**
-   * @param owners optional overlay colors of a composite. Faces then use one flat overlay color
-   *               instead of the intensity paint scale, because interpolating between overlay
-   *               indices would blend through unrelated colors.
-   */
-  public static @NotNull Surface3DMesh build(@NotNull final Surface3DData data,
-      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
-      @Nullable final Owners owners) {
-    return build(data, scale, canceled, owners, null);
-  }
-
-  /**
-   * @param mix blend fractions of two channels per cell (third is the remainder), used as 2D
-   *            texture coordinates into a mixing triangle. Barycentric weights interpolate
-   *            linearly, so colors between vertices are exact mixes. Takes precedence over owners.
-   */
-  public static @NotNull Surface3DMesh build(@NotNull final Surface3DData data,
-      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
-      @Nullable final Owners owners, final float @Nullable [] mix) {
-    final Owners flat = mix == null ? owners : null;
     if (data.pixels()) {
-      return pixels(data, scale, canceled, flat, mix);
+      return pixels(data, scale, canceled);
     }
     // decision: the 2D view draws cells like the former 2D plot, a surface would fade to the
     // floor between neighboring scans
-    return scale.flat() ? cells(data, scale, canceled, flat, mix)
-        : surface(data, scale, canceled, flat, mix);
-  }
-
-  /**
-   * Texture coordinate of a blend fraction, at the texel centers of a MIX_SIZE texture.
-   */
-  public static float mixCoordinate(final float fraction) {
-    return (float) ((0.5 + Math.clamp(fraction, 0, 1) * (MIX_SIZE - 1)) / MIX_SIZE);
-  }
-
-  /**
-   * Size of the square mixing texture, see {@link #mixCoordinate(float)}
-   */
-  public static final int MIX_SIZE = 64;
-
-  /**
-   * @param cells overlay index per data cell (row * width + column)
-   * @param count number of overlay colors in the texture
-   */
-  public record Owners(int @NotNull [] cells, int count) {
-
-    float @NotNull [] texture() {
-      final float[] texture = new float[count * 2];
-      for (int i = 0; i < count; i++) {
-        texture[i * 2] = (float) ((i + 0.5) / count);
-        texture[i * 2 + 1] = 0.5f;
-      }
-      return texture;
-    }
-
-    int at(final int cell) {
-      return Math.clamp(cells[cell], 0, count - 1);
-    }
+    return scale.flat() ? cells(data, scale, canceled) : surface(data, scale, canceled);
   }
 
   /**
@@ -166,8 +109,7 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
   }
 
   private static @NotNull Surface3DMesh surface(@NotNull final Surface3DData data,
-      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
-      @Nullable final Owners owners, final float @Nullable [] mix) {
+      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled) {
     final Surface3DBounds bounds = scale.bounds();
     // a single row or column is widened into a thin ribbon so it remains visible
     final int width = Math.max(2, data.width());
@@ -217,7 +159,7 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
     // pass 2: referenced vertices with analytic normals of the height field
     final float[] points = new float[vertices * 3];
     final float[] normals = new float[vertices * 3];
-    final float[] texture = owners != null ? owners.texture() : new float[vertices * 2];
+    final float[] texture = new float[vertices * 2];
     for (int y = 0; y < height; y++) {
       checkCanceled(canceled);
       for (int x = 0; x < width; x++) {
@@ -245,15 +187,8 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         normals[target * 3] = (float) (fx / length);
         normals[target * 3 + 1] = (float) (-1 / length);
         normals[target * 3 + 2] = (float) (fz / length);
-        if (mix != null) {
-          final int cell = Math.min(y, data.height() - 1) * data.width() + Math.min(x,
-              data.width() - 1);
-          texture[target * 2] = mixCoordinate(mix[cell * 2]);
-          texture[target * 2 + 1] = mixCoordinate(mix[cell * 2 + 1]);
-        } else if (owners == null) {
-          texture[target * 2] = textureU(scale.color(data, value));
-          texture[target * 2 + 1] = 0.5f;
-        }
+        texture[target * 2] = textureU(scale.color(data, value));
+        texture[target * 2 + 1] = 0.5f;
       }
     }
 
@@ -270,14 +205,8 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         final int b = remap[y * width + x + 1];
         final int c = remap[(y + 1) * width + x];
         final int d = remap[(y + 1) * width + x + 1];
-        if (owners == null) {
-          next = triangle(faces, next, a, b, c, a, b, c);
-          next = triangle(faces, next, b, d, c, b, d, c);
-        } else {
-          final int owner = quadOwner(data, owners, x, y);
-          next = triangle(faces, next, a, b, c, owner, owner, owner);
-          next = triangle(faces, next, b, d, c, owner, owner, owner);
-        }
+        next = triangle(faces, next, a, b, c, a, b, c);
+        next = triangle(faces, next, b, d, c, b, d, c);
       }
     }
     return new Surface3DMesh(points, normals, texture, faces);
@@ -287,27 +216,6 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
       @NotNull final Surface3DScale scale, final int x, final int y) {
     final float value = data.intensity(x, y);
     return value == 0 || scale.belowNoise(data, value);
-  }
-
-  /**
-   * @return owner of the most intense corner, which is the visually dominant part of the quad
-   */
-  private static int quadOwner(@NotNull final Surface3DData data, @NotNull final Owners owners,
-      final int x, final int y) {
-    int best = -1;
-    float maximum = -1;
-    for (int dy = 0; dy <= 1; dy++) {
-      for (int dx = 0; dx <= 1; dx++) {
-        final int cx = Math.min(x + dx, data.width() - 1);
-        final int cy = Math.min(y + dy, data.height() - 1);
-        final float value = data.intensity(cx, cy);
-        if (value > maximum) {
-          maximum = value;
-          best = cy * data.width() + cx;
-        }
-      }
-    }
-    return owners.at(best);
   }
 
   private static float height(@NotNull final Surface3DData data,
@@ -323,8 +231,7 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
   }
 
   private static @NotNull Surface3DMesh pixels(@NotNull final Surface3DData data,
-      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
-      @Nullable final Owners owners, final float @Nullable [] mix) {
+      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled) {
     final Surface3DBounds bounds = scale.bounds();
     final int width = data.width();
     final int height = data.height();
@@ -367,7 +274,7 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
       }
     }
     final float[] points = new float[(cells * 4 + wallVertices) * 3];
-    final float[] texture = owners != null ? owners.texture() : new float[cells * 2];
+    final float[] texture = new float[cells * 2];
     final int[] faces = new int[triangles * 9];
     int vertex = 0;
     int cell = 0;
@@ -384,18 +291,9 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         final float x1 = (float) localX(bounds, data.xHigh(x));
         final float z0 = (float) localZ(bounds, data.yLow(y));
         final float z1 = (float) localZ(bounds, data.yHigh(y));
-        final int t;
-        if (mix != null) {
-          texture[cell * 2] = mixCoordinate(mix[(y * width + x) * 2]);
-          texture[cell * 2 + 1] = mixCoordinate(mix[(y * width + x) * 2 + 1]);
-          t = cell;
-        } else if (owners == null) {
-          texture[cell * 2] = textureU(scale.color(data, value));
-          texture[cell * 2 + 1] = 0.5f;
-          t = cell;
-        } else {
-          t = owners.at(y * width + x);
-        }
+        final int t = cell;
+        texture[cell * 2] = textureU(scale.color(data, value));
+        texture[cell * 2 + 1] = 0.5f;
         final int t0 = vertex;
         vertex = point(points, vertex, x0, top, z0);
         vertex = point(points, vertex, x1, top, z0);
@@ -439,8 +337,7 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
    * fill of the former 2D plot. Neighboring cells share corner points.
    */
   private static @NotNull Surface3DMesh cells(@NotNull final Surface3DData data,
-      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled,
-      @Nullable final Owners owners, final float @Nullable [] mix) {
+      @NotNull final Surface3DScale scale, @NotNull final BooleanSupplier canceled) {
     final Surface3DBounds bounds = scale.bounds();
     final int width = data.width();
     final int height = data.height();
@@ -468,9 +365,9 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
     final int[] corners = new int[(width + 1) * (height + 1)];
     Arrays.fill(corners, -1);
     final float[] points = new float[Math.min(corners.length, cells * 4) * 3];
-    final float[] texture = owners != null ? owners.texture() : new float[cells * 2];
+    final float[] texture = new float[cells * 2];
     final int[] faces = new int[cells * 2 * 9];
-    final float top = (float) (-Surface3DScale.FLAT_HEIGHT * HEIGHT);
+    final float top = 0;
     final int[] vertices = {0};
     int cell = 0;
     int next = 0;
@@ -480,18 +377,9 @@ public record Surface3DMesh(float @NotNull [] points, float @NotNull [] normals,
         if (!visible(data, scale, x, y)) {
           continue;
         }
-        final int t;
-        if (mix != null) {
-          texture[cell * 2] = mixCoordinate(mix[(y * width + x) * 2]);
-          texture[cell * 2 + 1] = mixCoordinate(mix[(y * width + x) * 2 + 1]);
-          t = cell;
-        } else if (owners == null) {
-          texture[cell * 2] = textureU(scale.color(data, data.intensity(x, y)));
-          texture[cell * 2 + 1] = 0.5f;
-          t = cell;
-        } else {
-          t = owners.at(y * width + x);
-        }
+        final int t = cell;
+        texture[cell * 2] = textureU(scale.color(data, data.intensity(x, y)));
+        texture[cell * 2 + 1] = 0.5f;
         final int a = corner(corners, points, vertices, width, x, y, xs, zs, top);
         final int b = corner(corners, points, vertices, width, x + 1, y, xs, zs, top);
         final int c = corner(corners, points, vertices, width, x, y + 1, xs, zs, top);

@@ -34,6 +34,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
@@ -45,13 +46,24 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * User controlled appearance of one overlay and its uploaded mesh. Survives resampling so that
- * visibility, opacity, and color are kept.
+ * visibility, opacity, color, and color range are kept.
  */
 final class Surface3DSeriesState {
 
   private final BooleanProperty visible = new SimpleBooleanProperty(true);
   private final DoubleProperty opacity = new SimpleDoubleProperty(1);
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
+  // color range as positions of the linear color scale in [0, 1]
+  private final DoubleProperty colorLow = new SimpleDoubleProperty(0);
+  private final DoubleProperty colorHigh = new SimpleDoubleProperty(1);
+  // intensity at the top of the color scale, for the range labels
+  private final DoubleProperty colorMaximum = new SimpleDoubleProperty(0);
+  // unclipped colors of the overlay, null if its colors do not show intensity
+  private final ObjectProperty<Image> colorBar = new SimpleObjectProperty<>();
+  private @Nullable Image clipSource;
+  private double clipLow = 0;
+  private double clipHigh = 1;
+  private @Nullable Image clipped;
   private final PhongMaterial material = new PhongMaterial();
   private final MeshView view = new MeshView();
   private @Nullable Surface3DData meshData;
@@ -83,6 +95,38 @@ final class Surface3DSeriesState {
 
   @NotNull ObjectProperty<Color> colorProperty() {
     return color;
+  }
+
+  @NotNull DoubleProperty colorLowProperty() {
+    return colorLow;
+  }
+
+  @NotNull DoubleProperty colorHighProperty() {
+    return colorHigh;
+  }
+
+  @NotNull DoubleProperty colorMaximumProperty() {
+    return colorMaximum;
+  }
+
+  @NotNull ObjectProperty<Image> colorBarProperty() {
+    return colorBar;
+  }
+
+  /**
+   * @return the texture clipped to the color range; the same instance while nothing changes, so
+   * the texture is not uploaded again
+   */
+  @NotNull Image clippedTexture(@NotNull final Image texture) {
+    final double low = colorLow.get();
+    final double high = colorHigh.get();
+    if (clipped == null || clipSource != texture || clipLow != low || clipHigh != high) {
+      clipSource = texture;
+      clipLow = low;
+      clipHigh = high;
+      clipped = Surface3DColors.clip(texture, low, high);
+    }
+    return clipped;
   }
 
   @NotNull PhongMaterial material() {

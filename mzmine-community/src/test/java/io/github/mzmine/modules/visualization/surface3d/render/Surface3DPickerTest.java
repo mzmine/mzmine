@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DBounds;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DData;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DSeries;
@@ -72,6 +73,44 @@ class Surface3DPickerTest {
     assertNull(Surface3DPicker.pick(
         new Surface3DPicker.Ray(new Point3D(2000, -1000, 0), new Point3D(0, 1, 0)),
         List.of(target)));
+  }
+
+  @Test
+  void flatPickingFindsTheTopOverlayWithSignal() {
+    final Surface3DData lower = new Surface3DData(21, 21, "X", "Y", 0, 20, 0, 20);
+    final Surface3DData upper = new Surface3DData(21, 21, "X", "Y", 0, 20, 0, 20);
+    for (int x = 0; x < 21; x++) {
+      lower.markColumn(x);
+      upper.markColumn(x);
+    }
+    lower.addMaximum(10, 10, 100);
+    lower.addMaximum(0, 0, 100);
+    upper.addMaximum(10, 10, 5);
+    final Surface3DScale scale = new Surface3DScale(Surface3DBounds.of(List.of(lower, upper)),
+        PaintScaleTransform.LINEAR, false, 0, 0, true);
+    final Surface3DPicker.Target first = new Surface3DPicker.Target(
+        new Surface3DSeries("lower", lower, Color.RED), scale);
+    final Surface3DPicker.Target last = new Surface3DPicker.Target(
+        new Surface3DSeries("upper", upper, Color.BLUE), scale);
+    // the overlay drawn last covers the others where it has signal
+    final Surface3DPicker.Hit center = Surface3DPicker.pick(
+        new Surface3DPicker.Ray(new Point3D(0, -1000, 0), new Point3D(0, 1, 0)),
+        List.of(first, last));
+    assertNotNull(center);
+    assertSame(last, center.target());
+    assertEquals(0, center.y());
+    // only the first overlay has signal in the corner
+    final Surface3DPicker.Hit corner = Surface3DPicker.pick(new Surface3DPicker.Ray(
+        new Point3D(-Surface3DMesh.WIDTH / 2 + 1, -1000, -Surface3DMesh.DEPTH / 2 + 1),
+        new Point3D(0, 1, 0)), List.of(first, last));
+    assertNotNull(corner);
+    assertSame(first, corner.target());
+    // no signal: the floor
+    final Surface3DPicker.Hit empty = Surface3DPicker.pick(
+        new Surface3DPicker.Ray(new Point3D(100, -1000, 100), new Point3D(0, 1, 0)),
+        List.of(first, last));
+    assertNotNull(empty);
+    assertNull(empty.target());
   }
 
   @Test

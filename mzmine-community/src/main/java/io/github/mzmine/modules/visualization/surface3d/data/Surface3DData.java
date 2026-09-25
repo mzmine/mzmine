@@ -291,20 +291,6 @@ public final class Surface3DData {
   }
 
   /**
-   * Takes the cell extents of another grid with the same coordinates, e.g. of merged overlays.
-   */
-  public void copyCellExtents(@NotNull final Surface3DData other) {
-    if (Arrays.equals(x, other.x)) {
-      xLows = other.xLows;
-      xHighs = other.xHighs;
-    }
-    if (Arrays.equals(y, other.y)) {
-      yLows = other.yLows;
-      yHighs = other.yHighs;
-    }
-  }
-
-  /**
    * Combines coarse data of the complete range with finer data of a window, e.g. after zooming
    * in: window cells replace the base cells they cover, base cells at the window border are
    * clipped to it. The result keeps the coordinate range of the base, so the view does not move,

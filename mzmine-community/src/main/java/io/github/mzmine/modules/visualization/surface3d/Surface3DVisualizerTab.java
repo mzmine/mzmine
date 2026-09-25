@@ -146,10 +146,13 @@ class Surface3DVisualizerTab extends MZmineTab {
     this.parameters = parameters.cloneParameterSet();
     mode = Surface3DSampler.resolveMode(files[0],
         parameters.getValue(Surface3DVisualizerParameters.mode));
-    final SimpleColorPalette palette = parameters.getValue(Surface3DVisualizerParameters.palette);
+    // decision (user request): the paint scale is chosen in the viewer, it starts with the default
+    // of the preferences like other mzmine heatmaps
+    final SimpleColorPalette palette = ConfigService.getConfiguration()
+        .getDefaultPaintScalePalette();
     plot = new Surface3DPlot(palette, flat);
     // assumption: the preferences hold the complete list including custom paint scales
-    plot.setPaintScales(paintScales(List.of(palette)));
+    plot.setPaintScales(paintScales(palette));
     plot.setPaintScale(palette);
     plot.setOnAddSelectedFiles(() -> addFiles(MZmineGUI.getSelectedRawDataFiles()));
     plot.setOnAddMzRanges(this::addMzRanges);
@@ -226,17 +229,15 @@ class Surface3DVisualizerTab extends MZmineTab {
   }
 
   /**
-   * @return all paint scales of the preferences, including custom ones, and the given ones
+   * @return all paint scales of the preferences, including custom ones, and the initial one
    */
   private static @NotNull List<SimpleColorPalette> paintScales(
-      @NotNull final List<SimpleColorPalette> additional) {
+      @NotNull final SimpleColorPalette initial) {
     final List<SimpleColorPalette> scales = new ArrayList<>(
         ConfigService.getPreferences().getParameter(MZminePreferences.defaultPaintScale)
             .getPalettes());
-    for (final SimpleColorPalette scale : additional) {
-      if (!scales.contains(scale)) {
-        scales.add(scale);
-      }
+    if (!scales.contains(initial)) {
+      scales.add(initial);
     }
     for (final SimpleColorPalette scale : SimpleColorPalette.DEFAULT_PAINT_SCALES) {
       if (!scales.contains(scale)) {

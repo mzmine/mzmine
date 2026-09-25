@@ -39,7 +39,6 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,14 +138,8 @@ public class ColocatedImagePane extends StackPane {
   @NotNull
   public BorderPane createImagePane(FeatureListRow row, ModularFeature feature, double score) {
     BorderPane borderPane = new BorderPane();
-    ParameterSet params = MZmineCore.getConfiguration()
-        .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
-    params.setParameter(ImageVisualizerParameters.imageNormalization,
-        MZmineCore.getConfiguration().getImageNormalization()); // same as in the feature table.
-    params.setParameter(ImageVisualizerParameters.imageTransformation,
-        MZmineCore.getConfiguration().getImageTransformation());
-
-    var imagePlot = new ImagingPlot((ImageVisualizerParameters) params);
+    // same normalization as in the feature table
+    var imagePlot = new ImagingPlot();
     imagePlot.getChart().getXYPlot().setShowCursorCrosshair(false, false);
     imagePlot.setData(feature);
 

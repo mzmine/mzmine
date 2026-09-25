@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.surface3d;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -45,10 +44,8 @@ public class Surface3DVisualizerParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
   public static final MZRangeParameter mzRange = new MZRangeParameter();
-  public static final PaintScalePaletteParameter palette = new PaintScalePaletteParameter(
-      "Intensity paint scale", "Colors used for the surface and intensity legend");
 
   public Surface3DVisualizerParameters() {
-    super(new Parameter[]{dataFile, mode, scanSelection, mzRange, palette});
+    super(new Parameter[]{dataFile, mode, scanSelection, mzRange});
   }
 }

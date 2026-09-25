@@ -61,7 +61,9 @@ public class ModuleMappingUtils {
         new RemovedModule("io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule",
             "3D plot", "Replaced by the 3D visualizer."),
         new RemovedModule("io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule",
-            "2D plot", "Replaced by the 2D visualizer."));
+            "2D plot", "Replaced by the 2D visualizer."),
+        new RemovedModule("io.github.mzmine.modules.visualization.image.ImageVisualizerModule",
+            "Image visualizer", "Replaced by the 2D visualizer."));
 
     final Map<String, RemovedModule> map = HashMap.newHashMap(removed.size());
     for (final RemovedModule module : removed) {

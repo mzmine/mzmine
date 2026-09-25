@@ -57,8 +57,6 @@ import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashbo
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
@@ -641,18 +639,6 @@ public class MainWindowController {
     MZmineCore.runMZmineModule(IMSRawDataOverviewModule.class, parameters);
   }
 
-  public void handleShowImageViewer(Event event) {
-    logger.finest("Activated Show image viewer");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(ImageVisualizerModule.class);
-    parameters.getParameter(RawDataOverviewParameters.rawDataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
-            selectedFiles.toArray(new RawDataFile[0]));
-    MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
-  }
-
-
   public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
@@ -671,9 +657,10 @@ public class MainWindowController {
     logger.finest("Activated Show 2D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
         .getModuleParameters(Surface2DVisualizerModule.class);
-    // follow the selection, specific files would remain the default of the module dialog
+    // follow the selection, specific files would remain the default of the module dialog; a new
+    // selection, because the stored one keeps the files of its last evaluation
     parameters.getParameter(Surface3DVisualizerParameters.dataFile)
-        .setValue(RawDataFilesSelectionType.GUI_SELECTED_FILES);
+        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(Surface2DVisualizerModule.class,
@@ -685,9 +672,10 @@ public class MainWindowController {
     logger.finest("Activated Show 3D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
         .getModuleParameters(Surface3DVisualizerModule.class);
-    // follow the selection, specific files would remain the default of the module dialog
+    // follow the selection, specific files would remain the default of the module dialog; a new
+    // selection, because the stored one keeps the files of its last evaluation
     parameters.getParameter(Surface3DVisualizerParameters.dataFile)
-        .setValue(RawDataFilesSelectionType.GUI_SELECTED_FILES);
+        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(Surface3DVisualizerModule.class,
@@ -695,18 +683,17 @@ public class MainWindowController {
     }
   }
 
+  /**
+   * Opens the selected imaging files in the 2D visualizer, which replaced the image viewer.
+   */
   public void handleShowImage(Event event) {
-    logger.finest("Activated Show image menu item");
-    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(ImageVisualizerModule.class);
-    parameters.getParameter(ImageVisualizerParameters.rawDataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
-            selectedFiles.toArray(new RawDataFile[0]));
-    ExitCode exitCode = parameters.showSetupDialog(true);
-    if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
-    }
+    logger.finest("Activated Show image");
+    final ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(Surface2DVisualizerModule.class).cloneParameterSet();
+    // a new selection, copies keep the files the stored selection was last evaluated with
+    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
+    MZmineCore.runMZmineModule(Surface2DVisualizerModule.class, parameters);
   }
 
   public void handleShowMsMsPlot(Event event) {

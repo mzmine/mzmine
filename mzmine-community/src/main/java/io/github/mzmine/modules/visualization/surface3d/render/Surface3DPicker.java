@@ -119,6 +119,9 @@ public final class Surface3DPicker {
   }
 
   public static @Nullable Hit pick(@NotNull final Ray ray, @NotNull final List<Target> targets) {
+    if (!targets.isEmpty() && targets.getFirst().scale().flat()) {
+      return pickFlat(ray, targets);
+    }
     final double[] range = {0, Double.MAX_VALUE};
     if (!slab(ray.origin().getX(), ray.direction().getX(), -WIDTH / 2, WIDTH / 2, range)
         || !slab(ray.origin().getY(), ray.direction().getY(), -HEIGHT * 1.05, 0.5, range)
@@ -159,9 +162,39 @@ public final class Surface3DPicker {
   }
 
   /**
+   * The 2D view has no heights: the hit is the floor point, its target the overlay drawn last
+   * with signal there, which is the one on top.
+   */
+  private static @Nullable Hit pickFlat(@NotNull final Ray ray,
+      @NotNull final List<Target> targets) {
+    final Point3D floor = floor(ray, false);
+    if (floor == null) {
+      return null;
+    }
+    final double t = -ray.origin().getY() / ray.direction().getY();
+    for (final Target target : targets.reversed()) {
+      final double value = value(target, floor.getX(), floor.getZ());
+      if (value > 0) {
+        return new Hit(floor.getX(), 0, floor.getZ(), target, t);
+      }
+    }
+    return new Hit(floor.getX(), 0, floor.getZ(), null, t);
+  }
+
+  /**
    * @return local height of the target at the local position, NaN if not measured there
    */
   static double height(@NotNull final Target target, final double x, final double z) {
+    final double value = value(target, x, z);
+    return Double.isNaN(value) ? Double.NaN
+        : -target.scale().height(target.series().data(), value) * HEIGHT;
+  }
+
+  /**
+   * @return intensity of the target at the local position, NaN if not measured there or below
+   * the noise floor
+   */
+  private static double value(@NotNull final Target target, final double x, final double z) {
     final Surface3DData data = target.series().data();
     final Surface3DBounds bounds = target.scale().bounds();
     final double dataX = dataX(bounds, x);
@@ -176,10 +209,7 @@ public final class Surface3DPicker {
       return Double.NaN;
     }
     final float value = data.intensity(column, row);
-    if (target.scale().belowNoise(data, value)) {
-      return Double.NaN;
-    }
-    return -target.scale().height(data, value) * HEIGHT;
+    return target.scale().belowNoise(data, value) ? Double.NaN : value;
   }
 
   public static double dataX(@NotNull final Surface3DBounds bounds, final double localX) {

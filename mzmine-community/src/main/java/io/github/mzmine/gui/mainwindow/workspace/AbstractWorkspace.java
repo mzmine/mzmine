@@ -120,7 +120,6 @@ import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.Equival
 import io.github.mzmine.modules.visualization.feat_histogram.FeatureHistogramPlotModule;
 import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
 import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
@@ -332,8 +331,8 @@ public abstract class AbstractWorkspace implements Workspace {
     final Menu menu = new Menu("Visualization");
 
     final Menu rawDataVis = FxMenuUtil.addModuleMenuItems(menu, "Raw data",
-        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, ImageVisualizerModule.class,
-        SpectraVisualizerModule.class, FrameVisualizerModule.class);
+        RawDataOverviewModule.class, IMSRawDataOverviewModule.class, SpectraVisualizerModule.class,
+        FrameVisualizerModule.class);
 
     addSeparator(rawDataVis);
     addModuleMenuItems(rawDataVis, ChromatogramVisualizerModule.class, Surface2DVisualizerModule.class,

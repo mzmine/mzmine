@@ -30,15 +30,17 @@ import static io.github.mzmine.modules.visualization.surface3d.render.Surface3DM
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.components.factories.MenuItems;
 import io.github.mzmine.javafx.components.util.FxLayout;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
@@ -50,8 +52,6 @@ import io.github.mzmine.modules.visualization.surface3d.data.Surface3DRegion;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DSelection;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DSeries;
 import io.github.mzmine.modules.visualization.surface3d.data.Surface3DSmoothing;
-import io.github.mzmine.modules.visualization.surface3d.render.Surface3DBlend;
-import io.github.mzmine.modules.visualization.surface3d.render.Surface3DComposite;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DMesh;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DPicker;
 import io.github.mzmine.modules.visualization.surface3d.render.Surface3DScale;
@@ -89,8 +89,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
-import javafx.geometry.Rectangle2D;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.AmbientLight;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
@@ -105,13 +105,16 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.Separator;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
@@ -195,7 +198,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private final Label legendMaximum = new Label();
   private final ImageView legend = new ImageView();
   private final HBox legendBox = new HBox(6);
-  private final HBox blendLegend = new HBox(10);
   // same transformations and normalizations as the imaging preferences
   private final ComboBox<PaintScaleTransform> transform = FxComboBox.createComboBox(
       "Transformation of the height; colors stay linear", PaintScaleTransform.values(), null);
@@ -230,16 +232,19 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private @Nullable Slider heightSlider;
   // decision: 0.1 % hides the noise carpet of typical overlays while keeping real signals
   private static final double DEFAULT_NOISE_PERCENT = 0.1;
+  // initial opacity of overlaid surfaces
+  private static final double OVERLAY_OPACITY = 0.8;
   private final Slider noiseFloor = new Slider(0, 20, DEFAULT_NOISE_PERCENT);
   private final TextField noiseField = new TextField();
-  private final Surface3DSeriesState composite = new Surface3DSeriesState(Color.WHITE, 1);
   private final List<Label> tileLabels = new ArrayList<>();
-  private final CheckBox showLabels = new CheckBox("Show labels");
+  private final ToggleButton showLabels = FxIconButtonBuilder.ofToggleIconButton("bi-fonts")
+      .build();
+  private final ToggleButton showGrid = FxIconButtonBuilder.ofToggleIconButton("bi-border-all")
+      .build();
+  // plot background below the data, null follows the theme
+  private @Nullable Color plotBackground;
   private List<Surface3DTile> tiles = List.of(Surface3DTile.IDENTITY);
   private List<Surface3DSeries> tiled = List.of();
-  private @Nullable Surface3DComposite blended;
-  private @Nullable Surface3DScale blendScale;
-  private List<Surface3DSeries> blendSources = List.of();
   private boolean layoutChosen;
   private Surface3DTile regionTile = Surface3DTile.IDENTITY;
   // collapsible sections instead of show/hide buttons (user request)
@@ -251,7 +256,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private final AtomicInteger generation = new AtomicInteger();
   private final Map<String, Surface3DSeriesState> states = new LinkedHashMap<>();
   private final Map<SimpleColorPalette, WritableImage> textures = new HashMap<>();
-  // intensity gradients of single overlay colors, by color
+  // intensity gradients of single overlay colors from the background, by color
   private final Map<Color, WritableImage> gradients = new HashMap<>();
   // input overlays, and the displayed overlays after smoothing with the same ids
   private List<Surface3DSeries> rawSeries = List.of();
@@ -261,8 +266,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       "Smooth along both axes or one, e.g. only retention time to keep m/z separated",
       Surface3DSmoothing.Axes.values(), null);
   private final Map<String, SmoothedData> smoothed = new HashMap<>();
-  // overlay colors before "Use mixing colors", for restoring them
-  private final Map<String, Color> colorsBeforeMixing = new HashMap<>();
   private final AtomicInteger smoothingGeneration = new AtomicInteger();
   private @Nullable Surface3DBounds bounds;
   private @Nullable Surface3DScale scale;
@@ -298,6 +301,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
    */
   public Surface3DPlot(@NotNull final SimpleColorPalette palette, final boolean flat) {
     this.flat = flat;
+    panel.setIntensityFormat(format::intensity);
     final int threads = Math.clamp(Runtime.getRuntime().availableProcessors() - 1, 1, 4);
     final ThreadPoolExecutor pool = new ThreadPoolExecutor(threads, threads, 30, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), runnable -> {
@@ -385,11 +389,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     legendBox.setAlignment(Pos.CENTER_LEFT);
     status.setMaxWidth(Double.MAX_VALUE);
     HBox.setHgrow(status, Priority.ALWAYS);
-    blendLegend.setAlignment(Pos.CENTER_LEFT);
-    blendLegend.setVisible(false);
-    blendLegend.setManaged(false);
     final HBox footer = FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(6, 12, 6, 12), status,
-        blendLegend, legendBox);
+        legendBox);
     footer.setSpacing(18);
     setBottom(footer);
     setDarkMode(false);
@@ -500,7 +501,11 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     gridRows.setTooltip(new Tooltip("Rows in side by side, Auto to fit all images"));
     showLabels.setSelected(true);
     showLabels.setTooltip(new Tooltip(
-        "Tick labels, axis titles, and tile titles; hidden labels also free space for the data"));
+        "Show tick labels, axis titles, and tile titles; hidden labels free space for the data"));
+    showGrid.setSelected(true);
+    showGrid.setTooltip(new Tooltip("Show grid lines"));
+    showGrid.selectedProperty().addListener(
+        (_, _, show) -> allAxes().forEach(value -> value.setGridVisible(show)));
     showLabels.selectedProperty().addListener((_, _, show) -> {
       labelLayer.setVisible(show);
       if (autoFit) {
@@ -542,7 +547,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         FxIconUtil.getFontIcon("bi-layers", 15));
     viewMode.setTooltip(new Tooltip("""
         Overlay: all overlays at their coordinates
-        Blend colors: one surface, colors mix by the intensity ratio of up to three overlays
         Side by side: small multiples with linked rotation and zoom"""));
     final ToggleGroup modes = new ToggleGroup();
     for (final Surface3DLayout value : Surface3DLayout.values()) {
@@ -600,8 +604,12 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final HBox noise = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 4, noiseLabel, noiseFloor,
         noiseField, percent);
     updateDisplayControls();
+    // decision (user request): styling of the view next to saving it, top right
+    final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2,
+        createPlotBackgroundButton(), showGrid, showLabels);
     final HBox toolbar = FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(4, 8, 4, 8), 8, views,
-        viewMode, display, new Separator(Orientation.VERTICAL), noise, spacer, save, help);
+        viewMode, display, new Separator(Orientation.VERTICAL), noise, spacer, style,
+        new Separator(Orientation.VERTICAL), save, help);
     return toolbar;
   }
 
@@ -646,20 +654,17 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     if (several) {
       displayGrid.addRow(row++, new Label("Overlays"), normalized);
     }
-    if (several && !mode.composite()) {
+    if (several) {
       displayGrid.addRow(row++, new Label("Color by"), coloring);
     }
-    if (!mode.composite()) {
-      displayGrid.addRow(row++, new Label("Paint scale"), palettes);
-    }
+    displayGrid.addRow(row++, new Label("Paint scale"), palettes);
     displayGrid.addRow(row++, new Label("Smoothing"),
         FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, smoothingRadius, smoothingAxes));
     if (mode == Surface3DLayout.GRID) {
-      displayGrid.addRow(row++, new Label("Grid"),
+      displayGrid.addRow(row, new Label("Tiles"),
           FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, new Label("Columns"), gridColumns,
               new Label("Rows"), gridRows));
     }
-    displayGrid.addRow(row, new Label("Labels"), showLabels);
   }
 
   /**
@@ -1204,14 +1209,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     }
     final Surface3DPicker.Ray ray = Surface3DPicker.ray(camera, scene.getWidth(),
         scene.getHeight(), x, y, model);
-    if (layout.getValue().composite()) {
-      if (blended == null || blendScale == null) {
-        return null;
-      }
-      final Surface3DPicker.Hit hit = Surface3DPicker.pick(ray, List.of(
-          new Surface3DPicker.Target(blendSeries(blended), blendScale)));
-      return hit == null ? null : new TileHit(hit, Surface3DTile.IDENTITY);
-    }
     if (tiles.size() == 1) {
       final List<Surface3DPicker.Target> targets = visibleSeries().stream()
           .map(value -> new Surface3DPicker.Target(value, scale)).toList();
@@ -1250,10 +1247,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     return series.stream().filter(value -> states.get(value.id()).isVisible()).toList();
   }
 
-  private static @NotNull Surface3DSeries blendSeries(@NotNull final Surface3DComposite value) {
-    return new Surface3DSeries("blended", "Blended overlays", "", value.data(), Color.WHITE);
-  }
-
   /**
    * Shows which spectrum a click would select, only while hovering (user decision: a persistent
    * marker was too heavy).
@@ -1279,9 +1272,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     }
     final double x = Surface3DMesh.localX(current, selection.x());
     final double z = Surface3DMesh.localZ(current, selection.y());
-    final boolean composite = layout.getValue().composite();
-    final List<Surface3DTile> markerTiles = composite ? List.of(Surface3DTile.IDENTITY) : tiles;
-    for (int i = 0; i < markerTiles.size(); i++) {
+    for (int i = 0; i < tiles.size(); i++) {
       // decision (user request): slices reach the highest data point, and their top edges form
       // a crosshair above the data, visible even over dense pixel columns
       final double top = sliceTop(i);
@@ -1296,7 +1287,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
             sliceLine(WIDTH, 0.7 * lineScale, 0, z, -top),
             sliceLine(WIDTH, 0.5 * lineScale, 0, z, -0.3 * lineScale));
       }
-      marker.getTransforms().setAll(markerTiles.get(i).transforms());
+      marker.getTransforms().setAll(tiles.get(i).transforms());
       slices.getChildren().add(marker);
     }
   }
@@ -1307,9 +1298,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
    */
   private double sliceTop(final int tile) {
     final List<float[]> envelopes = new ArrayList<>();
-    if (layout.getValue().composite()) {
-      envelopes.add(composite.envelope());
-    } else if (layout.getValue() == Surface3DLayout.GRID && tile < tiled.size()) {
+    if (layout.getValue() == Surface3DLayout.GRID && tile < tiled.size()) {
       final Surface3DSeriesState state = states.get(tiled.get(tile).id());
       if (state != null) {
         envelopes.add(state.envelope());
@@ -1354,6 +1343,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
    */
   public void setNumberFormats(@Nullable final NumberFormats formats) {
     format = new Surface3DFormat(formats);
+    panel.setIntensityFormat(format::intensity);
     rebuild();
   }
 
@@ -1367,15 +1357,11 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   public void setDarkMode(final boolean dark) {
     this.dark = dark;
-    // overlay gradients start at the background color
-    gradients.clear();
-    updateMaterials();
     final Color background = Color.web(dark ? "#1b1f24" : "#f8fafc");
     scene.setFill(background);
     // the clipped 2D view shows the viewport around its plot area
     viewport.setBackground(Background.fill(background));
-    axes.setDark(dark);
-    extraAxes.forEach(value -> value.setDark(dark));
+    applyPlotBackground();
     final String bubble = dark
         ? "-fx-background-color: rgba(30,35,42,0.94); -fx-border-color: #475569; -fx-text-fill: #e2e8f0;"
         : "-fx-background-color: rgba(255,255,255,0.94); -fx-border-color: #cbd5e1; -fx-text-fill: #1e293b;";
@@ -1384,7 +1370,64 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     loadingBox.setStyle(bubble + shape);
     loadingLabel.setStyle(dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;");
     placeholder.setStyle(dark ? "-fx-text-fill: #94a3b8;" : "-fx-text-fill: #64748b;");
+    for (final Label label : tileLabels) {
+      label.setStyle(tileTitleStyle());
+    }
     projectAxes();
+  }
+
+  /**
+   * @return the plot background below the data: the chosen color or the one of the theme
+   */
+  private @NotNull Color plotBackground() {
+    return plotBackground != null ? plotBackground : Surface3DAxes.defaultFloor(dark);
+  }
+
+  private void applyPlotBackground() {
+    allAxes().forEach(value -> value.setColors(dark, plotBackground));
+    // overlay gradients start at the plot background
+    gradients.clear();
+    updateMaterials();
+  }
+
+  private @NotNull String tileTitleStyle() {
+    return (dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;")
+        + "-fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 0;";
+  }
+
+  /**
+   * decision (user request): only the plot background is chosen here, everything else follows the
+   * theme of the mzmine preferences
+   */
+  private @NotNull MenuButton createPlotBackgroundButton() {
+    final MenuButton button = new FxIconButtonBuilder<>(new MenuButton(), "bi-paint-bucket")
+        .build();
+    button.setTooltip(new Tooltip("Plot background color"));
+    final MenuItem theme = MenuItems.create("Default", () -> setPlotBackground(null));
+    final MenuItem white = MenuItems.create("White", () -> setPlotBackground(Color.WHITE));
+    final MenuItem black = MenuItems.create("Black", () -> setPlotBackground(Color.BLACK));
+    button.getItems().setAll(theme, white, black, new SeparatorMenuItem());
+    button.setOnShowing(_ -> {
+      // decision: created on first use, the picker loads its FXML
+      if (button.getItems().size() == 4) {
+        try {
+          final ColorPickerMenuItem picker = new ColorPickerMenuItem();
+          picker.addColorSelectedListener(this::setPlotBackground);
+          button.getItems().add(picker);
+        } catch (final IOException ex) {
+          logger.log(Level.WARNING, "Cannot create the color picker", ex);
+        }
+      }
+    });
+    return button;
+  }
+
+  /**
+   * @param color plot background below the data, null for the one of the theme
+   */
+  public void setPlotBackground(@Nullable final Color color) {
+    plotBackground = color;
+    applyPlotBackground();
   }
 
   public @NotNull Surface3DDetail detail() {
@@ -1543,25 +1586,19 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   private @NotNull Surface3DSeriesState createState(@NotNull final Surface3DSeries value) {
     final Surface3DSeriesState state = new Surface3DSeriesState(value.color(),
-        rawSeries.size() > 1 ? 0.8 : 1);
+        OVERLAY_OPACITY);
     state.opacityProperty().addListener((_, _, _) -> updateMaterial(state));
+    state.colorLowProperty().addListener((_, _, _) -> updateMaterial(state));
+    state.colorHighProperty().addListener((_, _, _) -> updateMaterial(state));
     state.colorProperty().addListener((_, _, color) -> {
-      if (!colorsBeforeMixing.isEmpty() && color != null && !Surface3DBlend.mixingColors(
-          blendSources.size()).contains(color)) {
-        // a manual color choice replaces the mixing colors, nothing to restore anymore
-        colorsBeforeMixing.clear();
-      }
       updateMaterial(state);
-      if (layout.getValue().composite()) {
-        updateMaterials();
-      }
       if (colorListener != null && color != null) {
         colorListener.accept(value.id(), color);
       }
     });
     state.visibleProperty().addListener((_, _, _) -> {
       hideHover();
-      // the composite and the grid only contain visible overlays
+      // the grid only contains visible overlays
       if (layout.getValue() == Surface3DLayout.OVERLAY) {
         updateStatus();
       } else {
@@ -1588,10 +1625,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final int request = generation.incrementAndGet();
     final BooleanSupplier canceled = () -> generation.get() != request || closed;
     final List<Surface3DSeries> snapshot = series;
-    if (layout.getValue().composite()) {
-      rebuildBlend(request, snapshot, target, canceled);
-      return;
-    }
     final Map<String, CompletableFuture<BuiltMesh>> builds = new LinkedHashMap<>();
     for (final Surface3DSeries value : snapshot) {
       if (states.get(value.id()).needsMesh(value.data(), target)) {
@@ -1624,46 +1657,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         }));
   }
 
-  private void rebuildBlend(final int request, @NotNull final List<Surface3DSeries> snapshot,
-      @NotNull final Surface3DScale target, @NotNull final BooleanSupplier canceled) {
-    final boolean blend = layout.getValue() == Surface3DLayout.BLEND;
-    final List<Surface3DSeries> visible = visibleSeries();
-    // decision: colors of more than three mixed overlays are ambiguous
-    final List<Surface3DSeries> sources = blend && visible.size() > Surface3DBlend.MAX_CHANNELS
-        ? visible.subList(0, Surface3DBlend.MAX_CHANNELS) : visible;
-    if (sources.isEmpty()) {
-      blended = null;
-      blendScale = null;
-      blendSources = List.of();
-      composite.view().setMesh(null);
-      finish(request, snapshot, target, Map.of());
-      return;
-    }
-    setLoading(blend ? "Blending colors…" : "Building blended surface…", -1);
-    CompletableFuture.supplyAsync(() -> {
-      final Surface3DComposite value = Surface3DComposite.build(sources, target, canceled, blend);
-      final Surface3DScale valueScale = value.scale(target);
-      return new BuiltComposite(value, valueScale,
-          Surface3DMesh.build(value.data(), valueScale, canceled, value.owners(), value.mix()),
-          Surface3DMesh.envelope(value.data(), valueScale, FIT_DIVISIONS, canceled));
-    }, builders).whenComplete((built, error) -> Platform.runLater(() -> {
-      if (closed || generation.get() != request) {
-        return;
-      }
-      if (error != null) {
-        setLoading(null, 0);
-        logger.log(Level.WARNING, "Cannot build blended surface", error);
-        setStatus("Cannot build surface: " + error.getMessage());
-        return;
-      }
-      blended = built.composite();
-      blendScale = built.scale();
-      blendSources = sources;
-      composite.setMesh(built.composite().data(), built.scale(), built.mesh(), built.envelope());
-      finish(request, snapshot, target, Map.of());
-    }));
-  }
-
   /**
    * Places the overlays according to the layout. Only transforms change, meshes are reused.
    */
@@ -1676,13 +1669,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       state.view().setTranslateY(0);
     }
     axes.geometry().getTransforms().clear();
-    if (value.composite()) {
-      clearExtraAxes();
-      tiles = List.of(Surface3DTile.IDENTITY);
-      tiled = List.of();
-      surfaces.getChildren().setAll(composite.view());
-      return;
-    }
     surfaces.getChildren().setAll(series.stream().map(s -> states.get(s.id()).view()).toList());
     if (value == Surface3DLayout.OVERLAY) {
       clearExtraAxes();
@@ -1708,8 +1694,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       label.setManaged(false);
       label.setMouseTransparent(true);
       label.setVisible(false);
-      label.setStyle((dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;")
-          + "-fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 0;");
+      label.setStyle(tileTitleStyle());
       titleLayer.getChildren().add(label);
       tileLabels.add(label);
     }
@@ -1726,7 +1711,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
       if (built != null) {
         state.setMesh(value.data(), target, built.mesh(), built.envelope());
       } else if (!state.needsMesh(value.data(), target)) {
-        // same geometry under a new scale instance; the blended layout builds no overlay meshes
+        // same geometry under a new scale instance
         state.updateScale(target);
       }
     }
@@ -1768,9 +1753,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         triangles += state.triangles();
       }
     }
-    if (layout.getValue().composite()) {
-      triangles = composite.triangles();
-    }
     setStatus(String.format(Locale.ROOT, "%d of %d overlays visible · %s triangles · %s", visible,
         series.size(), triangles >= 1_000_000 ? String.format(Locale.ROOT, "%.1f M",
             triangles / 1e6) : String.format(Locale.ROOT, "%.0f k", triangles / 1e3),
@@ -1790,8 +1772,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     final Surface3DPicker.Hit hit = picked.hit();
     markers.getTransforms().setAll(picked.tile().transforms());
     final List<Surface3DSeries> visible = visibleSeries();
-    // the emphasized overlay: the hit surface, or the blended overlay of the composite
-    final Surface3DSeries emphasized = emphasized(hit, visible);
+    // the emphasized overlay is the hit surface
+    final Surface3DSeries emphasized = hit.target() == null ? null : hit.target().series();
     final double dataX = Surface3DPicker.dataX(scale.bounds(), hit.x());
     final double dataY = Surface3DPicker.dataY(scale.bounds(), hit.z());
     updateSliceMarker(new Surface3DSelection(dataX, dataY));
@@ -1849,90 +1831,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   private @NotNull Color seriesColor(@NotNull final Surface3DSeries value) {
     return states.get(value.id()).colorProperty().get();
-  }
-
-  /**
-   * @return the overlay colors of the blended overlays; the same colors as everywhere else, so
-   * each sample is identified by one color
-   */
-  private @NotNull List<Color> blendColors() {
-    return blendSources.stream().map(this::seriesColor).toList();
-  }
-
-  private void updateBlendLegend(final boolean blend) {
-    blendLegend.setVisible(blend);
-    blendLegend.setManaged(blend);
-    if (!blend || blendSources.isEmpty()) {
-      return;
-    }
-    final List<Color> colors = blendColors();
-    final List<Node> items = new ArrayList<>();
-    items.add(new Label("Blend"));
-    for (int i = 0; i < blendSources.size(); i++) {
-      final Label name = new Label(blendSources.get(i).fullName());
-      name.setGraphic(new Circle(5, colors.get(i)));
-      items.add(name);
-    }
-    final ImageView triangle = new ImageView(Surface3DBlend.texture(colors));
-    triangle.setFitWidth(18);
-    triangle.setFitHeight(18);
-    items.add(triangle);
-    final List<Color> mixing = Surface3DBlend.mixingColors(blendSources.size());
-    final boolean mixed = colors.equals(mixing);
-    if (blendSources.size() > 1 && mixed && !colorsBeforeMixing.isEmpty()) {
-      items.add(FxButtons.createButton("Restore colors",
-          "Restore the overlay colors used before the mixing colors", () -> {
-            final Map<String, Color> previous = new HashMap<>(colorsBeforeMixing);
-            colorsBeforeMixing.clear();
-            previous.forEach((id, color) -> {
-              final Surface3DSeriesState state = states.get(id);
-              if (state != null) {
-                state.colorProperty().set(color);
-              }
-            });
-          }));
-    } else if (blendSources.size() > 1 && !mixed) {
-      // assumption: arbitrary overlay colors can mix to similar tones, the user decides
-      items.add(FxButtons.createButton("Use mixing colors",
-          "Recolor the blended overlays " + (mixing.size() == 2 ? "magenta and green"
-              : "red, green, and blue") + ", which mix to distinct colors", () -> {
-            final Map<String, Color> previous = new HashMap<>();
-            for (final Surface3DSeries source : blendSources) {
-              previous.put(source.id(), states.get(source.id()).colorProperty().get());
-            }
-            for (int i = 0; i < blendSources.size(); i++) {
-              states.get(blendSources.get(i).id()).colorProperty().set(mixing.get(i));
-            }
-            // saved after recoloring, the color listeners clear it for manual changes
-            colorsBeforeMixing.putAll(previous);
-            updateMaterials();
-          }));
-    }
-    final int visible = visibleSeries().size();
-    if (visible > blendSources.size()) {
-      items.add(FxLabels.newSmallLabel(
-          "(" + (visible - blendSources.size()) + " more not blended, up to "
-              + Surface3DBlend.MAX_CHANNELS + ")"));
-    }
-    blendLegend.getChildren().setAll(items);
-  }
-
-  private @Nullable Surface3DSeries emphasized(@NotNull final Surface3DPicker.Hit hit,
-      @NotNull final List<Surface3DSeries> visible) {
-    if (hit.target() == null) {
-      return null;
-    }
-    if (!layout.getValue().composite() || blended == null || scale == null) {
-      return hit.target().series();
-    }
-    final Surface3DData data = blended.data();
-    final int column = data.binX(Surface3DPicker.dataX(scale.bounds(), hit.x()));
-    final int row = data.binY(Surface3DPicker.dataY(scale.bounds(), hit.z()));
-    if (column < 0 || row < 0) {
-      return null;
-    }
-    final int owner = blended.owners().cells()[row * data.width() + column];
-    return owner >= 0 && owner < blendSources.size() ? blendSources.get(owner) : null;
   }
 
   private @NotNull Label hoverLabel(@NotNull final String text, final boolean bold) {
@@ -2096,8 +1994,7 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     if (bounds == null || series.isEmpty() || scene.getWidth() <= 0 || scene.getHeight() <= 0) {
       return null;
     }
-    final List<Surface3DTile> shown =
-        layout.getValue().composite() ? List.of(Surface3DTile.IDENTITY) : tiles;
+    final List<Surface3DTile> shown = tiles;
     final double[] extent = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE,
         -Double.MAX_VALUE};
     boolean all = true;
@@ -2222,62 +2119,36 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   }
 
   private @NotNull WritableImage texture(@NotNull final SimpleColorPalette palette) {
-    return textures.computeIfAbsent(palette, Surface3DPlot::createTexture);
+    return textures.computeIfAbsent(palette, Surface3DColors::texture);
+  }
+
+  private @NotNull WritableImage gradient(@NotNull final Color color) {
+    // decision (user request): low intensities fade into the plot background; a transparent base
+    // looked washed out and showed depth sorting errors
+    return gradients.computeIfAbsent(color, c -> Surface3DColors.gradient(c, plotBackground()));
   }
 
   /**
-   * @return gradient from the background to the overlay color, like the single color heatmaps of
-   * mzmine (e.g. overlaid ion mobility traces), which fade into their black background
+   * @return true if overlay opacities apply: only overlaid surfaces cover each other (user
+   * decision), side by side tiles stay opaque
    */
-  private @NotNull WritableImage gradient(@NotNull final Color color) {
-    return gradients.computeIfAbsent(color, c -> {
-      // decision (user request): low intensities fade to white, or black in dark mode; a
-      // transparent base looked washed out and showed depth sorting errors
-      final Color base = dark ? Color.BLACK : Color.WHITE;
-      // decision: colors too close to the base, e.g. yellow on white, end on a shade further from
-      // the base, so all gradients keep low intensities at the base
-      final double contrast = Math.abs(luminance(c) - luminance(base));
-      final Color end = contrast < 0.3 ? c.interpolate(base.invert(), 0.5 - contrast) : c;
-      return createTexture(new SimpleColorPalette(base, end));
-    });
-  }
-
-  private static double luminance(@NotNull final Color color) {
-    return 0.2126 * color.getRed() + 0.7152 * color.getGreen() + 0.0722 * color.getBlue();
-  }
-
-  private static @NotNull WritableImage createTexture(@NotNull final SimpleColorPalette palette) {
-    final var paint = palette.toPaintScale(PaintScaleTransform.LINEAR, Range.closed(0d, 1d));
-    final WritableImage image = new WritableImage(1024, 2);
-    for (int i = 0; i < 1024; i++) {
-      final Color fx = FxColorUtil.awtColorToFX(paint.getPaint(i / 1023d));
-      image.getPixelWriter().setColor(i, 0, fx);
-      image.getPixelWriter().setColor(i, 1, fx);
-    }
-    return image;
+  private boolean opacityApplies() {
+    return layout.getValue() == Surface3DLayout.OVERLAY && series.size() > 1;
   }
 
   private void updateMaterials() {
+    panel.setOpacityEnabled(opacityApplies());
+    panel.setColorRangeEnabled(colorsShowIntensity());
     if (scale == null || palettes.getValue() == null) {
       return;
+    }
+    for (final Surface3DSeries value : series) {
+      states.get(value.id()).colorMaximumProperty().set(scale.maximum(value.data()));
     }
     for (final Surface3DSeriesState state : states.values()) {
       updateMaterial(state);
     }
-    final boolean compositeLayout = layout.getValue().composite();
-    final boolean blend = layout.getValue() == Surface3DLayout.BLEND;
-    // no blended overlay while all are hidden
-    if (compositeLayout && !blendSources.isEmpty()) {
-      final WritableImage image = Surface3DBlend.texture(blendColors());
-      composite.material().setDiffuseColor(Color.WHITE);
-      composite.material().setDiffuseMap(image);
-      composite.material().setSpecularColor(Color.color(0.85, 0.9, 1));
-      composite.material().setSpecularPower(64);
-    }
-    updateBlendLegend(blend);
-    coloring.setDisable(compositeLayout);
-    final boolean byIntensity =
-        !compositeLayout && coloring.getValue() == Surface3DColoring.INTENSITY;
+    final boolean byIntensity = coloring.getValue() == Surface3DColoring.INTENSITY;
     palettes.setDisable(!byIntensity);
     legendBox.setVisible(byIntensity);
     legendBox.setManaged(byIntensity);
@@ -2286,30 +2157,47 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
         scale.bounds().maximum()));
   }
 
+  /**
+   * @return true if overlays are shaded by a gradient of their color instead of a flat color
+   */
+  private boolean overlayGradient() {
+    // decision (user request): imaging overlays shade their color by intensity, because pixel
+    // heights are compressed (log, minimum height) and a flat color hides intensity differences;
+    // the 2D view has no heights at all
+    return coloring.getValue() != Surface3DColoring.INTENSITY && !series.isEmpty() && (flat
+        || series.getFirst().data().pixels());
+  }
+
+  /**
+   * @return true if colors show intensities, so their range can be clipped
+   */
+  private boolean colorsShowIntensity() {
+    return coloring.getValue() == Surface3DColoring.INTENSITY || overlayGradient();
+  }
+
   private void updateMaterial(@NotNull final Surface3DSeriesState state) {
     if (palettes.getValue() == null) {
       return;
     }
     final boolean byIntensity = coloring.getValue() == Surface3DColoring.INTENSITY;
-    // decision (user request): imaging overlays shade their color by intensity, because pixel
-    // heights are compressed (log, minimum height) and a flat color hides intensity differences
-    final boolean gradient = !byIntensity && !series.isEmpty() && series.getFirst().data().pixels();
+    final boolean gradient = overlayGradient();
     final Color overlayColor = state.colorProperty().get();
     final Color color = byIntensity || gradient ? Color.WHITE : overlayColor;
-    final double opacity = state.opacityProperty().get();
+    final double opacity = opacityApplies() ? state.opacityProperty().get() : 1;
     final PhongMaterial material = state.material();
     material.setDiffuseColor(
         new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity));
     // the cached texture instances avoid a GPU upload on every slider or color change
-    final WritableImage map;
+    final WritableImage colors;
     if (byIntensity) {
-      map = texture(palettes.getValue());
+      colors = texture(palettes.getValue());
     } else if (gradient) {
-      map = gradient(overlayColor);
+      colors = gradient(overlayColor);
     } else {
-      map = null;
+      colors = null;
     }
-    material.setDiffuseMap(map);
+    state.colorBarProperty().set(colors);
+    material.setDiffuseMap(colors == null ? null : state.clippedTexture(colors));
     material.setSpecularColor(Color.color(0.85, 0.9, 1, opacity));
     material.setSpecularPower(64);
   }
@@ -2397,7 +2285,8 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
     }
     while (extraAxes.size() < count) {
       final Surface3DAxes added = new Surface3DAxes();
-      added.setDark(dark);
+      added.setColors(dark, plotBackground);
+      added.setGridVisible(showGrid.isSelected());
       if (axesSpec != null) {
         added.rebuild(axesSpec);
       }
@@ -2522,7 +2411,6 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
   private @NotNull List<Point3D> fittingPoints(@NotNull final List<Surface3DSeries> snapshot) {
     final List<Point3D> points = new ArrayList<>();
     switch (layout.getValue()) {
-      case BLEND -> addEnvelope(points, composite.envelope(), Surface3DTile.IDENTITY);
       case OVERLAY -> {
         final float[] heights = new float[FIT_DIVISIONS * FIT_DIVISIONS];
         for (final Surface3DSeries value : snapshot) {
@@ -2773,9 +2661,4 @@ public final class Surface3DPlot extends BorderPane implements AutoCloseable {
 
   }
 
-  private record BuiltComposite(@NotNull Surface3DComposite composite,
-                                @NotNull Surface3DScale scale, @NotNull Surface3DMesh mesh,
-                                float @NotNull [] envelope) {
-
-  }
 }
