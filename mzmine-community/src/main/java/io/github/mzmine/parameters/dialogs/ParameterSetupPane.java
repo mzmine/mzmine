@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
@@ -413,9 +414,7 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
   public void validateComponentValues() {
     // decision: panes without required value check (e.g., batch mode) may contain intentionally
     // incomplete values
-    if (valueCheckRequired) {
-      componentValidator.validate();
-    }
+    componentValidator.validate(!valueCheckRequired);
   }
 
   @SuppressWarnings("unchecked")
@@ -550,6 +549,9 @@ public class ParameterSetupPane extends BorderPane implements EmbeddedParameterC
       for (final Node child : prov.getComponents()) {
         addListenersToNode(child);
       }
+    } else if (node instanceof ValuePropertyComponent<?> vpc) {
+      // now catches e.g. the IntegerParameter, before it was done recursively by the Region path below
+      vpc.valueProperty().addListener(((_, _, _) -> delayParametersChanged()));
     } else if (node instanceof Region panelComp) {
       for (final Node child : panelComp.getChildrenUnmodifiable()) {
         addListenersToNode(child);

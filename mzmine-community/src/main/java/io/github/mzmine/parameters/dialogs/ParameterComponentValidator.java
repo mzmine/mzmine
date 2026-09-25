@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.dialogs;
 import io.github.mzmine.javafx.validation.FxValidation;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,9 +118,14 @@ class ParameterComponentValidator {
   /**
    * Checks all registered components and updates their error decorations.
    */
-  void validate() {
+  void validate(final boolean skipBatchSensitiveParameters) {
     for (final Map.Entry<String, ParameterAndComponent<?>> entry : components.entrySet()) {
       final ParameterAndComponent<?> comp = entry.getValue();
+
+      final UserParameter<?, ?> param = comp.parameter();
+      if (skipBatchSensitiveParameters && ParameterUtils.skipForBatchModeValidation(param)) {
+        continue;
+      }
       // decision: embedded parameter panes validate their own parameters, so errors are shown
       // once on the actual field
       final String error =
