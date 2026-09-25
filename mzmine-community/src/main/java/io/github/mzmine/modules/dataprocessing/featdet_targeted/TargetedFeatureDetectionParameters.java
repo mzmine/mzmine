@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
@@ -69,9 +70,8 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
   public static final FileNameParameter featureListFile = new FileNameParameter("Database file",
       "Name of the file that contains a list of peaks for targeted feature detection.",
       FileSelectionType.OPEN);
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file. Use '\\t' for tab separated files.",
-      ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the database file. Auto detect determines the separator from the file itself.");
   public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(

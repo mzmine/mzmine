@@ -220,9 +220,6 @@
     <fx:define>
       <Screen fx:factory="getPrimary" fx:id="screen"/>
     </fx:define>
-    <top>
-      <fx:include source="MainMenu.fxml"/>
-    </top>
   </BorderPane>
 </DecorationPane>
   <stylesheets>

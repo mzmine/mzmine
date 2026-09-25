@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import org.jetbrains.annotations.NotNull;
 
 public final class R2RSimpleCorrelationData extends R2RCorrelationData {
 
@@ -128,5 +129,12 @@ public final class R2RSimpleCorrelationData extends R2RCorrelationData {
   @Override
   public double getHeightPearsonR() {
     return heightSim;
+  }
+
+  @Override
+  public @NotNull R2RSimpleCorrelationData withRows(@NotNull final FeatureListRow a,
+      @NotNull final FeatureListRow b) {
+    return new R2RSimpleCorrelationData(a, b, totalSim, heightSim, avgShapeSim, minShapeSim,
+        maxShapeSim, avgDPcount);
   }
 }
