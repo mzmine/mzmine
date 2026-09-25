@@ -162,6 +162,8 @@ class Surface3DVisualizerTab extends MZmineTab {
       spectrumPane = new Surface3DSpectrumPane();
       chromatogramPane = null;
       spectrumPane.setListener(this::onSpectrumClicked);
+      // decision: Ctrl/⌘ adds, as for clicks, so a dragged window joins the shown m/z overlays
+      spectrumPane.setRangeListener(range -> addMzRanges(List.of(range)));
       plot.setDetailPane(spectrumPane, "Spectrum");
       spectrumPane.descriptionProperty().subscribe(value -> plot.setDetailHeader(
           "Spectrum · " + value, Surface3DSpectrumPane.HINT));

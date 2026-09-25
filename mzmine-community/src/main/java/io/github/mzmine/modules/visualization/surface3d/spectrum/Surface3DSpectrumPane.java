@@ -38,7 +38,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.surface3d.plot.Surface3DPlot;
+import io.github.mzmine.modules.visualization.surface3d.plot.Surface3DRangeDrag;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -50,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Spectrum at the position selected in the 3D view. Clicking a signal selects its m/z for the 3D
- * view; with Ctrl/⌘ further m/z ranges are added or removed, like in the image viewer.
+ * view; with Ctrl/⌘ further m/z ranges are added or removed, like in the image viewer. Ctrl/⌘ +
+ * drag adds the dragged m/z window.
  */
 public final class Surface3DSpectrumPane extends BorderPane {
 
@@ -61,6 +65,8 @@ public final class Surface3DSpectrumPane extends BorderPane {
   private final ObjectProperty<PlotCursorPosition> clicked = new SimpleObjectProperty<>();
   private List<Marker> markers = List.of();
   private @Nullable Listener listener;
+  private @Nullable Consumer<Range<Double>> rangeListener;
+  private final Surface3DRangeDrag drag;
 
   /**
    * @param mz       m/z of the clicked data point
@@ -88,9 +94,19 @@ public final class Surface3DSpectrumPane extends BorderPane {
   public Surface3DSpectrumPane() {
     spectrum.setMinHeight(120);
     spectrum.setLegendVisible(false);
+    // same gesture as the frame range in the chromatogram of mobility frames (user request)
+    drag = new Surface3DRangeDrag(spectrum, range -> {
+      if (rangeListener != null) {
+        rangeListener.accept(range);
+      }
+    }, () -> spectrum.applyWithNotifyChanges(false, this::applyMarkers));
     // a separate cursor so that repeated clicks on the same signal are still reported
     spectrum.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
         new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
+      if (drag.wasDragged()) {
+        // the release of a range drag
+        return;
+      }
       clicked.set(null);
       PlotCursorUtils.findSetCursorPosition(e, spectrum.getRenderingInfo(), spectrum.getXYPlot(),
           clicked);
@@ -115,10 +131,18 @@ public final class Surface3DSpectrumPane extends BorderPane {
   }
 
   public static final String HINT =
-      "Click a signal to show its m/z · Ctrl/⌘ + click to add or remove further m/z";
+      "Click a signal to show its m/z · Ctrl/⌘ + click to add or remove m/z"
+          + " · Ctrl/⌘ + drag to add an m/z window";
 
   public void setListener(@Nullable final Listener listener) {
     this.listener = listener;
+  }
+
+  /**
+   * @param listener receives m/z windows selected by Ctrl/⌘ + drag
+   */
+  public void setRangeListener(@Nullable final Consumer<Range<Double>> listener) {
+    rangeListener = listener;
   }
 
   public void setSpectra(@NotNull final String description, @NotNull final List<Spectrum> spectra) {
@@ -145,6 +169,10 @@ public final class Surface3DSpectrumPane extends BorderPane {
 
   private void applyMarkers() {
     spectrum.getXYPlot().clearDomainMarkers();
+    final Range<Double> dragged = drag.dragged();
+    if (dragged != null) {
+      spectrum.addDomainMarker(dragged, FxColorUtil.fxColorToAWT(Surface3DPlot.ACCENT), 0.25f);
+    }
     for (final Marker marker : markers) {
       final java.awt.Color color = FxColorUtil.fxColorToAWT(marker.color());
       spectrum.addDomainMarker(marker.range(), color, 0.25f);

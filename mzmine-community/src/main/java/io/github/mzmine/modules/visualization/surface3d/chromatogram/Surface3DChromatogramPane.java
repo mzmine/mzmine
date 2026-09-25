@@ -30,18 +30,15 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.surface3d.plot.Surface3DPlot;
-import java.awt.geom.Point2D;
+import io.github.mzmine.modules.visualization.surface3d.plot.Surface3DRangeDrag;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
@@ -66,9 +63,7 @@ public final class Surface3DChromatogramPane extends BorderPane {
   private final ObjectProperty<PlotCursorPosition> clicked = new SimpleObjectProperty<>();
   private @Nullable Consumer<Range<Float>> listener;
   private @Nullable Range<Float> selected;
-  // retention time range while dragging
-  private @Nullable Double dragStart;
-  private @Nullable Range<Float> dragged;
+  private final Surface3DRangeDrag drag;
 
   public record Chromatogram(@NotNull TICDataSet data, @NotNull Color color) {
 
@@ -80,11 +75,17 @@ public final class Surface3DChromatogramPane extends BorderPane {
     chromatogram.setPlotType(TICPlotType.BASEPEAK);
     // decision: the selected frame is a permanent marker, the click crosshair would duplicate it
     chromatogram.getXYPlot().setShowCursorCrosshair(false, false);
+    drag = new Surface3DRangeDrag(chromatogram, range -> {
+      if (listener != null) {
+        listener.accept(Range.closed(range.lowerEndpoint().floatValue(),
+            range.upperEndpoint().floatValue()));
+      }
+    }, () -> chromatogram.applyWithNotifyChanges(false, this::applyMarker));
     // a separate cursor so that repeated clicks on the same retention time are still reported
     chromatogram.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
         new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
-      if (modifier(e.getMouseEvent())) {
-        // ends a range drag
+      if (drag.wasDragged()) {
+        // the release of a range drag
         return;
       }
       clicked.set(null);
@@ -95,45 +96,7 @@ public final class Surface3DChromatogramPane extends BorderPane {
         listener.accept(Range.singleton((float) cursor.getDomainValue()));
       }
     }));
-    // Ctrl on Windows and Linux, ⌘ on macOS, as for m/z ranges in the spectrum
-    chromatogram.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL_PLOT_AND_DATA,
-            new Event[]{Event.PRESSED, Event.DRAGGED, Event.RELEASED}, GestureButton.BUTTON1,
-            Key.ALL), this::onRangeGesture));
     setCenter(chromatogram);
-  }
-
-  private static boolean modifier(@Nullable final MouseEventWrapper mouse) {
-    return mouse != null && (mouse.isControlDown() || mouse.isMetaDown());
-  }
-
-  private void onRangeGesture(@NotNull final ChartGestureEvent e) {
-    final MouseEventWrapper mouse = e.getMouseEvent();
-    if (mouse == null) {
-      return;
-    }
-    final Point2D point = e.getCoordinates();
-    if (mouse.isPressed()) {
-      dragStart = modifier(mouse) ? point.getX() : null;
-      dragged = null;
-    } else if (dragStart != null) {
-      final float start = dragStart.floatValue();
-      final float end = (float) point.getX();
-      dragged = Range.closed(Math.min(start, end), Math.max(start, end));
-      if (mouse.isReleased()) {
-        final Range<Float> range = dragged;
-        dragStart = null;
-        dragged = null;
-        if (listener != null) {
-          listener.accept(range);
-        }
-      }
-      chromatogram.applyWithNotifyChanges(false, this::applyMarker);
-    } else {
-      return;
-    }
-    // the drag selects frames instead of zooming
-    mouse.consume();
   }
 
   /**
@@ -165,14 +128,14 @@ public final class Surface3DChromatogramPane extends BorderPane {
 
   private void applyMarker() {
     chromatogram.getXYPlot().clearDomainMarkers();
-    final Range<Float> range = dragged != null ? dragged : selected;
-    if (range == null) {
-      return;
-    }
-    if (range.lowerEndpoint().equals(range.upperEndpoint())) {
-      chromatogram.addDomainMarker(range.lowerEndpoint(), ACCENT, 0.9f);
-    } else {
-      chromatogram.addDomainMarker(range.lowerEndpoint(), range.upperEndpoint(), ACCENT, 0.25f);
+    final Range<Double> dragged = drag.dragged();
+    if (dragged != null) {
+      chromatogram.addDomainMarker(dragged.lowerEndpoint(), dragged.upperEndpoint(), ACCENT, 0.25f);
+    } else if (selected != null && selected.lowerEndpoint().equals(selected.upperEndpoint())) {
+      chromatogram.addDomainMarker(selected.lowerEndpoint(), ACCENT, 0.9f);
+    } else if (selected != null) {
+      chromatogram.addDomainMarker(selected.lowerEndpoint(), selected.upperEndpoint(), ACCENT,
+          0.25f);
     }
   }
 }
