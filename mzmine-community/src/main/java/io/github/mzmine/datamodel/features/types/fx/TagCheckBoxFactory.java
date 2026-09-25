@@ -56,7 +56,7 @@ public final class TagCheckBoxFactory {
   }
 
   public static void setLabel(@NotNull final CheckBox checkBox, @NotNull final String label) {
-    checkBox.setTooltip(new Tooltip(label));
+    checkBox.setTooltip(label.isEmpty() ? null : new Tooltip(label));
     checkBox.setAccessibleText(label);
   }
 }

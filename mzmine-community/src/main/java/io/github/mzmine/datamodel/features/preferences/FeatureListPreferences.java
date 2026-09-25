@@ -56,7 +56,7 @@ import org.w3c.dom.Element;
 public final class FeatureListPreferences {
 
   public static final @NotNull List<String> DEFAULT_TAG_LABELS = List.of("Tag 1", "Tag 2", "Tag 3",
-      "Tag 4", "Tag 5", "Tag 6");
+      "Tag 4");
 
   // from parameters
   private final @NotNull SampleTypeFilter rsdSampleTypeFilter;

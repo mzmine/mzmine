@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.fx.TagCheckBoxPane;
 import io.github.mzmine.datamodel.features.types.fx.TagTreeTableCell;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.BitSet;
@@ -82,7 +83,7 @@ public class TagDataType extends DataType<BitSet> {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Tags";
+    return "Tag";
   }
 
   @Override
@@ -97,7 +98,8 @@ public class TagDataType extends DataType<BitSet> {
 
   @Override
   public double getPrefColumnWidth() {
-    return 50;
+    // + 10 is to write the full "Tag" label in the header
+    return TagCheckBoxPane.CHECKBOX_WIDTH + 12;
   }
 
   @Override

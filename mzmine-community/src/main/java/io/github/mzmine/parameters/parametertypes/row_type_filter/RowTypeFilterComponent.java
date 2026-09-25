@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.row_type_filter.filters.TagRow
 import io.github.mzmine.util.presets.PresetsButton;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.DoubleSupplier;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -215,6 +216,10 @@ public class RowTypeFilterComponent extends HBox implements ValuePropertyCompone
 
   public void setTagLabels(@NotNull final List<String> labels) {
     tagFilterComponent.setTagLabels(labels);
+  }
+
+  public void setTagColumnWidthSupplier(@NotNull final DoubleSupplier supplier) {
+    tagFilterComponent.setColumnWidthSupplier(supplier);
   }
 
   @Override
