@@ -97,6 +97,7 @@ import io.github.mzmine.modules.visualization.image.ColocatedImageVisualizerTab;
 import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
@@ -109,7 +110,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
-import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
@@ -666,7 +666,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     showImageFeatureItem.visibleProperty().bind(hasImagingData);
     // the 2D visualizer replaced the image viewer
     showImageFeatureItem.setOnAction(
-        _ -> Surface3DVisualizerModule.showFeatures(List.of(selectedOrBestFeature), true));
+        _ -> IntensityMap3DModule.showFeatures(List.of(selectedOrBestFeature), true));
 
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
@@ -853,7 +853,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         return;
       }
 
-      Surface3DVisualizerModule.showFeatures(features, flat);
+      IntensityMap3DModule.showFeatures(features, flat);
     };
   }
 

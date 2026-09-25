@@ -57,6 +57,9 @@ import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashbo
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardParameters;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMapParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
@@ -67,9 +70,6 @@ import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWin
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
-import io.github.mzmine.modules.visualization.surface3d.Surface2DVisualizerModule;
-import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerModule;
-import io.github.mzmine.modules.visualization.surface3d.Surface3DVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -656,14 +656,14 @@ public class MainWindowController {
   public void handleShow2DPlot(Event event) {
     logger.finest("Activated Show 2D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(Surface2DVisualizerModule.class);
+        .getModuleParameters(IntensityMap2DModule.class);
     // follow the selection, specific files would remain the default of the module dialog; a new
     // selection, because the stored one keeps the files of its last evaluation
-    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+    parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(Surface2DVisualizerModule.class,
+      MZmineCore.runMZmineModule(IntensityMap2DModule.class,
           parameters.cloneParameterSet());
     }
   }
@@ -671,14 +671,14 @@ public class MainWindowController {
   public void handleShow3DPlot(Event event) {
     logger.finest("Activated Show 3D visualizer menu item");
     ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(Surface3DVisualizerModule.class);
+        .getModuleParameters(IntensityMap3DModule.class);
     // follow the selection, specific files would remain the default of the module dialog; a new
     // selection, because the stored one keeps the files of its last evaluation
-    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+    parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(Surface3DVisualizerModule.class,
+      MZmineCore.runMZmineModule(IntensityMap3DModule.class,
           parameters.cloneParameterSet());
     }
   }
@@ -689,11 +689,11 @@ public class MainWindowController {
   public void handleShowImage(Event event) {
     logger.finest("Activated Show image");
     final ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(Surface2DVisualizerModule.class).cloneParameterSet();
+        .getModuleParameters(IntensityMap2DModule.class).cloneParameterSet();
     // a new selection, copies keep the files the stored selection was last evaluated with
-    parameters.getParameter(Surface3DVisualizerParameters.dataFile)
+    parameters.getParameter(IntensityMapParameters.dataFile)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
-    MZmineCore.runMZmineModule(Surface2DVisualizerModule.class, parameters);
+    MZmineCore.runMZmineModule(IntensityMap2DModule.class, parameters);
   }
 
   public void handleShowMsMsPlot(Event event) {
