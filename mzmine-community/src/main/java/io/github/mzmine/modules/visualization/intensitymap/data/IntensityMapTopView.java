@@ -33,9 +33,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public record IntensityMapTopView() implements IntensityMapProjection {
 
-  // the plot area of the 2D view is smaller than the viewport, cells should cover a pixel
-  private static final double PLOT_FRACTION = 0.7;
-
   @Override
   public @NotNull String label() {
     return "2D";
@@ -57,6 +54,23 @@ public record IntensityMapTopView() implements IntensityMapProjection {
   @Override
   public boolean lit() {
     return false;
+  }
+
+  /**
+   * Colors are the only cue of intensity in 2D.
+   */
+  @Override
+  public boolean transformsColors() {
+    return true;
+  }
+
+  /**
+   * decision (user decision after testing): 0.05 %, lower than in 3D, so the 2D view stays close to
+   * the raw data
+   */
+  @Override
+  public double defaultNoisePercent() {
+    return 0.05;
   }
 
   /**
@@ -93,16 +107,17 @@ public record IntensityMapTopView() implements IntensityMapProjection {
   }
 
   /**
-   * decision: cells thinner than a pixel are not drawn, so centroids jittering between fine m/z
-   * bins would appear as dashed traces. Bins of a pixel keep the maximum of the pixel.
+   * decision (user request): one bin per pixel of the plot area, which keeps the maximum of the
+   * pixel like the former 2D plot. Cells thinner than a pixel are not drawn, so centroids jittering
+   * between finer m/z bins would appear as dashed traces.
    */
   @Override
   public int viewColumns(final double width) {
-    return (int) Math.ceil(Math.max(400, width * PLOT_FRACTION));
+    return (int) Math.ceil(Math.max(100, width));
   }
 
   @Override
   public int viewRows(final double width, final double height) {
-    return (int) Math.ceil(Math.max(300, height * PLOT_FRACTION));
+    return (int) Math.ceil(Math.max(100, height));
   }
 }

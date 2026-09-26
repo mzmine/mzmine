@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * abundance.
  *
  * @param transform  the paint scale transformation of the imaging preferences, applied to the
- *                   height only
+ *                   heights, or to the colors of projections without heights
  * @param noiseFloor fraction of the maximum below which no geometry is created
  * @param baseline   fraction of the maximum whose height is (almost) zero, so that heights show the
  *                   differences above the lowest pixels. 0 starts heights at zero intensity.
@@ -132,12 +132,49 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
   }
 
   /**
-   * @return linear paint scale position in [0, 1]. The transformation only changes the height, so
-   * that colors keep their linear meaning (user decision).
+   * @return paint scale position in [0, 1]. With heights, the transformation only changes the
+   * height, so that colors keep their linear meaning (user decision). Without heights, colors are
+   * the only cue and follow the transformation (user request). The scale starts at the noise floor
+   * (user request), so the whole paint scale covers the shown values.
    */
   public double color(@NotNull final IntensityMapGrid data, final double value) {
     final double maximum = maximum(data);
-    return maximum > 0 ? Math.min(1, value / maximum) : 0;
+    if (!(maximum > 0)) {
+      return 0;
+    }
+    final double start = colorPosition(noiseFloor * maximum, maximum);
+    final double span = 1 - start;
+    return span > 0 ? Math.clamp((colorPosition(value, maximum) - start) / span, 0, 1) : 0;
+  }
+
+  /**
+   * @param color paint scale position in [0, 1]
+   * @return intensity at the paint scale position, the inverse of {@link #color}
+   */
+  public double intensityAtColor(@NotNull final IntensityMapGrid data, final double color) {
+    final double maximum = maximum(data);
+    if (!(maximum > 0)) {
+      return 0;
+    }
+    final double start = colorPosition(noiseFloor * maximum, maximum);
+    final double position = start + Math.clamp(color, 0, 1) * (1 - start);
+    if (!projection.transformsColors()) {
+      return position * maximum;
+    }
+    final double zero = transform.transform(1);
+    final double range = transform.transform(maximum + 1) - zero;
+    return Math.max(0, transform.revertTransform(zero + position * range) - 1);
+  }
+
+  /**
+   * @return position of the value between zero and the maximum, transformed if colors follow the
+   * transformation
+   */
+  private double colorPosition(final double value, final double maximum) {
+    if (projection.transformsColors()) {
+      return Math.min(1, position(transform, value, maximum));
+    }
+    return value > 0 ? Math.min(1, value / maximum) : 0;
   }
 
   /**

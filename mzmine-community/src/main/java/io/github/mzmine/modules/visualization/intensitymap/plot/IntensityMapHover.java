@@ -62,6 +62,8 @@ final class IntensityMapHover {
       IntensityMapPlot.ACCENT.deriveColor(0, 1, 1, 0.06));
   private final PhongMaterial accentMaterial = new PhongMaterial(IntensityMapPlot.ACCENT);
   private boolean dark;
+  // cursor and slices lie in the data plane, for views without depth test
+  private boolean coplanar;
 
   IntensityMapHover() {
     dropLine.setMaterial(accentMaterial);
@@ -96,6 +98,15 @@ final class IntensityMapHover {
    */
   @NotNull List<Node> cursor() {
     return List.of(dropLine, crossX, crossZ);
+  }
+
+  /**
+   * @param coplanar draw the cursor and slices as flat lines in the data plane, for views without
+   *                 heights and depth test. Planes that reach up to the data would project into
+   *                 wide bands when the camera is close in a deep zoom.
+   */
+  void setCoplanar(final boolean coplanar) {
+    this.coplanar = coplanar;
   }
 
   /**
@@ -138,10 +149,12 @@ final class IntensityMapHover {
       dropLine.setTranslateY(hit.y() / 2);
       dropLine.setTranslateZ(hit.z());
     }
+    // lines on the floor, below the surface in 3D
+    final double floor = coplanar ? 0 : 0.6;
     crossX.setTranslateZ(hit.z());
-    crossX.setTranslateY(0.6);
+    crossX.setTranslateY(floor);
     crossZ.setTranslateX(hit.x());
-    crossZ.setTranslateY(0.6);
+    crossZ.setTranslateY(floor);
     crossX.setVisible(true);
     crossZ.setVisible(true);
   }
@@ -161,8 +174,19 @@ final class IntensityMapHover {
       final double lineScale) {
     slices.getChildren().clear();
     for (int i = 0; i < tiles.size(); i++) {
-      final double height = top.applyAsDouble(i);
       final Group marker = new Group();
+      marker.getTransforms().setAll(tiles.get(i).transforms());
+      slices.getChildren().add(marker);
+      if (coplanar) {
+        if (mode != IntensityMapSliceMode.Y) {
+          marker.getChildren().add(sliceLine(0.7 * lineScale, DEPTH, x, 0, 0, lineScale));
+        }
+        if (mode != IntensityMapSliceMode.X) {
+          marker.getChildren().add(sliceLine(WIDTH, 0.7 * lineScale, 0, z, 0, lineScale));
+        }
+        continue;
+      }
+      final double height = top.applyAsDouble(i);
       if (mode != IntensityMapSliceMode.Y) {
         marker.getChildren().addAll(slicePlane(0.6 * lineScale, height, DEPTH, x, 0),
             sliceLine(0.7 * lineScale, DEPTH, x, 0, -height, lineScale),
@@ -173,8 +197,6 @@ final class IntensityMapHover {
             sliceLine(WIDTH, 0.7 * lineScale, 0, z, -height, lineScale),
             sliceLine(WIDTH, 0.5 * lineScale, 0, z, -0.3 * lineScale, lineScale));
       }
-      marker.getTransforms().setAll(tiles.get(i).transforms());
-      slices.getChildren().add(marker);
     }
   }
 

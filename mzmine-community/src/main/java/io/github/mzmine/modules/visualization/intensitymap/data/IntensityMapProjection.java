@@ -62,6 +62,16 @@ public sealed interface IntensityMapProjection permits IntensityMapPerspective,
   boolean lit();
 
   /**
+   * @return true if the intensity transformation applies to colors, false if to heights
+   */
+  boolean transformsColors();
+
+  /**
+   * @return noise floor in percent of the maximum that is hidden by default
+   */
+  double defaultNoisePercent();
+
+  /**
    * @return true for a depth test; without it, geometry draws in scene order
    */
   boolean depthTest();
@@ -82,7 +92,7 @@ public sealed interface IntensityMapProjection permits IntensityMapPerspective,
   double defaultTurn();
 
   /**
-   * @param width viewport width, in samples of the screen
+   * @param width width of the plot, in samples of the screen
    * @return data columns worth sampling along x
    */
   int viewColumns(double width);

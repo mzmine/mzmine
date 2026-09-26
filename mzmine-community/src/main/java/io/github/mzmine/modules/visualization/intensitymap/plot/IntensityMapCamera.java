@@ -84,6 +84,19 @@ final class IntensityMapCamera {
     scene.setCamera(camera);
   }
 
+  /**
+   * @return camera position, to restore it with {@link #moveTo}
+   */
+  @NotNull Point3D position() {
+    return new Point3D(camera.getTranslateX(), camera.getTranslateY(), camera.getTranslateZ());
+  }
+
+  void moveTo(@NotNull final Point3D position) {
+    camera.setTranslateX(position.getX());
+    camera.setTranslateY(position.getY());
+    camera.setTranslateZ(position.getZ());
+  }
+
   boolean isAutoFit() {
     return autoFit;
   }

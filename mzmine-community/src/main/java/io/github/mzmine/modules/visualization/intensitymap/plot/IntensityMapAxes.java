@@ -80,6 +80,8 @@ final class IntensityMapAxes {
   private final PhongMaterial floor = new PhongMaterial();
   private String textColor = "#334155";
   private boolean intensityVisible = true;
+  // floor and grid below the data for the depth test, in the data plane without it
+  private boolean coplanar;
   private @Nullable IntensityMapAxesSpec spec;
   // local {x0, x1, z0, z1} the axes are drawn around
   private double @NotNull [] frame = {-WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2};
@@ -100,6 +102,15 @@ final class IntensityMapAxes {
 
   @NotNull Pane labels() {
     return labels;
+  }
+
+  /**
+   * @param coplanar floor and grid lie in the plane of the data, for views that draw in scene order
+   *                 without depth test. Otherwise they are lifted below the data, which also makes
+   *                 the floor of a perspective top view project slightly smaller than the data.
+   */
+  void setCoplanar(final boolean coplanar) {
+    this.coplanar = coplanar;
   }
 
   void setGridVisible(final boolean visible) {
@@ -188,7 +199,8 @@ final class IntensityMapAxes {
     // axes follow a deeply zoomed view
     final double t = thickness(frame);
     final Box plane = new Box(WIDTH, 0.25, DEPTH);
-    plane.setTranslateY(1.5);
+    plane.setTranslateY(coplanar ? 0 : 1.5);
+    final double gridY = coplanar ? 0 : 0.8 * t;
     plane.setMaterial(floor);
     geometry.getChildren().add(plane);
     // the 2D view draws in child order, so grid lines follow the floor
@@ -212,7 +224,7 @@ final class IntensityMapAxes {
     final double xStep = IntensityMapTicks.step(xMin, xMax, xTicks);
     for (final double value : IntensityMapTicks.ticks(xMin, xMax, xTicks)) {
       final double x = IntensityMapMesh.localX(bounds, value);
-      line(0.45 * t, 0.45 * t, z1 - z0, x, 0.8 * t, (z0 + z1) / 2, grid);
+      line(0.45 * t, 0.45 * t, z1 - z0, x, gridY, (z0 + z1) / 2, grid);
       line(0.7 * t, 0.7 * t, 5 * t, x, 0, z0 - 2.5 * t, axis);
       tick(format.value(value, spec.xKind(), xStep), new Point3D(x, 0, z0),
           new Point3D(x, 4 * t, z0 - 14 * t), Axis.X);
@@ -222,7 +234,7 @@ final class IntensityMapAxes {
     final double yStep = IntensityMapTicks.step(yMin, yMax, yTicks);
     for (final double value : IntensityMapTicks.ticks(yMin, yMax, yTicks)) {
       final double z = IntensityMapMesh.localZ(bounds, value);
-      line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, 0.8 * t, z, grid);
+      line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, gridY, z, grid);
       line(5 * t, 0.7 * t, 0.7 * t, x0 - 2.5 * t, 0, z, axis);
       tick(format.value(value, spec.yKind(), yStep), new Point3D(x0, 0, z),
           new Point3D(x0 - 22 * t, 4 * t, z), Axis.Y);

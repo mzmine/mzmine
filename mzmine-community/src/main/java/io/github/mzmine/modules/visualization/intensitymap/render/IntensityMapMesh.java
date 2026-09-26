@@ -418,11 +418,19 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
 
   /**
    * @return true for measured pixels above the noise floor. Measured zeros are kept unless a noise
-   * floor is set.
+   * floor is set or the view has no heights.
    */
   private static boolean visible(@NotNull final IntensityMapGrid data,
       @NotNull final IntensityMapScale scale, final int x, final int y) {
-    return data.isPresent(x, y) && !scale.belowNoise(data, data.intensity(x, y));
+    if (!data.isPresent(x, y)) {
+      return false;
+    }
+    final float value = data.intensity(x, y);
+    // measured zeros of the 2D view would cover the floor with the lowest color of the paint scale
+    if (!scale.projection().heights() && !(value > 0)) {
+      return false;
+    }
+    return !scale.belowNoise(data, value);
   }
 
   private static boolean exposed(@NotNull final IntensityMapGrid data,

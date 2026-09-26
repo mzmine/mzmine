@@ -228,4 +228,59 @@ class IntensityMapMeshTest {
     assertEquals(1.45, data.xHigh(1), 1e-9);
     assertEquals(0.9, data.xLow(0), 1e-9);
   }
+
+  @Test
+  void topViewColorsFollowTheTransformation() {
+    final IntensityMapGrid data = new IntensityMapGrid(IntensityMapGrid.coordinates(2, 0, 10),
+        IntensityMapGrid.coordinates(1, 0, 0), "X", "Y", false);
+    data.addMaximum(0, 0, 1e6);
+    final IntensityMapBounds bounds = IntensityMapBounds.of(List.of(data));
+    final IntensityMapScale topView = new IntensityMapScale(bounds, PaintScaleTransform.SQRT, false,
+        0, 0, IntensityMapProjection.TOP_VIEW);
+    // a quarter of the maximum is about half way on a square root color scale
+    assertEquals(0.5, topView.color(data, 2.5e5), 1e-3);
+    assertEquals(1, topView.color(data, 1e6), 1e-12);
+    assertEquals(2.5e5, topView.intensityAtColor(data, topView.color(data, 2.5e5)), 1e-3);
+    // with heights, the transformation only changes heights, colors stay linear
+    final IntensityMapScale perspective = new IntensityMapScale(bounds, PaintScaleTransform.SQRT,
+        false, 0, 0, IntensityMapProjection.PERSPECTIVE);
+    assertEquals(0.25, perspective.color(data, 2.5e5), 1e-12);
+    assertEquals(2.5e5, perspective.intensityAtColor(data, 0.25), 1e-6);
+  }
+
+  @Test
+  void topViewSkipsMeasuredZeros() {
+    // measured zeros of the 2D view have the background color and only hide the grid
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2, 3},
+        new double[]{400, 401}, "RT", "m/z", false);
+    for (int x = 0; x < 3; x++) {
+      data.markColumn(x);
+    }
+    data.addMaximum(1, 0, 100);
+    final IntensityMapScale topView = new IntensityMapScale(IntensityMapBounds.of(List.of(data)),
+        PaintScaleTransform.LINEAR, false, 0, 0, IntensityMapProjection.TOP_VIEW);
+    assertEquals(2, IntensityMapMesh.build(data, topView, () -> false).triangles());
+  }
+
+  @Test
+  void colorsStartAtTheNoiseFloor() {
+    final IntensityMapGrid data = new IntensityMapGrid(IntensityMapGrid.coordinates(2, 0, 10),
+        IntensityMapGrid.coordinates(1, 0, 0), "X", "Y", false);
+    data.addMaximum(0, 0, 1e6);
+    final IntensityMapBounds bounds = IntensityMapBounds.of(List.of(data));
+    // linear colors of the 3D view: 1 % noise floor to the maximum
+    final IntensityMapScale perspective = new IntensityMapScale(bounds, PaintScaleTransform.LINEAR,
+        false, 0.01, 0, IntensityMapProjection.PERSPECTIVE);
+    assertEquals(0, perspective.color(data, 1e4), 1e-12);
+    assertEquals(0.5, perspective.color(data, 5.05e5), 1e-12);
+    assertEquals(1, perspective.color(data, 1e6), 1e-12);
+    assertEquals(1e4, perspective.intensityAtColor(data, 0), 1e-6);
+    // transformed colors of the 2D view start at the noise floor too
+    final IntensityMapScale topView = new IntensityMapScale(bounds, PaintScaleTransform.LOG10,
+        false, 0.01, 0, IntensityMapProjection.TOP_VIEW);
+    assertEquals(0, topView.color(data, 1e4), 1e-12);
+    assertEquals(1, topView.color(data, 1e6), 1e-12);
+    assertEquals(1e4, topView.intensityAtColor(data, 0), 1e-6);
+    assertEquals(1e5, topView.intensityAtColor(data, topView.color(data, 1e5)), 1e-3);
+  }
 }

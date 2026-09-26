@@ -37,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -105,6 +106,15 @@ final class IntensityMapSamplingTask extends AbstractTask {
 
   @NotNull String message() {
     return message;
+  }
+
+  /**
+   * @return ids of the layers read by this task
+   */
+  @NotNull Set<String> layerIds() {
+    final Set<String> ids = new HashSet<>();
+    missing.values().forEach(fileLayers -> fileLayers.forEach(layer -> ids.add(layer.id())));
+    return ids;
   }
 
   @Override

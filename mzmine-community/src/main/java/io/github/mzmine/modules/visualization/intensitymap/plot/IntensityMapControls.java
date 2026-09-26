@@ -72,7 +72,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -86,8 +85,6 @@ import org.jetbrains.annotations.Nullable;
 final class IntensityMapControls {
 
   private static final Logger logger = Logger.getLogger(IntensityMapControls.class.getName());
-  // decision: 0.1 % hides the noise carpet of typical overlays while keeping real signals
-  private static final double DEFAULT_NOISE_PERCENT = 0.1;
 
   private final IntensityMapProjection projection;
   private final Slider heightSlider = new Slider(0.2, 3, 1);
@@ -108,7 +105,7 @@ final class IntensityMapControls {
       IntensityMapSmoothing.Axes.values(), null);
   private final Spinner<Integer> gridColumns = new Spinner<>(0, 20, 0);
   private final Spinner<Integer> gridRows = new Spinner<>(0, 20, 0);
-  private final Slider noiseFloor = new Slider(0, 20, DEFAULT_NOISE_PERCENT);
+  private final Slider noiseFloor = new Slider(0, 20, 0);
   private final TextField noiseField = new TextField();
   private final ToggleButton showLabels = FxIconButtonBuilder.ofToggleIconButton("bi-fonts")
       .build();
@@ -134,7 +131,16 @@ final class IntensityMapControls {
     this.projection = projection;
     heightSlider.setPrefWidth(150);
     heightSlider.setTooltip(new Tooltip("Vertical exaggeration; intensities retain their scale"));
-    transform.setValue(PaintScaleTransform.LINEAR);
+    noiseFloor.setValue(projection.defaultNoisePercent());
+    if (projection.transformsColors()) {
+      // decision (user decision after testing): log10 shows weak signals best; the former 2D plot
+      // also changed colors fastest at low intensities
+      transform.setValue(PaintScaleTransform.LOG10);
+      transform.setTooltip(new Tooltip(
+          "Transformation of the colors, e.g. square root or log to show weak signals"));
+    } else {
+      transform.setValue(PaintScaleTransform.LINEAR);
+    }
     intensityNormalization.setValue(ImageNormalization.NO_NORMALIZATION);
     normalized.setTooltip(new Tooltip(
         "Scale every overlay to its own maximum, e.g. to compare ions of different abundance"));
@@ -321,15 +327,12 @@ final class IntensityMapControls {
     final MenuButton button = new FxIconButtonBuilder<>(new MenuButton(),
         "bi-paint-bucket").build();
     button.setTooltip(new Tooltip("Plot background color"));
+    // decision (user request): the theme default and the color picker, no fixed colors
     final MenuItem theme = MenuItems.create("Default", () -> actions.plotBackground().accept(null));
-    final MenuItem white = MenuItems.create("White",
-        () -> actions.plotBackground().accept(Color.WHITE));
-    final MenuItem black = MenuItems.create("Black",
-        () -> actions.plotBackground().accept(Color.BLACK));
-    button.getItems().setAll(theme, white, black, new SeparatorMenuItem());
+    button.getItems().setAll(theme, new SeparatorMenuItem());
     button.setOnShowing(_ -> {
       // decision: created on first use, the picker loads its FXML
-      if (button.getItems().size() == 4) {
+      if (button.getItems().size() == 2) {
         try {
           final ColorPickerMenuItem picker = new ColorPickerMenuItem();
           picker.addColorSelectedListener(actions.plotBackground()::accept);
@@ -362,13 +365,17 @@ final class IntensityMapControls {
       displayGrid.addRow(row++, new Label("Height"), heightSlider);
     }
     // decision (user request): logarithmic heights only make sense for images
-    if (!imaging && !current.isEmpty() && transform.getValue() != PaintScaleTransform.LINEAR) {
+    if (projection.heights() && !imaging && !current.isEmpty()
+        && transform.getValue() != PaintScaleTransform.LINEAR) {
       transform.setValue(PaintScaleTransform.LINEAR);
     }
-    // transformation and baseline change heights only, which the 2D view does not have
+    // the baseline changes heights only, which the 2D view does not have
     if (imaging && projection.heights()) {
       displayGrid.addRow(row++, new Label("Transform"), transform);
       displayGrid.addRow(row++, new Label("Heights"), fromLowest);
+    }
+    if (projection.transformsColors()) {
+      displayGrid.addRow(row++, new Label("Colors"), transform);
     }
     if (imaging && normalization) {
       displayGrid.addRow(row++, new Label("Normalize"), intensityNormalization);
@@ -419,7 +426,7 @@ final class IntensityMapControls {
     };
   }
 
-  private static @NotNull String formatPercent(final double value) {
+  static @NotNull String formatPercent(final double value) {
     return String.format(Locale.ROOT, value < 1 ? "%.2f" : "%.1f", value).replaceAll("0+$", "")
         .replaceAll("\\.$", "");
   }
@@ -455,6 +462,14 @@ final class IntensityMapControls {
         listener.run();
       }
     });
+  }
+
+  /**
+   * @param percent noise floor in percent of the maximum
+   */
+  void setNoisePercent(final double percent) {
+    noiseFloor.setMax(Math.max(20, percent));
+    noiseFloor.setValue(Math.clamp(percent, 0, 100));
   }
 
   /**

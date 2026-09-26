@@ -176,7 +176,7 @@ class IntensityMapTab extends MZmineTab {
       }
     }
     initTab();
-    Platform.runLater(() -> load(false));
+    plot.runWhenLaidOut(() -> load(false));
   }
 
   private static @NotNull String title(final RawDataFile @NotNull [] files,
@@ -191,6 +191,10 @@ class IntensityMapTab extends MZmineTab {
   private void initTab() {
     plot.setNumberFormats(ConfigService.getGuiFormats());
     plot.setUnitFormat(ConfigService.getConfiguration().getUnitFormat());
+    if (mode == IntensityMapDimensions.IMAGING) {
+      // decision (user request): images show all pixels by default
+      plot.setNoiseFloor(0);
+    }
     if (mode == IntensityMapDimensions.IMAGING && projection.heights()) {
       // decision (user request): images read best as flat log-scaled reliefs
       plot.setTransform(PaintScaleTransform.LOG10);

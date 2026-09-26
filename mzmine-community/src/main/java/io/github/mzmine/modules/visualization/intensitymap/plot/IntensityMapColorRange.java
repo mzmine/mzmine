@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
@@ -82,7 +83,7 @@ final class IntensityMapColorRange extends Region {
 
     state.colorLowProperty().addListener((_, _, _) -> update());
     state.colorHighProperty().addListener((_, _, _) -> update());
-    state.colorMaximumProperty().addListener((_, _, _) -> update());
+    state.colorIntensityProperty().addListener((_, _, _) -> update());
     setOnMousePressed(this::press);
     setOnMouseDragged(this::drag);
     // clicks must not reach the overlay row, which toggles visibility on click
@@ -149,9 +150,11 @@ final class IntensityMapColorRange extends Region {
   }
 
   private void update() {
-    final double maximum = state.colorMaximumProperty().get();
-    lowLabel.setText(maximum > 0 ? text(state.colorLowProperty().get() * maximum) : "");
-    highLabel.setText(maximum > 0 ? text(state.colorHighProperty().get() * maximum) : "");
+    final DoubleUnaryOperator intensity = state.colorIntensityProperty().get();
+    lowLabel.setText(
+        intensity == null ? "" : text(intensity.applyAsDouble(state.colorLowProperty().get())));
+    highLabel.setText(
+        intensity == null ? "" : text(intensity.applyAsDouble(state.colorHighProperty().get())));
     requestLayout();
   }
 

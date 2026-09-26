@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.intensitymap.plot;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapScale;
+import java.util.function.DoubleUnaryOperator;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -53,11 +54,11 @@ final class IntensityMapSeriesState {
   private final BooleanProperty visible = new SimpleBooleanProperty(true);
   private final DoubleProperty opacity = new SimpleDoubleProperty(1);
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
-  // color range as positions of the linear color scale in [0, 1]
+  // color range as positions of the color scale in [0, 1]
   private final DoubleProperty colorLow = new SimpleDoubleProperty(0);
   private final DoubleProperty colorHigh = new SimpleDoubleProperty(1);
-  // intensity at the top of the color scale, for the range labels
-  private final DoubleProperty colorMaximum = new SimpleDoubleProperty(0);
+  // intensity at a position of the color scale, for the range labels; null if unknown
+  private final ObjectProperty<DoubleUnaryOperator> colorIntensity = new SimpleObjectProperty<>();
   // unclipped colors of the overlay, null if its colors do not show intensity
   private final ObjectProperty<Image> colorBar = new SimpleObjectProperty<>();
   private @Nullable Image clipSource;
@@ -105,8 +106,8 @@ final class IntensityMapSeriesState {
     return colorHigh;
   }
 
-  @NotNull DoubleProperty colorMaximumProperty() {
-    return colorMaximum;
+  @NotNull ObjectProperty<DoubleUnaryOperator> colorIntensityProperty() {
+    return colorIntensity;
   }
 
   @NotNull ObjectProperty<Image> colorBarProperty() {

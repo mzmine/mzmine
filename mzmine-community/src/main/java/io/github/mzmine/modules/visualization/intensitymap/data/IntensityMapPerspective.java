@@ -53,6 +53,19 @@ public record IntensityMapPerspective() implements IntensityMapProjection {
   }
 
   @Override
+  public boolean transformsColors() {
+    return false;
+  }
+
+  /**
+   * decision: 0.1 % hides the noise carpet of typical overlays while keeping real signals
+   */
+  @Override
+  public double defaultNoisePercent() {
+    return 0.1;
+  }
+
+  @Override
   public boolean depthTest() {
     return true;
   }
