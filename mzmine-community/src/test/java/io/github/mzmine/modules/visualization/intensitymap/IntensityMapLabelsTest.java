@@ -23,25 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.intensitymap.plot;
+package io.github.mzmine.modules.visualization.intensitymap;
 
-import java.util.Map;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * What the plot shows of its data.
- *
- * @param overlays the visible part of each overlay in view (visible, and side by side with its tile
- *                 on screen), in drawing order. Side by side tiles show different parts of the
- *                 data, e.g. the right edge of one sample and the left edge of the next.
- */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+import com.google.common.collect.Range;
+import org.junit.jupiter.api.Test;
 
-  /**
-   * @return ids of the overlays in view
-   */
-  public @NotNull Set<String> ids() {
-    return overlays.keySet();
+class IntensityMapLabelsTest {
+
+  @Test
+  void textJoinsNameAndIon() {
+    assertEquals("Caffeine [M+H]+", IntensityMapLabels.text("Caffeine", "[M+H]+", "195.0877"));
+  }
+
+  @Test
+  void rangesFallBackToTheApex() {
+    assertEquals(Range.closed(4.5, 4.75), IntensityMapLabels.range(Range.closed(4.5f, 4.75f), 4.6));
+    assertEquals(Range.singleton(4.6), IntensityMapLabels.range(null, 4.6));
+  }
+
+  @Test
+  void textFallsBackToMz() {
+    assertEquals("m/z 195.0877 [M+Na]+", IntensityMapLabels.text(null, "[M+Na]+", "195.0877"));
+    assertEquals("m/z 195.0877", IntensityMapLabels.text(" ", null, "195.0877"));
   }
 }

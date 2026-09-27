@@ -25,23 +25,18 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
-import java.util.Map;
-import java.util.Set;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What the plot shows of its data.
+ * The part of one overlay the plot shows.
  *
- * @param overlays the visible part of each overlay in view (visible, and side by side with its tile
- *                 on screen), in drawing order. Side by side tiles show different parts of the
- *                 data, e.g. the right edge of one sample and the left edge of the next.
+ * @param region data window of the visible part
+ * @param all    true if nearly all data of the overlay are visible
+ * @param width  screen width of the visible part in pixels
+ * @param height screen height of the visible part in pixels
  */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+public record IntensityMapOverlayView(@NotNull IntensityMapRegion region, boolean all, double width,
+                                      double height) {
 
-  /**
-   * @return ids of the overlays in view
-   */
-  public @NotNull Set<String> ids() {
-    return overlays.keySet();
-  }
 }

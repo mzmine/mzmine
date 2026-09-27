@@ -196,7 +196,7 @@ public final class IntensityMapPicker {
   /**
    * @return local height of the target at the local position, NaN if not measured there
    */
-  static double height(@NotNull final Target target, final double x, final double z) {
+  public static double height(@NotNull final Target target, final double x, final double z) {
     final double value = value(target, x, z);
     return Double.isNaN(value) ? Double.NaN
         : -target.scale().height(target.series().data(), value) * HEIGHT;

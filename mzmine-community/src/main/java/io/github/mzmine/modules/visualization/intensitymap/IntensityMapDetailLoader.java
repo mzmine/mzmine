@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.intensitymap;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.main.MZmineCore;
@@ -34,8 +35,8 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPers
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapTopView;
+import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapOverlayView;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
-import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapVisibleArea;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapFrameCache;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapLayer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import javafx.animation.Animation;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.util.Duration;
@@ -60,14 +62,23 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Sampled data of the overlay layers: a coarse base of the complete range per layer, and after
  * zooming in the base merged with full detail of the visible window (user request: zoom like the
- * former 2D plot instead of selecting subsets). Reading raw data is expensive, so view changes are
- * debounced, only one read runs at a time, and the window is only read again when the view leaves
- * it or zooms in well beyond its resolution. Zoomed out, the base is shown without reading.
+ * former 2D plot instead of selecting subsets). Every overlay has its own window, side by side
+ * tiles show different parts of the data. Reading raw data is expensive, so view changes are
+ * debounced, only one read runs at a time, and a window is only read again when the view leaves it
+ * or zooms in well beyond its resolution. Zoomed out, the base is shown without reading.
  */
 final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
 
   // share of the window size added on each side, so that small pans need no read
   private static final double WINDOW_MARGIN = 0.25;
+  // 2D: while panning, the window reaches further ahead than behind, so it reads ahead
+  private static final double LEAD_MARGIN = 0.5;
+  private static final double TRAIL_MARGIN = 0.1;
+  // pans shorter than this share of the visible size count as standing still
+  private static final double MIN_PAN = 0.02;
+  // 2D: data read before are kept around new windows up to this many bins per overlay, beyond
+  // that a window is merged with the base again
+  private static final long MAX_KEPT_BINS = 4_000_000;
   // 3D: the window is read again when the visible range is smaller than this share of it
   private static final double MIN_ZOOM_SHARE = 0.4;
   // 2D: the window is read again when its bins get coarser than this many screen pixels
@@ -89,12 +100,21 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
   private final Map<String, IntensityMapGrid> detailed = new HashMap<>();
   // layers without data in their m/z range
   private final Set<String> outside = new HashSet<>();
-  private final PauseTransition delay = new PauseTransition(Duration.millis(300));
+  // decision (user request: coarse strips while panning): 2D windows are read while the view
+  // moves, checked at most this often, instead of only after the view has settled
+  private static final Duration WHILE_MOVING = Duration.millis(150);
+  // 3D: reading and rebuilding surfaces while rotating would stutter, so the view settles first
+  private static final Duration SETTLED = Duration.millis(300);
+  private final PauseTransition delay = new PauseTransition(SETTLED);
   // the window of the detailed data, by layer
   private final Map<String, IntensityMapRegion> windows = new HashMap<>();
   // recently read windows by layer, newest first; zooming back reuses them (user request)
   private final Map<String, Deque<IntensityMapCachedWindow>> cache = new HashMap<>();
   private @Nullable IntensityMapSamplingTask task;
+  // visible part of every overlay at the last check, to read ahead while panning
+  private final Map<String, IntensityMapRegion> lastVisible = new HashMap<>();
+  // visible parts before the last check
+  private @NotNull Map<String, IntensityMapRegion> previous = Map.of();
   private @Nullable IntensityMapDetail sampledDetail;
   private boolean closed;
 
@@ -122,7 +142,46 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
    * The plot shows another part of the data, the window is checked once the view has settled.
    */
   void viewChanged() {
-    delay.playFromStart();
+    showZoomedOutBases();
+    switch (plot.detail().projection()) {
+      case IntensityMapTopView _ -> {
+        // throttled, not debounced: moving on does not postpone the check
+        if (delay.getStatus() != Animation.Status.RUNNING) {
+          delay.setDuration(WHILE_MOVING);
+          delay.playFromStart();
+        }
+      }
+      case IntensityMapPerspective _ -> {
+        delay.setDuration(SETTLED);
+        delay.playFromStart();
+      }
+    }
+  }
+
+  /**
+   * Shows the base of zoomed out overlays at once (user report: zooming out showed the coarse
+   * surroundings of the last window until the view had settled). Windows are only read after the
+   * view has settled.
+   */
+  private void showZoomedOutBases() {
+    if (closed || sampledDetail == null || detailed.isEmpty()) {
+      return;
+    }
+    final Map<String, IntensityMapOverlayView> views = plot.visibleArea().overlays();
+    final IntensityMapProjection projection = plot.detail().projection();
+    boolean changed = false;
+    for (final String id : List.copyOf(detailed.keySet())) {
+      final IntensityMapOverlayView view = views.get(id);
+      final IntensityMapGrid base = sampled.get(id);
+      if (view != null && base != null && view.all() && baseSuffices(base, view, projection)) {
+        detailed.remove(id);
+        windows.remove(id);
+        changed = true;
+      }
+    }
+    if (changed) {
+      publish.run();
+    }
   }
 
   /**
@@ -210,8 +269,8 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
     final String message =
         "Reading " + count + (count == 1 ? " overlay" : " overlays") + " from " + missing.size() + (
             missing.size() == 1 ? " sample…" : " samples…");
-    start(new IntensityMapSamplingTask(missing, shrink, Map.of(), parameters, detail,
-        IntensityMapRegion.FULL, normalization.get(), frames.get(), message, this));
+    start(new IntensityMapSamplingTask(missing, shrink, Map.of(), parameters, detail, Map.of(),
+        normalization.get(), frames.get(), message, this));
     plot.setLoading(missing.isEmpty() ? "Adjusting detail…" : message, missing.isEmpty() ? -1 : 0);
   }
 
@@ -220,55 +279,141 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
       return;
     }
     final IntensityMapSamplingTask running = task;
-    if (running != null && running.window().isFull()) {
-      // the base is still read, it requests the window when done
+    if (running != null && running.isBase()) {
+      // the base is still read, it requests the windows when done
       return;
     }
     if (running == null && coarser(sampledDetail, plot.detail())) {
       refreshBase();
       return;
     }
-    final IntensityMapVisibleArea area = plot.visibleArea();
-    final IntensityMapRegion visible = area.window();
-    if (visible.isFull()) {
-      if (!detailed.isEmpty() || running != null) {
-        cancel();
-        plot.setLoading(null, 0);
-        detailed.clear();
-        windows.clear();
-        publish.run();
-      }
-      return;
-    }
+    final Map<String, IntensityMapOverlayView> views = plot.visibleArea().overlays();
+    final IntensityMapProjection projection = plot.detail().projection();
+    final double share = minZoomShare(projection);
+    boolean changed = false;
+    // the pan direction since the last check, e.g. to read ahead
+    final Map<String, IntensityMapRegion> previous = Map.copyOf(lastVisible);
+    lastVisible.clear();
+    views.forEach((id, view) -> lastVisible.put(id, view.region()));
+    this.previous = previous;
     // decision (user request): only overlays in view are read, e.g. not the other side by side
     // tiles when zoomed into one; layers whose window still covers the view are kept
-    final double share = minZoomShare(plot.detail().projection());
-    final List<IntensityMapLayer> uncovered = layers.get().stream().filter(
-        layer -> sampled.containsKey(layer.id()) && area.overlays().contains(layer.id()) && !covers(
-            windows.get(layer.id()), visible, share)).toList();
-    final List<IntensityMapLayer> needed = new ArrayList<>();
-    boolean restored = false;
-    for (final IntensityMapLayer layer : uncovered) {
-      final IntensityMapCachedWindow cached = cached(layer.id(), visible, share);
+    final Map<IntensityMapLayer, IntensityMapOverlayView> needed = new LinkedHashMap<>();
+    for (final IntensityMapLayer layer : layers.get()) {
+      final String id = layer.id();
+      final IntensityMapOverlayView view = views.get(id);
+      final IntensityMapGrid base = sampled.get(id);
+      if (view == null || base == null) {
+        continue;
+      }
+      if (view.all() && baseSuffices(base, view, projection)) {
+        // zoomed out, the base shows the overlay
+        changed |= detailed.remove(id) != null;
+        windows.remove(id);
+        continue;
+      }
+      if (covers(windows.get(id), view.region(), share)) {
+        continue;
+      }
+      final IntensityMapCachedWindow cached = cached(id, view.region(), share);
       if (cached == null) {
-        needed.add(layer);
+        needed.put(layer, view);
       } else {
-        detailed.put(layer.id(), cached.data());
-        windows.put(layer.id(), cached.window());
-        restored = true;
+        detailed.put(id, cached.data());
+        windows.put(id, cached.window());
+        changed = true;
       }
     }
-    if (restored) {
+    if (changed) {
       publish.run();
     }
     if (needed.isEmpty()) {
+      if (running != null) {
+        // the view no longer needs the window being read
+        cancel();
+        plot.setLoading(null, 0);
+      }
       return;
     }
-    if (running != null && covers(running.window(), visible, share) && running.layerIds()
-        .containsAll(needed.stream().map(IntensityMapLayer::id).toList())) {
+    if (running != null && needed.entrySet().stream().allMatch(
+        entry -> running.layerIds().contains(entry.getKey().id()) && covers(
+            running.window(entry.getKey().id()), entry.getValue().region(), share))) {
       return;
     }
-    loadWindow(visible.expand(WINDOW_MARGIN), needed, area.overlays().size());
+    if (running != null && stillUseful(running, needed)) {
+      // decision (user request): a running read of a part in view finishes instead of restarting
+      // on every move while panning; the view is checked again when it arrives
+      return;
+    }
+    loadWindows(needed, views.size());
+  }
+
+  /**
+   * @return true if the running read shows some of the visible parts at a similar zoom, so that
+   * finishing it is faster than starting over
+   */
+  private static boolean stillUseful(@NotNull final IntensityMapSamplingTask running,
+      @NotNull final Map<IntensityMapLayer, IntensityMapOverlayView> needed) {
+    return needed.entrySet().stream().anyMatch(entry -> {
+      final String id = entry.getKey().id();
+      final IntensityMapRegion window = running.window(id);
+      final IntensityMapRegion visible = entry.getValue().region();
+      return running.layerIds().contains(id) && !window.isFull() && window.overlaps(visible)
+          && visible.width() <= 2 * window.width() && visible.height() <= 2 * window.height()
+          && window.width() <= 4 * visible.width() && window.height() <= 4 * visible.height();
+    });
+  }
+
+  /**
+   * @param previous visible part at the last check, null if unknown
+   * @return shares of the visible size added {left, right, below, above}: more in the direction of
+   * a pan
+   */
+  static double @NotNull [] margins(@Nullable final IntensityMapRegion previous,
+      @NotNull final IntensityMapRegion visible) {
+    final double[] shares = {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
+    if (previous == null || previous.isFull() || visible.isFull() || previous.x() == null
+        || previous.y() == null || visible.x() == null || visible.y() == null) {
+      return shares;
+    }
+    final double dx = center(visible.x()) - center(previous.x());
+    final double dy = center(visible.y()) - center(previous.y());
+    if (Math.abs(dx) > MIN_PAN * visible.width()) {
+      shares[0] = dx < 0 ? LEAD_MARGIN : TRAIL_MARGIN;
+      shares[1] = dx < 0 ? TRAIL_MARGIN : LEAD_MARGIN;
+    }
+    if (Math.abs(dy) > MIN_PAN * visible.height()) {
+      shares[2] = dy < 0 ? LEAD_MARGIN : TRAIL_MARGIN;
+      shares[3] = dy < 0 ? TRAIL_MARGIN : LEAD_MARGIN;
+    }
+    return shares;
+  }
+
+  private static double center(@NotNull final Range<Double> range) {
+    return (range.lowerEndpoint() + range.upperEndpoint()) / 2;
+  }
+
+  /**
+   * @return true if the base shows the visible part finely enough
+   */
+  private boolean baseSuffices(@NotNull final IntensityMapGrid base,
+      @NotNull final IntensityMapOverlayView view,
+      @NotNull final IntensityMapProjection projection) {
+    final IntensityMapDetail detail = sampledDetail;
+    return switch (projection) {
+      case IntensityMapPerspective _ -> true;
+      // decision (user report): a nearly complete tile may still be larger on screen than the base
+      // was sampled for, e.g. side by side after zooming in, so its bins are checked as well
+      case IntensityMapTopView _ -> {
+        if (detail == null) {
+          yield true;
+        }
+        // bins of the base for dense data; sparser data would not get finer from a window either
+        final var bins = detail.grid(Integer.MAX_VALUE, Integer.MAX_VALUE, base.pixels());
+        yield view.width() <= bins.x() * MAX_PIXELS_PER_BIN
+            && view.height() <= bins.y() * MAX_PIXELS_PER_BIN;
+      }
+    };
   }
 
   /**
@@ -338,7 +483,7 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
       return;
     }
     start(new IntensityMapSamplingTask(read, Map.of(), Map.of(), parameters,
-        baseDetail(current.size()), IntensityMapRegion.FULL, normalization.get(), frames.get(),
+        baseDetail(current.size()), Map.of(), normalization.get(), frames.get(),
         "Adjusting detail…", this));
     plot.setLoading("Adjusting detail…", -1);
   }
@@ -356,6 +501,40 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
   }
 
   /**
+   * @return share of the window size added on each side of the visible range
+   */
+  static double margin() {
+    return WINDOW_MARGIN;
+  }
+
+  /**
+   * @param plotDetail detail of the plot
+   * @param overlay    visible part of the overlay
+   * @param enlargedX  width of the window per visible width, including its margins
+   * @param enlargedY  height of the window per visible height
+   * @param shown      number of overlays in view
+   * @return sampling detail of a zoom window of the overlay
+   */
+  static @NotNull IntensityMapDetail windowDetail(@NotNull final IntensityMapDetail plotDetail,
+      @NotNull final IntensityMapOverlayView overlay, final double enlargedX,
+      final double enlargedY, final int shown) {
+    final IntensityMapProjection projection = plotDetail.projection();
+    // the margin around the visible range gets the same resolution as the visible range
+    return switch (projection) {
+      // decision (user request: zoomed views were coarser than the zoomed out view): the flat view
+      // samples the screen size of the visible part, e.g. of a side by side tile, and its budget
+      // counts bins, which fits the window and the base around it
+      case IntensityMapTopView _ ->
+          new IntensityMapDetail(overlay.width() * enlargedX, overlay.height() * enlargedY,
+              Math.max(1, shown), projection);
+      // the tilted view also shows the coarse base outside the window, both share the budget
+      case IntensityMapPerspective _ ->
+          new IntensityMapDetail(plotDetail.width() * enlargedX, plotDetail.height() * enlargedY,
+              2 * Math.max(1, shown), projection);
+    };
+  }
+
+  /**
    * @param share smallest share of the window that may be visible
    * @return true if the window contains the visible range at a similar resolution
    */
@@ -366,26 +545,55 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
   }
 
   /**
-   * Reads the window of the layers and merges it with their base.
+   * Reads the windows of the layers, each around its visible part, and merges them with the data
+   * shown so far.
    *
    * @param shown number of overlays in view, which share the render budget
    */
-  private void loadWindow(@NotNull final IntensityMapRegion window,
-      @NotNull final List<IntensityMapLayer> needed, final int shown) {
-    final Map<RawDataFile, List<IntensityMapLayer>> read = new LinkedHashMap<>();
-    for (final IntensityMapLayer layer : needed) {
-      read.computeIfAbsent(layer.file(), _ -> new ArrayList<>()).add(layer);
-    }
+  private void loadWindows(@NotNull final Map<IntensityMapLayer, IntensityMapOverlayView> needed,
+      final int shown) {
     final IntensityMapDetail view = plot.detail();
-    // the margin around the visible range gets the same resolution as the visible range; the
-    // window and the coarse base outside it share the render budget of the overlays in view
-    final double enlarged = 1 + 2 * WINDOW_MARGIN;
-    final IntensityMapDetail detail = new IntensityMapDetail(view.width() * enlarged,
-        view.height() * enlarged, 2 * Math.max(1, shown), view.projection());
+    final IntensityMapProjection projection = view.projection();
+    final Map<RawDataFile, List<IntensityMapLayer>> read = new LinkedHashMap<>();
+    final Map<String, IntensityMapWindowRequest> requests = new HashMap<>();
+    final Map<String, IntensityMapGrid> bases = new HashMap<>();
+    needed.forEach((layer, overlay) -> {
+      final String id = layer.id();
+      read.computeIfAbsent(layer.file(), _ -> new ArrayList<>()).add(layer);
+      final double[] shares = switch (projection) {
+        case IntensityMapTopView _ -> margins(previous.get(id), overlay.region());
+        case IntensityMapPerspective _ ->
+            new double[]{WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
+      };
+      requests.put(id, new IntensityMapWindowRequest(
+          overlay.region().expand(shares[0], shares[1], shares[2], shares[3]),
+          windowDetail(view, overlay, 1 + shares[0] + shares[1], 1 + shares[2] + shares[3],
+              shown)));
+      bases.put(id, mergeTarget(id, projection, shown));
+    });
     cancel();
-    start(new IntensityMapSamplingTask(read, Map.of(), Map.copyOf(sampled), parameters, detail,
-        window, normalization.get(), frames.get(), "Adjusting detail…", this));
+    start(
+        new IntensityMapSamplingTask(read, Map.of(), Map.copyOf(bases), parameters, view, requests,
+            normalization.get(), frames.get(), "Adjusting detail…", this));
     plot.setLoading("Adjusting detail…", -1);
+  }
+
+  /**
+   * @return the data a new window of the layer is merged into: in 2D the data shown so far, so that
+   * parts read before stay sharp while panning (user request); otherwise, or once they grow too
+   * large, the base
+   */
+  private @NotNull IntensityMapGrid mergeTarget(@NotNull final String id,
+      @NotNull final IntensityMapProjection projection, final int shown) {
+    final IntensityMapGrid base = sampled.get(id);
+    final IntensityMapGrid current = detailed.get(id);
+    return switch (projection) {
+      case IntensityMapTopView _ ->
+          current != null && (long) current.width() * current.height() <= MAX_KEPT_BINS / Math.max(
+              1, shown) ? current : base;
+      // the surface budget counts every bin
+      case IntensityMapPerspective _ -> base;
+    };
   }
 
   private void start(@NotNull final IntensityMapSamplingTask next) {
@@ -428,7 +636,7 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
       results.keySet().retainAll(current);
       empty.retainAll(current);
       plot.setLoading(null, 0);
-      if (source.window().isFull()) {
+      if (source.isBase()) {
         sampled.putAll(results);
         outside.addAll(empty);
         sampledDetail = source.detail();
@@ -444,11 +652,13 @@ final class IntensityMapDetailLoader implements IntensityMapSamplingListener {
           final IntensityMapGrid data = results.getOrDefault(id, sampled.get(id));
           if (current.contains(id) && data != null) {
             detailed.put(id, data);
-            windows.put(id, source.window());
-            remember(id, source.window(), data);
+            windows.put(id, source.window(id));
+            remember(id, source.window(id), data);
           }
         }
         publish.run();
+        // the view may have moved on while reading
+        onViewChanged();
       }
       if (!skipped.isEmpty()) {
         final var first = skipped.entrySet().iterator().next();

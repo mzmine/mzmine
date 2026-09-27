@@ -52,6 +52,7 @@ import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMap
 import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMapSpectrumPane;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,16 +108,21 @@ class IntensityMapTab extends MZmineTab {
   private ImageNormalization normalization = ImageNormalization.NO_NORMALIZATION;
   private int nextLayer;
   private boolean closed;
+  // feature list of the peak labels, null for none
+  private @Nullable FeatureList labelList;
+  // list, layers, and frames of the shown labels; the labels are only built again on changes
+  private @Nullable List<Object> labelState;
 
   /**
    * @param files      at least one file, all with the same data dimensions
    * @param mzRanges   initial m/z overlays for every file, e.g. of selected features. Empty shows
    *                   the complete m/z range of the parameters.
    * @param projection the 3D view, or the 2D view: a fixed top view without heights
+   * @param labelList  feature list of the initial peak labels, null for none
    */
   IntensityMapTab(final RawDataFile @NotNull [] files, @NotNull final ParameterSet parameters,
-      @NotNull final List<Range<Double>> mzRanges,
-      @NotNull final IntensityMapProjection projection) {
+      @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapProjection projection,
+      @Nullable final FeatureList labelList) {
     super(title(files, projection), false, false);
     this.projection = projection;
     this.parameters = parameters.cloneParameterSet();
@@ -164,6 +170,14 @@ class IntensityMapTab extends MZmineTab {
       plot.setSliceMode(spectrumSource.sliceMode());
       plot.setOnSelectionChanged(this::showSpectra);
     }
+    if (mode != IntensityMapDimensions.IMAGING) {
+      // decision (user request): no peak labels for images
+      this.labelList = labelList;
+      plot.setLabelSources(this::labelListNames, this::setLabelList);
+      plot.setLabelSource(labelList == null ? null : labelList.getName());
+    } else {
+      plot.setLabelsUnavailable("No peak labels for images");
+    }
     plot.setOnRemoveSeries(this::removeLayer);
     plot.setOnSeriesColorChanged(this::onColorChanged);
     for (final RawDataFile file : Arrays.stream(files).distinct().toList()) {
@@ -194,6 +208,11 @@ class IntensityMapTab extends MZmineTab {
     if (mode == IntensityMapDimensions.IMAGING) {
       // decision (user request): images show all pixels by default
       plot.setNoiseFloor(0);
+    }
+    if (mode == IntensityMapDimensions.IMAGING && !projection.heights()) {
+      // decision (user request): images are colored like in the 3D view, linearly from the noise
+      // floor; the 2D view otherwise applies its transformation to the colors, log10 by default
+      plot.setTransform(PaintScaleTransform.LINEAR);
     }
     if (mode == IntensityMapDimensions.IMAGING && projection.heights()) {
       // decision (user request): images read best as flat log-scaled reliefs
@@ -629,9 +648,44 @@ class IntensityMapTab extends MZmineTab {
       plot.setStatus(ex.getMessage());
     }
     updateDetail(series);
+    updateLabels();
     if (series.isEmpty() && !layers.isEmpty() && loader.hasEmptyLayers()) {
       plot.setStatus("No data in the selected m/z ranges");
     }
+  }
+
+  /**
+   * @return names of the feature lists of the project that contain a shown file
+   */
+  private @NotNull List<String> labelListNames() {
+    return ProjectService.getProject().getCurrentFeatureLists().stream()
+        .filter(list -> files.stream().anyMatch(list::hasRawDataFile)).map(FeatureList::getName)
+        .toList();
+  }
+
+  /**
+   * @param name feature list of the peak labels, null for none
+   */
+  private void setLabelList(@Nullable final String name) {
+    labelList = name == null ? null : ProjectService.getProject().getCurrentFeatureLists().stream()
+        .filter(list -> list.getName().equals(name)).findFirst().orElse(null);
+    updateLabels();
+  }
+
+  private void updateLabels() {
+    final FeatureList list = labelList;
+    final Range<Float> times = frames.retentionTimes();
+    final List<Object> state = new ArrayList<>();
+    state.add(list);
+    state.add(List.copyOf(layers));
+    state.add(times);
+    if (state.equals(labelState)) {
+      return;
+    }
+    labelState = state;
+    plot.setLabels(list == null ? List.of()
+        : IntensityMapLabels.of(list, List.copyOf(layers), mode, times,
+            ConfigService.getGuiFormats()));
   }
 
   private void close() {

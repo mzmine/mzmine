@@ -215,8 +215,9 @@ final class IntensityMapTileLayout {
    *
    * @param intensityVisible show the intensity axis, hidden in top views
    * @param showLabels       show tile titles
+   * @return screen bounds of the shown titles and axis labels, which further labels must not cover
    */
-  void project(final boolean intensityVisible, final boolean showLabels,
+  @NotNull List<Bounds> project(final boolean intensityVisible, final boolean showLabels,
       @NotNull final Map<String, IntensityMapSeriesState> states) {
     final List<IntensityMapAxes> all = allAxes();
     for (final IntensityMapAxes value : all) {
@@ -224,7 +225,7 @@ final class IntensityMapTileLayout {
       value.project();
     }
     if (model.getScene() == null) {
-      return;
+      return List.of();
     }
     final List<List<Point2D>> hulls = new ArrayList<>();
     for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
@@ -242,6 +243,7 @@ final class IntensityMapTileLayout {
       all.get(i).hideOverlaps(occupied, others,
           new BoundingBox(0, 0, labelLayer.getWidth(), labelLayer.getHeight()));
     }
+    return occupied;
   }
 
   /**

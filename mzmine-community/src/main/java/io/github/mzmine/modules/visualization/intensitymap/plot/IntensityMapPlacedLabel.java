@@ -25,23 +25,18 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
-import java.util.Map;
-import java.util.Set;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapLabel;
+import javafx.geometry.Bounds;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What the plot shows of its data.
+ * A label shown on screen.
  *
- * @param overlays the visible part of each overlay in view (visible, and side by side with its tile
- *                 on screen), in drawing order. Side by side tiles show different parts of the
- *                 data, e.g. the right edge of one sample and the left edge of the next.
+ * @param x      screen position of its marker in the label layer
+ * @param y      screen position of its marker in the label layer
+ * @param bounds screen bounds of its text in the label layer
  */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+record IntensityMapPlacedLabel(@NotNull IntensityMapLabel label, double x, double y,
+                               @NotNull Bounds bounds) {
 
-  /**
-   * @return ids of the overlays in view
-   */
-  public @NotNull Set<String> ids() {
-    return overlays.keySet();
-  }
 }

@@ -72,6 +72,12 @@ public sealed interface IntensityMapProjection permits IntensityMapPerspective,
   double defaultNoisePercent();
 
   /**
+   * @return smallest share of each data axis shown when zooming to a feature, e.g. after clicking
+   * its label
+   */
+  double featureZoomShare();
+
+  /**
    * @return true for a depth test; without it, geometry draws in scene order
    */
   boolean depthTest();

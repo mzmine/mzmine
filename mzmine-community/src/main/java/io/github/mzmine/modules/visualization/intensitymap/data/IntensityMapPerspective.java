@@ -65,6 +65,15 @@ public record IntensityMapPerspective() implements IntensityMapProjection {
     return 0.1;
   }
 
+  /**
+   * A perspective view of a small share only shows the flank of the peak up close, surrounding
+   * signals in front of the camera then cover it.
+   */
+  @Override
+  public double featureZoomShare() {
+    return 0.08;
+  }
+
   @Override
   public boolean depthTest() {
     return true;

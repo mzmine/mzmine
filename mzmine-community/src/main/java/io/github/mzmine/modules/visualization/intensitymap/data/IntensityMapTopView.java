@@ -74,6 +74,14 @@ public record IntensityMapTopView() implements IntensityMapProjection {
   }
 
   /**
+   * The flat map shows the feature with its closest neighbors, e.g. isotopes.
+   */
+  @Override
+  public double featureZoomShare() {
+    return 0.01;
+  }
+
+  /**
    * decision: coplanar floor, grid, data, and markers draw in scene order, a depth test needs
    * lifted layers, which drift apart from the axes at deep zoom
    */

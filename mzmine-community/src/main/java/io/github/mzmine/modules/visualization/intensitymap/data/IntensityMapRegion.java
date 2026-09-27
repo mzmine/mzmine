@@ -49,13 +49,42 @@ public record IntensityMapRegion(@Nullable Range<Double> x, @Nullable Range<Doub
     return new IntensityMapRegion(expand(x, share), expand(y, share));
   }
 
+  /**
+   * @param left  share of the width added below the x range
+   * @param right share of the width added above the x range
+   * @param below share of the height added below the y range
+   * @param above share of the height added above the y range
+   * @return a larger window, this if full
+   */
+  public @NotNull IntensityMapRegion expand(final double left, final double right,
+      final double below, final double above) {
+    return new IntensityMapRegion(expand(x, left, right), expand(y, below, above));
+  }
+
   private static @Nullable Range<Double> expand(@Nullable final Range<Double> range,
       final double share) {
+    return expand(range, share, share);
+  }
+
+  private static @Nullable Range<Double> expand(@Nullable final Range<Double> range,
+      final double lower, final double upper) {
     if (range == null) {
       return null;
     }
-    final double margin = (range.upperEndpoint() - range.lowerEndpoint()) * share;
-    return Range.closed(range.lowerEndpoint() - margin, range.upperEndpoint() + margin);
+    final double size = range.upperEndpoint() - range.lowerEndpoint();
+    return Range.closed(range.lowerEndpoint() - size * lower, range.upperEndpoint() + size * upper);
+  }
+
+  /**
+   * @return true if both windows share some data, a null range overlaps everything
+   */
+  public boolean overlaps(@NotNull final IntensityMapRegion other) {
+    return overlaps(x, other.x) && overlaps(y, other.y);
+  }
+
+  private static boolean overlaps(@Nullable final Range<Double> range,
+      @Nullable final Range<Double> other) {
+    return range == null || other == null || range.isConnected(other);
   }
 
   /**

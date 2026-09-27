@@ -113,6 +113,37 @@ class IntensityMapGridTest {
   }
 
   @Test
+  void panningKeepsWindowsReadBefore() {
+    // coarse base 0..100, a fine window 20..40, then after panning a fine window 35..55
+    final IntensityMapGrid base = filled(IntensityMapGrid.coordinates(11, 0, 100),
+        IntensityMapGrid.coordinates(11, 0, 100), 1);
+    final IntensityMapGrid first = filled(IntensityMapGrid.coordinates(21, 20, 40),
+        IntensityMapGrid.coordinates(21, 40, 60), 2);
+    final IntensityMapGrid second = filled(IntensityMapGrid.coordinates(21, 35, 55),
+        IntensityMapGrid.coordinates(21, 40, 60), 3);
+    final IntensityMapGrid shown = IntensityMapGrid.merge(IntensityMapGrid.merge(base, first),
+        second);
+    // the first window stays fine where the second does not reach
+    final int kept = shown.binX(25);
+    assertEquals(2, shown.intensity(kept, shown.binY(50)));
+    assertEquals(1, shown.xHigh(kept) - shown.xLow(kept), 1e-9);
+    assertEquals(3, shown.intensity(shown.binX(45), shown.binY(50)));
+    assertEquals(1, shown.intensity(shown.binX(80), shown.binY(50)));
+    assertEquals(0, shown.xMin(), 1e-9);
+    assertEquals(100, shown.xMax(), 1e-9);
+  }
+
+  private static IntensityMapGrid filled(final double[] x, final double[] y, final float value) {
+    final IntensityMapGrid grid = new IntensityMapGrid(x, y, "X", "Y", false);
+    for (int column = 0; column < x.length; column++) {
+      for (int row = 0; row < y.length; row++) {
+        grid.addMaximum(column, row, value);
+      }
+    }
+    return grid;
+  }
+
+  @Test
   void mergedPixelBlocksAreClippedAtTheWindow() {
     // 20 native pixels of 10, merged to blocks of 4 in the base, native in the window 80..120
     final IntensityMapGrid base = new IntensityMapGrid(

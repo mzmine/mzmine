@@ -91,6 +91,28 @@ final class IntensityMapCamera {
     return new Point3D(camera.getTranslateX(), camera.getTranslateY(), camera.getTranslateZ());
   }
 
+  /**
+   * @return true if the world point lies in front of the near clipping plane
+   */
+  boolean isInFront(@NotNull final Point3D world) {
+    return world.getZ() > camera.getTranslateZ() + camera.getNearClip();
+  }
+
+  /**
+   * @return values that change whenever the view changes
+   */
+  @NotNull List<Object> state() {
+    return List.of(position(), tilt.getAngle(), turn.getAngle(), heightScale.getY(),
+        model.getTranslateX(), model.getTranslateY());
+  }
+
+  /**
+   * @return visible height per distance to the camera, 2 tan(fov / 2)
+   */
+  double heightPerDistance() {
+    return 2 * Math.tan(Math.toRadians(camera.getFieldOfView() / 2));
+  }
+
   void moveTo(@NotNull final Point3D position) {
     camera.setTranslateX(position.getX());
     camera.setTranslateY(position.getY());

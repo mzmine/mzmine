@@ -23,25 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.intensitymap.plot;
-
-import java.util.Map;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.visualization.intensitymap.data;
 
 /**
- * What the plot shows of its data.
+ * A signal position in the data, e.g. an isotope of a labeled feature.
  *
- * @param overlays the visible part of each overlay in view (visible, and side by side with its tile
- *                 on screen), in drawing order. Side by side tiles show different parts of the
- *                 data, e.g. the right edge of one sample and the left edge of the next.
+ * @param x         data coordinate along x
+ * @param y         data coordinate along y
+ * @param intensity intensity of the signal
  */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+public record IntensityMapPeak(double x, double y, double intensity) {
 
-  /**
-   * @return ids of the overlays in view
-   */
-  public @NotNull Set<String> ids() {
-    return overlays.keySet();
-  }
 }

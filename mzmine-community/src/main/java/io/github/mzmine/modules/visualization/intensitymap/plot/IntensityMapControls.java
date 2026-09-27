@@ -32,6 +32,7 @@ import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.components.factories.FxPopOvers;
+import io.github.mzmine.javafx.components.factories.FxTextFields;
 import io.github.mzmine.javafx.components.factories.MenuItems;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -43,9 +44,12 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeri
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSmoothing;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
@@ -55,8 +59,10 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
@@ -74,6 +80,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,8 +114,7 @@ final class IntensityMapControls {
   private final Spinner<Integer> gridRows = new Spinner<>(0, 20, 0);
   private final Slider noiseFloor = new Slider(0, 20, 0);
   private final TextField noiseField = new TextField();
-  private final ToggleButton showLabels = FxIconButtonBuilder.ofToggleIconButton("bi-fonts")
-      .build();
+  private final CheckMenuItem showLabels = new CheckMenuItem("Show labels");
   private final ToggleButton showGrid = FxIconButtonBuilder.ofToggleIconButton("bi-border-all")
       .build();
   private final Button frontButton = new Button();
@@ -119,6 +125,19 @@ final class IntensityMapControls {
   private final ObjectProperty<IntensityMapLayout> layout = new SimpleObjectProperty<>(
       IntensityMapLayout.OVERLAY);
   private final ToggleGroup modes = new ToggleGroup();
+  // decision (user request): one menu for all text, hiding it and labeling peaks
+  private final MenuButton labelsButton = new FxIconButtonBuilder<>(new MenuButton(),
+      "bi-tag").build();
+  private final TextField labelSearch = FxTextFields.applyToField(
+      TextFields.createClearableTextField(), 14, null, "Search labels",
+      "Only show peak labels that contain the text, e.g. a compound name, ion, or m/z");
+  private final CheckMenuItem annotatedOnly = new CheckMenuItem("Annotated only");
+  private @Nullable Supplier<List<String>> labelSources;
+  private @Nullable Consumer<@Nullable String> labelListener;
+  // name of the source of the shown labels, null for none
+  private @Nullable String labelSource;
+  // why peak labels cannot be chosen, e.g. for images; null to leave them out of the menu
+  private @Nullable String labelsUnavailable;
   // the user picked a layout, which is then kept
   private boolean layoutChosen;
 
@@ -194,8 +213,8 @@ final class IntensityMapControls {
     gridColumns.setTooltip(new Tooltip("Images per row in side by side, Auto for a square grid"));
     gridRows.setTooltip(new Tooltip("Rows in side by side, Auto to fit all images"));
     showLabels.setSelected(true);
-    showLabels.setTooltip(new Tooltip(
-        "Show tick labels, axis titles, and tile titles; hidden labels free space for the data"));
+    labelSearch.setVisible(false);
+    FxLayout.bindManagedToVisible(labelSearch);
     showGrid.setSelected(true);
     showGrid.setTooltip(new Tooltip("Show grid lines"));
     frontButton.setId("intensitymap-view-front");
@@ -234,8 +253,8 @@ final class IntensityMapControls {
     final Button save = FxButtons.createButton(null, FxIcons.SAVE, "Save the current view as PNG",
         actions.saveImage());
     // decision (user request): styling of the view next to saving it, top right
-    final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2,
-        plotBackgroundButton(actions), showGrid, showLabels);
+    final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2, labelSearch,
+        plotBackgroundButton(actions), showGrid, labelsButton());
     return FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(4, 8, 4, 8), 8, views, viewModeButton(),
         display, new Separator(Orientation.VERTICAL), noiseControls(), spacer, style,
         new Separator(Orientation.VERTICAL), save, helpLabel());
@@ -269,12 +288,112 @@ final class IntensityMapControls {
     return viewMode;
   }
 
+  /**
+   * @return menu to hide all labels and to choose the source of peak labels, e.g. a feature list;
+   * rebuilt when shown so that new sources appear
+   */
+  private @NotNull MenuButton labelsButton() {
+    labelsButton.setTooltip(new Tooltip("""
+        Labels: show or hide all text (ticks, titles, peak labels), hidden labels free space for the data
+        Peak labels: features of a feature list"""));
+    // decision: filled up front as well, a menu without items does not open
+    updateLabelItems();
+    labelsButton.setOnShowing(_ -> updateLabelItems());
+    return labelsButton;
+  }
+
+  private void updateLabelItems() {
+    final List<MenuItem> items = new ArrayList<>();
+    items.add(showLabels);
+    if (labelSources == null) {
+      if (labelsUnavailable != null) {
+        items.add(new SeparatorMenuItem());
+        final MenuItem unavailable = new MenuItem(labelsUnavailable);
+        unavailable.setDisable(true);
+        items.add(unavailable);
+      }
+      labelsButton.getItems().setAll(items);
+      return;
+    }
+    items.add(new SeparatorMenuItem());
+    // decision (user request): an explicit feature list choice that names the shown list
+    final Menu featureList = new Menu(
+        "Feature list: " + (labelSource == null ? "none" : labelSource),
+        FxIconUtil.getFontIcon("bi-table", 14));
+    final ToggleGroup group = new ToggleGroup();
+    final RadioMenuItem none = new RadioMenuItem("None");
+    none.setToggleGroup(group);
+    none.setSelected(labelSource == null);
+    none.setOnAction(_ -> setLabelSource(null, true));
+    featureList.getItems().addAll(none, new SeparatorMenuItem());
+    final List<String> names = labelSources.get();
+    if (names.isEmpty()) {
+      final MenuItem empty = new MenuItem("No feature list contains the shown raw data files");
+      empty.setDisable(true);
+      featureList.getItems().add(empty);
+    }
+    for (final String name : names) {
+      final RadioMenuItem item = new RadioMenuItem(name);
+      item.setToggleGroup(group);
+      item.setSelected(name.equals(labelSource));
+      item.setOnAction(_ -> setLabelSource(name, true));
+      featureList.getItems().add(item);
+    }
+    items.add(featureList);
+    annotatedOnly.setDisable(labelSource == null);
+    items.add(annotatedOnly);
+    labelsButton.getItems().setAll(items);
+  }
+
+  /**
+   * @param sources  names of the label sources, evaluated whenever the menu opens; null removes
+   *                 peak labels from the menu
+   * @param listener receives the chosen source, null for none
+   */
+  void setLabelSources(@Nullable final Supplier<List<String>> sources,
+      @Nullable final Consumer<@Nullable String> listener) {
+    labelSources = sources;
+    labelListener = listener;
+    updateLabelItems();
+  }
+
+  /**
+   * @param notify inform the listener, e.g. after a choice in the menu
+   */
+  void setLabelSource(@Nullable final String name, final boolean notify) {
+    labelSource = name;
+    updateLabelItems();
+    if (notify && labelListener != null) {
+      labelListener.accept(name);
+    }
+  }
+
+  /**
+   * Explains in the menu why peak labels cannot be chosen, e.g. for images.
+   */
+  void setLabelsUnavailable(@Nullable final String reason) {
+    labelsUnavailable = reason;
+    updateLabelItems();
+  }
+
+  @NotNull CheckMenuItem annotatedOnly() {
+    return annotatedOnly;
+  }
+
+  /**
+   * @return search of peak labels, hidden until peak labels are shown
+   */
+  @NotNull TextField labelSearch() {
+    return labelSearch;
+  }
+
   private @NotNull Label helpLabel() {
     final Label help = new Label(null, FxIconUtil.getFontIcon(FxIcons.QUESTION_CIRCLE));
     final String common = """
         Mouse wheel or pinch: zoom at the cursor
         Side by side: double-click a tile to fit it, double-click elsewhere for all
         Click: show the spectrum at this position
+        Peak labels: hover to highlight grouped features and isotopes, click to zoom to the feature
         Spectrum: click a signal to show its m/z, Ctrl/⌘ + click to add or remove m/z,
         Ctrl/⌘ + drag to add an m/z window
         """;
@@ -564,7 +683,7 @@ final class IntensityMapControls {
     return List.of(gridColumns, gridRows);
   }
 
-  @NotNull ToggleButton showLabels() {
+  @NotNull CheckMenuItem showLabels() {
     return showLabels;
   }
 

@@ -37,7 +37,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Reads the overlays of the visualizer from the raw data files, in parallel per file. Either the
- * base of the complete range, or a window whose data are merged into the bases.
+ * base of the complete range, or windows whose data are merged into the bases, one per overlay.
  */
 final class IntensityMapSamplingTask extends AbstractTask {
 
@@ -59,9 +61,10 @@ final class IntensityMapSamplingTask extends AbstractTask {
   // bases to merge window data into, empty for base reads
   private final Map<String, IntensityMapGrid> bases;
   private final ParameterSet settings;
+  // detail of base reads and of shrinking
   private final IntensityMapDetail detail;
-  // full for base reads
-  private final IntensityMapRegion window;
+  // window of every read layer, empty for base reads
+  private final Map<String, IntensityMapWindowRequest> requests;
   private final ImageNormalization normalization;
   private final IntensityMapFrameCache frames;
   private final String message;
@@ -71,16 +74,18 @@ final class IntensityMapSamplingTask extends AbstractTask {
   private volatile double reported;
 
   /**
-   * @param missing layers to read, by file
-   * @param shrink  sampled layers that only shrink to the detail, without reading
-   * @param bases   bases of the window, empty for base reads
-   * @param window  data window, full for base reads
-   * @param message progress message
+   * @param missing  layers to read, by file
+   * @param shrink   sampled layers that only shrink to the detail, without reading
+   * @param bases    bases of the window, empty for base reads
+   * @param detail   detail of base reads and of shrinking
+   * @param requests window of every read layer by id, empty for base reads
+   * @param message  progress message
    */
   IntensityMapSamplingTask(@NotNull final Map<RawDataFile, List<IntensityMapLayer>> missing,
       @NotNull final Map<String, IntensityMapGrid> shrink,
       @NotNull final Map<String, IntensityMapGrid> bases, @NotNull final ParameterSet settings,
-      @NotNull final IntensityMapDetail detail, @NotNull final IntensityMapRegion window,
+      @NotNull final IntensityMapDetail detail,
+      @NotNull final Map<String, IntensityMapWindowRequest> requests,
       @NotNull final ImageNormalization normalization, @NotNull final IntensityMapFrameCache frames,
       @NotNull final String message, @NotNull final IntensityMapSamplingListener listener) {
     super(null, Instant.now());
@@ -89,15 +94,26 @@ final class IntensityMapSamplingTask extends AbstractTask {
     this.settings = settings;
     this.detail = detail;
     this.bases = bases;
-    this.window = window;
+    this.requests = requests;
     this.normalization = normalization;
     this.frames = frames;
     this.message = message;
     this.listener = listener;
   }
 
-  @NotNull IntensityMapRegion window() {
-    return window;
+  /**
+   * @return true for reads of the complete range
+   */
+  boolean isBase() {
+    return requests.isEmpty();
+  }
+
+  /**
+   * @return the window read for the layer, full for base reads
+   */
+  @NotNull IntensityMapRegion window(@NotNull final String id) {
+    final IntensityMapWindowRequest request = requests.get(id);
+    return request == null ? IntensityMapRegion.FULL : request.window();
   }
 
   @NotNull IntensityMapDetail detail() {
@@ -157,44 +173,15 @@ final class IntensityMapSamplingTask extends AbstractTask {
       // files are independent, reading them in parallel scales with overlaid samples
       missing.entrySet().parallelStream().forEach(entry -> {
         final RawDataFile file = entry.getKey();
-        final List<IntensityMapLayer> fileLayers = entry.getValue();
-        final IntensityMapGrid[] data;
-        try {
-          data = IntensityMapSampler.sample(file, settings,
-              fileLayers.stream().map(IntensityMapLayer::mzRange).toList(), window, normalization,
-              frames, detail, new IntensityMapSampler.Progress() {
-                @Override
-                public boolean canceled() {
-                  return isCanceled();
-                }
-
-                @Override
-                public void advance(final int completed, final int total) {
-                  IntensityMapSamplingTask.this.advance(file, completed, total);
-                }
-              });
-        } catch (final IllegalArgumentException ex) {
-          // decision: one file without matching scans must not hide all other samples
-          skipped.put(file.getName(), ex.getMessage());
-          fileLayers.forEach(layer -> empty.add(layer.id()));
-          return;
+        // layers of a file in different tiles may show different windows
+        final Map<IntensityMapWindowRequest, List<IntensityMapLayer>> groups = new LinkedHashMap<>();
+        final IntensityMapWindowRequest base = new IntensityMapWindowRequest(
+            IntensityMapRegion.FULL, detail);
+        for (final IntensityMapLayer layer : entry.getValue()) {
+          groups.computeIfAbsent(requests.getOrDefault(layer.id(), base), _ -> new ArrayList<>())
+              .add(layer);
         }
-        for (int i = 0; i < data.length; i++) {
-          final String id = fileLayers.get(i).id();
-          if (window.isFull()) {
-            if (data[i] == null) {
-              empty.add(id);
-            } else {
-              results.put(id, data[i]);
-            }
-          } else {
-            // no signal in the window keeps the coarse base
-            final IntensityMapGrid base = bases.get(id);
-            if (base != null) {
-              results.put(id, data[i] == null ? base : IntensityMapGrid.merge(base, data[i]));
-            }
-          }
-        }
+        groups.forEach((request, group) -> read(file, request, group, results, empty, skipped));
       });
       if (isCanceled()) {
         listener.released(this);
@@ -212,6 +199,54 @@ final class IntensityMapSamplingTask extends AbstractTask {
       logger.log(Level.WARNING, "3D sampling failed", ex);
       error("3D sampling failed: " + ex.getMessage(), ex);
       listener.failed(this, getErrorMessage());
+    }
+  }
+
+  /**
+   * Reads layers of one file in one window.
+   */
+  private void read(@NotNull final RawDataFile file,
+      @NotNull final IntensityMapWindowRequest request,
+      @NotNull final List<IntensityMapLayer> fileLayers,
+      @NotNull final Map<String, IntensityMapGrid> results, @NotNull final Set<String> empty,
+      @NotNull final Map<String, String> skipped) {
+    final IntensityMapRegion window = request.window();
+    final IntensityMapGrid[] data;
+    try {
+      data = IntensityMapSampler.sample(file, settings,
+          fileLayers.stream().map(IntensityMapLayer::mzRange).toList(), window, normalization,
+          frames, request.detail(), new IntensityMapSampler.Progress() {
+            @Override
+            public boolean canceled() {
+              return isCanceled();
+            }
+
+            @Override
+            public void advance(final int completed, final int total) {
+              IntensityMapSamplingTask.this.advance(file, completed, total);
+            }
+          });
+    } catch (final IllegalArgumentException ex) {
+      // decision: one file without matching scans must not hide all other samples
+      skipped.put(file.getName(), ex.getMessage());
+      fileLayers.forEach(layer -> empty.add(layer.id()));
+      return;
+    }
+    for (int i = 0; i < data.length; i++) {
+      final String id = fileLayers.get(i).id();
+      if (isBase()) {
+        if (data[i] == null) {
+          empty.add(id);
+        } else {
+          results.put(id, data[i]);
+        }
+      } else {
+        final IntensityMapGrid base = bases.get(id);
+        if (base != null) {
+          // no signal in the window keeps the complete base, the window shows it
+          results.put(id, data[i] == null ? base : IntensityMapGrid.merge(base, data[i]));
+        }
+      }
     }
   }
 }

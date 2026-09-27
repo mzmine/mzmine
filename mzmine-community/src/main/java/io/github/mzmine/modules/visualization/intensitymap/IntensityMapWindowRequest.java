@@ -23,25 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.intensitymap.plot;
+package io.github.mzmine.modules.visualization.intensitymap;
 
-import java.util.Map;
-import java.util.Set;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What the plot shows of its data.
+ * A zoom window to read for one overlay. Side by side tiles show different parts of the data at
+ * different sizes, so every overlay may need its own window.
  *
- * @param overlays the visible part of each overlay in view (visible, and side by side with its tile
- *                 on screen), in drawing order. Side by side tiles show different parts of the
- *                 data, e.g. the right edge of one sample and the left edge of the next.
+ * @param window data window, including a margin around the visible part
+ * @param detail sampling density of the window
  */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+record IntensityMapWindowRequest(@NotNull IntensityMapRegion window,
+                                 @NotNull IntensityMapDetail detail) {
 
-  /**
-   * @return ids of the overlays in view
-   */
-  public @NotNull Set<String> ids() {
-    return overlays.keySet();
-  }
 }

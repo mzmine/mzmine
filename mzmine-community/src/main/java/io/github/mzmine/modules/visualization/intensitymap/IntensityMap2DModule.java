@@ -68,6 +68,6 @@ public class IntensityMap2DModule implements MZmineRunnableModule {
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
-    return IntensityMap3DModule.open(parameters, List.of(), IntensityMapProjection.TOP_VIEW);
+    return IntensityMap3DModule.open(parameters, List.of(), IntensityMapProjection.TOP_VIEW, null);
   }
 }
