@@ -569,6 +569,13 @@ public class BatchWizardTab extends SimpleTab {
         .getValue();
     final File[] optimizerFiles = RawDataPreparation.selectOptimizerInputFiles(allFiles);
 
+    if (optimizerFiles.length < 3) {
+      DialogLoggerUtil.showErrorDialog("Not enough files",
+          "The automated parameter optimisation requires ≥3 data files. Those data files"
+              + " need to be comparable (Same instrument, same method, similar or same sample)");
+      return;
+    }
+
     final var metadataFile = importParam.getOptionalValue(DataImportWizardParameters.metadataFile)
         .orElse(null);
 
