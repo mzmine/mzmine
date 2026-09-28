@@ -71,6 +71,15 @@ public class AutoParamTask extends AbstractRawDataFileTask {
   private static final Logger logger = Logger.getLogger(AutoParamTask.class.getName());
 
   private static final MZTolerance[] tolerances = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS;
+  /**
+   * Number of additional seed peaks per spectrum besides the base peak.
+   */
+  private static final int NUM_SECONDARY_SEEDS = 2;
+  /**
+   * Secondary seed peaks must be further than this from the base peak and previously picked peaks
+   * of the same spectrum.
+   */
+  private static final double SECONDARY_SEED_EXCLUSION_MZ = 10d;
   /*new MZTolerance[]{new MZTolerance(0.0005, 2), //
       new MZTolerance(0.001, 5), //
       new MZTolerance(0.005, 15), //
@@ -142,23 +151,83 @@ public class AutoParamTask extends AbstractRawDataFileTask {
       }
     }
 
-    final List<MassList> intensitySortedScans = scans.stream().map(Scan::getMassList)
+    final List<MassList> mzSortedScans = scans.stream().map(Scan::getMassList)
         .filter(ml -> ml.getBasePeakMz() != null)
         .sorted(Comparator.comparingDouble(MassList::getBasePeakMz).reversed()).toList();
 
-    for (MassList scan : intensitySortedScans) {
-      final double mz = scan.getBasePeakMz();
-      final Double entry = mzScanMap.get(mz);
-      if (entry == null) {
-        final Range<Double> range = SpectraMerging.createNewNonOverlappingRange(mzScanMap,
-            oneMzTolerance.getToleranceRange(mz));
-        mzScanMap.put(range, mz);
+    for (MassList scan : mzSortedScans) {
+      addSeedMz(mzScanMap, oneMzTolerance, scan.getBasePeakMz());
+    }
+
+    // decision: secondary peaks are added after all base peaks, so base peaks keep priority for
+    // the 1 Da bins
+    for (MassList scan : mzSortedScans) {
+      for (double mz : findSecondaryPeakMzs(scan, SECONDARY_SEED_EXCLUSION_MZ,
+          NUM_SECONDARY_SEEDS)) {
+        addSeedMz(mzScanMap, oneMzTolerance, mz);
       }
     }
 
     final double[] basePeakMzs = mzScanMap.asMapOfRanges().values().stream().mapToDouble(v -> v)
         .toArray();
     return basePeakMzs;
+  }
+
+  private static void addSeedMz(final @NotNull TreeRangeMap<Double, Double> mzScanMap,
+      final @NotNull MZTolerance oneMzTolerance, final double mz) {
+    if (mzScanMap.get(mz) != null) {
+      return;
+    }
+    final Range<Double> range = SpectraMerging.createNewNonOverlappingRange(mzScanMap,
+        oneMzTolerance.getToleranceRange(mz));
+    mzScanMap.put(range, mz);
+  }
+
+  /**
+   * Finds the next most intense peaks after the base peak. Each peak must be more than
+   * {@code exclusionMz} away from the base peak and from the peaks picked before it.
+   *
+   * @return m/z values in descending intensity order, may be shorter than {@code count}
+   */
+  static double @NotNull [] findSecondaryPeakMzs(final @NotNull MassList massList,
+      final double exclusionMz, final int count) {
+    final Integer basePeakIndex = massList.getBasePeakIndex();
+    if (basePeakIndex == null) {
+      return new double[0];
+    }
+    final int numDp = massList.getNumberOfDataPoints();
+    final double[] picked = new double[count + 1];
+    picked[0] = massList.getMzValue(basePeakIndex);
+    int numPicked = 1;
+
+    // one linear pass per peak, cheaper than sorting all signals of the zero-intensity mass list
+    while (numPicked <= count) {
+      int bestIndex = -1;
+      double bestIntensity = 0d;
+      for (int i = 0; i < numDp; i++) {
+        final double intensity = massList.getIntensityValue(i);
+        if (intensity <= bestIntensity) {
+          continue;
+        }
+        final double mz = massList.getMzValue(i);
+        boolean excluded = false;
+        for (int p = 0; p < numPicked; p++) {
+          if (Math.abs(mz - picked[p]) <= exclusionMz) {
+            excluded = true;
+            break;
+          }
+        }
+        if (!excluded) {
+          bestIndex = i;
+          bestIntensity = intensity;
+        }
+      }
+      if (bestIndex < 0) {
+        break;
+      }
+      picked[numPicked++] = massList.getMzValue(bestIndex);
+    }
+    return Arrays.copyOfRange(picked, 1, numPicked);
   }
 
   @Override
