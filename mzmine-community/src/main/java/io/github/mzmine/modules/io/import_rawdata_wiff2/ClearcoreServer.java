@@ -80,7 +80,7 @@ public class ClearcoreServer {
       "(?m)^\\s*Release\\s+REG_DWORD\\s+(0x[0-9a-fA-F]+|\\d+)\\s*$");
   private static final String WINDOWS_DOT_NET_RELEASE_REGISTRY_PATH = "HKLM\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full";
   private static final Pattern LINUX_DOT_NET_RUNTIME_PATTERN = Pattern.compile(
-      "(?m)^Microsoft\\.NETCore\\.App\\s+([\\d]+)\\.\\d\\.\\d\\b.*$");
+      "(?m)^Microsoft\\.NETCore\\.App\\s+([\\d]+)\\.\\d+\\.\\d+\\b.*$");
 
   /**
    * current instance. may change if the server crashes or so.

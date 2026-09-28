@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_library_analysis_csv;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,8 @@ public class LibraryAnalysisSubTask extends AbstractTask {
   private final List<FilteredSpec[]> pairs;
   private final ConcurrentLinkedDeque<String> outputList;
   private final int total;
+  // own format, all sub tasks format concurrently
+  private final NumberFormat scoreFormat = LibraryAnalysisCSVExportTask.createScoreFormat();
   private int done;
 
 
@@ -78,7 +81,7 @@ public class LibraryAnalysisSubTask extends AbstractTask {
         return;
       }
 
-      String line = mainTask.matchToCsvString(pair[0], pair[1]);
+      String line = mainTask.matchToCsvString(pair[0], pair[1], scoreFormat);
       if (line != null) {
         buffer.add(line);
       }

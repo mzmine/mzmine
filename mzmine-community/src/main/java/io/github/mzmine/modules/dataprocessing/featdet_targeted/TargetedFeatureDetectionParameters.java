@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -115,6 +115,8 @@ public class TargetedFeatureDetectionParameters extends SimpleParameterSet {
     var nameParameterMap = super.getNameParameterMap();
     // we use the same parameters here so no need to increment the version. Loading will work fine
     nameParameterMap.put("m/z tolerance", getParameter(mzTolerance));
+    // IonLibraryParameter#cloneParameter used to drop the custom name, old xml uses default name
+    nameParameterMap.put(IonLibraryParameter.DEFAULT_NAME, getParameter(ionLibrary));
     return nameParameterMap;
   }
 

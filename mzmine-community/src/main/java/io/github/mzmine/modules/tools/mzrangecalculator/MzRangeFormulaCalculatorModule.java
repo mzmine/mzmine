@@ -35,7 +35,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * m/z range calculator module. Calculates m/z range from a given chemical formula and m/z
@@ -96,8 +95,10 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
       return null;
     }
 
-    final IMolecularFormula iMolecularFormula = ionType.ionizeFormula(formula);
-    final double ionizedMass = FormulaUtils.calculateMzRatio(iMolecularFormula);
+    final double neutralMass = FormulaUtils.calculateExactMass(formula);
+    final double ionizedMass = ionType.getCharge() == 0 ? neutralMass
+        : (neutralMass * ionType.getNumMol() + ionType.getAddedMass())
+            / Math.abs(ionType.getCharge());
 
     return mzTolerance.getToleranceRange(ionizedMass);
   }

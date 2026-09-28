@@ -29,6 +29,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldTitle
 import static io.github.mzmine.javafx.components.util.FxLayout.DEFAULT_PADDING_INSETS;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.datamodel.identities.iontype.IonPartDefinition;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -48,8 +49,7 @@ class IonTypeCreatorPane extends BorderPane {
         FxIconUtil.newIconButtonOpenUrl(FxIcons.QUESTION_CIRCLE, FxIconUtil.DEFAULT_LARGE_ICON_SIZE,
             """
                 Define ion types, which combine ion building blocks and a multimer count.
-                Click to open the documentation.""",
-            "https://mzmine.github.io/mzmine_documentation/ions/ions.html#define-types"),
+                Click to open the documentation.""", IonsDocumentation.DEFINE_TYPES),
         newBoldTitle("All currently defined ion types"));
 
     IonTypeListView typesListView = new IonTypeListView(types);

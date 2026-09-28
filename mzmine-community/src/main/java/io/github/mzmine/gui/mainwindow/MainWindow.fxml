@@ -158,6 +158,7 @@
                             <items>
                               <MenuItem onAction="#handleOpenFeatureList" text="Open feature list" fx:id="openFeatureListMenuItem"/>
                               <MenuItem onAction="#handleShowFeatureListSummary" text="Show feature list summary" fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleSetFeatureListPreferences" text="Set feature list preferences" fx:id="setFeatureListPreferencesMenuItem"/>
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleShowCompoundDashboard" fx:id="showCompoundDashboardItem" text="Show compound dashboard"/>
                               <MenuItem onAction="#handleShowStatisticsDashboard" text="Show statistics dashboard"/>

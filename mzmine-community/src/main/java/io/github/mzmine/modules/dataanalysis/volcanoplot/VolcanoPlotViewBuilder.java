@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestRes
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationComponent;
+import io.github.mzmine.util.StringUtils;
 import java.awt.Stroke;
 import java.awt.geom.Point2D;
 import java.text.DecimalFormat;
@@ -69,6 +70,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
 
@@ -96,7 +98,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     // add the chart after the building the controls pane, bc the region wrapper automatically puts the
     // chart into it's center. to avoid the chart not showing up, set it to the plot pane afterward
-    mainPane.setCenter(chart);
+    mainPane.setCenter(createChartPane());
     mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
@@ -132,6 +134,18 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     addChartValueListener();
     initializeExternalSelectedRowListener();
     return mainPane;
+  }
+
+  /**
+   * The chart with a warning that explains why the plot is empty. Without it, a failed computation
+   * is indistinguishable from a chart that was simply not computed yet. The warning is the plot's
+   * no-data message, so it is drawn centered in the plot area whenever there is nothing to plot.
+   */
+  private @NotNull Region createChartPane() {
+    final XYPlot plot = chart.getXYPlot();
+    model.userWarningProperty()
+        .subscribe(warning -> plot.setNoDataMessage(StringUtils.isBlank(warning) ? null : warning));
+    return chart;
   }
 
   private @NotNull Accordion createControlsAccordion() {

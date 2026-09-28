@@ -298,11 +298,13 @@ public abstract class ScanDataAccess implements Scan {
     return masses == null ? null : masses.getDataPointMZRange();
   }
 
-  @Nullable
   @Override
-  public Double getTIC() {
+  public double getTIC() {
     MassSpectrum masses = getCurrentDataSource();
-    return masses == null ? null : masses.getTIC();
+    if (masses == null) {
+      throw new UnsupportedOperationException("No datasource loaded.");
+    }
+    return masses.getTIC();
   }
 
   /**

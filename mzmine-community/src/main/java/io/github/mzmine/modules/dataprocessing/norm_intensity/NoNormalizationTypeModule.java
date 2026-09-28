@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * completely during normalization. Mostly implemented to have the option to select no
  * normalization.
  */
-public class NoNormalizationTypeModule implements NormalizationTypeModule {
+public final class NoNormalizationTypeModule implements NormalizationTypeModule {
 
   @Override
   public void createAllNormalizationFunctionsToSummary(

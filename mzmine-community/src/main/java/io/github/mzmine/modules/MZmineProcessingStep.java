@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,8 @@
 
 package io.github.mzmine.modules;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface for a processing step. Processing step means a reference to MZmine module and its
@@ -39,7 +37,7 @@ public interface MZmineProcessingStep<ModuleType extends MZmineModule> {
   @NotNull
   public ModuleType getModule();
 
-  @Nullable
+  @NotNull
   public ParameterSet getParameterSet();
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
@@ -70,8 +71,12 @@ public class PCAModel {
 
   private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
       ImputationFunctions.OneFifthOfMinimum);
-  private final ObjectProperty<SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
-      SampleTypeFilter.sample());
+  /**
+   * The open ended "all sample types" mode is part of the filter, so it survives a round trip
+   * through {@link PCALoadingsExtractionParameters}.
+   */
+  private final ObjectProperty<@NotNull SampleTypeFilter> sampleTypeFilter = new SimpleObjectProperty<>(
+      SampleTypeFilter.of(SampleType.SAMPLE));
 
   // null = feature list rows; non-null = use compound list with the given selection level
   private final ObjectProperty<@Nullable CompoundRowSelection> compoundRowSelection = new SimpleObjectProperty<>(
@@ -229,11 +234,11 @@ public class PCAModel {
     return imputationFunction;
   }
 
-  public SampleTypeFilter getSampleTypeFilter() {
+  public @NotNull SampleTypeFilter getSampleTypeFilter() {
     return sampleTypeFilter.get();
   }
 
-  public ObjectProperty<SampleTypeFilter> sampleTypeFilterProperty() {
+  public ObjectProperty<@NotNull SampleTypeFilter> sampleTypeFilterProperty() {
     return sampleTypeFilter;
   }
 

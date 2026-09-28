@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -279,7 +279,9 @@ public class FileAndPathUtil {
     if (file.isDirectory()) {
       return "";
     } else {
-      return file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf("\\") + 1);
+      final String path = file.getPath();
+      final int lastSeparator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+      return lastSeparator < 0 ? path : path.substring(lastSeparator + 1);
     }
   }
 

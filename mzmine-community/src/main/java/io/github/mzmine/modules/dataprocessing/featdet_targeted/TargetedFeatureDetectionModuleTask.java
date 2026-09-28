@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,16 @@
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
@@ -39,10 +43,12 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.identities.iontype.IonLibrary;
@@ -153,11 +159,11 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         mzTol.getPpmTolerance() * 2);
 
     final List<OverlappingCompoundAnnotation> overlappingCompoundAnnotations = new ArrayList<>();
-    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList(annotations);
+    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList<>(annotations);
     sortedAnnotations.sort(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ));
 
     while (!sortedAnnotations.isEmpty()) {
-      final CompoundDBAnnotation annotation = sortedAnnotations.remove(0);
+      final CompoundDBAnnotation annotation = sortedAnnotations.removeFirst();
 
       final Range<Double> doubleToleranceRange = doubleTolerance.getToleranceRange(
           annotation.getPrecursorMZ());
@@ -167,10 +173,6 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       final OverlappingCompoundAnnotation overlappingAnnotation = new OverlappingCompoundAnnotation(
           annotation, mzTol, rtTol, mobTol);
 
-      // check against all remaining annotations
-      if (sortedAnnotations.isEmpty()) {
-        continue;
-      }
       for (Iterator<CompoundDBAnnotation> iterator = sortedAnnotations.iterator();
           iterator.hasNext(); ) {
         final CompoundDBAnnotation sortedAnnotation = iterator.next();
@@ -239,9 +241,10 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
           ID++);
       final OverlappingCompoundAnnotation mergedAnnotation = mergedAnnotations.get(row);
 
-      final Range<Double> mzRange = mzTolerance.getToleranceRange(
+      final SimpleDoubleRange mzRange = mzTolerance.getSimpleToleranceRange(
           mergedAnnotation.evaluateMergedToleranceRange(mzTolerance));
-      final Range<Float> rtRange = mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance);
+      final SimpleFloatRange rtRange = SimpleRange.ofFloat(
+          mergedAnnotation.evaluateMergedRtToleranceRange(rtTolerance));
       final Range<Float> mobRange = mergedAnnotation.evaluateMergedMobilityToleranceRange(mobTol);
 
       newRow.setCompoundAnnotations(mergedAnnotation.getAnnotations());
@@ -287,10 +290,11 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
           .sort(Comparator.comparingDouble(a -> a.getScore() != null ? a.getScore() : 0f));
     }
 
+    dataFile.getAppliedMethods().forEach(m -> processedFeatureList.getAppliedMethods().add(m));
+
     // Append processed feature list to the project
     project.addFeatureList(processedFeatureList);
 
-    dataFile.getAppliedMethods().forEach(m -> processedFeatureList.getAppliedMethods().add(m));
     // Add task description to peakList
     processedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Targeted feature detection ",
@@ -319,13 +323,19 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       processedScans++;
     }
 
+    finalizeFeatures(gaps);
+    return true;
+  }
+
+  private void finalizeFeatures(List<? extends Gap> gaps) {
     for (Gap gap : gaps) {
       final FeatureListRow row = gap.getFeatureListRow();
       if (gap.noMoreOffers(minDataPoints)) {
+        ((ModularFeature) row.getFeature(gap.getRawDataFile())).set(DetectionType.class,
+            FeatureStatus.DETECTED);
         processedFeatureList.addRow(row);
       }
     }
-    return true;
   }
 
   private boolean processLcmsFile(List<Gap> gaps) {
@@ -347,13 +357,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       processedScans++;
     }
 
-    for (Gap gap : gaps) {
-      // Finalize gaps
-      final FeatureListRow row = gap.getFeatureListRow();
-      if (gap.noMoreOffers()) {
-        processedFeatureList.addRow(row);
-      }
-    }
+    finalizeFeatures(gaps);
     return true;
   }
 

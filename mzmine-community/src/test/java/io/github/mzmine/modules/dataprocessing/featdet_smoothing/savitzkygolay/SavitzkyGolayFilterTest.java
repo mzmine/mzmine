@@ -46,7 +46,7 @@ class SavitzkyGolayFilterTest {
     final int to = from + window.length;
     final double[] out = new double[full.length];
 
-    SavitzkyGolayFilter.convolve(full, from, to, weights, out);
+    SavitzkyGolayFilter.convolve(full, from, to, weights, out, true);
 
     // results inside the window must equal the standalone convolution (no bleeding from neighbours)
     for (int i = 0; i < window.length; i++) {
@@ -63,7 +63,7 @@ class SavitzkyGolayFilterTest {
 
     final int from = 3;
     final int to = 6;
-    SavitzkyGolayFilter.convolve(full, from, to, weights, out);
+    SavitzkyGolayFilter.convolve(full, from, to, weights, out, true);
 
     // positions outside [from, to) must remain at their sentinel value
     for (int i = 0; i < full.length; i++) {
@@ -80,8 +80,8 @@ class SavitzkyGolayFilterTest {
     final double[] full = new double[]{10, 10, 10, 0, 0, 1000, 1000, 1000};
     final double[] out = new double[full.length];
 
-    SavitzkyGolayFilter.convolve(full, 0, 3, weights, out);
-    SavitzkyGolayFilter.convolve(full, 5, 8, weights, out);
+    SavitzkyGolayFilter.convolve(full, 0, 3, weights, out, true);
+    SavitzkyGolayFilter.convolve(full, 5, 8, weights, out, true);
 
     // first range smoothed in isolation -> stays around 10, not pulled up by the 1000s
     final double[] firstExpected = SavitzkyGolayFilter.convolve(new double[]{10, 10, 10}, weights);

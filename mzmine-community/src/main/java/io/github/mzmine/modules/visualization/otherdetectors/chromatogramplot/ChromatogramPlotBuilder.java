@@ -31,6 +31,7 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.ChartGestureMouseAdapterFX;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SeriesKeyAtMaxLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
@@ -75,6 +76,20 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
     chart.setMinHeight(100);
     chart.setMinWidth(100);
 
+    chart.getXYPlot().setDomainCrosshairVisible(true);
+    chart.getXYPlot().setRangeCrosshairVisible(true);
+    chart.getXYPlot().setDomainCrosshairPaint(new java.awt.Color(0, 0, 0, 100));
+    chart.getXYPlot().setRangeCrosshairPaint(new java.awt.Color(0, 0, 0, 100));
+    chart.getXYPlot().setDomainCrosshairStroke(new BasicStroke(0.5f));
+    chart.getXYPlot().setRangeCrosshairStroke(new BasicStroke(0.5f));
+
+    chart.setOnMouseClicked(e -> {
+      final PlotCursorPosition pos = chart.getCursorPosition();
+      if (pos != null) {
+        model.setCursorPosition(pos);
+      }
+    });
+
     chart.getXYPlot().getRangeAxis().setUpperMargin(0.08);
 
     model.rangeStickyZeroProperty().subscribe(sticky -> {
@@ -106,9 +121,24 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
       var theme = ConfigService.getConfiguration().getDefaultChartTheme();
       theme.applyToTitles(model.getChart().getChart());
     });
-    model.domainLabelProperty()
-        .subscribe(label -> chart.getXYPlot().getDomainAxis().setLabel(label));
-    model.rangeLabelProperty().subscribe(label -> chart.getXYPlot().getRangeAxis().setLabel(label));
+    model.domainLabelProperty().subscribe(label -> {
+      if (model.isShowDomainAxisLabel()) {
+        chart.getXYPlot().getDomainAxis().setLabel(label);
+      }
+    });
+    model.rangeLabelProperty().subscribe(label -> {
+      if (model.isShowRangeAxisLabel()) {
+        chart.getXYPlot().getRangeAxis().setLabel(label);
+      }
+    });
+
+    model.showDomainAxisLabelProperty().subscribe(show -> {
+      chart.getXYPlot().getDomainAxis().setLabel(show ? model.getDomainLabel() : null);
+    });
+    model.showRangeAxisLabelProperty().subscribe(show -> {
+      chart.getXYPlot().getRangeAxis().setLabel(show ? model.getRangeLabel() : null);
+    });
+
     model.rangeAxisFormatProperty().subscribe(
         format -> ((NumberAxis) chart.getXYPlot().getRangeAxis()).setNumberFormatOverride(format));
     model.domainAxisFormatProperty().subscribe(
@@ -154,9 +184,8 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
       if (!show) {
         return;
       }
-      chart.applyWithNotifyChanges(false,
-          () -> model.getDatasetRenderers().values()
-              .forEach(r -> applySeriesLabel(r, seriesLabelGenerator, tooltipGenerator)));
+      chart.applyWithNotifyChanges(false, () -> model.getDatasetRenderers().values()
+          .forEach(r -> applySeriesLabel(r, seriesLabelGenerator, tooltipGenerator)));
     });
   }
 
@@ -216,8 +245,8 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
     // Re-apply strokes when the selection changes or new datasets land.
     model.selectedDatasetProperty().subscribe(_ -> applySelectedDatasetHighlight(chart));
-    model.datasetRenderersProperty().addListener(
-        (MapChangeListener<XYDataset, XYItemRenderer>) _ -> {
+    model.datasetRenderersProperty()
+        .addListener((MapChangeListener<XYDataset, XYItemRenderer>) _ -> {
           // If the selected dataset was removed, clear the selection.
           final XYDataset selected = model.getSelectedDataset();
           if (selected != null && !model.getDatasetRenderers().containsKey(selected)) {

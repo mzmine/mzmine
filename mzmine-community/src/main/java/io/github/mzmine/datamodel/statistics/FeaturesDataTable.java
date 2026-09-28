@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -107,7 +107,7 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
       }
     }
 
-    // index data if needed
+    // index data if needed. reused maps already carry NO_INDEX as they only come from this class
     this.featureRowIndexMap = featureRowIndexMap != null ? featureRowIndexMap
         : CollectionUtils.indexMapUnordered(
             Arrays.stream(dataRows).map(FeatureListRowAbundances::row).toList());
@@ -123,12 +123,31 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
     return new FeaturesDataTable(dataFiles, newRows, null, dataFileIndexMap, processingHistory);
   }
 
+  /**
+   * @throws IllegalArgumentException if the row is not part of this data table. Silently returning
+   *                                  an index would read another row's abundances.
+   */
   public int getFeatureIndex(FeatureListRow row) {
-    return featureRowIndexMap.getInt(row);
+    final int index = featureRowIndexMap.getInt(row);
+    if (index == -1) {
+      throw new IllegalArgumentException(
+          "Feature list row %s is not in this data table (%d rows).".formatted(
+              row == null ? "null" : String.valueOf(row.getID()), dataRows.length));
+    }
+    return index;
   }
 
+  /**
+   * @throws IllegalArgumentException if the sample is not part of this data table
+   */
   public int getSampleIndex(RawDataFile dataFile) {
-    return dataFileIndexMap.getInt(dataFile);
+    final int index = dataFileIndexMap.getInt(dataFile);
+    if (index == -1) {
+      throw new IllegalArgumentException(
+          "Raw data file %s is not in this data table (%d samples).".formatted(
+              dataFile == null ? "null" : dataFile.getName(), dataFiles.size()));
+    }
+    return index;
   }
 
   public void setValue(FeatureListRow row, RawDataFile dataFile, double value) {
@@ -199,18 +218,18 @@ public final class FeaturesDataTable extends AbstractRowArrayDataTable {
    * @return a subset of all rows but only selected raw data files
    */
   public FeaturesDataTable subsetBySamples(List<RawDataFile> group) {
-    // find index of raw data files
+    // find index of raw data files. check before mapping, otherwise a missing file would only
+    // trigger a NullPointerException while unboxing
     final Map<RawDataFile, Integer> fileIndexMap = CollectionUtils.indexMapOrdered(dataFiles);
-
-    final int[] groupIndexes = group.stream().mapToInt(fileIndexMap::get).toArray();
-    if (groupIndexes.length != group.size()) {
-      for (RawDataFile raw : group) {
-        if (!fileIndexMap.containsKey(raw)) {
-          throw new IllegalArgumentException(
-              "Raw data file " + raw.getName() + " is not in the data table.");
-        }
+    for (RawDataFile raw : group) {
+      if (!fileIndexMap.containsKey(raw)) {
+        throw new IllegalArgumentException(
+            "Raw data file " + (raw == null ? "null" : raw.getName())
+            + " is not in the data table.");
       }
     }
+
+    final int[] groupIndexes = group.stream().mapToInt(fileIndexMap::get).toArray();
 
     final FeatureListRowAbundances[] subData = Arrays.stream(dataRows)
         .map(row -> row.subsetByIndexes(groupIndexes)).toArray(FeatureListRowAbundances[]::new);

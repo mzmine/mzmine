@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,9 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +47,12 @@ import org.jetbrains.annotations.NotNull;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class ImageBuilderParameters extends SimpleParameterSet {
+
+  public static final RawDataFilesParameter dataFiles = ADAPChromatogramBuilderParameters.dataFiles.cloneParameter();
+
+  public static final ScanSelectionParameter scanSelection = ADAPChromatogramBuilderParameters.scanSelection.cloneParameter();
+
+  public static final MZToleranceParameter mzTolerance = ADAPChromatogramBuilderParameters.mzTolerance.cloneParameter();
 
   public static final IntegerParameter minTotalSignals = new IntegerParameter(
       "Minimum total signals", "Minimum number of signals (data points) to form an image", 50, true,
@@ -57,18 +66,12 @@ public class ImageBuilderParameters extends SimpleParameterSet {
       "Minimum intensity of an m/z to be considered as an image.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
-
   public static final StringParameter suffix = new StringParameter("Suffix",
       "This string is added to filename as suffix", "images");
 
   public ImageBuilderParameters() {
-    super(ADAPChromatogramBuilderParameters.dataFiles,
-        ADAPChromatogramBuilderParameters.scanSelection,
-        ADAPChromatogramBuilderParameters.mzTolerance,
-        ADAPChromatogramBuilderParameters.minHighestPoint,
-        minTotalSignals,
-        minimumConsecutiveScans,
-        suffix);
+    super(dataFiles, scanSelection, mzTolerance, minHighest, minTotalSignals,
+        minimumConsecutiveScans, suffix);
   }
 
   @Override
@@ -92,4 +95,5 @@ public class ImageBuilderParameters extends SimpleParameterSet {
   public int getVersion() {
     return 2;
   }
+
 }

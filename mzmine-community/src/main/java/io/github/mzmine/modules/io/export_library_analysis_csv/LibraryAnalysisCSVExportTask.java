@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +83,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
       "signal_contributions", "signals_contr_gr_0_05"};
   private static final String EMPTY_VALUES = ",,,,,,,,";
 
-  private static final DecimalFormat format = new DecimalFormat("0.000");
+  private static final String SCORE_PATTERN = "0.000";
   private static final Logger logger = Logger.getLogger(
       LibraryAnalysisCSVExportTask.class.getName());
   private final String fieldSeparator;
@@ -330,11 +331,19 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     }
   }
 
-  public String matchToCsvString(FilteredSpec a, FilteredSpec b) {
-    String cos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), false);
-    String modcos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), true);
+  /**
+   * @return an own format for each {@link LibraryAnalysisSubTask}, they all format concurrently
+   */
+  public static @NotNull NumberFormat createScoreFormat() {
+    return new DecimalFormat(SCORE_PATTERN);
+  }
+
+  public String matchToCsvString(FilteredSpec a, FilteredSpec b,
+      final @NotNull NumberFormat format) {
+    String cos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), false, format);
+    String modcos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), true, format);
     String nl = getSimilarity(a.neutralLosses(), b.neutralLosses(), a.precursorMZ(),
-        b.precursorMZ(), false);
+        b.precursorMZ(), false, format);
 
     if (cos == null && modcos == null && nl == null) {
       return null;
@@ -372,7 +381,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
   }
 
   public String getSimilarity(DataPoint[] sortedA, DataPoint[] sortedB, double precursorMzA,
-      double precursorMzB, boolean modAware) {
+      double precursorMzB, boolean modAware, final @NotNull NumberFormat format) {
 
     // align
     final List<DataPoint[]> aligned = alignDataPoints(sortedA, sortedB, precursorMzA, precursorMzB,

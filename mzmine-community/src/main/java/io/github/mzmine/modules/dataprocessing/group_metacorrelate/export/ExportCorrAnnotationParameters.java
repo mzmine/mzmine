@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -47,9 +46,6 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
   public static final BooleanParameter exportIIN = new BooleanParameter("Export IIN edges",
       "Export all edges of Ion Identity Networks (IIN)", true);
-  public static final BooleanParameter exportIINRelationship = new BooleanParameter(
-      "Export IIN relationship edges", "Export relationships between Ion Identity Networks (IIN)",
-      false);
   public static final MultiChoiceParameter<RowsRelationship.Type> exportTypes = new MultiChoiceParameter<>(
       "Export row relationships", "Export all relationships of different rows to files",
       Type.values(), Type.values(), 1);
@@ -69,8 +65,7 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
 
   // Constructor
   public ExportCorrAnnotationParameters() {
-    super(featureLists, filename, exportTypes, allInOneFile, exportIIN, exportIINRelationship,
-        filter);
+    super(featureLists, filename, exportTypes, allInOneFile, exportIIN, filter);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,8 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -42,9 +43,9 @@ public class Comparators {
   public static final Comparator<FeatureList> FEATURE_LIST_DEFAULT = Comparator.<FeatureList>comparingInt(
       fl -> fl.getNumberOfRawDataFiles() > 1 ? 1 : 0).thenComparing((o1, o2) -> {
     try {
-      return ModularFeatureList.DATA_FORMAT.parse(o1.getDateCreated())
-          .compareTo(ModularFeatureList.DATA_FORMAT.parse(o2.getDateCreated()));
-    } catch (ParseException e) {
+      return LocalDateTime.parse(o1.getDateCreated(), ModularFeatureList.DATA_FORMAT)
+          .compareTo(LocalDateTime.parse(o2.getDateCreated(), ModularFeatureList.DATA_FORMAT));
+    } catch (DateTimeParseException | NullPointerException e) {
       return 0;
     }
   }).thenComparing(fl -> fl.getAppliedMethods().size()).reversed();

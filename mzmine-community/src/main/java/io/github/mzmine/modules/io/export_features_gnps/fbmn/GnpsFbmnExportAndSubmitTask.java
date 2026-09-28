@@ -313,7 +313,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
           .getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
     }
 
-    return new ExportCorrAnnotationTask(featureLists, full, 0, filter, exAnn, false, false, false,
+    return new ExportCorrAnnotationTask(featureLists, full, 0, filter, exAnn, false, false,
         getModuleCallDate());
   }
 

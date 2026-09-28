@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -24,11 +25,10 @@
 
 package io.github.mzmine.datamodel.features;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.github.mzmine.datamodel.features.columnar_data.ColumnarModularDataModelSchema;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.modifiers.MappingType;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -77,28 +77,10 @@ public abstract class ModularDataModelMap implements ModularDataModel {
    */
   @Override
   public @Nullable <T extends Object> T get(DataType<T> type) {
+    if (type instanceof MappingType<?> mt) {
+      return (T) mt.getValue(this);
+    }
     return (T) getMap().get(type);
-  }
-
-  /**
-   * Value for this datatype or default value if no value was mapped. So only returns default if
-   * there was no mapping
-   *
-   * @return
-   */
-  @Override
-  public @Nullable <T> T getOrDefault(DataType<T> type, T defaultValue) {
-    return (T) getMap().getOrDefault(type, defaultValue);
-  }
-
-  /**
-   * Value for this datatype or default value if no value was mapped or the mapped value was null
-   *
-   * @return
-   */
-  @Override
-  public @NotNull <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
-    return (T) requireNonNullElse(getMap().getOrDefault(type, null), defaultValue);
   }
 
   /**

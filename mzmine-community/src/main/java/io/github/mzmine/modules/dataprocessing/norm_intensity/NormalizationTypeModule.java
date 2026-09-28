@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -34,7 +35,9 @@ import org.jetbrains.annotations.NotNull;
  * A base normalization module. {@link NormalizationTypeWithReferencesModule} if the normalization
  * may be applied to references samples and then interpolated for others.
  */
-public interface NormalizationTypeModule extends MZmineModule {
+public sealed interface NormalizationTypeModule extends MZmineModule permits
+    InternalStandardSelectingNormalizer, MetadataColumnNormalizationTypeModule,
+    NoNormalizationTypeModule, NormalizationTypeWithReferencesModule {
 
   void createAllNormalizationFunctionsToSummary(
       @NotNull IntensityNormalizationSearchableSummary summary,

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -60,7 +61,7 @@ public final class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     this.lipidClass = lipidClass;
     this.annotation = annotation;
     this.molecularFormula = molecularFormula;
-    this.lipidChains = lipidChains;
+    this.lipidChains = List.copyOf(lipidChains);
   }
 
   @Override

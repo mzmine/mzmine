@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -49,9 +48,6 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
-  public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
-      IsotopePattern::getNumberOfDataPoints);
-
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
 
@@ -60,11 +56,35 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   public MultiChargeStateIsotopePattern(@NotNull List<IsotopePattern> patterns) {
+    this(patterns, true);
+  }
+
+  /**
+   * @param patterns one per charge state, must not be empty.
+   * @param sort     whether to (re-)rank by {@link IsotopePattern#patternScoreComparator}. Pass
+   *                 {@code false} when the caller ranked them with more information than a single
+   *                 score carries - the isotope finder picks its winner from quality AND a
+   *                 peak-count reward, so re-deriving the order from the score alone is lossy and
+   *                 could disagree with the charge assigned to the feature.
+   */
+  private MultiChargeStateIsotopePattern(@NotNull List<IsotopePattern> patterns,
+      final boolean sort) {
     if (patterns.isEmpty()) {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
-    evaluateIsotopePatterns();
+    if (sort) {
+      evaluateIsotopePatterns();
+    }
+  }
+
+  /**
+   * Wrap patterns the caller ALREADY ranked, preserving that order: the first element stays the
+   * {@link #getPreferredIsotopePattern() preferred} one.
+   */
+  public static @NotNull MultiChargeStateIsotopePattern ofRanked(
+      @NotNull final List<IsotopePattern> bestFirst) {
+    return new MultiChargeStateIsotopePattern(bestFirst, false);
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -84,7 +104,10 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
         patterns.add(SimpleIsotopePattern.loadFromXML(reader));
       }
     }
-    return patterns.isEmpty() ? null : new MultiChargeStateIsotopePattern(patterns);
+    // decision: keep the persisted order. The file order IS the ranking the writer chose - which
+    // the stored score alone cannot reproduce - so re-sorting could change the preferred charge on
+    // reload. Legacy files without scores were written in sorted order anyway.
+    return patterns.isEmpty() ? null : ofRanked(patterns);
   }
 
   /**
@@ -155,6 +178,11 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   @Override
+  public double getScore() {
+    return getPreferredIsotopePattern().getScore();
+  }
+
+  @Override
   public @NotNull IsotopePatternStatus getStatus() {
     return getPreferredIsotopePattern().getStatus();
   }
@@ -181,7 +209,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @NotNull Double getTIC() {
+  public double getTIC() {
     return getPreferredIsotopePattern().getTIC();
   }
 
@@ -256,9 +284,10 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   /**
-   * Sorts the isotope patterns by pattern size.
+   * Sorts the isotope patterns by quality score (best first), falling back to pattern size when no
+   * scores are present.
    */
   private void evaluateIsotopePatterns() {
-    patterns.sort(patternSizeComparator);
+    patterns.sort(patternScoreComparator);
   }
 }

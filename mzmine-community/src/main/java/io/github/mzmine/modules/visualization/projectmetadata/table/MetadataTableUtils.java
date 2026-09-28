@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -208,9 +209,10 @@ public class MetadataTableUtils {
     RawDataFile previousRun = getPreviousRun(fileToInterpolate, referenceFiles, metadata);
 
     if (nextRun == null && previousRun == null) {
-      throw new IllegalStateException(
-          "Neither previous or next run found for sample \"%s\". Cannot normalize that file. "
-              + "Remove from processing or provide appropriate reference samples for normalization.");
+      throw new IllegalStateException("""
+          Neither previous or next reference run found for sample "%s" in %d reference files. Cannot normalize that file. \
+          Remove from processing or provide appropriate reference samples for normalization.""".formatted(
+          fileToInterpolate.getName(), referenceFiles.size()));
     } else // only next run is found
       // only next run is found
       if (nextRun != null && previousRun != null) {

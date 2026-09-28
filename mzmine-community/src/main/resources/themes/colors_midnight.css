@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -27,6 +28,10 @@
     -jr-theme: #58a6ff;
     -jr-accent: #388bfd;
     -jr-accent-below-text: #1a3a6c;
+    /* Default (highlighted) button: use the accent directly instead of the style's
+       lightened default (derive(-jr-accent, 50%)) so the near-white button text stays
+       readable on the darker fill in this dark theme. */
+    -fx-default-button: -jr-accent;
     -jr-selected: -jr-accent;
     -jr-hover: #fff1;
 

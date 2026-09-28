@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -28,15 +29,22 @@ import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Options for combo parameters that allow a built-in default, an off/disabled state, or a custom
- * user-defined value.
+ * Options for combo parameters that allow a built-in default, an off/disabled state, a custom
+ * user-defined value, or keeping current value.
  */
 public enum DefaultOffCustomOption implements UniqueIdSupplier {
-  DEFAULT, OFF, CUSTOM;
+
+  /**
+   * The parameter defines no value, the value that is already in effect at the target is kept. Only
+   * offered if the parameter was created with keep as is enabled, see
+   * {@link DefaultOffCustomParameter}.
+   */
+  KEEP_AS_IS, DEFAULT, OFF, CUSTOM;
 
   @Override
   public @NotNull String getUniqueID() {
     return switch (this) {
+      case KEEP_AS_IS -> "keep_as_is";
       case DEFAULT -> "default";
       case OFF -> "off";
       case CUSTOM -> "custom";
@@ -46,6 +54,7 @@ public enum DefaultOffCustomOption implements UniqueIdSupplier {
   @Override
   public String toString() {
     return switch (this) {
+      case KEEP_AS_IS -> "Keep as is";
       case DEFAULT -> "Default";
       case OFF -> "Off";
       case CUSTOM -> "Custom";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,6 +110,8 @@ record StorableIonLibrary(@JacksonXmlProperty(isAttribute = true)//
       }
     }
 
+    // the ion types keep the order of the library: embedding formats reference an ion type by its
+    // position here, see IonLibraryIO.toJson, so this mapping must stay 1:1 and in order
     final List<IonTypeDTO> types = library.ions().stream().map(ion -> new IonTypeDTO(
         ion.parts().stream().map(p -> new IonPartID(idByNoCount.get(noCountKey(p)), p.count()))
             .toList(), ion.molecules())).toList();

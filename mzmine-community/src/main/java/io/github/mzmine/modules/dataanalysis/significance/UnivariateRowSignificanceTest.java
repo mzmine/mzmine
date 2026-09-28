@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.statistics.FeaturesDataTable;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.UnivariateRowSignificanceTestResult;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.statistics.UnivariateRowSignificanceTestConfig;
 import io.github.mzmine.project.ProjectService;
@@ -51,13 +50,19 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
 
   public UnivariateRowSignificanceTest(@NotNull FeaturesDataTable dataTable,
       @NotNull SignificanceTests test, MetadataColumn<T> column, T groupA, T groupB) {
-    List<RawDataFile> groupedFilesA = ProjectService.getMetadata().getMatchingFiles(column, groupA);
-    List<RawDataFile> groupedFilesB = ProjectService.getMetadata().getMatchingFiles(column, groupB);
+    // limit to actual raw data files to not select files not in feature table
+    final List<RawDataFile> actualRaws = dataTable.getRawDataFiles();
 
+    // this might throw MetadataValueDoesNotExistException
+    List<RawDataFile> groupedFilesA = ProjectService.getMetadata()
+        .getMatchingFiles(actualRaws, column, groupA);
+    List<RawDataFile> groupedFilesB = ProjectService.getMetadata()
+        .getMatchingFiles(actualRaws, column, groupB);
     if (groupedFilesA.size() < 2 || groupedFilesB.size() < 2) {
       throw new IllegalArgumentException("""
-          Not enough matching files for group, at least two samples required but column %s had %s n=%d and %s n=%d samples.""".formatted(
-          column.getTitle(), groupA, groupedFilesA.size(), groupB, groupedFilesB.size()));
+          Not enough samples for group, at least two samples required per group. Column %s had %s n=%d and %s n=%d samples in the selected feature list (of %d samples).""".formatted(
+          column.getTitle(), groupA, groupedFilesA.size(), groupB, groupedFilesB.size(),
+          dataTable.getNumberOfSamples()));
     }
 
     // split table into the two groups
@@ -111,7 +116,8 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
     } catch (Exception e) {
       // this should not happen after imputing missing values and providing a p value for every input
       throw new IllegalStateException(
-          "Reached ANOVA error which should not happen after missing value imputation");
+          "Error while computing significance test for row " + row.getID() + ": " + e.getMessage(),
+          e);
     }
   }
 
@@ -132,15 +138,12 @@ public final class UnivariateRowSignificanceTest<T> implements RowSignificanceTe
   }
 
   public List<RawDataFile> getGroupAFiles() {
-    final MetadataTable metadata = ProjectService.getMetadata();
-    return metadata.getMatchingFiles(column(), groupA());
+    return groupAData.getRawDataFiles();
   }
 
   public List<RawDataFile> getGroupBFiles() {
-    final MetadataTable metadata = ProjectService.getMetadata();
-    return metadata.getMatchingFiles(column(), groupB());
+    return groupBData.getRawDataFiles();
   }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == this) {

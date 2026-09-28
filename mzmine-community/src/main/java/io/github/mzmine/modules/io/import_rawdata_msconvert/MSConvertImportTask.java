@@ -321,8 +321,9 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
 
     if (convertToFile) {
       ProcessBuilder builder = new ProcessBuilder(cmdLine).directory(FileAndPathUtil.getTempDir());
+      Process process = null;
       try {
-        final Process process = builder.start();
+        process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
           if (isCanceled()) {
             process.destroy();
@@ -330,6 +331,13 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
           TimeUnit.MILLISECONDS.sleep(100);
         }
       } catch (IOException | InterruptedException e) {
+        // an interrupt would otherwise leave msconvert running after mzmine exits
+        if (process != null) {
+          process.destroy();
+        }
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
         logger.log(Level.WARNING, "Error while converting %s to mzML file.".formatted(rawFilePath),
             e);
         setStatus(TaskStatus.ERROR);

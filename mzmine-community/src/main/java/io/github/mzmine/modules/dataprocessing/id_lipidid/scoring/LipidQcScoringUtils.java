@@ -1064,6 +1064,25 @@ public final class LipidQcScoringUtils {
     }
   }
 
+  /**
+   * Removes lipid annotations below a previously computed overall quality score threshold.
+   * <p>
+   * This method must only be called after scores for the complete feature list have been computed.
+   * Context-dependent scores such as elution order must be frozen before any annotations are
+   * removed, otherwise the result depends on row processing order.
+   */
+  public static void filterLipidAnnotationsByOverallQualityScore(
+      final @NotNull FeatureListRow row, final double minimumOverallQualityScore) {
+    final float minimumScore = (float) clampToUnit(minimumOverallQualityScore);
+    if (minimumScore <= 0f) {
+      return;
+    }
+    row.setLipidAnnotations(row.getLipidMatches().stream().filter(match -> {
+      final Float score = match.getOverallQualityScore();
+      return score != null && Float.compare(score, minimumScore) >= 0;
+    }).toList());
+  }
+
   public static void sortLipidAnnotationsByOverallScore(@NotNull final FeatureListRow row) {
     row.setLipidAnnotations(row.getLipidMatches().stream().sorted(
             Comparator.comparing(MatchedLipid::getOverallQualityScore, Comparators.scoreDescending()))

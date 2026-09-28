@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.identities.fx;
 
+import io.github.mzmine.datamodel.identities.IonsDocumentation;
 import io.github.mzmine.parameters.impl.CurrentProjectNoDialogParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 
@@ -36,6 +37,6 @@ public class GlobalIonLibrariesParameters extends CurrentProjectNoDialogParamete
       This allows sharing of ion libraries. If conflicts arise between this and the local user directory - the additional lists will overrule the local definitions.""");
 
   public GlobalIonLibrariesParameters() {
-    super(otherDirectory);
+    super(IonsDocumentation.IONS_PAGE, otherDirectory);
   }
 }

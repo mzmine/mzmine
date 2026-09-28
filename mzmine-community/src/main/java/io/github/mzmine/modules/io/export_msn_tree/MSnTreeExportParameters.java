@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,6 @@
 
 package io.github.mzmine.modules.io.export_msn_tree;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -62,12 +61,14 @@ public class MSnTreeExportParameters extends SimpleParameterSet {
   );
   public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
       "Filename", "Name of the raw data files to be exported "
-                  + "Use pattern \"{}\" in the file name to substitute with raw data filename. "
-                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSOURCE_DATAFILE_Nameblah.mgf\"). "
-                  + "If the file already exists, it will be overwritten.", extensions, "msn_tress");
+      + "Use pattern \"{}\" in the file name to substitute with raw data filename. "
+      + "(i.e. \"blah{}blah.mgf\" would become \"blahSOURCE_DATAFILE_Nameblah.mgf\"). "
+      + "If the file already exists, it will be overwritten.", extensions, "msn_tress");
 
   public MSnTreeExportParameters() {
-    super(new Parameter[]{RAW_FILES, FILENAME, SEPARATOR, MZ_TOL});
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/io_export_msn_tree/msn_tree_export.html",
+        RAW_FILES, FILENAME, SEPARATOR, MZ_TOL);
   }
 
   @Override

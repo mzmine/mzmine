@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -31,17 +32,20 @@ import static io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.ScanRt
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration2.methods.RtCorrectionFunctions;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
 import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterDialogWithPreviewPanes;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -52,7 +56,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RTCorrectionParameters extends SimpleParameterSet {
@@ -60,6 +66,10 @@ public class RTCorrectionParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(0.01, 15);
+
+  public static final BooleanParameter clearPreviousCorrection = new BooleanParameter(
+      "Clear previous RT corrections",
+      "Clear any previous retention time correction. Default = true", true);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter(
       "Retention time tolerance", "Maximum allowed difference between two retention time values",
@@ -69,12 +79,16 @@ public class RTCorrectionParameters extends SimpleParameterSet {
       "Minimum height of a feature to be selected as standard for RT correction",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final CheckComboParameter<SampleType> sampleTypes = new CheckComboParameter<>(
+  // defaults to "all sample types" instead of listing every known type, so that a batch does not
+  // silently exclude custom or newly added sample types
+  public static final SampleTypeFilterParameter sampleTypes = new SampleTypeFilterParameter(
       "Reference samples", """
       Select all sample types that shall be used to calculate the recalibration from.
       The recalibration of all other samples will be based on the acquisition order, which is
       determined by the acquisition type column in the metadata (CTRL/CMD + M).
-      """, SampleType.values(), List.of(SampleType.values()));
+      Any custom group name of the mzmine_sample_type column can be selected, not just the
+      predefined types.
+      """, SampleTypeFilter.all());
 
   public static final ComboParameter<RTMeasure> rtMeasure = new ComboParameter<>(
       "RT standard calculation",
@@ -89,7 +103,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
 
   public RTCorrectionParameters() {
     super(new Parameter[]{featureLists, sampleTypes, MZTolerance, RTTolerance, minHeight, rtMeasure,
-            calibrationFunctionModule},
+            clearPreviousCorrection, calibrationFunctionModule},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration_scans/scan-based-rt-corr.html");
   }
 
@@ -109,7 +123,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
         errorMessages.add(createMoreThanOneFileMessage(flistsWithMoreThanOneFile));
       }
 
-      var sampleTypeFilter = new SampleTypeFilter(getValue(RTCorrectionParameters.sampleTypes));
+      var sampleTypeFilter = getValue(RTCorrectionParameters.sampleTypes);
       final List<FeatureList> referenceFlists = flists.stream()
           .filter(flist -> flist.getRawDataFiles().stream().allMatch(sampleTypeFilter::matches))
           .sorted(Comparator.comparingInt(FeatureList::getNumberOfRows)).toList();
@@ -136,7 +150,7 @@ public class RTCorrectionParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 
   @Override
@@ -144,7 +158,37 @@ public class RTCorrectionParameters extends SimpleParameterSet {
     return switch (version) {
       case 2 ->
           "The correction algorithm was updated in version >4.8.33. Correction results will not match previous algorithm.";
+      case 3 ->
+          "A parameter to clear existing RT corrections was added and is enabled by default. If you intentionally applied multiple corrections previously, disable the parameter.";
       default -> null;
     };
+  }
+
+  @Override
+  public void handleLoadedParameters(Map<String, Parameter<?>> loadedParams, int loadedVersion) {
+    super.handleLoadedParameters(loadedParams, loadedVersion);
+    if (loadedVersion < 3 && !loadedParams.containsKey(clearPreviousCorrection.getName())) {
+      setParameter(clearPreviousCorrection, true);
+    }
+  }
+
+  public static RTCorrectionParameters create(@NotNull FeatureListsSelection flists,
+      @NotNull MZTolerance mzTol, @NotNull RTTolerance rtTol, double minHeight,
+      boolean clearPrevious, SampleTypeFilter sampleTypes, @NotNull RTMeasure rtMeasure,
+      @NotNull RtCorrectionFunctions calibrationFunction,
+      @NotNull ParameterSet calibrationFunctionParameters) {
+    final ParameterSet param = new RTCorrectionParameters().cloneParameterSet();
+    param.setParameter(featureLists, flists);
+    param.setParameter(MZTolerance, mzTol);
+    param.setParameter(RTTolerance, rtTol);
+    param.setParameter(clearPreviousCorrection, clearPrevious);
+    param.setParameter(RTCorrectionParameters.minHeight, minHeight);
+    param.setParameter(RTCorrectionParameters.sampleTypes, sampleTypes);
+    param.setParameter(RTCorrectionParameters.rtMeasure, rtMeasure);
+    final ModuleOptionsEnumComboParameter<RtCorrectionFunctions> parameter = param.getParameter(
+        RTCorrectionParameters.calibrationFunctionModule);
+    parameter.setValue(calibrationFunction, calibrationFunctionParameters);
+
+    return (RTCorrectionParameters) param;
   }
 }

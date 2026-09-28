@@ -48,12 +48,40 @@ import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReacti
 import io.github.mzmine.util.FeatureListTestUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Test;
 
 class R2RNetworkingMapsRoundTripTest {
+
+  @Test
+  void leavesZipOutputStreamOpen() throws Exception {
+    final List<? extends RawDataFile> files = FeatureListTestUtils.createRawFiles(1, "raw",
+        LocalDateTime.now(), Duration.ofMinutes(1));
+    final ModularFeatureList flist = FeatureListTestUtils.createFeatureList("test", files, 1, 1.0f);
+    final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+    try (ZipOutputStream zip = new ZipOutputStream(buffer)) {
+      zip.putNextEntry(new ZipEntry("r2r.json"));
+      R2RNetworkingMapsSaver.save(flist.getRowMaps(), zip);
+      zip.closeEntry();
+
+      zip.putNextEntry(new ZipEntry("metadata.tsv"));
+      zip.write("metadata".getBytes(StandardCharsets.UTF_8));
+      zip.closeEntry();
+    }
+
+    try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(buffer.toByteArray()))) {
+      assertEquals("r2r.json", zip.getNextEntry().getName());
+      assertEquals("metadata.tsv", zip.getNextEntry().getName());
+      assertEquals("metadata", new String(zip.readAllBytes(), StandardCharsets.UTF_8));
+    }
+  }
 
   @Test
   void roundTripsAllSupportedRelationshipTypes() throws Exception {
@@ -103,7 +131,7 @@ class R2RNetworkingMapsRoundTripTest {
       final R2RMap<RowsRelationship> loadedMap = loaded.getRowsMaps().get(typeKey);
       assertNotNull(loadedMap, "Missing map for " + typeKey);
       assertEquals(origMap.size(), loadedMap.size(), "Edge count mismatch for " + typeKey);
-      for (final Integer key : origMap.keySet()) {
+      for (final Long key : origMap.keySet()) {
         assertTrue(loadedMap.containsKey(key), "Missing edge key in " + typeKey);
         assertEquals(origMap.get(key).getClass(), loadedMap.get(key).getClass(),
             "Concrete class mismatch for " + typeKey);

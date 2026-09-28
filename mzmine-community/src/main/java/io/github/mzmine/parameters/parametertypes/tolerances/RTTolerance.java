@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 
 /**
  * RTTolerance allows specifying retention time tolerance it is either absolute (seconds or minutes)
@@ -60,6 +62,12 @@ public class RTTolerance {
 
   public Unit getUnit() {
     return unit;
+  }
+
+  public SimpleFloatRange getSimpleToleranceRange(final float rtValue) {
+    // rtValue is given in minutes
+    float absoluteTolerance = getToleranceInMinutes(rtValue);
+    return SimpleRange.ofFloat(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
   public Range<Float> getToleranceRange(final float rtValue) {

@@ -37,6 +37,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleDoubleRange;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -711,11 +713,13 @@ public class FeatureListUtils {
    */
   public static List<RawDataFile> getAllDataFiles(Collection<FeatureList> flists) {
     List<RawDataFile> allDataFiles = new ArrayList<>();
+    // set lookup: a linear contains check is O(files^2) when aligning many samples
+    Set<RawDataFile> seen = new HashSet<>();
     for (FeatureList featureList : flists) {
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
         // Each data file can only have one column in aligned feature
         // list
-        if (allDataFiles.contains(dataFile)) {
+        if (!seen.add(dataFile)) {
           throw new IllegalArgumentException(
               "File " + dataFile + " is present in multiple feature lists");
         }
@@ -948,7 +952,8 @@ public class FeatureListUtils {
   }
 
   /**
-   * Transfer selected scans, applied methods, annotation sort config, row and feature types
+   * Transfer selected scans, applied methods, annotation sort config, preferences, row and feature
+   * types
    *
    * @param source        copy from
    * @param target        copy to
@@ -979,6 +984,7 @@ public class FeatureListUtils {
     }
     FeatureListUtils.transferSelectedScans(target, sources);
     target.setAnnotationSortConfig(source.getAnnotationSortConfig().copy());
+    target.setPreferences(source.getPreferences().copy());
   }
 
   /**
@@ -1098,4 +1104,19 @@ public class FeatureListUtils {
         .thenComparing(FeatureList::getName);
   }
 
+
+  public static List<FeatureListRow> getRowsInsideScanAndMZRange(@NotNull FeatureList flist,
+      @NotNull SimpleFloatRange rtRange, @NotNull SimpleDoubleRange mzRange) {
+    List<FeatureListRow> results = new ArrayList<>();
+    final List<FeatureListRow> rows = flist.getRows();
+    for (var row : rows) {
+      Float rt = row.getAverageRT();
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        results.add(row);
+      } else if (rt > rtRange.upper()) {
+        break;
+      }
+    }
+    return results;
+  }
 }

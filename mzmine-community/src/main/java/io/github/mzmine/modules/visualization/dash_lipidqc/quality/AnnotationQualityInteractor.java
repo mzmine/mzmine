@@ -106,11 +106,8 @@ class AnnotationQualityInteractor extends FxInteractor<AnnotationQualityModel> {
     final @NotNull ModularFeatureList featureList = model.getFeatureList();
     final Set<MatchedLipid> annotationsToAdd = new HashSet<>();
     annotationsToAdd.add(candidate.match());
-    final LipidAnalysisType analysisType = Objects.requireNonNullElse(
-        LipidQcScoringUtils.detectLipidAnalysisType(featureList),
-        LipidAnalysisType.LC_REVERSED_PHASE);
-    LipidAnnotationUtils.addAnnotationsToFeatureList(row, annotationsToAdd, analysisType, false, 0d,
-        null, LipidQcScoringUtils.detectMs1Tolerance(featureList));
+    LipidAnnotationUtils.addCandidateAnnotationsToFeatureList(row, annotationsToAdd, false,
+        LipidQcScoringUtils.detectMs1Tolerance(featureList));
     controller.refreshAfterAnnotationDelete(row);
   }
 

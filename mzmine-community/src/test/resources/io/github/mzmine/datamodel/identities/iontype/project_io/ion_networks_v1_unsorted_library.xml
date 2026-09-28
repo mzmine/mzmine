@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Hand edited copy of ion_networks_v1.xml: the same networks, but the ion types of the library
+     are listed in a different order (K, Na, H instead of H, Na, K), the ion part ids of H and K are
+     traded, and every reference is renumbered to match. Loading it must give the same result as
+     ion_networks_v1.xml, which it only does if the loader takes the ion type index and the part id
+     from the file instead of re-deriving them from a sorting. -->
+<ionnetworks>
+  <ionlibrary>{"id":"4e1c2a58-7a0c-4e4a-9a23-9f2c1d5b07ab","origin":{"kind":"local"},"name":"ion identity networks of this feature list, unsorted","savedDate":[2026,9,17,12,1,0,388938500],"lastUpdatedDate":[2026,9,17,12,1,0,377640200],"parts":[{"id":1,"name":"H","formula":"H","mass":1.00727645209073,"charge":1},{"id":0,"name":"K","formula":"K","mass":38.96315810009073,"charge":1},{"id":2,"name":"Na","formula":"Na","mass":22.98922070009073,"charge":1}],"ionTypes":[{"parts":[{"id":0,"count":1}],"molecules":1},{"parts":[{"id":2,"count":1}],"molecules":1},{"parts":[{"id":1,"count":1}],"molecules":1}]}</ionlibrary>
+  <ionnetwork id="10">
+    <consensus_formulas>
+      <result_formula>
+        <molecular_formula_identity searched_neutral_mass="200.0">C10H15N</molecular_formula_identity>
+        <isotope_score>NULL_VALUE</isotope_score>
+        <msms_score>NULL_VALUE</msms_score>
+      </result_formula>
+    </consensus_formulas>
+  </ionnetwork>
+  <ionnetwork id="20"/>
+  <row id="1">
+    <ion network="10" iontype="2">
+      <ion_formulas>
+        <result_formula>
+          <molecular_formula_identity searched_neutral_mass="201.00727645209074">C10H16N</molecular_formula_identity>
+          <isotope_score>NULL_VALUE</isotope_score>
+          <msms_score>NULL_VALUE</msms_score>
+        </result_formula>
+      </ion_formulas>
+    </ion>
+  </row>
+  <row id="2">
+    <ion network="20" iontype="2"/>
+    <ion network="10" iontype="1"/>
+  </row>
+  <row id="3">
+    <ion network="20" iontype="0"/>
+  </row>
+</ionnetworks>

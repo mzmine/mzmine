@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,6 +61,7 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
 
   public ContinuousRenderer(Color color, boolean isTransparent) {
 
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
     this.isTransparent = isTransparent;
 
     // Set painting color
@@ -82,7 +83,6 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
     setDefaultToolTipGenerator(tooltipGenerator);
 
     setDrawSeriesLineAsPath(true);
-    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,

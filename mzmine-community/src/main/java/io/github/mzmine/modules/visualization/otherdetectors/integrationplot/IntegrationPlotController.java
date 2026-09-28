@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
- *
+ * Copyright (c) 2004-2026 The mzmine Development Team
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -36,12 +35,14 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.dash_integration.FeatureIntegrationData;
+import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.FeatureIntegratedListener.EventType;
 import java.awt.BasicStroke;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -142,19 +143,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   }
 
   void onAbortPressed() {
-    logger.finest("Abort integration pressed");
     clearIntegration();
   }
 
   private void clearIntegration() {
-    logger.finest("Clearing integration");
     model.setState(State.NOT_INTEGRATING);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
   }
 
   void onEditPressed() {
-    logger.finest("Edit feature pressed");
     final IntensityTimeSeries feature = model.getSelectedFeature();
     assert feature != null;
     model.getIntegratedFeatures().remove(feature);
@@ -195,6 +193,30 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
     return model.integratedFeaturesProperty();
+  }
+
+  public BooleanProperty showControlsProperty() {
+    return model.showControlsProperty();
+  }
+
+  public void setShowControls(boolean showControls) {
+    model.setShowControls(showControls);
+  }
+
+  public BooleanProperty showAxisTitlesProperty() {
+    return model.showAxisTitlesProperty();
+  }
+
+  public void setShowAxisTitles(boolean showAxisTitles) {
+    model.setShowAxisTitles(showAxisTitles);
+  }
+
+  public BooleanProperty useSampleColorProperty() {
+    return model.useSampleColorProperty();
+  }
+
+  public void setUseSampleColor(boolean useSampleColor) {
+    model.setUseSampleColor(useSampleColor);
   }
 
   public void setAdditionalFeatures(List<IntensityTimeSeriesToXYProvider> additionalFeatures) {
@@ -238,6 +260,10 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     model.setTitle(title);
   }
 
+  public ChromatogramPlotController getChromatogramPlot() {
+    return model.getChromatogramPlot();
+  }
+
   public void integrateExternally(@Nullable Range<Float> newIntegrationRange) {
     model.setCurrentStartTime(newIntegrationRange.lowerEndpoint().doubleValue());
     model.setCurrentEndTime(newIntegrationRange.upperEndpoint().doubleValue());
@@ -266,5 +292,9 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
 
   public void setBinningMobilogramDataAccess(@Nullable BinningMobilogramDataAccess dataAccess) {
     model.setBinningMobilogramDataAccess(dataAccess);
+  }
+
+  public BooleanProperty showTitleProperty() {
+    return model.showTitleProperty();
   }
 }

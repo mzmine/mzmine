@@ -81,8 +81,9 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
         if (molFormula == null || adduct == null) {
           return null;
         }
-        final IMolecularFormula ionized = adduct.addToFormula(molFormula, true);
-        return FormulaUtils.calculateMzRatio(ionized);
+        // ion type may not be applicable to this formula, e.g. -H2O without enough oxygen
+        return adduct.addToFormula(molFormula, true).map(FormulaUtils::calculateMzRatio)
+            .orElse(null);
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzPpmDifferenceType.class), (row, db) -> {

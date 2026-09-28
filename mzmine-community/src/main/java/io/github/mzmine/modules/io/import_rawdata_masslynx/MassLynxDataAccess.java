@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -146,7 +147,8 @@ public class MassLynxDataAccess implements AutoCloseable {
       @NotNull final VendorImportParameters vendorParam, @Nullable MemoryMapStorage storage,
       @NotNull ScanImportProcessorConfig processor) {
     MemorySegment tempHandle = null;
-    for (int tryCount = 0; tryCount < 10; tryCount++) {
+    int tryCount = 0;
+    for (; tryCount < 10; tryCount++) {
       tempHandle = MassLynxLib.openFile(arena.allocateFrom(rawFolder.getAbsolutePath()));
       if (tempHandle.address() == 0x0) {// nullptr returned on error
         logger.finest("Unable to open file %s. Try %d/10.".formatted(rawFolder, tryCount + 1));
@@ -162,7 +164,10 @@ public class MassLynxDataAccess implements AutoCloseable {
 
     if (tempHandle == null || tempHandle.address() == 0x0) {
       throw new RuntimeException(
-          "Error opening file. Returned handle: %s".formatted(Objects.toString(tempHandle)));
+          ("Error opening file %s. Returned handle: %s after %d attempts. This may occur if the file "
+              + "is a virtual file and not yet available on this computer. Try again after the file "
+              + "has been downloaded. Otherwise the file may be corrupt.").formatted(
+              rawFolder.getAbsolutePath(), Objects.toString(tempHandle.address()), tryCount));
     }
     handle = tempHandle;
 

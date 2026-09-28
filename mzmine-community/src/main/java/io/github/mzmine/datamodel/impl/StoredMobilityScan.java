@@ -125,9 +125,8 @@ public class StoredMobilityScan implements MobilityScan {
         : Range.singleton(getNumberOfDataPoints() == 0 ? 0d : getMzValue(0));
   }
 
-  @Nullable
   @Override
-  public Double getTIC() {
+  public double getTIC() {
     double tic = 0d;
     for (int i = 0; i < getNumberOfDataPoints(); i++) {
       tic += getIntensityValue(i);

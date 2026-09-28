@@ -34,6 +34,7 @@ import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.CompoundA
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.ImsFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.InSourceFragmentationCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IonTypesCheck;
+import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.IsotopePatternCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.MainAdductCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.Ms2AvailableCheck;
 import io.github.mzmine.modules.dataanalysis.compoundrowquality.checks.RtStabilityCheck;
@@ -58,8 +59,9 @@ public class CompoundRowQualityInteractor {
 
   /// Display order matches {@link QualityCheckType} ordering.
   private final @NotNull List<@NotNull QualityCheck> checks = List.of(
-      new CompoundAnnotationMatchCheck(), new AnnotationAgreementCheck(), new IonTypesCheck(),
-      new MainAdductCheck(), new RtStabilityCheck(), new Ms2AvailableCheck(),
+      new CompoundAnnotationMatchCheck(), new AnnotationAgreementCheck(), new IsotopePatternCheck(),
+      new IonTypesCheck(), new MainAdductCheck(), new RtStabilityCheck(),
+      new Ms2AvailableCheck(),
       new InSourceFragmentationCheck(),
       new ImsFragmentationCheck());
 

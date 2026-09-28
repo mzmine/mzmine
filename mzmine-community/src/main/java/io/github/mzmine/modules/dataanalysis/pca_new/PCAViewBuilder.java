@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,15 +46,13 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleType;
-import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.SampleTypeFilterComponent;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -70,7 +68,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
-import org.controlsfx.control.CheckComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.plot.ValueMarker;
@@ -135,13 +132,10 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final HBox coloring = createMetadataBox();
     final HBox abundance = FxComboBox.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
-    final CheckComboBox<SampleType> sampleTypesBox = new CheckComboBox<>(
-        FXCollections.observableArrayList(SampleType.values()));
-    sampleTypesBox.getCheckModel().clearChecks();
-    sampleTypesBox.getCheckModel().check(SampleType.SAMPLE);
-    sampleTypesBox.getCheckModel().getCheckedItems().addListener(
-        (ListChangeListener<SampleType>) c -> model.setSampleTypeFilter(
-            SampleTypeFilter.of((List<SampleType>) c.getList())));
+    // free text sample types: predefined ones plus whatever the mzmine_sample_type column contains
+    final SampleTypeFilterComponent sampleTypesBox = new SampleTypeFilterComponent(
+        model.getSampleTypeFilter());
+    sampleTypesBox.valueProperty().subscribe(filter -> model.setSampleTypeFilter(filter));
     final HBox sampleBox = newHBox(Insets.EMPTY, FxLabels.newLabel("Sample types"), sampleTypesBox);
 
     final Button helpButton = FxButtons.createHelpButton(

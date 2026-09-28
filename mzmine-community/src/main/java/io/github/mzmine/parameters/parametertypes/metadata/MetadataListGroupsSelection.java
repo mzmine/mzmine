@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.StringUtils;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -44,19 +45,28 @@ public final class MetadataListGroupsSelection implements MetadataGroupsSelectio
   public static MetadataListGroupsSelection NONE = new MetadataListGroupsSelection("", Set.of());
 
   private final @NotNull String columnName;
+  /**
+   * As entered by the user, only trimmed - this is what is shown and saved.
+   */
   private final @NotNull Set<@NotNull String> groups;
+  /**
+   * Lower cased copy of {@link #groups} used for matching, see {@link #matchesValue(Object)}.
+   */
+  private final @NotNull Set<@NotNull String> normalizedGroups;
 
 
   public MetadataListGroupsSelection(@NotNull String columnName,
       @NotNull Collection<String> groups) {
     this.columnName = columnName.trim();
     this.groups = groups.stream().map(String::trim).filter(StringUtils::hasValue)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    this.normalizedGroups = this.groups.stream().map(StringUtils::normalizeStripLowerCase)
         .collect(Collectors.toSet());
   }
 
   /**
    * @return Checks if the current metadata table contains the specified column and the specified
-   * values. Case sensitive.
+   * values. Case insensitive, see {@link #matchesValue(Object)}.
    */
   @Override
   public boolean isValid() {
@@ -73,9 +83,13 @@ public final class MetadataListGroupsSelection implements MetadataGroupsSelectio
     return columnValues.values().stream().anyMatch(this::matchesValue);
   }
 
+  /**
+   * Matches ignoring case and surrounding whitespace, so that a metadata column holding {@code QC}
+   * and a selection of {@code qc} refer to the same group.
+   */
   @Override
   public boolean matchesValue(@Nullable Object value) {
-    return value != null && groups.contains(value.toString());
+    return value != null && normalizedGroups.contains(StringUtils.normalizeStripLowerCase(value));
   }
 
   @Override

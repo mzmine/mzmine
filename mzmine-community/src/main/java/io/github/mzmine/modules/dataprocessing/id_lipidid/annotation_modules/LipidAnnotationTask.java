@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -57,6 +58,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,8 +72,8 @@ public class LipidAnnotationTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LipidAnnotationTask.class.getName());
 
-  private double finishedSteps;
-  private double totalSteps;
+  private final AtomicLong finishedSteps = new AtomicLong();
+  private long totalSteps;
   private final FeatureList featureList;
   private ILipidClass[] selectedLipids;
   private CustomLipidClass[] selectedCustomLipidClasses;
@@ -179,7 +181,7 @@ public class LipidAnnotationTask extends AbstractTask {
     if (totalSteps == 0) {
       return 0;
     }
-    return (finishedSteps) / totalSteps;
+    return (double) finishedSteps.get() / totalSteps;
   }
 
   /**
@@ -199,31 +201,32 @@ public class LipidAnnotationTask extends AbstractTask {
 
     logger.finest("Starting lipid annotation in " + featureList);
 
-    List<FeatureListRow> rows = featureList.getRows();
+    final List<FeatureListRow> rows = featureList.getRows();
     if (featureList instanceof ModularFeatureList) {
       featureList.addRowType(new LipidMatchListType());
     }
     totalSteps = rows.size();
-    Set<PolarityType> polarityTypes = getPolarityTypes();
+    finishedSteps.set(0L);
+    final Set<PolarityType> polarityTypes = getPolarityTypes();
 
     // build lipid species database
-    List<LipidIon> lipidDatabase = LipidAnnotationUtils.buildLipidDatabase(selectedLipids,
+    final List<LipidIon> lipidDatabase = LipidAnnotationUtils.buildLipidDatabase(selectedLipids,
         minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains,
         ionizationTypesToIgnore, polarityTypes);
-    List<LipidIon> sortedLipidDatabase = lipidDatabase.stream()
+    final List<LipidIon> sortedLipidDatabase = lipidDatabase.stream()
         .sorted(Comparator.comparingDouble(LipidIon::mz)).toList();
 
-    rows.parallelStream().forEach(row -> {
+    final long completedSteps = rows.parallelStream().mapToLong(row -> {
       final Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
-      Range<Double> mzTolRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-      double lowerEdge = mzTolRange.lowerEndpoint();
-      double upperEdge = mzTolRange.upperEndpoint();
-      int index = BinarySearch.binarySearch(lowerEdge, DefaultTo.GREATER_EQUALS,
+      final Range<Double> mzTolRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+      final double lowerEdge = mzTolRange.lowerEndpoint();
+      final double upperEdge = mzTolRange.upperEndpoint();
+      final int index = BinarySearch.binarySearch(lowerEdge, DefaultTo.GREATER_EQUALS,
           sortedLipidDatabase.size(), i -> sortedLipidDatabase.get(i).mz());
       if (index >= 0) {
         for (int i = index; i < sortedLipidDatabase.size(); i++) {
           if (isCanceled()) {
-            return;
+            return 0L;
           }
 
           LipidAnnotationUtils.findPossibleLipid(sortedLipidDatabase.get(i), row, parameters,
@@ -237,12 +240,18 @@ public class LipidAnnotationTask extends AbstractTask {
         }
       }
       if (!possibleRowAnnotations.isEmpty()) {
-        LipidAnnotationUtils.addAnnotationsToFeatureList(row, possibleRowAnnotations,
-            lipidAnalysisType, searchForMSMSFragments, minimumOverallQualityScore, customQcWeights,
-            mzTolerance);
+        // Context-dependent QC scores must not be evaluated while rows are processed in parallel.
+        // Apply the configured threshold after all rows have been annotated and scored.
+        LipidAnnotationUtils.addCandidateAnnotationsToFeatureList(row, possibleRowAnnotations,
+            searchForMSMSFragments, mzTolerance);
       }
-      finishedSteps++;
-    });
+      finishedSteps.incrementAndGet();
+      return 1L;
+    }).sum();
+    finishedSteps.set(completedSteps);
+    if (isCanceled()) {
+      return;
+    }
 
     // Compute and store overall quality scores after all rows are processed
     // Done here (not per-row) so context-dependent scores (elution order, interference) are correct
@@ -251,7 +260,11 @@ public class LipidAnnotationTask extends AbstractTask {
     LipidQcScoringUtils.computeAndStoreOverallQualityScores((ModularFeatureList) featureList,
         searchForMSMSFragments, lipidAnalysisType.hasRetentionTimePattern(), lipidAnalysisType,
         customQcWeights, mzTolerance);
-    featureList.getRows().forEach(LipidQcScoringUtils::sortLipidAnnotationsByOverallScore);
+    featureList.getRows().forEach(row -> {
+      LipidQcScoringUtils.filterLipidAnnotationsByOverallQualityScore(row,
+          minimumOverallQualityScore);
+      LipidQcScoringUtils.sortLipidAnnotationsByOverallScore(row);
+    });
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(

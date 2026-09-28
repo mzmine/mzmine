@@ -40,6 +40,8 @@ public class SetLipidAnnotationLevelParameters extends SimpleParameterSet {
       LipidAnnotationLevel.values(), LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL);
 
   public SetLipidAnnotationLevelParameters() {
-    super(flists, level);
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html#set-lipid-annotation-level",
+        flists, level);
   }
 }

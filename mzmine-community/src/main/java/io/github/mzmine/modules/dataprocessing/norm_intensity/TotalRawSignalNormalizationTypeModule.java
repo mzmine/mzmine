@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2026 The mzmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -38,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
  * Average to factor out the number of scans and scan rate. Use mass lists because they remove
  * already parts of the noise that may skew the normalization.
  */
-public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormalizationTypeModule {
+public final class TotalRawSignalNormalizationTypeModule extends
+    AbstractFactorNormalizationTypeModule {
 
   @Override
   public @NotNull String getName() {
@@ -46,7 +48,7 @@ public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormali
   }
 
   @Override
-  public final @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return TotalRawSignalNormalizationTypeParameters.class;
   }
 
@@ -67,7 +69,7 @@ public class TotalRawSignalNormalizationTypeModule extends AbstractFactorNormali
     ScanUtils.assertMassLists(scans);
 
     final double avgTIC = scans.stream().map(Scan::getMassList)
-        .mapToDouble(scan -> Objects.requireNonNullElse(scan.getTIC(), 0d)).average().orElse(0d);
+        .mapToDouble(scan -> scan.getTIC()).average().orElse(0d);
     if (Double.compare(avgTIC, 0d) == 0) {
       throw new IllegalStateException("No TIC found for file: " + file.getName());
     }

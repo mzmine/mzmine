@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection;
 
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.akimaspline.AkimaSplineCorrector;
+import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.arpls.ArplsBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.chang.ChangBaselineCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.divideddifference.DividedDifferenceCorrector;
 import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.loess.LoessBaselineCorrector;
@@ -35,12 +36,13 @@ import io.github.mzmine.modules.dataprocessing.featdet_baselinecorrection.spline
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnum;
 
 public enum BaselineCorrectors implements ModuleOptionsEnum<BaselineCorrector> {
-  LOESS, SPLINE, AKIMA, DIVIDED_DIFFERENCE, NEVILLE, CHANG, POLYNOMIAL;
+  LOESS, ARPLS, SPLINE, AKIMA, DIVIDED_DIFFERENCE, NEVILLE, CHANG, POLYNOMIAL;
 
   @Override
   public Class<? extends BaselineCorrector> getModuleClass() {
     return switch (this) {
       case LOESS -> LoessBaselineCorrector.class;
+      case ARPLS -> ArplsBaselineCorrector.class;
       case SPLINE -> SplineBaselineCorrector.class;
       case AKIMA -> AkimaSplineCorrector.class;
       case DIVIDED_DIFFERENCE -> DividedDifferenceCorrector.class;
@@ -54,12 +56,28 @@ public enum BaselineCorrectors implements ModuleOptionsEnum<BaselineCorrector> {
   public String getStableId() {
     return switch (this) {
       case LOESS -> "loess_baseline_corrector";
+      case ARPLS -> "arpls_corrector";
       case SPLINE -> "spline_corrector";
       case AKIMA -> "akima_corrector";
       case DIVIDED_DIFFERENCE -> "divided_difference_corrector";
       case NEVILLE -> "neville_corrector";
       case CHANG -> "chang_corrector";
       case POLYNOMIAL -> "polynomial_corrector";
+    };
+  }
+
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case LOESS -> "Loess";
+      case ARPLS -> "arPLS";
+      case SPLINE -> "Spline";
+      case AKIMA -> "Akima";
+      case DIVIDED_DIFFERENCE -> "Divided Difference";
+      case NEVILLE -> "Neville";
+      case CHANG -> "Chang";
+      case POLYNOMIAL -> "Polynomial";
     };
   }
 }

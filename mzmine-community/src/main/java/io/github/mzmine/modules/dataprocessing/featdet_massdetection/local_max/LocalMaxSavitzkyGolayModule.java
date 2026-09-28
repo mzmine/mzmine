@@ -76,7 +76,7 @@ public class LocalMaxSavitzkyGolayModule implements MassDetectorPreprocessorModu
     for (final IndexRange range : ranges) {
       // confined to [min, maxExclusive) so consecutive ranges do not bleed into each other
       SavitzkyGolayFilter.convolve(intensities, range.min(), range.maxExclusive(), weights,
-          smoothed);
+          smoothed, true);
     }
     return smoothed;
   }

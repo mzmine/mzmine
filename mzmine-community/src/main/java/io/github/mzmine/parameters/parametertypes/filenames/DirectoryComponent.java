@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,18 @@
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import java.io.File;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -50,6 +55,9 @@ public class DirectoryComponent extends BorderPane {
 
   // Text field.
   private final TextField txtDirectory;
+
+  // Holds the browse button and any control added with addRightControl.
+  private final HBox controls;
 
   /**
    * Create the component.
@@ -72,8 +80,19 @@ public class DirectoryComponent extends BorderPane {
 
     });
 
+    controls = new HBox(FxLayout.DEFAULT_SPACE, btnFileBrowser);
+    controls.setAlignment(Pos.CENTER_LEFT);
+
     setCenter(txtDirectory);
-    setRight(btnFileBrowser);
+    setRight(controls);
+  }
+
+  /**
+   * Adds a control to the right of the browse button, for example a button that fills the field in
+   * automatically.
+   */
+  public void addRightControl(@NotNull final Node control) {
+    controls.getChildren().add(control);
   }
 
   public File showChooseDirectoryDialog() {

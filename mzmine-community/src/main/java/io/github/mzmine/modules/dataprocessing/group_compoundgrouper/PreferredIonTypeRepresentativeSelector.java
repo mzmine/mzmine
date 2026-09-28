@@ -1,108 +1,97 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.group_compoundgrouper;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.annotationpriority.AnnotationSummary;
 import io.github.mzmine.datamodel.features.compoundlist.CompoundRepresentativeSelector;
+import io.github.mzmine.datamodel.features.preferences.FeatureListPreferences;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonPart;
-import io.github.mzmine.datamodel.identities.iontype.IonParts;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeRanking;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Picks the representative row by inspecting {@link IonType} parts directly: a tier preference
- * chain (M+H / M-H first, then alternative adducts) is applied with intensity tie-break and an
- * ultimate fallback to the highest-intensity row.
+ * Picks the representative row by ion type first:
+ * <ol>
+ *   <li>highest {@link IonTypeRanking#score(IonType)} of the row's best {@link IonIdentity}, using
+ *       the user definable ranking from the {@link FeatureListPreferences}
+ *       of the feature list</li>
+ *   <li>ties broken by annotation quality (AQS), see
+ *       {@link CompoundRepresentativeSelector#annotationQualityBestFirst(List)}</li>
+ *   <li>then by intensity</li>
+ * </ol>
+ * Rows without an {@link IonIdentity} are not eligible, the fallback is the highest-intensity row.
+ * Polarity is ignored.
+ * <p>
+ * decision: the ranking replaces the former hard coded adduct tier list so that this selector, the
+ * ion identity networking and every other consumer of {@link IonTypeRanking} agree on which ion
+ * type is the more likely explanation, and so that users can change it in one place.
  */
 public final class PreferredIonTypeRepresentativeSelector implements
     CompoundRepresentativeSelector {
 
-  // Reference parts ranked by tier preference (high → low). Each entry is matched structurally
-  // via IonPart.equalsWithoutCount, so charge / mass / formula identify the part regardless of
-  // count.
-  // decision: M+H / M-H is the most reliable representative; M+ / M- (electron-only) ranks just
-  // below; alkali adducts and chloride / formate fall after.
-  public static final List<IonPart> TIER_ORDER = List.of( //
-      IonParts.H,        // [M+H]+
-      IonParts.H_MINUS,  // [M-H]-
-      IonParts.M_PLUS,   // [M]+ (silent / electron-loss)
-      IonParts.M_MINUS,  // [M]- (electron)
-      IonParts.NA,       // [M+Na]+
-      IonParts.CL,       // [M+Cl]-
-      IonParts.K,        // [M+K]+
-      IonParts.NH4,       // [M+NH4]+
-      IonParts.FORMATE_FA // [M+FA-H]- (alone in negative single-adduct case if present)
-  );
+  /**
+   * A row with its precomputed sort keys. {@link AnnotationSummary} caches its scores internally,
+   * so it is built once per row instead of on every comparison.
+   */
+  private record Candidate(@NotNull FeatureListRow row, double ionScore,
+                           @NotNull AnnotationSummary summary) {
+
+  }
 
   @Override
   public @NotNull FeatureListRow pickRepresentative(@NotNull final List<FeatureListRow> members) {
-    final Comparator<FeatureListRow> tierTieIntensity = Comparator.<FeatureListRow>comparingInt(
-        r -> -tierScore(r)).thenComparing(
-        Comparator.comparing(CompoundRepresentativeSelector::heightOrZero).reversed());
-    FeatureListRow best = null;
-    int bestTier = 0;
-    for (final FeatureListRow row : members) {
-      final int tier = tierScore(row);
-      if (tier <= 0) {
-        continue;
-      }
-      if (best == null || tier > bestTier || (tier == bestTier
-          && tierTieIntensity.compare(row, best) < 0)) {
-        best = row;
-        bestTier = tier;
-      }
-    }
-    if (best != null) {
-      return best;
-    }
-    return CompoundRepresentativeSelector.pickHighestIntensity(members);
+    // ranking is shared by the whole feature list, so any member defines it
+    final IonTypeRanking ranking = members.getFirst().getFeatureList().getPreferences()
+        .getIonTypeRanking();
+
+    final Comparator<Candidate> bestFirst = Comparator.<Candidate>comparingDouble(
+            Candidate::ionScore).reversed().thenComparing(Candidate::summary,
+            CompoundRepresentativeSelector.annotationQualityBestFirst(members))
+        .thenComparing(c -> CompoundRepresentativeSelector.heightOrZero(c.row()),
+            Comparator.reverseOrder());
+
+    // best first comparator so the minimum is the best candidate
+    return members.stream().map(row -> toCandidate(row, ranking)).filter(Objects::nonNull)
+        .min(bestFirst).map(Candidate::row)
+        .orElseGet(() -> CompoundRepresentativeSelector.pickHighestIntensity(members));
   }
 
-  /**
-   * Tier score for representative selection. Higher is better. 0 means not eligible at any tier.
-   * <p>
-   * Eligibility requires the IonType to be a "clean" single-adduct form: one molecule, no neutral
-   * losses or clusters, exactly one charged adduct, defined parts.
-   */
-  static int tierScore(@NotNull final FeatureListRow row) {
+  private static @Nullable Candidate toCandidate(@NotNull final FeatureListRow row,
+      @NotNull final IonTypeRanking ranking) {
     final IonIdentity ion = row.getBestIonIdentity();
     if (ion == null) {
-      return 0;
+      return null;
     }
-    final IonType ionType = ion.getIonType();
-    if (ionType.molecules() != 1 || ionType.absTotalCharge() > 1 || ionType.isUndefinedAdduct()) {
-      return 0;
-    }
-    // reject any IonType carrying neutral losses / clusters (those rows belong to IN_SOURCE_FRAGMENT)
-    if (ionType.streamNeutralMods().findAny().isPresent()) {
-      return 0;
-    }
-    final List<IonPart> chargedAdducts = ionType.streamChargedAdducts().toList();
-
-    // negative-mode special case: [M-H2O-H]- has TWO parts (H2O loss is neutral, H- is charged).
-    // We reach here only if no neutral mods exist, so this case must be handled before the
-    // neutral-mods check above. decision: keep neutral-mods reject for the common "single charged
-    // adduct" rule and detect M-H2O-H separately *before* it via isWaterLossMinusHydrogen.
-    // Therefore, recheck this case here (we won't get to it through the strict path).
-    if (chargedAdducts.size() != 1) {
-      return 0;
-    }
-    final IonPart adduct = chargedAdducts.getFirst();
-    return tierIndex(adduct, TIER_ORDER);
-  }
-
-  /**
-   * Returns the tier score for a single charged adduct against the given preference list. The
-   * highest-priority match yields {@code preferred.size()}; no match yields 0.
-   */
-  private static int tierIndex(@NotNull final IonPart adduct,
-      @NotNull final List<IonPart> preferred) {
-    for (int i = 0; i < preferred.size(); i++) {
-      if (preferred.get(i).equalsWithoutCount(adduct)) {
-        return preferred.size() - i;
-      }
-    }
-    return 0;
+    // AnnotationSummary.of uses the preferred annotation of the row, which may be user defined
+    return new Candidate(row, ranking.score(ion.getIonType()), AnnotationSummary.of(row));
   }
 }

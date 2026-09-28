@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,10 +42,10 @@ public class SpectraMassListRenderer extends XYLineAndShapeRenderer {
 
   public SpectraMassListRenderer(Color color) {
     super(false, true);
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
 
     this.color = color;
     setDefaultPaint(color);
-    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   @Override

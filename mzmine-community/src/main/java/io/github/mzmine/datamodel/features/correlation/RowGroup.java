@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -63,9 +64,23 @@ public interface RowGroup extends Comparable<RowGroup> {
   }
 
   /**
-   * Insert sort by ascending avg mz
+   * The canonical row order within a group: ascending average m/z with the unique row ID as
+   * tiebreaker. See {@link #sortRows()}.
    */
+  Comparator<FeatureListRow> ROW_SORTER = Comparator.comparing(FeatureListRow::getAverageMZ,
+      Comparator.nullsLast(Comparator.naturalOrder())).thenComparingInt(FeatureListRow::getID);
+
   boolean add(FeatureListRow e);
+
+  /**
+   * Sorts the rows of this group into the canonical order defined by {@link #ROW_SORTER}. Tasks
+   * that loop over all row pairs of a group depend on this order, so groups have to be sorted once
+   * they are fully built. Without it the row order - and with it the merge order of the resulting
+   * ion networks - would depend on the iteration order of the underlying correlation map.
+   */
+  default void sortRows() {
+    getRows().sort(ROW_SORTER);
+  }
 
   /**
    * Number of rows in this group
@@ -157,7 +172,7 @@ public interface RowGroup extends Comparable<RowGroup> {
   @Nullable
   default Float calcAverageRetentionTime() {
     int counter = 0;
-    float rt = -1;
+    float rt = 0;
     for (final FeatureListRow row : getRows()) {
       final Float rowRT = row.getAverageRT();
       if (rowRT != null) {

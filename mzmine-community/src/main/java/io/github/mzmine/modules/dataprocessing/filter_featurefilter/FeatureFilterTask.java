@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,17 +36,16 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.MobilityQualitySummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.RtQualitySummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.shapeclassification.ShapeClassificationScoreType;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.AsymmetricGaussianPeak;
-import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.FitQuality;
+import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianDoublePeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.GaussianPeak;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakDimension;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakFitterUtils;
@@ -61,7 +60,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -229,6 +230,8 @@ public class FeatureFilterTask extends AbstractTask {
     int totalRawDataFiles = rawdatafiles.length;
     boolean[] keepPeak = new boolean[totalRawDataFiles];
     totalRows = rows.length;
+    // rows that lost all features - removed in one pass to avoid a linear scan per removal
+    final Set<FeatureListRow> emptyRows = new HashSet<>();
 
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
       final ModularFeatureListRow row = rows[processedRows];
@@ -326,15 +329,25 @@ public class FeatureFilterTask extends AbstractTask {
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> keep == false);
       if (isEmpty) {
-        newPeakList.removeRow(row);
+        // removing single rows is a linear scan of all rows - collect and remove in one go below
+        emptyRows.add(row);
       } else {
+        boolean featuresRemoved = false;
         for (int i = 0; i < rawdatafiles.length; i++) {
           if (keepPeak[i] == false) {
-            row.removeFeature(rawdatafiles[i]);
+            // each row binding aggregates over all features, so updating them per removed feature
+            // is O(features^2) per row. Applied once after all features of this row were removed
+            row.removeFeature(rawdatafiles[i], false);
+            featuresRemoved = true;
           }
+        }
+        if (featuresRemoved) {
+          newPeakList.applyRowBindings(row);
         }
       }
     }
+
+    newPeakList.removeRows(emptyRows);
 
     newPeakList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(FeatureFilterModule.class, parameters,

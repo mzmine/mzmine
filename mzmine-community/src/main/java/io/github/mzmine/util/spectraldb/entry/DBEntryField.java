@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.annotations.PeptideSequenceType
 import io.github.mzmine.datamodel.features.types.annotations.SmilesIsomericStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SplashType;
+import io.github.mzmine.datamodel.features.types.annotations.SynonymsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireClassType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireParentType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ClassyFireSubclassType;
@@ -82,6 +83,7 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.RIRecord;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.io.JsonUtils;
+import io.github.mzmine.util.spectraldb.parser.MZmineJsonParser;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -101,7 +103,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum DBEntryField {
   // Compound specific
-  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
+  ENTRY_ID, NAME, SYNONYMS(List.class), COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
       Double.class), IUPAC_NAME, INTERNAL_ID,
 
   // structure
@@ -210,6 +212,24 @@ public enum DBEntryField {
   private static final Map<String, DBEntryField> FIELD_ALTERNATIVE_KEYS = HashMap.newHashMap(
       DBEntryField.values().length * 4);
 
+  /**
+   * Exact, case-sensitive {@link #getMZmineJsonID()} key to field. Built once so line-based parsers
+   * such as {@link MZmineJsonParser} can look up the field for a json key instead of testing every
+   * field against every entry.
+   */
+  private static final Map<String, DBEntryField> MZMINE_JSON_KEYS = createMZmineJsonKeys();
+
+  private static Map<String, DBEntryField> createMZmineJsonKeys() {
+    final Map<String, DBEntryField> keys = HashMap.newHashMap(values().length);
+    for (final DBEntryField f : values()) {
+      final String id = f.getMZmineJsonID();
+      if (id != null && !id.isEmpty()) {
+        keys.putIfAbsent(id, f);
+      }
+    }
+    return keys;
+  }
+
   static {
     for (DBEntryField f : values()) {
       // also add the name of enum constant
@@ -249,6 +269,7 @@ public enum DBEntryField {
     addAlternativeKey("ms_dissociation_method",
         DBEntryField.FRAGMENTATION_METHOD); // matchms_cleaned mgf
     addAlternativeKey("spectrum_id", DBEntryField.ENTRY_ID); // matchms_cleaned mgf
+    addAlternativeKey("sys_name", DBEntryField.IUPAC_NAME); // GNPS2 json
     addAlternativeKey("retention_time", DBEntryField.RT); // GNPS cleaned mgf
     addAlternativeKey("raw_filename", DBEntryField.FILENAME); // GNPS cleaned mgf
 //    addAlternativeKey("", DBEntryField.);
@@ -289,18 +310,23 @@ public enum DBEntryField {
     this.clazz = clazz;
   }
 
+  @Nullable
+  public static DBEntryField forMZmineJsonID(@NotNull final String key) {
+    // all mzmine json keys are lower case, lower casing the input keeps this as robust against
+    // library inconsistencies as the previous equalsIgnoreCase scan
+    final DBEntryField exact = forMZmineJsonIDExact(key);
+    return exact != null ? exact : MZMINE_JSON_KEYS.get(key.toLowerCase());
+  }
+
   /**
-   * DBENtryField for GNPS json key
+   * Case sensitive counterpart of {@link #forMZmineJsonID(String)} for parsers that read files
+   * written by mzmine itself and therefore know the exact key spelling.
+   *
+   * @return the field for this exact mzmine json key or null
    */
-  public static DBEntryField forMZmineJsonID(String key) {
-    for (DBEntryField f : values()) {
-      // equalsIgnoreCase is more robust against changes in library
-      // consistency
-      if (f.getMZmineJsonID().equalsIgnoreCase(key)) {
-        return f;
-      }
-    }
-    return null;
+  @Nullable
+  public static DBEntryField forMZmineJsonIDExact(@NotNull final String key) {
+    return MZMINE_JSON_KEYS.get(key);
   }
 
   /**
@@ -391,7 +417,7 @@ public enum DBEntryField {
       case JsonStringType _ -> JSON_STRING;
       case AcquisitionMethodType _ -> ACQUISITION_METHOD;
       case RIRecordType _ -> RETENTION_INDEX;
-//        case SynonymType _ -> DBEntryField.SYNONYM;
+      case SynonymsType _ -> SYNONYMS;
       default -> UNSPECIFIED;
     };
   }
@@ -430,7 +456,7 @@ public enum DBEntryField {
     return switch (this) {
       case UNSPECIFIED, ACQUISITION, SOFTWARE, DESCRIPTION, DATA_COLLECTOR, INSTRUMENT, //
            INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, //
-           CHEMSPIDER, MONA_ID, GNPS_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
+           CHEMSPIDER, MONA_ID, GNPS_ID, RESOLUTION, FRAGMENTATION_METHOD, //
            QUALITY, QUALITY_CHIMERIC, FILENAME, //
            SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N,
            OTHER_MATCHED_COMPOUNDS_NAMES, //
@@ -438,6 +464,7 @@ public enum DBEntryField {
            MSN_ISOLATION_WINDOWS, IMS_TYPE, FEATURE_FULL_ID, FEATURELIST_NAME_FEATURE_ID ->
           StringType.class;
       case COMMENT -> CommentType.class;
+      case SYNONYMS -> SynonymsType.class;
       case CAS -> CASType.class;
       case PUBCHEM -> PubChemIdType.class;
       case ENTRY_ID -> EntryIdType.class;
@@ -902,7 +929,11 @@ public enum DBEntryField {
    * @return the original value or Double, Float, Integer
    * @throws NumberFormatException if the object class was specified as number but was not parsable
    */
-  public Object convertValue(String content) throws NumberFormatException {
+  public @Nullable Object convertValue(@Nullable final String content)
+      throws NumberFormatException {
+    if (this == SYNONYMS) {
+      return SynonymsType.parse(content);
+    }
     if (this == MS_LEVEL) {
       if (content.toLowerCase().startsWith("ms")) {
         // sometimes for example in MS the ms level is gives as MS or MS2
@@ -979,8 +1010,7 @@ public enum DBEntryField {
            ENTRY_ID, NUM_PEAKS, //
            MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
            COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, CAS,
-           CCS,
-           ACQUISITION_METHOD, //
+           CCS, ACQUISITION_METHOD, //
            ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
            COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
            MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //

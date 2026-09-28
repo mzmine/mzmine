@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,8 +78,9 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
   private final int minMatchedSignals;
   private final SpectralSignalFilter signalFilters;
   private final Boolean exportToFile;
-  private final NumberFormat scoreFormat = MZmineCore.getConfiguration().getFormats(true)
-      .scoreFormat();
+  // clone to avoid contention on synchronized block
+  private final NumberFormat scoreFormat = (NumberFormat) MZmineCore.getConfiguration()
+      .getFormats(true).scoreFormat().clone();
 
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final ParameterSet parameters;

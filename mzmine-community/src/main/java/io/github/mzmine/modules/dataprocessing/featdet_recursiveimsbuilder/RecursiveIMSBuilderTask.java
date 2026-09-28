@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -320,7 +320,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   }
 
   private void addZerosForFrames(Collection<TempIMTrace> traces, List<Frame> eligibleFrames) {
-    traces.parallelStream().forEach(trace -> {
+    // parallelstream with map instead of forEach to block the calling thread until finished
+    final int ignored = traces.parallelStream().mapToInt(trace -> {
       int mostFrequentIndex = // most frequent mobility scan index, corrected by the first scans index.
           findMostFrequentMobilityScanNumber(trace.getMobilograms()) - eligibleFrames.get(0)
               .getMobilityScans().get(0).getMobilityScanNumber();
@@ -372,7 +373,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
                     Math.min(mostFrequentIndex, firstZeroFrame.getNumberOfMobilityScans())))));
       }
       stepProcessed.getAndIncrement();
-    });
+      return 1;
+    }).sum();
   }
 
   private TreeSet<BuildingIonMobilitySeries> buildFrameMobilograms(MobilityScanDataAccess access) {

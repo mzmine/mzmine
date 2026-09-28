@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import javafx.scene.layout.StackPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.chart.title.TextTitle;
 
@@ -84,6 +85,13 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
         }
       });
       barChart.getCategoryPlot().setDataset(0, n);
+      if (n != null) {
+        // not sure if the data is directly applied because of delayed actions on charts
+        // therefore apply auto range directly
+        final ValueAxis rangeAxis = barChart.getCategoryPlot().getRangeAxis();
+        final double upperBound = n.getRangeUpperBound(true) * (1 + rangeAxis.getUpperMargin());
+        rangeAxis.setRange(0, upperBound);
+      }
     });
 
     model.abundanceMeasureProperty().subscribe((n) -> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,34 +25,32 @@
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.io.CountingInputStream;
+import io.github.mzmine.util.io.JsonUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntryFactory;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonNumber;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
-import jakarta.json.JsonValue.ValueType;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,6 +67,14 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
+  private static final int READ_BUFFER = 1 << 16;
+
+  /**
+   * Lines parsed in parallel at a time. Keeps memory bounded on large libraries while still giving
+   * the worker threads enough to import.
+   */
+  private static final int PARALLEL_BATCH = 512;
+
   public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor,
       boolean extensiveErrorLogging) {
     super(bufferEntries, processor, extensiveErrorLogging);
@@ -77,7 +83,9 @@ public class MonaJsonParser extends SpectralDBTextParser {
   @Override
   public boolean parse(@Nullable AbstractTask mainTask, @NotNull File dataBaseFile,
       @NotNull SpectralLibrary library) throws IOException {
-    super.parse(mainTask, dataBaseFile, library);
+    // progress from the bytes consumed instead of the line counting pass of the super
+    // implementation, which would read the whole file a second time
+    initByteProgress(dataBaseFile);
     logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
 
     AtomicInteger correct = new AtomicInteger(0);
@@ -88,7 +96,10 @@ public class MonaJsonParser extends SpectralDBTextParser {
     final LibraryParsingErrors errors = new LibraryParsingErrors(library.getName());
 
     // create db
-    try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
+    try (CountingInputStream counting = new CountingInputStream(
+        new BufferedInputStream(new FileInputStream(dataBaseFile),
+            READ_BUFFER)); BufferedReader br = new BufferedReader(
+        new InputStreamReader(counting, StandardCharsets.UTF_8))) {
       // test on first ten if it is really a MoNA file
       String l = br.readLine();
       while (l != null) {
@@ -99,6 +110,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           }
         }
         processedLines.incrementAndGet();
+        processedBytes.set(counting.getCount());
 
         if ((correct.get() + error.get()) >= 4) {
           break;
@@ -114,26 +126,64 @@ public class MonaJsonParser extends SpectralDBTextParser {
         return false;
       }
 
-      // read the rest in parallel
-      final List<SpectralLibraryEntry> entries = br.lines().filter(line -> {
-            processedLines.incrementAndGet();
-            return line.length() > 2;
-          }).parallel().map(line -> parseLineToEntry(errors, library, correct, error, line))
-          .filter(Objects::nonNull).toList();
+      // the format check passed, hand over what it already parsed
+      for (final SpectralLibraryEntry entry : results) {
+        addLibraryEntry(library.getStorage(), errors, entry);
+      }
+
+      // read the rest in batches rather than parsing the whole multi GB library all in memory
+      // send entries to addLibraryEntry so zero intensity signals and profile spectra are filtered
+      final List<String> batch = new ArrayList<>(PARALLEL_BATCH);
+      for (String line = br.readLine(); line != null; line = br.readLine()) {
+        // main task was canceled?
+        if (mainTask != null && mainTask.isCanceled()) {
+          return false;
+        }
+        processedLines.incrementAndGet();
+        // counts what the reader pulled from the file, so it runs slightly ahead of the line
+        // being handled here. Good enough for a progress bar and capped at 1
+        processedBytes.set(counting.getCount());
+
+        if (line.length() > 2) {
+          batch.add(line);
+        }
+        if (batch.size() >= PARALLEL_BATCH) {
+          parseBatch(errors, library, correct, error, batch);
+          batch.clear();
+        }
+      }
+      parseBatch(errors, library, correct, error, batch);
 
       if (error.get() > 0) {
         logger.warning(
             String.format("MoNA spectral library %s was imported with %d entries failing.",
                 dataBaseFile.getName(), error.get()));
       }
-      // combine
-      results.addAll(entries);
-      processor.processNextEntries(results, 0);
+      finishByteProgress();
+      // finish and process last entries
+      finish();
 
       // log errors
       logger.info(isExtensiveErrorLogging() ? errors.toString() : errors.toStringShort());
 
       return true;
+    }
+  }
+
+  /**
+   * Parses a batch of lines in parallel and adds the entries in file order.
+   */
+  private void parseBatch(@NotNull final LibraryParsingErrors errors,
+      @NotNull final SpectralLibrary library, @NotNull final AtomicInteger correct,
+      @NotNull final AtomicInteger error, @NotNull final List<String> batch) {
+    if (batch.isEmpty()) {
+      return;
+    }
+    final List<SpectralLibraryEntry> entries = batch.parallelStream()
+        .map(line -> parseLineToEntry(errors, library, correct, error, line))
+        .filter(Objects::nonNull).toList();
+    for (final SpectralLibraryEntry entry : entries) {
+      addLibraryEntry(library.getStorage(), errors, entry);
     }
   }
 
@@ -156,15 +206,12 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   @Nullable
   private SpectralLibraryEntry parseToEntry(LibraryParsingErrors errors, SpectralLibrary library,
-      String line) {
-    try (JsonReader reader = Json.createReader(new StringReader(line))) {
-      JsonObject json = reader.readObject();
-      return getDBEntry(errors, library, json);
-    }
+      String line) throws IOException {
+    return getDBEntry(errors, library, JsonUtils.MAPPER.readTree(line));
   }
 
   private SpectralLibraryEntry getDBEntry(LibraryParsingErrors errors, SpectralLibrary library,
-      JsonObject main) {
+      JsonNode main) {
     // extract dps
     DataPoint[] dps = getDataPoints(errors, main);
     if (dps == null || dps.length == 0) {
@@ -176,11 +223,11 @@ public class MonaJsonParser extends SpectralDBTextParser {
     return SpectralLibraryEntryFactory.create(library.getStorage(), map, dps);
   }
 
-  private void extractAllFields(LibraryParsingErrors errors, JsonObject main,
+  private void extractAllFields(LibraryParsingErrors errors, JsonNode main,
       Map<DBEntryField, Object> map) {
     for (DBEntryField f : DBEntryField.values()) {
       Object value = null;
-      JsonValue j = null;
+      JsonNode j = null;
 
       switch (f) {
         case INCHI:
@@ -249,9 +296,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
           break;
         case NAME:
           // can have multiple names
-          JsonArray names = main.getJsonArray(COMPOUND).getJsonObject(0).getJsonArray("names");
-          value = names.stream().map(v -> v.asJsonObject()).map(v -> v.getString("name", null))
-              .filter(Objects::nonNull).collect(Collectors.joining(", "));
+          value = readCompoundNames(main);
           break;
         case NUM_PEAKS:
           break;
@@ -261,22 +306,22 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case CHEMSPIDER:
           j = readCompoundMetaDataJson(main, "chemspider");
           if (j != null) {
-            if (j.getValueType().equals(ValueType.STRING)) {
-              value = ((JsonString) j).getString();
+            if (j.isTextual()) {
+              value = j.textValue();
             }
-            if (j.getValueType().equals(ValueType.NUMBER)) {
-              value = ((JsonNumber) j).intValue();
+            if (j.isNumber()) {
+              value = j.intValue();
             }
           }
           break;
         case PUBCHEM:
           j = readCompoundMetaDataJson(main, "pubchem cid");
           if (j != null) {
-            if (j.getValueType().equals(ValueType.STRING)) {
-              value = ((JsonString) j).getString();
+            if (j.isTextual()) {
+              value = j.textValue();
             }
-            if (j.getValueType().equals(ValueType.NUMBER)) {
-              value = ((JsonNumber) j).intValue();
+            if (j.isNumber()) {
+              value = j.intValue();
             }
           }
           break;
@@ -286,24 +331,16 @@ public class MonaJsonParser extends SpectralDBTextParser {
         case PUBMED:
           break;
         case RT:
-          Object tmp = readMetaData(main, "retention time");
-          if (tmp != null) {
-            if (tmp instanceof Number) {
-              value = ((Number) tmp).floatValue();
-            } else {
-              try {
-                String v = (String) tmp;
-                v = v.replaceAll(" ", "");
-                // to minutes
-                if (v.endsWith("sec")) {
-                  v = v.substring(0, v.length() - 3);
-                  value = Float.parseFloat(v) / 60f;
-                } else {
-                  value = Float.parseFloat(v);
-                }
-              } catch (Exception ex) {
-              }
+          // MoNA writes the unit next to the value, like "13.601 min" or "42 sec".
+          final Object rt = readMetaData(main, "retention time");
+          if (rt instanceof String text && text.toLowerCase().contains("sec")) {
+            try {
+              value = Float.parseFloat(text.replaceAll("[^0-9.]", "")) / 60f;
+            } catch (NumberFormatException ex) {
+              errors.addValueParsingError(f, "retention time", text);
             }
+          } else {
+            value = rt;
           }
           break;
         case SMILES:
@@ -317,14 +354,36 @@ public class MonaJsonParser extends SpectralDBTextParser {
           break;
       }
 
-      if (value != null && value.equals("N/A")) {
-        value = null;
+      putConverted(errors, map, f, value);
+    }
+  }
+
+  /**
+   * MoNA stores its values as plain json text and numbers, so each one goes through
+   * {@link DBEntryField#convertValue(String)} like in the other parsers. Without it the value keeps
+   * whatever shape the file had: an ms level stays the text "MS2", a polarity stays "positive"
+   * instead of being harmonized, and a collision energy stays text instead of the
+   * {@link FloatArrayList} its field is declared as.
+   */
+  private void putConverted(@NotNull final LibraryParsingErrors errors,
+      @NotNull final Map<DBEntryField, Object> map, @NotNull final DBEntryField f,
+      @Nullable final Object value) {
+    if (value == null) {
+      return;
+    }
+    final String content = value.toString().trim();
+    if (content.isEmpty() || "n/a".equalsIgnoreCase(content)) {
+      return;
+    }
+
+    try {
+      final Object converted = f.convertValue(content);
+      if (converted != null) {
+        map.put(f, converted);
       }
-      // add value
-      if (value != null) {
-        // add
-        map.put(f, value);
-      }
+    } catch (Exception ex) {
+      // a single unparsable value must not drop the whole entry, so keep it without this field
+      errors.addValueParsingError(f, f.toString(), content);
     }
   }
 
@@ -335,35 +394,29 @@ public class MonaJsonParser extends SpectralDBTextParser {
    * @param id
    * @return String or Number or null
    */
-  private Object readMetaData(JsonObject main, String id) {
-    JsonValue j = main.getJsonArray(META_DATA).stream().map(v -> v.asJsonObject())
-        .filter(v -> v.getString("name").equals(id)).map(v -> v.get("value")).findFirst()
-        .orElse(null);
-
+  private Object readMetaData(JsonNode main, String id) {
+    final JsonNode j = findMetaDataValue(main.path(META_DATA), id);
     if (j != null) {
-      if (j.getValueType().equals(ValueType.STRING)) {
-        return ((JsonString) j).getString();
+      if (j.isTextual()) {
+        return j.textValue();
       }
-      if (j.getValueType().equals(ValueType.NUMBER)) {
-        return ((JsonNumber) j).numberValue();
+      if (j.isNumber()) {
+        return j.numberValue();
       }
     }
     return null;
   }
 
-  private Double readMetaDataDouble(JsonObject main, String id) {
-    return main.getJsonArray(META_DATA).stream().map(v -> v.asJsonObject())
-        .filter(v -> v.getString("name").equals(id)).map(v -> {
-          var value = v.get("value");
-          return value.getValueType().equals(ValueType.NUMBER) ? v.getJsonNumber("value")
-              .doubleValue() : Double.parseDouble(v.getString("value"));
-        }).findFirst().orElse(null);
+  private Double readMetaDataDouble(JsonNode main, String id) {
+    final JsonNode value = findMetaDataValue(main.path(META_DATA), id);
+    if (value == null) {
+      return null;
+    }
+    return value.isNumber() ? value.doubleValue() : Double.parseDouble(value.asText());
   }
 
-  private JsonValue readCompoundMetaDataJson(JsonObject main, String id) {
-    return main.getJsonArray(COMPOUND).getJsonObject(0).getJsonArray(META_DATA).stream()
-        .map(v -> v.asJsonObject()).filter(v -> v.getString("name").equals(id))
-        .map(v -> v.get("value")).findFirst().orElse(null);
+  private JsonNode readCompoundMetaDataJson(JsonNode main, String id) {
+    return findMetaDataValue(firstCompound(main).path(META_DATA), id);
   }
 
   /**
@@ -373,10 +426,8 @@ public class MonaJsonParser extends SpectralDBTextParser {
    * @param id
    * @return
    */
-  private String readCompoundMetaData(JsonObject main, String id) {
-    return main.getJsonArray(COMPOUND).getJsonObject(0).getJsonArray(META_DATA).stream()
-        .map(v -> v.asJsonObject()).filter(v -> v.getString("name").equals(id))
-        .map(v -> v.getString("value")).findFirst().orElse(null);
+  private String readCompoundMetaData(JsonNode main, String id) {
+    return text(findMetaDataValue(firstCompound(main).path(META_DATA), id));
   }
 
   /**
@@ -386,12 +437,59 @@ public class MonaJsonParser extends SpectralDBTextParser {
    * @param id
    * @return
    */
-  private String readCompound(JsonObject main, String id) {
-    return main.getJsonArray(COMPOUND).getJsonObject(0).getString(id, null);
+  private String readCompound(JsonNode main, String id) {
+    return text(firstCompound(main).get(id));
   }
 
-  private DataPoint[] getDataPoints(LibraryParsingErrors errors, JsonObject main) {
-    String spec = main.getString("spectrum");
+  /**
+   * @return all names of the first compound joined by ", " or null if it carries none
+   */
+  @Nullable
+  private static String readCompoundNames(JsonNode main) {
+    final StringJoiner joiner = new StringJoiner(", ");
+    int found = 0;
+    for (final JsonNode entry : firstCompound(main).path("names")) {
+      final String name = text(entry.get("name"));
+      if (name != null) {
+        joiner.add(name);
+        found++;
+      }
+    }
+    return found == 0 ? null : joiner.toString();
+  }
+
+  /**
+   * The first entry of the compound array, or a missing node so callers can keep chaining.
+   */
+  private static JsonNode firstCompound(JsonNode main) {
+    return main.path(COMPOUND).path(0);
+  }
+
+  /**
+   * Value of the first {name, value} pair in a metaData array that carries this name.
+   *
+   * @return the value node or null if no pair matches
+   */
+  @Nullable
+  private static JsonNode findMetaDataValue(JsonNode metaData, String name) {
+    for (final JsonNode pair : metaData) {
+      if (name.equals(text(pair.get("name")))) {
+        return pair.get("value");
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the text of a json string, null for anything else including missing values
+   */
+  @Nullable
+  private static String text(@Nullable JsonNode node) {
+    return node != null && node.isTextual() ? node.textValue() : null;
+  }
+
+  private DataPoint[] getDataPoints(LibraryParsingErrors errors, JsonNode main) {
+    String spec = text(main.get("spectrum"));
     if (spec == null) {
       errors.addUnknownException("'spectrum' key for data points not found");
       return null;

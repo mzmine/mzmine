@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,9 +55,11 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,13 +90,17 @@ public class IonMobilityUtils {
    */
   public static Map<Frame, Range<Double>> getUniqueMobilityRanges(
       @NotNull final IMSRawDataFile file) {
-    Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
+    final Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
+    // separate set for the duplicate check: Map#containsValue is a linear scan, which would make
+    // this quadratic in the number of segments. MALDI files may have one segment per frame.
+    final Set<Range<Double>> distinctRanges = new HashSet<>();
     for (Frame frame : file.getFrames()) {
-      if (frame.getMobilityRange().isEmpty() || frame.getMobilities().size() <= 1) {
+      final Range<Double> mobilityRange = frame.getMobilityRange();
+      if (mobilityRange.isEmpty() || frame.getMobilities().size() <= 1) {
         continue;
       }
-      if (!ranges.containsValue(frame.getMobilityRange())) {
-        ranges.put(frame, frame.getMobilityRange());
+      if (distinctRanges.add(mobilityRange)) {
+        ranges.put(frame, mobilityRange);
       }
     }
     return ranges;
