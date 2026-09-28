@@ -53,7 +53,6 @@ import org.jetbrains.annotations.NotNull;
  * </p>
  */
 public class MzMLParser {
-  private final MzMLAcquisitionMetadata acquisitionMetadata = new MzMLAcquisitionMetadata();
 
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
@@ -99,7 +98,6 @@ public class MzMLParser {
    */
   public void processOpeningTag(XMLStreamReader xmlStreamReader, String openingTagName)
       throws IOException, DataFormatException, XMLStreamException {
-    acquisitionMetadata.open(xmlStreamReader, openingTagName);
     tracker.enter(openingTagName);
     acquisitionMetadata.open(xmlStreamReader, openingTagName);
 
