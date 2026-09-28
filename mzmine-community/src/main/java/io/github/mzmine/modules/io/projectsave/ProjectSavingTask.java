@@ -34,6 +34,7 @@ import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataProjectIO;
+import io.github.mzmine.modules.visualization.acquisitionmetadata.AcquisitionMetadataProjectIO;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -213,6 +214,8 @@ public class ProjectSavingTask extends AbstractTask {
       currentStage++;
       currentSavedObjectName = "project metadata";
       ProjectMetadataProjectIO.saveToZip(zipStream);
+      AcquisitionMetadataProjectIO.saveToZip(zipStream,
+          Objects.requireNonNullElse(savedProject.isStandalone(), true));
 
       if (isCanceled()) {
         zipStream.close();

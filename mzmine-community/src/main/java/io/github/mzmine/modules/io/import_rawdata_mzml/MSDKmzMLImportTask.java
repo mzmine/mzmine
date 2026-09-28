@@ -229,6 +229,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
       newMZmineFile.addOtherDataFiles(otherTraceFiles);
 
       newMZmineFile.setStartTimeStamp(startTimeStamp);
+      newMZmineFile.setAcquisitionMetadata(msdkTaskRes.getAcquisitionMetadata());
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
       if (totalScansAfterFilter == 0 && newMZmineFile.getOtherDataFiles().isEmpty()) {

@@ -28,6 +28,7 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.AcquisitionMetadata;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -94,6 +95,7 @@ public class RawDataFileImpl implements RawDataFile {
   private MassSpectrumType spectraType;
   @Nullable
   private LocalDateTime startTimeStamp = null;
+  private AcquisitionMetadata acquisitionMetadata = AcquisitionMetadata.EMPTY;
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage) {
@@ -402,6 +404,16 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public @Nullable LocalDateTime getStartTimeStamp() {
     return startTimeStamp;
+  }
+
+  @Override
+  public @NotNull AcquisitionMetadata getAcquisitionMetadata() {
+    return acquisitionMetadata;
+  }
+
+  @Override
+  public void setAcquisitionMetadata(final @NotNull AcquisitionMetadata metadata) {
+    acquisitionMetadata = metadata;
   }
 
   public void setStartTimeStamp(@Nullable LocalDateTime startTimeStamp) {

@@ -53,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
  * </p>
  */
 public class MzMLParser {
+  private final MzMLAcquisitionMetadata acquisitionMetadata = new MzMLAcquisitionMetadata();
 
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
@@ -97,6 +98,7 @@ public class MzMLParser {
    */
   public void processOpeningTag(XMLStreamReader xmlStreamReader, String openingTagName)
       throws IOException, DataFormatException, XMLStreamException {
+    acquisitionMetadata.open(xmlStreamReader, openingTagName);
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
@@ -473,7 +475,12 @@ public class MzMLParser {
    * @param closingTagName  a {@link String} object.
    */
   public void processClosingTag(XMLStreamReader xmlStreamReader, String closingTagName) {
+    acquisitionMetadata.close(closingTagName);
     tracker.exit(closingTagName);
+
+    if (closingTagName.equals("mzML")) {
+      newRawFile.setAcquisitionMetadata(acquisitionMetadata.result());
+    }
 
     if (closingTagName.equals(MzMLTags.TAG_SPECTRUM)) {
       this.parsedScans++;
