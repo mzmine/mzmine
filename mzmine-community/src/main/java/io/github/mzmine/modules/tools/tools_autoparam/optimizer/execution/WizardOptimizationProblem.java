@@ -390,7 +390,8 @@ public class WizardOptimizationProblem extends AbstractProblem implements Search
    * Applies only the estimated and optimized values of a solution to an existing wizard sequence,
    * the same way as applying the raw data estimates. All other parameters keep their current
    * values. The applied values equal the ones the solution was evaluated with in
-   * {@link #createWizardSequenceFromSolution(Solution)}.
+   * {@link #createWizardSequenceFromSolution(Solution)} as long as the sequence uses the same
+   * presets as the optimization.
    * <p>
    * assumption: parameters with a {@link ValueOrigin#PRESET_DEFAULT} value that were not optimized
    * are not estimates and are therefore left unchanged.

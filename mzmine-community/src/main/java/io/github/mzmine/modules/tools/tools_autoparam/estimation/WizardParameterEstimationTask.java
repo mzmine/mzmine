@@ -35,7 +35,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,17 +49,25 @@ public final class WizardParameterEstimationTask extends AbstractTask {
   private final File @NotNull [] files;
   private final @Nullable File metadataFile;
   private final @NotNull WizardSequence sequence;
+  private final @NotNull Predicate<@NotNull PresetSelection> presetConfirmation;
   private final @NotNull Consumer<WizardParameterEstimationResult> onFinished;
   private volatile double progress;
 
+  /**
+   * @param presetConfirmation called on the JavaFX thread with the presets that fit the raw data,
+   *                           returns true to estimate for them, see
+   *                           {@link ParameterEstimationContext#withFittingPresets}
+   */
   public WizardParameterEstimationTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File @NotNull [] files, @Nullable File metadataFile,
       @NotNull WizardSequence sequence,
+      @NotNull Predicate<@NotNull PresetSelection> presetConfirmation,
       @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
     super(storage, moduleCallDate, "Estimate wizard parameters");
     this.files = files.clone();
     this.metadataFile = metadataFile;
     this.sequence = sequence;
+    this.presetConfirmation = presetConfirmation;
     this.onFinished = onFinished;
   }
 
@@ -93,7 +103,11 @@ public final class WizardParameterEstimationTask extends AbstractTask {
       }
 
       final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
-      final ParameterEstimationContext context = new ParameterEstimationContext(analysis, sequence);
+      final ParameterEstimationContext context = ParameterEstimationContext.withFittingPresets(
+          analysis, sequence, this::confirmPresetsOnFxThread);
+      if (isCanceled()) {
+        return;
+      }
       final WizardParameterEstimationResult result = new WizardParameterEstimationResult(context,
           PreparedParameterSet.prepare(context));
       progress = 1d;
@@ -102,6 +116,15 @@ public final class WizardParameterEstimationTask extends AbstractTask {
     } catch (Exception e) {
       error("Could not estimate wizard parameters: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Runs the confirmation on the JavaFX thread and waits on the task thread for the answer.
+   */
+  private boolean confirmPresetsOnFxThread(@NotNull PresetSelection presets) {
+    final AtomicBoolean confirmed = new AtomicBoolean(false);
+    FxThread.runOnFxThreadAndWait(() -> confirmed.set(presetConfirmation.test(presets)));
+    return confirmed.get();
   }
 
 }

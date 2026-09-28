@@ -44,6 +44,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimators;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.PreparedParameterSet;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataAnalysis;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.execution.BatchExecutionLimitReachedException;
@@ -68,6 +69,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
@@ -232,6 +234,16 @@ public class BatchOptimizationMainTask extends AbstractTask {
         (double) currentProblem.getBatchExecutionCount() / max) : 0d;
   }
 
+  /**
+   * Asks for the preset switch on the JavaFX thread and waits on the task thread for the answer.
+   */
+  private static boolean confirmPresetsOnFxThread(@NotNull BatchWizardTab wizardTab,
+      @NotNull PresetSelection presets) {
+    final AtomicBoolean confirmed = new AtomicBoolean(false);
+    FxThread.runOnFxThreadAndWait(() -> confirmed.set(wizardTab.confirmAndSwitchPresets(presets)));
+    return confirmed.get();
+  }
+
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -261,8 +273,21 @@ public class BatchOptimizationMainTask extends AbstractTask {
 
     totalBatchExecutions = Math.max(params.getValue(OptimizerParameters.iterations), 30);
     final RawDataAnalysis analysis = RawDataAnalysis.analyze(stats);
-    final ParameterEstimationContext estimationContext = new ParameterEstimationContext(analysis,
-        sequence);
+    // if confirmed, the wizard switches to the presets that fit the raw data and every candidate is
+    // evaluated with them.
+    // decision: headless runs keep the given presets, so scripted comparisons stay reproducible
+    final Predicate<PresetSelection> presetConfirmation =
+        tab != null ? presetSelection -> confirmPresetsOnFxThread(tab, presetSelection)
+            : _ -> false;
+    final ParameterEstimationContext estimationContext = ParameterEstimationContext.withFittingPresets(
+        analysis, sequence, presetConfirmation);
+    if (getStatus() != TaskStatus.PROCESSING) {
+      return;
+    }
+    final PresetSelection presets = estimationContext.presetSelection();
+    if (!presets.isEmpty()) {
+      logger.info("Optimizing with presets that fit the raw data:\n" + presets.describe());
+    }
     final PreparedParameterSet singlePassEstimates = PreparedParameterSet.prepare(
         estimationContext);
     final WizardOptimizationProblem optimizationProblem = new WizardOptimizationProblem(
@@ -338,10 +363,13 @@ public class BatchOptimizationMainTask extends AbstractTask {
     if (!injected.isEmpty()) {
       logger.info("Initialization for %s: injected %d solutions, batch budget %d".formatted(
           optimizer.getName(), injected.size(), totalBatchExecutions));
+      final String presetText =
+          presets.isEmpty() ? "" : "Presets:\n%s\n".formatted(presets.describe());
       NotificationService.show(NotificationType.INFO, "Starting optimizer", """
           Using %d attempts around raw-data based estimations and %d full batch executions.
-          Estimates:
-          %s""".formatted(injected.size(), totalBatchExecutions, singlePassEstimates.describe()));
+          %sEstimates:
+          %s""".formatted(injected.size(), totalBatchExecutions, presetText,
+          singlePassEstimates.describe()));
     }
 
     configureOptimizer(optimizerOption, optimizer, optimizationProblem, injected);

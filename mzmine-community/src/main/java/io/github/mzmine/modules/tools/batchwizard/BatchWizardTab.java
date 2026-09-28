@@ -55,6 +55,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMob
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatisticsDashboardPane;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetChange;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.PresetSelection;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.RawDataPreparation;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationResult;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameterEstimationTask;
@@ -618,10 +620,11 @@ public class BatchWizardTab extends SimpleTab {
 
     final File metadataFile = importParameters.getOptionalValue(
         DataImportWizardParameters.metadataFile).orElse(null);
-    final WizardSequence sequenceSnapshot = copySequence(sequenceSteps);
+    final WizardSequence sequenceSnapshot = sequenceSteps.copy();
     final WizardParameterEstimationTask task = new WizardParameterEstimationTask(
         MemoryMapStorage.forRawDataFile(), Instant.now(), estimateFiles, metadataFile,
-        sequenceSnapshot, result -> applyParameterEstimationResult(result, showStatistics));
+        sequenceSnapshot, this::confirmAndSwitchPresets,
+        result -> applyParameterEstimationResult(result, showStatistics));
     parameterEstimationRunning.set(true);
     task.addTaskStatusListener((_, newStatus, _) -> {
       if (!newStatus.isUnmodifiable()) {
@@ -661,7 +664,7 @@ public class BatchWizardTab extends SimpleTab {
       @NotNull Source source) {
     // Preserve unrelated edits made while a background task was running.
     updateAllParametersFromUi();
-    final WizardSequence before = copySequence(sequenceSteps);
+    final WizardSequence before = sequenceSteps.copy();
     final boolean previousListenersActive = listenersActive;
     setListenersActive(false);
     try {
@@ -679,14 +682,56 @@ public class BatchWizardTab extends SimpleTab {
     }
   }
 
-  private static @NotNull WizardSequence copySequence(@NotNull WizardSequence source) {
-    final WizardSequence copy = new WizardSequence();
-    for (final WizardStepParameters step : source) {
-      final WizardStepParameters stepCopy = step.getFactory().create();
-      ParameterUtils.copyParameters(step, stepCopy);
-      copy.add(stepCopy);
+  /**
+   * Asks the user whether to switch to the presets that fit the raw data and switches the wizard
+   * directly if confirmed. The switch is not highlighted as a parameter change. Must be called on
+   * the JavaFX thread.
+   *
+   * @param presets the presets that fit the raw data
+   * @return true if the wizard was switched to the presets
+   */
+  public boolean confirmAndSwitchPresets(@NotNull PresetSelection presets) {
+    if (presets.isEmpty()) {
+      return false;
     }
-    return copy;
+    final boolean confirmed = DialogLoggerUtil.showDialogYesNo("Switch wizard presets", """
+        Other presets fit the raw data better than the ones selected in the wizard:
+        
+        %s
+        
+        Switch the wizard to these presets? The new presets start from their default \
+        parameters, the estimated values are applied on top.""".formatted(presets.describe()));
+    if (confirmed) {
+      switchPresets(presets);
+    }
+    return confirmed;
+  }
+
+  /**
+   * Selects the presets in the wizard. The combo boxes follow when the parameter panes are
+   * recreated.
+   */
+  private void switchPresets(@NotNull PresetSelection presets) {
+    // Preserve unrelated edits before the panes are recreated.
+    updateAllParametersFromUi();
+    final boolean previousListenersActive = listenersActive;
+    setListenersActive(false);
+    try {
+      for (final PresetChange change : presets.changes()) {
+        ALL_PRESETS.get(change.part()).stream()
+            .filter(preset -> preset.getFactory().equals(change.to())).findFirst()
+            .ifPresent(preset -> {
+              // decision: the estimates and the optimization are based on the defaults of the
+              // new preset, so previous edits of that preset are discarded
+              preset.resetToDefaults();
+              sequenceSteps.set(change.part(), preset);
+            });
+      }
+      createParameterPanes();
+    } finally {
+      setListenersActive(previousListenersActive);
+    }
+    logger.info("Switched wizard presets to fit the raw data:\n" + presets.describe());
   }
 
   /**
@@ -735,7 +780,7 @@ public class BatchWizardTab extends SimpleTab {
 
     // keep old parameters before applying sequence
     updateAllParametersFromUi();
-    final WizardSequence before = changeSource == null ? null : copySequence(sequenceSteps);
+    final WizardSequence before = changeSource == null ? null : sequenceSteps.copy();
 
     // partialSequence might contain other instances of the presets (after loading)
     // need to apply all parameter changes to ALL_PRESETS
