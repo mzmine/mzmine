@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Color bar of one overlay with two handles that clip its color range, like the intensity sliders
- * of imaging software (user request). Only the colors change, the data are not resampled.
+ * of imaging software. Only the colors change, the data are not resampled.
  */
 final class IntensityMapColorRange extends Region {
 

@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class IntensityMapSampler {
 
-  public static final String MZ_LABEL = "m/z";
+  private static final String MZ_LABEL = "m/z";
   // assumption: centroid m/z scatters by a few ppm between scans. Finer bins only produce
   // jagged ridges instead of revealing more signal.
   private static final double MIN_CENTROID_BIN_PPM = 5;
@@ -98,7 +98,7 @@ public final class IntensityMapSampler {
   /**
    * @param mzRanges one overlay per range, read in one pass over the spectra
    * @param region   window in displayed coordinates
-   * @return one entry per range, null if the range lies outside the region
+   * @return one entry per range, null if the region contains no data of the range
    */
   public static @Nullable IntensityMapGrid @NotNull [] sample(@NotNull final RawDataFile file,
       @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges,
@@ -111,7 +111,7 @@ public final class IntensityMapSampler {
   /**
    * @param normalization the imaging intensity normalization, applied per scan or pixel. The
    *                      reference is the complete scan selection, so regions keep their values.
-   * @param frames        the mobility frame to show
+   * @param frames        selection of the mobility frame to show
    */
   public static @Nullable IntensityMapGrid @NotNull [] sample(@NotNull final RawDataFile file,
       @NotNull final ParameterSet parameters, @NotNull final List<Range<Double>> mzRanges,
@@ -181,16 +181,6 @@ public final class IntensityMapSampler {
   }
 
   /**
-   * @return true if m/z is one of the displayed coordinate axes
-   */
-  public static boolean hasMzAxis(@NotNull final IntensityMapDimensions mode) {
-    return switch (mode) {
-      case AUTOMATIC, LC_MS, MOBILITY_FRAME -> true;
-      case IMAGING -> false;
-    };
-  }
-
-  /**
    * @return the label with its unit in the style of the preferences, e.g. "Retention time / min"
    */
   public static @NotNull String axisLabel(@NotNull final String label,
@@ -202,9 +192,8 @@ public final class IntensityMapSampler {
    * @return the scans of the lowest MS level in the selection, usually MS1
    */
   public static @NotNull List<Scan> lowestMsLevel(final Scan @NotNull [] scans) {
-    // decision (user request): scans of another MS level are not zeros between the scans of a
-    // trace, e.g. MS2 scans of DDA data between MS1 scans. As columns they would break every
-    // trace along retention time.
+    // decision: only the lowest MS level. Scans of another level, e.g. MS2 scans of DDA data
+    // between MS1 scans, would add empty columns that break every trace along retention time.
     final int level = Arrays.stream(scans).mapToInt(Scan::getMSLevel).min().orElse(1);
     return Arrays.stream(scans).filter(scan -> scan.getMSLevel() == level).toList();
   }
@@ -345,7 +334,8 @@ public final class IntensityMapSampler {
     final double[] step = imagingStep(file);
     final double stepX = step[0];
     final double stepY = step[1];
-    // Keep imported coordinates verbatim: never guess zero/one based origins from a sparse image.
+    // keep imported coordinates verbatim, zero or one based origins cannot be told from a sparse
+    // image
     final List<ImagingScan> pixels = Arrays.stream(scans)
         .filter(scan -> scan instanceof ImagingScan).map(scan -> (ImagingScan) scan)
         .filter(scan -> scan.getCoordinates() != null).filter(
@@ -439,7 +429,7 @@ public final class IntensityMapSampler {
         mzBuffer = new double[count];
         intensityBuffer = new double[count];
       }
-      // Some implementations return their own arrays. Never pass those to a subsequent spectrum.
+      // some implementations return their internal arrays, so only the own buffers are passed on
       mz = spectrum.getMzValues(mzBuffer);
       intensity = spectrum.getIntensityValues(intensityBuffer);
     }

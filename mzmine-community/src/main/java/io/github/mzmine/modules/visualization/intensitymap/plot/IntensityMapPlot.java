@@ -39,7 +39,6 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBoun
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapLabel;
-import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPeak;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPosition;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
@@ -63,21 +62,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -118,19 +110,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Reusable, interactive 3D plot, also the 2D view. All samples use the same physical axes and,
- * unless normalized, the same intensity scale. The plot owns the scene, the overlays, and their
- * state, and coordinates its parts: camera, fixed 2D plot area, zoom box, hover, materials,
- * controls, tile layout, and the background mesh builder.
+ * Reusable interactive intensity map plot, as a 3D relief or a 2D top view. All samples use the
+ * same physical axes and, unless normalized, the same intensity scale. The plot owns the scene, the
+ * overlays, and their state, and coordinates its parts: camera, fixed 2D plot area, zoom box,
+ * hover, materials, controls, tile layout, and the background mesh builder.
  */
 public final class IntensityMapPlot extends BorderPane implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(IntensityMapPlot.class.getName());
   // highlight of markers and selections, also used by the detail panes
-  public static final Color ACCENT = Color.web("#f97316");
+  static final String ACCENT_HEX = "#f97316";
+  public static final Color ACCENT = Color.web(ACCENT_HEX);
   // initial opacity of overlaid surfaces
   private static final double OVERLAY_OPACITY = 0.8;
-  // estimate of the plot area of the 2D view in the viewport, until the view is fitted
+  // assumed fraction of the viewport covered by the 2D plot area until the view is fitted
   private static final double PLOT_FRACTION = 0.7;
 
   private final IntensityMapProjection projection;
@@ -146,12 +139,12 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private final IntensityMapZoomBox zoomBox = new IntensityMapZoomBox(model);
   private final IntensityMapHover hover = new IntensityMapHover();
   private final IntensityMapFeatureLabels featureLabels = new IntensityMapFeatureLabels();
-  // running cinematic camera move, null if none
-  private @Nullable Timeline flight;
+  private final IntensityMapVisibleAreas visibleAreas;
   private final IntensityMapMaterials materials = new IntensityMapMaterials();
   private final IntensityMapControls controls;
+  private final Map<String, IntensityMapSeriesState> states = new LinkedHashMap<>();
   private final IntensityMapTileLayout tileLayout = new IntensityMapTileLayout(model, axes,
-      labelLayer);
+      labelLayer, states);
   private final IntensityMapMeshBuilder meshBuilder = new IntensityMapMeshBuilder();
   private final IntensityMapOverlayPanel panel = new IntensityMapOverlayPanel();
   private final Label status = new Label("Loading data…");
@@ -164,11 +157,10 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private final ProgressIndicator loadingIndicator = new ProgressIndicator();
   private final Label loadingLabel = new Label();
   private final Label placeholder = FxLabels.newItalicLabel("No data");
-  // collapsible sections instead of show/hide buttons (user request)
+  // the detail pane is a collapsible section below the view
   private final IntensityMapSection detailSection = new IntensityMapSection();
   private final BorderPane collapsedDetail = new BorderPane();
   private final SplitPane split = new SplitPane();
-  private final Map<String, IntensityMapSeriesState> states = new LinkedHashMap<>();
   private double detailDivider = 0.62;
   private @Nullable IntensityMapAxesSpec axesSpec;
   // scale of marker line widths, follows the zoom like the axes
@@ -241,6 +233,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     scene = new SubScene(world, 900, 650, true, SceneAntialiasing.BALANCED);
     camera = new IntensityMapCamera(model, scene, viewport, projection);
     plotArea = new IntensityMapPlotArea(camera, model, scene);
+    visibleAreas = new IntensityMapVisibleAreas(camera, plotArea, tileLayout, model, scene);
     surfaces.setMouseTransparent(true);
     markers.getChildren().setAll(hover.cursor());
     markers.getChildren().add(zoomBox.node());
@@ -292,6 +285,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     legend.setSmooth(true);
     legendBox.getChildren().setAll(legendTitle, legendMinimum, legend, legendMaximum);
     legendBox.setAlignment(Pos.CENTER_LEFT);
+    FxLayout.bindManagedToVisible(legendBox);
     status.setMaxWidth(Double.MAX_VALUE);
     HBox.setHgrow(status, Priority.ALWAYS);
     final HBox footer = FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(6, 12, 6, 12), status,
@@ -305,10 +299,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private void bindControls() {
     controls.heightSlider().valueProperty().addListener((_, _, value) -> {
       camera.setHeightScale(value.doubleValue());
-      if (camera.isAutoFit()) {
-        fitView();
-      }
-      projectAxes();
+      refit();
     });
     controls.transformBox().valueProperty().addListener((_, _, _) -> rebuild());
     controls.intensityNormalization().valueProperty().addListener((_, _, value) -> {
@@ -324,7 +315,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     controls.smoothingAxes().valueProperty().addListener((_, _, _) -> refreshDisplayed());
     for (final var spinner : controls.gridSpinners()) {
       spinner.valueProperty().addListener((_, _, _) -> {
-        if (controls.layout().get() == IntensityMapLayout.GRID) {
+        if (sideBySide()) {
           rebuild();
         }
       });
@@ -333,16 +324,14 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         .addListener((_, _, show) -> allAxes().forEach(value -> value.setGridVisible(show)));
     controls.showLabels().selectedProperty().addListener((_, _, show) -> {
       labelLayer.setVisible(show);
-      if (camera.isAutoFit()) {
-        fitView();
-      }
-      projectAxes();
+      refit();
     });
     controls.layout().addListener((_, _, value) -> {
       if (value == IntensityMapLayout.OVERLAY && series.size() > 1) {
         controls.coloring().setValue(IntensityMapColoring.SAMPLE);
       }
-      // decision: tiles change their size and place, so the zoom of the former layout is lost
+      // decision: tiles change their size and position, so a zoom does not carry over between
+      // layouts
       camera.setAutoFit(true);
       focusedTile = -1;
       updateDisplayControls();
@@ -380,10 +369,10 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   private void initInteraction() {
     // any interaction takes over the camera from a running move
-    scene.addEventFilter(MouseEvent.MOUSE_PRESSED, _ -> stopFlight());
-    scene.addEventFilter(ScrollEvent.SCROLL, _ -> stopFlight());
-    scene.addEventFilter(ZoomEvent.ZOOM, _ -> stopFlight());
-    viewport.addEventFilter(KeyEvent.KEY_PRESSED, _ -> stopFlight());
+    scene.addEventFilter(MouseEvent.MOUSE_PRESSED, _ -> camera.stopFlight());
+    scene.addEventFilter(ScrollEvent.SCROLL, _ -> camera.stopFlight());
+    scene.addEventFilter(ZoomEvent.ZOOM, _ -> camera.stopFlight());
+    viewport.addEventFilter(KeyEvent.KEY_PRESSED, _ -> camera.stopFlight());
     scene.setOnMousePressed(event -> {
       viewport.requestFocus();
       dragX = event.getSceneX();
@@ -441,7 +430,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     scene.setOnMouseClicked(event -> {
       if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2
           && featureLabels.at(event.getX(), event.getY()) == null) {
-        // side by side: a tile fills the view, elsewhere everything is fitted again
+        // side by side: the double-clicked tile fills the view, elsewhere all data are fitted
         final int tile = tileAt(event.getX(), event.getY());
         if (tile >= 0) {
           focusTile(tile);
@@ -509,17 +498,11 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * into any tile of side by side views.
    */
   private void zoomAt(final double factor, final double x, final double y) {
-    if (!(factor > 0) || !Double.isFinite(factor)) {
-      return;
-    }
     final Point3D target = worldPointAt(x, y);
     if (target == null) {
       zoom(factor);
-      return;
-    }
-    if (camera.zoomTowards(factor, target)) {
-      hideHover();
-      requestDetail();
+    } else {
+      zoomTowards(factor, target);
     }
   }
 
@@ -527,14 +510,21 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * Zooms towards the viewport center.
    */
   private void zoom(final double factor) {
+    zoomTowards(factor, worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2));
+  }
+
+  /**
+   * @param target world point that stays in place, null moves the camera along its axis
+   */
+  private void zoomTowards(final double factor, @Nullable final Point3D target) {
     if (!(factor > 0) || !Double.isFinite(factor)) {
       return;
     }
-    if (worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2) != null) {
-      zoomAt(factor, scene.getWidth() / 2, scene.getHeight() / 2);
+    if (target == null) {
+      camera.zoomDistance(factor);
+    } else if (!camera.zoomTowards(factor, target)) {
       return;
     }
-    camera.zoomDistance(factor);
     hideHover();
     requestDetail();
   }
@@ -567,7 +557,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    */
   private int tileAt(final double x, final double y) {
     final List<IntensityMapTile> tiles = tileLayout.tiles();
-    if (controls.layout().get() != IntensityMapLayout.GRID || tiles.size() < 2) {
+    if (!sideBySide() || tiles.size() < 2) {
       return -1;
     }
     final IntensityMapTileHit picked = pick(x, y);
@@ -579,12 +569,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    */
   private void focusTile(final int index) {
     focusedTile = index;
-    camera.resetPan();
-    camera.setAutoFit(true);
-    hideHover();
-    fitView();
-    projectAxes();
-    requestDetail();
+    applyPreset();
   }
 
   @Override
@@ -736,7 +721,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Plain clicks on the 3D view select a position, for example to show its spectrum.
+   * Plain clicks on the view select a position, for example to show its spectrum.
    */
   public void setOnSelectionChanged(@Nullable final Consumer<IntensityMapPosition> listener) {
     selectionListener = listener;
@@ -826,8 +811,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Shows which spectrum a click would select, only while hovering (user decision: a persistent
-   * marker was too heavy).
+   * Shows which spectrum a click would select. The marker is only shown while hovering, a
+   * persistent marker would clutter the view.
    *
    * @param selection hovered position, null hides the marker
    */
@@ -837,13 +822,11 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       hover.clearSlices();
       return;
     }
-    // a slice only depends on one coordinate
-    final boolean xInside = selection.x() >= current.xMin() && selection.x() <= current.xMax();
-    final boolean yInside = selection.y() >= current.yMin() && selection.y() <= current.yMax();
+    // X and Y slices only depend on one coordinate
     final boolean inside = switch (sliceMode) {
-      case X -> xInside;
-      case Y -> yInside;
-      case POINT -> xInside && yInside;
+      case X -> current.containsX(selection.x());
+      case Y -> current.containsY(selection.y());
+      case POINT -> current.contains(selection.x(), selection.y());
     };
     if (!inside) {
       hover.clearSlices();
@@ -860,7 +843,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   private double sliceTop(final int tile) {
     final List<float[]> envelopes = new ArrayList<>();
     final List<IntensityMapSeries> tiled = tileLayout.tiled();
-    if (controls.layout().get() == IntensityMapLayout.GRID && tile < tiled.size()) {
+    if (sideBySide() && tile < tiled.size()) {
       final IntensityMapSeriesState state = states.get(tiled.get(tile).id());
       if (state != null) {
         envelopes.add(state.envelope());
@@ -904,15 +887,11 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     // the clipped 2D view shows the viewport around its plot area
     viewport.setBackground(Background.fill(background));
     applyPlotBackground();
-    final String bubble = dark
-        ? "-fx-background-color: rgba(30,35,42,0.94); -fx-border-color: #475569; -fx-text-fill: #e2e8f0;"
-        : "-fx-background-color: rgba(255,255,255,0.94); -fx-border-color: #cbd5e1; -fx-text-fill: #1e293b;";
-    final String shape = "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 9 6 9;";
-    hover.setStyle(dark, bubble + shape);
+    hover.setStyle(dark, IntensityMapTheme.bubble(dark));
     featureLabels.setDark(dark);
-    loadingBox.setStyle(bubble + shape);
-    loadingLabel.setStyle(dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;");
-    placeholder.setStyle(dark ? "-fx-text-fill: #94a3b8;" : "-fx-text-fill: #64748b;");
+    loadingBox.setStyle(IntensityMapTheme.bubble(dark));
+    loadingLabel.setStyle(IntensityMapTheme.text(dark));
+    placeholder.setStyle(IntensityMapTheme.mutedText(dark));
     tileLayout.setTitleStyle(tileTitleStyle());
     projectAxes();
   }
@@ -926,13 +905,14 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   private void applyPlotBackground() {
     allAxes().forEach(value -> value.setColors(dark, plotBackground));
+    featureLabels.setVeilColor(plotBackground());
     // overlay gradients start at the plot background
     materials.clearGradients();
     updateMaterials();
   }
 
   private @NotNull String tileTitleStyle() {
-    return (dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;")
+    return IntensityMapTheme.text(dark)
         + "-fx-font-weight: bold; -fx-font-size: 12; -fx-padding: 0;";
   }
 
@@ -950,8 +930,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   public @NotNull IntensityMapDetail detail() {
     final int samples = Math.max(1, series.size());
     if (projection.fixedPlotArea()) {
-      // decision (user request): the 2D view samples the pixels of its plot area, like the former
-      // 2D plot, in logical pixels: cells of one physical pixel on HiDPI screens drop out
+      // decision: the 2D view samples the pixels of its plot area, one bin per logical pixel, so
+      // HiDPI screens do not get cells of one physical pixel
       final Rectangle2D area = plotArea.area(plotTile());
       return area != null ? new IntensityMapDetail(area.getWidth(), area.getHeight(), samples,
           projection) : new IntensityMapDetail(Math.max(600, viewport.getWidth()) * PLOT_FRACTION,
@@ -992,10 +972,17 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     if (camera.isAutoFit()) {
       fitView();
     }
+    followCamera();
+    notifyDetail();
+  }
+
+  /**
+   * Updates clipping, axes, and labels after the camera moved.
+   */
+  private void followCamera() {
     camera.updateClipping(worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2));
     updateAxesFrame();
     projectAxes();
-    notifyDetail();
   }
 
   /**
@@ -1040,7 +1027,6 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       tileLayout.clear();
       fittingPoints = List.of();
       legendBox.setVisible(false);
-      legendBox.setManaged(false);
       panel.setSeries(series, states);
       hideHover();
       showEmpty("No overlays");
@@ -1110,13 +1096,13 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     });
     state.visibleProperty().addListener((_, _, _) -> {
       hideHover();
-      // the grid only contains visible overlays
-      if (controls.layout().get() == IntensityMapLayout.OVERLAY) {
+      // side by side tiles only contain visible overlays
+      if (!sideBySide()) {
         updateStatus();
       } else {
         rebuild();
       }
-      // hidden overlays are not read in detail, shown ones may need it now
+      // hidden overlays are not sampled in detail, a shown overlay may need finer data
       notifyDetail();
     });
     return state;
@@ -1174,10 +1160,10 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
         target.transform(), relative ? IntensityMapFormat.PLAIN : format,
         axesSpec == null ? null : axesSpec.frame());
     allAxes().forEach(value -> value.rebuild(axesSpec));
-    tileLayout.apply(controls.layout().get(), series, visibleSeries(), states,
-        controls.gridColumns(), controls.gridRows(), surfaces, tileTitleStyle(), this::setUpAxes);
+    tileLayout.apply(controls.layout().get(), series, visibleSeries(), controls.gridColumns(),
+        controls.gridRows(), surfaces, tileTitleStyle(), this::setUpAxes);
     hover.clearSlices();
-    fittingPoints = tileLayout.fittingPoints(controls.layout().get(), snapshot, states);
+    fittingPoints = tileLayout.fittingPoints(controls.layout().get(), snapshot);
     if (camera.isAutoFit()) {
       fitView();
     }
@@ -1233,7 +1219,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
       hideHover();
       if (feature != null) {
         // a label may reach beyond the data
-        featureLabels.highlight(feature, this::peakPosition);
+        featureLabels.highlight(feature, peakProjector());
         hover.showReadout(feature.text(),
             List.of(new IntensityMapHoverRow(feature.description(), ACCENT, true)), x, y,
             viewport.getWidth(), viewport.getHeight());
@@ -1256,12 +1242,12 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
             : "");
     final List<IntensityMapHoverRow> rows = new ArrayList<>();
     for (final IntensityMapSeries value : visibleSeries()) {
-      final double intensity = intensityAt(value.data(), dataX, dataY);
+      final double intensity = value.data().intensityAt(dataX, dataY);
       rows.add(new IntensityMapHoverRow(
           value.fullName() + ":  " + (Double.isNaN(intensity) ? "–" : format.intensity(intensity)),
           seriesColor(value), value == emphasized));
     }
-    featureLabels.highlight(feature, this::peakPosition);
+    featureLabels.highlight(feature, peakProjector());
     if (feature != null) {
       rows.addFirst(new IntensityMapHoverRow(feature.description(), ACCENT, true));
     }
@@ -1272,16 +1258,6 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     return states.get(value.id()).colorProperty().get();
   }
 
-  private static double intensityAt(@NotNull final IntensityMapGrid data, final double x,
-      final double y) {
-    final int column = data.binX(x);
-    final int row = data.binY(y);
-    if (column < 0 || row < 0 || !data.isPresent(column, row)) {
-      return Double.NaN;
-    }
-    return data.intensity(column, row);
-  }
-
   private void hideHover() {
     hover.hide();
     featureLabels.clearHighlight();
@@ -1289,8 +1265,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   private void updateZoomBox() {
     final double minimum = 0.5 * lineScale;
-    // decision (user request): the box reaches above the highest data point, a box on the floor
-    // is hidden below the data; the 2D view draws it after the data anyway
+    // decision: the box reaches above the highest data point, as a box on the floor would be
+    // hidden by the data; the 2D view draws it on top of the data anyway
     final int tile = Math.max(0, tileLayout.tiles().indexOf(zoomBox.tile()));
     zoomBox.show(minimum, projection.heights() ? Math.max(minimum, sliceTop(tile)) : minimum);
   }
@@ -1303,28 +1279,18 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     if (modelCorners == null) {
       return;
     }
-    zoomTo(zoomBox.tile(), modelCorners);
+    zoomTo(zoomBox.tile(), modelCorners, false);
   }
 
   /**
    * Fits the camera to a box of a tile.
    *
    * @param modelCorners corners of the box in model coordinates
-   */
-  private void zoomTo(@NotNull final IntensityMapTile tile,
-      @NotNull final List<Point3D> modelCorners) {
-    zoomTo(tile, modelCorners, false);
-  }
-
-  /**
-   * Fits the camera to a box of a tile.
-   *
-   * @param modelCorners corners of the box in model coordinates
-   * @param fly          move the camera there like in a movie, otherwise jump
+   * @param fly          animate the camera move, otherwise jump
    */
   private void zoomTo(@NotNull final IntensityMapTile tile,
       @NotNull final List<Point3D> modelCorners, final boolean fly) {
-    stopFlight();
+    camera.stopFlight();
     final Point3D start = camera.position();
     final List<Point3D> corners = modelCorners.stream().map(model::localToParent).toList();
     camera.setAutoFit(false);
@@ -1332,8 +1298,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     camera.fit(corners);
     // side by side, the box fills the plot area its tile gets once it fills the view
     final int boxTile = tileLayout.tiles().indexOf(tile);
-    if (projection.fixedPlotArea() && controls.layout().get() == IntensityMapLayout.GRID
-        && boxTile >= 0 && fitTileArea(boxTile)) {
+    if (projection.fixedPlotArea() && sideBySide() && boxTile >= 0 && fitTileArea(boxTile)) {
       zoomedTile = boxTile;
     }
     final Rectangle2D area = plotArea.area(plotTile());
@@ -1348,123 +1313,18 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     final Point3D end = camera.position();
     final double depth = corners.stream().mapToDouble(Point3D::getZ).average().orElse(end.getZ());
     camera.moveTo(start);
-    fly(new IntensityMapFlight(start, end, depth, camera.heightPerDistance()));
-  }
-
-  /**
-   * Moves the camera along the path, eased at both ends; the detail of the target is read on
-   * arrival.
-   */
-  private void fly(@NotNull final IntensityMapFlight path) {
-    final DoubleProperty progress = new SimpleDoubleProperty(0);
-    progress.addListener((_, _, t) -> {
-      camera.moveTo(path.at(t.doubleValue()));
-      camera.updateClipping(worldPointAt(scene.getWidth() / 2, scene.getHeight() / 2));
-      // the axes stay at the view edges while moving, as while dragging
-      updateAxesFrame();
-      projectAxes();
-    });
-    final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(path.durationMillis()),
-        new KeyValue(progress, 1, Interpolator.EASE_BOTH)));
-    timeline.setOnFinished(_ -> {
-      flight = null;
-      requestDetail();
-    });
-    flight = timeline;
-    timeline.play();
-  }
-
-  /**
-   * Stops a camera move where it is, e.g. when the user takes over.
-   */
-  private void stopFlight() {
-    if (flight != null) {
-      flight.stop();
-      flight = null;
-    }
+    camera.fly(new IntensityMapFlight(start, end, depth, camera.heightPerDistance()),
+        this::followCamera, this::requestDetail);
   }
 
   /**
    * @return the visible part of every overlay in view. Side by side, only tiles on screen count, so
-   * zooming into one tile does not need the data of the others (user request).
+   * zooming into one tile does not load the data of the others.
    */
   public @NotNull IntensityMapVisibleArea visibleArea() {
     final IntensityMapBounds current = bounds;
-    final Map<String, IntensityMapOverlayView> overlays = new LinkedHashMap<>();
-    if (current == null || series.isEmpty()) {
-      return new IntensityMapVisibleArea(overlays);
-    }
-    final List<IntensityMapTile> tiles = tileLayout.tiles();
-    final List<IntensityMapSeries> tiled = tileLayout.tiled();
-    final IntensityMapTile fixed = plotTile();
-    if (fixed != null) {
-      // the 2D view clips everything outside its fixed plot area
-      final Rectangle2D area = plotArea.area(fixed);
-      final IntensityMapOverlayView view = overlayView(current, plotArea.floor(fixed),
-          area == null ? viewport.getWidth() : area.getWidth(),
-          area == null ? viewport.getHeight() : area.getHeight());
-      final int index = tiles.indexOf(fixed);
-      if (tiled.isEmpty()) {
-        visibleSeries().forEach(value -> overlays.put(value.id(), view));
-      } else if (index >= 0 && index < tiled.size() && view != null) {
-        overlays.put(tiled.get(index).id(), view);
-      }
-    } else if (tiled.isEmpty()) {
-      final IntensityMapOverlayView view = overlayView(current, camera.visibleFloor(tiles),
-          viewport.getWidth(), viewport.getHeight());
-      if (view != null) {
-        visibleSeries().forEach(value -> overlays.put(value.id(), view));
-      }
-    } else {
-      // decision: every tile has its own visible part; their union spans nearly all data when
-      // parts of neighboring tiles are on screen, which showed every tile at base resolution
-      for (int i = 0; i < tiles.size() && i < tiled.size(); i++) {
-        final IntensityMapTile tile = tiles.get(i);
-        final double[] floor = camera.visibleFloor(List.of(tile));
-        final double[] screen = floor == null ? null : screenExtent(tile, floor);
-        final IntensityMapOverlayView view = screen == null ? null
-            : overlayView(current, floor, screen[1] - screen[0], screen[3] - screen[2]);
-        if (view != null) {
-          overlays.put(tiled.get(i).id(), view);
-        }
-      }
-    }
-    return new IntensityMapVisibleArea(overlays);
-  }
-
-  /**
-   * @param floor visible floor extent in local coordinates, null if unknown
-   * @return the visible part, all data if the extent is unknown
-   */
-  private static @Nullable IntensityMapOverlayView overlayView(
-      @NotNull final IntensityMapBounds current, final double @Nullable [] floor,
-      final double width, final double height) {
-    if (floor == null || IntensityMapExtent.isEmpty(floor)) {
-      return new IntensityMapOverlayView(IntensityMapRegion.FULL, true, width, height);
-    }
-    return new IntensityMapOverlayView(IntensityMapExtent.toData(current, floor),
-        IntensityMapExtent.nearlyAll(floor), width, height);
-  }
-
-  /**
-   * @return screen extent {x0, x1, y0, y1} of a floor extent of a tile, clipped to the viewport;
-   * null if it is not on screen
-   */
-  private double @Nullable [] screenExtent(@NotNull final IntensityMapTile tile,
-      final double @NotNull [] floor) {
-    final double[] screen = IntensityMapExtent.empty();
-    for (final double x : new double[]{floor[0], floor[1]}) {
-      for (final double z : new double[]{floor[2], floor[3]}) {
-        final Point3D sceneCorner = model.localToScene(tile.toModel(new Point3D(x, 0, z)), true);
-        if (sceneCorner == null) {
-          return null;
-        }
-        final Point2D local = scene.sceneToLocal(sceneCorner.getX(), sceneCorner.getY());
-        IntensityMapExtent.include(screen, Math.clamp(local.getX(), 0, scene.getWidth()),
-            Math.clamp(local.getY(), 0, scene.getHeight()));
-      }
-    }
-    return IntensityMapExtent.isEmpty(screen) ? null : screen;
+    return current == null || series.isEmpty() ? new IntensityMapVisibleArea(Map.of())
+        : visibleAreas.of(current, visibleSeries(), plotTile());
   }
 
   private double @Nullable [] visibleFloor() {
@@ -1499,15 +1359,22 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     }
     axesSpec = spec.withFrame(frame);
     allAxes().forEach(value -> value.rebuild(axesSpec));
-    projectAxes();
   }
 
   /**
-   * @return true if overlay opacities apply: only overlaid surfaces cover each other (user
-   * decision), side by side tiles stay opaque
+   * @return true if overlay opacities apply: only several overlaid surfaces cover each other, side
+   * by side tiles stay opaque
    */
   private boolean opacityApplies() {
-    return controls.layout().get() == IntensityMapLayout.OVERLAY && series.size() > 1;
+    return !sideBySide() && series.size() > 1;
+  }
+
+  private boolean sideBySide() {
+    return controls.layout().get() == IntensityMapLayout.GRID;
+  }
+
+  private boolean colorsByIntensity() {
+    return controls.coloring().getValue() == IntensityMapColoring.INTENSITY;
   }
 
   private void updateMaterials() {
@@ -1525,10 +1392,9 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     for (final IntensityMapSeriesState state : states.values()) {
       updateMaterial(state);
     }
-    final boolean byIntensity = controls.coloring().getValue() == IntensityMapColoring.INTENSITY;
+    final boolean byIntensity = colorsByIntensity();
     controls.palettes().setDisable(!byIntensity);
     legendBox.setVisible(byIntensity);
-    legendBox.setManaged(byIntensity);
     legend.setImage(materials.texture(palette));
     legendTitle.setText(
         projection.transformsColors() && scale.transform() != PaintScaleTransform.LINEAR ?
@@ -1546,18 +1412,18 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * @return true if overlays are shaded by a gradient of their color instead of a flat color
    */
   private boolean overlayGradient() {
-    // decision (user request): imaging overlays shade their color by intensity, because pixel
-    // heights are compressed (log, minimum height) and a flat color hides intensity differences;
-    // the 2D view has no heights at all
-    return controls.coloring().getValue() != IntensityMapColoring.INTENSITY && !series.isEmpty()
-        && (!projection.heights() || series.getFirst().data().pixels());
+    // decision: imaging overlays shade their color by intensity, because pixel heights are
+    // compressed (log, minimum height) and a flat color hides intensity differences; the 2D view
+    // has no heights at all
+    return !colorsByIntensity() && !series.isEmpty() && (!projection.heights() || series.getFirst()
+        .data().pixels());
   }
 
   /**
    * @return true if colors show intensities, so their range can be clipped
    */
   private boolean colorsShowIntensity() {
-    return controls.coloring().getValue() == IntensityMapColoring.INTENSITY || overlayGradient();
+    return colorsByIntensity() || overlayGradient();
   }
 
   private void updateMaterial(@NotNull final IntensityMapSeriesState state) {
@@ -1565,9 +1431,8 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     if (palette == null) {
       return;
     }
-    final boolean byIntensity = controls.coloring().getValue() == IntensityMapColoring.INTENSITY;
-    materials.apply(state, byIntensity ? palette : null, overlayGradient(), plotBackground(),
-        opacityApplies() ? state.opacityProperty().get() : 1);
+    materials.apply(state, colorsByIntensity() ? palette : null, overlayGradient(),
+        plotBackground(), opacityApplies() ? state.opacityProperty().get() : 1);
   }
 
   private void resetView() {
@@ -1595,14 +1460,25 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     camera.resetPan();
     camera.setAutoFit(true);
     hideHover();
+    // two passes: requestDetail fits again and reserves room for the axis labels placed here
     fitView();
     projectAxes();
     requestDetail();
   }
 
+  /**
+   * Fits the view again unless the user moved the camera, e.g. after the labels changed.
+   */
+  private void refit() {
+    if (camera.isAutoFit()) {
+      fitView();
+    }
+    projectAxes();
+  }
+
   private void projectAxes() {
     final List<Bounds> occupied = tileLayout.project(camera.showsIntensity(),
-        controls.showLabels().isSelected(), states);
+        controls.showLabels().isSelected());
     placeFeatureLabels(occupied);
   }
 
@@ -1623,125 +1499,15 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     // the placement only changes with the view
     final List<Object> view = new ArrayList<>(
         List.of(camera.state(), tileLayout.tiles(), current, lineScale, area, visible));
-    featureLabels.place(view, this::peakPosition,
-        (label, point) -> unoccluded(label, shownSeries(label.seriesId()), point), occupied, area);
+    featureLabels.place(view, peakProjector(), occupied, area);
   }
 
   /**
-   * @return the shown overlay, null if it is hidden
+   * @return projector of peak positions in the current view, e.g. for the feature labels
    */
-  private @Nullable IntensityMapSeries shownSeries(@NotNull final String id) {
-    for (final IntensityMapSeries value : visibleSeries()) {
-      if (value.id().equals(id)) {
-        return value;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the tile of a shown overlay, null if the overlay has no tile
-   */
-  private @Nullable IntensityMapTile tileOf(@NotNull final IntensityMapSeries value) {
-    final List<IntensityMapTile> tiles = tileLayout.tiles();
-    final List<IntensityMapSeries> tiled = tileLayout.tiled();
-    if (tiled.isEmpty()) {
-      return tiles.getFirst();
-    }
-    for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-      if (tiled.get(i).id().equals(value.id())) {
-        return tiles.get(i);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the signal position in local coordinates of its tile, on top of the data in 3D; null
-   * outside the data or below the noise cut-off
-   */
-  private @Nullable Point3D peakPoint(@NotNull final IntensityMapPeak peak,
-      @NotNull final IntensityMapSeries value) {
-    final IntensityMapScale current = scale;
-    if (current == null) {
-      return null;
-    }
-    final IntensityMapBounds range = current.bounds();
-    if (peak.x() < range.xMin() || peak.x() > range.xMax() || peak.y() < range.yMin()
-        || peak.y() > range.yMax()) {
-      return null;
-    }
-    // decision: peaks hidden by the noise cut-off lose their labels as well
-    if (current.belowNoise(value.data(), peak.intensity())) {
-      return null;
-    }
-    final double x = IntensityMapMesh.localX(range, peak.x());
-    final double z = IntensityMapMesh.localZ(range, peak.y());
-    if (!projection.heights()) {
-      return new Point3D(x, 0, z);
-    }
-    // the drawn bin may be higher than the feature, e.g. by coelution; the label sits on top
-    final double feature =
-        -Math.min(1, current.height(value.data(), peak.intensity())) * IntensityMapMesh.HEIGHT;
-    final double drawn = IntensityMapPicker.height(new IntensityMapPicker.Target(value, current), x,
-        z);
-    return new Point3D(x, Double.isNaN(drawn) ? feature : Math.min(feature, drawn), z);
-  }
-
-  /**
-   * @param id overlay of the signal
-   * @return screen position of the signal in the label layer, null if it is not shown
-   */
-  private @Nullable Point2D peakPosition(@NotNull final String id,
-      @NotNull final IntensityMapPeak peak) {
-    final IntensityMapSeries value = shownSeries(id);
-    final IntensityMapTile tile = value == null ? null : tileOf(value);
-    final Point3D point = tile == null ? null : peakPoint(peak, value);
-    if (point == null) {
-      return null;
-    }
-    final Point3D local = tile.toModel(point);
-    if (!camera.isInFront(model.localToParent(local))) {
-      return null;
-    }
-    final Point3D sceneLocation = model.localToScene(local, true);
-    return sceneLocation == null ? null
-        : featureLabels.layer().sceneToLocal(sceneLocation.getX(), sceneLocation.getY());
-  }
-
-  /**
-   * @return true unless a surface lies between the camera and the label position; the flat 2D view
-   * hides nothing
-   */
-  private boolean unoccluded(@NotNull final IntensityMapLabel label,
-      @Nullable final IntensityMapSeries value, @NotNull final Point2D screen) {
-    if (!projection.depthTest()) {
-      return true;
-    }
-    final IntensityMapScale current = scale;
-    final IntensityMapTile tile = value == null ? null : tileOf(value);
-    final Point3D point = tile == null ? null : peakPoint(label.apex(), value);
-    if (current == null || point == null) {
-      return false;
-    }
-    final IntensityMapPicker.Ray ray = tile.toLocal(camera.ray(screen.getX(), screen.getY()));
-    final List<IntensityMapPicker.Target> targets =
-        tileLayout.tiled().isEmpty() ? visibleSeries().stream()
-            .map(series -> new IntensityMapPicker.Target(series, current)).toList()
-            : List.of(new IntensityMapPicker.Target(value, current));
-    final IntensityMapPicker.Hit hit = IntensityMapPicker.pick(ray, targets);
-    if (hit == null) {
-      return true;
-    }
-    final Point3D direction = ray.direction();
-    final double length = direction.dotProduct(direction);
-    if (!(length > 0)) {
-      return true;
-    }
-    final double t = point.subtract(ray.origin()).dotProduct(direction) / length;
-    // a hit close to the label is its own peak
-    final double tolerance = 6 * lineScale / Math.sqrt(length);
-    return hit.t() >= t - tolerance;
+  private @NotNull IntensityMapPeakProjector peakProjector() {
+    return new IntensityMapPeakProjector(projection, model, camera, tileLayout,
+        featureLabels.layer(), Objects.requireNonNull(scale), visibleSeries(), lineScale);
   }
 
   /**
@@ -1754,52 +1520,25 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * Moves the camera onto the feature of a label (user request): the view fits the feature with
-   * some surroundings, like a zoom box around it.
+   * Moves the camera onto the feature of a label. The view fits the feature with some surroundings,
+   * like a zoom box around it.
    */
   private void zoomToLabel(@NotNull final IntensityMapLabel label) {
-    final IntensityMapScale current = scale;
-    final IntensityMapSeries value = shownSeries(label.seriesId());
-    final IntensityMapTile tile = value == null ? null : tileOf(value);
-    if (current == null || tile == null) {
+    if (scale == null) {
       return;
     }
-    final IntensityMapBounds range = current.bounds();
-    final double share = projection.featureZoomShare();
-    final double[] x = zoomSpan(label.xRange(), range.xMin(), range.xMax(), share);
-    final double[] y = zoomSpan(label.yRange(), range.yMin(), range.yMax(), share);
-    final List<Point3D> modelCorners = new ArrayList<>();
-    for (final double dataX : x) {
-      for (final double dataY : y) {
-        modelCorners.add(tile.toModel(new Point3D(IntensityMapMesh.localX(range, dataX), 0,
-            IntensityMapMesh.localZ(range, dataY))));
-      }
+    final IntensityMapPeakProjector peaks = peakProjector();
+    final IntensityMapTile tile = peaks.tile(label);
+    final List<Point3D> modelCorners = peaks.zoomCorners(label);
+    if (tile == null || modelCorners == null) {
+      return;
     }
-    // the whole peak stays in view in 3D
-    final Point3D top = peakPoint(label.apex(), value);
-    if (top != null && top.getY() != 0) {
-      modelCorners.add(tile.toModel(top));
-    }
-    // decision (user request): a cinematic camera move, a jump loses the context of the feature
+    // decision: an animated camera move keeps the context of the feature, a jump loses it
     zoomTo(tile, modelCorners, true);
   }
 
   /**
-   * @param share smallest share of the data range in the view
-   * @return lower and upper end of the zoom around a feature extent, within the data range
-   */
-  private static double @NotNull [] zoomSpan(@NotNull final Range<Double> extent, final double min,
-      final double max, final double share) {
-    final double width = extent.upperEndpoint() - extent.lowerEndpoint();
-    // decision: the feature fills about a quarter of the view, and the view spans at least a share
-    // of the data, so narrow m/z traces and single scans are not magnified to a blur
-    final double pad = Math.max(1.5 * width, share / 2 * (max - min));
-    return new double[]{Math.max(min, extent.lowerEndpoint() - pad),
-        Math.min(max, extent.upperEndpoint() + pad)};
-  }
-
-  /**
-   * Shows the label menu.
+   * Adds the feature list choice to the label menu.
    *
    * @param sources  names of the label sources, e.g. feature lists, evaluated when the menu opens
    * @param listener receives the chosen source, null for none
@@ -1810,10 +1549,11 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   }
 
   /**
-   * @param reason shown in the label menu instead of the feature list choice, e.g. for images
+   * @param shown false hides the options that only apply to peak labels, e.g. for images whose
+   *              feature list annotations extend the overlay titles instead
    */
-  public void setLabelsUnavailable(@NotNull final String reason) {
-    controls.setLabelsUnavailable(reason);
+  public void setPeakLabelOptions(final boolean shown) {
+    controls.setPeakLabelOptions(shown);
   }
 
   /**
@@ -1835,34 +1575,38 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     resetAxesFrame();
     zoomedTile = -1;
     insetsTile = -1;
-    final List<Point3D> corners = new ArrayList<>();
     final List<Point3D> focusedPoints =
         controls.layout().get() == IntensityMapLayout.GRID ? tileLayout.tileFittingPoints(
-            focusedTile, states) : null;
-    final boolean focused = focusedPoints != null;
-    if (focused) {
-      for (final Point3D point : focusedPoints) {
-        corners.add(model.localToParent(point));
-      }
-    } else {
+            focusedTile) : null;
+    if (focusedPoints == null) {
       focusedTile = -1;
-      for (final Point3D point : fittingPoints) {
-        corners.add(model.localToParent(point));
-      }
     }
-    for (final IntensityMapAxes value : focused ? List.of(tileLayout.tileAxes(focusedTile))
-        : allAxes()) {
-      value.setIntensityVisible(camera.showsIntensity());
-      // without labels no room is reserved for text
-      for (final Point3D point : controls.showLabels().isSelected() ? value.fittingPoints()
-          : List.<Point3D>of()) {
-        corners.add(model.localToParent(value.geometry().localToParent(point)));
-      }
-    }
-    camera.fit(corners);
+    final List<IntensityMapAxes> fittedAxes =
+        focusedPoints != null ? List.of(tileLayout.tileAxes(focusedTile)) : allAxes();
+    fittedAxes.forEach(value -> value.setIntensityVisible(camera.showsIntensity()));
+    camera.fit(fitCorners(focusedPoints != null ? focusedPoints : fittingPoints, fittedAxes));
     if (projection.fixedPlotArea()) {
       plotArea.update(plotTile());
     }
+  }
+
+  /**
+   * @param modelPoints points of the data in model coordinates
+   * @return the points and the labels of the axes in camera coordinates; without labels no room is
+   * reserved for text
+   */
+  private @NotNull List<Point3D> fitCorners(@NotNull final List<Point3D> modelPoints,
+      @NotNull final List<IntensityMapAxes> fittedAxes) {
+    final List<Point3D> corners = new ArrayList<>(modelPoints.size());
+    modelPoints.forEach(point -> corners.add(model.localToParent(point)));
+    if (controls.showLabels().isSelected()) {
+      for (final IntensityMapAxes value : fittedAxes) {
+        for (final Point3D point : value.fittingPoints()) {
+          corners.add(model.localToParent(value.geometry().localToParent(point)));
+        }
+      }
+    }
+    return corners;
   }
 
   private void resetAxesFrame() {
@@ -1895,42 +1639,32 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
 
   /**
    * 2D side by side: once zooming makes one tile fill the plot area, its axes move to the plot area
-   * edges and frame the visible data, like a single plot (user request). Zoomed out, they return to
-   * the data edges of their tile.
+   * edges and frame the visible data, like a single plot. Zoomed out, they return to the data edges
+   * of their tile. A double-clicked tile keeps its plot area the same way while it fills it.
    */
   private void updateZoomedTile() {
     final List<IntensityMapTile> tiles = tileLayout.tiles();
+    // decision: a double-clicked tile keeps its plot area only while it fills it; zoomed out or
+    // scrolled to other tiles, the plot area would clip them
+    if (projection.fixedPlotArea() && focusedTile >= 0 && (focusedTile >= tiles.size()
+        || !plotArea.coveredBy(tiles.get(focusedTile)))) {
+      focusedTile = -1;
+    }
     if (!projection.fixedPlotArea() || controls.layout().get() != IntensityMapLayout.GRID
         || focusedTile >= 0 || tiles.size() < 2) {
       zoomedTile = -1;
       return;
     }
     // the candidate is the tile under the viewport center
-    final IntensityMapPicker.Ray center = camera.ray(scene.getWidth() / 2, scene.getHeight() / 2);
-    int candidate = -1;
-    for (int i = 0; i < tiles.size(); i++) {
-      if (IntensityMapPicker.floor(tiles.get(i).toLocal(center), false) != null) {
-        candidate = i;
-        break;
-      }
-    }
+    final int candidate = IntensityMapTile.floorIndex(tiles,
+        camera.ray(scene.getWidth() / 2, scene.getHeight() / 2));
     if (candidate < 0 || (candidate != insetsTile && !fitTileArea(candidate))) {
       zoomedTile = -1;
       return;
     }
     // decision: only a tile that covers the whole plot area; the axes would otherwise frame data
     // that do not reach the plot area edges
-    final IntensityMapTile tile = tiles.get(candidate);
-    final Rectangle2D area = plotArea.area(tile);
-    boolean covered = area != null;
-    for (final double x : new double[]{area == null ? 0 : area.getMinX(),
-        area == null ? 0 : area.getMaxX()}) {
-      for (final double y : new double[]{area == null ? 0 : area.getMinY(),
-          area == null ? 0 : area.getMaxY()}) {
-        covered &= IntensityMapPicker.floor(tile.toLocal(camera.ray(x, y)), false) != null;
-      }
-    }
-    zoomedTile = covered ? candidate : -1;
+    zoomedTile = plotArea.coveredBy(tiles.get(candidate)) ? candidate : -1;
   }
 
   /**
@@ -1940,23 +1674,14 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
    * @return false if the tile has no overlay
    */
   private boolean fitTileArea(final int index) {
-    final List<Point3D> points = tileLayout.tileFittingPoints(index, states);
+    final List<Point3D> points = tileLayout.tileFittingPoints(index);
     if (points == null) {
       return false;
     }
     // labels are placed around the data edges only without a frame
     resetAxesFrame();
-    final List<Point3D> corners = new ArrayList<>();
-    for (final Point3D point : points) {
-      corners.add(model.localToParent(point));
-    }
-    final IntensityMapAxes tileAxes = tileLayout.tileAxes(index);
-    for (final Point3D point : controls.showLabels().isSelected() ? tileAxes.fittingPoints()
-        : List.<Point3D>of()) {
-      corners.add(model.localToParent(tileAxes.geometry().localToParent(point)));
-    }
     final Point3D position = camera.position();
-    camera.fit(corners);
+    camera.fit(fitCorners(points, List.of(tileLayout.tileAxes(index))));
     plotArea.update(tileLayout.tiles().get(index));
     camera.moveTo(position);
     insetsTile = index;
@@ -1977,7 +1702,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
     }
     hideHover();
     final SnapshotParameters parameters = new SnapshotParameters();
-    // render at display resolution or better for crisp figures
+    // render at least at twice the size, or at the display scale if higher, for crisp figures
     final double factor = Math.max(2, getScene().getWindow().getOutputScaleX());
     parameters.setTransform(Transform.scale(factor, factor));
     parameters.setFill(scene.getFill());
@@ -1994,7 +1719,7 @@ public final class IntensityMapPlot extends BorderPane implements AutoCloseable 
   @Override
   public void close() {
     closed = true;
-    stopFlight();
+    camera.stopFlight();
     meshBuilder.close();
   }
 }

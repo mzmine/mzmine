@@ -86,8 +86,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * The toolbar and the Display popover of the plot. The owner reacts to changes of the controls. The
- * UI is compact (user request): one row with camera presets, the view mode menu, the Display
- * popover, and the noise floor; styling and saving on the right.
+ * toolbar is one compact row with camera presets, the view mode menu, the Display popover, and the
+ * noise floor; styling and saving on the right.
  */
 final class IntensityMapControls {
 
@@ -125,7 +125,7 @@ final class IntensityMapControls {
   private final ObjectProperty<IntensityMapLayout> layout = new SimpleObjectProperty<>(
       IntensityMapLayout.OVERLAY);
   private final ToggleGroup modes = new ToggleGroup();
-  // decision (user request): one menu for all text, hiding it and labeling peaks
+  // decision: one menu for all text, to hide it and to choose the source of peak labels
   private final MenuButton labelsButton = new FxIconButtonBuilder<>(new MenuButton(),
       "bi-tag").build();
   private final TextField labelSearch = FxTextFields.applyToField(
@@ -136,8 +136,8 @@ final class IntensityMapControls {
   private @Nullable Consumer<@Nullable String> labelListener;
   // name of the source of the shown labels, null for none
   private @Nullable String labelSource;
-  // why peak labels cannot be chosen, e.g. for images; null to leave them out of the menu
-  private @Nullable String labelsUnavailable;
+  // shows the peak label options; images extend their titles with annotations instead
+  private boolean peakLabelOptions = true;
   // the user picked a layout, which is then kept
   private boolean layoutChosen;
 
@@ -152,8 +152,7 @@ final class IntensityMapControls {
     heightSlider.setTooltip(new Tooltip("Vertical exaggeration; intensities retain their scale"));
     noiseFloor.setValue(projection.defaultNoisePercent());
     if (projection.transformsColors()) {
-      // decision (user decision after testing): log10 shows weak signals best; the former 2D plot
-      // also changed colors fastest at low intensities
+      // decision: log10 colors show weak signals best, colors change fastest at low intensities
       transform.setValue(PaintScaleTransform.LOG10);
       transform.setTooltip(new Tooltip(
           "Transformation of the colors, e.g. square root or log to show weak signals"));
@@ -252,7 +251,7 @@ final class IntensityMapControls {
     HBox.setHgrow(spacer, Priority.ALWAYS);
     final Button save = FxButtons.createButton(null, FxIcons.SAVE, "Save the current view as PNG",
         actions.saveImage());
-    // decision (user request): styling of the view next to saving it, top right
+    // decision: styling of the view next to saving it, top right
     final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2, labelSearch,
         plotBackgroundButton(actions), showGrid, labelsButton());
     return FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(4, 8, 4, 8), 8, views, viewModeButton(),
@@ -295,7 +294,7 @@ final class IntensityMapControls {
   private @NotNull MenuButton labelsButton() {
     labelsButton.setTooltip(new Tooltip("""
         Labels: show or hide all text (ticks, titles, peak labels), hidden labels free space for the data
-        Peak labels: features of a feature list"""));
+        Feature list: annotations as peak labels, for images in the image titles"""));
     // decision: filled up front as well, a menu without items does not open
     updateLabelItems();
     labelsButton.setOnShowing(_ -> updateLabelItems());
@@ -306,17 +305,11 @@ final class IntensityMapControls {
     final List<MenuItem> items = new ArrayList<>();
     items.add(showLabels);
     if (labelSources == null) {
-      if (labelsUnavailable != null) {
-        items.add(new SeparatorMenuItem());
-        final MenuItem unavailable = new MenuItem(labelsUnavailable);
-        unavailable.setDisable(true);
-        items.add(unavailable);
-      }
       labelsButton.getItems().setAll(items);
       return;
     }
     items.add(new SeparatorMenuItem());
-    // decision (user request): an explicit feature list choice that names the shown list
+    // decision: an explicit feature list choice that names the shown list
     final Menu featureList = new Menu(
         "Feature list: " + (labelSource == null ? "none" : labelSource),
         FxIconUtil.getFontIcon("bi-table", 14));
@@ -340,8 +333,10 @@ final class IntensityMapControls {
       featureList.getItems().add(item);
     }
     items.add(featureList);
-    annotatedOnly.setDisable(labelSource == null);
-    items.add(annotatedOnly);
+    if (peakLabelOptions) {
+      annotatedOnly.setDisable(labelSource == null);
+      items.add(annotatedOnly);
+    }
     labelsButton.getItems().setAll(items);
   }
 
@@ -369,10 +364,10 @@ final class IntensityMapControls {
   }
 
   /**
-   * Explains in the menu why peak labels cannot be chosen, e.g. for images.
+   * @param shown false hides the options that only apply to peak labels
    */
-  void setLabelsUnavailable(@Nullable final String reason) {
-    labelsUnavailable = reason;
+  void setPeakLabelOptions(final boolean shown) {
+    peakLabelOptions = shown;
     updateLabelItems();
   }
 
@@ -439,14 +434,14 @@ final class IntensityMapControls {
   }
 
   /**
-   * decision (user request): only the plot background is chosen here, everything else follows the
-   * theme of the mzmine preferences
+   * Menu for the plot background color. decision: only the plot background is chosen here,
+   * everything else follows the theme of the mzmine preferences.
    */
   private @NotNull MenuButton plotBackgroundButton(@NotNull final IntensityMapViewActions actions) {
     final MenuButton button = new FxIconButtonBuilder<>(new MenuButton(),
         "bi-paint-bucket").build();
     button.setTooltip(new Tooltip("Plot background color"));
-    // decision (user request): the theme default and the color picker, no fixed colors
+    // decision: the theme default and the color picker, no fixed colors
     final MenuItem theme = MenuItems.create("Default", () -> actions.plotBackground().accept(null));
     button.getItems().setAll(theme, new SeparatorMenuItem());
     button.setOnShowing(_ -> {
@@ -483,12 +478,12 @@ final class IntensityMapControls {
     if (projection.heights()) {
       displayGrid.addRow(row++, new Label("Height"), heightSlider);
     }
-    // decision (user request): logarithmic heights only make sense for images
+    // decision: logarithmic heights only make sense for images
     if (projection.heights() && !imaging && !current.isEmpty()
         && transform.getValue() != PaintScaleTransform.LINEAR) {
       transform.setValue(PaintScaleTransform.LINEAR);
     }
-    // the baseline changes heights only, which the 2D view does not have
+    // height transformation and baseline only apply to images with heights, not to the 2D view
     if (imaging && projection.heights()) {
       displayGrid.addRow(row++, new Label("Transform"), transform);
       displayGrid.addRow(row++, new Label("Heights"), fromLowest);
@@ -551,7 +546,8 @@ final class IntensityMapControls {
   }
 
   /**
-   * Values beyond the slider range are allowed in the field, the slider then shows its maximum.
+   * Applies the typed percentage, clamped to 0-100. Values beyond the slider range extend it;
+   * invalid text restores the slider value.
    */
   private void applyNoiseField() {
     try {

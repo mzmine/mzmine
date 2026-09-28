@@ -45,7 +45,7 @@ class IntensityMapDetailLoaderTest {
 
   @Test
   void flatZoomWindowsKeepOneBinPerPixel() {
-    // regression: zoomed windows had 0.64 bins per pixel, the zoomed out view 1
+    // a zoomed window must be as fine as the zoomed out view, one bin per pixel
     final IntensityMapDetail view = new IntensityMapDetail(900, 600, 1,
         IntensityMapProjection.TOP_VIEW);
     final IntensityMapDetail window = IntensityMapDetailLoader.windowDetail(view, overlay(900, 600),

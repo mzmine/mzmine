@@ -199,12 +199,6 @@ public final class IntensityMapGrid {
     }
   }
 
-  public void markPresent(final int column, final int row) {
-    if (column >= 0 && column < width() && row >= 0 && row < height()) {
-      present[row * width() + column] = true;
-    }
-  }
-
   public int binX(final double value) {
     return xLows == null ? nearest(value, x, xStep, pixels) : cell(value, x, xLows, xHighs, pixels);
   }
@@ -214,8 +208,8 @@ public final class IntensityMapGrid {
   }
 
   /**
-   * @return the cell with explicit extents that contains the value, for other data the nearest one
-   * within the coordinate range
+   * @return the cell whose explicit extents contain the value. Between separated cells: -1 for
+   * pixels, otherwise the nearest cell. -1 outside the coordinate range.
    */
   private static int cell(final double value, final double @NotNull [] centers,
       final double @NotNull [] lows, final double @Nullable [] highs, final boolean pixels) {
@@ -237,7 +231,7 @@ public final class IntensityMapGrid {
   }
 
   /**
-   * @return lower boundary of the cell of the x coordinate
+   * @return lower boundary of the cell at the x index
    */
   public double xLow(final int index) {
     return xLows != null ? xLows[index] : low(x, index, pixels, pixelWidth);
@@ -308,10 +302,7 @@ public final class IntensityMapGrid {
     result.xHighs = xs.highs();
     result.yLows = ys.lows();
     result.yHighs = ys.highs();
-    result.pixelWidth = base.pixelWidth;
-    result.pixelHeight = base.pixelHeight;
-    result.xKind = base.xKind;
-    result.yKind = base.yKind;
+    result.copyAxisProperties(base, false);
     for (int row = 0; row < result.height(); row++) {
       for (int column = 0; column < result.width(); column++) {
         final int wx = xs.window()[column];
@@ -323,7 +314,6 @@ public final class IntensityMapGrid {
         if (sx < 0 || sy < 0 || !source.isPresent(sx, sy)) {
           continue;
         }
-        result.present[row * result.width() + column] = true;
         result.addMaximum(column, row, source.intensity(sx, sy));
       }
     }
@@ -370,10 +360,7 @@ public final class IntensityMapGrid {
       }
     }
     result.maximum = maximum;
-    result.pixelWidth = pixelHeight;
-    result.pixelHeight = pixelWidth;
-    result.xKind = yKind;
-    result.yKind = xKind;
+    result.copyAxisProperties(this, true);
     return result;
   }
 
@@ -401,16 +388,13 @@ public final class IntensityMapGrid {
         if (!present[index]) {
           continue;
         }
-        final int targetColumn = result.binX(x[column]);
-        result.markPresent(targetColumn, targetRow);
-        result.addMaximum(targetColumn, targetRow, intensity[index]);
+        result.addMaximum(result.binX(x[column]), targetRow, intensity[index]);
       }
     }
+    result.copyAxisProperties(this, false);
     if (pixels) {
       result.setPixelSize(pixelWidth * factorX, pixelHeight * factorY);
     }
-    result.xKind = xKind;
-    result.yKind = yKind;
     return result;
   }
 
@@ -433,11 +417,20 @@ public final class IntensityMapGrid {
         result.addMaximum(i % width(), i / width(), values[i]);
       }
     }
-    result.pixelWidth = pixelWidth;
-    result.pixelHeight = pixelHeight;
-    result.xKind = xKind;
-    result.yKind = yKind;
+    result.copyAxisProperties(this, false);
     return result;
+  }
+
+  /**
+   * Takes over pixel size and axis kinds of the source.
+   *
+   * @param swapped the axes of this grid are swapped, e.g. for a transposed copy
+   */
+  private void copyAxisProperties(@NotNull final IntensityMapGrid source, final boolean swapped) {
+    pixelWidth = swapped ? source.pixelHeight : source.pixelWidth;
+    pixelHeight = swapped ? source.pixelWidth : source.pixelHeight;
+    xKind = swapped ? source.yKind : source.xKind;
+    yKind = swapped ? source.xKind : source.yKind;
   }
 
   public @NotNull IntensityMapAxisKind xKind() {
@@ -539,6 +532,15 @@ public final class IntensityMapGrid {
 
   public boolean isPresent(final int column, final int row) {
     return present[row * width() + column];
+  }
+
+  /**
+   * @return intensity of the bin at the data position, NaN if nothing was measured there
+   */
+  public double intensityAt(final double x, final double y) {
+    final int column = binX(x);
+    final int row = binY(y);
+    return column < 0 || row < 0 || !isPresent(column, row) ? Double.NaN : intensity(column, row);
   }
 
   public float intensity(final int column, final int row) {

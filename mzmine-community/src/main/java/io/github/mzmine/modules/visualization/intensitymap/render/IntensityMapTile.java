@@ -90,7 +90,7 @@ public record IntensityMapTile(double x, double z, double scale) {
     return (int) Math.ceil(Math.sqrt(count));
   }
 
-  boolean isIdentity() {
+  private boolean isIdentity() {
     return x == 0 && z == 0 && scale == 1;
   }
 
@@ -110,5 +110,18 @@ public record IntensityMapTile(double x, double z, double scale) {
         new Point3D((origin.getX() - x) / scale, origin.getY() / scale,
             (origin.getZ() - z) / scale),
         new Point3D(direction.getX() / scale, direction.getY() / scale, direction.getZ() / scale));
+  }
+
+  /**
+   * @return index of the first tile whose floor the ray hits, -1 if none
+   */
+  public static int floorIndex(@NotNull final List<IntensityMapTile> tiles,
+      @NotNull final IntensityMapPicker.Ray ray) {
+    for (int i = 0; i < tiles.size(); i++) {
+      if (IntensityMapPicker.floor(tiles.get(i).toLocal(ray), false) != null) {
+        return i;
+      }
+    }
+    return -1;
   }
 }

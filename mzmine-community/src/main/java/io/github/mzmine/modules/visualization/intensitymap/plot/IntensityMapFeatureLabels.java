@@ -25,14 +25,13 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapLabel;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPeak;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -40,13 +39,15 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Labels of peaks, e.g. from a feature list (user request). They never overlap each other, axis
- * labels, or tile titles: after every view change the strongest labels are placed first, and labels
- * without free space are hidden, so zooming in shows more of them.
+ * Labels of peaks, e.g. from a feature list. They never overlap each other, axis labels, or tile
+ * titles: after every view change the strongest labels are placed first, and labels without free
+ * space are hidden, so zooming in shows more of them.
  */
 final class IntensityMapFeatureLabels {
 
@@ -62,12 +63,13 @@ final class IntensityMapFeatureLabels {
   // clicks this close to a marker hit its label
   private static final double CLICK_RADIUS = MARKER_RADIUS + 3;
   private static final double GROUP_RADIUS = 6;
+  // the veil over the data around a highlighted group, in the plot background color
+  private static final double VEIL_ALPHA = 0.7;
+  private static final double HOLE_PADDING = 5;
+  private static final double MIN_HOLE = 12;
+  // opacity of the labels outside a highlighted group
+  private static final double DIMMED = 0.3;
   private static final double ISOTOPE_RADIUS = 4.5;
-
-  private static final String ACCENT_CSS = String.format("#%02x%02x%02x",
-      Math.round(IntensityMapPlot.ACCENT.getRed() * 255),
-      Math.round(IntensityMapPlot.ACCENT.getGreen() * 255),
-      Math.round(IntensityMapPlot.ACCENT.getBlue() * 255));
 
   private final Pane layer = new Pane();
   private final List<Label> labels = new ArrayList<>();
@@ -76,6 +78,10 @@ final class IntensityMapFeatureLabels {
   // rings around the grouped features and isotopes of the hovered label
   private final List<Circle> rings = new ArrayList<>();
   private @Nullable IntensityMapLabel highlighted;
+  private @Nullable Shape veil;
+  private @NotNull Color veilColor = Color.WHITE;
+  // screen area of the last placement, where the veil and the highlight rings are drawn
+  private @Nullable Bounds area;
   private List<IntensityMapLabel> entries = List.of();
   // distinct names of the labels, suggestions of the search
   private List<String> names = List.of();
@@ -133,7 +139,7 @@ final class IntensityMapFeatureLabels {
     }
   }
 
-  boolean isFiltered() {
+  private boolean isFiltered() {
     return !filter.isEmpty();
   }
 
@@ -148,6 +154,13 @@ final class IntensityMapFeatureLabels {
   void setAnnotatedOnly(final boolean annotatedOnly) {
     this.annotatedOnly = annotatedOnly;
     placedView = null;
+  }
+
+  /**
+   * @param color background of the data, the veil around a highlighted group takes its color
+   */
+  void setVeilColor(@NotNull final Color color) {
+    veilColor = color;
   }
 
   void setDark(final boolean dark) {
@@ -169,24 +182,21 @@ final class IntensityMapFeatureLabels {
   /**
    * Places the labels that fit, strongest first.
    *
-   * @param view       state of the view; an unchanged view keeps the current placement
-   * @param position   screen position of a signal of an overlay, null if it is not shown, e.g. of a
-   *                   hidden overlay, outside the data, or below the noise cut-off
-   * @param unoccluded true if nothing in the view covers the marker at the screen position
-   * @param occupied   screen bounds of axis labels and titles
-   * @param area       screen area for labels, e.g. the plot area of the 2D view
+   * @param view     state of the view; an unchanged view keeps the current placement
+   * @param peaks    screen positions of peaks in the current view
+   * @param occupied screen bounds of axis labels and titles
+   * @param area     screen area for labels, e.g. the plot area of the 2D view
    */
-  void place(@NotNull final Object view,
-      @NotNull final BiFunction<String, IntensityMapPeak, @Nullable Point2D> position,
-      @NotNull final BiPredicate<IntensityMapLabel, Point2D> unoccluded,
+  void place(@NotNull final Object view, @NotNull final IntensityMapPeakProjector peaks,
       @NotNull final List<Bounds> occupied, @NotNull final Bounds area) {
     if (Objects.equals(view, placedView)) {
       return;
     }
     placedView = view;
+    this.area = area;
     placed.clear();
     final List<Bounds> taken = new ArrayList<>(occupied);
-    // decision: searched labels are what the user asked for, they are only limited by overlaps
+    // decision: search results are limited only by overlaps, not by the label density
     final int maximum = isFiltered() ? MAX_LABELS
         : (int) Math.clamp(area.getWidth() * area.getHeight() / AREA_PER_LABEL, 1, MAX_LABELS);
     int used = 0;
@@ -198,7 +208,7 @@ final class IntensityMapFeatureLabels {
       if ((annotatedOnly && !entry.annotated()) || !matches(entry)) {
         continue;
       }
-      final Point2D point = position.apply(entry.seriesId(), entry.apex());
+      final Point2D point = peaks.position(entry.seriesId(), entry.apex());
       if (point == null || !area.contains(point)) {
         continue;
       }
@@ -214,7 +224,7 @@ final class IntensityMapFeatureLabels {
       final double width = Math.min(label.prefWidth(-1), MAX_WIDTH);
       final double height = label.prefHeight(width);
       final Bounds bounds = free(point, width, height, taken, area);
-      if (bounds == null || !unoccluded.test(entry, point)) {
+      if (bounds == null || !peaks.unoccluded(entry, point)) {
         continue;
       }
       label.resizeRelocate(bounds.getMinX(), bounds.getMinY(), width, height);
@@ -232,40 +242,112 @@ final class IntensityMapFeatureLabels {
     // the highlight follows the view
     final IntensityMapLabel hovered = highlighted;
     highlighted = null;
-    highlight(hovered, position);
+    highlight(hovered, peaks);
   }
 
   /**
-   * Highlights the features grouped with a label, e.g. the other ions of its compound, and the
-   * isotope signals of its feature (user request). Grouped features are marked even if their own
-   * labels do not fit.
+   * Highlights the features grouped with a label, e.g. the other ions of its compound or of its
+   * GC-EI deconvolution, and the isotope signals of all these features. Grouped features are marked
+   * even if their own labels do not fit. A veil in the background color covers the rest of the data
+   * and the other labels fade, so the peaks of the group stand out.
    *
-   * @param label    hovered label, null removes the highlight
-   * @param position screen position of a signal of an overlay, null if not shown
+   * @param label hovered label, null removes the highlight
+   * @param peaks screen positions of peaks in the current view
    */
   void highlight(@Nullable final IntensityMapLabel label,
-      @NotNull final BiFunction<String, IntensityMapPeak, @Nullable Point2D> position) {
+      @NotNull final IntensityMapPeakProjector peaks) {
     if (label == highlighted) {
       return;
     }
     highlighted = label;
     int used = 0;
+    final List<Bounds> holes = new ArrayList<>();
     if (label != null) {
+      // the label itself belongs to its group
       for (final IntensityMapLabel entry : entries) {
-        if (isGrouped(label, entry)) {
-          used = ring(used, position.apply(entry.seriesId(), entry.apex()), false);
+        if (!isGrouped(label, entry)) {
+          continue;
         }
-      }
-      for (final IntensityMapPeak isotope : label.isotopes()) {
-        used = ring(used, position.apply(label.seriesId(), isotope), true);
+        used = ring(used, peaks.position(entry.seriesId(), entry.apex()), false);
+        addHole(holes,
+            peaks.extent(entry.seriesId(), entry.apex(), entry.xRange(), entry.yRange()));
+        // ions grouped by deconvolution have no labels of their own
+        for (final IntensityMapPeak ion : entry.grouped()) {
+          used = ring(used, peaks.position(entry.seriesId(), ion), false);
+          addHole(holes, extentLike(peaks, entry, ion));
+        }
+        for (final IntensityMapPeak isotope : entry.isotopes()) {
+          used = ring(used, peaks.position(entry.seriesId(), isotope), true);
+          addHole(holes, extentLike(peaks, entry, isotope));
+        }
       }
     }
     for (int i = used; i < rings.size(); i++) {
       rings.get(i).setVisible(false);
     }
     for (int i = 0; i < placed.size(); i++) {
-      style(labels.get(i), label != null && isGrouped(label, placed.get(i).label()));
+      final boolean grouped = label != null && isGrouped(label, placed.get(i).label());
+      style(labels.get(i), grouped);
+      final double opacity = label == null || grouped ? 1 : DIMMED;
+      labels.get(i).setOpacity(opacity);
+      markers.get(i).setOpacity(opacity);
     }
+    updateVeil(label == null ? null : holes);
+  }
+
+  /**
+   * @return screen bounds of a signal without an extent of its own, e.g. an isotope, with the
+   * extent of the labeled feature
+   */
+  private static @Nullable Bounds extentLike(@NotNull final IntensityMapPeakProjector peaks,
+      @NotNull final IntensityMapLabel label, @NotNull final IntensityMapPeak peak) {
+    final double dx = peak.x() - label.x();
+    final double dy = peak.y() - label.y();
+    return peaks.extent(label.seriesId(), peak,
+        Range.closed(label.xRange().lowerEndpoint() + dx, label.xRange().upperEndpoint() + dx),
+        Range.closed(label.yRange().lowerEndpoint() + dy, label.yRange().upperEndpoint() + dy));
+  }
+
+  private static void addHole(@NotNull final List<Bounds> holes, @Nullable final Bounds extent) {
+    if (extent == null) {
+      return;
+    }
+    // narrow peaks, e.g. of a single m/z bin, still get a visible opening
+    final double width = Math.max(MIN_HOLE, extent.getWidth()) + 2 * HOLE_PADDING;
+    final double height = Math.max(MIN_HOLE, extent.getHeight()) + 2 * HOLE_PADDING;
+    holes.add(
+        new BoundingBox(extent.getCenterX() - width / 2, extent.getCenterY() - height / 2, width,
+            height));
+  }
+
+  /**
+   * @param holes openings of the highlighted peaks, null removes the veil
+   */
+  private void updateVeil(@Nullable final List<Bounds> holes) {
+    if (veil != null) {
+      layer.getChildren().remove(veil);
+      veil = null;
+    }
+    final Bounds covered = area;
+    if (holes == null || covered == null) {
+      return;
+    }
+    Shape shape = new Rectangle(covered.getMinX(), covered.getMinY(), covered.getWidth(),
+        covered.getHeight());
+    for (final Bounds hole : holes) {
+      final Rectangle opening = new Rectangle(hole.getMinX(), hole.getMinY(), hole.getWidth(),
+          hole.getHeight());
+      opening.setArcWidth(8);
+      opening.setArcHeight(8);
+      shape = Shape.subtract(shape, opening);
+    }
+    shape.setFill(veilColor.deriveColor(0, 1, 1, VEIL_ALPHA));
+    shape.setStroke(null);
+    shape.setManaged(false);
+    shape.setMouseTransparent(true);
+    veil = shape;
+    // below the labels, markers, and rings
+    layer.getChildren().addFirst(shape);
   }
 
   void clearHighlight() {
@@ -276,7 +358,10 @@ final class IntensityMapFeatureLabels {
     rings.forEach(ring -> ring.setVisible(false));
     for (int i = 0; i < placed.size() && i < labels.size(); i++) {
       style(labels.get(i), false);
+      labels.get(i).setOpacity(1);
+      markers.get(i).setOpacity(1);
     }
+    updateVeil(null);
   }
 
   /**
@@ -292,7 +377,9 @@ final class IntensityMapFeatureLabels {
    * @return the number of used rings, one more if the point is shown
    */
   private int ring(final int used, @Nullable final Point2D point, final boolean isotope) {
-    if (point == null) {
+    // grouped peaks outside the zoomed range have no ring, like labels outside the plot area
+    final Bounds covered = area;
+    if (point == null || covered == null || !covered.contains(point)) {
       return used;
     }
     while (rings.size() <= used) {
@@ -385,12 +472,13 @@ final class IntensityMapFeatureLabels {
    * @param grouped framed in the accent color, e.g. grouped with the hovered label
    */
   private void style(@NotNull final Label label, final boolean grouped) {
-    final String background = dark ? "rgba(30,35,42,0.85)" : "rgba(255,255,255,0.85)";
+    final String background = IntensityMapTheme.labelBackground(dark);
     // an outline by a second background keeps the label size, unlike a border
-    label.setStyle((grouped ? "-fx-background-color: " + ACCENT_CSS + ", " + background
-        + "; -fx-background-insets: 0, 1;" : "-fx-background-color: " + background + ";") + (dark
-        ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;")
-        + "-fx-font-size: 11; -fx-padding: 0 3 0 3; -fx-background-radius: 3;");
+    label.setStyle(
+        (grouped ? "-fx-background-color: " + IntensityMapPlot.ACCENT_HEX + ", " + background
+            + "; -fx-background-insets: 0, 1;" : "-fx-background-color: " + background + ";")
+            + IntensityMapTheme.text(dark)
+            + "-fx-font-size: 11; -fx-padding: 0 3 0 3; -fx-background-radius: 3;");
   }
 
   private void hideFrom(final int index) {

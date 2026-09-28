@@ -23,19 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.image;
+package io.github.mzmine.modules.visualization.intensitymap;
 
-import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ColocatedImageVisualizerTab extends SimpleFeatureListTab {
+import com.google.common.collect.Range;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
-  public ColocatedImageVisualizerTab(String title, FeatureTableFX table) {
-    super(title, table, true, true);
-    getParentGroup().featureTableFXProperty().set(table);
+class IntensityMap3DModuleTest {
 
-    final ColocatedImageVisualizerPane pane = new ColocatedImageVisualizerPane(getParentGroup());
-    pane.autoUpdateProperty().bindBidirectional(updateOnSelectionProperty());
-    setContent(pane);
+  @Test
+  void colocatedRangesKeepTheOrderOfSimilarity() {
+    final List<Range<Double>> ranges = new ArrayList<>();
+    // the selected feature, then co-located features by decreasing similarity
+    for (final Range<Double> range : List.of(Range.closed(760.58, 760.59),
+        Range.closed(734.56, 734.57), Range.closed(798.54, 798.55),
+        Range.closed(760.585, 760.60))) {
+      IntensityMap3DModule.addMerged(ranges, range);
+    }
+    // an overlapping range extends the earlier one at its position
+    assertEquals(List.of(Range.closed(760.58, 760.60), Range.closed(734.56, 734.57),
+        Range.closed(798.54, 798.55)), ranges);
   }
 }

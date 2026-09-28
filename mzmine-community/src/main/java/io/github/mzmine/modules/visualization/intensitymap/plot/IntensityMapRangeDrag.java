@@ -34,8 +34,13 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureEvent;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +54,7 @@ public final class IntensityMapRangeDrag {
   // pixels a drag must move, less is a click
   private static final double MIN_DRAG = 3;
 
+  private final @NotNull EChartViewer chart;
   private final @NotNull Consumer<Range<Double>> onRange;
   private final @NotNull Runnable onChange;
   private @Nullable Double start;
@@ -62,12 +68,36 @@ public final class IntensityMapRangeDrag {
    */
   public IntensityMapRangeDrag(@NotNull final EChartViewer chart,
       @NotNull final Consumer<Range<Double>> onRange, @NotNull final Runnable onChange) {
+    this.chart = chart;
     this.onRange = onRange;
     this.onChange = onChange;
     chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
         new ChartGesture(Entity.ALL_PLOT_AND_DATA,
             new Event[]{Event.PRESSED, Event.DRAGGED, Event.RELEASED}, GestureButton.BUTTON1,
             Key.ALL), this::handle));
+  }
+
+  /**
+   * Reports plain clicks, but not the release of a range drag. The cursor property is reset before
+   * every click, so repeated clicks on the same position are reported as well.
+   *
+   * @param listener receives the clicked position and the click
+   */
+  public void onClick(@NotNull final BiConsumer<PlotCursorPosition, ChartGestureEvent> listener) {
+    final ObjectProperty<PlotCursorPosition> clicked = new SimpleObjectProperty<>();
+    chart.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
+      if (wasDragged) {
+        return;
+      }
+      clicked.set(null);
+      PlotCursorUtils.findSetCursorPosition(e, chart.getRenderingInfo(),
+          chart.getChart().getXYPlot(), clicked);
+      final PlotCursorPosition cursor = clicked.get();
+      if (cursor != null) {
+        listener.accept(cursor, e);
+      }
+    }));
   }
 
   /**
@@ -85,7 +115,7 @@ public final class IntensityMapRangeDrag {
   }
 
   /**
-   * @return true if the last press ended a drag, so that the following click is ignored
+   * @return true if the last release ended a range drag, so that the following click is ignored
    */
   public boolean wasDragged() {
     return wasDragged;

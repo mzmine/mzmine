@@ -73,8 +73,8 @@ final class IntensityMapMaterials {
     if (palette != null) {
       colors = texture(palette);
     } else if (gradient) {
-      // decision (user request): low intensities fade into the plot background; a transparent
-      // base looked washed out and showed depth sorting errors
+      // decision: low intensities fade into the plot background; transparency would wash out the
+      // colors and cause depth sorting errors
       colors = gradients.computeIfAbsent(overlayColor,
           c -> IntensityMapColors.gradient(c, background));
     } else {

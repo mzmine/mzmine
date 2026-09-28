@@ -43,13 +43,14 @@ import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Places the overlays by layout: all in one place, or side by side as uniformly scaled tiles in one
  * scene, so rotation and zoom stay linked and meshes are reused. Every tile has its own axes and
- * title (user request). Also places the labels of all axes and titles on screen.
+ * title. Also places the labels of all axes and titles on screen.
  */
 final class IntensityMapTileLayout {
 
@@ -64,6 +65,7 @@ final class IntensityMapTileLayout {
   private final Group extraAxesGroup = new Group();
   private final List<IntensityMapAxes> extraAxes = new ArrayList<>();
   private final Pane labelLayer;
+  private final Map<String, IntensityMapSeriesState> states;
   private final Pane titleLayer = new Pane();
   private final List<Label> tileLabels = new ArrayList<>();
   private List<IntensityMapTile> tiles = List.of(IntensityMapTile.IDENTITY);
@@ -72,12 +74,14 @@ final class IntensityMapTileLayout {
   /**
    * @param axes       axes of the first tile
    * @param labelLayer layer of all axis labels and titles, so their bounds share coordinates
+   * @param states     state of every overlay by id, owned by the plot
    */
   IntensityMapTileLayout(@NotNull final Group model, @NotNull final IntensityMapAxes axes,
-      @NotNull final Pane labelLayer) {
+      @NotNull final Pane labelLayer, @NotNull final Map<String, IntensityMapSeriesState> states) {
     this.model = model;
     this.axes = axes;
     this.labelLayer = labelLayer;
+    this.states = states;
     extraAxesGroup.setMouseTransparent(true);
     titleLayer.setMouseTransparent(true);
     labelLayer.getChildren().setAll(axes.labels(), titleLayer);
@@ -102,17 +106,43 @@ final class IntensityMapTileLayout {
   }
 
   /**
+   * @return the tile of the overlay, the only tile unless side by side; null if the overlay has no
+   * tile, e.g. when hidden
+   */
+  @Nullable IntensityMapTile tileOf(@NotNull final String id) {
+    if (tiled.isEmpty()) {
+      return tiles.getFirst();
+    }
+    for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
+      if (tiled.get(i).id().equals(id)) {
+        return tiles.get(i);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return state of the overlay of a side by side tile, null if there is none
+   */
+  private @Nullable IntensityMapSeriesState tileState(final int index) {
+    // tiles can briefly refer to removed overlays until the new layout is applied
+    return index < tiled.size() && index < tiles.size() ? states.get(tiled.get(index).id()) : null;
+  }
+
+  /**
    * Places the overlays according to the layout. Only transforms change, meshes are reused.
    *
+   * @param series     all overlays
    * @param visible    visible overlays, side by side shows only these
+   * @param columns    grid columns, 0 for automatic
+   * @param rows       grid rows, 0 for automatic
    * @param surfaces   group of the overlay meshes
    * @param titleStyle style of the tile titles
    * @param newAxes    sets up axes created for additional tiles
    */
   void apply(@NotNull final IntensityMapLayout layout,
       @NotNull final List<IntensityMapSeries> series,
-      @NotNull final List<IntensityMapSeries> visible,
-      @NotNull final Map<String, IntensityMapSeriesState> states, final int columns, final int rows,
+      @NotNull final List<IntensityMapSeries> visible, final int columns, final int rows,
       @NotNull final Group surfaces, @NotNull final String titleStyle,
       @NotNull final Consumer<IntensityMapAxes> newAxes) {
     titleLayer.getChildren().clear();
@@ -149,6 +179,8 @@ final class IntensityMapTileLayout {
           label.setMouseTransparent(true);
           label.setVisible(false);
           label.setStyle(titleStyle);
+          // multi-line titles, e.g. image annotations below the m/z
+          label.setTextAlignment(TextAlignment.CENTER);
           titleLayer.getChildren().add(label);
           tileLabels.add(label);
         }
@@ -192,7 +224,7 @@ final class IntensityMapTileLayout {
       setup.accept(added);
       extraAxes.add(added);
       extraAxesGroup.getChildren().add(added.geometry());
-      // below the titles
+      // below the title layer, which stays the last child
       labelLayer.getChildren().add(labelLayer.getChildren().size() - 1, added.labels());
     }
   }
@@ -201,12 +233,8 @@ final class IntensityMapTileLayout {
    * @return the tile whose floor the ray hits, the first one if none
    */
   @NotNull IntensityMapTile tileAtFloor(@NotNull final IntensityMapPicker.Ray ray) {
-    for (final IntensityMapTile tile : tiles) {
-      if (IntensityMapPicker.floor(tile.toLocal(ray), false) != null) {
-        return tile;
-      }
-    }
-    return tiles.getFirst();
+    final int index = IntensityMapTile.floorIndex(tiles, ray);
+    return tiles.get(Math.max(0, index));
   }
 
   /**
@@ -217,8 +245,7 @@ final class IntensityMapTileLayout {
    * @param showLabels       show tile titles
    * @return screen bounds of the shown titles and axis labels, which further labels must not cover
    */
-  @NotNull List<Bounds> project(final boolean intensityVisible, final boolean showLabels,
-      @NotNull final Map<String, IntensityMapSeriesState> states) {
+  @NotNull List<Bounds> project(final boolean intensityVisible, final boolean showLabels) {
     final List<IntensityMapAxes> all = allAxes();
     for (final IntensityMapAxes value : all) {
       value.setIntensityVisible(intensityVisible);
@@ -229,8 +256,7 @@ final class IntensityMapTileLayout {
     }
     final List<List<Point2D>> hulls = new ArrayList<>();
     for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-      // tiles can briefly refer to removed overlays until the new layout is applied
-      final IntensityMapSeriesState state = states.get(tiled.get(i).id());
+      final IntensityMapSeriesState state = tileState(i);
       hulls.add(state == null ? List.of() : tileHull(tiles.get(i), state.envelope()));
     }
     final List<Bounds> occupied = projectTileTitles(hulls, showLabels);
@@ -311,10 +337,8 @@ final class IntensityMapTileLayout {
   private @NotNull List<Point2D> tileHull(@NotNull final IntensityMapTile tile,
       final float @NotNull [] envelope) {
     final List<Point2D> points = new ArrayList<>();
-    for (final double x : new double[]{-WIDTH / 2, WIDTH / 2}) {
-      for (final double z : new double[]{-DEPTH / 2, DEPTH / 2}) {
-        addScreenPoint(points, tile.toModel(new Point3D(x, 0, z)));
-      }
+    for (final Point3D corner : IntensityMapExtent.corners(tile, IntensityMapExtent.full())) {
+      addScreenPoint(points, corner);
     }
     for (int cell = 0; cell < envelope.length; cell++) {
       if (envelope[cell] > -1) {
@@ -324,9 +348,7 @@ final class IntensityMapTileLayout {
       final int cz = cell / FIT_DIVISIONS;
       for (int dx = 0; dx <= 1; dx++) {
         for (int dz = 0; dz <= 1; dz++) {
-          addScreenPoint(points, tile.toModel(
-              new Point3D(((cx + dx) / (double) FIT_DIVISIONS - 0.5) * WIDTH, envelope[cell],
-                  ((cz + dz) / (double) FIT_DIVISIONS - 0.5) * DEPTH)));
+          addScreenPoint(points, tile.toModel(cellCorner(cx + dx, envelope[cell], cz + dz)));
         }
       }
     }
@@ -335,10 +357,20 @@ final class IntensityMapTileLayout {
 
   private void addScreenPoint(@NotNull final List<Point2D> points,
       @NotNull final Point3D modelPoint) {
-    final Point3D scene = model.localToScene(modelPoint, true);
-    if (scene != null) {
-      points.add(labelLayer.sceneToLocal(scene.getX(), scene.getY()));
+    final Point2D point = IntensityMapScreenGeometry.project(model, modelPoint, labelLayer);
+    if (point != null) {
+      points.add(point);
     }
+  }
+
+  /**
+   * @param x index of the corner along x, 0 to {@link #FIT_DIVISIONS}
+   * @param z index of the corner along z
+   * @return local position of a corner of the fitting grid
+   */
+  private static @NotNull Point3D cellCorner(final int x, final double y, final int z) {
+    return new Point3D((x / (double) FIT_DIVISIONS - 0.5) * WIDTH, y,
+        (z / (double) FIT_DIVISIONS - 0.5) * DEPTH);
   }
 
   /**
@@ -347,8 +379,7 @@ final class IntensityMapTileLayout {
    * @return model points of the signal of all tiles
    */
   @NotNull List<Point3D> fittingPoints(@NotNull final IntensityMapLayout layout,
-      @NotNull final List<IntensityMapSeries> snapshot,
-      @NotNull final Map<String, IntensityMapSeriesState> states) {
+      @NotNull final List<IntensityMapSeries> snapshot) {
     final List<Point3D> points = new ArrayList<>();
     switch (layout) {
       case OVERLAY -> {
@@ -363,7 +394,7 @@ final class IntensityMapTileLayout {
       }
       case GRID -> {
         for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-          final IntensityMapSeriesState state = states.get(tiled.get(i).id());
+          final IntensityMapSeriesState state = tileState(i);
           if (state != null) {
             addEnvelope(points, state.envelope(), tiles.get(i));
           }
@@ -376,12 +407,8 @@ final class IntensityMapTileLayout {
   /**
    * @return model points of the signal of one side by side tile, null if there is no such tile
    */
-  @Nullable List<Point3D> tileFittingPoints(final int index,
-      @NotNull final Map<String, IntensityMapSeriesState> states) {
-    if (index < 0 || index >= tiled.size() || index >= tiles.size()) {
-      return null;
-    }
-    final IntensityMapSeriesState state = states.get(tiled.get(index).id());
+  @Nullable List<Point3D> tileFittingPoints(final int index) {
+    final IntensityMapSeriesState state = index < 0 ? null : tileState(index);
     if (state == null) {
       return null;
     }
@@ -398,9 +425,7 @@ final class IntensityMapTileLayout {
         final double y = cell < heights.length ? heights[cell] : 0;
         for (int dx = 0; dx <= 1; dx++) {
           for (int dz = 0; dz <= 1; dz++) {
-            points.add(tile.toModel(
-                new Point3D(((x + dx) / (double) FIT_DIVISIONS - 0.5) * WIDTH, y,
-                    ((z + dz) / (double) FIT_DIVISIONS - 0.5) * DEPTH)));
+            points.add(tile.toModel(cellCorner(x + dx, y, z + dz)));
           }
         }
       }

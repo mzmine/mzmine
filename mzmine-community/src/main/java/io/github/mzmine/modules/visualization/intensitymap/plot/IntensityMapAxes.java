@@ -80,7 +80,7 @@ final class IntensityMapAxes {
   private final PhongMaterial floor = new PhongMaterial();
   private String textColor = "#334155";
   private boolean intensityVisible = true;
-  // floor and grid below the data for the depth test, in the data plane without it
+  // true: floor and grid lie in the data plane for views without depth test, false: below the data
   private boolean coplanar;
   private @Nullable IntensityMapAxesSpec spec;
   // local {x0, x1, z0, z1} the axes are drawn around
@@ -106,7 +106,7 @@ final class IntensityMapAxes {
 
   /**
    * @param coplanar floor and grid lie in the plane of the data, for views that draw in scene order
-   *                 without depth test. Otherwise they are lifted below the data, which also makes
+   *                 without depth test. Otherwise they are moved below the data, which also makes
    *                 the floor of a perspective top view project slightly smaller than the data.
    */
   void setCoplanar(final boolean coplanar) {
@@ -356,12 +356,11 @@ final class IntensityMapAxes {
       if (!visible) {
         continue;
       }
-      final Point3D scene = geometry.localToScene(anchor.position(), true);
-      if (scene == null) {
+      final Point2D position = screen(anchor.position());
+      if (position == null) {
         continue;
       }
-      final Point2D position = labels.sceneToLocal(scene.getX(), scene.getY());
-      // text measurement is costly, labels only need it once CSS has been applied
+      // text measurement is costly: measure each label once, as soon as CSS created its skin
       if (!sized.contains(label)) {
         label.applyCss();
         label.autosize();
@@ -463,8 +462,7 @@ final class IntensityMapAxes {
   }
 
   private @Nullable Point2D screen(@NotNull final Point3D local) {
-    final Point3D scene = geometry.localToScene(local, true);
-    return scene == null ? null : labels.sceneToLocal(scene.getX(), scene.getY());
+    return IntensityMapScreenGeometry.project(geometry, local, labels);
   }
 
   /**
@@ -495,6 +493,7 @@ final class IntensityMapAxes {
    * @param occupied  label bounds placed so far, in the coordinates of the shared label layer;
    *                  visible labels of this axes are added
    * @param obstacles outlines that labels must not cover, for example other tiles
+   * @param area      visible area of the label layer; labels not fully inside are hidden
    */
   void hideOverlaps(@NotNull final List<Bounds> occupied,
       @NotNull final List<List<Point2D>> obstacles, @NotNull final Bounds area) {

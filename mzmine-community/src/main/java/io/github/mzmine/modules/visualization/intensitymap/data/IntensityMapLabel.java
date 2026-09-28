@@ -46,12 +46,15 @@ import org.jetbrains.annotations.Nullable;
  * @param secondary   placed after all primary labels, e.g. further ions of a compound
  * @param group       key of the group of the feature, e.g. its compound; null if not grouped
  * @param isotopes    further isotope signals of the feature, e.g. of its isotope pattern
+ * @param grouped     signals grouped with the feature without rows of their own, e.g. the ions of a
+ *                    GC-EI deconvolution
  */
 public record IntensityMapLabel(@NotNull String seriesId, double x, double y,
                                 @NotNull Range<Double> xRange, @NotNull Range<Double> yRange,
                                 double intensity, @Nullable String name, @NotNull String text,
                                 @NotNull String description, boolean annotated, boolean secondary,
-                                @Nullable String group, @NotNull List<IntensityMapPeak> isotopes) {
+                                @Nullable String group, @NotNull List<IntensityMapPeak> isotopes,
+                                @NotNull List<IntensityMapPeak> grouped) {
 
   /**
    * @return the labeled apex

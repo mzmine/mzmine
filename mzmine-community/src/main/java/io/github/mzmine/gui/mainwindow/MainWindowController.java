@@ -59,7 +59,6 @@ import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDash
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardParameters;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMap2DModule;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMap3DModule;
-import io.github.mzmine.modules.visualization.intensitymap.IntensityMapParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.projectmetadata.color.ColorByMetadataModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
@@ -654,46 +653,18 @@ public class MainWindowController {
   }
 
   public void handleShow2DPlot(Event event) {
-    logger.finest("Activated Show 2D visualizer menu item");
-    ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(IntensityMap2DModule.class);
-    // follow the selection, specific files would remain the default of the module dialog; a new
-    // selection, because the stored one keeps the files of its last evaluation
-    parameters.getParameter(IntensityMapParameters.dataFile)
-        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
-    ExitCode exitCode = parameters.showSetupDialog(true);
-    if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(IntensityMap2DModule.class,
-          parameters.cloneParameterSet());
-    }
+    logger.finest("Activated Show 2D plot menu item");
+    IntensityMap3DModule.showSelectedFiles(IntensityMap2DModule.class, true);
   }
 
   public void handleShow3DPlot(Event event) {
-    logger.finest("Activated Show 3D visualizer menu item");
-    ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(IntensityMap3DModule.class);
-    // follow the selection, specific files would remain the default of the module dialog; a new
-    // selection, because the stored one keeps the files of its last evaluation
-    parameters.getParameter(IntensityMapParameters.dataFile)
-        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
-    ExitCode exitCode = parameters.showSetupDialog(true);
-    if (exitCode == ExitCode.OK) {
-      MZmineCore.runMZmineModule(IntensityMap3DModule.class,
-          parameters.cloneParameterSet());
-    }
+    logger.finest("Activated Show 3D plot menu item");
+    IntensityMap3DModule.showSelectedFiles(IntensityMap3DModule.class, true);
   }
 
-  /**
-   * Opens the selected imaging files in the 2D visualizer, which replaced the image viewer.
-   */
   public void handleShowImage(Event event) {
-    logger.finest("Activated Show image");
-    final ParameterSet parameters = MZmineCore.getConfiguration()
-        .getModuleParameters(IntensityMap2DModule.class).cloneParameterSet();
-    // a new selection, copies keep the files the stored selection was last evaluated with
-    parameters.getParameter(IntensityMapParameters.dataFile)
-        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
-    MZmineCore.runMZmineModule(IntensityMap2DModule.class, parameters);
+    logger.finest("Activated Show image menu item");
+    IntensityMap3DModule.showSelectedFiles(IntensityMap2DModule.class, false);
   }
 
   public void handleShowMsMsPlot(Event event) {

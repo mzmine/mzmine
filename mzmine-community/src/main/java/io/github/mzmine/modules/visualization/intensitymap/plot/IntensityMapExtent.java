@@ -32,7 +32,15 @@ import com.google.common.collect.Range;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPicker;
+import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapScreenGeometry;
+import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Rectangular extents {x0, x1, z0, z1} on the plot floor or on screen.
@@ -47,6 +55,44 @@ final class IntensityMapExtent {
    */
   static double @NotNull [] empty() {
     return new double[]{Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE};
+  }
+
+  /**
+   * @return the complete floor of a tile
+   */
+  static double @NotNull [] full() {
+    return new double[]{-WIDTH / 2, WIDTH / 2, -DEPTH / 2, DEPTH / 2};
+  }
+
+  /**
+   * @return the corners of a floor extent of the tile in model coordinates
+   */
+  static @NotNull List<Point3D> corners(@NotNull final IntensityMapTile tile,
+      final double @NotNull [] floor) {
+    final List<Point3D> corners = new ArrayList<>(4);
+    for (final double x : new double[]{floor[0], floor[1]}) {
+      for (final double z : new double[]{floor[2], floor[3]}) {
+        corners.add(tile.toModel(new Point3D(x, 0, z)));
+      }
+    }
+    return corners;
+  }
+
+  /**
+   * @return screen extent {x0, x1, y0, y1} of the points in the target, null if a point cannot be
+   * projected
+   */
+  static double @Nullable [] screen(@NotNull final Node source, @NotNull final List<Point3D> points,
+      @NotNull final Node target) {
+    final double[] extent = empty();
+    for (final Point3D point : points) {
+      final Point2D projected = IntensityMapScreenGeometry.project(source, point, target);
+      if (projected == null) {
+        return null;
+      }
+      include(extent, projected.getX(), projected.getY());
+    }
+    return extent;
   }
 
   static void include(final double @NotNull [] extent, final double x, final double z) {

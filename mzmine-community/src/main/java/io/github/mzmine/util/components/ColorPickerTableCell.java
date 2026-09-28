@@ -34,7 +34,7 @@ import javafx.scene.paint.Color;
 
 /**
  * @param <T>
- * @author akshaj Table cell with a color picker.
+ * @author akshaj This class represents the color picker in the table of Fx3DVisualizer.
  */
 public class ColorPickerTableCell<T> extends TableCell<T, Color> {
 

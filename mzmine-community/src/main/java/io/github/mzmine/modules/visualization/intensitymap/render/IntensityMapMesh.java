@@ -35,7 +35,8 @@ import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Geometry is calculated off the FX thread and uploaded in bulk as
+ * Triangle mesh of one overlay: a height field surface, pixel columns, or flat cells of the 2D
+ * view. Geometry is calculated off the FX thread and uploaded in bulk as
  * {@link javafx.scene.shape.VertexFormat#POINT_NORMAL_TEXCOORD}. Precomputed normals avoid the
  * expensive smoothing group evaluation JavaFX would otherwise run on the render thread. Only
  * vertices referenced by a face are kept.
@@ -69,8 +70,8 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
       return pixels(data, scale, canceled);
     }
     return switch (scale.projection()) {
-      // decision: the 2D view draws cells like the former 2D plot, a surface would fade to the
-      // floor between neighboring scans
+      // decision: the 2D view draws flat cells, because a surface would fade to the floor between
+      // neighboring scans
       case IntensityMapTopView _ -> cells(data, scale, canceled);
       case IntensityMapPerspective _ -> surface(data, scale, canceled);
     };
@@ -93,14 +94,12 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
     final float[] heights = new float[divisions * divisions];
     final int[] columns = new int[data.width()];
     for (int x = 0; x < data.width(); x++) {
-      columns[x] = Math.clamp(
-          (int) ((localX(scale.bounds(), data.xValue(x)) / WIDTH + 0.5) * divisions), 0,
+      columns[x] = Math.clamp((int) (scale.bounds().normalizeX(data.xValue(x)) * divisions), 0,
           divisions - 1);
     }
     for (int y = 0; y < data.height(); y++) {
       checkCanceled(canceled);
-      final int row = Math.clamp(
-          (int) ((localZ(scale.bounds(), data.yValue(y)) / DEPTH + 0.5) * divisions), 0,
+      final int row = Math.clamp((int) (scale.bounds().normalizeY(data.yValue(y)) * divisions), 0,
           divisions - 1);
       for (int x = 0; x < data.width(); x++) {
         final float value = data.intensity(x, y);
@@ -145,7 +144,7 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
             || !data.isPresent(nx, ny)) {
           continue;
         }
-        // Empty baseline faces obscure overlays and contribute no signal.
+        // quads entirely at the baseline obscure other overlays and show no signal
         if (quiet(data, scale, sx, sy) && quiet(data, scale, nx, sy) && quiet(data, scale, sx, ny)
             && quiet(data, scale, nx, ny)) {
           continue;
@@ -338,15 +337,15 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
 
   /**
    * Flat cells for the 2D view of non-pixel data: every value fills the space halfway to its
-   * neighbors, so consecutive scans touch however far the view is zoomed in, like the nearest scan
-   * fill of the former 2D plot. Neighboring cells share corner points.
+   * neighbors, so consecutive scans touch however far the view is zoomed in. Neighboring cells
+   * share corner points.
    */
   private static @NotNull IntensityMapMesh cells(@NotNull final IntensityMapGrid data,
       @NotNull final IntensityMapScale scale, @NotNull final BooleanSupplier canceled) {
     final IntensityMapBounds bounds = scale.bounds();
     final int width = data.width();
     final int height = data.height();
-    // cells tile the axes, the outer halves stay on the floor of the plot
+    // cells tile the axes, outer cell boundaries are clamped to the floor of the plot
     final float[] xs = new float[width + 1];
     for (int x = 0; x <= width; x++) {
       xs[x] = (float) Math.clamp(localX(bounds, x < width ? data.xLow(x) : data.xHigh(x - 1)),
@@ -417,7 +416,7 @@ public record IntensityMapMesh(float @NotNull [] points, float @NotNull [] norma
   }
 
   /**
-   * @return true for measured pixels above the noise floor. Measured zeros are kept unless a noise
+   * @return true for measured cells above the noise floor. Measured zeros are kept unless a noise
    * floor is set or the view has no heights.
    */
   private static boolean visible(@NotNull final IntensityMapGrid data,

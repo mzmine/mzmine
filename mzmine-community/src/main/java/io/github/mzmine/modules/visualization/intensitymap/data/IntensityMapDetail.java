@@ -47,9 +47,9 @@ public record IntensityMapDetail(double width, double height, int samples,
   static final long SURFACE_VERTICES = 1_000_000;
   // pixel columns use up to 8 vertices and 10 triangles each
   static final long PIXEL_CELLS = 360_000;
-  // decision (user report: zoomed and panned 2D views showed coarse blocks): flat 2D cells only
-  // become geometry where a value is measured, so the bins of the 2D view are limited by memory
-  // for the data and the corner index of the mesh, not by the render budget of a surface
+  // decision: flat 2D cells only become geometry where a value is measured, so the bins of the 2D
+  // view are limited by memory for the data and the corner index of the mesh, not by the render
+  // budget of a surface
   static final long FLAT_BINS = 4_000_000;
   // assumption: data (intensity, presence, maxima) and the corner index take about 32 bytes per
   // bin; the geometry of the measured cells is small for centroid data

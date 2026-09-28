@@ -29,10 +29,10 @@ import javafx.geometry.Point3D;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Camera path of a cinematic zoom (user request): the camera pulls back while it pans and pushes in
- * on the target, the smooth zooming and panning of van Wijk and Nuij (2003), as in map
- * applications. The view is described by its center and the visible height at the depth of the
- * target; the path minimizes the perceived motion between both views.
+ * Camera path between two views: the camera pulls back while it pans and moves in on the target,
+ * the smooth zooming and panning of van Wijk and Nuij (2003) known from map applications. The
+ * view is described by its center and the visible height at the depth of the target; the path
+ * minimizes the perceived motion between both views.
  */
 final class IntensityMapFlight {
 

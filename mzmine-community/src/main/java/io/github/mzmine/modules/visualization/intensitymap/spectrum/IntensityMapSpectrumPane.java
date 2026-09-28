@@ -27,14 +27,6 @@ package io.github.mzmine.modules.visualization.intensitymap.spectrum;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
-import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapRangeDrag;
@@ -42,8 +34,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.layout.BorderPane;
@@ -52,9 +42,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Spectrum at the position selected in the 3D view. Clicking a signal selects its m/z for the 3D
- * view; with Ctrl/⌘ further m/z ranges are added or removed, like in the image viewer. Ctrl/⌘ +
- * drag adds the dragged m/z window.
+ * Spectrum at the position selected in the intensity map. Clicking a signal selects its m/z for the
+ * map; with Ctrl/⌘ further m/z ranges are added or removed, like in the image viewer. Ctrl/⌘ + drag
+ * adds the dragged m/z window.
  */
 public final class IntensityMapSpectrumPane extends BorderPane {
 
@@ -62,7 +52,6 @@ public final class IntensityMapSpectrumPane extends BorderPane {
   // shown in the header of the collapsible section, so the spectrum keeps all the space
   private final StringProperty description = new SimpleStringProperty(
       "click the 3D view to show a spectrum");
-  private final ObjectProperty<PlotCursorPosition> clicked = new SimpleObjectProperty<>();
   private List<Marker> markers = List.of();
   private @Nullable Listener listener;
   private @Nullable Consumer<Range<Double>> rangeListener;
@@ -94,31 +83,19 @@ public final class IntensityMapSpectrumPane extends BorderPane {
   public IntensityMapSpectrumPane() {
     spectrum.setMinHeight(120);
     spectrum.setLegendVisible(false);
-    // same gesture as the frame range in the chromatogram of mobility frames (user request)
+    // same gesture as the frame range in the chromatogram of mobility frames
     drag = new IntensityMapRangeDrag(spectrum, range -> {
       if (rangeListener != null) {
         rangeListener.accept(range);
       }
     }, () -> spectrum.applyWithNotifyChanges(false, this::applyMarkers));
-    // a separate cursor so that repeated clicks on the same signal are still reported
-    spectrum.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
-      if (drag.wasDragged()) {
-        // the release of a range drag
-        return;
+    drag.onClick((cursor, e) -> {
+      if (listener != null) {
+        final Scan scan = cursor.getDataset() instanceof ScanDataSet data ? data.getScan() : null;
+        listener.clicked(new Click(cursor.getDomainValue(), scan,
+            IntensityMapRangeDrag.modifier(e.getMouseEvent())));
       }
-      clicked.set(null);
-      PlotCursorUtils.findSetCursorPosition(e, spectrum.getRenderingInfo(), spectrum.getXYPlot(),
-          clicked);
-      final PlotCursorPosition cursor = clicked.get();
-      if (cursor == null || listener == null) {
-        return;
-      }
-      final MouseEventWrapper mouse = e.getMouseEvent();
-      final boolean additive = mouse != null && (mouse.isMetaDown() || mouse.isControlDown());
-      final Scan scan = cursor.getDataset() instanceof ScanDataSet data ? data.getScan() : null;
-      listener.clicked(new Click(cursor.getDomainValue(), scan, additive));
-    }));
+    });
     setCenter(spectrum);
   }
 
@@ -159,7 +136,7 @@ public final class IntensityMapSpectrumPane extends BorderPane {
   }
 
   /**
-   * Highlights the m/z ranges shown in the 3D view.
+   * Highlights the m/z ranges shown in the intensity map.
    */
   public void setMarkers(@NotNull final List<Marker> markers) {
     this.markers = List.copyOf(markers);

@@ -31,7 +31,10 @@ import java.util.List;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Screen-space outlines of projected tiles, used to place labels only where they cover nothing.
@@ -39,6 +42,17 @@ import org.jetbrains.annotations.NotNull;
 public final class IntensityMapScreenGeometry {
 
   private IntensityMapScreenGeometry() {
+  }
+
+  /**
+   * @param source node of the point, e.g. the model of a 3D scene
+   * @param target node of the result, e.g. a 2D layer above the scene
+   * @return position of the point in the target, null if it cannot be projected
+   */
+  public static @Nullable Point2D project(@NotNull final Node source, @NotNull final Point3D local,
+      @NotNull final Node target) {
+    final Point3D scene = source.localToScene(local, true);
+    return scene == null ? null : target.sceneToLocal(scene.getX(), scene.getY());
   }
 
   /**

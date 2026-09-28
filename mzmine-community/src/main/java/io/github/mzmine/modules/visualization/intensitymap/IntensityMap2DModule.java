@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * The 3D visualizer as a fixed top view without heights: intensity maps of LC-MS, ion mobility
- * frames, and imaging data. Replaces the former 2D plot (user request).
+ * frames, and imaging data.
  */
 public class IntensityMap2DModule implements MZmineRunnableModule {
 

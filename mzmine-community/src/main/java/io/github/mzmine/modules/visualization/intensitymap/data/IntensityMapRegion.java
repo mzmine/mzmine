@@ -42,28 +42,15 @@ public record IntensityMapRegion(@Nullable Range<Double> x, @Nullable Range<Doub
   }
 
   /**
-   * @param share of the width and height added on each side
-   * @return a larger window, this if full
-   */
-  public @NotNull IntensityMapRegion expand(final double share) {
-    return new IntensityMapRegion(expand(x, share), expand(y, share));
-  }
-
-  /**
    * @param left  share of the width added below the x range
    * @param right share of the width added above the x range
    * @param below share of the height added below the y range
    * @param above share of the height added above the y range
-   * @return a larger window, this if full
+   * @return a larger window; null ranges stay null
    */
   public @NotNull IntensityMapRegion expand(final double left, final double right,
       final double below, final double above) {
     return new IntensityMapRegion(expand(x, left, right), expand(y, below, above));
-  }
-
-  private static @Nullable Range<Double> expand(@Nullable final Range<Double> range,
-      final double share) {
-    return expand(range, share, share);
   }
 
   private static @Nullable Range<Double> expand(@Nullable final Range<Double> range,
@@ -115,7 +102,8 @@ public record IntensityMapRegion(@Nullable Range<Double> x, @Nullable Range<Doub
   }
 
   /**
-   * @return the intersection, the other range if one is null, or null if they do not overlap
+   * @return the intersection, the range itself if the window is null, or null if they do not
+   * overlap
    */
   public static @Nullable Range<Double> intersect(@NotNull final Range<Double> range,
       @Nullable final Range<Double> window) {

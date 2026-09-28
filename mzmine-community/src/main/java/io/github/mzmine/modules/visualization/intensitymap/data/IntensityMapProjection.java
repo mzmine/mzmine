@@ -29,9 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * How the plot shows intensity over the two coordinates: the 3D visualizer as a relief in
- * perspective, the 2D visualizer as a map seen from the top (user decision: the 2D view is the top
- * view of the same engine). Everything that differs between the two views is either a property here
- * or an exhaustive switch over the two projections, e.g. to build meshes or to pick.
+ * perspective, the 2D visualizer as a map seen from the top of the same scene. Everything that
+ * differs between the two views is either a property here or an exhaustive switch over the two
+ * projections, e.g. to build meshes or to pick.
  */
 public sealed interface IntensityMapProjection permits IntensityMapPerspective,
     IntensityMapTopView {

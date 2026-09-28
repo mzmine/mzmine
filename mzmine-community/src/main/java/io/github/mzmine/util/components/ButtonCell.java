@@ -33,7 +33,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 
 /**
- * @author akshaj Table cell with an eye button to toggle visibility.
+ * @author akshaj This class represents the eye button in the table of Fx3DVisualizer.
  * @param <T>
  */
 public class ButtonCell<T> extends TableCell<T, Boolean> {

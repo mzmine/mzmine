@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
-import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Point3D;
 import javafx.scene.Group;
@@ -37,8 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The box dragged on the floor with Ctrl/⌘ to zoom to it (user decision: zooming replaces selecting
- * subsets).
+ * The box dragged on the floor with Ctrl/⌘ to zoom to it.
  */
 final class IntensityMapZoomBox {
 
@@ -114,7 +112,8 @@ final class IntensityMapZoomBox {
   /**
    * Ends the drag.
    *
-   * @return the corners of the dragged box in model coordinates, null if it was a click
+   * @return the corners of the dragged box in model coordinates, null if it was a click or did not
+   * start on the floor
    */
   @Nullable List<Point3D> finish() {
     final Point3D first = start;
@@ -125,13 +124,8 @@ final class IntensityMapZoomBox {
         || screenDistance(first, new Point3D(first.getX(), 0, last.getZ())) < MIN_BOX_PIXELS) {
       return null;
     }
-    final List<Point3D> corners = new ArrayList<>();
-    for (final double x : new double[]{first.getX(), last.getX()}) {
-      for (final double z : new double[]{first.getZ(), last.getZ()}) {
-        corners.add(tile.toModel(new Point3D(x, 0, z)));
-      }
-    }
-    return corners;
+    return IntensityMapExtent.corners(tile,
+        new double[]{first.getX(), last.getX(), first.getZ(), last.getZ()});
   }
 
   /**

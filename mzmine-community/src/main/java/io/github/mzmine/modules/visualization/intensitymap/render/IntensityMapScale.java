@@ -105,8 +105,8 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
    */
   public double height(@NotNull final IntensityMapGrid data, final double value) {
     if (!projection.heights()) {
-      // decision (user request): the 2D view is a plane, it draws in scene order without depth
-      // test, so data cover the floor without any height
+      // decision: the 2D view is a plane drawn in scene order without depth test, so the data
+      // cover the floor without any height
       return 0;
     }
     return height(transform, value, maximum(data), baseline);
@@ -133,9 +133,9 @@ public record IntensityMapScale(@NotNull IntensityMapBounds bounds,
 
   /**
    * @return paint scale position in [0, 1]. With heights, the transformation only changes the
-   * height, so that colors keep their linear meaning (user decision). Without heights, colors are
-   * the only cue and follow the transformation (user request). The scale starts at the noise floor
-   * (user request), so the whole paint scale covers the shown values.
+   * height, so that colors keep their linear meaning. Without heights, colors are the only cue and
+   * follow the transformation. The scale starts at the noise floor, so the whole paint scale covers
+   * the shown values.
    */
   public double color(@NotNull final IntensityMapGrid data, final double value) {
     final double maximum = maximum(data);

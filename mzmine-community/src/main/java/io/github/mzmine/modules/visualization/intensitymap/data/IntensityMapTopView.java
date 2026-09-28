@@ -65,8 +65,7 @@ public record IntensityMapTopView() implements IntensityMapProjection {
   }
 
   /**
-   * decision (user decision after testing): 0.05 %, lower than in 3D, so the 2D view stays close to
-   * the raw data
+   * decision: 0.05 %, lower than in 3D, so the 2D view stays close to the raw data
    */
   @Override
   public double defaultNoisePercent() {
@@ -115,9 +114,9 @@ public record IntensityMapTopView() implements IntensityMapProjection {
   }
 
   /**
-   * decision (user request): one bin per pixel of the plot area, which keeps the maximum of the
-   * pixel like the former 2D plot. Cells thinner than a pixel are not drawn, so centroids jittering
-   * between finer m/z bins would appear as dashed traces.
+   * decision: one bin per pixel of the plot area, which keeps the maximum of every pixel. Cells
+   * thinner than a pixel are not drawn, so centroids jittering between finer m/z bins would appear
+   * as dashed traces.
    */
   @Override
   public int viewColumns(final double width) {

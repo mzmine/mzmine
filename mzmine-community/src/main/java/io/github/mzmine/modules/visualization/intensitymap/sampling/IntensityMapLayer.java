@@ -36,6 +36,7 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeri
 import java.util.List;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A raw sample and extraction range with stable identity and color across edits and resampling.
@@ -84,8 +85,14 @@ public record IntensityMapLayer(@NotNull String id, @NotNull RawDataFile file,
     return "m/z " + formats.mz(mzRange);
   }
 
-  public @NotNull IntensityMapSeries toSeries(@NotNull final IntensityMapGrid data) {
-    return new IntensityMapSeries(id, file.getName(), fullRange ? "all m/z" : mzDescription(), data,
-        color);
+  /**
+   * @param annotation known names of the extracted ions, null for none. They get their own line
+   *                   below the m/z description, so narrow titles do not cut them off.
+   */
+  public @NotNull IntensityMapSeries toSeries(@NotNull final IntensityMapGrid data,
+      @Nullable final String annotation) {
+    final String description = fullRange ? "all m/z" : mzDescription();
+    return new IntensityMapSeries(id, file.getName(),
+        annotation == null ? description : description + "\n" + annotation, data, color);
   }
 }

@@ -93,7 +93,6 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
-import io.github.mzmine.modules.visualization.image.ColocatedImageVisualizerTab;
 import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
@@ -665,7 +664,6 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null
             && selectedOrBestFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.visibleProperty().bind(hasImagingData);
-    // the 2D visualizer replaced the image viewer
     showImageFeatureItem.setOnAction(
         _ -> IntensityMap3DModule.showFeatures(List.of(selectedOrBestFeature),
             IntensityMapProjection.TOP_VIEW));
@@ -678,12 +676,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     showCorrelatedImageFeaturesItem.visibleProperty().bind(hasImagingData);
     showCorrelatedImageFeaturesItem.setOnAction(_ -> showCorrelatedImageFeatures());
 
-    final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D visualizer",
+    final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
         () -> !selectedRows.isEmpty() && selectedOrBestFeature != null);
     show2DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.TOP_VIEW));
 
-    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D visualizer",
-        () -> selectedRow != null);
+    final MenuItem show3DItem = new ConditionalMenuItem("Feature in 3D", () -> selectedRow != null);
     show3DItem.setOnAction(openFeatureVisualizer(IntensityMapProjection.PERSPECTIVE));
 
     final MenuItem showIntensityPlotItem = new ConditionalMenuItem(
@@ -1089,13 +1086,20 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showCorrelatedImageFeatures() {
-    if (!selectedRowHasCorrelationData()) {
+    final ModularFeature selected = selectedRow == null ? null : selectedRow.streamFeatures()
+        .filter(f -> f.getRawDataFile() instanceof ImagingRawDataFile)
+        .max(Comparator.comparingDouble(Feature::getHeight)).orElse(null);
+    final R2RMap<RowsRelationship> correlations = selectedRow == null ? null
+        : selectedRow.getFeatureList().getRowMap(Type.MS1_FEATURE_CORR).orElse(null);
+    if (selected == null || correlations == null) {
       return;
     }
-
-    ColocatedImageVisualizerTab tab = new ColocatedImageVisualizerTab(
-        "Correlated Images in %s".formatted(table.getFeatureList().getName()), table);
-    MZmineCore.getDesktop().addTab(tab);
+    final List<Feature> colocated = correlations.streamAllCorrelatedRows(selectedRow,
+            selectedRow.getFeatureList().getRows())
+        .sorted(Comparator.comparingDouble(RowsRelationship::getScore).reversed())
+        .map(relationship -> (Feature) relationship.getOtherRow(selectedRow)
+            .getFeature(selected.getRawDataFile())).filter(Objects::nonNull).toList();
+    IntensityMap3DModule.showColocatedImages(selected, colocated);
   }
 
   private void showDiaMirror() {

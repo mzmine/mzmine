@@ -26,23 +26,16 @@
 package io.github.mzmine.modules.visualization.intensitymap.chromatogram;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gui.javafx.model.PlotCursorUtils;
-import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
 import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapRangeDrag;
+import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapFrameCache;
+import io.github.mzmine.util.RangeUtils;
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +43,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Base peak chromatogram of the mobility frames. Clicking a retention time selects the frame shown
- * in the 3D view; Ctrl/⌘ + drag selects a retention time range whose frames are averaged, like the
- * frame selection of the ion mobility raw data overview.
+ * in the intensity map; Ctrl/⌘ + drag selects a retention time range whose frames are averaged,
+ * like the frame selection of the ion mobility raw data overview.
  */
 public final class IntensityMapChromatogramPane extends BorderPane {
 
@@ -59,7 +52,6 @@ public final class IntensityMapChromatogramPane extends BorderPane {
   private static final java.awt.Color ACCENT = FxColorUtil.fxColorToAWT(IntensityMapPlot.ACCENT);
 
   private final TICPlot chromatogram = new TICPlot();
-  private final ObjectProperty<PlotCursorPosition> clicked = new SimpleObjectProperty<>();
   private @Nullable Consumer<Range<Float>> listener;
   private @Nullable Range<Float> selected;
   private final IntensityMapRangeDrag drag;
@@ -76,25 +68,14 @@ public final class IntensityMapChromatogramPane extends BorderPane {
     chromatogram.getXYPlot().setShowCursorCrosshair(false, false);
     drag = new IntensityMapRangeDrag(chromatogram, range -> {
       if (listener != null) {
-        listener.accept(
-            Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue()));
+        listener.accept(RangeUtils.toFloatRange(range));
       }
     }, () -> chromatogram.applyWithNotifyChanges(false, this::applyMarker));
-    // a separate cursor so that repeated clicks on the same retention time are still reported
-    chromatogram.getMouseAdapter().addGestureHandler(new ChartGestureHandler(
-        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
-      if (drag.wasDragged()) {
-        // the release of a range drag
-        return;
-      }
-      clicked.set(null);
-      PlotCursorUtils.findSetCursorPosition(e, chromatogram.getRenderingInfo(),
-          chromatogram.getXYPlot(), clicked);
-      final PlotCursorPosition cursor = clicked.get();
-      if (cursor != null && listener != null) {
+    drag.onClick((cursor, _) -> {
+      if (listener != null) {
         listener.accept(Range.singleton((float) cursor.getDomainValue()));
       }
-    }));
+    });
     setCenter(chromatogram);
   }
 
@@ -130,7 +111,7 @@ public final class IntensityMapChromatogramPane extends BorderPane {
     final Range<Double> dragged = drag.dragged();
     if (dragged != null) {
       chromatogram.addDomainMarker(dragged.lowerEndpoint(), dragged.upperEndpoint(), ACCENT, 0.25f);
-    } else if (selected != null && selected.lowerEndpoint().equals(selected.upperEndpoint())) {
+    } else if (selected != null && IntensityMapFrameCache.isSingle(selected)) {
       chromatogram.addDomainMarker(selected.lowerEndpoint(), ACCENT, 0.9f);
     } else if (selected != null) {
       chromatogram.addDomainMarker(selected.lowerEndpoint(), selected.upperEndpoint(), ACCENT,

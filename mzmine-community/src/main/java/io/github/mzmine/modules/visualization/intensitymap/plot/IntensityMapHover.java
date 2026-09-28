@@ -69,7 +69,7 @@ final class IntensityMapHover {
     dropLine.setMaterial(accentMaterial);
     crossX.setMaterial(accentMaterial);
     crossZ.setMaterial(accentMaterial);
-    // decision: a faint unlit plane plus a crisp floor line, specular highlights washed it out
+    // decision: a faint unlit plane plus crisp lines; specular highlights would wash out the plane
     sliceMaterial.setSpecularColor(Color.TRANSPARENT);
     slices.setMouseTransparent(true);
     readout.setManaged(false);
@@ -161,11 +161,12 @@ final class IntensityMapHover {
 
   /**
    * Slice planes through the position in every tile. Their tops reach the highest data point of the
-   * tile and form a crosshair above the data (user request), visible even over dense pixel
-   * columns.
+   * tile and form a crosshair above the data, visible even over dense pixel columns.
    *
+   * @param tiles     tiles to mark, all share the local position
    * @param x         local x of the position
    * @param z         local z of the position
+   * @param mode      slice at x, at z, or both for a point
    * @param top       height of the slices per tile index
    * @param lineScale line width, follows the zoom
    */
@@ -253,8 +254,7 @@ final class IntensityMapHover {
 
   private @NotNull Label label(@NotNull final String text, final boolean bold) {
     final Label label = new Label(text);
-    label.setStyle((dark ? "-fx-text-fill: #e2e8f0;" : "-fx-text-fill: #1e293b;") + (bold
-        ? "-fx-font-weight: bold;" : ""));
+    label.setStyle(IntensityMapTheme.text(dark) + (bold ? "-fx-font-weight: bold;" : ""));
     return label;
   }
 }

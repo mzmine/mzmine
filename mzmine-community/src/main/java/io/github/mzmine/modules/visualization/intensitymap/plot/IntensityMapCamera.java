@@ -33,8 +33,13 @@ import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMe
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPicker;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
 import java.util.List;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -43,6 +48,7 @@ import javafx.scene.SubScene;
 import javafx.scene.layout.Region;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +59,7 @@ import org.jetbrains.annotations.Nullable;
 final class IntensityMapCamera {
 
   // closest and farthest camera distance to the viewed point: fitted views are ~1250 away, so
-  // zooming in reaches more than 10000 times (user request)
+  // zooming in magnifies more than 10000 times
   private static final double MIN_DISTANCE = 0.05;
   private static final double MAX_DISTANCE = 4000;
   // sample points per axis to find the visible data window
@@ -69,6 +75,8 @@ final class IntensityMapCamera {
   private final IntensityMapProjection projection;
   // the camera follows the data until the user navigates
   private boolean autoFit = true;
+  // running camera move, null if none
+  private @Nullable Timeline flight;
 
   IntensityMapCamera(@NotNull final Group model, @NotNull final SubScene scene,
       @NotNull final Region viewport, @NotNull final IntensityMapProjection projection) {
@@ -111,6 +119,40 @@ final class IntensityMapCamera {
    */
   double heightPerDistance() {
     return 2 * Math.tan(Math.toRadians(camera.getFieldOfView() / 2));
+  }
+
+  /**
+   * Moves the camera along the path, eased at both ends.
+   *
+   * @param onFrame  runs after every step, e.g. to follow with the axes
+   * @param onArrive runs once the camera arrived
+   */
+  void fly(@NotNull final IntensityMapFlight path, @NotNull final Runnable onFrame,
+      @NotNull final Runnable onArrive) {
+    stopFlight();
+    final DoubleProperty progress = new SimpleDoubleProperty(0);
+    progress.addListener((_, _, t) -> {
+      moveTo(path.at(t.doubleValue()));
+      onFrame.run();
+    });
+    final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(path.durationMillis()),
+        new KeyValue(progress, 1, Interpolator.EASE_BOTH)));
+    timeline.setOnFinished(_ -> {
+      flight = null;
+      onArrive.run();
+    });
+    flight = timeline;
+    timeline.play();
+  }
+
+  /**
+   * Stops a camera move where it is, e.g. when the user takes over.
+   */
+  void stopFlight() {
+    if (flight != null) {
+      flight.stop();
+      flight = null;
+    }
   }
 
   void moveTo(@NotNull final Point3D position) {
@@ -180,7 +222,6 @@ final class IntensityMapCamera {
    * Mouse drag: rotates, or pans in the 2D view and with the pan modifier.
    */
   void drag(final double dx, final double dy, final boolean pan) {
-    // the 2D view cannot rotate, dragging pans
     if (!projection.rotatable() || pan) {
       pan(dx, dy);
       return;
@@ -304,14 +345,9 @@ final class IntensityMapCamera {
    */
   void fitToArea(@NotNull final Rectangle2D area, @NotNull final List<Point3D> corners,
       @NotNull final List<Point3D> modelCorners) {
-    final double[] screen = IntensityMapExtent.empty();
-    for (final Point3D corner : modelCorners) {
-      final Point3D sceneCorner = model.localToScene(corner, true);
-      if (sceneCorner == null) {
-        return;
-      }
-      final Point2D local = scene.sceneToLocal(sceneCorner.getX(), sceneCorner.getY());
-      IntensityMapExtent.include(screen, local.getX(), local.getY());
+    final double[] screen = IntensityMapExtent.screen(model, modelCorners, scene);
+    if (screen == null) {
+      return;
     }
     double minX = Double.MAX_VALUE;
     double maxX = -Double.MAX_VALUE;
@@ -341,10 +377,12 @@ final class IntensityMapCamera {
   }
 
   /**
-   * @return the visible part of the floor in local coordinates {x0, x1, z0, z1}, null if unknown.
-   * Rays through the viewport corners, edge centers, and center are exact for the top view and for
-   * zoomed tiles. If a ray misses, e.g. towards the horizon of a tilted view, floor and top points
-   * of every tile are projected instead.
+   * Finds the part of the floor that is visible in the viewport. Rays through the viewport corners,
+   * edge centers and center are exact for the top view and for zoomed tiles. If a ray misses, e.g.
+   * towards the horizon of a tilted view, floor and top points of every tile are projected
+   * instead.
+   *
+   * @return the visible floor in local coordinates {x0, x1, z0, z1}, null if unknown
    */
   double @Nullable [] visibleFloor(@NotNull final List<IntensityMapTile> tiles) {
     if (scene.getWidth() <= 0 || scene.getHeight() <= 0) {
@@ -355,13 +393,9 @@ final class IntensityMapCamera {
     for (int i = 0; i <= 2 && all; i++) {
       for (int j = 0; j <= 2 && all; j++) {
         final IntensityMapPicker.Ray ray = ray(scene.getWidth() * i / 2, scene.getHeight() * j / 2);
-        Point3D hit = null;
-        for (final IntensityMapTile tile : tiles) {
-          hit = IntensityMapPicker.floor(tile.toLocal(ray), false);
-          if (hit != null) {
-            break;
-          }
-        }
+        final int index = IntensityMapTile.floorIndex(tiles, ray);
+        final Point3D hit =
+            index < 0 ? null : IntensityMapPicker.floor(tiles.get(index).toLocal(ray), false);
         if (hit == null) {
           all = false;
         } else {
@@ -378,7 +412,8 @@ final class IntensityMapCamera {
   }
 
   /**
-   * Adds the floor and top sample points of the tiles that are visible in the viewport.
+   * Adds the local x and z of all floor and top sample points of the tiles that project into the
+   * viewport to the extent.
    */
   private void projectFloor(@NotNull final List<IntensityMapTile> tiles,
       final double @NotNull [] extent) {
@@ -392,8 +427,7 @@ final class IntensityMapCamera {
           for (final double y : projection.heights() ? new double[]{0, -IntensityMapMesh.HEIGHT}
               : new double[]{0}) {
             final Point3D local = tile.toModel(new Point3D(x, y, z));
-            if (model.localToParent(local).getZ()
-                <= camera.getTranslateZ() + camera.getNearClip()) {
+            if (!isInFront(model.localToParent(local))) {
               continue;
             }
             final Point3D screen = model.localToScene(local, true);

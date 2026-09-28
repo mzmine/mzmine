@@ -62,6 +62,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -101,10 +103,11 @@ class IntensityMapTab extends MZmineTab {
   // the 3D or the 2D view
   private final IntensityMapProjection projection;
   private final ChangeListener<Boolean> darkModeListener = (_, _, dark) -> updateDarkMode(dark);
-  // decision: weak, tabs removed via their context menu are not closed and must not stay reachable
+  // decision: weak, because tabs removed via their context menu are not closed and must not stay
+  // reachable
   private final WeakChangeListener<Boolean> weakDarkModeListener = new WeakChangeListener<>(
       darkModeListener);
-  // decision: the imaging normalization and transformation only apply to imaging data
+  // decision: the image normalization only applies to imaging data
   private ImageNormalization normalization = ImageNormalization.NO_NORMALIZATION;
   private int nextLayer;
   private boolean closed;
@@ -112,6 +115,8 @@ class IntensityMapTab extends MZmineTab {
   private @Nullable FeatureList labelList;
   // list, layers, and frames of the shown labels; the labels are only built again on changes
   private @Nullable List<Object> labelState;
+  // images: known annotations of the extracted ions by layer id, appended to the overlay titles
+  private @NotNull Map<String, String> titles = Map.of();
 
   /**
    * @param files      at least one file, all with the same data dimensions
@@ -128,8 +133,8 @@ class IntensityMapTab extends MZmineTab {
     this.parameters = parameters.cloneParameterSet();
     mode = IntensityMapSampler.resolveMode(files[0],
         parameters.getValue(IntensityMapParameters.mode));
-    // decision (user request): the paint scale is chosen in the viewer, it starts with the default
-    // of the preferences like other mzmine heatmaps
+    // decision: the paint scale is chosen in the viewer and starts with the default of the
+    // preferences, like other mzmine heatmaps
     final SimpleColorPalette palette = ConfigService.getConfiguration()
         .getDefaultPaintScalePalette();
     plot = new IntensityMapPlot(palette, projection);
@@ -150,7 +155,7 @@ class IntensityMapTab extends MZmineTab {
       });
     }
     if (mode == IntensityMapDimensions.MOBILITY_FRAME) {
-      // decision (user request): a base peak chromatogram picks the frame by retention time
+      // decision: a base peak chromatogram picks the frame by retention time
       spectrumSource = null;
       spectrumPane = null;
       chromatogramPane = new IntensityMapChromatogramPane();
@@ -162,7 +167,7 @@ class IntensityMapTab extends MZmineTab {
       spectrumPane = new IntensityMapSpectrumPane();
       chromatogramPane = null;
       spectrumPane.setListener(this::onSpectrumClicked);
-      // decision: Ctrl/⌘ adds, as for clicks, so a dragged window joins the shown m/z overlays
+      // decision: Ctrl/⌘ + drag adds, like Ctrl/⌘ + click, so the window joins the shown overlays
       spectrumPane.setRangeListener(range -> addMzRanges(List.of(range)));
       plot.setDetailPane(spectrumPane, "Spectrum");
       spectrumPane.descriptionProperty().subscribe(
@@ -170,14 +175,11 @@ class IntensityMapTab extends MZmineTab {
       plot.setSliceMode(spectrumSource.sliceMode());
       plot.setOnSelectionChanged(this::showSpectra);
     }
-    if (mode != IntensityMapDimensions.IMAGING) {
-      // decision (user request): no peak labels for images
-      this.labelList = labelList;
-      plot.setLabelSources(this::labelListNames, this::setLabelList);
-      plot.setLabelSource(labelList == null ? null : labelList.getName());
-    } else {
-      plot.setLabelsUnavailable("No peak labels for images");
-    }
+    this.labelList = labelList;
+    plot.setLabelSources(this::labelListNames, this::setLabelList);
+    plot.setLabelSource(labelList == null ? null : labelList.getName());
+    // decision: images get no peak labels, annotations extend the overlay titles instead
+    plot.setPeakLabelOptions(mode != IntensityMapDimensions.IMAGING);
     plot.setOnRemoveSeries(this::removeLayer);
     plot.setOnSeriesColorChanged(this::onColorChanged);
     for (final RawDataFile file : Arrays.stream(files).distinct().toList()) {
@@ -206,19 +208,19 @@ class IntensityMapTab extends MZmineTab {
     plot.setNumberFormats(ConfigService.getGuiFormats());
     plot.setUnitFormat(ConfigService.getConfiguration().getUnitFormat());
     if (mode == IntensityMapDimensions.IMAGING) {
-      // decision (user request): images show all pixels by default
+      // decision: images show all pixels by default
       plot.setNoiseFloor(0);
     }
     if (mode == IntensityMapDimensions.IMAGING && !projection.heights()) {
-      // decision (user request): images are colored like in the 3D view, linearly from the noise
-      // floor; the 2D view otherwise applies its transformation to the colors, log10 by default
+      // decision: images are colored linearly from the noise floor, as in the 3D view; for other
+      // data the 2D view applies its transformation to the colors, log10 by default
       plot.setTransform(PaintScaleTransform.LINEAR);
     }
     if (mode == IntensityMapDimensions.IMAGING && projection.heights()) {
-      // decision (user request): images read best as flat log-scaled reliefs
+      // decision: images read best as flat log-scaled reliefs
       plot.setTransform(PaintScaleTransform.LOG10);
       plot.setHeightScale(plot.minimumHeightScale());
-      // decision (user request): the weakest pixels start at the floor, not on a tall base
+      // decision: the weakest pixels start at the floor, not on a tall base
       plot.setHeightsFromLowest(true);
     }
     setContent(plot);
@@ -335,14 +337,11 @@ class IntensityMapTab extends MZmineTab {
     for (final RawDataFile file : files) {
       // decision: specific m/z overlays replace the all-m/z default. It would otherwise dominate
       // the shared intensity scale and hide the extracted ions.
-      final boolean removed = layers.removeIf(
-          layer -> layer.file().equals(file) && layer.fullRange());
-      changed |= removed;
+      changed |= removeLayersWhere(layer -> layer.file().equals(file) && layer.fullRange());
       for (final Range<Double> range : ranges) {
         changed |= addLayer(file, range);
       }
     }
-    loader.retain(layers.stream().map(IntensityMapLayer::id).toList());
     if (changed) {
       load(false);
     } else {
@@ -356,13 +355,12 @@ class IntensityMapTab extends MZmineTab {
     if (layer == null) {
       return;
     }
-    layers.remove(layer);
-    loader.remove(id);
+    removeLayersWhere(l -> l == layer);
     if (layers.stream().noneMatch(l -> l.file().equals(layer.file()))) {
       files.remove(layer.file());
     }
-    // decision: while reading, the cache may be cleared for resampling; publishing now would
-    // empty the view and reset the overlay settings. The running task publishes when done.
+    // decision: while reading, the cache may be cleared for resampling; publishing during a read
+    // would empty the view and reset the overlay settings. The running task publishes when done.
     if (!loader.isLoading()) {
       publish();
     }
@@ -372,30 +370,39 @@ class IntensityMapTab extends MZmineTab {
    * Replaces all overlays by the ranges for every file.
    */
   private void setMzRanges(@NotNull final List<Range<Double>> ranges) {
-    if (files.isEmpty()) {
-      return;
-    }
-    layers.clear();
-    loader.clear();
-    for (final RawDataFile file : files) {
-      for (final Range<Double> range : ranges) {
-        addLayer(file, range);
-      }
-    }
-    load(false);
+    replaceLayers(file -> ranges.forEach(range -> addLayer(file, range)));
   }
 
   private void resetMzRanges() {
-    if (files.isEmpty()) {
+    if (!layers.isEmpty() && layers.stream().allMatch(IntensityMapLayer::fullRange)) {
       return;
     }
-    if (!layers.isEmpty() && layers.stream().allMatch(IntensityMapLayer::fullRange)) {
+    replaceLayers(this::addDefaultLayer);
+  }
+
+  /**
+   * Replaces all overlays by new ones for every file.
+   */
+  private void replaceLayers(@NotNull final Consumer<RawDataFile> addLayers) {
+    if (files.isEmpty()) {
       return;
     }
     layers.clear();
     loader.clear();
-    files.forEach(this::addDefaultLayer);
+    files.forEach(addLayers);
     load(false);
+  }
+
+  /**
+   * Removes overlays and their sampled data.
+   *
+   * @return true if an overlay was removed
+   */
+  private boolean removeLayersWhere(@NotNull final Predicate<IntensityMapLayer> condition) {
+    final List<IntensityMapLayer> removed = layers.stream().filter(condition).toList();
+    layers.removeAll(removed);
+    removed.forEach(layer -> loader.remove(layer.id()));
+    return !removed.isEmpty();
   }
 
   private void onSpectrumClicked(@NotNull final IntensityMapSpectrumPane.Click click) {
@@ -428,10 +435,7 @@ class IntensityMapTab extends MZmineTab {
    * Removes overlays. Files without remaining overlays show the complete m/z range again.
    */
   private void removeLayers(@NotNull final List<IntensityMapLayer> removed) {
-    layers.removeAll(removed);
-    for (final IntensityMapLayer layer : removed) {
-      loader.remove(layer.id());
-    }
+    removeLayersWhere(removed::contains);
     for (final RawDataFile file : files) {
       if (layers.stream().noneMatch(layer -> layer.file().equals(file))) {
         addDefaultLayer(file);
@@ -635,11 +639,12 @@ class IntensityMapTab extends MZmineTab {
   }
 
   private void publish() {
+    updateLabels();
     final List<IntensityMapSeries> series = new ArrayList<>();
     for (final IntensityMapLayer layer : layers) {
       final IntensityMapGrid data = loader.data(layer.id());
       if (data != null) {
-        series.add(layer.toSeries(data));
+        series.add(layer.toSeries(data, titles.get(layer.id())));
       }
     }
     try {
@@ -648,7 +653,6 @@ class IntensityMapTab extends MZmineTab {
       plot.setStatus(ex.getMessage());
     }
     updateDetail(series);
-    updateLabels();
     if (series.isEmpty() && !layers.isEmpty() && loader.hasEmptyLayers()) {
       plot.setStatus("No data in the selected m/z ranges");
     }
@@ -664,15 +668,22 @@ class IntensityMapTab extends MZmineTab {
   }
 
   /**
-   * @param name feature list of the peak labels, null for none
+   * @param name feature list of the labels, null for none
    */
   private void setLabelList(@Nullable final String name) {
     labelList = name == null ? null : ProjectService.getProject().getCurrentFeatureLists().stream()
         .filter(list -> list.getName().equals(name)).findFirst().orElse(null);
-    updateLabels();
+    if (updateLabels()) {
+      publish();
+    }
   }
 
-  private void updateLabels() {
+  /**
+   * Builds the peak labels, or for images the overlay titles, of the chosen feature list.
+   *
+   * @return true if the overlay titles changed, so that the overlays are shown again
+   */
+  private boolean updateLabels() {
     final FeatureList list = labelList;
     final Range<Float> times = frames.retentionTimes();
     final List<Object> state = new ArrayList<>();
@@ -680,12 +691,24 @@ class IntensityMapTab extends MZmineTab {
     state.add(List.copyOf(layers));
     state.add(times);
     if (state.equals(labelState)) {
-      return;
+      return false;
     }
     labelState = state;
-    plot.setLabels(list == null ? List.of()
-        : IntensityMapLabels.of(list, List.copyOf(layers), mode, times,
-            ConfigService.getGuiFormats()));
+    return switch (mode) {
+      case IMAGING -> {
+        final Map<String, String> next =
+            list == null ? Map.of() : IntensityMapLabels.titles(list, List.copyOf(layers));
+        final boolean changed = !next.equals(titles);
+        titles = next;
+        yield changed;
+      }
+      case LC_MS, AUTOMATIC, MOBILITY_FRAME -> {
+        plot.setLabels(list == null ? List.of()
+            : IntensityMapLabels.of(list, List.copyOf(layers), mode, times,
+                ConfigService.getGuiFormats()));
+        yield false;
+      }
+    };
   }
 
   private void close() {

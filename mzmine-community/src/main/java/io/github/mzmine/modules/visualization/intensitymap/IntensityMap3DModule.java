@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -43,6 +44,8 @@ import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapTopV
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapLayer;
 import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapSampler;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
@@ -139,10 +142,80 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
               + groups + "\nSelect LC-MS, mobility frames, or imaging files together.");
       return ExitCode.ERROR;
     }
-    MZmineCore.getDesktop().addTab(
-        new IntensityMapTab(files, parameters.cloneParameterSet(), mzRanges, projection,
-            labelList));
+    MZmineCore.getDesktop()
+        .addTab(new IntensityMapTab(files, parameters, mzRanges, projection, labelList));
     return ExitCode.OK;
+  }
+
+  /**
+   * Opens the visualizer for the raw data files selected in the main window. The run gets the files
+   * selected at this moment, not those of an earlier evaluation of the stored selection; the stored
+   * parameters keep "As selected in main window" for later runs.
+   *
+   * @param module the 2D or the 3D module
+   * @param dialog show the module dialog first
+   */
+  public static void showSelectedFiles(@NotNull final Class<? extends MZmineRunnableModule> module,
+      final boolean dialog) {
+    final RawDataFile[] selected = MZmineGUI.getSelectedRawDataFiles().toArray(new RawDataFile[0]);
+    logger.fine(() -> "Visualizer for the selected files: " + Arrays.stream(selected)
+        .map(RawDataFile::getName).collect(Collectors.joining(", ")));
+    final ParameterSet parameters = ConfigService.getConfiguration().getModuleParameters(module);
+    // a new selection, because the stored one keeps the files of its last evaluation
+    parameters.getParameter(IntensityMapParameters.dataFile)
+        .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.GUI_SELECTED_FILES));
+    if (dialog && parameters.showSetupDialog(true) != ExitCode.OK) {
+      return;
+    }
+    final ParameterSet run = parameters.cloneParameterSet();
+    final RawDataFilesParameter files = run.getParameter(IntensityMapParameters.dataFile);
+    // decision: files chosen differently in the dialog win over the selection in the main window
+    if (files.getValue().getSelectionType() == RawDataFilesSelectionType.GUI_SELECTED_FILES) {
+      files.setValue(new RawDataFilesSelection(selected));
+    }
+    MZmineCore.runMZmineModule(module, run);
+  }
+
+  /**
+   * Opens the images of a feature and of its co-located features side by side in the 2D visualizer,
+   * without the module dialog. The spectrum marks the m/z ranges of all images.
+   *
+   * @param selected  feature of an imaging file
+   * @param colocated co-located features of the same file, most similar first; the images keep this
+   *                  order
+   */
+  public static void showColocatedImages(@NotNull final Feature selected,
+      @NotNull final List<? extends Feature> colocated) {
+    final List<Range<Double>> mzRanges = new ArrayList<>();
+    Stream.concat(Stream.of(selected), colocated.stream()).map(Feature::getRawDataPointsMZRange)
+        .filter(Objects::nonNull).forEach(range -> addMerged(mzRanges, range));
+    final ParameterSet parameters = ConfigService.getConfiguration()
+        .getModuleParameters(IntensityMap2DModule.class).cloneParameterSet();
+    parameters.getParameter(IntensityMapParameters.dataFile)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            new RawDataFile[]{selected.getRawDataFile()});
+    parameters.getParameter(IntensityMapParameters.mode).setValue(IntensityMapDimensions.AUTOMATIC);
+    parameters.getParameter(IntensityMapParameters.scanSelection).setValue(
+        new ScanSelection(1, null,
+            Objects.requireNonNullElse(selected.getRepresentativePolarity(), PolarityType.ANY)));
+    mzRanges.stream().reduce(Range::span)
+        .ifPresent(span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
+    open(parameters, mzRanges, IntensityMapProjection.TOP_VIEW, selected.getFeatureList());
+  }
+
+  /**
+   * Adds a range, or merges it into an overlapping one at its position, so that the order of the
+   * first appearance is kept.
+   */
+  static void addMerged(@NotNull final List<Range<Double>> ranges,
+      @NotNull final Range<Double> range) {
+    for (int i = 0; i < ranges.size(); i++) {
+      if (ranges.get(i).isConnected(range)) {
+        ranges.set(i, ranges.get(i).span(range));
+        return;
+      }
+    }
+    ranges.add(range);
   }
 
   /**
@@ -160,7 +233,7 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
       return;
     }
     final FeatureList featureList = features.getFirst().getFeatureList();
-    // decision (user request): all samples of the feature list, several overlays show side by side
+    // decision: include all samples of the feature list, their overlays show side by side
     final RawDataFile[] files = Stream.concat(featureList.getRawDataFiles().stream(),
         features.stream().map(Feature::getRawDataFile)).distinct().toArray(RawDataFile[]::new);
     // the same rows in the other samples, e.g. with slightly shifted retention times
@@ -178,8 +251,8 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
         .map(Feature::getRepresentativePolarity).distinct().toList();
     // decision: features of different polarities show all scans
     final PolarityType polarity = polarities.size() == 1 ? polarities.getFirst() : PolarityType.ANY;
-    // decision: a copy, feature ranges must not become the defaults of the module dialog
-    // each view keeps its own module settings
+    // decision: a copy of the settings of the module of this view, so feature ranges do not
+    // become the defaults of the module dialog
     final Class<? extends MZmineRunnableModule> module = switch (projection) {
       case IntensityMapTopView _ -> IntensityMap2DModule.class;
       case IntensityMapPerspective _ -> IntensityMap3DModule.class;
@@ -198,7 +271,7 @@ public class IntensityMap3DModule implements MZmineRunnableModule {
     merged.stream().reduce(Range::span)
         .ifPresent(span -> parameters.getParameter(IntensityMapParameters.mzRange).setValue(span));
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
-      // decision (user request): labels of the feature list the features were opened from
+      // decision: label peaks with the feature list the features were opened from
       open(parameters, merged, projection, featureList);
     }
   }

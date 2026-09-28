@@ -56,6 +56,7 @@ import org.jetbrains.annotations.NotNull;
 final class IntensityMapSamplingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(IntensityMapSamplingTask.class.getName());
+  static final String ADJUSTING = "Adjusting detail…";
   private final Map<RawDataFile, List<IntensityMapLayer>> missing;
   private final Map<String, IntensityMapGrid> shrink;
   // bases to merge window data into, empty for base reads
@@ -69,6 +70,7 @@ final class IntensityMapSamplingTask extends AbstractTask {
   private final IntensityMapFrameCache frames;
   private final String message;
   private final IntensityMapSamplingListener listener;
+  private final Set<String> layerIds = new HashSet<>();
   private final Map<RawDataFile, Double> fileProgress = new ConcurrentHashMap<>();
   private volatile double progress;
   private volatile double reported;
@@ -76,12 +78,12 @@ final class IntensityMapSamplingTask extends AbstractTask {
   /**
    * @param missing  layers to read, by file
    * @param shrink   sampled layers that only shrink to the detail, without reading
-   * @param bases    bases of the window, empty for base reads
+   * @param bases    data to merge the windows into by layer id, empty for base reads
    * @param detail   detail of base reads and of shrinking
    * @param requests window of every read layer by id, empty for base reads
    * @param message  progress message
    */
-  IntensityMapSamplingTask(@NotNull final Map<RawDataFile, List<IntensityMapLayer>> missing,
+  private IntensityMapSamplingTask(@NotNull final Map<RawDataFile, List<IntensityMapLayer>> missing,
       @NotNull final Map<String, IntensityMapGrid> shrink,
       @NotNull final Map<String, IntensityMapGrid> bases, @NotNull final ParameterSet settings,
       @NotNull final IntensityMapDetail detail,
@@ -99,6 +101,41 @@ final class IntensityMapSamplingTask extends AbstractTask {
     this.frames = frames;
     this.message = message;
     this.listener = listener;
+    missing.values().forEach(fileLayers -> fileLayers.forEach(layer -> layerIds.add(layer.id())));
+  }
+
+  /**
+   * Reads the complete range of layers.
+   *
+   * @param read   layers to read, by file
+   * @param shrink sampled layers that only shrink to the detail, without reading
+   */
+  static @NotNull IntensityMapSamplingTask base(
+      @NotNull final Map<RawDataFile, List<IntensityMapLayer>> read,
+      @NotNull final Map<String, IntensityMapGrid> shrink, @NotNull final ParameterSet settings,
+      @NotNull final IntensityMapDetail detail, @NotNull final ImageNormalization normalization,
+      @NotNull final IntensityMapFrameCache frames, @NotNull final String message,
+      @NotNull final IntensityMapSamplingListener listener) {
+    return new IntensityMapSamplingTask(read, shrink, Map.of(), settings, detail, Map.of(),
+        normalization, frames, message, listener);
+  }
+
+  /**
+   * Reads a window of every layer and merges it into the data of the layer.
+   *
+   * @param read     layers to read, by file
+   * @param bases    data to merge the window of each layer into
+   * @param requests window of each layer
+   */
+  static @NotNull IntensityMapSamplingTask windows(
+      @NotNull final Map<RawDataFile, List<IntensityMapLayer>> read,
+      @NotNull final Map<String, IntensityMapGrid> bases,
+      @NotNull final Map<String, IntensityMapWindowRequest> requests,
+      @NotNull final ParameterSet settings, @NotNull final IntensityMapDetail detail,
+      @NotNull final ImageNormalization normalization, @NotNull final IntensityMapFrameCache frames,
+      @NotNull final IntensityMapSamplingListener listener) {
+    return new IntensityMapSamplingTask(read, Map.of(), bases, settings, detail, requests,
+        normalization, frames, ADJUSTING, listener);
   }
 
   /**
@@ -128,9 +165,7 @@ final class IntensityMapSamplingTask extends AbstractTask {
    * @return ids of the layers read by this task
    */
   @NotNull Set<String> layerIds() {
-    final Set<String> ids = new HashSet<>();
-    missing.values().forEach(fileLayers -> fileLayers.forEach(layer -> ids.add(layer.id())));
-    return ids;
+    return layerIds;
   }
 
   @Override
@@ -243,7 +278,7 @@ final class IntensityMapSamplingTask extends AbstractTask {
       } else {
         final IntensityMapGrid base = bases.get(id);
         if (base != null) {
-          // no signal in the window keeps the complete base, the window shows it
+          // a window without signal leaves the base unchanged
           results.put(id, data[i] == null ? base : IntensityMapGrid.merge(base, data[i]));
         }
       }

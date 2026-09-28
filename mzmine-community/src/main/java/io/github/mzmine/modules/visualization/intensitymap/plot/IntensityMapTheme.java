@@ -25,17 +25,44 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * What the plot shows of its data.
- *
- * @param overlays visible part of each overlay in view by series id, in drawing order. Side by
- *                 side, only overlays whose tile is on screen are included, and each tile shows a
- *                 different part of the data, e.g. the right edge of one sample and the left edge
- *                 of the next.
+ * Text and bubble styles of the plot for light and dark backgrounds.
  */
-public record IntensityMapVisibleArea(@NotNull Map<String, IntensityMapOverlayView> overlays) {
+final class IntensityMapTheme {
 
+  private IntensityMapTheme() {
+  }
+
+  static @NotNull String textColor(final boolean dark) {
+    return dark ? "#e2e8f0" : "#1e293b";
+  }
+
+  static @NotNull String text(final boolean dark) {
+    return "-fx-text-fill: " + textColor(dark) + ";";
+  }
+
+  /**
+   * @return style of secondary text, e.g. a placeholder
+   */
+  static @NotNull String mutedText(final boolean dark) {
+    return dark ? "-fx-text-fill: #94a3b8;" : "-fx-text-fill: #64748b;";
+  }
+
+  /**
+   * @return style of a floating box, e.g. the hover readout or the loading indicator
+   */
+  static @NotNull String bubble(final boolean dark) {
+    return (dark ? "-fx-background-color: rgba(30,35,42,0.94); -fx-border-color: #475569;"
+        : "-fx-background-color: rgba(255,255,255,0.94); -fx-border-color: #cbd5e1;") + text(dark)
+        + "-fx-background-radius: 6; -fx-border-radius: 6; -fx-padding: 6 9 6 9;";
+  }
+
+  /**
+   * @return translucent background of text on top of the data
+   */
+  static @NotNull String labelBackground(final boolean dark) {
+    return dark ? "rgba(30,35,42,0.85)" : "rgba(255,255,255,0.85)";
+  }
 }

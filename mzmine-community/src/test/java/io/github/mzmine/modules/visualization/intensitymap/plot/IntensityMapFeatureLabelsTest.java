@@ -65,7 +65,7 @@ class IntensityMapFeatureLabelsTest {
 
   @Test
   void labelsStayInsideTheArea() {
-    // above is outside, so only below right remains
+    // the space above lies outside the area, so the label moves below right
     final Bounds bounds = IntensityMapFeatureLabels.free(new Point2D(100, 5), 50, 14, List.of(),
         AREA);
     assertNotNull(bounds);
@@ -94,7 +94,7 @@ class IntensityMapFeatureLabelsTest {
   private static IntensityMapLabel label(final String name, final String text,
       final String description) {
     return new IntensityMapLabel("s", 1, 100, Range.singleton(1d), Range.singleton(100d), 10, name,
-        text, description, name != null, false, null, List.of());
+        text, description, name != null, false, null, List.of(), List.of());
   }
 
   @Test

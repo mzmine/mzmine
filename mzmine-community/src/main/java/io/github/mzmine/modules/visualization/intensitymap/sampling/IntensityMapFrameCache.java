@@ -40,9 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Selects the mobility frame shown in 3D: the most intense frame, the frame closest to a retention
- * time, or the average of all frames in a retention time range. Selections derived from one
- * instance share its cache of averaged frames, which lives as long as its visualizer.
+ * Selects the mobility frame shown in the visualizer: the most intense frame, the frame closest to
+ * a retention time, or the average of all frames in a retention time range. Selections derived from
+ * one instance share its cache of averaged frames, which lives as long as its visualizer.
  */
 public final class IntensityMapFrameCache {
 
@@ -116,7 +116,7 @@ public final class IntensityMapFrameCache {
   /**
    * @param retentionTime null selects the most intense frame
    */
-  public static @NotNull Frame closest(final Scan @NotNull [] scans,
+  private static @NotNull Frame closest(final Scan @NotNull [] scans,
       @Nullable final Float retentionTime) {
     Frame best = null;
     double bestScore = Double.POSITIVE_INFINITY;
@@ -148,9 +148,9 @@ public final class IntensityMapFrameCache {
     }
     final Frame frame;
     try {
-      // same merging as the frame range selection of the ion mobility raw data overview, with
-      // averaged instead of maximum intensities (user request). Signals must occur in a few
-      // mobility scans, which removes single noise points.
+      // same merging as the frame range selection of the ion mobility raw data overview, but with
+      // averaged instead of maximum intensities. Signals must occur in a few mobility scans, which
+      // removes single noise points.
       frame = SpectraMerging.getMergedFrame(null, SpectraMerging.defaultMs1MergeTol, key, 1,
           IntensityMergingType.AVERAGE, null, null, Math.min(key.size() - 1, 5),
           new AtomicDouble());

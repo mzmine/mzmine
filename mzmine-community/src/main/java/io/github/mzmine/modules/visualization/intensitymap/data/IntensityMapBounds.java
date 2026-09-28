@@ -48,6 +48,18 @@ public record IntensityMapBounds(double xMin, double xMax, double yMin, double y
         data.stream().mapToDouble(IntensityMapGrid::maximum).max().orElseThrow());
   }
 
+  public boolean containsX(final double x) {
+    return x >= xMin && x <= xMax;
+  }
+
+  public boolean containsY(final double y) {
+    return y >= yMin && y <= yMax;
+  }
+
+  public boolean contains(final double x, final double y) {
+    return containsX(x) && containsY(y);
+  }
+
   public double normalizeX(final double value) {
     return xMin == xMax ? 0.5 : (value - xMin) / (xMax - xMin);
   }

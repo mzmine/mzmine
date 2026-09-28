@@ -99,7 +99,7 @@ final class IntensityMapOverlayPanel extends VBox {
     setPrefWidth(260);
     setMinWidth(200);
 
-    // decision (user request): the rare overlay actions are icon buttons in the header
+    // rarely used overlay actions are icon buttons in the header
     addFiles = FxButtons.createButton(null, () -> "bi-file-earmark-plus",
         "Add the raw files selected in the project", () -> {
           if (onAddFiles != null) {
@@ -251,7 +251,7 @@ final class IntensityMapOverlayPanel extends VBox {
     visible.selectedProperty().bindBidirectional(state.visibleProperty());
     visible.setTooltip(new Tooltip("Show or hide this overlay"));
 
-    // decision (user request): name and extraction on separate lines and wrapped, not truncated
+    // name and extraction on separate lines, wrapped instead of truncated
     final Label name = FxLabels.newLabel(value.name());
     name.setWrapText(true);
     name.setTextAlignment(TextAlignment.LEFT);
@@ -263,7 +263,7 @@ final class IntensityMapOverlayPanel extends VBox {
       description.setOpacity(0.75);
       text.getChildren().add(description);
     }
-    // decision (user request): every overlay has its own color range, like ion images in SCiLS
+    // decision: every overlay has its own color range, like ion images in imaging software
     final IntensityMapColorRange range = new IntensityMapColorRange(state,
         intensity -> intensityFormat.apply(intensity));
     range.visibleProperty().bind(colorRangeEnabled.and(state.colorBarProperty().isNotNull()));

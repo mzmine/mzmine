@@ -25,13 +25,10 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
-import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.DEPTH;
-import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.WIDTH;
 
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPicker;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
@@ -41,12 +38,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The fixed plot area of the 2D view, like a zoomed chart (user decision): the fitted view places
- * the axes, zooming and panning only change their tick values, and data outside the area are
- * clipped instead of covering the tick labels. The area is stored as margins to the viewport edges,
- * so it follows resizing.
+ * The fixed plot area of the 2D view, as in a zoomed chart: the fitted view places the axes,
+ * zooming and panning only change their tick values, and data outside the area are clipped instead
+ * of covering the tick labels. The area is stored as margins to the viewport edges, so it follows
+ * resizing.
  */
 final class IntensityMapPlotArea {
+
+  // pixels a tile may miss at the plot area border and still cover it
+  private static final double COVER_TOLERANCE = 1;
 
   private final IntensityMapCamera camera;
   private final Group model;
@@ -61,23 +61,15 @@ final class IntensityMapPlotArea {
   }
 
   /**
-   * Stores the margins of the fitted floor of the tile to the viewport edges.
+   * Stores the margins of the fitted floor of the tile to the viewport edges and updates the clip.
    *
    * @param tile the tile with a fixed plot area, null for none
    */
   void update(@Nullable final IntensityMapTile tile) {
     insets = null;
-    if (tile != null) {
-      final double[] screen = IntensityMapExtent.empty();
-      for (final double x : new double[]{-WIDTH / 2, WIDTH / 2}) {
-        for (final double z : new double[]{-DEPTH / 2, DEPTH / 2}) {
-          final Point3D sceneCorner = model.localToScene(tile.toModel(new Point3D(x, 0, z)), true);
-          if (sceneCorner != null) {
-            final Point2D local = scene.sceneToLocal(sceneCorner.getX(), sceneCorner.getY());
-            IntensityMapExtent.include(screen, local.getX(), local.getY());
-          }
-        }
-      }
+    final double[] screen = tile == null ? null : IntensityMapExtent.screen(model,
+        IntensityMapExtent.corners(tile, IntensityMapExtent.full()), scene);
+    if (screen != null) {
       if (screen[1] > screen[0] && screen[3] > screen[2]) {
         insets = new Insets(screen[2], scene.getWidth() - screen[1], scene.getHeight() - screen[3],
             screen[0]);
@@ -116,14 +108,33 @@ final class IntensityMapPlotArea {
    * @return local floor {x0, x1, z0, z1} shown in the plot area, null without a plot area
    */
   double @Nullable [] floor(@Nullable final IntensityMapTile tile) {
+    return tile == null ? null : floorAtCorners(tile, true, 0);
+  }
+
+  /**
+   * @return true if the floor of the tile reaches all corners of its plot area
+   */
+  boolean coveredBy(@NotNull final IntensityMapTile tile) {
+    // a tile fitted to the plot area ends exactly at its corners
+    return floorAtCorners(tile, false, COVER_TOLERANCE) != null;
+  }
+
+  /**
+   * @param clamp clamps points beyond the floor edges to the floor, otherwise they do not count
+   * @param inset pixels the corners are moved into the plot area
+   * @return floor extent {x0, x1, z0, z1} under the corners of the plot area, null if a corner
+   * misses the floor or there is no plot area
+   */
+  private double @Nullable [] floorAtCorners(@NotNull final IntensityMapTile tile,
+      final boolean clamp, final double inset) {
     final Rectangle2D area = area(tile);
-    if (area == null || tile == null) {
+    if (area == null) {
       return null;
     }
     final double[] extent = IntensityMapExtent.empty();
-    for (final double x : new double[]{area.getMinX(), area.getMaxX()}) {
-      for (final double y : new double[]{area.getMinY(), area.getMaxY()}) {
-        final Point3D hit = IntensityMapPicker.floor(tile.toLocal(camera.ray(x, y)), true);
+    for (final double x : new double[]{area.getMinX() + inset, area.getMaxX() - inset}) {
+      for (final double y : new double[]{area.getMinY() + inset, area.getMaxY() - inset}) {
+        final Point3D hit = IntensityMapPicker.floor(tile.toLocal(camera.ray(x, y)), clamp);
         if (hit == null) {
           return null;
         }
