@@ -181,7 +181,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     }
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
-    newMZmineFile.setAcquisitionMetadata(metaDataTable.acquisitionMetadata(frameTable.getScanModeColumn()));
+    newMZmineFile.setAcquisitionMetadata(
+        metaDataTable.acquisitionMetadata(frameTable.getScanModeColumn()));
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;

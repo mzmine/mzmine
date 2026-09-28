@@ -367,10 +367,13 @@ public interface RawDataFile extends Comparable<RawDataFile> {
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
 
-  /** Instrument/acquisition declarations retained by the importer; absent means unknown. */
-  default @NotNull AcquisitionMetadata getAcquisitionMetadata() { return AcquisitionMetadata.EMPTY; }
+  /** Instrument and acquisition declarations retained during import; absent means unknown. */
+  default @NotNull AcquisitionMetadata getAcquisitionMetadata() {
+    return AcquisitionMetadata.EMPTY;
+  }
 
-  default void setAcquisitionMetadata(final @NotNull AcquisitionMetadata metadata) {}
+  default void setAcquisitionMetadata(final @NotNull AcquisitionMetadata metadata) {
+  }
 
   @NotNull List<OtherDataFile> getOtherDataFiles();
 }

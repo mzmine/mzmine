@@ -252,7 +252,6 @@ public class MetadataTable {
         setValue(dateCol, newFile, newFile.getStartTimeStamp());
 
         assignSampleType(newFile);
-        assignAcquisitionMetadata(newFile);
       });
     } catch (Exception ignored) {
       logger.warning("Cannot set date " + newFile.getStartTimeStamp());
@@ -264,43 +263,6 @@ public class MetadataTable {
    * group name afterwards - from then on the column value is authoritative, see
    * {@link SampleTypeFilter}.
    */
-  private void assignAcquisitionMetadata(final @NotNull RawDataFile file) {
-    file.getAcquisitionMetadata().localFields().forEach((name, value) -> putDetectedText(
-        "Imported: " + name, "Declared source metadata; may contain sample/study information", file, value));
-    file.getAcquisitionMetadata().terms().stream().collect(Collectors.groupingBy(
-        io.github.mzmine.datamodel.AcquisitionMetadata.Term::field)).forEach((field, terms) -> {
-      final String name = "Acquisition: " + field.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
-      putDetectedText(name, "Declared in imported file header; normalized PSI-MS controlled terms", file,
-          terms.stream().map(term -> term.label() + " [" + term.accession() + "]")
-              .distinct().sorted().collect(Collectors.joining("; ")));
-    });
-    putDetectedText("Measured: MS levels", "Derived from imported scans", file,
-        Arrays.toString(file.getMSLevels()));
-    putDetectedText("Measured: polarity", "Derived from imported scans", file,
-        String.valueOf(file.getDataPolarity()));
-    putDetectedText("Measured: spectrum type", "Derived from imported scans", file,
-        String.valueOf(file.getSpectraType()));
-    putDetectedText("Measured: scan count", "Number of imported scans", file,
-        Integer.toString(file.getNumOfScans()));
-    if (file.getNumOfScans() > 0) {
-      putDetectedText("Measured: RT range (min)", "Derived from imported scans", file,
-          file.getDataRTRange().toString());
-      putDetectedText("Measured: m/z range", "Derived from imported scans", file,
-          file.getDataMZRange().toString());
-    }
-  }
-
-  private void putDetectedText(final @NotNull String name, final @NotNull String description,
-      final @NotNull RawDataFile file, final @NotNull String value) {
-    final MetadataColumn<?> existing = getColumnByName(name);
-    final StringMetadataColumn column = existing == null ? new StringMetadataColumn(name, description)
-        : existing instanceof StringMetadataColumn text ? text : null;
-    // Preserve imported/user metadata if a column already contains a value for this file.
-    if (column != null && (getColumnData(column) == null || getColumnData(column).get(file) == null)) {
-      setValue(column, file, value);
-    }
-  }
-
   private void assignSampleType(@NotNull RawDataFile newFile) {
     final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());

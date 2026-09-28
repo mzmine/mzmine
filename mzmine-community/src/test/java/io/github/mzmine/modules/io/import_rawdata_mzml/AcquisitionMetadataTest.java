@@ -52,7 +52,7 @@ class AcquisitionMetadataTest {
     assertTrue(metadata.terms().isEmpty());
   }
 
-  @Test void nativeMetadataPreservesExistingValuesAndPersistsPrivateFieldsLocally() {
+  @Test void acquisitionFactsStayOutOfStudyMetadataAndLegacyUserValuesArePreserved() {
     final RawDataFile file = mock(RawDataFile.class);
     when(file.getName()).thenReturn("private_QC.mzML");
     when(file.getAcquisitionMetadata()).thenReturn(new AcquisitionMetadata(
@@ -65,8 +65,9 @@ class AcquisitionMetadataTest {
     table.setValue(existing, file, "User reviewed instrument");
     table.addFile(file);
     assertEquals("User reviewed instrument", table.getColumnData(existing).get(file));
-    assertEquals("private study", table.getColumnData(table.getColumnByName("Imported: SampleName")).get(file));
-    assertEquals("[1, 2]", table.getColumnData(table.getColumnByName("Measured: MS levels")).get(file));
+    assertNull(table.getColumnByName("Imported: SampleName"));
+    assertNull(table.getColumnByName("Measured: MS levels"));
+    assertEquals("private study", file.getAcquisitionMetadata().localFields().get("SampleName"));
   }
 
   @Test void brukerMissingKeysStayUnknownAndModesUseExistingDeclarations() {

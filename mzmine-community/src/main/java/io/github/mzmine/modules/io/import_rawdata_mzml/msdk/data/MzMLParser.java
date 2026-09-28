@@ -476,8 +476,11 @@ public class MzMLParser {
    */
   public void processClosingTag(XMLStreamReader xmlStreamReader, String closingTagName) {
     acquisitionMetadata.close(closingTagName);
-    if (closingTagName.equals("run")) newRawFile.setAcquisitionMetadata(acquisitionMetadata.result());
     tracker.exit(closingTagName);
+
+    if (closingTagName.equals("mzML")) {
+      newRawFile.setAcquisitionMetadata(acquisitionMetadata.result());
+    }
 
     if (closingTagName.equals(MzMLTags.TAG_SPECTRUM)) {
       this.parsedScans++;
