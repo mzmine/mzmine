@@ -637,7 +637,26 @@ public final class MZmineCore {
     Locale.setDefault(new Locale("en", "US"));
     // initialize by default with all in memory
     MemoryMapStorage.setStoreAllInRam(true);
+    relaxXmlEntityLimits();
 
     logger.fine("Initializing core classes..");
+  }
+
+  /**
+   * JDK 24+ ships strict XML limits (100,000 in conf/jaxp.properties). The parser counts every
+   * escaped character, e.g. &quot; in the title of every spectrum, towards them, so large mzML and
+   * imzML files fail to import. System properties override the configuration file; they are read
+   * whenever a parser is created, also by libraries like jimzmlparser. The limit on expansions of
+   * declared entities (jdk.xml.entityExpansionLimit) keeps protecting against entity bombs.
+   */
+  private static void relaxXmlEntityLimits() {
+    // 0 means no limit
+    for (final String limit : new String[]{"jdk.xml.maxGeneralEntitySizeLimit",
+        "jdk.xml.totalEntitySizeLimit", "jdk.xml.entityReplacementLimit"}) {
+      // decision: a limit set explicitly, e.g. by a -D JVM option, is kept
+      if (System.getProperty(limit) == null) {
+        System.setProperty(limit, "0");
+      }
+    }
   }
 }
