@@ -105,10 +105,25 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
 - One data point per channel and scan: two member traces keep the more intense data point, the
   other one becomes loose; member data points win over loose ones, among loose data points the
   closest to the center wins.
-- Holes of up to 3 scans between two data points of at least the minimum height are filled with
-  data points that no channel used, within 2x the tolerance around the interpolated m/z, if the
-  intensity is within 5x of the log-interpolated intensity. An intense signal does not vanish for a
-  scan, its centroid is shifted, e.g., by a coalescing neighbor or a split peak. The unused data
+- Holes of up to 3 scans between two data points of at least the min group intensity are filled
+  with data points that no channel used, within 2x the tolerance around the interpolated m/z, if
+  the intensity is within 5x of the log-interpolated intensity. A signal does not vanish for a
+  scan, its centroid is shifted, e.g., by a coalescing neighbor or a split peak. The min group
+  intensity is what the user counts as signal, the consecutive segments consist of it
+  (`FastChromatogramBuilderOptions.holeFillFlank`). Replaced: flanks of at least the min height.
+  Most intense holes of the final result whose data point was unused were next to a flank between
+  the min group intensity and the min height (35 of 136 on a QE sensitive file), and the resolver
+  ended the feature there. With the min group intensity (2026-09-28): truncated features on QE
+  sensitive 271 → 188, QE workshop 59 → 40, QE media workshop 36 → 20, split peaks 17 → 16, ADAP
+  features found in fast on LC-QTOF MSe 98.62% → 99.31%, synthetic chromatogram holes −30 to
+  −60% (high m/z error 1729 → 960) with replaced data points +1%, Auto estimates unchanged or at
+  most 0.2 ppm lower. Cost: features with foreign m/z data points on QE sensitive 689 → 769, p95
+  of the m/z spread +0.06 ppm. Data sets with min group intensity = min height (GC-EI-QTOF,
+  ZenoTOF) are unchanged. Rejected: no min flank intensity. It also fills the edges of weak
+  features at the noise level, on GC-EI-QTOF without noise filter truncated features 726 → 139
+  but features with foreign m/z data points 296 → 688 and fast features found in ADAP −0.8
+  percentage points; at these intensities the fill rule cannot tell the ion from noise. The
+  coalesced fill keeps the min height, it is for intense apex centroids. The unused data
   points of the last scans are kept in a ring buffer, so this needs no extra pass. Only unused data
   points within 5x the tolerance of a channel center are kept (flanks at most the complementary
   tolerance plus the tolerance from the center, plus the hole fill tolerance): without noise filter
@@ -147,7 +162,8 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
 - Channels that fail the filters would take their member data points with them, e.g., the apex of
   an intense ion taken by the trace of a co-eluting side signal in its apex scan. Their remaining
   data points fill free scans of passing channels with the rules of pass 2 (closest channel within
-  the tolerance, then holes between intense data points within 2x the tolerance), the most intense
+  the tolerance, then holes between data points of at least the min group intensity within 2x the
+  tolerance), the most intense
   first. On a QE QC file (workshop settings, Auto 9.5 ppm): 28 merges, 348 recovered data points,
   ADAP signals missing in the fast chromatograms 56 → 42 groups in the comparison tool. Failed
   channels without a passing channel within the hole fill window are skipped (most noise channels
@@ -217,18 +233,51 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   `ChromatogramBenchmarkDatasets` with the settings of the batch wizard next to the data (noise
   level, builder parameters, crop and polarity of the builder scans, preset tolerance), each once
   more without noise filter in the mass detection (factor 1 of the lowest signal, absolute level
-    0) and the same builder settings. A data set with missing files or OneDrive placeholders is
-       skipped with the reason, reading a placeholder downloads it. The ZenoTOF data set is the NIST
-       SRM
-       1950 plasma file `1_Srm1950_DDA/Pos/20230407_plasma_6_POS.mzML` (the feces file was a
-       placeholder). `ChromatogramBuilderBenchmark` also counts dips of both builders: up to 50
-       scans
-       without data point, or with data points below the weaker flank / 5, between two data points
-       of
-       at least 10x the min height; fillable if at least half of the dip scans have a mass list data
-       point within 4x the tolerance and 5x of the interpolated intensity.
-       `ChromatogramBuilderProfile`
-       times the builder or the file task on one file and records a JFR profile.
+  0) and the same builder settings. A data set with missing files or OneDrive placeholders is
+  skipped with the reason, reading a placeholder downloads it. The ZenoTOF data set is the NIST
+  SRM 1950 plasma file `1_Srm1950_DDA/Pos/20230407_plasma_6_POS.mzML` (the feces file was a
+  placeholder). `ChromatogramBuilderBenchmark` also counts dips of both builders: up to 50 scans
+  without data point, or with data points below the weaker flank / 5, between two data points of
+  at least 10x the min height; fillable if at least half of the dip scans have a mass list data
+  point within 4x the tolerance and 5x of the interpolated intensity.
+- The benchmark judges the final result, the features after the local minimum resolver, not only
+  the chromatograms. On real data (`FeatureHoleMetrics`), a dip of a chromatogram (the rule above,
+  but between any two data points) counts only where a resolved feature of the same builder is:
+  inside a feature (a hole), between two features (a split peak) or at the end of one
+  (truncated). Its weight is the log interpolated intensity relative to the feature height:
+  intense from 10%, apex from 50%. The height relative to the feature and not an absolute flank
+  intensity: a hole at half the height of a 5E4 peak changes the peak as much as one of a 5E7
+  peak, and the absolute 10x min height of the dips missed weak peaks. Fillable: in at least half
+  of the dip scans a mass list data point within 2x the tolerance (the complementary tolerance,
+  the widest join of one ion) and 5x of the interpolated intensity that is unused or in a
+  chromatogram without data point in both flank scans. Rejected: the 4x window of the dips and
+  any owner. Most intense "truncated" features were then co-eluting neighbor ions, e.g., 40-180
+  ppm away on GC-EI-QTOF (5 mDa at m/z 100 is 50 ppm), and truncated features on QE sensitive
+  dropped from 1625 to 1236 (ADAP) and 731 to 271 (fast) with the final rule. A chromatogram with
+  data points at the flanks co-exists with the dipping ion, the rule of complementary channels
+  that never share a scan. Unfillable intense holes are dropouts of the raw data and should be
+  equal for both builders. Lost signal: intensity of the fillable data points / intensity of all
+  features. Intense holes inside a feature are rare for both builders: the local minimum resolver
+  splits at the zero of a hole, holes show as split peaks and truncated features.
+  `FeatureMzMetrics` measures the m/z spread of the data points above 10% of the height, features
+  with such a data point beyond the tolerance (foreign) and the m/z difference of matched features
+  of both lists. The summary at the top of the report sums these per data set and builder.
+- Synthetic data with ground truth is also resolved (`ResolvedGroundTruthEvaluator`): each feature
+  belongs to the ion with the most intensity among its data points, per detectable ion found,
+  split, missed, false features, intensity recovery, intense holes within the main feature, m/z
+  error to the true m/z and contamination. Two cases model the real failure modes:
+  `saturated` (40 ions of 3-20x a detector limit of 2E6, intensity capped, m/z +25 ppm per factor
+  10 above it, up to 3.3x the tolerance) and `coalescing pairs` (300 partners 15-25 ppm away that
+  give one centroid at the weighted m/z while the weaker has at least 20% of the stronger; the
+  centroid belongs to both ions, `SyntheticLcmsData.sharedLabels`).
+- `ChromatogramBuilderProfile` profiles the builder alone, the fast file task and the ADAP task on
+  the first file of each data set and on synthetic data of growing size (`scaling`): time,
+  allocated bytes of the thread, retained heap of the result, the peak live heap sampled with full
+  GCs from a second thread (a lower bound), and for the builder the live heap at the pass
+  boundaries (full GCs when the builder resets or finishes the scans, no hook in the builder).
+  With `profile.jfr=true` it records the timed runs and `JfrProfileSummary` writes the time and
+  allocation by phase (callees of `FastChromatogramBuilder.build`, of the file task and of the
+  ADAP task), the hot methods and the allocation by class and by allocating mzmine method.
 - Remaining fillable dips of the fast builder are mostly two neighboring chromatograms 1-4
   tolerances apart that take turns in the same scans (two close ions whose centroids coalesce, or
   one ion that switches between two m/z states), e.g., 212.089/212.095 on QE data. ADAP splits them
@@ -291,3 +340,77 @@ other data sets by less than 0.05 percentage points, times are from before it.
   the preset 10 ppm: short peaks at the min consecutive scans whose m/z scatters by about 10 ppm
   between scans are in no fast chromatogram. Auto raises the tolerance on these data (13.9 instead
   of 10.8 ppm), which reaches 100% of the best tolerance of the sweep.
+
+## Final result baseline
+
+2026-09-26, fast with the hole fill flanks of the min group intensity from 2026-09-28, preset
+tolerance, resolved with the local minimum resolver, sums over the files of a data set, ADAP /
+fast (`ChromatogramBuilderBenchmark`, summary at the top of the report). Split
+peaks, truncated and affected features count intense fillable holes (see the decision above).
+Intense holes inside a feature are 0-2 for both builders on all data sets. Foreign: features with
+a data point of at least 10% of the height beyond the tolerance from the feature m/z.
+
+| data set                    | split peaks | truncated | affected features | lost signal     | foreign m/z |
+|-----------------------------|-------------|-----------|-------------------|-----------------|-------------|
+| Orbitrap QE, sensitive      | 77 / 16     | 1236 / 188 | 1274 / 213       | 0.262% / 0.046% | 93 / 769    |
+| Orbitrap QE, workshop       | 17 / 3      | 212 / 40  | 238 / 45          | 0.185% / 0.030% | 12 / 155    |
+| Orbitrap QE media, sensitive | 36 / 21    | 641 / 140 | 651 / 176         | 0.248% / 0.037% | 57 / 340    |
+| Orbitrap QE media, workshop | 6 / 3       | 126 / 20  | 130 / 26          | 0.192% / 0.017% | 15 / 87     |
+| GC-EI-QTOF                  | 6 / 4       | 244 / 130 | 234 / 129         | 0.005% / 0.002% | 36 / 157    |
+| ... no noise filter         | 24 / 17     | 970 / 726 | 894 / 689         | 0.007% / 0.002% | 181 / 296   |
+| LC-QTOF ZenoTOF DDA         | 2 / 2       | 4 / 0     | 8 / 4             | 0.025% / 0.004% | 0 / 7       |
+| LC-QTOF MSe                 | 0 / 0       | 7 / 5     | 7 / 5             | 0.007% / 0.004% | 2 / 5       |
+| DOM Orbitrap                | 0 / 0       | 3 / 0     | 3 / 0             | 0.010% / 0.000% | 0 / 0       |
+
+- GC-EI-TOF and GC-Orbitrap have no intense holes in either list. The unfiltered variants of the
+  QE data sets behave like the filtered ones.
+- The remaining holes of both builders are mostly the alternating pairs (e.g., 660.807/660.795 on
+  QE, 201.094/201.102 on GC-EI-QTOF), counted for both. The fast builder leaves a few unused data
+  points 1-2 tolerances away in holes longer than 3 scans (e.g., 447.2447 at -13 to -18 ppm on
+  QE sensitive), the log of the benchmark lists them. On GC-EI-QTOF most unused fills are at the
+  edges of weak features with flanks below the min group intensity (86 of 135), see the hole
+  fill decision.
+- More foreign data points and a wider m/z spread are the cost of the complementary joins, the
+  hole fills and the shared centroids: p95 of the spread 3.7 instead of 3.0 ppm on QE sensitive,
+  5.9 instead of 5.4 ppm on GC-EI-QTOF, medians within 0.1 ppm. Matched features have the same
+  m/z in both lists (median difference 0.00 ppm, p95 at most 0.4 ppm).
+- Synthetic ground truth: missed detectable ions ADAP / fast: saturated 80 / 6, isobaric pairs
+  475 / 11, high m/z error 144 / 9, standard 12 / 0. The fast builder has more intense holes and
+  contaminated features on isobaric pairs (449 / 135 vs 231 / 54): it finds the second ion of a
+  co-eluting pair within the tolerance, which ADAP merges and misses. The m/z error of the found
+  ions is the same (median 0.2-0.5 ppm), the p95 on saturated data 3.5 instead of 2.3 ppm (the
+  bridged plateau keeps its shifted m/z). Coalescing pairs: 351 / 316 missed, both builders put
+  the coalesced centroids mostly into one feature of the stronger ion, p95 m/z error 7.5 / 7.7
+  ppm.
+
+## Profile baseline
+
+2026-09-26, `ChromatogramBuilderProfile`, first file of each data set, 5 timed runs: median time,
+allocated MB and bytes per data point of one run, peak live heap (sampled). Builder alone / fast
+file task / ADAP task.
+
+| data set               | data points | time ms            | allocated MB      | bytes per data point | peak MB          |
+|------------------------|-------------|--------------------|-------------------|----------------------|------------------|
+| Orbitrap QE, sensitive | 0.84 M      | 103 / 207 / 1830   | 67 / 251 / 831    | 79 / 297 / 985       | 32 / 41 / 100    |
+| GC-EI-QTOF             | 2.0 M       | 163 / 246 / 3325   | 149 / 315 / 481   | 74 / 157 / 240       | 60 / 82 / 211    |
+| ... no noise filter    | 36 M        | 4943 / 5275 / 19249 | 1335 / 1996 / 3066 | 37 / 55 / 85       | 575 / 599 / 1700 |
+| ZenoTOF, no noise filter | 4.5 M     | 171 / 178 / 695    | 46 / 62 / 224     | 10 / 14 / 50         | 13 / 21 / 186    |
+| GC-Orbitrap            | 2.7 M       | 175 / 248 / 1845   | 89 / 174 / 305    | 33 / 63 / 111        | 47 / 53 / 150    |
+
+- Scaling on synthetic data (1x to 8x scans and ions at a constant density, 0.4 to 3.3 M data
+  points): builder 68 → 87 ns per data point, fast task 105 → 126, ADAP 304 → 1272 (3x the time
+  per doubling). Allocation per data point of the builder stays at 20-27 bytes.
+- On filtered data the feature creation of mzmine is half of the fast task: on QE sensitive
+  `FastChromatogramBuilder.build` 49% of the samples, `createFeature` 28% (the quality
+  parameters in `FeatureDataUtils.recalculateIonSeriesDependingTypes` 16%), row creation and
+  `addRow` 16%, the sort 4%. The rows allocate more than the builder: `ModularFeatureListRow
+  .getFeatures()` builds a stream and a list on each call and the row bindings of `addRow` call it
+  repeatedly, ~48 MB per run for 9.7 k rows. ADAP has the same cost and spends 39% of its time and
+  72% of its allocation in `FeatureConvertors.ADAPChromatogramToModularFeature`.
+- Builder on the worst case (GC-EI-QTOF without noise filter): pass 1 43%, pass 2 26%,
+  finalization 16%, consolidation 14%. Hot spots: `BinnedLowerBound.lowerBound` 18% of the
+  samples, mostly the loose data points of pass 2 (`ChannelDataCollector.findFreeChannel`, 27.6 M
+  loose data points) and the recovery; the channel buffers grow by copying (~280 MB per run) and
+  are copied once more into the chromatograms (~170 MB); the collision events (~190 MB) and the
+  recorded trace summaries (~200 MB) grow by doubling. Live heap at the end of pass 1 229 MB, at
+  the end of pass 2 425 MB (channel buffers of 10 M data points), result 169 MB.

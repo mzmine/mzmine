@@ -89,6 +89,8 @@ final class ChannelFinalization {
   // the gap allowance of the consolidation: touching channels and the flanks of holes
   private final int maxScanDistance;
   private final double holeFillFactor;
+  // min intensity of both flanks of a hole that recovered data points fill
+  private final double minHoleFillIntensity;
   private final double dipBridgeFactor;
   private final double dipBridgeIntensityFraction;
   private final int coalescedMaxHoleScans;
@@ -115,6 +117,7 @@ final class ChannelFinalization {
     complementaryFactor = options.complementaryToleranceFactor();
     maxScanDistance = options.maxGapScans() + 1;
     holeFillFactor = options.holeFillToleranceFactor();
+    minHoleFillIntensity = options.holeFillFlank().minIntensity(minGroupIntensity, minHeight);
     dipBridgeFactor = options.dipBridgeToleranceFactor();
     dipBridgeIntensityFraction = options.dipBridgeIntensityFraction();
     coalescedMaxHoleScans = options.coalescedMaxHoleScans();
@@ -652,7 +655,7 @@ final class ChannelFinalization {
 
   /**
    * Same rule as the hole fill of the second pass: a hole of up to the max gap scans between two
-   * data points of at least the min height, the data point within the hole fill tolerance around
+   * data points of at least the min hole fill intensity, the data point within the hole fill tolerance around
    * the interpolated m/z and within the intensity jump factor of the interpolated intensity.
    *
    * @return the target with the closest interpolated m/z or NONE
@@ -679,8 +682,8 @@ final class ChannelFinalization {
       final int scanAfter = buffer.scanIndices()[next];
       final double intensityBefore = buffer.intensities()[previous];
       final double intensityAfter = buffer.intensities()[next];
-      if (scanAfter - scanBefore > maxScanDistance || intensityBefore < minHeight
-          || intensityAfter < minHeight) {
+      if (scanAfter - scanBefore > maxScanDistance || intensityBefore < minHoleFillIntensity
+          || intensityAfter < minHoleFillIntensity) {
         continue;
       }
       final double position = (double) (scan - scanBefore) / (scanAfter - scanBefore);

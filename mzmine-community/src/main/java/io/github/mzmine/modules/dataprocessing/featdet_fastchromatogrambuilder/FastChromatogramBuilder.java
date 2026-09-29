@@ -129,8 +129,8 @@ public final class FastChromatogramBuilder {
     }
 
     start = System.nanoTime();
-    final ChannelDataCollector channels = new ChannelDataCollector(plan, tolerance, minHeight,
-        options);
+    final ChannelDataCollector channels = new ChannelDataCollector(plan, tolerance,
+        options.holeFillFlank().minIntensity(minGroupIntensity, minHeight), options);
     if (!route(scans, assignments, channels, isCanceled, progress, 0.5d, 0.45d)) {
       return null;
     }

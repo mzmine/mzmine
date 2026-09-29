@@ -36,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Compares detected chromatograms with the ground truth of {@link SyntheticLcmsData}. An ion is
  * detectable if its own data points pass the chromatogram filters. For each detectable ion the main
- * chromatogram is the one with most of its data points.
+ * chromatogram is the one with most of its data points. A coalesced centroid is a data point of
+ * both of its ions.
  */
 final class GroundTruthEvaluator {
 
@@ -84,31 +85,37 @@ final class GroundTruthEvaluator {
     }
     for (int s = 0; s < numScans; s++) {
       for (int i = 0; i < data.labels[s].length; i++) {
-        final int label = data.labels[s][i];
-        if (label >= 0) {
-          ionScans.get(label).add(s);
-          ionIntensities.get(label).add(data.intensities[s][i]);
+        // a coalesced centroid is a data point of both ions
+        for (final int label : new int[]{data.labels[s][i], data.sharedLabels[s][i]}) {
+          if (label >= 0) {
+            ionScans.get(label).add(s);
+            ionIntensities.get(label).add(data.intensities[s][i]);
+          }
         }
       }
     }
 
-    // labels of all chromatogram data points and ion counts per chromatogram
-    final List<int[]> chromLabels = new ArrayList<>();
+    // data point indices in the scans of all chromatogram data points and ion counts per
+    // chromatogram
+    final List<int[]> chromIndices = new ArrayList<>();
     final List<Int2IntOpenHashMap> ionCounts = new ArrayList<>();
     for (final EvaluatedChromatogram chrom : chromatograms) {
-      final int[] labels = new int[chrom.scans().length];
+      final int[] indices = new int[chrom.scans().length];
       final Int2IntOpenHashMap counts = new Int2IntOpenHashMap();
-      for (int i = 0; i < labels.length; i++) {
-        final Integer label = data.findLabel(chrom.scans()[i], chrom.mzs()[i]);
-        if (label == null) {
+      for (int i = 0; i < indices.length; i++) {
+        final int s = chrom.scans()[i];
+        final int index = data.findIndex(s, chrom.mzs()[i]);
+        if (index < 0) {
           throw new IllegalStateException("Chromatogram data point not in the data");
         }
-        labels[i] = label;
-        if (label >= 0) {
-          counts.addTo(label, 1);
+        indices[i] = index;
+        for (final int label : new int[]{data.labels[s][index], data.sharedLabels[s][index]}) {
+          if (label >= 0) {
+            counts.addTo(label, 1);
+          }
         }
       }
-      chromLabels.add(labels);
+      chromIndices.add(indices);
       ionCounts.add(counts);
     }
 
@@ -120,7 +127,7 @@ final class GroundTruthEvaluator {
     long foreign = 0;
     double completenessSum = 0;
     final boolean[] isMain = new boolean[chromatograms.size()];
-    final int[] mainScanLabel = new int[numScans];
+    final int[] mainScanIndex = new int[numScans];
 
     for (int k = 0; k < numIons; k++) {
       final int[] scans = ionScans.get(k).toIntArray();
@@ -161,29 +168,30 @@ final class GroundTruthEvaluator {
           apex = i;
         }
       }
-      Arrays.fill(mainScanLabel, Integer.MIN_VALUE);
+      // data point index of the main chromatogram in each scan
+      Arrays.fill(mainScanIndex, -1);
       final EvaluatedChromatogram chrom = chromatograms.get(main);
-      final int[] labels = chromLabels.get(main);
+      final int[] indices = chromIndices.get(main);
       for (int i = 0; i < chrom.scans().length; i++) {
-        mainScanLabel[chrom.scans()[i]] = labels[i];
+        mainScanIndex[chrom.scans()[i]] = indices[i];
       }
-      if (mainScanLabel[scans[apex]] == k) {
+      if (belongsTo(data, mainScanIndex, scans[apex], k)) {
         found++;
       }
       final int first = scans[0];
       final int last = scans[scans.length - 1];
       for (final int s : scans) {
-        if (mainScanLabel[s] == k) {
+        if (belongsTo(data, mainScanIndex, s, k)) {
           continue;
         }
-        if (mainScanLabel[s] == Integer.MIN_VALUE) {
+        if (mainScanIndex[s] < 0) {
           holes++;
         } else {
           replaced++;
         }
       }
       for (int s = first; s <= last; s++) {
-        if (mainScanLabel[s] != Integer.MIN_VALUE && mainScanLabel[s] != k) {
+        if (mainScanIndex[s] >= 0 && !belongsTo(data, mainScanIndex, s, k)) {
           foreign++;
         }
       }
@@ -197,5 +205,14 @@ final class GroundTruthEvaluator {
     }
     return new Summary(detectable, found, detectable == 0 ? 0 : completenessSum / detectable, split,
         holes, replaced, foreign, chromatograms.size(), unmatched);
+  }
+
+  /**
+   * @param scanIndex data point index of a chromatogram in each scan, -1 for none
+   * @return true if the chromatogram has a data point of the ion in the scan
+   */
+  private static boolean belongsTo(@NotNull SyntheticLcmsData data, @NotNull int[] scanIndex,
+      int scan, int ion) {
+    return scanIndex[scan] >= 0 && data.belongsTo(scan, scanIndex[scan], ion);
   }
 }

@@ -42,6 +42,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,6 +137,33 @@ final class ChromatogramBenchmarkUtils {
           : masses.getIntensityValues(new double[masses.getNumberOfDataPoints()]);
     }
     return intensities;
+  }
+
+  /**
+   * @return m/z of every feature of a feature list, same order as
+   * {@link #toChromatograms(FeatureList, Scan[])}
+   */
+  @NotNull
+  static double[] featureMzs(@NotNull FeatureList flist) {
+    final DoubleArrayList mzs = new DoubleArrayList(flist.getNumberOfRows());
+    for (final FeatureListRow row : flist.getRows()) {
+      for (final Feature feature : row.getFeatures()) {
+        mzs.add(feature.getMZ());
+      }
+    }
+    return mzs.toDoubleArray();
+  }
+
+  /**
+   * @return the value at the quantile of the sorted values, 0 if empty
+   */
+  static double quantile(@NotNull DoubleArrayList values, double quantile) {
+    if (values.isEmpty()) {
+      return 0;
+    }
+    final double[] sorted = values.toDoubleArray();
+    Arrays.sort(sorted);
+    return sorted[Math.min(sorted.length - 1, (int) (quantile * sorted.length))];
   }
 
   /**

@@ -100,14 +100,15 @@ final class ChannelDataCollector {
   private long numHoleFills = 0;
 
   /**
-   * @param plan      the channels and their member traces
-   * @param tolerance max m/z distance of a loose data point to a channel center
-   * @param minHeight holes are filled with the wider tolerance only between data points of at least
-   *                  this intensity
-   * @param options   hole filling, see {@link FastChromatogramBuilderOptions}
+   * @param plan                 the channels and their member traces
+   * @param tolerance            max m/z distance of a loose data point to a channel center
+   * @param minHoleFillIntensity holes are filled with the wider tolerance only between data points
+   *                             of at least this intensity, see
+   *                             {@link FastChromatogramBuilderOptions#holeFillFlank()}
+   * @param options              hole filling, see {@link FastChromatogramBuilderOptions}
    */
-  ChannelDataCollector(@NotNull ChannelPlan plan, @NotNull MZTolerance tolerance, double minHeight,
-      @NotNull FastChromatogramBuilderOptions options) {
+  ChannelDataCollector(@NotNull ChannelPlan plan, @NotNull MZTolerance tolerance,
+      double minHoleFillIntensity, @NotNull FastChromatogramBuilderOptions options) {
     this.tolerance = tolerance;
     this.memberIds = plan.memberTraceIds();
     this.memberChannels = plan.memberChannels();
@@ -125,7 +126,7 @@ final class ChannelDataCollector {
     holeFillToleranceFactor = options.holeFillToleranceFactor();
     holeFillWindowFactor =
         holeFillToleranceFactor + Math.max(1d, options.complementaryToleranceFactor()) + 1d;
-    minHoleFillIntensity = minHeight;
+    this.minHoleFillIntensity = minHoleFillIntensity;
     logIntensityFactor = Math.log(options.intensityJumpFactor());
     // one scan more than the longest hole, the current scan is written while older are read
     recentUnused = new UnusedDataPoints[holeFillToleranceFactor > 0d ? options.maxGapScans() + 1

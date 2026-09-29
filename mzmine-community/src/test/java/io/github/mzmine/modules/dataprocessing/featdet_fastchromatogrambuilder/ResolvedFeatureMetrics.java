@@ -28,13 +28,15 @@ package io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Compares resolved feature lists: duplicates within a list and features found in the other list,
- * both by m/z tolerance and retention time tolerance.
+ * both by m/z tolerance and retention time tolerance, and the m/z difference of found features to
+ * the closest feature of the other list.
  */
 final class ResolvedFeatureMetrics {
 
@@ -42,11 +44,18 @@ final class ResolvedFeatureMetrics {
   }
 
   /**
-   * @param features       number of features
-   * @param duplicatePairs pairs of features within the m/z and retention time tolerance
-   * @param matched        features with a feature in the other list within both tolerances
+   * @param features                 number of features
+   * @param duplicatePairs           pairs of features within the m/z and retention time tolerance
+   * @param matched                  features with a feature in the other list within both
+   *                                 tolerances
+   * @param medianMzDifferencePpm    median absolute m/z difference of matched features to the
+   *                                 closest feature of the other list
+   * @param p95MzDifferencePpm       95% quantile of this difference
+   * @param beyondHalfTolerance      matched features more than half the tolerance from the other
+   *                                 feature, e.g., a feature m/z pulled by a shared data point
    */
-  record Result(int features, int duplicatePairs, int matched) {
+  record Result(int features, int duplicatePairs, int matched, double medianMzDifferencePpm,
+                double p95MzDifferencePpm, int beyondHalfTolerance) {
 
     double matchedFraction() {
       return features == 0 ? 0 : (double) matched / features;
@@ -69,18 +78,30 @@ final class ResolvedFeatureMetrics {
       }
     }
     int matched = 0;
+    int beyondHalf = 0;
+    final DoubleArrayList differences = new DoubleArrayList();
     for (int i = 0; i < features.size(); i++) {
       final double mz = features.mzs[i];
       final double tol = tolerance.getMzToleranceForMass(mz);
+      double closest = Double.POSITIVE_INFINITY;
       for (int j = ChannelConsolidation.lowerBound(otherFeatures.mzs, mz - tol);
           j < otherFeatures.size() && otherFeatures.mzs[j] <= mz + tol; j++) {
         if (Math.abs(features.rts[i] - otherFeatures.rts[j]) <= rtTolerance) {
-          matched++;
-          break;
+          closest = Math.min(closest, Math.abs(otherFeatures.mzs[j] - mz));
         }
       }
+      if (closest == Double.POSITIVE_INFINITY) {
+        continue;
+      }
+      matched++;
+      differences.add(closest / mz * 1E6);
+      if (closest > 0.5 * tol) {
+        beyondHalf++;
+      }
     }
-    return new Result(features.size(), duplicates, matched);
+    return new Result(features.size(), duplicates, matched,
+        ChromatogramBenchmarkUtils.quantile(differences, 0.5),
+        ChromatogramBenchmarkUtils.quantile(differences, 0.95), beyondHalf);
   }
 
   /**
