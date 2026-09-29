@@ -45,6 +45,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -52,6 +54,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMapDataSource;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMapParameters;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapDetail;
@@ -296,7 +299,44 @@ public class IntensityMapSamplerTest {
     assertNull(data[1]);
   }
 
-  private static <T extends Scan> @NotNull T spectrum(@NotNull final T scan,
+  @Test
+  void dataSourceSelectsMassListsOrRawData() {
+    final RawDataFile file = mock(RawDataFile.class);
+    // the first scan has a mass list with a lower intensity, the second only raw data
+    final Scan first = spectrum(mock(Scan.class), new double[]{100, 150}, new double[]{3, 7});
+    final MassList masses = spectrum(mock(MassList.class), new double[]{150}, new double[]{5});
+    when(first.getMassList()).thenReturn(masses);
+    final Scan second = spectrum(mock(Scan.class), new double[]{100, 150}, new double[]{4, 9});
+    when(first.getRetentionTime()).thenReturn(1f);
+    when(second.getRetentionTime()).thenReturn(2f);
+    final Scan[] scans = {first, second};
+
+    final IntensityMapGrid raw = IntensityMapSampler.sample(file,
+        parameters(file, LC_MS, scans, IntensityMapDataSource.RAW), PROGRESS);
+    final IntensityMapGrid auto = IntensityMapSampler.sample(file,
+        parameters(file, LC_MS, scans, IntensityMapDataSource.AUTO), PROGRESS);
+    final IntensityMapGrid massLists = IntensityMapSampler.sample(file,
+        parameters(file, LC_MS, scans, IntensityMapDataSource.MASS_LIST), PROGRESS);
+
+    assertEquals(7, raw.intensity(0, raw.binY(150)));
+    assertEquals(5, auto.intensity(0, auto.binY(150)));
+    assertEquals(9, auto.intensity(1, auto.binY(150)));
+    assertEquals(5, massLists.intensity(0, massLists.binY(150)));
+    // the scan without mass list is still a column, but without signal
+    assertEquals(0, massLists.intensity(1, massLists.binY(150)));
+  }
+
+  @Test
+  void massListsAreRequiredWhenSelected() {
+    final RawDataFile file = mock(RawDataFile.class);
+    final Scan scan = spectrum(mock(Scan.class), new double[]{100}, new double[]{3});
+    when(scan.getRetentionTime()).thenReturn(1f);
+
+    assertThrows(IllegalArgumentException.class, () -> IntensityMapSampler.sample(file,
+        parameters(file, LC_MS, new Scan[]{scan}, IntensityMapDataSource.MASS_LIST), PROGRESS));
+  }
+
+  private static <T extends MassSpectrum> @NotNull T spectrum(@NotNull final T scan,
       @NotNull final double[] mz, @NotNull final double[] intensity) {
     when(scan.getNumberOfDataPoints()).thenReturn(mz.length);
     when(scan.getMzValues(any(double[].class))).thenReturn(mz);
@@ -312,6 +352,14 @@ public class IntensityMapSamplerTest {
     when(parameters.getValue(IntensityMapParameters.mode)).thenReturn(mode);
     when(parameters.getValue(IntensityMapParameters.mzRange)).thenReturn(Range.closed(100d, 200d));
     when(parameters.getValue(IntensityMapParameters.scanSelection)).thenReturn(selection);
+    return parameters;
+  }
+
+  private static @NotNull ParameterSet parameters(@NotNull final RawDataFile file,
+      @NotNull final IntensityMapDimensions mode, @NotNull final Scan[] scans,
+      @NotNull final IntensityMapDataSource source) {
+    final ParameterSet parameters = parameters(file, mode, scans);
+    when(parameters.getValue(IntensityMapParameters.dataSource)).thenReturn(source);
     return parameters;
   }
 }

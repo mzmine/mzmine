@@ -33,9 +33,11 @@ import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapPi
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapScreenGeometry;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -65,26 +67,32 @@ final class IntensityMapTileLayout {
   private final Group extraAxesGroup = new Group();
   private final List<IntensityMapAxes> extraAxes = new ArrayList<>();
   private final Pane labelLayer;
+  private final Pane scaleBarLayer;
   private final Map<String, IntensityMapSeriesState> states;
   private final Pane titleLayer = new Pane();
   private final List<Label> tileLabels = new ArrayList<>();
   private List<IntensityMapTile> tiles = List.of(IntensityMapTile.IDENTITY);
-  private List<IntensityMapSeries> tiled = List.of();
+  // overlays of each side by side tile
+  private List<List<IntensityMapSeries>> tiled = List.of();
 
   /**
-   * @param axes       axes of the first tile
-   * @param labelLayer layer of all axis labels and titles, so their bounds share coordinates
-   * @param states     state of every overlay by id, owned by the plot
+   * @param axes          axes of the first tile
+   * @param labelLayer    layer of all axis labels and titles, so their bounds share coordinates
+   * @param scaleBarLayer layer of the image scale bars, at the position of the label layer
+   * @param states        state of every overlay by id, owned by the plot
    */
   IntensityMapTileLayout(@NotNull final Group model, @NotNull final IntensityMapAxes axes,
-      @NotNull final Pane labelLayer, @NotNull final Map<String, IntensityMapSeriesState> states) {
+      @NotNull final Pane labelLayer, @NotNull final Pane scaleBarLayer,
+      @NotNull final Map<String, IntensityMapSeriesState> states) {
     this.model = model;
     this.axes = axes;
     this.labelLayer = labelLayer;
+    this.scaleBarLayer = scaleBarLayer;
     this.states = states;
     extraAxesGroup.setMouseTransparent(true);
     titleLayer.setMouseTransparent(true);
     labelLayer.getChildren().setAll(axes.labels(), titleLayer);
+    scaleBarLayer.getChildren().setAll(axes.scaleBar());
   }
 
   @NotNull Group extraAxesGroup() {
@@ -99,10 +107,28 @@ final class IntensityMapTileLayout {
   }
 
   /**
-   * @return the overlays shown side by side, one per tile; empty unless side by side
+   * @return the overlays of each side by side tile; empty unless side by side
    */
-  @NotNull List<IntensityMapSeries> tiled() {
+  @NotNull List<List<IntensityMapSeries>> tiled() {
     return tiled;
+  }
+
+  /**
+   * Side by side, all m/z overlays of a raw file share one tile, so its traces can be compared in
+   * place. Images get a tile each, overlaid images would hide each other.
+   *
+   * @param visible overlays in their order
+   * @return the overlays of each tile, in the order of their first overlay
+   */
+  static @NotNull List<List<IntensityMapSeries>> groups(
+      @NotNull final List<IntensityMapSeries> visible) {
+    final Map<String, List<IntensityMapSeries>> groups = new LinkedHashMap<>();
+    for (final IntensityMapSeries value : visible) {
+      // assumption: raw file names are unique within a project
+      final String key = value.data().pixels() ? "image " + value.id() : "file " + value.name();
+      groups.computeIfAbsent(key, _ -> new ArrayList<>()).add(value);
+    }
+    return groups.values().stream().map(List::copyOf).toList();
   }
 
   /**
@@ -113,20 +139,60 @@ final class IntensityMapTileLayout {
     if (tiled.isEmpty()) {
       return tiles.getFirst();
     }
-    for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-      if (tiled.get(i).id().equals(id)) {
-        return tiles.get(i);
-      }
-    }
-    return null;
+    final int index = indexOf(id);
+    return index < 0 ? null : tiles.get(index);
   }
 
   /**
-   * @return state of the overlay of a side by side tile, null if there is none
+   * @return the overlays sharing the tile of the overlay, empty if it has no side by side tile
    */
-  private @Nullable IntensityMapSeriesState tileState(final int index) {
+  @NotNull List<IntensityMapSeries> tileMates(@NotNull final String id) {
+    final int index = indexOf(id);
+    return index < 0 ? List.of() : tiled.get(index);
+  }
+
+  private int indexOf(@NotNull final String id) {
+    for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
+      for (final IntensityMapSeries value : tiled.get(i)) {
+        if (value.id().equals(id)) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * @return combined envelope of the overlays of a side by side tile, null if there is none
+   */
+  private float @Nullable [] tileEnvelope(final int index) {
     // tiles can briefly refer to removed overlays until the new layout is applied
-    return index < tiled.size() && index < tiles.size() ? states.get(tiled.get(index).id()) : null;
+    if (index < 0 || index >= tiled.size() || index >= tiles.size()) {
+      return null;
+    }
+    return envelope(tiled.get(index));
+  }
+
+  /**
+   * @return the highest signal of the overlays in every fitting cell, null without known overlays
+   */
+  private float @Nullable [] envelope(@NotNull final List<IntensityMapSeries> overlays) {
+    float[] heights = null;
+    for (final IntensityMapSeries value : overlays) {
+      final IntensityMapSeriesState state = states.get(value.id());
+      if (state == null) {
+        continue;
+      }
+      final float[] envelope = state.envelope();
+      if (heights == null) {
+        heights = new float[FIT_DIVISIONS * FIT_DIVISIONS];
+      }
+      // heights point upwards to negative y
+      for (int i = 0; i < envelope.length && i < heights.length; i++) {
+        heights[i] = Math.min(heights[i], envelope[i]);
+      }
+    }
+    return heights;
   }
 
   /**
@@ -158,20 +224,20 @@ final class IntensityMapTileLayout {
         clear();
         tiles = List.of(IntensityMapTile.IDENTITY);
         tiled = List.of();
-        // assumption: coincident surfaces are common for replicate samples; a small lift per
-        // overlay resolves depth ties consistently instead of flickering stripes
-        for (int i = 0; i < series.size(); i++) {
-          states.get(series.get(i).id()).view().setTranslateY(-0.3 * i);
-        }
+        lift(series);
       }
       case GRID -> {
-        tiled = visible;
+        tiled = groups(visible);
         tiles = IntensityMapTile.grid(tiled.size(), columns, rows);
-        final List<String> titles = IntensityMapTileTitles.of(tiled);
+        final List<String> titles = IntensityMapTileTitles.of(
+            tiled.stream().map(IntensityMapTileLayout::titled).toList());
         ensureExtraAxes(Math.max(0, tiled.size() - 1), newAxes);
         for (int i = 0; i < tiled.size(); i++) {
           final IntensityMapTile tile = tiles.get(i);
-          states.get(tiled.get(i).id()).view().getTransforms().setAll(tile.transforms());
+          for (final IntensityMapSeries value : tiled.get(i)) {
+            states.get(value.id()).view().getTransforms().setAll(tile.transforms());
+          }
+          lift(tiled.get(i));
           // every tile has its own axes, calibrated like the first one
           tileAxes(i).geometry().getTransforms().setAll(tile.transforms());
           final Label label = new Label(titles.get(i));
@@ -186,6 +252,30 @@ final class IntensityMapTileLayout {
         }
       }
     }
+  }
+
+  /**
+   * Coincident surfaces are common for replicate samples or neighboring m/z windows; a small lift
+   * per overlay resolves depth ties consistently instead of flickering stripes.
+   */
+  private void lift(@NotNull final List<IntensityMapSeries> overlays) {
+    for (int i = 0; i < overlays.size(); i++) {
+      states.get(overlays.get(i).id()).view().setTranslateY(-0.3 * i);
+    }
+  }
+
+  /**
+   * @return one overlay that stands for the tile in its title: the file and all m/z descriptions
+   */
+  private static @NotNull IntensityMapSeries titled(
+      @NotNull final List<IntensityMapSeries> overlays) {
+    final IntensityMapSeries first = overlays.getFirst();
+    if (overlays.size() == 1) {
+      return first;
+    }
+    return new IntensityMapSeries(first.id(), first.name(),
+        overlays.stream().map(IntensityMapSeries::description).distinct()
+            .collect(Collectors.joining(", ")), first.data(), first.color());
   }
 
   void setTitleStyle(@NotNull final String style) {
@@ -218,6 +308,7 @@ final class IntensityMapTileLayout {
       final IntensityMapAxes removed = extraAxes.removeLast();
       extraAxesGroup.getChildren().remove(removed.geometry());
       labelLayer.getChildren().remove(removed.labels());
+      scaleBarLayer.getChildren().remove(removed.scaleBar());
     }
     while (extraAxes.size() < count) {
       final IntensityMapAxes added = new IntensityMapAxes();
@@ -226,6 +317,7 @@ final class IntensityMapTileLayout {
       extraAxesGroup.getChildren().add(added.geometry());
       // below the title layer, which stays the last child
       labelLayer.getChildren().add(labelLayer.getChildren().size() - 1, added.labels());
+      scaleBarLayer.getChildren().add(added.scaleBar());
     }
   }
 
@@ -256,8 +348,8 @@ final class IntensityMapTileLayout {
     }
     final List<List<Point2D>> hulls = new ArrayList<>();
     for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-      final IntensityMapSeriesState state = tileState(i);
-      hulls.add(state == null ? List.of() : tileHull(tiles.get(i), state.envelope()));
+      final float[] envelope = tileEnvelope(i);
+      hulls.add(envelope == null ? List.of() : tileHull(tiles.get(i), envelope));
     }
     final List<Bounds> occupied = projectTileTitles(hulls, showLabels);
     for (int i = 0; i < all.size(); i++) {
@@ -383,20 +475,15 @@ final class IntensityMapTileLayout {
     final List<Point3D> points = new ArrayList<>();
     switch (layout) {
       case OVERLAY -> {
-        final float[] heights = new float[FIT_DIVISIONS * FIT_DIVISIONS];
-        for (final IntensityMapSeries value : snapshot) {
-          final float[] envelope = states.get(value.id()).envelope();
-          for (int i = 0; i < envelope.length && i < heights.length; i++) {
-            heights[i] = Math.min(heights[i], envelope[i]);
-          }
-        }
-        addEnvelope(points, heights, IntensityMapTile.IDENTITY);
+        final float[] heights = envelope(snapshot);
+        addEnvelope(points, heights != null ? heights : new float[FIT_DIVISIONS * FIT_DIVISIONS],
+            IntensityMapTile.IDENTITY);
       }
       case GRID -> {
         for (int i = 0; i < tiled.size() && i < tiles.size(); i++) {
-          final IntensityMapSeriesState state = tileState(i);
-          if (state != null) {
-            addEnvelope(points, state.envelope(), tiles.get(i));
+          final float[] envelope = tileEnvelope(i);
+          if (envelope != null) {
+            addEnvelope(points, envelope, tiles.get(i));
           }
         }
       }
@@ -408,12 +495,12 @@ final class IntensityMapTileLayout {
    * @return model points of the signal of one side by side tile, null if there is no such tile
    */
   @Nullable List<Point3D> tileFittingPoints(final int index) {
-    final IntensityMapSeriesState state = index < 0 ? null : tileState(index);
-    if (state == null) {
+    final float[] envelope = tileEnvelope(index);
+    if (envelope == null) {
       return null;
     }
     final List<Point3D> points = new ArrayList<>();
-    addEnvelope(points, state.envelope(), tiles.get(index));
+    addEnvelope(points, envelope, tiles.get(index));
     return points;
   }
 

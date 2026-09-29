@@ -35,14 +35,17 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Everything an axes instance needs to rebuild itself, so that zoom-dependent tick counts can be
  * regenerated and several tiles can share one description.
+ *
+ * @param lanes separate m/z windows along y, whose bounds are then lane coordinates; null for one
+ *              continuous y axis
  */
 record IntensityMapAxesSpec(@NotNull IntensityMapBounds bounds, @NotNull String xLabel,
                             @NotNull String yLabel, @NotNull IntensityMapAxisKind xKind,
                             @NotNull IntensityMapAxisKind yKind, @NotNull String intensityLabel,
                             double intensityMaximum, double intensityBaseline,
                             @NotNull PaintScaleTransform transform,
-                            @NotNull IntensityMapFormat format,
-                            @Nullable IntensityMapRegion frame) {
+                            @NotNull IntensityMapFormat format, @Nullable IntensityMapRegion frame,
+                            @Nullable IntensityMapLanes lanes) {
 
   /**
    * @param frame data window the axes are drawn around, e.g. the visible part of a zoomed view;
@@ -50,6 +53,6 @@ record IntensityMapAxesSpec(@NotNull IntensityMapBounds bounds, @NotNull String 
    */
   @NotNull IntensityMapAxesSpec withFrame(@Nullable final IntensityMapRegion frame) {
     return new IntensityMapAxesSpec(bounds, xLabel, yLabel, xKind, yKind, intensityLabel,
-        intensityMaximum, intensityBaseline, transform, format, frame);
+        intensityMaximum, intensityBaseline, transform, format, frame, lanes);
   }
 }

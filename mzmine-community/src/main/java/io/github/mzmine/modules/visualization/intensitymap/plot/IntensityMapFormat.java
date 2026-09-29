@@ -57,7 +57,7 @@ final class IntensityMapFormat {
       case RETENTION_TIME -> formats.rtFormat();
       case MZ -> formats.mzFormat();
       case MOBILITY -> formats.mobilityFormat();
-      case OTHER -> null;
+      case LENGTH, OTHER -> null;
     };
     if (base == null) {
       return IntensityMapTicks.format(value, step);
@@ -92,7 +92,7 @@ final class IntensityMapFormat {
       case RETENTION_TIME -> formats.rt(value);
       case MZ -> formats.mz(value);
       case MOBILITY -> formats.mobility(value);
-      case OTHER -> IntensityMapTicks.format(value, Math.abs(value) >= 100 ? 0.01 : 0.0001);
+      case LENGTH, OTHER -> IntensityMapTicks.format(value, Math.abs(value) >= 100 ? 0.01 : 0.0001);
     };
   }
 

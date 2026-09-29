@@ -63,20 +63,23 @@ final class IntensityMapPeakProjector {
   private final IntensityMapScale scale;
   private final double lineScale;
   private final Map<String, IntensityMapSeries> shown = new HashMap<>();
-  // overlaid surfaces can cover each other, side by side tiles only themselves
+  private final @Nullable IntensityMapLanes lanes;
+  // overlaid surfaces can cover each other, side by side only the overlays of one tile
   private final List<IntensityMapPicker.Target> overlaid;
 
   /**
    * @param layer     node of the screen positions, e.g. the label layer
    * @param visible   overlays in view
    * @param lineScale scale of line widths, follows the zoom
+   * @param lanes     separate m/z windows along y, null for one continuous axis
    */
   IntensityMapPeakProjector(@NotNull final IntensityMapProjection projection,
       @NotNull final Group model, @NotNull final IntensityMapCamera camera,
       @NotNull final IntensityMapTileLayout tileLayout, @NotNull final Node layer,
       @NotNull final IntensityMapScale scale, @NotNull final List<IntensityMapSeries> visible,
-      final double lineScale) {
+      final double lineScale, @Nullable final IntensityMapLanes lanes) {
     this.projection = projection;
+    this.lanes = lanes;
     this.model = model;
     this.camera = camera;
     this.tileLayout = tileLayout;
@@ -119,8 +122,8 @@ final class IntensityMapPeakProjector {
     }
     final IntensityMapPicker.Ray ray = tile.toLocal(camera.ray(screen.getX(), screen.getY()));
     final IntensityMapPicker.Hit hit = IntensityMapPicker.pick(ray,
-        tileLayout.tiled().isEmpty() ? overlaid
-            : List.of(new IntensityMapPicker.Target(value, scale)));
+        tileLayout.tiled().isEmpty() ? overlaid : tileLayout.tileMates(value.id()).stream()
+            .map(mate -> new IntensityMapPicker.Target(mate, scale)).toList());
     final Point3D direction = ray.direction();
     final double length = direction.dotProduct(direction);
     if (hit == null || !(length > 0)) {
@@ -148,8 +151,9 @@ final class IntensityMapPeakProjector {
     }
     final IntensityMapBounds range = scale.bounds();
     final double[] screen = IntensityMapExtent.empty();
+    final double[] ys = displayed(yRange, peak.y());
     for (final double x : new double[]{xRange.lowerEndpoint(), xRange.upperEndpoint()}) {
-      for (final double y : new double[]{yRange.lowerEndpoint(), yRange.upperEndpoint()}) {
+      for (final double y : ys) {
         for (final double height : new double[]{0, top.getY()}) {
           final Point3D modelPoint = tile.toModel(
               new Point3D(IntensityMapMesh.localX(range, Math.clamp(x, range.xMin(), range.xMax())),
@@ -187,7 +191,12 @@ final class IntensityMapPeakProjector {
     final IntensityMapBounds range = scale.bounds();
     final double share = projection.featureZoomShare();
     final double[] x = zoomSpan(label.xRange(), range.xMin(), range.xMax(), share);
-    final double[] y = zoomSpan(label.yRange(), range.yMin(), range.yMax(), share);
+    final double[] shown = displayed(label.yRange(), label.y());
+    if (Double.isNaN(shown[0]) || Double.isNaN(shown[1])) {
+      return null;
+    }
+    final double[] y = zoomSpan(Range.closed(shown[0], shown[1]), range.yMin(), range.yMax(),
+        share);
     final List<Point3D> corners = new ArrayList<>(IntensityMapExtent.corners(tile,
         new double[]{IntensityMapMesh.localX(range, x[0]), IntensityMapMesh.localX(range, x[1]),
             IntensityMapMesh.localZ(range, y[0]), IntensityMapMesh.localZ(range, y[1])}));
@@ -213,18 +222,37 @@ final class IntensityMapPeakProjector {
   }
 
   /**
+   * @return the y coordinate as drawn, NaN for m/z between the lanes
+   */
+  private double displayed(final double y) {
+    return lanes == null ? y : lanes.toLane(y);
+  }
+
+  /**
+   * @param center value inside the range, e.g. the apex, used for range ends between lanes
+   * @return lower and upper end of the range as drawn
+   */
+  private double @NotNull [] displayed(@NotNull final Range<Double> range, final double center) {
+    final double fallback = displayed(center);
+    final double low = displayed(range.lowerEndpoint());
+    final double high = displayed(range.upperEndpoint());
+    return new double[]{Double.isNaN(low) ? fallback : low, Double.isNaN(high) ? fallback : high};
+  }
+
+  /**
    * @return position of the peak in the local coordinates of its tile, in 3D on top of the drawn
    * surface; null outside the data or below the noise floor
    */
   private @Nullable Point3D localPoint(@NotNull final IntensityMapPeak peak,
       @NotNull final IntensityMapSeries value) {
     final IntensityMapBounds range = scale.bounds();
+    final double y = displayed(peak.y());
     // decision: peaks hidden by the noise floor lose their labels as well
-    if (!range.contains(peak.x(), peak.y()) || scale.belowNoise(value.data(), peak.intensity())) {
+    if (!range.contains(peak.x(), y) || scale.belowNoise(value.data(), peak.intensity())) {
       return null;
     }
     final double x = IntensityMapMesh.localX(range, peak.x());
-    final double z = IntensityMapMesh.localZ(range, peak.y());
+    final double z = IntensityMapMesh.localZ(range, y);
     if (!projection.heights()) {
       return new Point3D(x, 0, z);
     }

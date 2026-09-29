@@ -23,15 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.intensitymap.data;
+package io.github.mzmine.modules.visualization.intensitymap.plot;
 
 /**
- * Physical meaning of a coordinate axis, selects the matching number format.
+ * One m/z window of {@link IntensityMapLanes}.
+ *
+ * @param low  lower end of the m/z window
+ * @param high upper end of the m/z window
  */
-public enum IntensityMapAxisKind {
-  RETENTION_TIME, MZ, MOBILITY,
+record IntensityMapLane(double low, double high) {
+
+  boolean contains(final double mz) {
+    return mz >= low && mz <= high;
+  }
+
+  double width() {
+    // assumption: a single m/z bin spans a narrow band around its value
+    return high > low ? high - low : Math.max(Math.abs(low) * 1e-6, 1e-6);
+  }
+
+  double center() {
+    return (low + high) / 2;
+  }
+
   /**
-   * Physical distance in µm, e.g. image coordinates with a known pixel size.
+   * @return share of the lane height below the m/z
    */
-  LENGTH, OTHER
+  double share(final double mz) {
+    return high > low ? (mz - low) / (high - low) : 0.5;
+  }
+
+  double at(final double share) {
+    return low + share * (high - low);
+  }
 }

@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapTile;
-import java.util.List;
 import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -112,10 +111,10 @@ final class IntensityMapZoomBox {
   /**
    * Ends the drag.
    *
-   * @return the corners of the dragged box in model coordinates, null if it was a click or did not
-   * start on the floor
+   * @return the dragged floor extent {x0, x1, z0, z1} in local coordinates of the tile, null if it
+   * was a click or did not start on the floor
    */
-  @Nullable List<Point3D> finish() {
+  double @Nullable [] finish() {
     final Point3D first = start;
     final Point3D last = end;
     cancel();
@@ -124,8 +123,8 @@ final class IntensityMapZoomBox {
         || screenDistance(first, new Point3D(first.getX(), 0, last.getZ())) < MIN_BOX_PIXELS) {
       return null;
     }
-    return IntensityMapExtent.corners(tile,
-        new double[]{first.getX(), last.getX(), first.getZ(), last.getZ()});
+    return new double[]{Math.min(first.getX(), last.getX()), Math.max(first.getX(), last.getX()),
+        Math.min(first.getZ(), last.getZ()), Math.max(first.getZ(), last.getZ())};
   }
 
   /**

@@ -63,29 +63,31 @@ final class IntensityMapVisibleAreas {
   /**
    * @param visible  overlays in view
    * @param plotTile tile with a fixed plot area in 2D, null for none
+   * @param cropped  the bounds are a part of the data, so a view of all tiles is not zoomed out
    * @return the visible part of every overlay in view. Side by side, only tiles on screen count, so
    * zooming into one tile does not need the data of the others.
    */
   @NotNull IntensityMapVisibleArea of(@NotNull final IntensityMapBounds bounds,
-      @NotNull final List<IntensityMapSeries> visible, @Nullable final IntensityMapTile plotTile) {
+      @NotNull final List<IntensityMapSeries> visible, @Nullable final IntensityMapTile plotTile,
+      final boolean cropped) {
     final Map<String, IntensityMapOverlayView> overlays = new LinkedHashMap<>();
     final List<IntensityMapTile> tiles = tileLayout.tiles();
-    final List<IntensityMapSeries> tiled = tileLayout.tiled();
+    final List<List<IntensityMapSeries>> tiled = tileLayout.tiled();
     if (plotTile != null) {
       // the 2D view clips everything outside its fixed plot area
       final Rectangle2D area = plotArea.area(plotTile);
       final IntensityMapOverlayView view = overlayView(bounds, plotArea.floor(plotTile),
           area == null ? scene.getWidth() : area.getWidth(),
-          area == null ? scene.getHeight() : area.getHeight());
+          area == null ? scene.getHeight() : area.getHeight(), cropped);
       final int index = tiles.indexOf(plotTile);
       if (tiled.isEmpty()) {
         visible.forEach(value -> overlays.put(value.id(), view));
       } else if (index >= 0 && index < tiled.size()) {
-        overlays.put(tiled.get(index).id(), view);
+        tiled.get(index).forEach(value -> overlays.put(value.id(), view));
       }
     } else if (tiled.isEmpty()) {
       final IntensityMapOverlayView view = overlayView(bounds, camera.visibleFloor(tiles),
-          scene.getWidth(), scene.getHeight());
+          scene.getWidth(), scene.getHeight(), cropped);
       visible.forEach(value -> overlays.put(value.id(), view));
     } else {
       // decision: every tile has its own visible part; with parts of neighboring tiles on screen,
@@ -96,8 +98,9 @@ final class IntensityMapVisibleAreas {
         final double[] floor = camera.visibleFloor(List.of(tile));
         final double[] screen = floor == null ? null : screenExtent(tile, floor);
         if (screen != null) {
-          overlays.put(tiled.get(i).id(),
-              overlayView(bounds, floor, screen[1] - screen[0], screen[3] - screen[2]));
+          final IntensityMapOverlayView view = overlayView(bounds, floor, screen[1] - screen[0],
+              screen[3] - screen[2], cropped);
+          tiled.get(i).forEach(value -> overlays.put(value.id(), view));
         }
       }
     }
@@ -110,12 +113,14 @@ final class IntensityMapVisibleAreas {
    */
   private static @NotNull IntensityMapOverlayView overlayView(
       @NotNull final IntensityMapBounds bounds, final double @Nullable [] floor, final double width,
-      final double height) {
+      final double height, final boolean cropped) {
     if (floor == null || IntensityMapExtent.isEmpty(floor)) {
-      return new IntensityMapOverlayView(IntensityMapRegion.FULL, true, width, height);
+      return cropped ? new IntensityMapOverlayView(
+          IntensityMapExtent.toData(bounds, IntensityMapExtent.full()), false, width, height)
+          : new IntensityMapOverlayView(IntensityMapRegion.FULL, true, width, height);
     }
     return new IntensityMapOverlayView(IntensityMapExtent.toData(bounds, floor),
-        IntensityMapExtent.nearlyAll(floor), width, height);
+        !cropped && IntensityMapExtent.nearlyAll(floor), width, height);
   }
 
   /**

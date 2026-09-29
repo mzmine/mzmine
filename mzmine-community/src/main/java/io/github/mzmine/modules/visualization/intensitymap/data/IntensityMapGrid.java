@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.data;
 
+import com.google.common.collect.Range;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -396,6 +397,112 @@ public final class IntensityMapGrid {
       result.setPixelSize(pixelWidth * factorX, pixelHeight * factorY);
     }
     return result;
+  }
+
+  /**
+   * Cells keep their extents, so cropped cells at the border do not grow towards the removed
+   * neighbors.
+   *
+   * @param region coordinate window, a null range keeps the axis
+   * @return the cells whose coordinates lie inside the window; one empty cell at the window center
+   * if none does, so that the overlay keeps its place
+   */
+  public @NotNull IntensityMapGrid crop(@NotNull final IntensityMapRegion region) {
+    final int[] columns = inside(x, region.x());
+    final int[] rows = inside(y, region.y());
+    if (columns == null || rows == null) {
+      final IntensityMapGrid empty = new IntensityMapGrid(new double[]{center(region.x(), x)},
+          new double[]{center(region.y(), y)}, xLabel, yLabel, pixels);
+      empty.copyAxisProperties(this, false);
+      return empty;
+    }
+    final int width = columns[1] - columns[0];
+    final int height = rows[1] - rows[0];
+    final IntensityMapGrid result = new IntensityMapGrid(
+        Arrays.copyOfRange(x, columns[0], columns[1]), Arrays.copyOfRange(y, rows[0], rows[1]),
+        xLabel, yLabel, pixels);
+    result.xLows = new double[width];
+    result.xHighs = new double[width];
+    for (int i = 0; i < width; i++) {
+      result.xLows[i] = xLow(columns[0] + i);
+      result.xHighs[i] = xHigh(columns[0] + i);
+    }
+    result.yLows = new double[height];
+    result.yHighs = new double[height];
+    for (int i = 0; i < height; i++) {
+      result.yLows[i] = yLow(rows[0] + i);
+      result.yHighs[i] = yHigh(rows[0] + i);
+    }
+    for (int row = 0; row < height; row++) {
+      for (int column = 0; column < width; column++) {
+        final int index = (rows[0] + row) * width() + columns[0] + column;
+        if (present[index]) {
+          result.present[row * width + column] = true;
+          result.addMaximum(column, row, intensity[index]);
+        }
+      }
+    }
+    result.copyAxisProperties(this, false);
+    return result;
+  }
+
+  /**
+   * @param scale  factor of the new y coordinates, positive to keep their order
+   * @param offset added after scaling
+   * @return a copy with y coordinates and cell extents moved to scale * y + offset
+   */
+  public @NotNull IntensityMapGrid withLinearY(final double scale, final double offset) {
+    if (!(scale > 0) || !Double.isFinite(scale) || !Double.isFinite(offset)) {
+      throw new IllegalArgumentException("The scale must be finite and positive");
+    }
+    final double[] mapped = new double[y.length];
+    final double[] lows = new double[y.length];
+    final double[] highs = new double[y.length];
+    for (int i = 0; i < y.length; i++) {
+      mapped[i] = scale * y[i] + offset;
+      lows[i] = scale * yLow(i) + offset;
+      highs[i] = scale * yHigh(i) + offset;
+    }
+    final IntensityMapGrid result = new IntensityMapGrid(x, mapped, xLabel, yLabel, pixels);
+    result.xLows = xLows;
+    result.xHighs = xHighs;
+    result.yLows = lows;
+    result.yHighs = highs;
+    for (int i = 0; i < intensity.length; i++) {
+      if (present[i]) {
+        result.present[i] = true;
+        result.addMaximum(i % width(), i / width(), intensity[i]);
+      }
+    }
+    result.copyAxisProperties(this, false);
+    result.pixelHeight = pixelHeight * scale;
+    return result;
+  }
+
+  /**
+   * @return {first, end} index range of the sorted values inside the range, the complete axis for a
+   * null range, null if no value lies inside
+   */
+  private static int @Nullable [] inside(final double @NotNull [] values,
+      @Nullable final Range<Double> range) {
+    if (range == null) {
+      return new int[]{0, values.length};
+    }
+    int first = 0;
+    while (first < values.length && values[first] < range.lowerEndpoint()) {
+      first++;
+    }
+    int end = first;
+    while (end < values.length && values[end] <= range.upperEndpoint()) {
+      end++;
+    }
+    return end > first ? new int[]{first, end} : null;
+  }
+
+  private static double center(@Nullable final Range<Double> range,
+      final double @NotNull [] values) {
+    return range == null ? (values[0] + values[values.length - 1]) / 2
+        : (range.lowerEndpoint() + range.upperEndpoint()) / 2;
   }
 
   /**

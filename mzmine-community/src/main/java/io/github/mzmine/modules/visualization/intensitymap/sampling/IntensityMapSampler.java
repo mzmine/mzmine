@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.visualization.intensitymap.IntensityMapDataSource;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMapDimensions;
 import io.github.mzmine.modules.visualization.intensitymap.IntensityMapParameters;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapAxisKind;
@@ -50,6 +51,7 @@ import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
@@ -121,6 +123,8 @@ public final class IntensityMapSampler {
     final IntensityMapDimensions mode = resolveMode(file,
         parameters.getValue(IntensityMapParameters.mode));
     final ScanSelection selection = scanSelection(parameters, mode);
+    final IntensityMapDataSource source = Objects.requireNonNullElse(
+        parameters.getValue(IntensityMapParameters.dataSource), IntensityMapDataSource.AUTO);
     final Scan[] scans = selection.getMatchingScans(file);
     if (scans.length == 0) {
       throw new IllegalArgumentException("No scans match the scan selection " + selection);
@@ -129,8 +133,8 @@ public final class IntensityMapSampler {
       case AUTOMATIC -> throw new IllegalStateException("Automatic mode must be resolved");
       case LC_MS ->
           spectra(lowestMsLevel(scans), Scan::getRetentionTime, axisLabel("Retention time", "min"),
-              IntensityMapAxisKind.RETENTION_TIME, false, mzRanges, region, normalization, detail,
-              progress);
+              IntensityMapAxisKind.RETENTION_TIME, false, mzRanges, region, normalization, source,
+              detail, progress);
       case MOBILITY_FRAME -> {
         if (!(file instanceof IMSRawDataFile)) {
           throw new IllegalArgumentException("The selected file has no ion mobility frames");
@@ -141,13 +145,13 @@ public final class IntensityMapSampler {
         // decision: m/z horizontal and mobility in depth, like the usual IMS heatmaps
         yield spectra(frame.getSortedMobilityScans(), scan -> ((MobilityScan) scan).getMobility(),
             axisLabel("Mobility", unit), IntensityMapAxisKind.MOBILITY, true, mzRanges, region,
-            normalization, detail, progress);
+            normalization, source, detail, progress);
       }
       case IMAGING -> {
         if (!(file instanceof ImagingRawDataFile imaging)) {
           throw new IllegalArgumentException("The selected file is not imaging data");
         }
-        yield image(imaging, scans, mzRanges, region, normalization, detail, progress);
+        yield image(imaging, scans, mzRanges, region, normalization, source, detail, progress);
       }
     };
   }
@@ -212,8 +216,9 @@ public final class IntensityMapSampler {
       @NotNull final ToDoubleFunction<Scan> coordinate, @NotNull final String coordinateLabel,
       @NotNull final IntensityMapAxisKind coordinateKind, final boolean transposed,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapRegion region,
-      @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDetail detail,
-      @NotNull final Progress progress) {
+      @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDataSource source,
+      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+    requireMassLists(allScans, source);
     final ToDoubleFunction<Scan> factors = normalization.scanFactors(allScans);
     final Range<Double> coordinateWindow = transposed ? region.y() : region.x();
     final Range<Double> mzWindow = transposed ? region.x() : region.y();
@@ -234,7 +239,7 @@ public final class IntensityMapSampler {
     final double[] nativeX = scans.stream().mapToDouble(coordinate).distinct().sorted().toArray();
     final double[] lower = new double[mzRanges.size()];
     final double[] upper = new double[mzRanges.size()];
-    final SpectrumBuffers buffers = new SpectrumBuffers();
+    final SpectrumBuffers buffers = new SpectrumBuffers(source);
     for (int i = 0; i < mzRanges.size(); i++) {
       final Range<Double> visible = IntensityMapRegion.intersect(mzRanges.get(i), mzWindow);
       if (visible == null) {
@@ -301,10 +306,11 @@ public final class IntensityMapSampler {
     final List<Double> spacings = new ArrayList<>();
     for (int k = 0; k < probes; k++) {
       final Scan scan = scans.get(probes == 1 ? 0 : k * (scans.size() - 1) / (probes - 1));
-      if (scan.getSpectrumType() != MassSpectrumType.PROFILE) {
+      final MassSpectrum spectrum = buffers.source.spectrum(scan);
+      if (spectrum == null || spectrum.getSpectrumType() != MassSpectrumType.PROFILE) {
         continue;
       }
-      buffers.read(scan);
+      buffers.read(spectrum);
       final int start = lowerBound(buffers.mz, buffers.count, lower);
       final List<Double> local = new ArrayList<>();
       for (int p = start + 1; p < buffers.count && buffers.mz[p] <= upper; p++) {
@@ -326,8 +332,9 @@ public final class IntensityMapSampler {
   private static @Nullable IntensityMapGrid @NotNull [] image(
       @NotNull final ImagingRawDataFile file, final Scan @NotNull [] scans,
       @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapRegion region,
-      @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDetail detail,
-      @NotNull final Progress progress) {
+      @NotNull final ImageNormalization normalization, @NotNull final IntensityMapDataSource source,
+      @NotNull final IntensityMapDetail detail, @NotNull final Progress progress) {
+    requireMassLists(Arrays.asList(scans), source);
     final ToDoubleFunction<Scan> factors = normalization.scanFactors(
         Arrays.stream(scans).filter(scan -> scan instanceof ImagingScan).toList());
     final boolean physical = hasPhysicalPixelSize(file);
@@ -363,8 +370,11 @@ public final class IntensityMapSampler {
       final String unit = physical ? "µm" : "pixel";
       result[i] = new IntensityMapGrid(x, y, axisLabel("X", unit), axisLabel("Y", unit), true);
       result[i].setPixelSize(stepX * factorX, stepY * factorY);
+      if (physical) {
+        result[i].setAxisKinds(IntensityMapAxisKind.LENGTH, IntensityMapAxisKind.LENGTH);
+      }
     }
-    final SpectrumBuffers buffers = new SpectrumBuffers();
+    final SpectrumBuffers buffers = new SpectrumBuffers(source);
     for (int s = 0; s < pixels.size(); s++) {
       checkCanceled(progress);
       final ImagingScan scan = pixels.get(s);
@@ -415,13 +425,42 @@ public final class IntensityMapSampler {
     return index < 0 ? count : index;
   }
 
+  /**
+   * Mass lists come from mass detection, without them the view would stay empty without a hint.
+   */
+  private static void requireMassLists(@NotNull final List<? extends Scan> scans,
+      @NotNull final IntensityMapDataSource source) {
+    if (source == IntensityMapDataSource.MASS_LIST && !scans.isEmpty() && scans.stream()
+        .noneMatch(scan -> scan.getMassList() != null)) {
+      throw new IllegalArgumentException(
+          "The selected scans have no mass lists. Run mass detection or choose raw data as data source.");
+    }
+  }
+
   private static final class SpectrumBuffers {
 
+    private final IntensityMapDataSource source;
     private double[] mzBuffer = new double[0];
     private double[] intensityBuffer = new double[0];
     private double[] mz = new double[0];
     private double[] intensity = new double[0];
     private int count;
+
+    private SpectrumBuffers(@NotNull final IntensityMapDataSource source) {
+      this.source = source;
+    }
+
+    /**
+     * Reads the spectrum of the data source, no data points if the scan has no mass list.
+     */
+    private void read(@NotNull final Scan scan) {
+      final MassSpectrum spectrum = source.spectrum(scan);
+      if (spectrum == null) {
+        count = 0;
+        return;
+      }
+      read(spectrum);
+    }
 
     private void read(@NotNull final MassSpectrum spectrum) {
       count = spectrum.getNumberOfDataPoints();

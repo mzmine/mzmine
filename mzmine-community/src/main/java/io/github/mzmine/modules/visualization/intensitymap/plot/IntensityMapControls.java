@@ -117,6 +117,9 @@ final class IntensityMapControls {
   private final CheckMenuItem showLabels = new CheckMenuItem("Show labels");
   private final ToggleButton showGrid = FxIconButtonBuilder.ofToggleIconButton("bi-border-all")
       .build();
+  private final ToggleButton showAxes = FxIconButtonBuilder.ofToggleIconButton("bi-graph-up")
+      .build();
+  private final ToggleButton showScaleBar = new ToggleButton(null, IntensityMapIcons.scaleBar());
   private final Button frontButton = new Button();
   private final Button sideButton = new Button();
   private final Tooltip frontTooltip = new Tooltip();
@@ -216,6 +219,12 @@ final class IntensityMapControls {
     FxLayout.bindManagedToVisible(labelSearch);
     showGrid.setSelected(true);
     showGrid.setTooltip(new Tooltip("Show grid lines"));
+    showAxes.setSelected(true);
+    showAxes.setTooltip(new Tooltip("Show axes, ticks, and axis titles"));
+    showScaleBar.getStyleClass().add("icon-button");
+    showScaleBar.setTooltip(new Tooltip("Show a scale bar in the images"));
+    showScaleBar.setVisible(false);
+    FxLayout.bindManagedToVisible(showScaleBar);
     frontButton.setId("intensitymap-view-front");
     sideButton.setId("intensitymap-view-side");
     frontButton.getStyleClass().add("icon-button");
@@ -253,7 +262,7 @@ final class IntensityMapControls {
         actions.saveImage());
     // decision: styling of the view next to saving it, top right
     final HBox style = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 2, labelSearch,
-        plotBackgroundButton(actions), showGrid, labelsButton());
+        plotBackgroundButton(actions), showScaleBar, showAxes, showGrid, labelsButton());
     return FxLayout.newHBox(Pos.CENTER_LEFT, new Insets(4, 8, 4, 8), 8, views, viewModeButton(),
         display, new Separator(Orientation.VERTICAL), noiseControls(), spacer, style,
         new Separator(Orientation.VERTICAL), save, helpLabel());
@@ -395,13 +404,13 @@ final class IntensityMapControls {
     final Tooltip helpTip = new Tooltip(projection.rotatable() ? """
         Drag: rotate · Shift/right-drag or two-finger scroll: pan
         """ + common + """
-        Ctrl/⌘ + drag on the floor: zoom to a box
-        Double-click or R: fit view · T/F/S: top, front, side
+        Ctrl/⌘ + drag on the floor: zoom to a box, side by side on all tiles
+        Double-click or R: fit view and show all data · T/F/S: top, front, side
         Arrow keys: rotate · +/−: zoom""" : """
         Drag, arrow keys, or two-finger scroll: pan
         """ + common + """
-        Ctrl/⌘ + drag: zoom to a box
-        Double-click or R: fit view · +/−: zoom""");
+        Ctrl/⌘ + drag: zoom to a box, side by side on all tiles
+        Double-click or R: fit view and show all data · +/−: zoom""");
     helpTip.setShowDelay(Duration.millis(150));
     help.setTooltip(helpTip);
     return help;
@@ -461,8 +470,8 @@ final class IntensityMapControls {
 
   /**
    * Shows only the display options that apply to the data and view mode: imaging transformations
-   * and normalization for images, a plain log option otherwise, overlay options with several
-   * overlays, and grid options for side by side.
+   * and normalization for images, a plain log option otherwise, the coloring, overlay scaling with
+   * several overlays, and grid options for side by side.
    *
    * @param current       displayed overlays
    * @param several       true for more than one overlay
@@ -472,6 +481,9 @@ final class IntensityMapControls {
       final boolean normalization) {
     final boolean imaging = !current.isEmpty() && current.getFirst().data().pixels();
     updateProfileButtons(current, imaging);
+    // decision: only the fixed top-down camera of the 2D view keeps one scale across the image
+    showScaleBar.setVisible(!projection.rotatable() && !current.isEmpty()
+        && current.getFirst().data().xKind() == IntensityMapAxisKind.LENGTH);
     final IntensityMapLayout mode = layout.get();
     displayGrid.getChildren().clear();
     int row = 0;
@@ -496,8 +508,9 @@ final class IntensityMapControls {
     }
     if (several) {
       displayGrid.addRow(row++, new Label("Overlays"), normalized);
-      displayGrid.addRow(row++, new Label("Color by"), coloring);
     }
+    // decision: also for one overlay, e.g. to show a single image in its overlay color
+    displayGrid.addRow(row++, new Label("Color by"), coloring);
     displayGrid.addRow(row++, new Label("Paint scale"), palettes);
     displayGrid.addRow(row++, new Label("Smoothing"),
         FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, 6, smoothingRadius, smoothingAxes));
@@ -536,7 +549,7 @@ final class IntensityMapControls {
       case MZ -> "spectrum along " + axis;
       case RETENTION_TIME -> "chromatogram along " + axis;
       case MOBILITY -> "mobilogram along " + axis;
-      case OTHER -> "profile along " + axis;
+      case LENGTH, OTHER -> "profile along " + axis;
     };
   }
 
@@ -685,6 +698,14 @@ final class IntensityMapControls {
 
   @NotNull ToggleButton showGrid() {
     return showGrid;
+  }
+
+  @NotNull ToggleButton showAxes() {
+    return showAxes;
+  }
+
+  @NotNull ToggleButton showScaleBar() {
+    return showScaleBar;
   }
 
   /**

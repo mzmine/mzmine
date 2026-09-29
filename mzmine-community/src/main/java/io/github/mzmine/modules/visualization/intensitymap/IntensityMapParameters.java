@@ -44,9 +44,14 @@ public class IntensityMapParameters extends SimpleParameterSet {
       IntensityMapDimensions.AUTOMATIC);
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
+  public static final ComboParameter<IntensityMapDataSource> dataSource = new ComboParameter<>(
+      "Data source",
+      "Raw data points or the mass list of each scan. Auto uses the mass list of a scan if it has one, otherwise its raw data.",
+      FXCollections.observableArrayList(IntensityMapDataSource.values()),
+      IntensityMapDataSource.AUTO);
   public static final MZRangeParameter mzRange = new MZRangeParameter();
 
   public IntensityMapParameters() {
-    super(new Parameter[]{dataFile, mode, scanSelection, mzRange});
+    super(new Parameter[]{dataFile, mode, scanSelection, dataSource, mzRange});
   }
 }

@@ -23,15 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.intensitymap.data;
+package io.github.mzmine.modules.visualization.intensitymap.plot;
 
-/**
- * Physical meaning of a coordinate axis, selects the matching number format.
- */
-public enum IntensityMapAxisKind {
-  RETENTION_TIME, MZ, MOBILITY,
-  /**
-   * Physical distance in µm, e.g. image coordinates with a known pixel size.
-   */
-  LENGTH, OTHER
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+class IntensityMapScaleBarTest {
+
+  @Test
+  void lengthsSwitchToMillimeters() {
+    assertEquals("0.5 µm", IntensityMapScaleBar.format(0.5));
+    assertEquals("500 µm", IntensityMapScaleBar.format(500));
+    assertEquals("1 mm", IntensityMapScaleBar.format(1000));
+    assertEquals("20 mm", IntensityMapScaleBar.format(20000));
+  }
+
+  @Test
+  void barCoversAboutAFifthOfTheImage() {
+    // 2345 µm wide image: a fifth is 469 µm, rounded to 500 µm
+    assertEquals(500, IntensityMapTicks.step(0, 2345, 5));
+  }
 }

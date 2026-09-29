@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Range;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -254,5 +255,40 @@ class IntensityMapGridTest {
     assertEquals(0, alongX.intensity(2, 0));
     assertTrue(alongX.pixels());
     assertTrue(IntensityMapSmoothing.OFF.apply(data, () -> false) == data);
+  }
+
+  @Test
+  void cropKeepsCellsAndTheirExtents() {
+    final IntensityMapGrid data = new IntensityMapGrid(new double[]{1, 2, 3, 4},
+        new double[]{10, 20, 30}, "x", "y", true);
+    data.setPixelSize(1, 10);
+    data.setAxisKinds(IntensityMapAxisKind.LENGTH, IntensityMapAxisKind.LENGTH);
+    data.addMaximum(1, 1, 5);
+    data.addMaximum(3, 2, 7);
+
+    final IntensityMapGrid cropped = data.crop(
+        new IntensityMapRegion(Range.closed(1.8, 3.2), Range.closed(15.0, 30.0)));
+
+    assertEquals(2, cropped.width());
+    assertEquals(2, cropped.height());
+    assertEquals(1.5, cropped.xLow(0));
+    assertEquals(3.5, cropped.xHigh(1));
+    assertEquals(5, cropped.intensity(0, 0));
+    assertFalse(cropped.isPresent(1, 1));
+    assertEquals(5, cropped.maximum());
+    assertEquals(IntensityMapAxisKind.LENGTH, cropped.xKind());
+  }
+
+  @Test
+  void cropOutsideTheDataIsEmpty() {
+    final IntensityMapGrid data = new IntensityMapGrid(3, 3, "x", "y", 0, 2, 0, 2);
+    data.addMaximum(1, 1, 5);
+
+    final IntensityMapGrid cropped = data.crop(
+        new IntensityMapRegion(Range.closed(5.0, 7.0), null));
+
+    assertEquals(1, cropped.width());
+    assertEquals(6, cropped.xValue(0));
+    assertTrue(cropped.isEmpty());
   }
 }

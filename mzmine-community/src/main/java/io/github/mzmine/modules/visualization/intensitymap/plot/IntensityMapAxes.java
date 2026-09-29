@@ -30,6 +30,7 @@ import static io.github.mzmine.modules.visualization.intensitymap.render.Intensi
 import static io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh.WIDTH;
 
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapAxisKind;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapBounds;
 import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapRegion;
 import io.github.mzmine.modules.visualization.intensitymap.render.IntensityMapMesh;
@@ -46,6 +47,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -73,13 +75,20 @@ final class IntensityMapAxes {
   private final Pane labels = new Pane();
   private final Group intensityAxis = new Group();
   private final Group gridLines = new Group();
+  // axis lines and tick marks, the intensity axis included
+  private final Group axisLines = new Group();
   private final List<Anchor> anchors = new ArrayList<>();
   private final Set<Label> sized = Collections.newSetFromMap(new IdentityHashMap<>());
   private final PhongMaterial grid = new PhongMaterial();
   private final PhongMaterial axis = new PhongMaterial();
   private final PhongMaterial floor = new PhongMaterial();
+  private final IntensityMapScaleBar scaleBar = new IntensityMapScaleBar();
   private String textColor = "#334155";
   private boolean intensityVisible = true;
+  // false hides axis lines, ticks, and titles; floor and grid lines stay
+  private boolean axesVisible = true;
+  // shown only for axes of physical lengths
+  private boolean scaleBarVisible;
   // true: floor and grid lie in the data plane for views without depth test, false: below the data
   private boolean coplanar;
   private @Nullable IntensityMapAxesSpec spec;
@@ -100,6 +109,14 @@ final class IntensityMapAxes {
     return geometry;
   }
 
+  /**
+   * @return the scale bar, placed in the coordinates of {@link #labels()} but kept in a layer of
+   * its own, so hiding the labels keeps it
+   */
+  @NotNull Node scaleBar() {
+    return scaleBar.node();
+  }
+
   @NotNull Pane labels() {
     return labels;
   }
@@ -118,6 +135,29 @@ final class IntensityMapAxes {
   }
 
   /**
+   * @param visible false hides the axis lines, tick marks, tick labels, and axis titles, and frees
+   *                the room they take when fitting the camera
+   */
+  /**
+   * @param visible show a scale bar in the lower right corner if both axes are physical lengths;
+   *                only exact for views without perspective foreshortening
+   */
+  void setScaleBarVisible(final boolean visible) {
+    scaleBarVisible = visible;
+    if (!visible) {
+      scaleBar.hide();
+    }
+  }
+
+  void setAxesVisible(final boolean visible) {
+    axesVisible = visible;
+    axisLines.setVisible(visible);
+    if (!visible) {
+      anchors.forEach(anchor -> anchor.label().setVisible(false));
+    }
+  }
+
+  /**
    * @return plot background of the theme, the floor below the data
    */
   static @NotNull Color defaultFloor(final boolean dark) {
@@ -132,8 +172,10 @@ final class IntensityMapAxes {
   void setColors(final boolean dark, @Nullable final Color floorColor) {
     grid.setDiffuseColor(Color.web(dark ? "#3a4452" : "#c5d1df"));
     axis.setDiffuseColor(Color.web(dark ? "#8b98aa" : "#64748b"));
-    floor.setDiffuseColor(floorColor != null ? floorColor : defaultFloor(dark));
+    final Color background = floorColor != null ? floorColor : defaultFloor(dark);
+    floor.setDiffuseColor(background);
     textColor = dark ? "#d5dbe3" : "#334155";
+    scaleBar.setColors(textColor, background);
     for (final Anchor anchor : anchors) {
       style(anchor.label(), anchor.title());
     }
@@ -146,6 +188,8 @@ final class IntensityMapAxes {
 
   private void clearContent() {
     geometry.getChildren().clear();
+    axisLines.getChildren().clear();
+    scaleBar.hide();
     labels.getChildren().clear();
     anchors.clear();
     sized.clear();
@@ -189,7 +233,6 @@ final class IntensityMapAxes {
     final IntensityMapFormat format = spec.format();
     clearContent();
     intensityAxis.getChildren().clear();
-    geometry.getChildren().add(intensityAxis);
     frame = frame(spec);
     final double x0 = frame[0];
     final double x1 = frame[1];
@@ -205,7 +248,8 @@ final class IntensityMapAxes {
     geometry.getChildren().add(plane);
     // the 2D view draws in child order, so grid lines follow the floor
     gridLines.getChildren().clear();
-    geometry.getChildren().add(gridLines);
+    geometry.getChildren().addAll(gridLines, axisLines);
+    axisLines.getChildren().add(intensityAxis);
     line(x1 - x0, 0.8 * t, 0.8 * t, (x0 + x1) / 2, 0, z0, axis);
     line(0.8 * t, 0.8 * t, z1 - z0, x0, 0, (z0 + z1) / 2, axis);
     // the vertical axis stands in the back corner, clear of the y tick labels and the data
@@ -231,13 +275,18 @@ final class IntensityMapAxes {
     }
     final double yMin = IntensityMapPicker.dataY(bounds, z0);
     final double yMax = IntensityMapPicker.dataY(bounds, z1);
-    final double yStep = IntensityMapTicks.step(yMin, yMax, yTicks);
-    for (final double value : IntensityMapTicks.ticks(yMin, yMax, yTicks)) {
-      final double z = IntensityMapMesh.localZ(bounds, value);
-      line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, gridY, z, grid);
-      line(5 * t, 0.7 * t, 0.7 * t, x0 - 2.5 * t, 0, z, axis);
-      tick(format.value(value, spec.yKind(), yStep), new Point3D(x0, 0, z),
-          new Point3D(x0 - 22 * t, 4 * t, z), Axis.Y);
+    final IntensityMapLanes lanes = spec.lanes();
+    if (lanes != null) {
+      laneTicks(lanes, bounds, format, yMin, yMax, x0, x1, gridY, t);
+    } else {
+      final double yStep = IntensityMapTicks.step(yMin, yMax, yTicks);
+      for (final double value : IntensityMapTicks.ticks(yMin, yMax, yTicks)) {
+        final double z = IntensityMapMesh.localZ(bounds, value);
+        line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, gridY, z, grid);
+        line(5 * t, 0.7 * t, 0.7 * t, x0 - 2.5 * t, 0, z, axis);
+        tick(format.value(value, spec.yKind(), yStep), new Point3D(x0, 0, z),
+            new Point3D(x0 - 22 * t, 4 * t, z), Axis.Y);
+      }
     }
     final double maximum = spec.intensityMaximum();
     if (maximum > 0) {
@@ -261,14 +310,45 @@ final class IntensityMapAxes {
     setIntensityVisible(intensityVisible);
   }
 
+  /**
+   * Broken m/z axis: one tick with the center m/z per lane and grid lines at the lane edges.
+   *
+   * @param yMin lower end of the framed lane coordinates
+   * @param yMax upper end of the framed lane coordinates
+   */
+  private void laneTicks(@NotNull final IntensityMapLanes lanes,
+      @NotNull final IntensityMapBounds bounds, @NotNull final IntensityMapFormat format,
+      final double yMin, final double yMax, final double x0, final double x1, final double gridY,
+      final double t) {
+    for (int i = 0; i < lanes.lanes().size(); i++) {
+      for (final double edge : new double[]{i, i + IntensityMapLanes.HEIGHT}) {
+        if (edge >= yMin && edge <= yMax) {
+          line(x1 - x0, 0.45 * t, 0.45 * t, (x0 + x1) / 2, gridY,
+              IntensityMapMesh.localZ(bounds, edge), grid);
+        }
+      }
+      final double center = i + IntensityMapLanes.HEIGHT / 2;
+      if (center < yMin || center > yMax) {
+        continue;
+      }
+      final double z = IntensityMapMesh.localZ(bounds, center);
+      line(5 * t, 0.7 * t, 0.7 * t, x0 - 2.5 * t, 0, z, axis);
+      tick(format.value(lanes.lanes().get(i).center(), IntensityMapAxisKind.MZ),
+          new Point3D(x0, 0, z), new Point3D(x0 - 22 * t, 4 * t, z), Axis.Y);
+    }
+  }
+
   private void intensityLine(final double width, final double height, final double depth,
       final double x, final double y, final double z) {
     line(width, height, depth, x, y, z, axis);
-    final var node = geometry.getChildren().removeLast();
+    final var node = axisLines.getChildren().removeLast();
     intensityAxis.getChildren().add(node);
   }
 
   @NotNull List<Point3D> fittingPoints() {
+    if (!axesVisible) {
+      return List.of();
+    }
     return anchors.stream()
         .filter(anchor -> anchor.axis() != Axis.INTENSITY || intensityAxis.isVisible())
         .map(Anchor::fit).toList();
@@ -286,7 +366,7 @@ final class IntensityMapAxes {
     line.setTranslateY(y);
     line.setTranslateZ(z);
     line.setMaterial(material);
-    (material == grid ? gridLines : geometry).getChildren().add(line);
+    (material == grid ? gridLines : axisLines).getChildren().add(line);
   }
 
   private void label(@NotNull final String text, final double x, final double y, final double z,
@@ -308,6 +388,7 @@ final class IntensityMapAxes {
       @NotNull final Point3D fit, @NotNull final Axis axis, final boolean title) {
     final Label label = new Label(text);
     label.setManaged(false);
+    label.setVisible(axesVisible);
     style(label, title);
     labels.getChildren().add(label);
     anchors.add(new Anchor(label, position, fit, axis, title));
@@ -347,7 +428,7 @@ final class IntensityMapAxes {
         new Point3D(x0, -HEIGHT, z1), inside);
     for (final Anchor anchor : anchors) {
       final Label label = anchor.label();
-      final boolean visible = switch (anchor.axis()) {
+      final boolean visible = axesVisible && switch (anchor.axis()) {
         case X -> xReadable;
         case Y -> yReadable;
         case INTENSITY -> intensityReadable;
@@ -385,6 +466,32 @@ final class IntensityMapAxes {
     }
     placeTitle(Axis.X, new Point3D((x0 + x1) / 2, 0, z0), xNormal);
     placeTitle(Axis.Y, new Point3D(x0, 0, (z0 + z1) / 2), yNormal);
+    placeScaleBar();
+  }
+
+  /**
+   * Places the scale bar inside the framed part of the data, the visible part of the image.
+   */
+  private void placeScaleBar() {
+    final IntensityMapAxesSpec current = spec;
+    if (!scaleBarVisible || current == null || current.xKind() != IntensityMapAxisKind.LENGTH) {
+      scaleBar.hide();
+      return;
+    }
+    final Point2D lowerLeft = screen(new Point3D(frame[0], 0, frame[2]));
+    final Point2D lowerRight = screen(new Point3D(frame[1], 0, frame[2]));
+    final Point2D upperLeft = screen(new Point3D(frame[0], 0, frame[3]));
+    final Point2D upperRight = screen(new Point3D(frame[1], 0, frame[3]));
+    if (lowerLeft == null || lowerRight == null || upperLeft == null || upperRight == null) {
+      scaleBar.hide();
+      return;
+    }
+    final Bounds image = IntensityMapScreenGeometry.bounds(
+        List.of(lowerLeft, lowerRight, upperLeft, upperRight));
+    final double length =
+        IntensityMapPicker.dataX(current.bounds(), frame[1]) - IntensityMapPicker.dataX(
+            current.bounds(), frame[0]);
+    scaleBar.place(image, lowerLeft.distance(lowerRight), length);
   }
 
   /**

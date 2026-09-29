@@ -25,14 +25,15 @@
 
 package io.github.mzmine.modules.visualization.intensitymap.plot;
 
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Small toolbar icons for profile views that the icon font does not provide. Colors follow the
- * theme text color.
+ * Small toolbar icons that the icon font does not provide. Colors follow the theme text color.
  */
 final class IntensityMapIcons {
 
@@ -59,5 +60,21 @@ final class IntensityMapIcons {
         + " M8.3 15.5 V11 H9.7 V15.5 Z M11.3 15.5 V6 H12.7 V15.5 Z");
     path.setStyle("-fx-fill: -fx-text-base-color;");
     return path;
+  }
+
+  /**
+   * @return a map style scale bar with its unit above, as it is drawn into images
+   */
+  static @NotNull Node scaleBar() {
+    final SVGPath bar = new SVGPath();
+    bar.setContent("M1.5 11 V16 H16.5 V11");
+    bar.setStyle("-fx-fill: transparent; -fx-stroke: -fx-text-base-color; -fx-stroke-width: 1.7;");
+    final Text unit = new Text(3.4, 8.6, "µm");
+    unit.setStyle("-fx-fill: -fx-text-base-color; -fx-font-size: 9.5; -fx-font-weight: bold;");
+    // an invisible square keeps the icon as large as the icon font glyphs
+    final SVGPath square = new SVGPath();
+    square.setContent("M0 0 H18 V18 H0 Z");
+    square.setStyle("-fx-fill: transparent;");
+    return new Group(square, bar, unit);
   }
 }
