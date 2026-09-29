@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
@@ -74,6 +75,14 @@ public final class OptimizationParameterRegistry {
   static final WizardParameterDefinition<Boolean> RT_CORRECTION = new WizardParameterDefinition<>(
       "RT correction", WizardPart.ION_INTERFACE, IonInterfaceHplcWizardParameters.scanRtCorrection,
       ParameterEstimators::rtCorrection);
+
+  /**
+   * decision: estimate only. Not part of {@link #allSolutions()}, so the optimizer never offers it,
+   * but prepared and applied for the sequence like every other estimate.
+   */
+  static final WizardParameterDefinition<Range<Double>> CROP_RT = new WizardParameterDefinition<>(
+      "Crop retention time", WizardPart.ION_INTERFACE, IonInterfaceHplcWizardParameters.cropRtRange,
+      ParameterEstimators::cropRtRange);
 
   static final WizardParameterDefinition<Double> MOBILITY_FWHM = new WizardParameterDefinition<>(
       "FWHM (mobility)", WizardPart.IMS, IonMobilityWizardParameters.approximateImsFWHM,
@@ -126,11 +135,15 @@ public final class OptimizationParameterRegistry {
     }
     if (factory instanceof IonInterfaceWizardParameterFactory ionInterface) {
       return switch (ionInterface) {
-        case HPLC, UHPLC, HILIC, GC_CI ->
+        case HPLC, UHPLC, HILIC ->
+            List.of(FWHM, MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION, TOP_TO_EDGE,
+                CHROMATOGRAPHIC_THRESHOLD, CROP_RT);
+        // assumption: the run phase detection targets LC (solvent gradient, salts), not GC
+        case GC_CI ->
             List.of(FWHM, MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION, TOP_TO_EDGE,
                 CHROMATOGRAPHIC_THRESHOLD);
         case LC_WAVELET -> java.util.stream.Stream.concat(
-                List.of(MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION).stream(),
+                List.of(MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT, RT_CORRECTION, CROP_RT).stream(),
                 WAVELET.stream())
             .toList();
         case GC_EI -> List.of(FWHM, MINIMUM_CONSECUTIVE_SCANS, INTER_SAMPLE_RT);

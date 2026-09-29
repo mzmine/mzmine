@@ -124,6 +124,16 @@ record RunPhases(double flowOn, double flowOff, double voidTime, double washStar
   /**
    * @return the retention time range in minutes that contains the separation
    */
+  /**
+   * @return true if the start or the end is based on a detected event, false if both are only the
+   * fallbacks (0 and the end of flow or of the run)
+   */
+  boolean hasDetection() {
+    final boolean start =
+        !Double.isNaN(flowOn) || !Double.isNaN(voidTime) || !Double.isNaN(earlySaltEnd);
+    return start || endSource() != RunPhaseEndSource.FLOW;
+  }
+
   @NotNull SimpleFloatRange effectiveRtRange() {
     final float start = (float) effectiveStart();
     return new SimpleFloatRange(start, Math.max(start, (float) effectiveEnd()));

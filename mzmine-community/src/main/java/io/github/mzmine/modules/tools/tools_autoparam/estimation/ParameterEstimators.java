@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
@@ -32,6 +34,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
+import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.InterSampleRtStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.RawDataParameterEstimation;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.ChoiceSearchDomain;
@@ -48,6 +51,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +60,9 @@ import org.jetbrains.annotations.Nullable;
  * Per-parameter rules return a typed initial value and its search domain together.
  */
 public final class ParameterEstimators {
+
+  // the median of the effective RT ranges is used if at least half of the files have one
+  private static final double MIN_FILE_SHARE_FOR_CROP_RT = 0.5;
 
   private ParameterEstimators() {
   }
@@ -174,6 +181,45 @@ public final class ParameterEstimators {
         0.5d * RawDataParameterEstimation.estimateFwhm(widths));
     return new ParameterEstimate<>(medians[medians.length - 1] > threshold, ValueOrigin.RAW_DATA,
         domain);
+  }
+
+  /**
+   * Median start and median end of the effective retention time ranges of the files (without dead
+   * volume, calibrant plugs and re-equilibration). If fewer than half of the files have an
+   * effective range, the union of the MS1 retention time ranges of the files.
+   * <p>
+   * decision: estimate only, the single choice domain keeps the optimizer from changing it.
+   * decision: the estimate always replaces the wizard preset (0.3 or 0.5 min start), the preset is
+   * only kept without any file.
+   */
+  public static @NotNull ParameterEstimate<Range<Double>> cropRtRange(
+      @NotNull ParameterEstimationContext context) {
+    final List<DataFileStatistics> files = context.analysis().files();
+    final List<SimpleFloatRange> ranges = files.stream().map(DataFileStatistics::effectiveRtRange)
+        .filter(Objects::nonNull).toList();
+
+    final Range<Double> range;
+    if (!ranges.isEmpty() && ranges.size() >= MIN_FILE_SHARE_FOR_CROP_RT * files.size()) {
+      final double start = MathUtils.calcMedian(
+          ranges.stream().mapToDouble(SimpleFloatRange::lower).toArray());
+      final double end = MathUtils.calcMedian(
+          ranges.stream().mapToDouble(SimpleFloatRange::upper).toArray());
+      range = Range.closed(start, Math.max(start, end));
+    } else {
+      range = files.stream().map(DataFileStatistics::file).filter(Objects::nonNull)
+          .map(file -> file.getDataRTRange(1)).map(
+              rt -> Range.closed(rt.lowerEndpoint().doubleValue(),
+                  rt.upperEndpoint().doubleValue())).reduce(Range::span).orElse(null);
+    }
+
+    if (range == null) {
+      final Range<Double> preset = context.preset(WizardPart.ION_INTERFACE,
+          IonInterfaceHplcWizardParameters.cropRtRange);
+      return new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
+          new ChoiceSearchDomain<>(List.of(preset)));
+    }
+    return new ParameterEstimate<>(range, ValueOrigin.RAW_DATA,
+        new ChoiceSearchDomain<>(List.of(range)));
   }
 
   public static @NotNull ParameterEstimate<Double> mobilityFwhm(

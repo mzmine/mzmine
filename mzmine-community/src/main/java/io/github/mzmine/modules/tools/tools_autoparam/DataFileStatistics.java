@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @param effectiveRtRange retention time range of the run that contains the separation, without
  *                         dead volume, calibrant plugs and re-equilibration, in minutes. Null if
- *                         the file has too few MS1 scans
+ *                         the file has too few MS1 scans or no run phase was detected
  */
 public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics,
                                  @Nullable SimpleFloatRange effectiveRtRange) {

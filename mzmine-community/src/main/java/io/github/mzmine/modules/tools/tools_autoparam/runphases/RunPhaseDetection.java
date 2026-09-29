@@ -55,6 +55,11 @@ public final class RunPhaseDetection {
   private static final double HOLD_MINUTES = 0.2;
   // no flow / divert valve: background ions are ~5x below their median
   private static final double NO_FLOW_LEVEL = -0.7;
+  // the TIC has to jump by at least 3x at the flow on to refine the S based time
+  private static final double MIN_FLOW_ON_TIC_STEP = 0.5;
+  // flow on is the first scan above the no-flow TIC noise, in log10
+  private static final double FLOW_ON_NOISE_FACTOR = 5;
+  private static final double MIN_FLOW_ON_RISE = 0.2;
   // decision: small dips of the background ions also come from co-eluting matrix (lipids, salts
   // in HILIC). Only a near disappearance (>3x drop) is treated as the void.
   private static final double MIN_VOID_DROP = 0.5;
@@ -76,13 +81,16 @@ public final class RunPhaseDetection {
    * @param file     the raw data file, used for the pump traces
    * @param ms1Scans the MS1 scans, with mass lists if available
    * @return the retention time range in minutes that contains the separation, null if there are too
-   * few MS1 scans
+   * few MS1 scans or neither the start nor the end is based on a detected event
    */
   public static @Nullable SimpleFloatRange detect(@NotNull RawDataFile file,
       @NotNull List<? extends Scan> ms1Scans) {
     final RunPhaseAnalysis analysis = analyze(file, ms1Scans);
-    // too few MS1 scans to detect anything
-    return analysis.traces() == null ? null : analysis.phases().effectiveRtRange();
+    // decision: no range from fallbacks only, callers decide how to handle undetected files
+    if (analysis.traces() == null || !analysis.phases().hasDetection()) {
+      return null;
+    }
+    return analysis.phases().effectiveRtRange();
   }
 
   /**
@@ -144,7 +152,7 @@ public final class RunPhaseDetection {
         pressure.hasReequilibration() ? pressure.reequilibration() : solvent.reequilibration();
 
     // salt events and G are only searched after the pump result
-    final MsPhases ms = msPhases(rt, background.suppression(), background.gradient(),
+    final MsPhases ms = msPhases(rt, background.suppression(), background.gradient(), logTic,
         scansPerMinute, pumpBound);
     final SaltEvents saltEvents = SaltClusters.events(rt, salt, logTic, pumpBound);
 
@@ -161,10 +169,12 @@ public final class RunPhaseDetection {
    *
    * @param s                    S, smoothed
    * @param g                    G, smoothed
+   * @param logTic               log10 TIC, not smoothed, refines the flow on time
    * @param minReequilibrationRt re-equilibration is only searched after this, NaN for no limit
    */
   static @NotNull MsPhases msPhases(double @NotNull [] rt, double @NotNull [] s,
-      double @NotNull [] g, double scansPerMinute, double minReequilibrationRt) {
+      double @NotNull [] g, double @NotNull [] logTic, double scansPerMinute,
+      double minReequilibrationRt) {
     final int n = rt.length;
     final int lag = Math.max(2, (int) (scansPerMinute * STEP_LAG_MINUTES));
     final int hold = Math.max(3, (int) (scansPerMinute * HOLD_MINUTES));
@@ -179,7 +189,7 @@ public final class RunPhaseDetection {
     }
     final double span = b - a;
     // flow on is only set if there is a no-flow segment at the start
-    final double flowOn = a > 0 ? rt[a] : Double.NaN;
+    final double flowOn = a > 0 ? rt[flowOnScan(logTic, a, hold)] : Double.NaN;
 
     // void: strongest step down of the background ions early in the run = ion suppression
     double voidTime = Double.NaN;
@@ -257,6 +267,40 @@ public final class RunPhaseDetection {
       wash = rt[i];
     }
     return new MsPhases(flowOn, rt[b], voidTime, wash, reequilibration);
+  }
+
+  /**
+   * The background ions ramp up slowly after the flow starts and are smoothed, so S detects the
+   * flow on late. The TIC jumps right at the switch.
+   *
+   * @param sFlowOn scan where S shows flow
+   * @return the first scan of the TIC step that clearly leaves the no-flow level, sFlowOn if there
+   * is no clear TIC step
+   */
+  private static int flowOnScan(double @NotNull [] logTic, int sFlowOn, int hold) {
+    final double[] noFlow = Arrays.copyOfRange(logTic, 0, Math.max(1, sFlowOn - hold));
+    final double before = TraceMath.median(noFlow);
+    final double after = TraceMath.median(
+        Arrays.copyOfRange(logTic, sFlowOn, Math.min(logTic.length, sFlowOn + hold)));
+    if (!(after - before > MIN_FLOW_ON_TIC_STEP)) {
+      return sFlowOn;
+    }
+    // decision: walk back from the S result, a spike during the no-flow segment is not the step.
+    // First to the middle of the step, which is certainly part of it
+    final double middle = (before + after) / 2;
+    int i = sFlowOn;
+    while (i > 0 && logTic[i - 1] > middle) {
+      i--;
+    }
+    // then to the first scan that clearly leaves the no-flow level: above its noise (5x MAD),
+    // at least 0.2 log (~1.6x) for very flat baselines
+    final double mad = TraceMath.median(
+        Arrays.stream(noFlow).map(v -> Math.abs(v - before)).toArray());
+    final double threshold = before + Math.max(FLOW_ON_NOISE_FACTOR * mad, MIN_FLOW_ON_RISE);
+    while (i > 0 && logTic[i - 1] > threshold) {
+      i--;
+    }
+    return i;
   }
 
   private static boolean allAbove(double @NotNull [] values, int from, int to, double threshold) {

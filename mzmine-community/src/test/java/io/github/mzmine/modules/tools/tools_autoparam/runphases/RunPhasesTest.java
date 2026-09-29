@@ -109,6 +109,18 @@ class RunPhasesTest {
   }
 
   @Test
+  void fallbacksOnlyAreNoDetection() {
+    Assertions.assertFalse(
+        phases(NaN, 16, NaN, NaN, NaN, NaN, GradientEnd.NONE, GradientEnd.NONE).hasDetection());
+    // start only
+    Assertions.assertTrue(
+        phases(NaN, 16, 0.4, NaN, NaN, NaN, GradientEnd.NONE, GradientEnd.NONE).hasDetection());
+    // end only
+    Assertions.assertTrue(phases(NaN, 16, NaN, NaN, NaN, NaN, GradientEnd.NONE,
+        new GradientEnd(NaN, 10)).hasDetection());
+  }
+
+  @Test
   void effectiveRangeIsNeverInverted() {
     final RunPhases p = phases(NaN, 0.5, 1.0, NaN, NaN, NaN, GradientEnd.NONE, GradientEnd.NONE);
     Assertions.assertEquals(1.0f, p.effectiveRtRange().lower(), 1e-6f);

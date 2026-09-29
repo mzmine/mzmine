@@ -37,6 +37,7 @@ class RunPhaseDetectionTest {
   // 100 scans per minute over 10 min
   private static final double SCANS_PER_MINUTE = 100;
   private static final int N = 1001;
+  private static final double NaN = Double.NaN;
 
   private static double @NotNull [] rt() {
     final double[] rt = new double[N];
@@ -70,9 +71,22 @@ class RunPhaseDetectionTest {
     return g;
   }
 
+  /**
+   * log TIC, 5 before and 8 after the step, flat 8 without a step
+   *
+   * @param step time of the TIC step, NaN for no step
+   */
+  private static double @NotNull [] tic(double step) {
+    final double[] tic = new double[N];
+    for (int i = 0; i < N; i++) {
+      tic[i] = !Double.isNaN(step) && i / SCANS_PER_MINUTE < step ? 5 : 8;
+    }
+    return tic;
+  }
+
   @Test
   void flowOnVoidWashAndReequilibration() {
-    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(),
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(), tic(NaN),
         SCANS_PER_MINUTE, Double.NaN);
     Assertions.assertEquals(0.5, p.flowOn(), 0.01);
     Assertions.assertEquals(10, p.flowOff(), 0.01);
@@ -83,8 +97,30 @@ class RunPhaseDetectionTest {
   }
 
   @Test
+  void flowOnIsRefinedByTheTicStep() {
+    // background ions ramp up late, the TIC jumps at the valve switch
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(), tic(0.4),
+        SCANS_PER_MINUTE, Double.NaN);
+    Assertions.assertEquals(0.4, p.flowOn(), 0.011);
+  }
+
+  @Test
+  void flowOnIsTheFirstScanClearlyAboveTheNoFlowLevel() {
+    // TIC ramps from 5 to 8 within 0.4-0.45 min, the middle of the step is only reached at 0.43
+    final double[] tic = tic(0.4);
+    for (int i = 40; i < 45; i++) {
+      tic[i] = 5 + 3 * (i - 40) / 5d;
+    }
+    // a single spike during the no-flow segment is not the switch
+    tic[10] = 8;
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(), tic,
+        SCANS_PER_MINUTE, Double.NaN);
+    Assertions.assertEquals(0.41, p.flowOn(), 0.001);
+  }
+
+  @Test
   void noFlowOnWithoutNoFlowSegment() {
-    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(false), gradient(),
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(false), gradient(), tic(NaN),
         SCANS_PER_MINUTE, Double.NaN);
     Assertions.assertTrue(Double.isNaN(p.flowOn()));
   }
@@ -96,14 +132,14 @@ class RunPhaseDetectionTest {
       // co-eluting matrix, less than 3x
       s[i] = i >= 100 && i < 120 ? -0.3 : 0;
     }
-    final MsPhases p = RunPhaseDetection.msPhases(rt(), s, gradient(), SCANS_PER_MINUTE,
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), s, gradient(), tic(NaN), SCANS_PER_MINUTE,
         Double.NaN);
     Assertions.assertTrue(Double.isNaN(p.voidTime()));
   }
 
   @Test
   void reequilibrationIsOnlySearchedAfterThePumpBound() {
-    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(),
+    final MsPhases p = RunPhaseDetection.msPhases(rt(), suppression(true), gradient(), tic(NaN),
         SCANS_PER_MINUTE, 9.0);
     Assertions.assertTrue(Double.isNaN(p.reequilibration()));
   }
