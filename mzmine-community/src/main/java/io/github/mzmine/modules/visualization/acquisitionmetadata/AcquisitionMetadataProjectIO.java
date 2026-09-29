@@ -29,7 +29,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Saves importer-retained acquisition declarations alongside the native raw-file import descriptor.
+ * Saves acquisition declarations and native table edits alongside the raw-file import descriptor.
  *
  * <p>Records are joined only by the raw-import source path and mzmine project file name. A project
  * loader supplies the resolved path map for embedded files, so the temporary extraction directory
@@ -83,7 +83,8 @@ public final class AcquisitionMetadataProjectIO {
         if (++saved > MAX_FILES) {
           throw new IOException("Too many acquisition metadata records.");
         }
-        if (metadata.terms().size() + metadata.localFields().size() > MAX_FIELDS_PER_FILE) {
+        if (metadata.terms().size() + metadata.localFields().size() + metadata.editedValues().size()
+            > MAX_FIELDS_PER_FILE) {
           throw new IOException("Too many acquisition metadata fields.");
         }
         xml.writeStartElement("raw-file");
@@ -97,6 +98,11 @@ public final class AcquisitionMetadataProjectIO {
         }
         for (final var field : metadata.localFields().entrySet()) {
           xml.writeEmptyElement("header-field");
+          xml.writeAttribute("name", encode(field.getKey()));
+          xml.writeAttribute("value", encode(field.getValue()));
+        }
+        for (final var field : metadata.editedValues().entrySet()) {
+          xml.writeEmptyElement("edited-field");
           xml.writeAttribute("name", encode(field.getKey()));
           xml.writeAttribute("value", encode(field.getValue()));
         }
@@ -176,7 +182,7 @@ public final class AcquisitionMetadataProjectIO {
         final String resolvedSource = resolvedRawSources.getOrDefault(record.source(), record.source());
         final RawDataFile file = files.get(new RawFileIdentity(resolvedSource, record.name()));
         if (file != null) {
-          file.setAcquisitionMetadata(new AcquisitionMetadata(record.terms(), record.fields()));
+          file.setAcquisitionMetadata(new AcquisitionMetadata(record.terms(), record.fields(), record.editedValues()));
         }
       }
       return true;
@@ -191,6 +197,7 @@ public final class AcquisitionMetadataProjectIO {
     final String name = decode(requiredAttribute(xml, "name"));
     final List<Term> terms = new java.util.ArrayList<>();
     final Map<String, String> fields = new LinkedHashMap<>();
+    final Map<String, String> editedValues = new LinkedHashMap<>();
     int fieldsRead = 0;
     while (xml.hasNext()) {
       final int event = xml.next();
@@ -212,13 +219,22 @@ public final class AcquisitionMetadataProjectIO {
               throw new IOException("Duplicate acquisition metadata header field.");
             }
           }
+          case "edited-field" -> {
+            if (++fieldsRead > MAX_FIELDS_PER_FILE) {
+              throw new IOException("Too many acquisition metadata fields.");
+            }
+            final String fieldName = decode(requiredAttribute(xml, "name"));
+            if (editedValues.putIfAbsent(fieldName, decode(requiredAttribute(xml, "value"))) != null) {
+              throw new IOException("Duplicate edited acquisition metadata field.");
+            }
+          }
           default -> throw new IOException("Unexpected acquisition metadata element.");
         }
       } else if (event == XMLStreamConstants.END_ELEMENT && "raw-file".equals(xml.getLocalName())) {
         break;
       }
     }
-    return new RawFileRecord(savedSource, name, terms, fields);
+    return new RawFileRecord(savedSource, name, terms, fields, editedValues);
   }
 
   private static @NotNull Map<RawFileIdentity, RawDataFile> filesByAbsolutePath() throws IOException {
@@ -281,7 +297,8 @@ public final class AcquisitionMetadataProjectIO {
   }
 
   private record RawFileRecord(@NotNull String source, @NotNull String name, @NotNull List<Term> terms,
-                               @NotNull Map<String, String> fields) {
+                               @NotNull Map<String, String> fields,
+                               @NotNull Map<String, String> editedValues) {
     private @NotNull RawFileIdentity identity() {
       return new RawFileIdentity(source, name);
     }
