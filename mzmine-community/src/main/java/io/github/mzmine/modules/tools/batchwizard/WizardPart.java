@@ -58,6 +58,13 @@ public enum WizardPart {
     };
   }
 
+  public String caption() {
+    return switch (this) {
+      case ION_INTERFACE -> "Sample introduction";
+      default -> this.toString();
+    };
+  }
+
   /**
    * 1 String for parts with only one preset. Parts with more presets are managed by an
    * {@link Enum}
