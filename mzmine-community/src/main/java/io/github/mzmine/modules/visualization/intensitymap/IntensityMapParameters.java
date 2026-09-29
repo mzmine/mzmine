@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.intensitymap;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import javafx.collections.FXCollections;
+import org.jetbrains.annotations.NotNull;
 
 public class IntensityMapParameters extends SimpleParameterSet {
 
@@ -53,5 +55,11 @@ public class IntensityMapParameters extends SimpleParameterSet {
 
   public IntensityMapParameters() {
     super(new Parameter[]{dataFile, mode, scanSelection, dataSource, mzRange});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    // mobility frames are shown in m/z and mobility
+    return IonMobilitySupport.SUPPORTED;
   }
 }
