@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
@@ -46,6 +47,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.Extract
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
+import io.github.mzmine.modules.tools.tools_autoparam.runphases.RunPhaseDetection;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -240,6 +242,9 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     final ScanSelection scanSelection = new ScanSelection(1);
     final List<Scan> scans = scanSelection.getMatchingScans(file.getScans());
     applyZeroIntensityMassDetection(scans);
+    // needs only the MS1 mass lists, cheap compared to the isotope trace extraction below
+    final SimpleFloatRange effectiveRtRange = RunPhaseDetection.detect(file, scans);
+    logger.finest("Effective RT range of %s: %s".formatted(file.getName(), effectiveRtRange));
 
     final double[] basePeakMzs = Arrays.stream(getMainPeakMzs(scans, additionalFeatures)).sorted()
         .toArray();
@@ -281,7 +286,7 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     final List<FeatureStatistics> featureStats = mzsToIsotopeTraces.double2ObjectEntrySet().stream()
         .map(e -> new FeatureStatistics(e.getValue()))
         .sorted(Comparator.comparingDouble(FeatureStatistics::getMz)).toList();
-    dataFileStats = new DataFileStatistics(file, featureStats);
+    dataFileStats = new DataFileStatistics(file, featureStats, effectiveRtRange);
 
     final String tolStr = "mz\tabs\trel\n" + Arrays.stream(dataFileStats.getBestTolerances()).map(
         pair -> "%.4f\t%.4f\t%.1f".formatted(pair.mz(), pair.tolerance().getMzTolerance(),

@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -34,8 +35,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics) {
+/**
+ * @param effectiveRtRange retention time range of the run that contains the separation, without
+ *                         dead volume, calibrant plugs and re-equilibration, in minutes. Null if
+ *                         the file has too few MS1 scans
+ */
+public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics,
+                                 @Nullable SimpleFloatRange effectiveRtRange) {
 
   public double[] getEdgeIntensities() {
     return featureStatistics.stream()
