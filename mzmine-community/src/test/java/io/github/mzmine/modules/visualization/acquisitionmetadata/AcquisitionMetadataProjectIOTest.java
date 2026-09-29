@@ -39,13 +39,15 @@ class AcquisitionMetadataProjectIOTest {
   }
 
   @Test
-  void persistsFileHeaderDeclarationsSeparatelyFromStudyMetadata() throws Exception {
+  void persistsDeclarationsAndCellEditsSeparatelyFromSampleMetadata() throws Exception {
     final MZmineProjectImpl project = new MZmineProjectImpl();
     ProjectService.getProjectManager().setCurrentProject(project);
     final RawDataFileImpl file = new RawDataFileImpl("sample.mzML", "/data/sample.mzML", null);
     file.setAcquisitionMetadata(new AcquisitionMetadata(List.of(
         new Term(Field.INSTRUMENT_MODEL, "MS:1001911", "Q Exactive")),
-        Map.of("MethodName", "batch-7", "InstrumentName", "QE")));
+        Map.of("MethodName", "batch-7", "InstrumentName", "QE"))
+        .withValue("Imported: MethodName", "corrected method")
+        .withValue("Acquisition: instrument model", ""));
     project.addFile(file);
 
     final Path archive = tempDir.resolve("acquisition-roundtrip.mzmine");
@@ -60,6 +62,8 @@ class AcquisitionMetadataProjectIOTest {
 
     assertEquals("Q Exactive", file.getAcquisitionMetadata().terms().getFirst().label());
     assertEquals("batch-7", file.getAcquisitionMetadata().localFields().get("MethodName"));
+    assertEquals("corrected method", AcquisitionMetadataTab.values(file).get("Imported: MethodName"));
+    assertEquals("", AcquisitionMetadataTab.values(file).get("Acquisition: instrument model"));
     assertTrue(project.getProjectMetadata().getColumns().stream()
         .noneMatch(column -> column.getTitle().equals("MethodName")));
   }
@@ -90,6 +94,8 @@ class AcquisitionMetadataProjectIOTest {
     final MZmineProjectImpl savedProject = new MZmineProjectImpl();
     ProjectService.getProjectManager().setCurrentProject(savedProject);
     final RawDataFileImpl saved = raw("sample.mzML", "/source/sample.mzML", "Q Exactive");
+    saved.setAcquisitionMetadata(saved.getAcquisitionMetadata()
+        .withValue("Measured: scan count", "42"));
     savedProject.addFile(saved);
     final Path archive = tempDir.resolve("portable.mzmine");
     try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
@@ -105,6 +111,7 @@ class AcquisitionMetadataProjectIOTest {
           Map.of("$$msdatafiles/sample.mzML$$", "/temporary/sample.mzML"));
     }
     assertEquals("Q Exactive", extracted.getAcquisitionMetadata().terms().getFirst().label());
+    assertEquals("42", AcquisitionMetadataTab.values(extracted).get("Measured: scan count"));
   }
 
   @Test
@@ -157,6 +164,25 @@ class AcquisitionMetadataProjectIOTest {
       assertThrows(java.io.IOException.class, () -> AcquisitionMetadataProjectIO.loadFromZip(zip));
     }
     assertEquals(AcquisitionMetadata.EMPTY, other.getAcquisitionMetadata());
+  }
+
+  @Test
+  void persistsEditsForFilesWithoutHeaderDeclarations() throws Exception {
+    final MZmineProjectImpl project = new MZmineProjectImpl();
+    ProjectService.getProjectManager().setCurrentProject(project);
+    final RawDataFileImpl file = new RawDataFileImpl("unknown.mzML", "/data/unknown.mzML", null);
+    file.setAcquisitionMetadata(AcquisitionMetadata.EMPTY.withValue("Acquisition: analyzer", "TOF"));
+    project.addFile(file);
+    final Path archive = tempDir.resolve("edited-only.mzmine");
+    try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
+      assertTrue(AcquisitionMetadataProjectIO.saveToZip(output));
+    }
+    file.setAcquisitionMetadata(AcquisitionMetadata.EMPTY);
+    try (ZipFile zip = new ZipFile(archive.toFile())) {
+      assertTrue(AcquisitionMetadataProjectIO.loadFromZip(zip));
+    }
+    assertEquals("TOF", AcquisitionMetadataTab.values(file).get("Acquisition: analyzer"));
+    assertTrue(file.getAcquisitionMetadata().terms().isEmpty());
   }
 
   @Test

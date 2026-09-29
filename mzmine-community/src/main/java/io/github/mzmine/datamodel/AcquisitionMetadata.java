@@ -16,13 +16,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Instrument and acquisition declarations read from a raw data file.
+ * Instrument and acquisition declarations read from a raw data file, with native table edits.
  *
  * <p>This is deliberately separate from the editable sample metadata table. Only terms from the
  * bundled PSI-MS allowlist are controlled terms; all other file header values remain local fields.
  */
 public record AcquisitionMetadata(@NotNull List<Term> terms,
-                                  @NotNull Map<String, String> localFields) {
+                                  @NotNull Map<String, String> localFields,
+                                  @NotNull Map<String, String> editedValues) {
 
   private static final Map<String, List<Term>> VOCABULARY = loadVocabulary();
   public static final AcquisitionMetadata EMPTY = new AcquisitionMetadata(List.of(), Map.of());
@@ -34,6 +35,20 @@ public record AcquisitionMetadata(@NotNull List<Term> terms,
             original -> original.field() == term.field()))
         .distinct().toList();
     localFields = Map.copyOf(localFields);
+    editedValues = Map.copyOf(editedValues);
+  }
+
+  public AcquisitionMetadata(final @NotNull List<Term> terms,
+      final @NotNull Map<String, String> localFields) {
+    this(terms, localFields, Map.of());
+  }
+
+  /** Store a native table edit without rewriting imported declarations or raw scans. */
+  public @NotNull AcquisitionMetadata withValue(final @NotNull String column,
+      final @NotNull String value) {
+    final Map<String, String> edited = new LinkedHashMap<>(editedValues);
+    edited.put(column, value);
+    return new AcquisitionMetadata(terms, localFields, edited);
   }
 
   public AcquisitionMetadata(final @NotNull List<Term> terms) {
@@ -45,7 +60,9 @@ public record AcquisitionMetadata(@NotNull List<Term> terms,
     mergedTerms.addAll(other.terms);
     final Map<String, String> mergedFields = new LinkedHashMap<>(localFields);
     mergedFields.putAll(other.localFields);
-    return new AcquisitionMetadata(mergedTerms, mergedFields);
+    final Map<String, String> mergedEdits = new LinkedHashMap<>(editedValues);
+    mergedEdits.putAll(other.editedValues);
+    return new AcquisitionMetadata(mergedTerms, mergedFields, mergedEdits);
   }
 
   /** Exact canonical-label match only; vendor text that is not in PSI-MS stays local. */

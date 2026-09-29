@@ -52,7 +52,7 @@ class AcquisitionMetadataTest {
     assertTrue(metadata.terms().isEmpty());
   }
 
-  @Test void acquisitionFactsStayOutOfStudyMetadataAndLegacyUserValuesArePreserved() {
+  @Test void acquisitionFactsStaySeparateFromSampleMetadata() {
     final RawDataFile file = mock(RawDataFile.class);
     when(file.getName()).thenReturn("private_QC.mzML");
     when(file.getAcquisitionMetadata()).thenReturn(new AcquisitionMetadata(
@@ -61,10 +61,10 @@ class AcquisitionMetadataTest {
     when(file.getDataPolarity()).thenReturn(List.of());
     when(file.getSpectraType()).thenReturn(MassSpectrumType.CENTROIDED);
     final MetadataTable table = new MetadataTable();
-    final var existing = new StringMetadataColumn("Acquisition: instrument model");
-    table.setValue(existing, file, "User reviewed instrument");
+    final var existing = new StringMetadataColumn("Sample group");
+    table.setValue(existing, file, "control");
     table.addFile(file);
-    assertEquals("User reviewed instrument", table.getColumnData(existing).get(file));
+    assertEquals("control", table.getColumnData(existing).get(file));
     assertNull(table.getColumnByName("Imported: SampleName"));
     assertNull(table.getColumnByName("Measured: MS levels"));
     assertEquals("private study", file.getAcquisitionMetadata().localFields().get("SampleName"));
