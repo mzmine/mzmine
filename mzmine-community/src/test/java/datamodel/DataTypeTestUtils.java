@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -102,12 +103,13 @@ public class DataTypeTestUtils {
    * Saves and loads the data type and it's value to an ByteArrayStream. Fails the test if the
    * loaded value does not equal the saved value. The value is processed as a row type (feature and
    * file = null) and as a feature type. Also tests null as a value and expects null to be
-   * returned.
+   * returned. Types that do not require feature list context are also tested with the
+   * context-free XML methods.
    *
    * @param type  The data type.
    * @param value The value.
    */
-  public static <T> void simpleDataTypeSaveLoadTest(DataType<T> type, T value) {
+  public static <T> void simpleDataTypeSaveLoadTest(@NotNull DataType<T> type, @Nullable T value) {
 
     RawDataFile file = null;
     file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
@@ -138,6 +140,10 @@ public class DataTypeTestUtils {
     testSaveLoad(type, null, project, flist, row, feature, file);
 
     file.close();
+
+    if (!type.requiresFeatureListContext()) {
+      contextFreeSaveLoadTest(type, value);
+    }
 
     testStringConversion(type, value);
     testStringConversion(type, null);

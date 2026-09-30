@@ -78,7 +78,6 @@ public class GeneralTypeTests {
         new double[]{1.0, 0.5, 0.11}, 1, IsotopePatternStatus.DETECTED, "Save load test");
 
     simpleDataTypeSaveLoadTest(type, pattern);
-    DataTypeTestUtils.contextFreeSaveLoadTest(type, pattern);
   }
 
   @Test
@@ -87,7 +86,6 @@ public class GeneralTypeTests {
     NetworkStatsType type = new NetworkStatsType();
     final NetworkStats value = new NetworkStats(2, 2, 2, 5, 2);
     simpleDataTypeSaveLoadTest(type, value);
-    DataTypeTestUtils.contextFreeSaveLoadTest(type, value);
   }
 
   @Test
@@ -149,7 +147,6 @@ public class GeneralTypeTests {
     info.addProperty("bla", "blub");
     info.addProperty("ß012eisd", "ß0widqscn/+9");
     simpleDataTypeSaveLoadTest(type, info);
-    DataTypeTestUtils.contextFreeSaveLoadTest(type, info);
   }
 
   /**
@@ -199,7 +196,6 @@ public class GeneralTypeTests {
   @Test
   void testMzType() {
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(new MZType(), 545.32123);
-    DataTypeTestUtils.contextFreeSaveLoadTest(new MZType(), 545.32123);
   }
 
   @Test
