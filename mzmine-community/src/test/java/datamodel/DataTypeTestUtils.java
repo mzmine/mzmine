@@ -55,6 +55,49 @@ import org.junit.jupiter.api.Assertions;
  */
 public class DataTypeTestUtils {
 
+  /** Saves and loads a value and null using only the context-free XML methods. */
+  public static <T> void contextFreeSaveLoadTest(@NotNull final DataType<T> type,
+      @Nullable final T value) {
+    Assertions.assertFalse(type.requiresFeatureListContext());
+    contextFreeSaveLoadValue(type, value);
+    contextFreeSaveLoadValue(type, null);
+  }
+
+  private static void contextFreeSaveLoadValue(@NotNull final DataType<?> type,
+      @Nullable final Object value) {
+    try {
+      final ByteArrayOutputStream os = new ByteArrayOutputStream();
+      final XMLStreamWriter writer = new IndentingXMLStreamWriter(
+          XMLOutputFactory.newInstance().createXMLStreamWriter(os, "UTF-8"));
+      writer.writeStartDocument();
+      writer.writeStartElement("test");
+      writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+      writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, type.getUniqueID());
+      type.saveToXML(writer, value);
+      writer.writeEndElement();
+      writer.writeStartElement("after");
+      writer.writeEndElement();
+      writer.writeEndElement();
+      writer.writeEndDocument();
+      writer.close();
+
+      final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(
+          new ByteArrayInputStream(os.toByteArray()));
+      while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
+          .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+        reader.next();
+      }
+      Assertions.assertTrue(reader.isStartElement(), "Did not find data type element");
+      final Object loaded = type.loadFromXML(reader);
+      Assertions.assertEquals(value, loaded);
+      Assertions.assertFalse(reader.isStartElement() && "after".equals(reader.getLocalName()),
+          "Data type reader advanced past its element");
+      reader.close();
+    } catch (XMLStreamException e) {
+      Assertions.fail("Context-free XML round trip failed for " + type.getUniqueID(), e);
+    }
+  }
+
   /**
    * Saves and loads the data type and it's value to an ByteArrayStream. Fails the test if the
    * loaded value does not equal the saved value. The value is processed as a row type (feature and
