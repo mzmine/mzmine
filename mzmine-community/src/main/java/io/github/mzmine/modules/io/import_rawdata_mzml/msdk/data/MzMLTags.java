@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -126,6 +126,24 @@ public abstract class MzMLTags {
   public final static String TAG_INDEX_LIST_OFFSET = "indexListOffset";
   /** Constant <code>TAG_FILE_CHECKSUM="fileChecksum"</code> */
   public final static String TAG_FILE_CHECKSUM = "fileChecksum";
+
+  // file level metadata in the mzML header
+  public static final String TAG_SOURCE_FILE_LIST = "sourceFileList";
+  public static final String TAG_SOURCE_FILE = "sourceFile";
+  public static final String TAG_SOFTWARE_LIST = "softwareList";
+  public static final String TAG_SOFTWARE = "software";
+  public static final String TAG_SOFTWARE_REF = "softwareRef";
+  public static final String TAG_INSTRUMENT_CONFIGURATION_LIST = "instrumentConfigurationList";
+  public static final String TAG_INSTRUMENT_CONFIGURATION = "instrumentConfiguration";
+  public static final String TAG_COMPONENT_LIST = "componentList";
+  public static final String TAG_SOURCE = "source";
+  public static final String TAG_ANALYZER = "analyzer";
+  public static final String TAG_DETECTOR = "detector";
+  public static final String TAG_SAMPLE_LIST = "sampleList";
+  public static final String TAG_SAMPLE = "sample";
+  public static final String ATTR_REF = "ref";
+  public static final String ATTR_DEFAULT_SOURCE_FILE_REF = "defaultSourceFileRef";
+  public static final String ATTR_SAMPLE_REF = "sampleRef";
 
   /** Constant <code>ATTR_XSI="xsi"</code> */
   public static final String ATTR_XSI = "xsi";

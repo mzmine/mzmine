@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,20 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables;
 
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
+import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataColumn;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataTable;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BafPropertiesTable extends TDFDataTable<String> {
@@ -46,10 +57,58 @@ public class BafPropertiesTable extends TDFDataTable<String> {
     columns.add(valueColumn);
   }
 
+  /**
+   * Sets all values that map to a raw file metadata type.
+   *
+   * @param metadata the file metadata of the raw data file
+   */
+  public void applyToFileMetadata(@NotNull final ModularDataModel metadata) {
+    for (final Values key : Values.values()) {
+      final Class<? extends StringType> type = key.getFileMetadataType();
+      if (type == null) {
+        continue;
+      }
+      final String value = getValue(key);
+      if (value != null && !value.isBlank()) {
+        metadata.set(type, value.strip());
+      }
+    }
+  }
+
   public enum Values {
-    SchemaType, AcquisitionSoftware, AcquisitionSoftwareVendor, AcquisitionSoftwareVersion, //
-    InstrumentVendor, InstrumentFamily, InstrumentName, InstrumentRevision, InstrumentSourceType, //
-    OperatorName, Description, SampleName, AcquisitionMethod, AcquisitionDateTime, InstrumentSerialNumber
+    SchemaType, //
+    AcquisitionSoftware(AcquisitionSoftwareType.class), //
+    AcquisitionSoftwareVendor, //
+    AcquisitionSoftwareVersion(AcquisitionSoftwareVersionType.class), //
+    InstrumentVendor(InstrumentVendorType.class), //
+    InstrumentFamily, //
+    InstrumentName(InstrumentModelType.class), //
+    InstrumentRevision, //
+    // decision: numeric vendor code without known mapping
+    InstrumentSourceType, //
+    OperatorName(OperatorNameType.class), //
+    Description, //
+    SampleName(SampleNameType.class), //
+    AcquisitionMethod(AcquisitionMethodNameType.class), //
+    AcquisitionDateTime, //
+    InstrumentSerialNumber(InstrumentSerialNumberType.class);
+
+    private final @Nullable Class<? extends StringType> fileMetadataType;
+
+    Values() {
+      this(null);
+    }
+
+    Values(@Nullable final Class<? extends StringType> fileMetadataType) {
+      this.fileMetadataType = fileMetadataType;
+    }
+
+    /**
+     * @return the raw file metadata type this value is mapped to or null
+     */
+    public @Nullable Class<? extends StringType> getFileMetadataType() {
+      return fileMetadataType;
+    }
   }
 
   @Nullable

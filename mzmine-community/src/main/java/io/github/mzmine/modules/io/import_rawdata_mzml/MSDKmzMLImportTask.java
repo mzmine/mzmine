@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMob
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.header.MzMLFileMetadataMapper;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -229,6 +230,14 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
       newMZmineFile.addOtherDataFiles(otherTraceFiles);
 
       newMZmineFile.setStartTimeStamp(startTimeStamp);
+      try {
+        MzMLFileMetadataMapper.apply(msdkTaskRes.getHeaderMetadata(),
+            newMZmineFile.getFileMetadata());
+      } catch (RuntimeException e) {
+        // decision: missing file metadata should never fail the import
+        logger.log(Level.WARNING,
+            "Cannot read file metadata from mzML header of " + file + ": " + e.getMessage(), e);
+      }
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
       if (totalScansAfterFilter == 0 && newMZmineFile.getOtherDataFiles().isEmpty()) {

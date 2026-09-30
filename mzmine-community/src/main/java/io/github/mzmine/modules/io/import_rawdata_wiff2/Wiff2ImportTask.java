@@ -30,6 +30,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
+import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -62,6 +70,7 @@ import org.jetbrains.annotations.Nullable;
 public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataImportTask {
 
   private static final Logger logger = Logger.getLogger(Wiff2ImportTask.class.getName());
+  private static final int MASS_SPECTROMETER_DEVICE_TYPE = 0;
 
   private final File file;
   private final MZmineProject project;
@@ -78,6 +87,32 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
     this.file = file;
     this.project = project;
     this.scanProcessorConfig = scanProcessorConfig;
+  }
+
+  /**
+   * Maps the sample information to the raw file metadata.
+   */
+  private static void applyFileMetadata(@NotNull final Sample sample,
+      @NotNull final ModularDataModel metadata) {
+    // the mass spectrometer has device type 0, other devices are LC, autosampler, ...
+    sample.getInstrumentDetailsList().stream()
+        .filter(d -> d.getDeviceType() == MASS_SPECTROMETER_DEVICE_TYPE)
+        .filter(d -> !d.getDeviceModelName().isBlank()).findFirst().ifPresent(ms -> {
+          setIfNotBlank(metadata, InstrumentModelType.class, ms.getDeviceModelName());
+          setIfNotBlank(metadata, InstrumentSerialNumberType.class, ms.getSerialNumber());
+          // decision: wiff files are always acquired on SCIEX instruments
+          metadata.set(InstrumentVendorType.class, "SCIEX");
+        });
+    setIfNotBlank(metadata, OperatorNameType.class, sample.getUserName());
+    setIfNotBlank(metadata, AcquisitionMethodNameType.class, sample.getAcquisitionMethodName());
+    setIfNotBlank(metadata, SampleNameType.class, sample.getSampleName());
+  }
+
+  private static void setIfNotBlank(@NotNull final ModularDataModel metadata,
+      @NotNull final Class<? extends StringType> type, @Nullable final String value) {
+    if (value != null && !value.isBlank()) {
+      metadata.set(type, value.strip());
+    }
   }
 
   private static @NotNull String getDataFileName(File file, Sample sample, List<Sample> samples) {
@@ -168,6 +203,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
         final List<SimpleScan> scans = new ArrayList<>();
         final String startTimestamp = sample.getStartTimestamp();
         rawDataFile.setStartTimeStamp(DateTimeUtils.parseOrElse(startTimestamp, null));
+        applyFileMetadata(sample, rawDataFile.getFileMetadata());
 
         final List<Experiment> experiments = access.getExperiments(sample);
         for (Experiment experiment : experiments) {

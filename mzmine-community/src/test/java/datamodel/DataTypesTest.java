@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,6 @@ package datamodel;
 import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -38,6 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,6 +44,13 @@ import org.junit.jupiter.api.Test;
 public class DataTypesTest {
 
   private static final Logger logger = Logger.getLogger(DataTypesTest.class.getName());
+
+  /**
+   * Same packages as scanned by {@link DataTypes}
+   */
+  private static final List<String> TYPE_PACKAGES = List.of(
+      "io.github.mzmine.datamodel.features.types",
+      "io.github.mzmine.datamodel.features.rawfiletypes");
 
   @Test
   public void testUniqueID() {
@@ -54,7 +60,7 @@ public class DataTypesTest {
 
     try {
       ClassPath classPath = ClassPath.from(DataType.class.getClassLoader());
-      classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
+      TYPE_PACKAGES.stream().map(classPath::getTopLevelClassesRecursive).flatMap(Set::stream)
           .forEach(classInfo -> {
             try {
               final Class<?> clazz = classInfo.load();
@@ -91,7 +97,7 @@ public class DataTypesTest {
 
     try {
       ClassPath classPath = ClassPath.from(DataType.class.getClassLoader());
-      classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
+      TYPE_PACKAGES.stream().map(classPath::getTopLevelClassesRecursive).flatMap(Set::stream)
           .forEach(classInfo -> {
             try {
               final Class<?> clazz = classInfo.load();

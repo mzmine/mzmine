@@ -67,10 +67,12 @@ import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -765,5 +767,20 @@ public class MassLynxDataAccess implements AutoCloseable {
 
   public String getAcqDate() {
     return acqDate;
+  }
+
+  /**
+   * @return the parsed acquisition date or null if not available or not parsable
+   */
+  public @Nullable LocalDateTime getAcquisitionDateTime() {
+    if (acqDate == null || acqDate.isBlank()) {
+      return null;
+    }
+    final LocalDateTime dateTime = DateTimeUtils.parseOrElse(acqDate.strip(), null);
+    if (dateTime == null) {
+      logger.warning(
+          "Cannot parse acquisition date '%s' of file %s".formatted(acqDate, rawFolder.getName()));
+    }
+    return dateTime;
   }
 }

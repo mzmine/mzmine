@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,8 +37,8 @@ import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -175,6 +175,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
 
       file.setStartTimeStamp(
           ZonedDateTime.parse(metadata.getValue(Values.AcquisitionDateTime)).toLocalDateTime());
+      metadata.applyToFileMetadata(file.getFileMetadata());
 
       file.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));
