@@ -125,11 +125,7 @@ public abstract class ModularSubColumnsType<T extends ModularDataRecord> extends
 
         try {
           // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-          if (sub.requiresFeatureListContext()) {
-            sub.saveToXML(writer, subValue, flist, row, feature, file);
-          } else {
-            sub.saveToXML(writer, subValue);
-          }
+          sub.saveToXML(writer, subValue, flist, row, feature, file);
         } catch (XMLStreamException e) {
           logger.log(Level.WARNING,
               "Error while writing data type " + sub.getClass().getSimpleName() + " with value "

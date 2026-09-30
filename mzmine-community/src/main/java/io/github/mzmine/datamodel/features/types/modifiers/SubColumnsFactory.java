@@ -230,8 +230,7 @@ public interface SubColumnsFactory {
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         DataType type = DataTypes.getTypeForId(
             reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object o = type.requiresFeatureListContext() ? type.loadFromXML(reader, project, flist, row,
-            feature, file) : type.loadFromXML(reader);
+        Object o = type.loadFromXML(reader, project, flist, row, feature, file);
         model.set(type, o);
       }
     }
@@ -259,11 +258,7 @@ public interface SubColumnsFactory {
       writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
 
       try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-        if (sub.requiresFeatureListContext()) {
-          sub.saveToXML(writer, subValue, flist, row, feature, file);
-        } else {
-          sub.saveToXML(writer, subValue);
-        }
+        sub.saveToXML(writer, subValue, flist, row, feature, file);
       } catch (XMLStreamException e) {
         logger.log(Level.WARNING,
             "Error while writing data type " + sub.getClass().getSimpleName() + " with value "

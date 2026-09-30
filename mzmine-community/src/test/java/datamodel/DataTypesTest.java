@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -143,6 +143,10 @@ public class DataTypesTest {
     Assertions.assertEquals(new HeightType(), all.get(2));
   }
 
+  /**
+   * Ensures context-free types, including sub-column types, do not implement XML behavior only in
+   * the context-aware overloads.
+   */
   @Test
   public void testContextFreeXmlOverrides() throws NoSuchMethodException {
     final List<String> violations = new ArrayList<>();
@@ -176,6 +180,10 @@ public class DataTypesTest {
     Assertions.assertTrue(violations.isEmpty(), () -> String.join("\n", violations));
   }
 
+  /**
+   * Ensures types that require feature-list context reject both context-free XML overloads before
+   * reading or writing a value.
+   */
   @Test
   public void testContextDependentTypesRejectSimpleXml() throws XMLStreamException {
     for (final DataType<?> type : DataTypes.getInstances()) {
@@ -200,6 +208,18 @@ public class DataTypesTest {
     }
   }
 
+  /**
+   * Records a violation when a full-signature XML override is not matched by a context-free
+   * override in the same class or a subclass. Inherited full-signature methods from
+   * {@link DataType} already delegate to the context-free overload.
+   *
+   * @param type         the data type to inspect
+   * @param method       the XML method name
+   * @param fullParams   parameter types of the context-aware overload
+   * @param simpleParams parameter types of the context-free overload
+   * @param violations   receives any mismatch found
+   * @throws NoSuchMethodException if either XML overload is missing
+   */
   private static void checkContextFreeOverride(final DataType<?> type, final String method,
       final Class<?>[] fullParams, final Class<?>[] simpleParams,
       final List<String> violations) throws NoSuchMethodException {

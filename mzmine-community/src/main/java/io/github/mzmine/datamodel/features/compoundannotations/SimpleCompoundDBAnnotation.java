@@ -128,9 +128,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       final DataType typeForId = DataTypes.getTypeForId(
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
-        Object o =
-            typeForId.requiresFeatureListContext() ? typeForId.loadFromXML(reader, project, flist,
-                row, null, null) : typeForId.loadFromXML(reader);
+        Object o = typeForId.loadFromXML(reader, project, flist, row, null, null);
         if (o != null) {
           id.put(typeForId, o);
         }
@@ -323,11 +321,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       try {
         writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
         writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, key.getUniqueID());
-        if (key.requiresFeatureListContext()) {
-          key.saveToXML(writer, value, flist, row, null, null);
-        } else {
-          key.saveToXML(writer, value);
-        }
+        key.saveToXML(writer, value, flist, row, null, null);
         writer.writeEndElement();
       } catch (XMLStreamException e) {
         final Object finalVal = value;
