@@ -26,11 +26,6 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -71,9 +66,7 @@ public class FeatureInformationType extends DataType<FeatureInformation> impleme
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) {
       return;
     }
@@ -87,9 +80,7 @@ public class FeatureInformationType extends DataType<FeatureInformation> impleme
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     while (
         !(reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT))
             && reader.hasNext()) {
