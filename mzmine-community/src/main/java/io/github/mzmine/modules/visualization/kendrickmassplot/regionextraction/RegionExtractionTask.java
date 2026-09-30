@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
@@ -35,7 +35,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotX
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.time.Instant;
@@ -87,28 +87,23 @@ public class RegionExtractionTask extends AbstractTask {
 
     final ModularFeatureList flist = kendrickParameters.getValue(
         KendrickMassPlotParameters.featureList).getMatchingFeatureLists()[0];
-    final ModularFeatureList filtered = new ModularFeatureList(flist.getName() + " " + suffix,
-        flist.getMemoryMapStorage(), flist.getRawDataFiles().stream().toList());
 
     final KendrickMassPlotXYZDataset dataset = new KendrickMassPlotXYZDataset(kendrickParameters,
         xAxisDivisior, xAxisCharge, yAxisDivisor, yAxisCharge);
     dataset.run();
 
-    final List<ModularFeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(
+    final List<FeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(
             index -> regions.stream().anyMatch(region -> region.contains(
                 new Point2D.Double(dataset.getXValue(0, index), dataset.getYValue(0, index)))))
-        .mapToObj(dataset::getItemObject)
-        .map(row -> new ModularFeatureListRow(filtered, (ModularFeatureListRow) row, true))
-        .toList();
+        .mapToObj(dataset::getItemObject).toList();
 
     if (isCanceled()) {
       return;
     }
 
-    DataTypeUtils.copyTypes(flist, filtered, true, true);
-    rows.forEach(filtered::addRow);
+    final ModularFeatureList filtered = FeatureListUtils.createCopyWithRows(flist, null, suffix,
+        flist.getMemoryMapStorage(), rows, false);
 
-    filtered.getAppliedMethods().addAll(flist.getAppliedMethods());
     filtered.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(RegionExtractionModule.class, parameters,
             getModuleCallDate()));

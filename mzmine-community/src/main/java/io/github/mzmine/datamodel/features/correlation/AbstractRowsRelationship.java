@@ -47,6 +47,16 @@ public abstract sealed class AbstractRowsRelationship implements RowsRelationshi
     }
   }
 
+  /**
+   * Whether the constructor will swap the two rows, so that a becomes {@link #getRowB()}.
+   * {@link RowsRelationship#withRows} uses this to keep payload that describes one of the two rows
+   * attached to that row: the new rows may be ordered differently than the old ones, e.g. after
+   * renumbering.
+   */
+  protected static boolean swapsRows(final FeatureListRow a, final FeatureListRow b) {
+    return a.getID() >= b.getID();
+  }
+
   @Override
   public FeatureListRow getRowA() {
     return a;

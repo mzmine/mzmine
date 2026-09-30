@@ -74,6 +74,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparatorParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameter;
@@ -116,9 +117,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Name of file that contains information for peak identification",
       ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
-  public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
-      ",");
+  public static final FieldSeparatorParameter fieldSeparator = FieldSeparatorParameter.forReading(
+      "Character used to separate fields in the database file. Auto detect determines the separator from the file itself.");
 
   public static final OptionalParameter<StringParameter> filterSamples = new OptionalParameter<>(
       new StringParameter("Filter filename header",

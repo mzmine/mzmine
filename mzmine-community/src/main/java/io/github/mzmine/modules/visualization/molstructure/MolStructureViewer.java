@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,8 @@
 package io.github.mzmine.modules.visualization.molstructure;
 
 
-import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.javafx.WindowsMenu;
-import java.net.URL;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -38,7 +36,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -58,39 +55,6 @@ public class MolStructureViewer extends Stage {
   private final Label loading3Dlabel = new Label("Loading 3D structure...");
   private final Pane pane2D = new StackPane(loading2Dlabel);
   private final Pane pane3D = new StackPane(loading3Dlabel);
-
-  /**
-   * Constructor of MolStructureViewer, loads 2d and 3d structures into JPanel specified by urls
-   *
-   * @param name
-   * @param structure2DAddress
-   * @param structure3DAddress
-   */
-  public MolStructureViewer(String name, final URL structure2DAddress,
-      final URL structure3DAddress) {
-
-    setTitle("Structure of " + name);
-    setupViewer(name, structure3DAddress!=null);
-
-    if (structure2DAddress != null) {
-      Thread loading2DThread = new Thread(() -> {
-        load2DStructure(structure2DAddress);
-      }, "Structure loading thread");
-      loading2DThread.start();
-    } else {
-      loading2Dlabel.setText("2D structure not available");
-    }
-
-    if (structure3DAddress != null) {
-      Thread loading3DThread = new Thread(() -> {
-        load3DStructure(structure3DAddress);
-      }, "Structure loading thread");
-      loading3DThread.start();
-    } else {
-      loading3Dlabel.setText("3D structure not available");
-    }
-
-  }
 
   /**
    * Constructor for MolStructureViewer from AtomContainer and only for 2D object The 3D view will
@@ -157,31 +121,6 @@ public class MolStructureViewer extends Stage {
   }
 
   /**
-   * Load the structure passed as parameter in JChemViewer
-   */
-  private void load2DStructure(URL url) {
-
-    Node newComponent;
-    try {
-      String structure2D = InetUtils.retrieveData(url);
-      if (structure2D.length() < 10) {
-        loading2Dlabel.setText("2D structure not available");
-        return;
-      }
-      newComponent = Structure2DComponent.create(structure2D);
-    } catch (Exception e) {
-      String errorMessage =
-          "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-      newComponent = new Label(errorMessage);
-    }
-    final Node newComponentFinal = newComponent;
-    Platform.runLater(() -> {
-      pane2D.getChildren().clear();
-      pane2D.getChildren().add(newComponentFinal);
-    });
-  }
-
-  /**
    * Load the AtomContainer passed as parameter in JChemViewer
    *
    * @param container
@@ -204,48 +143,4 @@ public class MolStructureViewer extends Stage {
 
   }
 
-  /**
-   * Load the structure passed as parameter in JmolViewer
-   */
-  private void load3DStructure(URL url) {
-
-    try {
-
-      String structure3D = InetUtils.retrieveData(url);
-
-      // If the returned structure is empty or too short, just return
-      if (structure3D.length() < 10) {
-        loading3Dlabel.setText("3D structure not available");
-        return;
-      }
-
-      // Check for html tag, to recognize PubChem error message
-      if (structure3D.contains("<html>")) {
-        loading3Dlabel.setText("3D structure not available");
-        return;
-      }
-
-      Structure3DComponent new3DComponent = new Structure3DComponent();
-      final AnchorPane newComponentFinal = new AnchorPane();
-      newComponentFinal.getChildren().add(new3DComponent);
-      Platform.runLater(() -> {
-        pane3D.getChildren().clear();
-        pane3D.getChildren().add(newComponentFinal);
-      });
-
-      // loadStructure must be called after the component is added,
-      // otherwise Jmol will freeze waiting for repaint (IMHO this is a
-      // Jmol bug introduced in 11.8)
-      new3DComponent.loadStructure(structure3D);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      String errorMessage =
-          "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
-      Label label = new Label(errorMessage);
-      pane3D.getChildren().clear();
-      pane3D.getChildren().add(label);
-    }
-
-  }
 }

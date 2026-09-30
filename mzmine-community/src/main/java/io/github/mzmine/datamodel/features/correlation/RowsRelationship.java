@@ -113,6 +113,20 @@ public sealed interface RowsRelationship extends RowPair permits AbstractRowsRel
   @NotNull FeatureListRow getRowB();
 
   /**
+   * An equal relationship between two other rows. Used to transfer relationships onto the copied
+   * rows of a new feature list, because every relationship references its two rows directly.
+   * <p>
+   * Implementations must not modify this instance. Any payload that describes one of the two rows
+   * has to follow that row, because {@link AbstractRowsRelationship} orders the rows by ID and the
+   * new rows may be ordered differently, e.g. after renumbering.
+   *
+   * @param a the row that replaces {@link #getRowA()}
+   * @param b the row that replaces {@link #getRowB()}
+   * @return a new relationship of the same type and score between a and b
+   */
+  @NotNull RowsRelationship withRows(@NotNull FeatureListRow a, @NotNull FeatureListRow b);
+
+  /**
    * All types of relationships
    */
   enum Type implements UniqueIdSupplier {

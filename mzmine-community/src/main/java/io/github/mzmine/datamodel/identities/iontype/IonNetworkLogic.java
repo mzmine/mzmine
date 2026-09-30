@@ -33,8 +33,11 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -319,5 +322,111 @@ public class IonNetworkLogic {
       renumbered.add(nets.get(i).withID(i));
     }
     return renumbered;
+  }
+
+  /**
+   * Recreates the ion identity networks of {@code sourceRows} on their copied rows and replaces the
+   * ion identities of those copies.
+   * <p>
+   * A copied row initially still holds the {@link IonIdentity} instances of its source row, and
+   * those point through {@link IonIdentity#getNetwork()} at the rows of the original feature list.
+   * Left alone, the copy would describe networks of foreign rows, which is why every copy of a
+   * feature list that copies rows has to call this.
+   * <p>
+   * A network shrinks to the rows that were copied and is only dropped once it is empty, when all
+   * of its rows were filtered out. A network of a single row is kept on purpose: filtering away the
+   * other members must not take the ion annotation of the surviving row with it.
+   * <p>
+   * {@code sourceRows} may be the rows of the target itself, for a module that filters in place.
+   * Networks that lost no row are then left untouched, ion identities and all, so that anything
+   * holding on to them stays valid.
+   *
+   * @param sourceRows the rows of the original feature list
+   * @param rowMapping maps a source row to its copy, or to null if that row was not copied
+   */
+  public static void remapIonNetworks(@NotNull final List<FeatureListRow> sourceRows,
+      @NotNull final Function<FeatureListRow, ? extends FeatureListRow> rowMapping) {
+    // keyed by identity on purpose: rows of one network often share an ion type, and those ion
+    // identities compare equal by IonIdentity#compareTo. Each one still has to map to its own copy.
+    final Map<IonIdentity, IonIdentity> ionMapping = new IdentityHashMap<>();
+
+    for (final IonNetwork net : getAllNetworksList(sourceRows, null, false)) {
+      // a network whose every row maps to itself needs no work, which is the case when a feature
+      // list is processed in place. Keep it and its ion identities, so anything holding on to them
+      // stays valid. A row mapped to null was filtered and counts as a change.
+      boolean unchanged = true;
+      for (final IonNetworkNode node : net.getNodes()) {
+        if (rowMapping.apply(node.row()) != node.row()) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) {
+        continue;
+      }
+
+      final List<IonNetworkNode> newNodes = new ArrayList<>(net.size());
+      final List<IonIdentity> sourceIons = new ArrayList<>(net.size());
+      for (final IonNetworkNode node : net.getNodes()) {
+        final FeatureListRow newRow = rowMapping.apply(node.row());
+        if (newRow == null) {
+          // the row was filtered out, the remaining members keep their annotation
+          continue;
+        }
+        newNodes.add(new IonNetworkNode(newRow, copyIon(node.ion())));
+        sourceIons.add(node.ion());
+      }
+      if (newNodes.isEmpty()) {
+        // all member rows are gone, so the network disappears with them
+        continue;
+      }
+      // re-points the copied ions at the new network
+      new SimpleIonNetwork(net.getID(), newNodes, net.getMolFormulas()).setNetworkToAllRows();
+      for (int i = 0; i < newNodes.size(); i++) {
+        ionMapping.put(sourceIons.get(i), newNodes.get(i).ion());
+      }
+    }
+
+    for (final FeatureListRow sourceRow : sourceRows) {
+      final FeatureListRow newRow = rowMapping.apply(sourceRow);
+      if (newRow == null) {
+        continue;
+      }
+      final List<IonIdentity> sourceIons = sourceRow.getIonIdentities();
+      if (sourceIons.isEmpty()) {
+        continue;
+      }
+      // keep the order, the first ion identity is the preferred one
+      final List<IonIdentity> newIons = new ArrayList<>(sourceIons.size());
+      for (final IonIdentity sourceIon : sourceIons) {
+        final IonIdentity mapped = ionMapping.get(sourceIon);
+        if (mapped != null) {
+          newIons.add(mapped);
+        } else if (newRow == sourceRow) {
+          // processed in place and this network was left untouched above, so the ion identity
+          // already points at the right rows
+          newIons.add(sourceIon);
+        } else if (sourceIon.getNetwork() == null) {
+          // not part of any network, so there is nothing to remap - still copy it so that the
+          // copied row does not share a mutable ion identity with its source
+          newIons.add(copyIon(sourceIon));
+        }
+        // otherwise every row of its network is gone and the ion identity is dropped with it
+      }
+      if (newRow == sourceRow && newIons.equals(sourceIons)) {
+        // nothing changed for this row, do not replace its list
+        continue;
+      }
+      newRow.setIonIdentities(newIons.isEmpty() ? null : List.copyOf(newIons));
+    }
+  }
+
+  /**
+   * A copy without the network back reference, which is set once the new network exists.
+   */
+  private static @NotNull IonIdentity copyIon(@NotNull final IonIdentity ion) {
+    final IonIdentity copy = new IonIdentity(ion.getIonType());
+    copy.addMolFormulas(ion.getMolFormulas());
+    return copy;
   }
 }

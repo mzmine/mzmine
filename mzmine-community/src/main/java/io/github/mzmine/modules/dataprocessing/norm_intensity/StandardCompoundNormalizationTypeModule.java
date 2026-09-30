@@ -246,7 +246,7 @@ public final class StandardCompoundNormalizationTypeModule implements
         moduleSpecificParameters.getValue(
             StandardCompoundNormalizationTypeParameters.standardCompoundsFile),
         moduleSpecificParameters.getValue(
-            StandardCompoundNormalizationTypeParameters.fieldSeparator),
+            StandardCompoundNormalizationTypeParameters.fieldSeparator).separator(),
         moduleSpecificParameters.getValue(
             StandardCompoundNormalizationTypeParameters.standardCompounds), null);
 

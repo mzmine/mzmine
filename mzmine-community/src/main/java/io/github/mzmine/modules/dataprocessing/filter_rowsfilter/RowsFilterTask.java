@@ -437,6 +437,12 @@ public class RowsFilterTask extends AbstractTask {
       newFeatureList.setRowsApplySort(oldToNew.values().toArray(FeatureListRow[]::new));
     }
 
+    // The relationship maps and the ion identity networks reference rows directly and are keyed by
+    // row ID, so they have to be rebuilt against the rows of the result: relations of filtered rows
+    // are dropped, and renumbering changes the keys. Also needed when filtering in place, where the
+    // rows are reused but may have been renumbered.
+    FeatureListUtils.transferRowRelationsAndIIN(featureList, newFeatureList, oldToNew);
+
     // transfer a remapped copy of the compound list (if any) to the filtered feature list. Members
     // removed from the feature list are stripped and empty compounds dropped. The compound-ID
     // filter (if active) is applied to top-level and nested compound rows and respects the

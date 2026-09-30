@@ -96,7 +96,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
         .getParameter(SpectraIdentificationCustomDatabaseParameters.dataBaseFile).getValue();
 
     fieldSeparator = parameters
-        .getParameter(SpectraIdentificationCustomDatabaseParameters.fieldSeparator).getValue();
+        .getValue(SpectraIdentificationCustomDatabaseParameters.fieldSeparator).separator();
 
     fieldOrder = (FieldItem[]) parameters.getParameter(SpectraIdentificationCustomDatabaseParameters.fieldOrder)
         .getValue();
@@ -151,8 +151,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     // load custom database
     try {
       // read database contents in memory
-      databaseValues = CSVParsingUtils.readData(dataBaseFile,
-          String.valueOf(fieldSeparator.charAt(0)));
+      databaseValues = CSVParsingUtils.readData(dataBaseFile, fieldSeparator);
       if (ignoreFirstLine)
         finishedLines++;
       for (; finishedLines < databaseValues.size(); finishedLines++) {
