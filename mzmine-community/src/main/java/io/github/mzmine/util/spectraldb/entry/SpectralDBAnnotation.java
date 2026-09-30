@@ -212,7 +212,9 @@ public class SpectralDBAnnotation extends ModularDataModelMap implements Feature
             break;
           }
 
-          Object value = dt.loadFromXML(reader, project, flist, row, null, null);
+          Object value =
+              dt.requiresFeatureListContext() ? dt.loadFromXML(reader, project, flist, row, null,
+                  null) : dt.loadFromXML(reader);
           if (value != null) {
             map.put(dt, value);
           }

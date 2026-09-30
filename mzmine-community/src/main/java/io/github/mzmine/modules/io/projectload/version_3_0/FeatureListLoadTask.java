@@ -134,7 +134,8 @@ public class FeatureListLoadTask extends AbstractTask {
       ModularFeature feature, RawDataFile file) {
     if (type != null) {
       try {
-        return type.loadFromXML(reader, project, flist, row, feature, file);
+        return type.requiresFeatureListContext() ? type.loadFromXML(reader, project, flist, row,
+            feature, file) : type.loadFromXML(reader);
       } catch (Exception e) {
         logger.log(Level.WARNING, e,
             () -> "Error loading data type " + type.getHeaderString() + " in row (id=" + row.getID()
