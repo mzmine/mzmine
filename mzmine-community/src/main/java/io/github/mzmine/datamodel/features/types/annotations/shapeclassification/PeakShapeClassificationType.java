@@ -24,11 +24,6 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.shapeclassification;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.utils.UniqueIdSupplier;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.peak_fitter.PeakShapeClassification;
@@ -63,9 +58,7 @@ public class PeakShapeClassificationType extends DataType<PeakShapeClassificatio
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull XMLStreamReader reader) throws XMLStreamException {
     final String text = reader.getElementText();
     if (text != null && !text.isEmpty()) {
       return UniqueIdSupplier.parseOrElse(text, PeakShapeClassification.values(), null);
@@ -74,9 +67,7 @@ public class PeakShapeClassificationType extends DataType<PeakShapeClassificatio
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
-      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
-      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value) throws XMLStreamException {
     if (value == null) {
       return;
     }
