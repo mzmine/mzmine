@@ -49,6 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule;
@@ -115,6 +116,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram_comparison.ChromatogramComparisonModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
@@ -247,16 +249,19 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultLcMsSubMenu() {
     return addModuleMenuItems("LC-MS", ModularADAPChromatogramBuilderModule.class,
+        FastChromatogramBuilderModule.class,
         TargetedFeatureDetectionModule.class);
   }
 
   protected Menu buildDefaultGcMsSubMenu() {
-    return addModuleMenuItems("GC-MS", ModularADAPChromatogramBuilderModule.class/*,
+    return addModuleMenuItems("GC-MS", ModularADAPChromatogramBuilderModule.class,
+        FastChromatogramBuilderModule.class/*,
         SpectralDeconvolutionGCModule.class*/);
   }
 
   protected Menu buildDefaultImsMsSubMenu() {
     return addModuleMenuItems("LC-IMS-MS", ModularADAPChromatogramBuilderModule.class,
+        FastChromatogramBuilderModule.class,
         ImsExpanderModule.class);
   }
 
@@ -351,7 +356,8 @@ public abstract class AbstractWorkspace implements Workspace {
         FeatureCorrelationHistogramModule.class);
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, ScatterPlotVisualizerModule.class,
-        FeatureHistogramPlotModule.class, IntensityPlotModule.class);
+        FeatureHistogramPlotModule.class, IntensityPlotModule.class,
+        ChromatogramComparisonModule.class);
     addSeparator(featureVis);
     addModuleMenuItems(featureVis, KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
         MassvoltammogramFromFeatureListModule.class);

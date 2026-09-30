@@ -50,6 +50,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
@@ -176,6 +177,7 @@ import io.github.mzmine.modules.tools.siriusapi.modules.import_annotations.Siriu
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram_comparison.ChromatogramComparisonModule;
 import io.github.mzmine.modules.visualization.dash_integration.IntegrationDashboardModule;
 import io.github.mzmine.modules.visualization.dash_lipidqc.LipidAnnotationQCDashboardModule;
 import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberModule;
@@ -288,6 +290,7 @@ public class BatchModeModulesList {
            * {@link io.github.mzmine.modules.MZmineModuleCategory#EIC_BUILDING}
            */
           ModularADAPChromatogramBuilderModule.class, //
+          FastChromatogramBuilderModule.class, //
           MsnTreeFeatureDetectionModule.class, //
           GridMassModule.class, //
           IonMobilityTraceBuilderModule.class, //
@@ -497,6 +500,7 @@ public class BatchModeModulesList {
           InjectTimeAnalysisModule.class, //
           ScatterPlotVisualizerModule.class, //
           IntensityPlotModule.class, //
+          ChromatogramComparisonModule.class, //
           KendrickMassPlotModule.class, //
           VanKrevelenDiagramModule.class, //
           EquivalentCarbonNumberModule.class, //

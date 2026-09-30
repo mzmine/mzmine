@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -12,6 +12,7 @@
  *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,9 +36,11 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr.DiaMs2RtCorrParameters;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -82,13 +85,14 @@ public class PseudoSpectrumVisualizerController extends
 
       // for GC-EI workflow use tolerance of chromatogram building, because deconvolution does
       // not use mz tol parameter
-      boolean hasChromatograms = appliedMethods.stream().anyMatch(
-          appliedMethod -> appliedMethod.getParameters().getClass()
-              .equals(ADAPChromatogramBuilderParameters.class));
-      if (hasChromatograms) {
-        return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-                ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
-            .orElse(new MZTolerance(0.005, 15));
+      final Optional<MZTolerance> chromatogramTolerance = ParameterUtils.getValueFromAppliedMethods(
+              appliedMethods, ADAPChromatogramBuilderParameters.class,
+              ADAPChromatogramBuilderParameters.mzTolerance)
+          .or(() -> ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+              FastChromatogramBuilderParameters.class,
+              FastChromatogramBuilderParameters.mzTolerance).map(MZToleranceOrAuto::tolerance));
+      if (chromatogramTolerance.isPresent()) {
+        return chromatogramTolerance.get();
       }
     } catch (Exception e) {
       logger.log(Level.WARNING,

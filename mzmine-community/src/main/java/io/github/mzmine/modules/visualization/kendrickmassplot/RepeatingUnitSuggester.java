@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,9 +30,11 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
@@ -262,6 +264,9 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
       return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
               ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
+          .or(() -> ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+              FastChromatogramBuilderParameters.class,
+              FastChromatogramBuilderParameters.mzTolerance).map(MZToleranceOrAuto::tolerance))
           .orElse(new MZTolerance(0.005, 15));
     } catch (Exception e) {
       logger.log(Level.WARNING,
