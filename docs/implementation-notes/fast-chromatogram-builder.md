@@ -366,14 +366,29 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   of the benchmark data sets, see the baseline below): Medium = min group N50 and min height N95,
   the results of the wizard defaults (98-100% of the wizard features on the QE QC, GC-EI-TOF and
   GC-EI-QTOF data with the wizard noise filter, the wizard uses 1E4 / 5E4 for Orbitrap and 1E3 /
-  1E3 for TOF). Sensitive = half of both. Abundant = 2x N95 and 10x N95, the QE workshop settings
+  1E3 for TOF). Sensitive = 0.7x both (2026-10-01, before half of both, which was too sensitive
+  for the user). Abundant = 2x N95 and 10x N95, the QE workshop settings
   (1E5 / 5E5: 99% of their features from the factor 2 import). The first version had Medium 3x
   stricter than the wizard and lost ~40% of its features.
-- Min consecutive scans = 0.3 / 0.5 / 0.8 times the median full width at half maximum in scans of
-  the peaks with an apex of at least 10x N95 in the test build of the tolerance estimation, within
-  3 and 20; without 20 such peaks 3 / 4 / 6. A lower apex limit (10x N50) measured noise spikes on
-  unfiltered ZenoTOF data (3 instead of 5 scans). Widths: QE 5, LC-QTOF 5, GC-EI-TOF 8, GC-EI-QTOF
-  10, GC-Orbitrap 14-15 scans. The DOM test files (87 scans) give 2 scans, the clamp applies.
+- Min consecutive scans = 0.5 / 0.7 / 1.0 times the median full width at half maximum in scans of
+  the peaks with an apex of at least 10x N95 in the test build of the tolerance estimation, at
+  least the wizard values 3 / 4 / 6 and at most 20; without 20 such peaks 3 / 4 / 6. A peak of the
+  min height and the median width still has about one width above the min intensity for
+  consecutive scans (width x sqrt(log2(min height / min group)), the ratio is 2-4 for Medium). A
+  lower apex limit (10x N50) measured noise spikes on unfiltered ZenoTOF data (3 instead of 5
+  scans). Widths: QE QC 5, QE "20 years" 3, LC-QTOF 5, GC-EI-TOF 8, GC-EI-QTOF 10, GC-Orbitrap
+  14-15 scans. The DOM test files (87 scans) give 2 scans, the lower limit applies. Replaced
+  (2026-10-01): 0.3 / 0.5 / 0.8 within 3 and 20, the user found the values too low (3 on LC data,
+  the wizard uses 4-6). Result (`BuilderParameterEstimationBenchmark`, same day): Medium 4 on LC
+  (before 3), GC-EI-TOF 6, GC-EI-QTOF 7, GC-Orbitrap 10-11, features within 1% and the share of
+  the wizard features unchanged within 0.2 percentage points, except the DOM test files (narrow
+  peaks, 404 → 287 features, 97.8% → 89.4% of the wizard features). Sensitive with 0.7x the
+  levels: 10-20% fewer features on QE QC, unfiltered TOF and GC data, the share of the wizard
+  features unchanged on QE QC, GC and TOF data.
+- Open: on the QE "20 years" files (peak width 3 scans), N95 is ~10x the wizard min height
+  (4.8E5 vs 5E4, Medium finds 49% of the wizard features). The signal fraction stays at ~0.75
+  from 3E4 to 8E4: on the flanks of narrow peaks the next scan changes the intensity by more than
+  the 5x of the near hits.
 - Fallbacks: without N50 the median intensity, without N95 2x N50, without a clear scatter the
   fallback tolerance of the task, without a tolerance estimate that tolerance. The tolerance
   estimate uses the determined intensities and 4 consecutive scans for its test build.

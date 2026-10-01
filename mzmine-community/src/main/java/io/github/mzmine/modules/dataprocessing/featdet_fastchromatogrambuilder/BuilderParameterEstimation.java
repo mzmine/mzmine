@@ -73,8 +73,12 @@ final class BuilderParameterEstimation {
   // noise spikes, 3 instead of 5 scans on unfiltered ZenoTOF data.
   static final double WIDTH_MIN_APEX_TO_SIGNAL = 10d;
   static final int MIN_WIDTH_PEAKS = 20;
+  // the lowest min consecutive scans, the value of the batch wizard for sensitive
   static final int MIN_CONSECUTIVE = 3;
   static final int MAX_CONSECUTIVE = 20;
+  // decision: sensitive is between half and the full levels of medium, half of both was too
+  // sensitive for the user
+  static final double SENSITIVE_LEVEL_FACTOR = 0.7d;
 
   private BuilderParameterEstimation() {
   }
@@ -223,7 +227,7 @@ final class BuilderParameterEstimation {
     // decision: medium gives the results of the batch wizard defaults, abundant those of the
     // workshop settings, see the implementation note
     return switch (sensitivity) {
-      case SENSITIVE -> 0.5d * noiseLevel;
+      case SENSITIVE -> SENSITIVE_LEVEL_FACTOR * noiseLevel;
       case MEDIUM -> noiseLevel;
       case ABUNDANT -> 2d * signalLevel;
     };
@@ -236,7 +240,7 @@ final class BuilderParameterEstimation {
   static double minHeight(@NotNull ChromatogramBuilderSensitivity sensitivity,
       double signalLevel) {
     return switch (sensitivity) {
-      case SENSITIVE -> 0.5d * signalLevel;
+      case SENSITIVE -> SENSITIVE_LEVEL_FACTOR * signalLevel;
       case MEDIUM -> signalLevel;
       case ABUNDANT -> 10d * signalLevel;
     };
@@ -244,23 +248,26 @@ final class BuilderParameterEstimation {
 
   /**
    * @param peakWidthScans median full width at half maximum in scans, NaN if unknown
+   * @return a fraction of the peak width, at least the value of the batch wizard
    */
   static int minConsecutiveScans(@NotNull ChromatogramBuilderSensitivity sensitivity,
       double peakWidthScans) {
+    // decision: the values of the batch wizard are the lower limit, a peak of the min height and
+    // the median width still has about one width above the min intensity for consecutive scans
+    final int wizard = switch (sensitivity) {
+      case SENSITIVE -> MIN_CONSECUTIVE;
+      case MEDIUM -> 4;
+      case ABUNDANT -> 6;
+    };
     if (!Double.isFinite(peakWidthScans)) {
-      // the values of the batch wizard
-      return switch (sensitivity) {
-        case SENSITIVE -> 3;
-        case MEDIUM -> 4;
-        case ABUNDANT -> 6;
-      };
+      return wizard;
     }
     final double fraction = switch (sensitivity) {
-      case SENSITIVE -> 0.3d;
-      case MEDIUM -> 0.5d;
-      case ABUNDANT -> 0.8d;
+      case SENSITIVE -> 0.5d;
+      case MEDIUM -> 0.7d;
+      case ABUNDANT -> 1d;
     };
-    return Math.clamp(Math.round(fraction * peakWidthScans), MIN_CONSECUTIVE, MAX_CONSECUTIVE);
+    return Math.clamp(Math.round(fraction * peakWidthScans), wizard, MAX_CONSECUTIVE);
   }
 
   /**

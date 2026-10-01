@@ -199,8 +199,13 @@ class BuilderParameterEstimationTest {
     Assertions.assertEquals(BuilderParameterEstimation.MAX_CONSECUTIVE,
         BuilderParameterEstimation.minConsecutiveScans(ChromatogramBuilderSensitivity.ABUNDANT,
             500));
-    Assertions.assertEquals(5,
+    Assertions.assertEquals(7,
         BuilderParameterEstimation.minConsecutiveScans(ChromatogramBuilderSensitivity.MEDIUM, 10));
+    // narrow peaks keep the values of the batch wizard
+    Assertions.assertEquals(4,
+        BuilderParameterEstimation.minConsecutiveScans(ChromatogramBuilderSensitivity.MEDIUM, 5));
+    Assertions.assertEquals(6,
+        BuilderParameterEstimation.minConsecutiveScans(ChromatogramBuilderSensitivity.ABUNDANT, 5));
     // without peaks the values of the batch wizard
     Assertions.assertEquals(4,
         BuilderParameterEstimation.minConsecutiveScans(ChromatogramBuilderSensitivity.MEDIUM,
