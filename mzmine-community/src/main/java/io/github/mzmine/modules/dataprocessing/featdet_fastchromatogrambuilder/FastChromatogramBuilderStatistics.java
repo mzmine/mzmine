@@ -52,7 +52,7 @@ import org.jetbrains.annotations.NotNull;
  * @param numBridgedSegments  segments of other channels that filled a dip of a channel, e.g., the
  *                            shifted apex of a saturated ion
  * @param numBridgedDataPoints data points of the bridged segments
- * @param numRecoveredDataPoints data points of failed channels that filled a passing channel
+ * @param numRecoveredDataPoints fills of passing channels with data points of failed channels
  * @param numCoalescedFills   data points of neighboring channels that also filled a hole, one
  *                            centroid of two unresolved ions
  * @param numChromatograms    chromatograms passing the filters

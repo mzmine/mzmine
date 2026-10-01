@@ -62,17 +62,17 @@ import org.jetbrains.annotations.Nullable;
  *   half as many data points as the segment. The channel data points in the scans of the segment
  *   are noise and are replaced.</li>
  *   <li>The data points of failed channels that did not merge fill a free scan of the closest
- *   passing channel within the tolerance or a hole between intense data points within the hole
- *   fill tolerance, the rules of the second pass. Without this, a failed channel would take its
- *   data points with it, e.g., the apex data points of an intense ion that a short trace of a
+ *   passing channel within the tolerance and the holes between intense data points within the
+ *   hole fill tolerance, the rules of the second pass. Without this, a failed channel would take
+ *   its data points with it, e.g., the apex data points of an intense ion that a short trace of a
  *   co-eluting side signal took.</li>
  *   <li>Holes between intense data points are filled with the data point of a neighboring channel
  *   in the same scan that lies between both centers, one centroid of two ions that the instrument
  *   did not resolve. The data point stays in the neighboring channel as well.</li>
  * </ol>
  * Merged and filled data points never replace a data point, one data point per channel and scan.
- * Only a bridged segment replaces the weak data points of a dip. Only a coalesced fill puts one
- * data point into two chromatograms.
+ * Only a bridged segment replaces the weak data points of a dip. Hole fills may put one data point
+ * into several chromatograms.
  */
 final class ChannelFinalization {
 
@@ -553,15 +553,21 @@ final class ChannelFinalization {
     }
     LongArrays.radixSort(intensityKeys, scanKeys);
 
+    // a weaker data point is never within the intensity factor of a hole between two flanks of at
+    // least the min hole fill intensity
+    final double minFillingIntensity = minHoleFillIntensity / intensityFactor;
     for (int i = 0; i < count; i++) {
       final int p = (int) scanKeys[i];
-      int channel = findFreeChannel(scans[p], mzs[p], buffers, reachable);
-      if (channel == NONE && holeFillFactor > 0d) {
-        channel = findHole(scans[p], mzs[p], intensities[p], buffers, reachable);
-      }
+      final int channel = findFreeChannel(scans[p], mzs[p], buffers, reachable);
       if (channel != NONE) {
         buffers[channel].insert(scans[p], mzs[p], intensities[p]);
         numRecoveredDataPoints++;
+      }
+      // decision: also the holes of other channels, like the loose data points of the second
+      // pass. The closest channel in the tolerance is not always the ion, e.g., a channel that
+      // elutes at another time, and the user accepts that chromatograms share a data point.
+      if (holeFillFactor > 0d && intensities[p] >= minFillingIntensity) {
+        numRecoveredDataPoints += fillHoles(scans[p], mzs[p], intensities[p], buffers, reachable);
       }
     }
   }
@@ -651,19 +657,19 @@ final class ChannelFinalization {
 
   /**
    * Same rule as the hole fill of the second pass: a hole of up to the max gap scans between two
-   * data points of at least the min hole fill intensity, the data point within the hole fill tolerance around
-   * the interpolated m/z and within the intensity jump factor of the interpolated intensity.
+   * data points of at least the min hole fill intensity, the data point within the hole fill
+   * tolerance around the interpolated m/z and within the intensity jump factor of the interpolated
+   * intensity. The data point fills the holes of all targets it fits.
    *
-   * @return the target with the closest interpolated m/z or NONE
+   * @return the number of filled holes
    */
-  private int findHole(int scan, double mz, double intensity,
+  private int fillHoles(int scan, double mz, double intensity,
       @Nullable ChannelBuffer @NotNull [] buffers, @NotNull Targets reachable) {
     // the flanks scatter around the center, the data point around the flanks
     final double window = (holeFillFactor + 2d) * tolerance.getMzToleranceForMass(mz);
     final double logIntensity = Math.log(intensity);
     final double[] centers = reachable.centers;
-    int best = NONE;
-    double bestDistance = Double.POSITIVE_INFINITY;
+    int filled = 0;
     for (int t = reachable.lookup.lowerBound(mz - window);
         t < centers.length && centers[t] <= mz + window; t++) {
       final int c = reachable.channels[t];
@@ -690,13 +696,12 @@ final class ChannelFinalization {
       final double expectedLogIntensity =
           logBefore + position * (Math.log(intensityAfter) - logBefore);
       if (distance <= holeFillFactor * tolerance.getMzToleranceForMass(expectedMz)
-          && Math.abs(logIntensity - expectedLogIntensity) <= logIntensityFactor
-          && distance < bestDistance) {
-        best = c;
-        bestDistance = distance;
+          && Math.abs(logIntensity - expectedLogIntensity) <= logIntensityFactor) {
+        buffer.insert(scan, mz, intensity);
+        filled++;
       }
     }
-    return best;
+    return filled;
   }
 
   /**
@@ -879,7 +884,7 @@ final class ChannelFinalization {
   }
 
   /**
-   * @return data points of failed channels that filled a passing channel
+   * @return fills of passing channels with data points of failed channels, free scans and holes
    */
   long getNumRecoveredDataPoints() {
     return numRecoveredDataPoints;

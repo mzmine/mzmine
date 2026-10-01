@@ -32,14 +32,14 @@ import java.util.Random;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class UnusedDataPointsTest {
+class LooseDataPointsTest {
 
   @Test
   void sortMergesSortedRunsStably() {
     final Random random = new Random(5);
-    final UnusedDataPoints unused = new UnusedDataPoints();
+    final LooseDataPoints loose = new LooseDataPoints();
     for (int round = 0; round < 200; round++) {
-      unused.reset(round);
+      loose.reset(round);
       // up to 5 sorted runs with duplicate m/z values, the intensity marks the insertion order
       final List<double[]> expected = new ArrayList<>();
       final int runs = 1 + random.nextInt(5);
@@ -49,24 +49,24 @@ class UnusedDataPointsTest {
         final int length = random.nextInt(300);
         for (int i = 0; i < length; i++) {
           mz += random.nextInt(3) == 0 ? 0 : random.nextDouble();
-          unused.add(mz, order);
+          loose.add(mz, order);
           expected.add(new double[]{mz, order});
           order++;
         }
       }
       expected.sort(Comparator.comparingDouble((double[] p) -> p[0]));
-      unused.sort();
+      loose.sort();
       for (int i = 0; i < expected.size(); i++) {
         final double[] point = expected.get(i);
         // the closest data point to its own m/z with its own intensity is itself
-        final int found = unused.findClosest(point[0], 0, point[1], point[1]);
+        final int found = loose.findClosest(point[0], 0, point[1], point[1]);
         Assertions.assertTrue(found >= 0, "data point %d missing".formatted(i));
-        Assertions.assertEquals(point[0], unused.mz(found));
+        Assertions.assertEquals(point[0], loose.mz(found));
       }
       // sorted and stable: the order of equal m/z values keeps the insertion order
       for (int i = 0; i < expected.size(); i++) {
-        Assertions.assertEquals(expected.get(i)[0], unused.mz(i), "round " + round);
-        Assertions.assertEquals(expected.get(i)[1], unused.intensity(i), "round " + round);
+        Assertions.assertEquals(expected.get(i)[0], loose.mz(i), "round " + round);
+        Assertions.assertEquals(expected.get(i)[1], loose.intensity(i), "round " + round);
       }
     }
   }

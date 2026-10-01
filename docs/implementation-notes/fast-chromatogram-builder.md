@@ -133,7 +133,7 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   other one becomes loose; member data points win over loose ones, among loose data points the
   closest to the center wins.
 - Holes of up to 3 scans between two data points of at least the min group intensity are filled
-  with data points that no channel used, within 2x the tolerance around the interpolated m/z, if
+  with loose data points, within 2x the tolerance around the interpolated m/z, if
   the intensity is within 5x of the log-interpolated intensity. A signal does not vanish for a
   scan, its centroid is shifted, e.g., by a coalescing neighbor or a split peak. The min group
   intensity is what the user counts as signal, the consecutive segments consist of it
@@ -150,12 +150,28 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   features at the noise level, on GC-EI-QTOF without noise filter truncated features 726 → 139
   but features with foreign m/z data points 296 → 688 and fast features found in ADAP −0.8
   percentage points; at these intensities the fill rule cannot tell the ion from noise. The
-  coalesced fill keeps the min height, it is for intense apex centroids. The unused data
-  points of the last scans are kept in a ring buffer, so this needs no extra pass. Only unused data
+  coalesced fill keeps the min height, it is for intense apex centroids. The loose data
+  points of the last scans are kept in a ring buffer, so this needs no extra pass. Only loose data
   points within 5x the tolerance of a channel center are kept (flanks at most the complementary
-  tolerance plus the tolerance from the center, plus the hole fill tolerance): without noise filter
-  most data points are far from all channels, and sorting them per scan took a third of pass 2.
-  They arrive in a few sorted runs, a natural merge sort sorts them.
+  tolerance plus the tolerance from the center, plus the hole fill tolerance) and of at least the
+  min group intensity / 5 (weaker data points never fit the intensity of a hole): without noise
+  filter most data points are far from all channels, and sorting them per scan took a third of
+  pass 2. They arrive in a few sorted runs, a natural merge sort sorts them.
+- Hole fills share data points (decision of the user, 2026-10-01: chromatograms may share a data
+  point of the same scan). The hole fill of pass 2 also uses the loose data points that filled an
+  empty scan of another channel, and each hole takes its closest data point, also one that filled
+  another hole. The recovery of failed channels fills the free scan of the closest channel and
+  also all holes the data point fits. Before: only data points that no channel used, the first
+  hole took them, and the recovery filled a hole only without a free channel. The closest channel
+  within the tolerance is not always the ion, e.g., a channel that elutes at another time takes
+  the data point as baseline while the ion has a hole. Benchmark (preset tolerance, same day):
+  truncated features on QE sensitive 188 → 125, QE media sensitive 140 → 91, QE workshop 40 → 33,
+  QE media workshop 20 → 14, GC-EI-QTOF 130 → 118, split peaks 16 → 12 and 21 → 16, ADAP features
+  found in fast +0.05 to +0.13 percentage points on the QE data sets, the other data sets
+  unchanged within 0.02. Cost: features with foreign m/z data points +3 to +11% (QE sensitive
+  769 → 819, QE media sensitive 340 → 379, GC-EI-QTOF 157 → 169), fast features found in ADAP −0.1
+  to −0.2 percentage points (more features: QE sensitive +59), synthetic data unchanged within 3%
+  (holes, replaced and foreign data points).
 - After pass 2, `ChannelFinalization` merges complementary channels: up to 2x the tolerance apart,
   never sharing a scan, and the target has a data point within the gap allowance of the apex of the
   merging channel that is at least its apex intensity / 5. Passing channels merge into a more
@@ -185,13 +201,14 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   file between neighboring channels 1-3 tolerances apart, and ADAP features found in fast dropped
   by 0.2 percentage points (98.40% → 98.18%). With the limit, only the saturated plateaus of the
   GC-QTOF data are bridged, all other data sets are unchanged. The 4x window has margin over the
-  largest observed shift (2.5x), and the dip rules keep it from joining other ions.
+  largest observed shift (2.5x), and the dip rules keep it from joining other ions. A channel
+  that fails the filters after it lost a segment is no target for later segments, its data points
+  are recovered.
 - Channels that fail the filters would take their member data points with them, e.g., the apex of
   an intense ion taken by the trace of a co-eluting side signal in its apex scan. Their remaining
   data points fill free scans of passing channels with the rules of pass 2 (closest channel within
-  the tolerance, then holes between data points of at least the min group intensity within 2x the
-  tolerance), the most intense
-  first. On a QE QC file (workshop settings, Auto 9.5 ppm): 28 merges, 348 recovered data points,
+  the tolerance, and the holes between data points of at least the min group intensity within 2x
+  the tolerance), the most intense first. On a QE QC file (workshop settings, Auto 9.5 ppm): 28 merges, 348 recovered data points,
   ADAP signals missing in the fast chromatograms 56 → 42 groups in the comparison tool. Failed
   channels without a passing channel within the hole fill window are skipped (most noise channels
   of data without noise filter), the data points are sorted by a radix sort of the intensity bits,
@@ -200,13 +217,13 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
 - Two ions that the instrument does not resolve give one centroid between both m/z when both are
   intense, which only the closer channel takes. E.g., GC-EI-QTOF 022 with Auto (25 ppm): 262.120
   and 262.133 (+48 ppm) give one centroid at +23 to +32 ppm in 8 apex scans of 262.120, 5 of them
-  consecutive. The hole fill of pass 2 cannot fill these holes, it uses only unused data points
+  consecutive. The hole fill of pass 2 cannot fill these holes, it uses only loose data points
   and holes of up to 3 scans. Last step of `ChannelFinalization`: a hole between two data points
   of at least the min height is filled with the data point of another passing channel in the same
   scan that lies between the m/z interpolated in the hole and the median m/z of its channel, is
   shifted from this median toward the hole by at least half the tolerance, within 2x the tolerance
   of the interpolated m/z and within 5x of the interpolated intensity. The data point stays in its
-  channel, it is the only case of one data point in two chromatograms. Holes up to 3 scans are
+  channel, and several holes may share it. Holes up to 3 scans are
   filled scan by scan, longer holes up to 8 scans only if every scan is filled (a partly filled
   long hole is a hole of the ion). The fills are applied after the search, a shared data point is
   not shared again. The median and not the intensity weighted center: the shared apex centroids

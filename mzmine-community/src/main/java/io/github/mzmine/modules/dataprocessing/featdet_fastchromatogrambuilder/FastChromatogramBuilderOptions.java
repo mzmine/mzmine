@@ -59,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
  *                                     after the second pass, see {@link ChannelFinalization}.
  *                                     Values <= 1 disable both.
  * @param holeFillToleranceFactor      holes between intense data points of a channel are filled
- *                                     with unused data points up to this multiple of the tolerance
+ *                                     with loose data points up to this multiple of the tolerance
  *                                     around the m/z of the neighbors. Values <= 0 disable this.
  * @param holeFillFlank                the min intensity of both neighbors of a hole that the second
  *                                     pass and the recovery of failed channels fill with the wider

@@ -29,14 +29,14 @@ import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Data points of one scan that no chromatogram used, sorted by m/z. {@link ChannelDataCollector}
- * keeps them for a few scans to fill holes of intense chromatograms with a wider tolerance.
+ * Loose data points of one scan, i.e., not taken by the trace of a channel, sorted by m/z.
+ * {@link ChannelDataCollector} keeps them for a few scans to fill holes of intense chromatograms
+ * with a wider tolerance.
  */
-final class UnusedDataPoints {
+final class LooseDataPoints {
 
   private double[] mzs = new double[64];
   private double[] intensities = new double[64];
-  private boolean[] used = new boolean[64];
   private int size = 0;
   private int scanIndex = -1;
   // target of the merge sort, as long as the data arrays
@@ -57,11 +57,9 @@ final class UnusedDataPoints {
       final int capacity = size * 2;
       mzs = Arrays.copyOf(mzs, capacity);
       intensities = Arrays.copyOf(intensities, capacity);
-      used = Arrays.copyOf(used, capacity);
     }
     mzs[size] = mz;
     intensities[size] = intensity;
-    used[size] = false;
     size++;
   }
 
@@ -148,9 +146,10 @@ final class UnusedDataPoints {
   }
 
   /**
-   * Binary search for the window, the scan has many unused data points but few queries.
+   * Binary search for the window, the scan has many loose data points but few queries. A data
+   * point may fill holes of several chromatograms.
    *
-   * @return the unused data point closest to mz within the tolerance and the intensity range or -1
+   * @return the data point closest to mz within the tolerance and the intensity range or -1
    */
   int findClosest(double mz, double tolerance, double minIntensity, double maxIntensity) {
     int lo = 0;
@@ -169,17 +168,13 @@ final class UnusedDataPoints {
     final double max = mz + tolerance;
     for (int i = lo; i < size && mzs[i] <= max; i++) {
       final double distance = Math.abs(mzs[i] - mz);
-      if (!used[i] && distance < bestDistance && intensities[i] >= minIntensity
+      if (distance < bestDistance && intensities[i] >= minIntensity
           && intensities[i] <= maxIntensity) {
         best = i;
         bestDistance = distance;
       }
     }
     return best;
-  }
-
-  void markUsed(int index) {
-    used[index] = true;
   }
 
   double mz(int index) {

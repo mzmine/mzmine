@@ -37,9 +37,11 @@ import org.jetbrains.annotations.NotNull;
  * from signals that scattered out of their trace, and keeps the low level signals of the full
  * chromatogram like the ADAP builder.
  * <p>
- * Data points that no channel used are kept for a few scans. When a channel with intense data
- * points continues after a short gap, its holes are filled from these data points with a wider
- * tolerance around the m/z of the neighbors, if the intensity fits between the neighbors.
+ * The loose data points are kept for a few scans, also those that filled an empty scan. When a
+ * channel with intense data points continues after a short gap, its holes are filled from these
+ * data points with a wider tolerance around the m/z of the neighbors, if the intensity fits between
+ * the neighbors. A loose data point may fill a hole of a chromatogram and an empty scan or holes of
+ * other chromatograms.
  */
 final class ChannelDataCollector {
 
@@ -79,15 +81,18 @@ final class ChannelDataCollector {
   private double[] looseIntensity = new double[256];
   private int numLoose = 0;
 
-  // hole filling: last data point of each channel and the unused data points of the last scans
+  // hole filling: last data point of each channel and the loose data points of the last scans
   private final double holeFillToleranceFactor;
   // max distance of a data point that may fill a hole from the channel center, in tolerances
   private final double holeFillWindowFactor;
   // distance of the last data point in findFreeChannel to the nearest channel, in tolerances
   private double nearestChannelDistance = Double.POSITIVE_INFINITY;
   private final double minHoleFillIntensity;
+  // a weaker data point is never within the intensity factor of a hole between two flanks of at
+  // least the min hole fill intensity
+  private final double minFillingIntensity;
   private final double logIntensityFactor;
-  private final UnusedDataPoints[] recentUnused;
+  private final LooseDataPoints[] recentLoose;
   private final double[] lastMz;
   private final double[] lastIntensity;
   private final int[] lastScan;
@@ -127,12 +132,13 @@ final class ChannelDataCollector {
     holeFillWindowFactor =
         holeFillToleranceFactor + Math.max(1d, options.complementaryToleranceFactor()) + 1d;
     this.minHoleFillIntensity = minHoleFillIntensity;
+    minFillingIntensity = minHoleFillIntensity / options.intensityJumpFactor();
     logIntensityFactor = Math.log(options.intensityJumpFactor());
     // one scan more than the longest hole, the current scan is written while older are read
-    recentUnused = new UnusedDataPoints[holeFillToleranceFactor > 0d ? options.maxGapScans() + 1
+    recentLoose = new LooseDataPoints[holeFillToleranceFactor > 0d ? options.maxGapScans() + 1
         : 1];
-    for (int i = 0; i < recentUnused.length; i++) {
-      recentUnused[i] = new UnusedDataPoints();
+    for (int i = 0; i < recentLoose.length; i++) {
+      recentLoose[i] = new LooseDataPoints();
     }
     lastMz = new double[numChannels];
     lastIntensity = new double[numChannels];
@@ -213,13 +219,23 @@ final class ChannelDataCollector {
   }
 
   private void onScanFinished(int scanIndex) {
-    final UnusedDataPoints unused = recentUnused[scanIndex % recentUnused.length];
-    unused.reset(scanIndex);
+    final LooseDataPoints recent = recentLoose[scanIndex % recentLoose.length];
+    recent.reset(scanIndex);
     for (int i = 0; i < numLoose; i++) {
-      assignLoose(looseMz[i], looseIntensity[i], unused);
+      final double nearest = assignLoose(looseMz[i], looseIntensity[i]);
+      // decision: a hole is filled around the m/z of the flanking data points of a channel, which
+      // are at most the complementary tolerance plus the tolerance away from the channel center.
+      // Most loose data points of noisy data are far from all channels, keeping them only costs a
+      // sort per scan. Loose data points that filled an empty scan of a channel are kept as well:
+      // the closest channel in the tolerance is not always the ion, e.g., a channel that elutes at
+      // another time, and a chromatogram may share a data point with another one.
+      if (holeFillToleranceFactor > 0d && nearest <= holeFillWindowFactor
+          && looseIntensity[i] >= minFillingIntensity) {
+        recent.add(looseMz[i], looseIntensity[i]);
+      }
     }
     numLoose = 0;
-    unused.sort();
+    recent.sort();
 
     for (int i = 0; i < numTouched; i++) {
       final int channel = touchedChannels[i];
@@ -244,29 +260,28 @@ final class ChannelDataCollector {
   /**
    * Visits the channels in the order of their distance to the m/z and fills the first free one
    * within the tolerance. A closer loose data point replaces a farther one, which then tries the
-   * next channels. Data points without a channel are kept as unused.
+   * next channels.
+   *
+   * @return the distance of the data point to the nearest channel center in tolerances
    */
-  private void assignLoose(double mz, double intensity, @NotNull UnusedDataPoints unused) {
+  private double assignLoose(double mz, double intensity) {
     double currentMz = mz;
     double currentIntensity = intensity;
+    double nearest = Double.NaN;
     // terminates: a data point only replaces a farther one and channels are finite
     while (true) {
       final int channel = findFreeChannel(currentMz);
+      if (Double.isNaN(nearest)) {
+        nearest = nearestChannelDistance;
+      }
       if (channel == NONE) {
-        // decision: a hole is filled around the m/z of the flanking data points of a channel,
-        // which are at most the complementary tolerance plus the tolerance away from the channel
-        // center. Most unused data points of noisy data are far from all channels, keeping them
-        // only costs a sort per scan.
-        if (holeFillToleranceFactor > 0d && nearestChannelDistance <= holeFillWindowFactor) {
-          unused.add(currentMz, currentIntensity);
-        }
-        return;
+        return nearest;
       }
       final double distance = Math.abs(currentMz - channelCenters[channel]);
       if (pendingType[channel] == EMPTY) {
         numLooseAssigned++;
         setPending(channel, LOOSE, currentMz, currentIntensity, distance);
-        return;
+        return nearest;
       }
       // replace the farther loose data point and continue with it
       final double replacedMz = pendingMz[channel];
@@ -324,13 +339,13 @@ final class ChannelDataCollector {
    * Fills the scans between the last data point of the channel and the pending data point of this
    * scan. Only between intense data points: an intense signal does not vanish for a scan, its data
    * point is usually there with a larger m/z error, e.g., from a coalescing neighbor or a split
-   * centroid. The data point closest to the interpolated m/z within the wider tolerance fills the
-   * hole if its intensity is within the intensity factor of the interpolated intensity.
+   * centroid. The loose data point closest to the interpolated m/z within the wider tolerance fills
+   * the hole if its intensity is within the intensity factor of the interpolated intensity.
    */
   private void fillHoles(int channel, @NotNull ChannelBuffer buffer, int scanIndex) {
     final int previous = lastScan[channel];
     final int gap = scanIndex - previous;
-    if (previous == NONE || gap < 2 || gap >= recentUnused.length + 1) {
+    if (previous == NONE || gap < 2 || gap >= recentLoose.length + 1) {
       return;
     }
     final double intensityBefore = lastIntensity[channel];
@@ -343,21 +358,22 @@ final class ChannelDataCollector {
     final double logBefore = Math.log(intensityBefore);
     final double logAfter = Math.log(intensityAfter);
     for (int hole = previous + 1; hole < scanIndex; hole++) {
-      final UnusedDataPoints unused = recentUnused[hole % recentUnused.length];
-      if (unused.scanIndex() != hole) {
+      final LooseDataPoints loose = recentLoose[hole % recentLoose.length];
+      if (loose.scanIndex() != hole) {
         continue;
       }
       final double position = (double) (hole - previous) / gap;
       final double mz = mzBefore + position * (mzAfter - mzBefore);
       final double logIntensity = logBefore + position * (logAfter - logBefore);
       final double tol = holeFillToleranceFactor * tolerance.getMzToleranceForMass(mz);
-      final int match = unused.findClosest(mz, tol, Math.exp(logIntensity - logIntensityFactor),
+      final int match = loose.findClosest(mz, tol, Math.exp(logIntensity - logIntensityFactor),
           Math.exp(logIntensity + logIntensityFactor));
       if (match < 0) {
         continue;
       }
-      unused.markUsed(match);
-      buffer.add(hole, unused.mz(match), unused.intensity(match));
+      // decision: not exclusive, each hole takes its closest data point. The user accepts that
+      // chromatograms share a data point of the same scan.
+      buffer.add(hole, loose.mz(match), loose.intensity(match));
       numHoleFills++;
     }
   }
