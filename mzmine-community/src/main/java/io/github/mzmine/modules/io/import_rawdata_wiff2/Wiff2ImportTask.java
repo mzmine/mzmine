@@ -204,6 +204,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
         final String startTimestamp = sample.getStartTimestamp();
         rawDataFile.setStartTimeStamp(DateTimeUtils.parseOrElse(startTimestamp, null));
         applyFileMetadata(sample, rawDataFile.getFileMetadata());
+        access.applySampleInfoToFileMetadata(sample, rawDataFile.getFileMetadata());
 
         final List<Experiment> experiments = access.getExperiments(sample);
         for (Experiment experiment : experiments) {
