@@ -47,15 +47,15 @@ public final class ParameterEstimationContext {
 
   private final @NotNull RawDataAnalysis analysis;
   private final @NotNull WizardSequence sequence;
-  private final @Nullable MZTolerance sampleMzTolerance;
+  private final @Nullable MZTolerance sampleToSampleMzTolerance;
   private final @NotNull PresetSelection presetSelection;
 
   private ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
-      @NotNull WizardSequence sequence, @Nullable MZTolerance sampleMzTolerance,
+      @NotNull WizardSequence sequence, @Nullable MZTolerance sampleToSampleMzTolerance,
       @NotNull PresetSelection presetSelection) {
     this.analysis = analysis;
     this.sequence = sequence;
-    this.sampleMzTolerance = sampleMzTolerance;
+    this.sampleToSampleMzTolerance = sampleToSampleMzTolerance;
     this.presetSelection = presetSelection;
   }
 
@@ -64,7 +64,7 @@ public final class ParameterEstimationContext {
    */
   public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence) {
-    this(analysis, sequence, estimateSampleMzTolerance(analysis), PresetSelection.NONE);
+    this(analysis, sequence, estimateSampleToSampleMzTolerance(analysis), PresetSelection.NONE);
   }
 
   /**
@@ -86,10 +86,10 @@ public final class ParameterEstimationContext {
     final WizardSequence estimationSequence = sequence.copy();
     fitting.applyDefaultPresets(estimationSequence);
     return new ParameterEstimationContext(analysis, estimationSequence,
-        estimateSampleMzTolerance(analysis), fitting);
+        estimateSampleToSampleMzTolerance(analysis), fitting);
   }
 
-  private static @Nullable MZTolerance estimateSampleMzTolerance(
+  private static @Nullable MZTolerance estimateSampleToSampleMzTolerance(
       @NotNull RawDataAnalysis analysis) {
     return ParameterEstimators.estimateSampleToSampleMzTolerance(analysis.sampleMzToleranceCounts(),
         0.8f);
@@ -129,7 +129,7 @@ public final class ParameterEstimationContext {
   }
 
   public @Nullable MZTolerance sampleMzTolerance() {
-    return sampleMzTolerance;
+    return sampleToSampleMzTolerance;
   }
 
   @Override
@@ -142,19 +142,21 @@ public final class ParameterEstimationContext {
     }
     var that = (ParameterEstimationContext) obj;
     return Objects.equals(this.analysis, that.analysis) && Objects.equals(this.sequence,
-        that.sequence) && Objects.equals(this.sampleMzTolerance, that.sampleMzTolerance)
+        that.sequence) && Objects.equals(this.sampleToSampleMzTolerance,
+        that.sampleToSampleMzTolerance)
         && Objects.equals(this.presetSelection, that.presetSelection);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(analysis, sequence, sampleMzTolerance, presetSelection);
+    return Objects.hash(analysis, sequence, sampleToSampleMzTolerance, presetSelection);
   }
 
   @Override
   public String toString() {
     return "ParameterEstimationContext[" + "analysis=" + analysis + ", " + "sequence=" + sequence
-        + ", " + "sampleMzTolerance=" + sampleMzTolerance + ", " + "presetSelection="
+        + ", " + "sampleToSampleMzTolerance=" + sampleToSampleMzTolerance + ", "
+        + "presetSelection="
         + presetSelection + ']';
   }
 
