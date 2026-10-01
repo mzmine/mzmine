@@ -170,11 +170,12 @@ final class FastChromatogramFileTask extends AbstractTask {
       @NotNull BuiltChromatogram chromatogram, @NotNull Ms2ScanIndex ms2Index) {
     final int n = chromatogram.getNumberOfDataPoints();
     final int numScans = scans.length;
-    final int size = countWithFlankingZeros(chromatogram, numScans);
+    // at most one zero on each side of every data point and one data point per scan
+    final int capacity = (int) Math.min(3L * n, numScans);
     final double zeroMz = chromatogram.getMeanMz();
-    final double[] mzs = new double[size];
-    final double[] intensities = new double[size];
-    final Scan[] seriesScans = new Scan[size];
+    double[] mzs = new double[capacity];
+    double[] intensities = new double[capacity];
+    Scan[] seriesScans = new Scan[capacity];
     double minMz = Double.POSITIVE_INFINITY;
     double maxMz = Double.NEGATIVE_INFINITY;
     int out = 0;
@@ -201,9 +202,11 @@ final class FastChromatogramFileTask extends AbstractTask {
         lastScan = scan + 1;
       }
     }
-    if (out < size) {
-      // only zeros were skipped, cannot happen as the size is counted with the same rules
-      throw new IllegalStateException("Unexpected number of chromatogram data points");
+    final int size = out;
+    if (size < capacity) {
+      mzs = Arrays.copyOf(mzs, size);
+      intensities = Arrays.copyOf(intensities, size);
+      seriesScans = Arrays.copyOf(seriesScans, size);
     }
     // the zeros carry the mean m/z, which lies within the detected m/z range
     minMz = Math.min(minMz, zeroMz);
@@ -222,26 +225,6 @@ final class FastChromatogramFileTask extends AbstractTask {
         ms2Index.findFragmentScans(minRt, maxRt, Math.min(toleranceRange.lower(), minMz),
             Math.max(toleranceRange.upper(), maxMz)));
     return feature;
-  }
-
-  private static int countWithFlankingZeros(@NotNull BuiltChromatogram chromatogram, int numScans) {
-    final int n = chromatogram.getNumberOfDataPoints();
-    int size = 0;
-    int lastScan = -1;
-    for (int k = 0; k < n; k++) {
-      final int scan = chromatogram.getScanIndex(k);
-      if (scan - 1 >= 0 && scan - 1 > lastScan) {
-        size++;
-      }
-      size++;
-      lastScan = scan;
-      final int nextDetected = k + 1 < n ? chromatogram.getScanIndex(k + 1) : numScans;
-      if (scan + 1 < numScans && scan + 1 < nextDetected) {
-        size++;
-        lastScan = scan + 1;
-      }
-    }
-    return size;
   }
 
   @NotNull RawDataFile getDataFile() {

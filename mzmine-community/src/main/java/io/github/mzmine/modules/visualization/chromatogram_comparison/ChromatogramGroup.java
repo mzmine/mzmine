@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Set;
@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 public record ChromatogramGroup(int id, double mz, float apexRt, @NotNull GroupSide a,
                                 @NotNull GroupSide b, int differentDataPoints,
                                 @NotNull Set<ChromatogramIssue> issues,
-                                @Nullable Range<Float> signalRtRange) {
+                                @Nullable SimpleFloatRange signalRtRange) {
 
   /**
    * The most severe issues first, then the most intense groups, which are the most reliable signals

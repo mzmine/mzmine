@@ -345,7 +345,6 @@ final class ChannelFinalization {
           : Integer.compare(segmentFirstScans.getInt(a), segmentFirstScans.getInt(b));
     });
 
-    final boolean[] lost = new boolean[centers.length];
     for (final int s : order) {
       final int channel = segmentChannels.getInt(s);
       final ChannelBuffer source = buffers[channel];
@@ -383,18 +382,15 @@ final class ChannelFinalization {
       }
       buffers[target].addRangeReplacing(source, from, to, replaced::add);
       source.removeRange(from, to);
-      lost[channel] = true;
       numBridgedSegments++;
       numBridgedDataPoints += to - from;
-    }
-
-    for (int c = 0; c < centers.length; c++) {
-      if (lost[c] && passes[c] && !FastChromatogramBuilder.passesFilters(buffers[c].scanIndices(),
-          buffers[c].intensities(), buffers[c].size(), minConsecutiveScans, minGroupIntensity,
+      // checked right away, a failed channel must not receive later segments
+      if (passes[channel] && !FastChromatogramBuilder.passesFilters(source.scanIndices(),
+          source.intensities(), source.size(), minConsecutiveScans, minGroupIntensity,
           minHeight)) {
         // the rest of the channel is recovered with the failed channels
-        passes[c] = false;
-        targets[c] = false;
+        passes[channel] = false;
+        targets[channel] = false;
       }
     }
   }

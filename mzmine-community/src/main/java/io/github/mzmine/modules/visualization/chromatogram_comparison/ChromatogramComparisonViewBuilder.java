@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
@@ -311,12 +311,12 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
    */
   private static void zoomToSignals(@NotNull SimpleXYChart<?> chart,
       @NotNull ChromatogramGroup group) {
-    final Range<Float> signalRtRange = group.signalRtRange();
+    final SimpleFloatRange signalRtRange = group.signalRtRange();
     if (signalRtRange == null) {
       return;
     }
-    final double lower = signalRtRange.lowerEndpoint();
-    final double upper = signalRtRange.upperEndpoint();
+    final double lower = signalRtRange.lower();
+    final double upper = signalRtRange.upper();
     final double margin = Math.max((upper - lower) * RT_MARGIN_FACTOR, MIN_RT_MARGIN);
     chart.getXYPlot().getDomainAxis().setRange(lower - margin, upper + margin);
     // the highest data point lies within the signals

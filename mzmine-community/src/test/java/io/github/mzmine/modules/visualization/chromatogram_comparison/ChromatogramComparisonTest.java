@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -82,10 +82,10 @@ class ChromatogramComparisonTest {
     return ComparedChromatogram.create(side, id, mz, scans, intensities, mzs, null);
   }
 
-  private static void assertRtRange(double lower, double upper, Range<Float> range) {
+  private static void assertRtRange(double lower, double upper, SimpleFloatRange range) {
     assertNotNull(range);
-    assertEquals(lower, range.lowerEndpoint(), 1E-5);
-    assertEquals(upper, range.upperEndpoint(), 1E-5);
+    assertEquals(lower, range.lower(), 1E-5);
+    assertEquals(upper, range.upper(), 1E-5);
   }
 
   @NotNull

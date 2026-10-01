@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -581,7 +581,7 @@ public final class ChromatogramComparison {
    * @return range of the signals and missing data points, or of all data points if no data point
    * reaches the threshold, null without data points
    */
-  private static Range<Float> signalRtRange(@NotNull Signal signalA, @NotNull Signal signalB,
+  private static SimpleFloatRange signalRtRange(@NotNull Signal signalA, @NotNull Signal signalB,
       @NotNull GroupSide a, @NotNull GroupSide b, @NotNull ComparisonScans scans,
       double minSignalIntensity) {
     float min = Float.POSITIVE_INFINITY;
@@ -609,7 +609,7 @@ public final class ChromatogramComparison {
         }
       }
     }
-    return min > max ? null : Range.closed(min, max);
+    return min > max ? null : new SimpleFloatRange(min, max);
   }
 
   /**
