@@ -28,16 +28,13 @@ package io.github.mzmine.modules.io.projectsave;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.rawfiletypes.RawFileMetadataType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -56,8 +53,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Saves and restores the file metadata of all raw data files
- * ({@link RawDataFile#getFileMetadata()}) in an mzmine project archive. Only data types tagged with
- * {@link RawFileMetadataType} are saved. Their XML methods receive a dummy feature list and row.
+ * ({@link RawDataFile#getFileMetadata()}) in an mzmine project archive. Values are saved with the
+ * context-free XML methods of their {@link DataType}. Types that
+ * {@link DataType#requiresFeatureListContext() require a feature list context} cannot be stored in
+ * the file metadata and fail the project save.
  */
 public final class RawFileMetadataProjectIO {
 
@@ -74,6 +73,8 @@ public final class RawFileMetadataProjectIO {
 
   /**
    * @return true if metadata was written, false if no raw file has metadata
+   * @throws IllegalStateException if a file metadata type requires a feature list context. This is
+   *                               a programming error and fails the project save on purpose.
    */
   public static boolean saveToZip(@NotNull final ZipOutputStream zipStream,
       @NotNull final MZmineProject project) throws IOException {
@@ -83,8 +84,8 @@ public final class RawFileMetadataProjectIO {
       return false;
     }
 
-    final ModularFeatureList dummyFlist = FeatureList.createDummy();
-    final ModularFeatureListRow dummyRow = new ModularFeatureListRow(dummyFlist, 0);
+    // check before writing so the zip does not contain a partial entry
+    requireContextFreeTypes(files);
 
     zipStream.putNextEntry(new ZipEntry(RAW_FILE_METADATA_FILENAME));
     try {
@@ -97,7 +98,7 @@ public final class RawFileMetadataProjectIO {
       for (final RawDataFile file : files) {
         writer.writeStartElement(CONST.XML_RAW_FILE_ELEMENT);
         writer.writeAttribute(CONST.XML_RAW_FILE_NAME_ELEMENT, file.getName());
-        writeMetadata(writer, file, dummyFlist, dummyRow);
+        writeMetadata(writer, file);
         writer.writeEndElement();
       }
 
@@ -113,9 +114,30 @@ public final class RawFileMetadataProjectIO {
     return true;
   }
 
+  /**
+   * @throws IllegalStateException listing all files and types that require a feature list context
+   */
+  private static void requireContextFreeTypes(@NotNull final List<RawDataFile> files) {
+    final List<String> errors = new ArrayList<>();
+    for (final RawDataFile file : files) {
+      for (final DataType<?> type : file.getFileMetadata().getTypes()) {
+        if (type.requiresFeatureListContext()) {
+          errors.add("%s (%s) in file %s".formatted(type.getClass().getName(), type.getUniqueID(),
+              file.getName()));
+        }
+      }
+    }
+    if (!errors.isEmpty()) {
+      // decision: fail loudly, silently dropping metadata would hide the programming error
+      throw new IllegalStateException("""
+          Raw file metadata contains data types that require a feature list context and cannot \
+          be saved. Use types that implement the context-free XML methods of DataType:
+          """ + String.join("\n", errors));
+    }
+  }
+
   private static void writeMetadata(@NotNull final XMLStreamWriter writer,
-      @NotNull final RawDataFile file, @NotNull final ModularFeatureList dummyFlist,
-      @NotNull final ModularFeatureListRow dummyRow) throws XMLStreamException {
+      @NotNull final RawDataFile file) throws XMLStreamException {
     final ModularDataModel metadata = file.getFileMetadata();
     for (final Entry<DataType, Object> entry : metadata.stream().toList()) {
       final DataType<?> type = entry.getKey();
@@ -123,16 +145,10 @@ public final class RawFileMetadataProjectIO {
       if (value == null) {
         continue;
       }
-      if (!(type instanceof RawFileMetadataType)) {
-        // decision: only tagged types guarantee that they do not rely on flist and row
-        logger.fine(() -> "Raw file metadata type %s is not saved, it is not a %s".formatted(
-            type.getClass().getName(), RawFileMetadataType.class.getSimpleName()));
-        continue;
-      }
       writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
       writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, type.getUniqueID());
       try {
-        type.saveToXML(writer, value, dummyFlist, dummyRow, null, file);
+        type.saveToXML(writer, value);
       } catch (XMLStreamException | RuntimeException e) {
         logger.log(Level.WARNING,
             "Cannot save raw file metadata %s of file %s: %s".formatted(type.getUniqueID(),
@@ -155,9 +171,6 @@ public final class RawFileMetadataProjectIO {
       return false;
     }
 
-    final ModularFeatureList dummyFlist = FeatureList.createDummy();
-    final ModularFeatureListRow dummyRow = new ModularFeatureListRow(dummyFlist, 0);
-
     try (InputStream is = zipFile.getInputStream(entry)) {
       final XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(is);
       try {
@@ -176,7 +189,7 @@ public final class RawFileMetadataProjectIO {
                       name));
             }
           } else if (CONST.XML_DATA_TYPE_ELEMENT.equals(element)) {
-            readDataType(reader, currentFile, project, dummyFlist, dummyRow);
+            readDataType(reader, currentFile);
           }
         }
       } finally {
@@ -189,20 +202,28 @@ public final class RawFileMetadataProjectIO {
   }
 
   private static void readDataType(@NotNull final XMLStreamReader reader,
-      @Nullable final RawDataFile file, @NotNull final MZmineProject project,
-      @NotNull final ModularFeatureList dummyFlist, @NotNull final ModularFeatureListRow dummyRow)
-      throws XMLStreamException {
+      @Nullable final RawDataFile file) throws XMLStreamException {
     final String typeId = reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR);
     final DataType type = DataTypes.getTypeForId(typeId);
-    if (file == null || !(type instanceof RawFileMetadataType)) {
-      if (file != null) {
-        logger.info(() -> "Unknown raw file metadata type " + typeId + ", skipping");
-      }
+    if (file == null) {
+      skipElement(reader);
+      return;
+    }
+    if (type == null) {
+      logger.info(() -> "Unknown raw file metadata type " + typeId + ", skipping");
+      skipElement(reader);
+      return;
+    }
+    if (type.requiresFeatureListContext()) {
+      // assumption: only possible if the type was changed to require a context after saving
+      logger.warning(
+          () -> "Raw file metadata type %s requires a feature list context, skipping".formatted(
+              typeId));
       skipElement(reader);
       return;
     }
     try {
-      final Object value = type.loadFromXML(reader, project, dummyFlist, dummyRow, null, file);
+      final Object value = type.loadFromXML(reader);
       if (value != null) {
         file.getFileMetadata().set(type, value);
       }

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Names of the detector components in order, e.g., inductive detector.
  */
-public class DetectorsType extends StringListType implements CvTermType, RawFileMetadataType {
+public class DetectorsType extends StringListType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

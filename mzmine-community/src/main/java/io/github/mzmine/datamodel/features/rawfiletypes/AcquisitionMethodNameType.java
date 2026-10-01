@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Name of the acquisition method used to acquire the data.
  */
-public class AcquisitionMethodNameType extends StringType implements RawFileMetadataType {
+public class AcquisitionMethodNameType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {

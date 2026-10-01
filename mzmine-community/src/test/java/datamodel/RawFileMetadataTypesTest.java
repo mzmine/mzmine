@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.IonSourcesType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MassAnalyzersType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
-import io.github.mzmine.datamodel.features.rawfiletypes.RawFileMetadataType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SourceFileSha1Type;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -51,10 +50,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Save/load of all {@link RawFileMetadataType}s without access to the feature list or row. New
- * types need a sample value in {@link #SAMPLES}.
+ * Context-free save/load of all data types in the raw file metadata package, the same way as
+ * {@link io.github.mzmine.modules.io.projectsave.RawFileMetadataProjectIO} saves them. New types
+ * need a sample value in {@link #SAMPLES}.
  */
 class RawFileMetadataTypesTest {
+
+  private static final String RAW_FILE_TYPES_PACKAGE = InstrumentModelType.class.getPackageName();
 
   // contains xml special characters to test escaping
   private static final String TEXT = "Q Exactive <HF> & \"plus\" 'slot #1'";
@@ -73,14 +75,17 @@ class RawFileMetadataTypesTest {
       Map.entry(DetectorsType.class, List.of("microchannel plate detector", "photomultiplier")));
 
   static @NotNull Stream<DataType<?>> rawFileMetadataTypes() {
-    return DataTypes.getInstances().stream().filter(RawFileMetadataType.class::isInstance)
+    return DataTypes.getInstances().stream()
+        .filter(type -> type.getClass().getPackageName().equals(RAW_FILE_TYPES_PACKAGE))
         .<DataType<?>>map(type -> (DataType<?>) type)
         .sorted(Comparator.comparing(DataType::getUniqueID));
   }
 
   @SuppressWarnings("unchecked")
   private static <T> void saveLoad(@NotNull final DataType<T> type, @NotNull final Object sample) {
-    RawFileMetadataTypeTestUtils.rawFileMetadataSaveLoadTest(type, (T) sample);
+    final T value = (T) sample;
+    DataTypeTestUtils.contextFreeSaveLoadTest(type, value);
+    DataTypeTestUtils.testStringConversion(type, value);
   }
 
   @Test
@@ -97,22 +102,11 @@ class RawFileMetadataTypesTest {
   @ParameterizedTest
   @MethodSource("rawFileMetadataTypes")
   void saveLoadWithoutFeatureList(@NotNull final DataType<?> type) {
+    Assertions.assertFalse(type.requiresFeatureListContext(),
+        () -> type.getClass().getName() + " is in the raw file metadata package but requires a "
+            + "feature list context. It cannot be saved as raw file metadata.");
     final Object sample = SAMPLES.get(type.getClass());
     Assertions.assertNotNull(sample, () -> "No sample value for " + type.getClass().getName());
     saveLoad(type, sample);
-  }
-
-  @Test
-  void strictDummiesThrowOnAccess() {
-    final var flist = RawFileMetadataTypeTestUtils.createStrictDummyFeatureList();
-    final var row = RawFileMetadataTypeTestUtils.createStrictDummyRow();
-
-    Assertions.assertThrows(AssertionError.class, flist::getName);
-    Assertions.assertThrows(AssertionError.class, flist::getNumberOfRows);
-    Assertions.assertThrows(AssertionError.class, row::getID);
-    // object methods are allowed
-    Assertions.assertDoesNotThrow(() -> flist.toString());
-    Assertions.assertDoesNotThrow(() -> row.hashCode());
-    Assertions.assertEquals(row, row);
   }
 }

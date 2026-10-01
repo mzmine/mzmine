@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * SHA-1 checksum of the source file.
  */
-public class SourceFileSha1Type extends StringType implements CvTermType, RawFileMetadataType {
+public class SourceFileSha1Type extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

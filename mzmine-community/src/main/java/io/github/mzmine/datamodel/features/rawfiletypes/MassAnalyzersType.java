@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Names of the mass analyzer components in order, e.g., quadrupole, time-of-flight.
  */
-public class MassAnalyzersType extends StringListType implements CvTermType, RawFileMetadataType {
+public class MassAnalyzersType extends StringListType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

@@ -31,8 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Serial number of the instrument.
  */
-public class InstrumentSerialNumberType extends StringType implements CvTermType,
-    RawFileMetadataType {
+public class InstrumentSerialNumberType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

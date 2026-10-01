@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Names of the terms describing the source components, e.g., electrospray ionization.
  */
-public class IonSourcesType extends StringListType implements CvTermType, RawFileMetadataType {
+public class IonSourcesType extends StringListType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

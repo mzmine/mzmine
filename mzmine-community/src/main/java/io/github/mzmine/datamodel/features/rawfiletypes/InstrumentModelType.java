@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * Instrument model name. In mzML, the name of the instrument model term (e.g., Q Exactive) or a
  * user param.
  */
-public class InstrumentModelType extends StringType implements CvTermType, RawFileMetadataType {
+public class InstrumentModelType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

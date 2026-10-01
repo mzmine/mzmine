@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Vendor of the instrument.
  */
-public class InstrumentVendorType extends StringType implements CvTermType, RawFileMetadataType {
+public class InstrumentVendorType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

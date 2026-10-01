@@ -29,9 +29,11 @@ import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Sample name as stored in the raw data file.
+ * Sample name as stored in the raw data file. May be different from the file name since some
+ * vendors label with injection numbers and/or vial positions or some files contain multiple
+ * samples.
  */
-public class SampleNameType extends StringType implements CvTermType, RawFileMetadataType {
+public class SampleNameType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

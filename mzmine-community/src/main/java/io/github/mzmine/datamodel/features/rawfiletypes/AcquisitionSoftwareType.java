@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Name of the software that acquired the data.
  */
-public class AcquisitionSoftwareType extends StringType implements CvTermType, RawFileMetadataType {
+public class AcquisitionSoftwareType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {

@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * Version of the acquisition software. In mzML this is the version attribute of the software
  * element and not a cvParam.
  */
-public class AcquisitionSoftwareVersionType extends StringType implements RawFileMetadataType {
+public class AcquisitionSoftwareVersionType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {

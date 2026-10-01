@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Name of the operator who acquired the data.
  */
-public class OperatorNameType extends StringType implements CvTermType, RawFileMetadataType {
+public class OperatorNameType extends StringType implements CvTermType {
 
   @Override
   public @NotNull String getUniqueID() {
