@@ -88,6 +88,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -389,6 +390,7 @@ public class BatchWizardTab extends SimpleTab {
   /// box and long captions wrap instead of widening the column
   private static @NonNull Label generateCaptionLabel(WizardPart part) {
     final Label caption = FxLabels.wrap(FxLabels.newBoldLabel(part.caption()));
+    caption.setTooltip(new Tooltip(part.tooltip()));
     caption.setMinWidth(0);
     caption.setPrefWidth(0);
     caption.setMaxWidth(Double.MAX_VALUE);
