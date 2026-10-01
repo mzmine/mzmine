@@ -203,6 +203,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       final var appliedMethod = new SimpleFeatureListAppliedMethod(module, parameters,
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
+      dataFile.setStartTimeStamp(ml.getAcqDate());
 
       if (isCanceled()) {
         return;
