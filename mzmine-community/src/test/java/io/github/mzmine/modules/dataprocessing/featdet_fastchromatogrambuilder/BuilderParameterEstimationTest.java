@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder;
 
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.SignalPersistenceProfile.Continuation;
 import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.SignalPersistenceProfile.IntensityBin;
 import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.SyntheticLcmsData.Ion;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -178,8 +179,50 @@ class BuilderParameterEstimationTest {
         Assertions.assertTrue(bin.signalFraction() > 0.95, bin.toString());
       }
     }
-    final double noise = profile.intensityAtSignalFraction(0.5);
+    final double noise = profile.intensityAtSignalFraction(0.5, Continuation.NEXT);
     Assertions.assertTrue(noise > 200 && noise <= 1E4, String.valueOf(noise));
+  }
+
+  /**
+   * Narrow peaks have short traces, the last data point of each trace has no data point in the
+   * next scan. Traces of 4 data points continue in the next scan to 75%, in the previous or the
+   * next scan to 100%.
+   */
+  @Test
+  void shortTracesReachTheSignalLevelInAdjacentScans() {
+    final Random random = new Random(5);
+    final int numScans = 400;
+    final int numChannels = 100;
+    final int traceLength = 4;
+    final double[][] mzs = new double[numScans][];
+    final double[][] intensities = new double[numScans][];
+    for (int s = 0; s < numScans; s++) {
+      final List<double[]> points = new ArrayList<>();
+      for (int i = 0; i < 500; i++) {
+        points.add(new double[]{100 + random.nextDouble() * 900, 100 + random.nextDouble() * 100});
+      }
+      for (int c = 0; c < numChannels; c++) {
+        // traces of 4 scans with gaps of 4 scans, shifted per channel
+        if ((s + c) % (2 * traceLength) < traceLength) {
+          points.add(new double[]{105.5 + 9 * c + random.nextGaussian() * 1E-4,
+              1E4 * (1 + random.nextDouble())});
+        }
+      }
+      points.sort((a, b) -> Double.compare(a[0], b[0]));
+      mzs[s] = points.stream().mapToDouble(p -> p[0]).toArray();
+      intensities[s] = points.stream().mapToDouble(p -> p[1]).toArray();
+    }
+    final SignalPersistenceProfile profile = new SignalPersistenceProfile(new MZTolerance(0, 10));
+    profile.addScans(new ArrayScans(mzs, intensities), 1);
+    for (final IntensityBin bin : profile.bins()) {
+      if (bin.lowerEdge() >= 1E4) {
+        Assertions.assertEquals(0.75, bin.signalFraction(), 0.05, bin.toString());
+        Assertions.assertTrue(bin.adjacentSignalFraction() > 0.97, bin.toString());
+      }
+    }
+    Assertions.assertTrue(Double.isNaN(profile.intensityAtSignalFraction(0.95, Continuation.NEXT)));
+    final double signal = profile.intensityAtSignalFraction(0.95, Continuation.ADJACENT);
+    Assertions.assertTrue(signal > 200 && signal <= 1E4, String.valueOf(signal));
   }
 
   @Test

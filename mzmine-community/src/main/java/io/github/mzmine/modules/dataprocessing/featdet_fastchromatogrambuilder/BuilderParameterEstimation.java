@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
 import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.BuilderParameterEstimate.Timings;
 import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.MzToleranceEstimation.ClearScatter;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.SignalPersistenceProfile.Continuation;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -39,7 +40,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link ChromatogramBuilderSensitivity}:
  * <ol>
  *   <li>The noise level, from which half of the data points continue in the next scan, and the
- *   signal level, from which nearly all do, see {@link SignalPersistenceProfile}. Its near window
+ *   signal level, from which nearly all continue in the previous or the next scan, see
+ *   {@link SignalPersistenceProfile}. Its near window
  *   is the scatter of the same signal in consecutive scans, the first step of the
  *   {@link MzToleranceEstimation}.</li>
  *   <li>The min intensity for consecutive scans and the min height from these levels, they grow
@@ -54,8 +56,11 @@ final class BuilderParameterEstimation {
 
   // decision: at the noise level half of the data points are signals that continue in the next scan
   static final double NOISE_SIGNAL_FRACTION = 0.5;
-  // decision: at the signal level nearly all data points continue. On TOF data with a noise filter
-  // this is about twice the noise level of the mass detection, the min intensity of the wizard.
+  // decision: at the signal level nearly all data points continue in the previous or the next
+  // scan. In the next scan alone, the last data point of each trace never continues, narrow peaks
+  // (3 scans full width at half maximum on QE DDA data) did not reach the fraction below 10x the
+  // min height of the wizard. On TOF data with a noise filter this is about twice the noise level
+  // of the mass detection, the min intensity of the wizard.
   static final double SIGNAL_FRACTION = 0.95;
   // the near window covers the pair difference of two data points, sqrt(2) times their scatter
   static final double NEAR_WINDOW_FACTOR = Math.sqrt(2d);
@@ -130,7 +135,8 @@ final class BuilderParameterEstimation {
     // a near window of 306 ppm.
     final long profileMs = elapsedMs(start);
     start = System.nanoTime();
-    final double firstNoise = profile.intensityAtSignalFraction(NOISE_SIGNAL_FRACTION);
+    final double firstNoise = profile.intensityAtSignalFraction(NOISE_SIGNAL_FRACTION,
+        Continuation.NEXT);
     if (Double.isFinite(firstNoise) && firstNoise > histogram.getMinIntensity()) {
       final MZTolerance refined = nearWindow(samples, new double[]{firstNoise}, isCanceled);
       if (canceled(isCanceled)) {
@@ -146,8 +152,10 @@ final class BuilderParameterEstimation {
     }
 
     final long refinementMs = elapsedMs(start);
-    final double profileNoise = profile.intensityAtSignalFraction(NOISE_SIGNAL_FRACTION);
-    final double profileSignal = profile.intensityAtSignalFraction(SIGNAL_FRACTION);
+    final double profileNoise = profile.intensityAtSignalFraction(NOISE_SIGNAL_FRACTION,
+        Continuation.NEXT);
+    final double profileSignal = profile.intensityAtSignalFraction(SIGNAL_FRACTION,
+        Continuation.ADJACENT);
     final boolean levelsFound = Double.isFinite(profileNoise) && Double.isFinite(profileSignal);
     final double noiseLevel = Double.isFinite(profileNoise) ? profileNoise
         : histogram.quantile(FALLBACK_NOISE_QUANTILE);

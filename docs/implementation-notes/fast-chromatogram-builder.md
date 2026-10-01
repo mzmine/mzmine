@@ -344,7 +344,7 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   their intensity, minus the hits in control windows of the same width 2-3 near windows away
   (chance hits, up to 0.33 on unfiltered TOF data), as `(near - control) / (1 - control)`. Noise
   level = from where half of the data points are signals (N50), signal level = from where 95% are
-  (N95). Rejected: the lowest intensity of the mass lists or a fixed intensity quantile, both
+  (N95), with a data point in the previous or the next scan (see below). Rejected: the lowest intensity of the mass lists or a fixed intensity quantile, both
   depend on the noise filter of the mass detection and do not exist for unfiltered data. The
   profile rises smoothly from 0 to 1 on all data sets, e.g., unfiltered GC-EI-TOF 0.05 at 6, 0.5
   at 130, 0.95 at 500, 0.99 at 1000 counts.
@@ -352,8 +352,8 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   fraction right at their floor (0.45 at 500 for TOF data filtered at 500) and N95 is about twice
   the filter level. N95 of filtered and unfiltered imports of the same data agree within ~2x,
   N50 within 1.3x on Orbitrap, GC-Orbitrap, LC-QTOF MSe and DOM and within 4.4x on GC-TOF data.
-  Unfiltered ZenoTOF data have persistent signals down to ~10 counts (N50 11, N95 130 vs 500 /
-  1200 with the wizard filter of 500): the levels follow the data the builder receives.
+  Unfiltered ZenoTOF data have persistent signals down to ~10 counts (N50 11, N95 47 vs 500 /
+  800 with the wizard filter of 500): the levels follow the data the builder receives.
 - The levels are searched from the most intense bin down: the level is where two consecutive bins
   fall below the fraction, single bins scatter. Searched from the bottom, persistent data points
   far below the noise (ion tails in synthetic data without detection threshold) set the level.
@@ -385,10 +385,30 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   peaks, 404 → 287 features, 97.8% → 89.4% of the wizard features). Sensitive with 0.7x the
   levels: 10-20% fewer features on QE QC, unfiltered TOF and GC data, the share of the wizard
   features unchanged on QE QC, GC and TOF data.
-- Open: on the QE "20 years" files (peak width 3 scans), N95 is ~10x the wizard min height
-  (4.8E5 vs 5E4, Medium finds 49% of the wizard features). The signal fraction stays at ~0.75
-  from 3E4 to 8E4: on the flanks of narrow peaks the next scan changes the intensity by more than
-  the 5x of the near hits.
+- The signal level (N95) counts the data points that continue in the previous or the next scan,
+  the noise level (N50) those that continue in the next scan (2026-10-01, the user asked to fix
+  the profile for narrow peaks). In the next scan alone, the last data point of each trace never
+  continues, a deficit of 1 / trace length: on the QE "20 years" files (peak width 3 scans, DDA)
+  the signal fraction stayed at ~0.75 from 3E4 to 8E4 and N95 was 4.8E5, ~10x the wizard min
+  height of 5E4, Medium found 49% of the wizard features. Measured on these files
+  (`SignalPersistenceDiagnosis`, test tree, not committed): the previous or the next scan N95
+  1.95E5; no intensity rule in the next scan 3.8E5; 2x the near window 4.6E5; the scan after the
+  next one never reaches 0.95 (no alternating scan types); a trace of at least 3 scans 3.3E5. The
+  noise level keeps the next scan: with the previous or the next scan, N50 halves on all data sets
+  and falls to the noise filter of filtered data, the traces of 1-2 data points just above the
+  filter continue. Result (`BuilderParameterEstimationBenchmark`, same day, Medium): QE "20 years"
+  wizard features found 49% → 74% (sensitive wizard) and 76% → 100% (workshop wizard), QE media
+  22% → 47%, min height on filtered TOF data 1.2-1.3E3 → 0.8-1.2E3 (wizard 1E3), QE QC 5.1E4 →
+  4.0E4 (wizard 5E4, features 1112 → 1216, 100% of the wizard features). Cost: data without noise
+  filter get lower signal levels, unfiltered GC-EI-QTOF 690 → 440 (features +24%), unfiltered
+  ZenoTOF 130 → 47 (features 4229 → 7620, the wizard with its noise filter has 802), and the
+  lower levels partly undo the less sensitive Sensitive of the same day on QE QC (features 1305 →
+  1412, the first version had 1431). Rejected: a trace of at least 3 scans, it lowers the
+  unfiltered levels less (ZenoTOF 77, GC-EI-QTOF 550) but fixes less of the narrow peaks (3.3E5).
+- Open: N95 of the QE "20 years" and especially the QE media files stays 4-15x the wizard min
+  height (1.9E5 and 7.5E5 vs 5E4). Many of their data points between the noise and N95 have no
+  data point in either neighboring scan, not even without intensity rule: isolated data points,
+  not the shape of narrow peaks.
 - Fallbacks: without N50 the median intensity, without N95 2x N50, without a clear scatter the
   fallback tolerance of the task, without a tolerance estimate that tolerance. The tolerance
   estimate uses the determined intensities and 4 consecutive scans for its test build.
@@ -521,33 +541,44 @@ file task / ADAP task.
 
 ## Parameter estimation baseline
 
-2026-10-01, `BuilderParameterEstimationBenchmark`, the QE "20 years" files were OneDrive
-placeholders and skipped, the QE QC crops of the integration test stand in. Per sensitivity: min
-consecutive / min group / min height, features after the local minimum resolver (its min height
-and min scans from the run) and the share of the wizard features found within the preset tolerance
-and 0.03 min. Time: estimation of Medium, the other sensitivities take the same.
+2026-10-01, `BuilderParameterEstimationBenchmark` after the changes of that day (Sensitive 0.7x,
+min consecutive scans 0.5 / 0.7 / 1.0 x the peak width, signal level in the previous or the next
+scan). Per sensitivity: min consecutive / min group / min height, features after the local minimum
+resolver (its min height and min scans from the run) and the share of the wizard features found
+within the preset tolerance and 0.03 min. The first version of the table (same day, before these
+changes) had the QE "20 years" files as OneDrive placeholders.
 
-| data set                     | N50 / N95   | wizard                   | Sensitive               | Medium                  | Abundant               | ms   |
-|------------------------------|-------------|--------------------------|-------------------------|-------------------------|------------------------|------|
-| QE QC, factor 2              | 1.2E4/5.1E4 | 4/1E4/5E4, 1122          | 3/5.8E3/2.5E4, 1431 100% | 3/1.2E4/5.1E4, 1115 99% | 4/1E5/5.1E5, 390 35%   | 332  |
-| ... factor 5 (workshop)      | 2.5E4/8.5E4 | 6/1E5/5E5, 371           | 3/1.2E4/4.3E4, 768 100% | 3/2.5E4/8.5E4, 737 100% | 4/1.7E5/8.5E5, 280 75% | 138  |
-| ... no filter, workshop wizard | 9.7E3/5.2E4 | 6/1E5/5E5, 382         | 3/4.8E3/2.6E4, 1443 100% | 3/9.7E3/5.2E4, 1118 100% | 4/1E5/5.2E5, 388 99%  | 312  |
-| GC-EI-TOF                    | 600/1.2E3   | 4/1E3/1E3, 496           | 3/300/600, 512 100%     | 4/600/1.2E3, 511 100%   | 6/2.4E3/1.2E4, 177 36% | 239  |
-| ... no noise filter          | 137/535     | 4/1E3/1E3, 544           | 3/68/270, 1094 100%     | 4/140/540, 772 100%     | 6/1.1E3/5.4E3, 287 53% | 2239 |
-| GC-EI-QTOF                   | 604/1.3E3   | 4/1E3/1E3, 12705         | 3/300/660, 12906 99%    | 5/600/1.3E3, 12681 98%  | 8/2.6E3/1.3E4, 3967 31% | 816 |
-| ... no noise filter          | 156/692     | 4/1E3/1E3, 15277         | 3/78/350, 24914 92%     | 5/160/690, 19608 98%    | 8/1.4E3/6.9E3, 5476 36% | 5289 |
-| LC-QTOF ZenoTOF DDA          | 501/1.2E3   | 5/1E3/1E3, 711           | 3/250/590, 784 99%      | 3/500/1.2E3, 780 99%    | 4/2.4E3/1.2E4, 217 31% | 46   |
-| ... no noise filter          | 11/128      | 5/1E3/1E3, 802           | 3/5.7/64, 6006 99%      | 3/11/130, 4245 100%     | 4/260/1.3E3, 928 95%   | 1630 |
-| LC-QTOF MSe                  | 650/1.3E3   | 4/600/1E3, 154           | 3/320/660, 174 100%     | 3/650/1.3E3, 146 92%    | 4/2.6E3/1.3E4, 48 31%  | 26   |
-| ... no noise filter          | 608/1.3E3   | 4/600/1E3, 163           | 3/300/660, 233 99%      | 3/610/1.3E3, 151 89%    | 4/2.6E3/1.3E4, 46 28%  | 203  |
-| GC-Orbitrap                  | 1.2E3/2.5E3 | 4/5E3/5E4, 828           | 5/590/1.2E3, 6100 100%  | 8/1.2E3/2.5E3, 6008 100% | 12/4.9E3/2.5E4, 1459 100% | 851 |
-| ... no noise filter          | 903/2.0E3   | 4/5E3/5E4, 828           | 4/450/990, 7406 100%    | 7/900/2.0E3, 7175 100%  | 11/3.9E3/2.0E4, 1738 100% | 1125 |
-| DOM Orbitrap                 | 7.3E4/2.0E5 | 4/5E4/2E5, 320           | 3/3.6E4/9.8E4, 466 100% | 3/7.3E4/2.0E5, 404 98%  | 3/3.9E5/2.0E6, 101 31% | 384  |
-| ... no noise filter          | 6.6E4/1.9E5 | 4/5E4/2E5, 322           | 3/3.3E4/9.5E4, 502 100% | 3/6.6E4/1.9E5, 426 98%  | 3/3.8E5/1.9E6, 104 32% | 430  |
+| data set | noise / signal level | wizard | wizard features | sensitive | medium | abundant |
+|---|---|---|---|---|---|---|
+| Orbitrap QE, sensitive | 1.04E+04 / 1.95E+05 | 4 / 1.0E+04 / 5.0E+04 | 27779 | 3 / 7.3E+03 / 1.4E+05, 23422 (81%) | 4 / 1.0E+04 / 1.9E+05, 20884 (74%) | 6 / 3.9E+05 / 1.9E+06, 4386 (16%) |
+| Orbitrap QE, sensitive, no noise filter | 9.08E+03 / 1.98E+05 | 4 / 1.0E+04 / 5.0E+04 | 28636 | 3 / 6.4E+03 / 1.4E+05, 24085 (81%) | 4 / 9.1E+03 / 2.0E+05, 21080 (73%) | 6 / 4.0E+05 / 2.0E+06, 4230 (15%) |
+| Orbitrap QE, workshop | 2.28E+04 / 2.70E+05 | 6 / 1.0E+05 / 5.0E+05 | 8755 | 3 / 1.6E+04 / 1.9E+05, 13298 (100%) | 4 / 2.3E+04 / 2.7E+05, 12356 (100%) | 6 / 5.4E+05 / 2.7E+06, 3165 (36%) |
+| Orbitrap QE, workshop, no noise filter | 9.08E+03 / 1.98E+05 | 6 / 1.0E+05 / 5.0E+05 | 11056 | 3 / 6.4E+03 / 1.4E+05, 24085 (99%) | 4 / 9.1E+03 / 2.0E+05, 21080 (99%) | 6 / 4.0E+05 / 2.0E+06, 4230 (38%) |
+| Orbitrap QE media, sensitive | 1.24E+04 / 7.48E+05 | 4 / 1.0E+04 / 5.0E+04 | 11515 | 3 / 8.7E+03 / 5.2E+05, 6470 (53%) | 4 / 1.2E+04 / 7.5E+05, 5534 (47%) | 6 / 1.5E+06 / 7.5E+06, 1172 (10%) |
+| Orbitrap QE media, sensitive, no noise filter | 1.04E+04 / 7.25E+05 | 4 / 1.0E+04 / 5.0E+04 | 11830 | 3 / 7.3E+03 / 5.1E+05, 6778 (55%) | 4 / 1.0E+04 / 7.2E+05, 5810 (49%) | 6 / 1.4E+06 / 7.2E+06, 1209 (10%) |
+| Orbitrap QE media, workshop | 2.90E+04 / 1.53E+06 | 6 / 1.0E+05 / 5.0E+05 | 3400 | 3 / 2.0E+04 / 1.1E+06, 3469 (78%) | 4 / 2.9E+04 / 1.5E+06, 3149 (72%) | 6 / 3.1E+06 / 1.5E+07, 660 (19%) |
+| Orbitrap QE media, workshop, no noise filter | 1.04E+04 / 7.25E+05 | 6 / 1.0E+05 / 5.0E+05 | 4857 | 3 / 7.3E+03 / 5.1E+05, 6778 (99%) | 4 / 1.0E+04 / 7.2E+05, 5810 (89%) | 6 / 1.4E+06 / 7.2E+06, 1209 (25%) |
+| Orbitrap QE QC 4-5 min, sensitive | 1.16E+04 / 3.99E+04 | 4 / 1.0E+04 / 5.0E+04 | 1122 | 3 / 8.1E+03 / 2.8E+04, 1412 (100%) | 4 / 1.2E+04 / 4.0E+04, 1216 (100%) | 6 / 8.0E+04 / 4.0E+05, 425 (38%) |
+| Orbitrap QE QC 4-5 min, sensitive, no noise filter | 9.65E+03 / 4.03E+04 | 4 / 1.0E+04 / 5.0E+04 | 1129 | 3 / 6.8E+03 / 2.8E+04, 1427 (100%) | 4 / 9.7E+03 / 4.0E+04, 1242 (100%) | 6 / 8.1E+04 / 4.0E+05, 425 (38%) |
+| Orbitrap QE QC 4-5 min, workshop | 2.48E+04 / 5.00E+04 | 6 / 1.0E+05 / 5.0E+05 | 371 | 3 / 1.7E+04 / 3.5E+04, 767 (100%) | 4 / 2.5E+04 / 5.0E+04, 765 (100%) | 6 / 1.0E+05 / 5.0E+05, 369 (99%) |
+| Orbitrap QE QC 4-5 min, workshop, no noise filter | 9.65E+03 / 4.03E+04 | 6 / 1.0E+05 / 5.0E+05 | 382 | 3 / 6.8E+03 / 2.8E+04, 1427 (100%) | 4 / 9.7E+03 / 4.0E+04, 1242 (100%) | 6 / 8.1E+04 / 4.0E+05, 425 (100%) |
+| GC-EI-TOF | 597 / 973 | 4 / 1.0E+03 / 1.0E+03 | 496 | 4 / 4.2E+02 / 6.8E+02, 512 (100%) | 6 / 6.0E+02 / 9.7E+02, 507 (100%) | 8 / 1.9E+03 / 9.7E+03, 207 (42%) |
+| GC-EI-TOF, no noise filter | 137 / 377 | 4 / 1.0E+03 / 1.0E+03 | 544 | 4 / 96 / 2.6E+02, 997 (99%) | 6 / 1.4E+02 / 3.8E+02, 825 (100%) | 8 / 7.5E+02 / 3.8E+03, 332 (61%) |
+| GC-EI-QTOF | 607 / 1.01E+03 | 4 / 1.0E+03 / 1.0E+03 | 12717 | 5 / 4.2E+02 / 7.1E+02, 12916 (99%) | 7 / 6.1E+02 / 1.0E+03, 12852 (99%) | 10 / 2.0E+03 / 1.0E+04, 4507 (35%) |
+| GC-EI-QTOF, no noise filter | 157 / 445 | 4 / 1.0E+03 / 1.0E+03 | 15299 | 5 / 1.1E+02 / 3.1E+02, 30461 (98%) | 7 / 1.6E+02 / 4.4E+02, 24349 (98%) | 10 / 8.9E+02 / 4.4E+03, 6932 (45%) |
+| LC-QTOF ZenoTOF DDA | 501 / 798 | 5 / 1.0E+03 / 1.0E+03 | 711 | 3 / 3.5E+02 / 5.6E+02, 784 (99%) | 4 / 5.0E+02 / 8.0E+02, 783 (99%) | 6 / 1.6E+03 / 8.0E+03, 281 (40%) |
+| LC-QTOF ZenoTOF DDA, no noise filter | 11.4 / 47.2 | 5 / 1.0E+03 / 1.0E+03 | 802 | 3 / 8.0 / 33, 9196 (100%) | 4 / 11 / 47, 7620 (100%) | 6 / 94 / 4.7E+02, 1793 (100%) |
+| LC-QTOF MSe | 649 / 1.22E+03 | 4 / 6.0E+02 / 1.0E+03 | 154 | 3 / 4.5E+02 / 8.5E+02, 169 (100%) | 4 / 6.5E+02 / 1.2E+03, 145 (92%) | 6 / 2.4E+03 / 1.2E+04, 48 (31%) |
+| LC-QTOF MSe, no noise filter | 609 / 1.20E+03 | 4 / 6.0E+02 / 1.0E+03 | 163 | 3 / 4.3E+02 / 8.4E+02, 201 (99%) | 4 / 6.1E+02 / 1.2E+03, 154 (91%) | 6 / 2.4E+03 / 1.2E+04, 48 (29%) |
+| GC-Orbitrap | 1.19E+03 / 1.96E+03 | 4 / 5.0E+03 / 5.0E+04 | 828 | 7 / 8.3E+02 / 1.4E+03, 6062 (100%) | 10 / 1.2E+03 / 2.0E+03, 5972 (100%) | 14 / 3.9E+03 / 2.0E+04, 1702 (99%) |
+| GC-Orbitrap, no noise filter | 906 / 1.59E+03 | 4 / 5.0E+03 / 5.0E+04 | 828 | 7 / 6.3E+02 / 1.1E+03, 7289 (100%) | 10 / 9.1E+02 / 1.6E+03, 7111 (100%) | 14 / 3.2E+03 / 1.6E+04, 1989 (99%) |
+| DOM Orbitrap | 7.25E+04 / 1.52E+05 | 4 / 5.0E+04 / 2.0E+05 | 320 | 3 / 5.1E+04 / 1.1E+05, 457 (100%) | 4 / 7.2E+04 / 1.5E+05, 291 (89%) | 6 / 3.0E+05 / 1.5E+06, 24 (8%) |
+| DOM Orbitrap, no noise filter | 6.61E+04 / 1.50E+05 | 4 / 5.0E+04 / 2.0E+05 | 322 | 3 / 4.6E+04 / 1.0E+05, 489 (100%) | 4 / 6.6E+04 / 1.5E+05, 309 (93%) | 6 / 3.0E+05 / 1.5E+06, 24 (7%) |
 
 - The GC-Orbitrap wizard settings are 10x above N95 (5E4 height), all sensitivities find all its
   features. On unfiltered ZenoTOF data the auto levels follow the persistent low level signals,
-  Medium has 5x the features of the wizard with its noise filter of 500.
+  Medium has ~10x the features of the wizard with its noise filter of 500 (5x before the signal
+  level in the previous or the next scan).
 - The estimation is several passes, not one loop: over the sampled scan pairs (at most 1000 per
   sample file) the histogram, one scatter pass and fit per tried floor (1 on filtered data, up to
   6 without filter), the profile, the refinement scatter and profile; then the tolerance

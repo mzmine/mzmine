@@ -161,11 +161,12 @@ class BuilderParameterEstimationBenchmark {
     report.add("Estimation of Medium: %s, of which test build %d ms\n".formatted(medium.timings(),
         medium.toleranceEstimate() == null ? 0 : medium.toleranceEstimate().testBuildMs()));
     report.add("""
-        | intensity from | data points | near hits | control hits | signal fraction |
-        |---|---|---|---|---|""");
+        | intensity from | data points | near hits | control hits | signal fraction | previous or next scan |
+        |---|---|---|---|---|---|""");
     for (final IntensityBin bin : first.profile()) {
-      report.add("| %.3G | %d | %.3f | %.3f | %.3f |".formatted(bin.lowerEdge(),
-          bin.numDataPoints(), bin.nearFraction(), bin.controlFraction(), bin.signalFraction()));
+      report.add("| %.3G | %d | %.3f | %.3f | %.3f | %.3f |".formatted(bin.lowerEdge(),
+          bin.numDataPoints(), bin.nearFraction(), bin.controlFraction(), bin.signalFraction(),
+          bin.adjacentSignalFraction()));
     }
     report.add("");
 
