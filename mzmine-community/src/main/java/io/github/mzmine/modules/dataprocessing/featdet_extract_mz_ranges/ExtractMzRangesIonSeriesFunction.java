@@ -58,7 +58,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
   private String description;
 
   /**
-   * @param mzRangesSorted sorted by mz ascending
+   * @param mzRangesSorted sorted by the lower endpoint ascending, may overlap
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile,
       @NotNull ScanSelection scanSelection, @NotNull List<Range<Double>> mzRangesSorted,
@@ -72,7 +72,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
   }
 
   /**
-   * @param mzRangesSorted sorted by mz ascending
+   * @param mzRangesSorted sorted by the lower endpoint ascending, may overlap
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile, List<? extends Scan> scans,
       @NotNull List<Range<Double>> mzRangesSorted, @NotNull ScanDataType scanDataType,
@@ -149,8 +149,11 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
         // check all next trees
         for (int t = currentTree; t < mzRangesSorted.size(); t++) {
           if (mz > mzRangesSorted.get(t).upperEndpoint()) {
-            // out of bounds for current tree
-            currentTree++;
+            // out of bounds for this tree. Overlapping ranges, e.g., nested ones, may end before
+            // an earlier tree, only skip the leading trees that ended
+            if (t == currentTree) {
+              currentTree++;
+            }
           } else if (mz < mzRangesSorted.get(t).lowerEndpoint()) {
             break; // below current tree - next datapoint
           } else {

@@ -33,6 +33,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.MarkerDefinition;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -50,6 +51,7 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.BasicStroke;
@@ -72,6 +74,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
@@ -103,6 +106,8 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
   private static final float SINGLE_SCAN_ALPHA_FACTOR = 1.75f;
   private static final BasicStroke SINGLE_SCAN_STROKE = new BasicStroke(3f);
   private static final BasicStroke REGION_OUTLINE_STROKE = new BasicStroke(1f);
+  private static final BasicStroke TOLERANCE_XIC_STROKE = new BasicStroke(1.5f,
+      BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1f, new float[]{6f, 4f}, 0f);
   /**
    * Margin around the signals of a selected group, relative to their retention time span
    */
@@ -143,6 +148,7 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
     // a new group zooms to its signals, switching the overlay keeps the zoom
     model.selectedGroupProperty().subscribe((_, _) -> updateCharts(chartA, chartB, true));
     model.overlayProperty().subscribe((_, _) -> updateCharts(chartA, chartB, false));
+    model.toleranceXicProperty().subscribe((_, _) -> updateCharts(chartA, chartB, false));
 
     final SplitPane split = new SplitPane(charts, createTable());
     split.setOrientation(Orientation.VERTICAL);
@@ -182,9 +188,26 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
         FxLayout.newHBox(Insets.EMPTY, new Label("m/z tolerance"), tolerance),
         FxLayout.newHBox(Insets.EMPTY, new Label("Signal intensity ≥"), signal), //
         FxCheckBox.newCheckBox("Overlay in one chart", model.overlayProperty()), //
+        createXicControls(), //
         FxComboBox.createLabeledComboBox("Show",
             FXCollections.observableArrayList(GroupFilter.values()), model.groupFilterProperty()),
         FxLabels.newLabel(model.statusProperty()));
+  }
+
+  /**
+   * Optional XIC with its own tolerance, the tolerance is disabled while the XIC is hidden
+   */
+  @NotNull
+  private Node createXicControls() {
+    final String tooltip = """
+        Shows the XIC of the raw data file around the m/z of the selected group as a dashed line, \
+        extracted from the scans of the builders with this tolerance.""";
+    final CheckBox showXic = FxCheckBox.newCheckBox("XIC", model.showXicProperty(), tooltip);
+    final MZToleranceComponent xicTolerance = new MZToleranceComponent();
+    xicTolerance.setToolTipText(tooltip);
+    xicTolerance.valueProperty().bindBidirectional(model.xicToleranceProperty());
+    xicTolerance.disableProperty().bind(model.showXicProperty().not());
+    return FxLayout.newHBox(Insets.EMPTY, showXic, xicTolerance);
   }
 
   private void swapFeatureLists() {
@@ -237,18 +260,27 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
   private void updateCharts(@NotNull SimpleXYChart<PlotXYDataProvider> chartA,
       @NotNull SimpleXYChart<PlotXYDataProvider> chartB, boolean zoomToSignals) {
     final ChromatogramGroup group = model.getSelectedGroup();
-    final List<ColoredXYDataset> datasetsA = group == null ? List.of() : createDatasets(group.a());
-    final List<ColoredXYDataset> datasetsB = group == null ? List.of() : createDatasets(group.b());
+    final List<DatasetAndRenderer> datasetsA =
+        group == null ? List.of() : createDatasets(group.a());
+    final List<DatasetAndRenderer> datasetsB =
+        group == null ? List.of() : createDatasets(group.b());
     final List<MarkerDefinition> markersA = group == null ? List.of() : createMarkers(group.a());
     final List<MarkerDefinition> markersB = group == null ? List.of() : createMarkers(group.b());
 
+    // the XIC first, the chromatograms are drawn on top
     if (model.isOverlay()) {
-      setChartContent(chartA, Stream.concat(datasetsA.stream(), datasetsB.stream()).toList(),
-          Stream.concat(markersA.stream(), markersB.stream()).toList());
+      setChartContent(chartA,
+          Stream.of(createToleranceXicDatasets(group), datasetsA, datasetsB).flatMap(List::stream)
+              .toList(), Stream.concat(markersA.stream(), markersB.stream()).toList());
       setChartContent(chartB, List.of(), List.of());
     } else {
-      setChartContent(chartA, datasetsA, markersA);
-      setChartContent(chartB, datasetsB, markersB);
+      // each chart needs its own datasets
+      setChartContent(chartA,
+          Stream.concat(createToleranceXicDatasets(group).stream(), datasetsA.stream()).toList(),
+          markersA);
+      setChartContent(chartB,
+          Stream.concat(createToleranceXicDatasets(group).stream(), datasetsB.stream()).toList(),
+          markersB);
     }
 
     if (zoomToSignals && group != null) {
@@ -257,12 +289,12 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
   }
 
   private static void setChartContent(@NotNull SimpleXYChart<PlotXYDataProvider> chart,
-      @NotNull List<ColoredXYDataset> datasets, @NotNull List<MarkerDefinition> markers) {
+      @NotNull List<DatasetAndRenderer> datasets, @NotNull List<MarkerDefinition> markers) {
     chart.applyWithNotifyChanges(false, () -> {
       if (datasets.isEmpty()) {
         chart.removeAllDatasets();
       } else {
-        chart.setDatasets(datasets);
+        chart.setDatasetsAndRenderers(datasets);
       }
       if (markers.isEmpty()) {
         chart.getXYPlot().clearDomainMarkers();
@@ -296,13 +328,14 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
   }
 
   /**
-   * @return one dataset per chromatogram, the most intense in the color of the side
+   * @return one dataset per chromatogram, the most intense in the color of the side, with the
+   * default renderer
    */
   @NotNull
-  private List<ColoredXYDataset> createDatasets(@NotNull GroupSide side) {
+  private List<DatasetAndRenderer> createDatasets(@NotNull GroupSide side) {
     final Color sideColor = sideColor(side.side());
     final List<ComparedChromatogram> chromatograms = side.chromatograms();
-    final List<ColoredXYDataset> datasets = new ArrayList<>(chromatograms.size());
+    final List<DatasetAndRenderer> datasets = new ArrayList<>(chromatograms.size());
     for (int i = 0; i < chromatograms.size(); i++) {
       final ComparedChromatogram chromatogram = chromatograms.get(i);
       final Feature feature = chromatogram.feature();
@@ -311,11 +344,33 @@ class ChromatogramComparisonViewBuilder extends FxViewBuilder<ChromatogramCompar
       }
       final String seriesKey = "%s #%d %s".formatted(side.side(), chromatogram.rowId(),
           formats.mz(chromatogram.mz()));
-      datasets.add(new ColoredXYDataset(
+      datasets.add(new DatasetAndRenderer(new ColoredXYDataset(
           new IonTimeSeriesToXYProvider(feature.getFeatureData(), seriesKey, shade(sideColor, i)),
-          RunOption.THIS_THREAD));
+          RunOption.THIS_THREAD), null));
     }
     return datasets;
+  }
+
+  /**
+   * @return the XIC of the group as a dashed line in the color after the sides, empty if the XIC
+   * belongs to another group or is not extracted yet
+   */
+  @NotNull
+  private List<DatasetAndRenderer> createToleranceXicDatasets(@Nullable ChromatogramGroup group) {
+    final ToleranceXic xic = model.getToleranceXic();
+    if (group == null || xic == null || xic.group() != group) {
+      return List.of();
+    }
+    final MZTolerance tolerance = xic.tolerance();
+    final String seriesKey = "XIC %s m/z or %s ppm".formatted(
+        formats.mz(tolerance.getMzTolerance()), formats.ppm(tolerance.getPpmTolerance()));
+    final Color color = ConfigService.getDefaultColorPalette().get(2);
+    // the series stroke, the chart theme only sets the default stroke
+    final ColoredXYLineRenderer renderer = new ColoredXYLineRenderer();
+    renderer.setSeriesStroke(0, TOLERANCE_XIC_STROKE, false);
+    return List.of(new DatasetAndRenderer(new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(xic.series(), seriesKey, color), RunOption.THIS_THREAD),
+        renderer));
   }
 
   /**

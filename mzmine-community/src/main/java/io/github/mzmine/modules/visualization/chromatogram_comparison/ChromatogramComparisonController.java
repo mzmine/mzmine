@@ -45,11 +45,18 @@ public class ChromatogramComparisonController extends FxController<ChromatogramC
    * Default tolerance of the chromatogram builders, used for lists without builder parameters
    */
   static final MZTolerance DEFAULT_TOLERANCE = new MZTolerance(0.002, 10);
+  /**
+   * Default tolerance of the optional XIC, wider than the builders to show what they miss
+   */
+  static final MZTolerance DEFAULT_XIC_TOLERANCE = new MZTolerance(0.01, 50);
+
   public ChromatogramComparisonController() {
     super(new ChromatogramComparisonModel());
     PropertyUtils.onChange(this::updateGroups, model.featureListAProperty(),
         model.featureListBProperty(), model.mzToleranceProperty(),
         model.minSignalIntensityProperty());
+    PropertyUtils.onChange(this::updateToleranceXic, model.selectedGroupProperty(),
+        model.comparisonScansProperty(), model.showXicProperty(), model.xicToleranceProperty());
   }
 
   @Override
@@ -75,6 +82,10 @@ public class ChromatogramComparisonController extends FxController<ChromatogramC
       model.setStatus("Comparing chromatograms...");
     }
     onTaskThreadDelayed(new ChromatogramComparisonUpdateTask(model));
+  }
+
+  private void updateToleranceXic() {
+    onTaskThreadDelayed(new ToleranceXicUpdateTask(model));
   }
 
   /**

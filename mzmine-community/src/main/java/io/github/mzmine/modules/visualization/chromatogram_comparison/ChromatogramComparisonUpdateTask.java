@@ -53,6 +53,8 @@ class ChromatogramComparisonUpdateTask extends FxUpdateTask<ChromatogramComparis
   private final @NotNull MZTolerance mzTolerance;
   private final @Nullable Number minSignalIntensity;
   private @NotNull List<ChromatogramGroup> groups = List.of();
+  private @Nullable RawDataFile file;
+  private @NotNull List<Scan> scans = List.of();
   private @NotNull String status = "";
   private double progress = 0;
 
@@ -96,6 +98,8 @@ class ChromatogramComparisonUpdateTask extends FxUpdateTask<ChromatogramComparis
     final Set<Scan> usedB = identitySet(usedScans(listB, file));
     final List<Scan> scans = file.getScans().stream()
         .filter(scan -> usedA.contains(scan) || usedB.contains(scan)).toList();
+    this.file = file;
+    this.scans = scans;
     final Map<Scan, Integer> scanIndex = new IdentityHashMap<>(scans.size());
     final float[] rts = new float[scans.size()];
     final boolean[] usedByA = new boolean[scans.size()];
@@ -195,6 +199,9 @@ class ChromatogramComparisonUpdateTask extends FxUpdateTask<ChromatogramComparis
 
   @Override
   protected void updateGuiModel() {
+    // before the groups, which change the selection and extract the tolerance XICs from the scans
+    model.setComparisonFile(file);
+    model.setComparisonScans(scans);
     model.getGroups().setAll(groups);
     model.setStatus(status);
   }

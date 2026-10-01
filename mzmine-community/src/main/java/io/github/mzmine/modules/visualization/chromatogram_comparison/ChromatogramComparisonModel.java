@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -61,6 +64,20 @@ class ChromatogramComparisonModel {
    * Show the chromatograms of both lists as lines in one chart
    */
   private final BooleanProperty overlay = new SimpleBooleanProperty(false);
+  /**
+   * Show the XIC of the raw data around the m/z of the selected group with the XIC tolerance
+   */
+  private final BooleanProperty showXic = new SimpleBooleanProperty(false);
+  private final ObjectProperty<@NotNull MZTolerance> xicTolerance = new SimpleObjectProperty<>(
+      ChromatogramComparisonController.DEFAULT_XIC_TOLERANCE);
+  private final ObjectProperty<@Nullable ToleranceXic> toleranceXic = new SimpleObjectProperty<>();
+  /**
+   * The raw data file of both lists and the scans that either builder used, in the order of the
+   * file, set with the groups
+   */
+  private final ObjectProperty<@Nullable RawDataFile> comparisonFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<@NotNull List<Scan>> comparisonScans = new SimpleObjectProperty<>(
+      List.of());
   private final StringProperty status = new SimpleStringProperty("");
 
   public @Nullable FeatureList getFeatureListA() {
@@ -149,6 +166,66 @@ class ChromatogramComparisonModel {
 
   public void setOverlay(boolean overlay) {
     this.overlay.set(overlay);
+  }
+
+  public boolean isShowXic() {
+    return showXic.get();
+  }
+
+  public BooleanProperty showXicProperty() {
+    return showXic;
+  }
+
+  public void setShowXic(boolean showXic) {
+    this.showXic.set(showXic);
+  }
+
+  public @NotNull MZTolerance getXicTolerance() {
+    return xicTolerance.get();
+  }
+
+  public ObjectProperty<@NotNull MZTolerance> xicToleranceProperty() {
+    return xicTolerance;
+  }
+
+  public void setXicTolerance(@NotNull MZTolerance xicTolerance) {
+    this.xicTolerance.set(xicTolerance);
+  }
+
+  public @Nullable ToleranceXic getToleranceXic() {
+    return toleranceXic.get();
+  }
+
+  public ObjectProperty<@Nullable ToleranceXic> toleranceXicProperty() {
+    return toleranceXic;
+  }
+
+  public void setToleranceXic(@Nullable ToleranceXic toleranceXic) {
+    this.toleranceXic.set(toleranceXic);
+  }
+
+  public @Nullable RawDataFile getComparisonFile() {
+    return comparisonFile.get();
+  }
+
+  public ObjectProperty<@Nullable RawDataFile> comparisonFileProperty() {
+    return comparisonFile;
+  }
+
+  public void setComparisonFile(@Nullable RawDataFile comparisonFile) {
+    this.comparisonFile.set(comparisonFile);
+  }
+
+  public @NotNull List<Scan> getComparisonScans() {
+    return comparisonScans.get();
+  }
+
+  public ObjectProperty<@NotNull List<Scan>> comparisonScansProperty() {
+    return comparisonScans;
+  }
+
+  public void setComparisonScans(@NotNull List<Scan> comparisonScans) {
+    this.comparisonScans.set(comparisonScans);
   }
 
   public String getStatus() {

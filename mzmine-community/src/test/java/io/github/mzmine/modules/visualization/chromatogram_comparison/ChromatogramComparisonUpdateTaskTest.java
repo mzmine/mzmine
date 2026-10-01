@@ -26,6 +26,9 @@
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
@@ -39,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectService;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -145,5 +149,37 @@ class ChromatogramComparisonUpdateTaskTest {
         .collect(Collectors.toMap(Function.identity(),
             issue -> groups.stream().filter(g -> g.issues().contains(issue)).count()));
     logger.info(() -> model.getStatus() + ", issues: " + issueCounts);
+  }
+
+  /**
+   * The wide XIC around the most intense group holds at least its highest data point
+   */
+  @Test
+  void toleranceXicCoversTheGroup() {
+    final ChromatogramComparisonModel model = new ChromatogramComparisonModel();
+    model.setFeatureListA(adap);
+    model.setFeatureListB(fast);
+    model.setMzTolerance(TOLERANCE);
+    model.setMinSignalIntensity(MIN_HEIGHT);
+    final ChromatogramComparisonUpdateTask comparison = new ChromatogramComparisonUpdateTask(model);
+    comparison.process();
+    comparison.updateGuiModel();
+    final RawDataFile file = model.getComparisonFile();
+    final List<Scan> scans = model.getComparisonScans();
+    Assertions.assertNotNull(file);
+    Assertions.assertFalse(scans.isEmpty());
+    final ChromatogramGroup group = model.getGroups().stream()
+        .max(Comparator.comparingDouble(ChromatogramGroup::height)).orElseThrow();
+
+    final MZTolerance tolerance = ChromatogramComparisonController.DEFAULT_XIC_TOLERANCE;
+    final ToleranceXic xic = ToleranceXicUpdateTask.extract(group, file, scans, tolerance, null);
+    Assertions.assertNotNull(xic);
+    Assertions.assertSame(group, xic.group());
+    Assertions.assertSame(tolerance, xic.tolerance());
+    final IonTimeSeries<? extends Scan> series = xic.series();
+    Assertions.assertTrue(series.getNumberOfValues() > 0);
+    final double height = Arrays.stream(
+        series.getIntensityValues(new double[series.getNumberOfValues()])).max().orElse(0);
+    Assertions.assertTrue(height >= group.height(), height + " < " + group.height());
   }
 }
