@@ -36,6 +36,8 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
@@ -314,13 +316,13 @@ class ToleranceEstimationBenchmark {
   private FastChromatogramBuilderTask runMainTask(@NotNull RawDataFile[] files,
       @NotNull ChromatogramBenchmarkDataset dataset, @NotNull MZToleranceOrAuto tolerance,
       @NotNull String suffix, boolean removeLists) {
-    final ParameterSet parameters = FastChromatogramBuilderParameters.create(
+    final ParameterSet parameters = ADAPChromatogramBuilderParameters.createFast(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), dataset.scanSelection(),
         dataset.minConsecutive(), tolerance, suffix, dataset.minGroup(), dataset.minHeight(),
         false);
     final FastChromatogramBuilderTask task = new FastChromatogramBuilderTask(
         ProjectService.getProject(), files, parameters, null, Instant.now(),
-        FastChromatogramBuilderModule.class);
+        ModularADAPChromatogramBuilderModule.class);
     task.run();
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus(), task.getErrorMessage());
     if (removeLists) {

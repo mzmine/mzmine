@@ -29,11 +29,10 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -79,16 +78,17 @@ class ChromatogramComparisonUpdateTaskTest {
 
     final RawDataFilesSelection files = new RawDataFilesSelection(
         RawDataFilesSelectionType.ALL_FILES);
-    final ParameterSet adapParameters = ADAPChromatogramBuilderParameters.create(files,
+    final ParameterSet adapParameters = ADAPChromatogramBuilderParameters.createLegacy(files,
         new ScanSelection(1), 4, TOLERANCE, "adap", 1E5, MIN_HEIGHT, false);
     final TaskResult adapResult = MZmineTestUtil.callModuleWithTimeout(60,
         ModularADAPChromatogramBuilderModule.class, adapParameters);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, adapResult, adapResult.description());
 
-    final ParameterSet fastParameters = FastChromatogramBuilderParameters.create(files,
-        new ScanSelection(1), 4, TOLERANCE, "fast", 1E5, MIN_HEIGHT, false);
+    final ParameterSet fastParameters = ADAPChromatogramBuilderParameters.createFast(files,
+        new ScanSelection(1), 4, MZToleranceOrAuto.custom(TOLERANCE), "fast", 1E5, MIN_HEIGHT,
+        false);
     final TaskResult fastResult = MZmineTestUtil.callModuleWithTimeout(60,
-        FastChromatogramBuilderModule.class, fastParameters);
+        ModularADAPChromatogramBuilderModule.class, fastParameters);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, fastResult, fastResult.description());
 
     final MZmineProject project = ProjectService.getProject();

@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.batchmode.order.MassDetectionCondition;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRecommendation;
 import io.github.mzmine.modules.batchmode.order.ModuleOrderRule;
+import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -44,7 +45,10 @@ import org.jetbrains.annotations.NotNull;
 public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Chromatogram builder";
-  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
+  private static final String MODULE_DESCRIPTION = """
+      This module connects data points from mass lists and builds chromatograms. The fast \
+      algorithms follow the traces through the scans and group them into one chromatogram per m/z \
+      channel, the legacy algorithm is the ADAP chromatogram builder.""";
 
   @Override
   public @NotNull String getName() {
@@ -72,6 +76,15 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
     RawDataFile[] dataFiles = parameters.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
+
+    if (parameters.getValue(ADAPChromatogramBuilderParameters.algorithm).isFast()) {
+      // decision: one main task for all files, it determines the auto parameters once and then
+      // processes the files in parallel
+      tasks.add(new FastChromatogramBuilderTask(project, dataFiles,
+          parameters.cloneParameterSet(true), storage, moduleCallDate,
+          ModularADAPChromatogramBuilderModule.class));
+      return ExitCode.OK;
+    }
 
     for (final RawDataFile file : dataFiles) {
       // only the image builder supplies a minimum number of total scans

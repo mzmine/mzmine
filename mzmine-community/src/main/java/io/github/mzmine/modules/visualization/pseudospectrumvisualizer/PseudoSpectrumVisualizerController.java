@@ -36,11 +36,10 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.rt_corr.DiaMs2RtCorrParameters;
 import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ValueWithParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -85,12 +84,8 @@ public class PseudoSpectrumVisualizerController extends
 
       // for GC-EI workflow use tolerance of chromatogram building, because deconvolution does
       // not use mz tol parameter
-      final Optional<MZTolerance> chromatogramTolerance = ParameterUtils.getValueFromAppliedMethods(
-              appliedMethods, ADAPChromatogramBuilderParameters.class,
-              ADAPChromatogramBuilderParameters.mzTolerance)
-          .or(() -> ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-              FastChromatogramBuilderParameters.class,
-              FastChromatogramBuilderParameters.mzTolerance).map(MZToleranceOrAuto::tolerance));
+      final Optional<MZTolerance> chromatogramTolerance = ADAPChromatogramBuilderParameters.getAppliedSettings(
+          appliedMethods).map(ChromatogramBuilderSettings::mzTolerance);
       if (chromatogramTolerance.isPresent()) {
         return chromatogramTolerance.get();
       }

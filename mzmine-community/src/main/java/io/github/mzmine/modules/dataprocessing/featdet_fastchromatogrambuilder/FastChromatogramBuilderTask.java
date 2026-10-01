@@ -36,6 +36,9 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderAlgorithms;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
 import io.github.mzmine.modules.dataprocessing.norm_remove_scanrtcal.RemoveScanRtCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
@@ -63,9 +66,10 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Builds the chromatograms of all selected raw data files with the {@link FastChromatogramBuilder}.
- * A single main task checks all files first, estimates the m/z tolerance if it is set to auto and
- * then processes the files in parallel, one {@link FastChromatogramFileTask} per file run by the
- * task controller. The feature lists are added in the order of the files.
+ * A single main task checks all files first, estimates the m/z tolerance if it is set to auto or
+ * all parameters for {@link ChromatogramBuilderAlgorithms#FAST_AUTO}, and then processes the files
+ * in parallel, one {@link FastChromatogramFileTask} per file run by the task controller. The
+ * feature lists are added in the order of the files.
  */
 public class FastChromatogramBuilderTask extends AbstractTask {
 
@@ -82,10 +86,8 @@ public class FastChromatogramBuilderTask extends AbstractTask {
   private final @NotNull ParameterSet parameters;
   private final @NotNull Class<? extends MZmineModule> callingModule;
   private final @NotNull ScanSelection scanSelection;
-  private final @NotNull MZToleranceOrAuto toleranceSetting;
-  private final int minimumConsecutiveScans;
-  private final double minGroupIntensity;
-  private final double minHighestPoint;
+  private final @NotNull ChromatogramBuilderAlgorithms algorithm;
+  private final @NotNull ParameterSet algorithmParameters;
   private final @NotNull String suffix;
   private final boolean clearRtCorrection;
 
@@ -94,10 +96,13 @@ public class FastChromatogramBuilderTask extends AbstractTask {
   private volatile double progress = 0d;
   private volatile @NotNull String description;
   private @Nullable MzToleranceEstimate toleranceEstimate;
-  private @Nullable MZTolerance usedTolerance;
+  private @Nullable BuilderParameterEstimate parameterEstimate;
+  private @Nullable ChromatogramBuilderSettings usedSettings;
 
   /**
-   * @param parameters a clone of the module parameters, the used m/z tolerance is written into it
+   * @param parameters a clone of the {@link ADAPChromatogramBuilderParameters} with a fast
+   *                   algorithm, the used values are written into it, see
+   *                   {@link ADAPChromatogramBuilderParameters#getAppliedSettings(ParameterSet)}
    */
   public FastChromatogramBuilderTask(@NotNull MZmineProject project,
       @NotNull RawDataFile[] dataFiles, @NotNull ParameterSet parameters,
@@ -108,14 +113,16 @@ public class FastChromatogramBuilderTask extends AbstractTask {
     this.dataFiles = List.of(dataFiles);
     this.parameters = parameters;
     this.callingModule = callingModule;
-    scanSelection = parameters.getValue(FastChromatogramBuilderParameters.scanSelection);
-    toleranceSetting = parameters.getValue(FastChromatogramBuilderParameters.mzTolerance);
-    minimumConsecutiveScans = parameters.getValue(
-        FastChromatogramBuilderParameters.minimumConsecutiveScans);
-    minGroupIntensity = parameters.getValue(FastChromatogramBuilderParameters.minGroupIntensity);
-    minHighestPoint = parameters.getValue(FastChromatogramBuilderParameters.minHighestPoint);
-    suffix = parameters.getValue(FastChromatogramBuilderParameters.suffix);
-    clearRtCorrection = parameters.getValue(FastChromatogramBuilderParameters.clearRtCorrection);
+    scanSelection = parameters.getValue(ADAPChromatogramBuilderParameters.scanSelection);
+    final var algorithmParameter = parameters.getParameter(
+        ADAPChromatogramBuilderParameters.algorithm);
+    algorithm = algorithmParameter.getValue();
+    if (!algorithm.isFast()) {
+      throw new IllegalArgumentException("The fast task needs a fast algorithm, not " + algorithm);
+    }
+    algorithmParameters = algorithmParameter.getEmbeddedParameters();
+    suffix = parameters.getValue(ADAPChromatogramBuilderParameters.suffix);
+    clearRtCorrection = parameters.getValue(ADAPChromatogramBuilderParameters.clearRtCorrection);
     description = "Detecting chromatograms in %d files".formatted(dataFiles.length);
     // the sub tasks follow the status of the main task
     addTaskStatusListener((_, newStatus, _) -> {
@@ -180,22 +187,19 @@ public class FastChromatogramBuilderTask extends AbstractTask {
       DesktopService.getDesktop().displayMessage(warning);
     }
 
-    final MZTolerance tolerance = resolveTolerance(selectedScans);
-    if (tolerance == null || isCanceled()) {
+    final ChromatogramBuilderSettings settings = resolveSettings(selectedScans);
+    if (settings == null || isCanceled()) {
       return;
     }
-    usedTolerance = tolerance;
-    // decision: the applied method stores the used tolerance, also for auto, so that processed data
-    // and later modules see the actual value
-    parameters.setParameter(FastChromatogramBuilderParameters.mzTolerance,
-        new MZToleranceOrAuto(toleranceSetting.option(), tolerance));
+    usedSettings = settings;
+    storeAppliedSettings(settings);
 
     final List<FastChromatogramFileTask> tasks = new ArrayList<>(dataFiles.size());
     for (int i = 0; i < dataFiles.size(); i++) {
-      tasks.add(new FastChromatogramFileTask(dataFiles.get(i), selectedScans.get(i), tolerance,
-          minimumConsecutiveScans, minGroupIntensity, minHighestPoint, suffix,
-          parameters.cloneParameterSet(), getMemoryMapStorage(), getModuleCallDate(),
-          callingModule));
+      tasks.add(new FastChromatogramFileTask(dataFiles.get(i), selectedScans.get(i),
+          settings.mzTolerance(), settings.minConsecutiveScans(), settings.minGroupIntensity(),
+          settings.minHeight(), suffix, parameters.cloneParameterSet(), getMemoryMapStorage(),
+          getModuleCallDate(), callingModule));
     }
     fileTasks = List.copyOf(tasks);
     if (!runFileTasks()) {
@@ -207,9 +211,26 @@ public class FastChromatogramBuilderTask extends AbstractTask {
     }
     progress = 1d;
     setStatus(TaskStatus.FINISHED);
-    logger.info(
-        () -> "Finished fast chromatogram builder on %d files with m/z tolerance %s".formatted(
-            dataFiles.size(), tolerance));
+    logger.info(() -> "Finished fast chromatogram builder on %d files with %s".formatted(
+        dataFiles.size(), settings));
+  }
+
+  /**
+   * decision: the applied method stores the used values, also the estimated ones, so that
+   * processed data and later modules see the actual values. {@link ChromatogramBuilderAlgorithms#FAST}
+   * stores its estimated tolerance, {@link ChromatogramBuilderAlgorithms#FAST_AUTO} all
+   * determined values in its hidden parameters.
+   */
+  private void storeAppliedSettings(@NotNull ChromatogramBuilderSettings settings) {
+    switch (algorithm) {
+      case FAST -> algorithmParameters.setParameter(FastChromatogramBuilderParameters.mzTolerance,
+          new MZToleranceOrAuto(
+              algorithmParameters.getValue(FastChromatogramBuilderParameters.mzTolerance).option(),
+              settings.mzTolerance()));
+      case FAST_AUTO -> FastAutoChromatogramBuilderParameters.setDetermined(algorithmParameters,
+          Objects.requireNonNull(parameterEstimate));
+      case LEGACY_ADAP -> throw new IllegalStateException("Not a fast algorithm " + algorithm);
+    }
   }
 
   /**
@@ -217,7 +238,7 @@ public class FastChromatogramBuilderTask extends AbstractTask {
    */
   private boolean runFileTasks() {
     description = "Detecting chromatograms in %d files with m/z tolerance %s".formatted(
-        dataFiles.size(), usedTolerance);
+        dataFiles.size(), Objects.requireNonNull(usedSettings).mzTolerance());
     if (fileTasks.size() == 1) {
       // decision: a single file runs directly on this thread
       fileTasks.getFirst().run();
@@ -257,32 +278,46 @@ public class FastChromatogramBuilderTask extends AbstractTask {
   }
 
   /**
-   * @return the custom tolerance or the estimate, null if canceled
+   * @return the user values with the custom or estimated tolerance, or the values determined from
+   * the data, null if canceled or on error
    */
   @Nullable
-  private MZTolerance resolveTolerance(@NotNull List<Scan[]> selectedScans) {
-    return switch (toleranceSetting.option()) {
-      case CUSTOM -> Objects.requireNonNull(toleranceSetting.tolerance(),
-          "The custom m/z tolerance is not set");
-      case AUTO -> estimateTolerance(selectedScans);
+  private ChromatogramBuilderSettings resolveSettings(@NotNull List<Scan[]> selectedScans) {
+    return switch (algorithm) {
+      case FAST -> {
+        final int minConsecutive = algorithmParameters.getValue(
+            FastChromatogramBuilderParameters.minimumConsecutiveScans);
+        final double minGroup = algorithmParameters.getValue(
+            FastChromatogramBuilderParameters.minGroupIntensity);
+        final double minHeight = algorithmParameters.getValue(
+            FastChromatogramBuilderParameters.minHighestPoint);
+        final MZToleranceOrAuto toleranceSetting = algorithmParameters.getValue(
+            FastChromatogramBuilderParameters.mzTolerance);
+        final MZTolerance tolerance = switch (toleranceSetting.option()) {
+          case CUSTOM -> Objects.requireNonNull(toleranceSetting.tolerance(),
+              "The custom m/z tolerance is not set");
+          case AUTO -> estimateTolerance(selectedScans, minConsecutive, minGroup, minHeight,
+              Objects.requireNonNullElse(toleranceSetting.tolerance(), FALLBACK_TOLERANCE));
+        };
+        yield tolerance == null ? null
+            : new ChromatogramBuilderSettings(minConsecutive, minGroup, minHeight, tolerance);
+      }
+      case FAST_AUTO -> estimateParameters(selectedScans,
+          algorithmParameters.getValue(FastAutoChromatogramBuilderParameters.sensitivity));
+      case LEGACY_ADAP -> throw new IllegalStateException("Not a fast algorithm " + algorithm);
     };
   }
 
   @Nullable
-  private MZTolerance estimateTolerance(@NotNull List<Scan[]> selectedScans) {
+  private MZTolerance estimateTolerance(@NotNull List<Scan[]> selectedScans, int minConsecutive,
+      double minGroup, double minHeight, @NotNull MZTolerance fallback) {
     final List<Integer> samples = selectSampleFiles(dataFiles, selectedScans, MAX_SAMPLE_FILES);
-    final List<String> sampleNames = samples.stream().map(i -> dataFiles.get(i).getName()).toList();
+    final List<String> sampleNames = sampleNames(samples);
     description = "Estimating the m/z tolerance from " + String.join(", ", sampleNames);
-    final List<MzIntensityScans> sampleScans = new ArrayList<>(samples.size());
-    for (final int i : samples) {
-      sampleScans.add(new ScanDataAccessScans(
-          EfficientDataAccess.of(dataFiles.get(i), ScanDataType.MASS_LIST,
-              Arrays.asList(selectedScans.get(i)))));
-    }
     final MzToleranceEstimate estimate;
     try {
-      estimate = MzToleranceEstimation.estimate(sampleScans, minimumConsecutiveScans,
-          minGroupIntensity, minHighestPoint, this::isCanceled);
+      estimate = MzToleranceEstimation.estimate(sampleScans(samples, selectedScans),
+          minConsecutive, minGroup, minHeight, this::isCanceled);
     } catch (MissingMassListException e) {
       error(e.getMessage(), e);
       return null;
@@ -292,8 +327,6 @@ public class FastChromatogramBuilderTask extends AbstractTask {
     }
     progress = 0.1d;
     if (estimate == null) {
-      final MZTolerance fallback = Objects.requireNonNullElse(toleranceSetting.tolerance(),
-          FALLBACK_TOLERANCE);
       logger.warning(() -> """
           Could not estimate the m/z tolerance from %s, too few signals in consecutive scans. \
           Using %s""".formatted(sampleNames, fallback));
@@ -303,6 +336,49 @@ public class FastChromatogramBuilderTask extends AbstractTask {
     logger.info(() -> "Estimated the scan to scan m/z tolerance from %s: %s".formatted(sampleNames,
         estimate));
     return estimate.tolerance();
+  }
+
+  @Nullable
+  private ChromatogramBuilderSettings estimateParameters(@NotNull List<Scan[]> selectedScans,
+      @NotNull ChromatogramBuilderSensitivity sensitivity) {
+    final List<Integer> samples = selectSampleFiles(dataFiles, selectedScans, MAX_SAMPLE_FILES);
+    final List<String> sampleNames = sampleNames(samples);
+    description = "Determining the chromatogram builder parameters from " + String.join(", ",
+        sampleNames);
+    final BuilderParameterEstimate estimate;
+    try {
+      estimate = BuilderParameterEstimation.estimate(sampleScans(samples, selectedScans),
+          sensitivity, FALLBACK_TOLERANCE, this::isCanceled);
+    } catch (MissingMassListException e) {
+      error(e.getMessage(), e);
+      return null;
+    }
+    if (estimate == null || isCanceled()) {
+      return null;
+    }
+    progress = 0.1d;
+    parameterEstimate = estimate;
+    toleranceEstimate = estimate.toleranceEstimate();
+    logger.info(() -> "Determined the chromatogram builder parameters (%s) from %s: %s".formatted(
+        sensitivity, sampleNames, estimate));
+    return estimate.settings();
+  }
+
+  @NotNull
+  private List<String> sampleNames(@NotNull List<Integer> samples) {
+    return samples.stream().map(i -> dataFiles.get(i).getName()).toList();
+  }
+
+  @NotNull
+  private List<MzIntensityScans> sampleScans(@NotNull List<Integer> samples,
+      @NotNull List<Scan[]> selectedScans) {
+    final List<MzIntensityScans> sampleScans = new ArrayList<>(samples.size());
+    for (final int i : samples) {
+      sampleScans.add(new ScanDataAccessScans(
+          EfficientDataAccess.of(dataFiles.get(i), ScanDataType.MASS_LIST,
+              Arrays.asList(selectedScans.get(i)))));
+    }
+    return sampleScans;
   }
 
   /**
@@ -445,10 +521,27 @@ public class FastChromatogramBuilderTask extends AbstractTask {
   }
 
   /**
+   * @return the estimate if the parameters were determined from the data, otherwise null
+   */
+  @Nullable
+  public BuilderParameterEstimate getParameterEstimate() {
+    return parameterEstimate;
+  }
+
+  /**
+   * @return the used values after they were resolved, otherwise null
+   */
+  @Nullable
+  public ChromatogramBuilderSettings getUsedSettings() {
+    return usedSettings;
+  }
+
+  /**
    * @return the used m/z tolerance after it was resolved, otherwise null
    */
   @Nullable
   public MZTolerance getUsedTolerance() {
-    return usedTolerance;
+    final ChromatogramBuilderSettings settings = usedSettings;
+    return settings == null ? null : settings.mzTolerance();
   }
 }

@@ -30,11 +30,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
-import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
@@ -262,12 +260,8 @@ public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
       List<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
           .getAppliedMethods();
 
-      return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-              ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
-          .or(() -> ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-              FastChromatogramBuilderParameters.class,
-              FastChromatogramBuilderParameters.mzTolerance).map(MZToleranceOrAuto::tolerance))
-          .orElse(new MZTolerance(0.005, 15));
+      return ADAPChromatogramBuilderParameters.getAppliedSettings(appliedMethods)
+          .map(ChromatogramBuilderSettings::mzTolerance).orElse(new MZTolerance(0.005, 15));
     } catch (Exception e) {
       logger.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "

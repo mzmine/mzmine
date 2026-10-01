@@ -92,6 +92,13 @@ final class ChromatogramBenchmarkDatasets {
     datasets.add(orbitrap("Orbitrap QE, workshop", qeM1, 5d, 6, 1E5, 5E5, qeCrop));
     datasets.add(orbitrap("Orbitrap QE media, sensitive", qeMedia, 2d, 4, 1E4, 5E4, qeCrop));
     datasets.add(orbitrap("Orbitrap QE media, workshop", qeMedia, 5d, 6, 1E5, 5E5, qeCrop));
+    // the QC files of the workshop data set cropped to 4-5 min, test resources that are always
+    // available, with the settings of both QE data sets above
+    final List<String> qeQc = List.of(
+        "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_04-4to5min.mzML",
+        "rawdatafiles/integration_tests/workshop_dataset/171103_PMA_TK_QC_05-4to5min.mzML");
+    datasets.add(orbitrap("Orbitrap QE QC 4-5 min, sensitive", qeQc, 2d, 4, 1E4, 5E4, null));
+    datasets.add(orbitrap("Orbitrap QE QC 4-5 min, workshop", qeQc, 5d, 6, 1E5, 5E5, null));
     // reduced copy of the GC-QTOF series below, the integration test data
     datasets.add(
         tof("GC-EI-TOF", List.of("rawdatafiles/integration_tests/gc_tof_ms/019_KR8_20220715.mzML"),

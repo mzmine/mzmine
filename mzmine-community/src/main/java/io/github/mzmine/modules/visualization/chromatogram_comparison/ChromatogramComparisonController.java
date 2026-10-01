@@ -26,17 +26,12 @@
 package io.github.mzmine.modules.visualization.chromatogram_comparison;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +45,6 @@ public class ChromatogramComparisonController extends FxController<ChromatogramC
    * Default tolerance of the chromatogram builders, used for lists without builder parameters
    */
   static final MZTolerance DEFAULT_TOLERANCE = new MZTolerance(0.002, 10);
-
   public ChromatogramComparisonController() {
     super(new ChromatogramComparisonModel());
     PropertyUtils.onChange(this::updateGroups, model.featureListAProperty(),
@@ -100,63 +94,30 @@ public class ChromatogramComparisonController extends FxController<ChromatogramC
   }
 
   /**
-   * @return the tolerance of the ADAP or fast chromatogram builder, the fast builder stores the
-   * estimated tolerance for auto
+   * @return the tolerance of the latest chromatogram builder, the fast builder stores the estimated
+   * tolerance for auto
    */
   @Nullable
   private static MZTolerance extractBuilderTolerance(@NotNull FeatureList flist) {
-    final List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
-    return ParameterUtils.getValueFromAppliedMethods(methods,
-            ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
-        .or(() -> ParameterUtils.getValueFromAppliedMethods(methods,
-                FastChromatogramBuilderParameters.class, FastChromatogramBuilderParameters.mzTolerance)
-            .map(MZToleranceOrAuto::tolerance)).orElse(null);
+    return ADAPChromatogramBuilderParameters.getAppliedSettings(flist.getAppliedMethods())
+        .map(ChromatogramBuilderSettings::mzTolerance).orElse(null);
   }
 
   /**
-   * @return the filter of the latest ADAP or fast chromatogram builder of the list, null if not
-   * found
+   * @return the filter of the latest chromatogram builder of the list, null if not found
    */
   @Nullable
   static SegmentFilter extractSegmentFilter(@NotNull FeatureList flist) {
-    final List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
-    for (int i = methods.size() - 1; i >= 0; i--) {
-      final ParameterSet parameters = methods.get(i).getParameters();
-      final Integer minConsecutive;
-      final Double minGroupIntensity;
-      final Double minHeight;
-      if (parameters instanceof ADAPChromatogramBuilderParameters) {
-        minConsecutive = parameters.getValue(
-            ADAPChromatogramBuilderParameters.minimumConsecutiveScans);
-        minGroupIntensity = parameters.getValue(
-            ADAPChromatogramBuilderParameters.minGroupIntensity);
-        minHeight = parameters.getValue(ADAPChromatogramBuilderParameters.minHighestPoint);
-      } else if (parameters instanceof FastChromatogramBuilderParameters) {
-        minConsecutive = parameters.getValue(
-            FastChromatogramBuilderParameters.minimumConsecutiveScans);
-        minGroupIntensity = parameters.getValue(
-            FastChromatogramBuilderParameters.minGroupIntensity);
-        minHeight = parameters.getValue(FastChromatogramBuilderParameters.minHighestPoint);
-      } else {
-        continue;
-      }
-      if (minConsecutive == null || minGroupIntensity == null || minHeight == null) {
-        return null;
-      }
-      return new SegmentFilter(minConsecutive, minGroupIntensity, minHeight);
-    }
-    return null;
+    return ADAPChromatogramBuilderParameters.getAppliedSettings(flist.getAppliedMethods())
+        .map(s -> new SegmentFilter(s.minConsecutiveScans(), s.minGroupIntensity(), s.minHeight()))
+        .orElse(null);
   }
 
   /**
-   * @return the minimum height of the ADAP or fast chromatogram builder, 0 if not found
+   * @return the minimum height of the latest chromatogram builder, 0 if not found
    */
   private static double extractMinimumHeight(@NotNull FeatureList flist) {
-    final List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
-    return ParameterUtils.getValueFromAppliedMethods(methods,
-            ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.minHighestPoint)
-        .or(() -> ParameterUtils.getValueFromAppliedMethods(methods,
-            FastChromatogramBuilderParameters.class,
-            FastChromatogramBuilderParameters.minHighestPoint)).orElse(0d);
+    return ADAPChromatogramBuilderParameters.getAppliedSettings(flist.getAppliedMethods())
+        .map(ChromatogramBuilderSettings::minHeight).orElse(0d);
   }
 }

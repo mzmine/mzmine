@@ -139,7 +139,7 @@ public class DiaMs2RtCorrTask extends AbstractTaskSubProcessor {
 
     final RawDataFilesSelection adapFiles = new RawDataFilesSelection(
         flist.getRawDataFiles().toArray(new RawDataFile[0]));
-    adapParameters = ADAPChromatogramBuilderParameters.create(adapFiles, ms2ScanSelection,
+    adapParameters = ADAPChromatogramBuilderParameters.createLegacy(adapFiles, ms2ScanSelection,
         minCorrPoints, mzTolerance, "chroms", minMs2Intensity / 5, minMs2Intensity, false);
   }
 

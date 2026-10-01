@@ -45,13 +45,14 @@ import org.jetbrains.annotations.Nullable;
  * @param spreadPpm                 scatter of the deviations from the chromatogram centers, in ppm
  * @param intensityFloor            only data points of at least this intensity were used, 0 for
  *                                  all
+ * @param testBuildMs               time of the test build
  */
 public record MzToleranceEstimate(@NotNull MZTolerance tolerance,
                                   @NotNull MZTolerance scatterTolerance,
                                   @Nullable MZTolerance spreadTolerance, int numSampleFiles,
                                   int numPairs, int numScanPairs, double scatterPpm,
                                   int numChromatogramDataPoints, double spreadPpm,
-                                  double intensityFloor) {
+                                  double intensityFloor, long testBuildMs) {
 
   @Override
   public @NotNull String toString() {

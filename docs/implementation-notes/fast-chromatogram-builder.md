@@ -15,18 +15,45 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
 
 ## Decisions
 
-- The parameter names, including the legacy names ADAP maps on load, equal the ADAP builder
-  parameters so a batch step can switch modules. A plain m/z tolerance saved by ADAP loads as custom
-  tolerance. The image builder still uses the ADAP task, imaging is not supported here. The batch
-  wizard still uses the ADAP builder.
+- The fast builder is an algorithm of the `ModularADAPChromatogramBuilderModule` (decision of the
+  user), there is no separate module. `ChromatogramBuilderAlgorithms` (a `ModuleOptionsEnum`):
+  "Fast (auto)" (default) determines all builder parameters for a sensitivity, "Fast" has user
+  parameters with an auto or custom m/z tolerance, "mzmine <4.11" is the ADAP builder. Top level
+  parameters (files, scans, suffix, RT correction) are shared, the builder parameters belong to
+  each algorithm and keep the ADAP names. Stable ids `fast_auto`, `fast`, `legacy_adap`, the
+  display names may change.
+- Old batch steps and applied methods (parameter version 1, builder parameters at the top level)
+  load as "mzmine <4.11" with their values and results (decision of the user): the top level name
+  map points the old names into the legacy parameters, a missing algorithm parameter selects the
+  legacy algorithm, the version message tells the user. The integration test batches therefore
+  keep using ADAP. The saved user configuration loads the same way: after an update the module
+  dialog opens with "mzmine <4.11" and without a message (only batches and presets show version
+  messages) until the user selects another algorithm.
+- The batch wizard uses "Fast" with its values and its tolerance as custom tolerance, not the auto
+  parameters (decision of the user). The image builder and the DIA MS2 RT correction still use the
+  ADAP task (`createLegacy`), imaging is not supported by the fast builder.
+- Later modules read the used values with `ADAPChromatogramBuilderParameters.getAppliedSettings`.
+  The applied method stores the values that were used: "Fast" its estimated tolerance, "Fast
+  (auto)" the determined builder values, noise level, signal level and peak width in hidden
+  parameters of its own parameter set (decision of the user), which the feature list summary
+  shows. They are empty in the module parameters and a rerun determines them again. Replaced:
+  copying the values into the parameters of "Fast", the user wanted to see them in "Fast (auto)".
+- The batch step measurements (log line after each step and the CSV after the batch) have an
+  `algorithm` column (decision of the user): the selected option of every
+  `ModuleOptionsEnumComboParameter` of the step and of the parameters of the selected option
+  (`StepAlgorithms`), the bare option for one choice, "name: option; ..." for several, empty
+  without. Options inside other embedded parameters, e.g., optional advanced import
+  parameters, are left out. The speed test CSV (`SpeedMeasurement`) has no such column.
+- Contract: the fast task classes are not in the free list of the task controller library, the
+  ADAP task is. With "Fast (auto)" as default and the wizard on "Fast", the chromatogram builder
+  needs a logged in user until `FastChromatogramBuilderTask` and `FastChromatogramFileTask` are
+  added to that list.
 - One main task processes all files: it checks all files first, resolves the tolerance once and
   then runs one file task per file on the task controller (`addTasks` and
   `TaskUtils.waitForTasksToFinish`, the pattern of the multithreaded gap filling). A single file
   runs directly on the main task thread. Feature lists are added in the order of the files. Not
   `ThreadPoolTask`: it checks the licenses of its sub tasks again with a new auth service on the
   worker thread, which fails for tasks that are not in the free list of the task controller.
-  Contract: neither task class is in that free list (the ADAP task is), so the module needs a
-  logged in user unless the free list of the task controller library is extended.
 - The m/z tolerance is auto or custom, auto by default. The applied method stores the used
   tolerance for both options, so later modules that read the chromatogram builder tolerance get the
   actual value, and a rerun with auto estimates again with the same result (deterministic).
@@ -289,6 +316,51 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   data points of each other. With Auto (23.3 ppm) they are separate channels and the stolen holes
   halve (2012 → 1084).
 
+### Fast (auto)
+
+- "Fast (auto)" determines the min intensity for consecutive scans, the min height, the min
+  consecutive scans and the m/z tolerance from the same 3 sample files as the tolerance estimate,
+  for the sensitivities Sensitive, Medium (default) and Abundant (decision of the user).
+  `BuilderParameterEstimation`, all values are rounded to 2 significant digits.
+- The intensity levels come from `SignalPersistenceProfile`: per intensity bin (10 per decade) the
+  fraction of data points with a data point in the next scan within the near window and 5x of
+  their intensity, minus the hits in control windows of the same width 2-3 near windows away
+  (chance hits, up to 0.33 on unfiltered TOF data), as `(near - control) / (1 - control)`. Noise
+  level = from where half of the data points are signals (N50), signal level = from where 95% are
+  (N95). Rejected: the lowest intensity of the mass lists or a fixed intensity quantile, both
+  depend on the noise filter of the mass detection and do not exist for unfiltered data. The
+  profile rises smoothly from 0 to 1 on all data sets, e.g., unfiltered GC-EI-TOF 0.05 at 6, 0.5
+  at 130, 0.95 at 500, 0.99 at 1000 counts.
+- A noise filter removes the next-scan partners of weak signals, so filtered data have a low
+  fraction right at their floor (0.45 at 500 for TOF data filtered at 500) and N95 is about twice
+  the filter level. N95 of filtered and unfiltered imports of the same data agree within ~2x,
+  N50 within 1.3x on Orbitrap, GC-Orbitrap, LC-QTOF MSe and DOM and within 4.4x on GC-TOF data.
+  Unfiltered ZenoTOF data have persistent signals down to ~10 counts (N50 11, N95 130 vs 500 /
+  1200 with the wizard filter of 500): the levels follow the data the builder receives.
+- The levels are searched from the most intense bin down: the level is where two consecutive bins
+  fall below the fraction, single bins scatter. Searched from the bottom, persistent data points
+  far below the noise (ion tails in synthetic data without detection threshold) set the level.
+- The near window is sqrt(2) times the 99.5% scatter tolerance of consecutive signals
+  (`MzToleranceEstimation.findScatter`), tried on all data points and then above the 50, 75, 90,
+  97 and 99% intensity quantiles, and once more above N50 of the first profile. Without that
+  refinement the unfiltered LC-QTOF MSe data had a near window of 306 ppm and N50 477 instead of
+  ~620.
+- Sensitivities (calibrated with `BuilderParameterEstimationBenchmark` against the wizard settings
+  of the benchmark data sets, see the baseline below): Medium = min group N50 and min height N95,
+  the results of the wizard defaults (98-100% of the wizard features on the QE QC, GC-EI-TOF and
+  GC-EI-QTOF data with the wizard noise filter, the wizard uses 1E4 / 5E4 for Orbitrap and 1E3 /
+  1E3 for TOF). Sensitive = half of both. Abundant = 2x N95 and 10x N95, the QE workshop settings
+  (1E5 / 5E5: 99% of their features from the factor 2 import). The first version had Medium 3x
+  stricter than the wizard and lost ~40% of its features.
+- Min consecutive scans = 0.3 / 0.5 / 0.8 times the median full width at half maximum in scans of
+  the peaks with an apex of at least 10x N95 in the test build of the tolerance estimation, within
+  3 and 20; without 20 such peaks 3 / 4 / 6. A lower apex limit (10x N50) measured noise spikes on
+  unfiltered ZenoTOF data (3 instead of 5 scans). Widths: QE 5, LC-QTOF 5, GC-EI-TOF 8, GC-EI-QTOF
+  10, GC-Orbitrap 14-15 scans. The DOM test files (87 scans) give 2 scans, the clamp applies.
+- Fallbacks: without N50 the median intensity, without N95 2x N50, without a clear scatter the
+  fallback tolerance of the task, without a tolerance estimate that tolerance. The tolerance
+  estimate uses the determined intensities and 4 consecutive scans for its test build.
+
 ## Benchmark baseline
 
 2026-09-26, both builders with the preset tolerance of the wizard. ADAP / fast: median task time,
@@ -414,3 +486,42 @@ file task / ADAP task.
   are copied once more into the chromatograms (~170 MB); the collision events (~190 MB) and the
   recorded trace summaries (~200 MB) grow by doubling. Live heap at the end of pass 1 229 MB, at
   the end of pass 2 425 MB (channel buffers of 10 M data points), result 169 MB.
+
+## Parameter estimation baseline
+
+2026-10-01, `BuilderParameterEstimationBenchmark`, the QE "20 years" files were OneDrive
+placeholders and skipped, the QE QC crops of the integration test stand in. Per sensitivity: min
+consecutive / min group / min height, features after the local minimum resolver (its min height
+and min scans from the run) and the share of the wizard features found within the preset tolerance
+and 0.03 min. Time: estimation of Medium, the other sensitivities take the same.
+
+| data set                     | N50 / N95   | wizard                   | Sensitive               | Medium                  | Abundant               | ms   |
+|------------------------------|-------------|--------------------------|-------------------------|-------------------------|------------------------|------|
+| QE QC, factor 2              | 1.2E4/5.1E4 | 4/1E4/5E4, 1122          | 3/5.8E3/2.5E4, 1431 100% | 3/1.2E4/5.1E4, 1115 99% | 4/1E5/5.1E5, 390 35%   | 332  |
+| ... factor 5 (workshop)      | 2.5E4/8.5E4 | 6/1E5/5E5, 371           | 3/1.2E4/4.3E4, 768 100% | 3/2.5E4/8.5E4, 737 100% | 4/1.7E5/8.5E5, 280 75% | 138  |
+| ... no filter, workshop wizard | 9.7E3/5.2E4 | 6/1E5/5E5, 382         | 3/4.8E3/2.6E4, 1443 100% | 3/9.7E3/5.2E4, 1118 100% | 4/1E5/5.2E5, 388 99%  | 312  |
+| GC-EI-TOF                    | 600/1.2E3   | 4/1E3/1E3, 496           | 3/300/600, 512 100%     | 4/600/1.2E3, 511 100%   | 6/2.4E3/1.2E4, 177 36% | 239  |
+| ... no noise filter          | 137/535     | 4/1E3/1E3, 544           | 3/68/270, 1094 100%     | 4/140/540, 772 100%     | 6/1.1E3/5.4E3, 287 53% | 2239 |
+| GC-EI-QTOF                   | 604/1.3E3   | 4/1E3/1E3, 12705         | 3/300/660, 12906 99%    | 5/600/1.3E3, 12681 98%  | 8/2.6E3/1.3E4, 3967 31% | 816 |
+| ... no noise filter          | 156/692     | 4/1E3/1E3, 15277         | 3/78/350, 24914 92%     | 5/160/690, 19608 98%    | 8/1.4E3/6.9E3, 5476 36% | 5289 |
+| LC-QTOF ZenoTOF DDA          | 501/1.2E3   | 5/1E3/1E3, 711           | 3/250/590, 784 99%      | 3/500/1.2E3, 780 99%    | 4/2.4E3/1.2E4, 217 31% | 46   |
+| ... no noise filter          | 11/128      | 5/1E3/1E3, 802           | 3/5.7/64, 6006 99%      | 3/11/130, 4245 100%     | 4/260/1.3E3, 928 95%   | 1630 |
+| LC-QTOF MSe                  | 650/1.3E3   | 4/600/1E3, 154           | 3/320/660, 174 100%     | 3/650/1.3E3, 146 92%    | 4/2.6E3/1.3E4, 48 31%  | 26   |
+| ... no noise filter          | 608/1.3E3   | 4/600/1E3, 163           | 3/300/660, 233 99%      | 3/610/1.3E3, 151 89%    | 4/2.6E3/1.3E4, 46 28%  | 203  |
+| GC-Orbitrap                  | 1.2E3/2.5E3 | 4/5E3/5E4, 828           | 5/590/1.2E3, 6100 100%  | 8/1.2E3/2.5E3, 6008 100% | 12/4.9E3/2.5E4, 1459 100% | 851 |
+| ... no noise filter          | 903/2.0E3   | 4/5E3/5E4, 828           | 4/450/990, 7406 100%    | 7/900/2.0E3, 7175 100%  | 11/3.9E3/2.0E4, 1738 100% | 1125 |
+| DOM Orbitrap                 | 7.3E4/2.0E5 | 4/5E4/2E5, 320           | 3/3.6E4/9.8E4, 466 100% | 3/7.3E4/2.0E5, 404 98%  | 3/3.9E5/2.0E6, 101 31% | 384  |
+| ... no noise filter          | 6.6E4/1.9E5 | 4/5E4/2E5, 322           | 3/3.3E4/9.5E4, 502 100% | 3/6.6E4/1.9E5, 426 98%  | 3/3.8E5/1.9E6, 104 32% | 430  |
+
+- The GC-Orbitrap wizard settings are 10x above N95 (5E4 height), all sensitivities find all its
+  features. On unfiltered ZenoTOF data the auto levels follow the persistent low level signals,
+  Medium has 5x the features of the wizard with its noise filter of 500.
+- The estimation is several passes, not one loop: over the sampled scan pairs (at most 1000 per
+  sample file) the histogram, one scatter pass and fit per tried floor (1 on filtered data, up to
+  6 without filter), the profile, the refinement scatter and profile; then the tolerance
+  estimation with its own scatter floors and the test build on all selected scans of the 3 sample
+  files. `BuilderParameterEstimate.Timings` logs the steps. Medium, 2026-10-01: QE QC 293 ms
+  (scatter 78, refinement 70, tolerance 137 of which test build 45), GC-EI-QTOF 738 ms (test build
+  194), unfiltered GC-EI-QTOF 4435 ms (scatter 1573, profile 233, refinement 474, tolerance 2059 of
+  which test build 863). The scatter fits are 60-80% of the time, the test build 15-45%. The
+  tolerance estimation repeats the floor 0 scatter of the near window step.

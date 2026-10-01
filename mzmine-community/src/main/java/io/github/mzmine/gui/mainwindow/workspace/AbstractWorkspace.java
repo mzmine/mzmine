@@ -49,7 +49,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.FastChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule;
@@ -248,19 +247,16 @@ public abstract class AbstractWorkspace implements Workspace {
 
   protected Menu buildDefaultLcMsSubMenu() {
     return addModuleMenuItems("LC-MS", ModularADAPChromatogramBuilderModule.class,
-        FastChromatogramBuilderModule.class,
         TargetedFeatureDetectionModule.class);
   }
 
   protected Menu buildDefaultGcMsSubMenu() {
-    return addModuleMenuItems("GC-MS", ModularADAPChromatogramBuilderModule.class,
-        FastChromatogramBuilderModule.class/*,
+    return addModuleMenuItems("GC-MS", ModularADAPChromatogramBuilderModule.class/*,
         SpectralDeconvolutionGCModule.class*/);
   }
 
   protected Menu buildDefaultImsMsSubMenu() {
     return addModuleMenuItems("LC-IMS-MS", ModularADAPChromatogramBuilderModule.class,
-        FastChromatogramBuilderModule.class,
         ImsExpanderModule.class);
   }
 

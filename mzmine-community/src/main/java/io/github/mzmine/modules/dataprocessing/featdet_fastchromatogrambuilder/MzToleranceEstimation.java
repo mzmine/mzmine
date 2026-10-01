@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,14 +78,43 @@ final class MzToleranceEstimation {
   static MzToleranceEstimate estimate(@NotNull List<? extends MzIntensityScans> samples,
       int minConsecutiveScans, double minGroupIntensity, double minHeight,
       @Nullable BooleanSupplier isCanceled) {
-    for (final double floor : intensityFloors(minGroupIntensity)) {
+    return estimate(samples, minConsecutiveScans, minGroupIntensity, minHeight, isCanceled, null);
+  }
+
+  /**
+   * @param testBuild receives the chromatograms of the test build, may be null
+   * @see #estimate(List, int, double, double, BooleanSupplier)
+   */
+  @Nullable
+  static MzToleranceEstimate estimate(@NotNull List<? extends MzIntensityScans> samples,
+      int minConsecutiveScans, double minGroupIntensity, double minHeight,
+      @Nullable BooleanSupplier isCanceled, @Nullable Consumer<BuiltChromatogram> testBuild) {
+    final ClearScatter clear = findScatter(samples, intensityFloors(minGroupIntensity),
+        isCanceled);
+    if (clear == null) {
+      return null;
+    }
+    return estimate(clear.signals(), clear.pairs(), clear.scatter(), clear.floor(),
+        minConsecutiveScans, minGroupIntensity, minHeight, isCanceled, testBuild);
+  }
+
+  /**
+   * First step, the scatter of the same signal in consecutive scans.
+   *
+   * @param floors the intensity floors in the order they are tried, 0 for all data points
+   * @return the scatter of the first floor with a clear signal, null if none has one or if
+   * canceled
+   */
+  @Nullable
+  static ClearScatter findScatter(@NotNull List<? extends MzIntensityScans> samples,
+      @NotNull double[] floors, @Nullable BooleanSupplier isCanceled) {
+    for (final double floor : floors) {
       final List<? extends MzIntensityScans> signals =
           floor > 0d ? samples.stream().map(scans -> new IntensityFloorScans(scans, floor)).toList()
               : samples;
       final ConsecutiveSignalPairs pairs = new ConsecutiveSignalPairs();
       for (final MzIntensityScans scans : signals) {
-        final int stride = Math.max(1, scans.getNumberOfScans() / MAX_SCAN_PAIRS_PER_FILE);
-        pairs.addScans(scans, stride);
+        pairs.addScans(scans, scanPairStride(scans));
         if (isCanceled != null && isCanceled.getAsBoolean()) {
           return null;
         }
@@ -94,11 +124,18 @@ final class MzToleranceEstimation {
       // signals of one scan are apart, otherwise the pairs are unrelated signals, e.g., only noise
       if (scatter != null
           && scatter.sigmaPpm() * MIN_SPACING_TO_SCATTER <= pairs.medianSpacingPpm()) {
-        return estimate(signals, pairs, scatter, floor, minConsecutiveScans, minGroupIntensity,
-            minHeight, isCanceled);
+        return new ClearScatter(signals, pairs, scatter, floor);
       }
     }
     return null;
+  }
+
+  /**
+   * @return only every stride-th pair of consecutive scans is used, see
+   * {@link #MAX_SCAN_PAIRS_PER_FILE}
+   */
+  static int scanPairStride(@NotNull MzIntensityScans scans) {
+    return Math.max(1, scans.getNumberOfScans() / MAX_SCAN_PAIRS_PER_FILE);
   }
 
   /**
@@ -130,7 +167,7 @@ final class MzToleranceEstimation {
   private static MzToleranceEstimate estimate(@NotNull List<? extends MzIntensityScans> signals,
       @NotNull ConsecutiveSignalPairs pairs, @NotNull MzScatterModel scatter, double floor,
       int minConsecutiveScans, double minGroupIntensity, double minHeight,
-      @Nullable BooleanSupplier isCanceled) {
+      @Nullable BooleanSupplier isCanceled, @Nullable Consumer<BuiltChromatogram> testBuild) {
     final MZTolerance scatterTolerance = scatter.tolerance(COVERAGE);
     if (scatterTolerance == null) {
       return null;
@@ -146,6 +183,7 @@ final class MzToleranceEstimation {
     // and changed the estimate of GC-EI-QTOF data by 2 ppm
     final FastChromatogramBuilderOptions options = FastChromatogramBuilderOptions.DEFAULT.withCoalescedMaxHoleScans(
         0);
+    final long testBuildStart = System.nanoTime();
     for (final MzIntensityScans scans : signals) {
       final FastChromatogramBuilder builder = new FastChromatogramBuilder(testTolerance,
           minConsecutiveScans, minGroupIntensity, minHeight, options);
@@ -155,8 +193,12 @@ final class MzToleranceEstimation {
       }
       for (final BuiltChromatogram chromatogram : chromatograms) {
         addDeviations(chromatogram, deviations, mzs, intensities);
+        if (testBuild != null) {
+          testBuild.accept(chromatogram);
+        }
       }
     }
+    final long testBuildMs = (System.nanoTime() - testBuildStart) / 1_000_000;
     // decision: the test tolerance limits the deviations, loose noise data points are uniform
     // within it, so it is the window of the fit
     final MzScatterModel spread = MzScatterModel.fit(deviations.elements(), mzs.elements(),
@@ -174,7 +216,7 @@ final class MzToleranceEstimation {
         new MZTolerance(SAFETY_FACTOR * absolute, SAFETY_FACTOR * ppm));
     return new MzToleranceEstimate(tolerance, scatterTolerance, spreadTolerance, signals.size(),
         pairs.getNumPairs(), pairs.getNumScanPairs(), scatter.sigmaPpm(), deviations.size(),
-        spread == null ? Double.NaN : spread.sigmaPpm(), floor);
+        spread == null ? Double.NaN : spread.sigmaPpm(), floor, testBuildMs);
   }
 
   /**
@@ -200,6 +242,18 @@ final class MzToleranceEstimation {
       mzs.add((float) mz);
       intensities.add((float) chromatogram.getIntensity(i));
     }
+  }
+
+  /**
+   * The scatter of consecutive signals of the first intensity floor with a clear signal.
+   *
+   * @param signals the sample scans with the floor
+   * @param floor   the intensity floor, 0 for all data points
+   */
+  record ClearScatter(@NotNull List<? extends MzIntensityScans> signals,
+                      @NotNull ConsecutiveSignalPairs pairs, @NotNull MzScatterModel scatter,
+                      double floor) {
+
   }
 
   /**

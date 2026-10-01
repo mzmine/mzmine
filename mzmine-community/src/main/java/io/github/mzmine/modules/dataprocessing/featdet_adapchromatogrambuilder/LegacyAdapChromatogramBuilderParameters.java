@@ -23,28 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder;
+package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderAlgorithms;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.LegacyAdapChromatogramBuilderParameters;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.combowithinput.AutoOrCustomOption;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
-import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAutoParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Parameters of the {@link ChromatogramBuilderAlgorithms#FAST} algorithm.
+ * Parameters of the {@link ChromatogramBuilderAlgorithms#LEGACY_ADAP} algorithm, the ADAP
+ * chromatogram builder of mzmine before 4.11.
  * <p>
- * decision: the names equal the {@link LegacyAdapChromatogramBuilderParameters}, the values
- * describe the same filters.
+ * decision: the names equal the parameters of the module before the algorithm selection, old batch
+ * steps load into this parameter set, see {@link ADAPChromatogramBuilderParameters}. When changing
+ * any of the names, reflect the changes in the
+ * {@link io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters} to
+ * keep the compatibility.
  */
-public class FastChromatogramBuilderParameters extends SimpleParameterSet {
+public class LegacyAdapChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final IntegerParameter minimumConsecutiveScans = new IntegerParameter(
       "Minimum consecutive scans", """
@@ -60,30 +63,47 @@ public class FastChromatogramBuilderParameters extends SimpleParameterSet {
       """, MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final DoubleParameter minHighestPoint = new DoubleParameter(
-      "Minimum absolute height", """
-      The consecutive scans need to reach this height. Signals below this intensity will not start a new chromatogram
-      but can be added to an existing one.""", MZmineCore.getConfiguration().getIntensityFormat());
+      "Minimum absolute height",
+      "Points below this intensity will not be considered in starting a new chromatogram",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
-  // decision: auto by default, the presets per instrument type are only rough guesses
-  public static final MZToleranceOrAutoParameter mzTolerance = new MZToleranceOrAutoParameter(
-      new MZToleranceParameter(ToleranceType.SCAN_TO_SCAN, """
-          Auto estimates the tolerance from a few data files: from the m/z scatter of the same \
-          signal in consecutive scans and from the m/z spread of the data points in a test build \
-          of the chromatograms. The estimate is logged and stored with the feature lists.
-          Custom uses the defined tolerance.""", 0.002, 10), AutoOrCustomOption.AUTO);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN, 0.002, 10);
 
-  public FastChromatogramBuilderParameters() {
+  public LegacyAdapChromatogramBuilderParameters() {
     super(minimumConsecutiveScans, minGroupIntensity, minHighestPoint, mzTolerance);
   }
 
   @NotNull
-  public static FastChromatogramBuilderParameters create(int minConsecutiveScans,
-      double minGroupInt, double minHeight, @NotNull MZToleranceOrAuto mzTolScans) {
-    final var param = new FastChromatogramBuilderParameters().cloneParameterSet();
+  public static LegacyAdapChromatogramBuilderParameters create(int minConsecutiveScans,
+      double minGroupInt, double minHeight, @NotNull MZTolerance mzTolScans) {
+    final var param = new LegacyAdapChromatogramBuilderParameters().cloneParameterSet();
     param.setParameter(minimumConsecutiveScans, minConsecutiveScans);
     param.setParameter(minGroupIntensity, minGroupInt);
     param.setParameter(minHighestPoint, minHeight);
     param.setParameter(mzTolerance, mzTolScans);
-    return (FastChromatogramBuilderParameters) param;
+    return (LegacyAdapChromatogramBuilderParameters) param;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    final var nameParameterMap = super.getNameParameterMap();
+    nameParameterMap.putAll(legacyNames(this));
+    return nameParameterMap;
+  }
+
+  /**
+   * Names of the parameters in old batch files.
+   *
+   * @param parameters the legacy parameters that receive the values
+   */
+  @NotNull
+  static Map<String, Parameter<?>> legacyNames(@NotNull ParameterSet parameters) {
+    return Map.of( //
+        "Min group size in # of scans", parameters.getParameter(minimumConsecutiveScans), //
+        "Group intensity threshold", parameters.getParameter(minGroupIntensity), //
+        "Min highest intensity", parameters.getParameter(minHighestPoint), //
+        "Scan to scan accuracy (m/z)", parameters.getParameter(mzTolerance));
   }
 }

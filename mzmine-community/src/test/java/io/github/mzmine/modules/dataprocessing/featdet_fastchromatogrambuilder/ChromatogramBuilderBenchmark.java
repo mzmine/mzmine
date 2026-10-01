@@ -47,6 +47,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_fastchromatogrambuilder.S
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -496,7 +497,7 @@ class ChromatogramBuilderBenchmark {
   @NotNull
   static Run runAdap(@NotNull RawDataFile file, @NotNull Settings settings, boolean keep,
       boolean evaluate) {
-    final ADAPChromatogramBuilderParameters parameters = ADAPChromatogramBuilderParameters.create(
+    final ADAPChromatogramBuilderParameters parameters = ADAPChromatogramBuilderParameters.createLegacy(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), settings.scanSelection(),
         settings.minConsecutive(), settings.tolerance(), "adap", settings.minGroupIntensity(),
         settings.minHeight(), false);
@@ -524,13 +525,13 @@ class ChromatogramBuilderBenchmark {
   @NotNull
   static Run runFastTask(@NotNull RawDataFile file, @NotNull Settings settings, boolean keep,
       boolean evaluate) {
-    final ParameterSet parameters = FastChromatogramBuilderParameters.create(
+    final ParameterSet parameters = ADAPChromatogramBuilderParameters.createFast(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), settings.scanSelection(),
-        settings.minConsecutive(), settings.tolerance(), "fast", settings.minGroupIntensity(),
-        settings.minHeight(), false);
+        settings.minConsecutive(), MZToleranceOrAuto.custom(settings.tolerance()), "fast",
+        settings.minGroupIntensity(), settings.minHeight(), false);
     final FastChromatogramBuilderTask task = new FastChromatogramBuilderTask(
         ProjectService.getProject(), new RawDataFile[]{file}, parameters, null, Instant.now(),
-        FastChromatogramBuilderModule.class);
+        ModularADAPChromatogramBuilderModule.class);
     return runTask("fast", task, file, file.getName() + " fast", settings, keep, evaluate);
   }
 

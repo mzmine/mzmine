@@ -206,6 +206,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRe
 import io.github.mzmine.parameters.parametertypes.combowithinput.ComboWithStringInputValue;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FieldSeparator;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
@@ -399,7 +400,11 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
-  protected static void makeAndAddAdapChromatogramStep(final BatchQueue q,
+  /**
+   * decision: the wizard uses the fast chromatogram builder with the values of the wizard and its
+   * m/z tolerance as custom tolerance, not the auto parameters
+   */
+  protected static void makeAndAddChromatogramBuilderStep(final BatchQueue q,
       final Double minFeatureHeight, final MZTolerance mzTolScans,
       final WizardMassDetectorNoiseLevels massDetectorOption, final Integer minRtDataPoints,
       @Nullable final Range<Double> cropRtRange, WizardMsPolarity polarity) {
@@ -418,9 +423,10 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     var scanSelection = new ScanSelection(1, RangeUtils.toFloatRange(cropRtRange),
         polarity.toScanPolaritySelection());
 
-    var param = ADAPChromatogramBuilderParameters.create(
+    var param = ADAPChromatogramBuilderParameters.createFast(
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES), scanSelection,
-        minRtDataPoints, mzTolScans, "eics", noiseLevelMs1, minFeatureHeight, true);
+        minRtDataPoints, MZToleranceOrAuto.custom(mzTolScans), "eics", noiseLevelMs1,
+        minFeatureHeight, true);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));

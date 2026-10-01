@@ -33,10 +33,13 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderAlgorithms;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ChromatogramBuilderSettings;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MZToleranceOrAuto;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
@@ -55,7 +58,8 @@ import testutils.MZmineTestUtil;
 import testutils.TaskResult;
 
 /**
- * Runs the module on the small DOM test files like the ADAP builder in FeatureFindingTest.
+ * Runs the fast algorithms of the chromatogram builder module on the small DOM test files like the
+ * ADAP builder in FeatureFindingTest.
  */
 @TestInstance(Lifecycle.PER_CLASS)
 class FastChromatogramBuilderModuleTest {
@@ -81,11 +85,11 @@ class FastChromatogramBuilderModuleTest {
 
   @Test
   void buildsChromatogramListsLikeTheAdapBuilder() throws InterruptedException {
-    final ParameterSet parameters = FastChromatogramBuilderParameters.create(
+    final ParameterSet parameters = ADAPChromatogramBuilderParameters.createFast(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1), 4,
-        TOLERANCE, SUFFIX, 1E5, 3E5, false);
+        MZToleranceOrAuto.custom(TOLERANCE), SUFFIX, 1E5, 3E5, false);
     final TaskResult finished = MZmineTestUtil.callModuleWithTimeout(60,
-        FastChromatogramBuilderModule.class, parameters);
+        ModularADAPChromatogramBuilderModule.class, parameters);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     final MZmineProject project = ProjectService.getProject();
@@ -119,11 +123,11 @@ class FastChromatogramBuilderModuleTest {
   @Test
   void autoToleranceIsEstimatedOnceAndStoredWithTheFeatureLists() throws InterruptedException {
     final String suffix = "fastauto";
-    final ParameterSet parameters = FastChromatogramBuilderParameters.create(
+    final ParameterSet parameters = ADAPChromatogramBuilderParameters.createFast(
         new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1), 4,
         MZToleranceOrAuto.auto(TOLERANCE), suffix, 1E5, 3E5, false);
     final TaskResult finished = MZmineTestUtil.callModuleWithTimeout(60,
-        FastChromatogramBuilderModule.class, parameters);
+        ModularADAPChromatogramBuilderModule.class, parameters);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     final MZmineProject project = ProjectService.getProject();
@@ -132,12 +136,14 @@ class FastChromatogramBuilderModuleTest {
       final FeatureList flist = project.getFeatureList(raw.getName() + " " + suffix);
       Assertions.assertNotNull(flist, "No chromatograms for " + raw.getName());
       Assertions.assertTrue(flist.getNumberOfRows() > 500, "rows " + flist.getNumberOfRows());
-      final MZToleranceOrAuto stored = ParameterUtils.getValueFromAppliedMethods(
-          flist.getAppliedMethods(), FastChromatogramBuilderParameters.class,
-          FastChromatogramBuilderParameters.mzTolerance).orElseThrow();
+      final MZToleranceOrAuto stored = appliedFastParameters(flist).getValue(
+          FastChromatogramBuilderParameters.mzTolerance);
       Assertions.assertTrue(stored.isAuto());
       final MZTolerance tolerance = stored.tolerance();
       Assertions.assertNotNull(tolerance);
+      Assertions.assertEquals(tolerance,
+          ADAPChromatogramBuilderParameters.getAppliedSettings(flist.getAppliedMethods())
+              .orElseThrow().mzTolerance());
       // the files are Orbitrap data, one estimate for all files
       Assertions.assertTrue(tolerance.getPpmTolerance() > 1 && tolerance.getPpmTolerance() < 30,
           tolerance.toString());
@@ -148,6 +154,68 @@ class FastChromatogramBuilderModuleTest {
       used = tolerance;
     }
     Assertions.assertNotNull(used);
+  }
+
+  @Test
+  void fastAutoDeterminesAllParametersOnceAndStoresThemInFast() throws InterruptedException {
+    final String suffix = "fastautoparams";
+    final ParameterSet parameters = ADAPChromatogramBuilderParameters.createFastAuto(
+        new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES), new ScanSelection(1),
+        ChromatogramBuilderSensitivity.MEDIUM, suffix, false);
+    final TaskResult finished = MZmineTestUtil.callModuleWithTimeout(60,
+        ModularADAPChromatogramBuilderModule.class, parameters);
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
+
+    final MZmineProject project = ProjectService.getProject();
+    ChromatogramBuilderSettings used = null;
+    for (final RawDataFile raw : project.getCurrentRawDataFiles()) {
+      final FeatureList flist = project.getFeatureList(raw.getName() + " " + suffix);
+      Assertions.assertNotNull(flist, "No chromatograms for " + raw.getName());
+      Assertions.assertTrue(flist.getNumberOfRows() > 100, "rows " + flist.getNumberOfRows());
+      final ParameterSet applied = flist.getAppliedMethods().getLast().getParameters();
+      Assertions.assertEquals(ChromatogramBuilderAlgorithms.FAST_AUTO,
+          applied.getValue(ADAPChromatogramBuilderParameters.algorithm));
+
+      final ChromatogramBuilderSettings settings = ADAPChromatogramBuilderParameters.getAppliedSettings(
+          flist.getAppliedMethods()).orElseThrow();
+      // the import has no noise filter, the levels come from the data
+      Assertions.assertTrue(settings.minGroupIntensity() > 0, settings.toString());
+      Assertions.assertTrue(settings.minHeight() >= settings.minGroupIntensity(),
+          settings.toString());
+      Assertions.assertTrue(
+          settings.minConsecutiveScans() >= BuilderParameterEstimation.MIN_CONSECUTIVE,
+          settings.toString());
+      Assertions.assertTrue(settings.mzTolerance().getPpmTolerance() < 30, settings.toString());
+      // the hidden parameters of the applied method show the determined values
+      final ParameterSet auto = applied.getParameter(ADAPChromatogramBuilderParameters.algorithm)
+          .getEmbeddedParameters(ChromatogramBuilderAlgorithms.FAST_AUTO);
+      Assertions.assertEquals(settings.minHeight(),
+          auto.getValue(FastAutoChromatogramBuilderParameters.determinedMinHeight));
+      final Double noiseLevel = auto.getValue(
+          FastAutoChromatogramBuilderParameters.determinedNoiseLevel);
+      final Double signalLevel = auto.getValue(
+          FastAutoChromatogramBuilderParameters.determinedSignalLevel);
+      Assertions.assertNotNull(noiseLevel);
+      Assertions.assertTrue(signalLevel != null && signalLevel >= noiseLevel);
+      // the module parameters stay empty, a rerun determines the values again
+      Assertions.assertTrue(FastAutoChromatogramBuilderParameters.getDeterminedSettings(
+          parameters.getParameter(ADAPChromatogramBuilderParameters.algorithm)
+              .getEmbeddedParameters(ChromatogramBuilderAlgorithms.FAST_AUTO)).isEmpty());
+      if (used != null) {
+        Assertions.assertEquals(used, settings);
+      }
+      used = settings;
+    }
+    Assertions.assertNotNull(used);
+  }
+
+  /**
+   * @return the parameters of the fast algorithm of the latest chromatogram builder
+   */
+  private static ParameterSet appliedFastParameters(FeatureList flist) {
+    final ParameterSet applied = flist.getAppliedMethods().getLast().getParameters();
+    return applied.getParameter(ADAPChromatogramBuilderParameters.algorithm)
+        .getEmbeddedParameters(ChromatogramBuilderAlgorithms.FAST);
   }
 
   /**
