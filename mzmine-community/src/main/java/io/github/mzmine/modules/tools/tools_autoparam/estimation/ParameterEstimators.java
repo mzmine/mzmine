@@ -33,6 +33,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizar
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.InterSampleRtStatistics;
@@ -43,6 +44,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.IntegerS
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.MappedSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.RtSearchDomain;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.domain.SearchScale;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -192,6 +194,26 @@ public final class ParameterEstimators {
    * decision: the estimate always replaces the wizard preset (0.3 or 0.5 min start), the preset is
    * only kept without any file.
    */
+  /**
+   * The polarity fixed by the pre-classification. "No filter" keeps the preset, so it is not
+   * written to the wizard.
+   */
+  public static @NotNull ParameterEstimate<WizardMsPolarity> polarity(
+      @NotNull ParameterEstimationContext context) {
+    final WizardMsPolarity polarity = context.preclassification()
+        .getValue(PreclassificationParameters.polarity);
+    return switch (polarity) {
+      case Positive, Negative -> new ParameterEstimate<>(polarity, ValueOrigin.RAW_DATA,
+          new ChoiceSearchDomain<>(List.of(polarity)));
+      case No_filter -> {
+        final WizardMsPolarity preset = context.preset(WizardPart.MS,
+            MassSpectrometerWizardParameters.polarity);
+        yield new ParameterEstimate<>(preset, ValueOrigin.PRESET_DEFAULT,
+            new ChoiceSearchDomain<>(List.of(preset)));
+      }
+    };
+  }
+
   public static @NotNull ParameterEstimate<Range<Double>> cropRtRange(
       @NotNull ParameterEstimationContext context) {
     final List<DataFileStatistics> files = context.analysis().files();

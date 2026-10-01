@@ -23,32 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
- *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * Wizard settings decided by the {@link RawDataClassifier}s before parameter estimation and
+ * optimization. Each parameter is a clone of the respective wizard parameter, so its value is the
+ * wizard value applied later.
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public class PreclassificationParameters extends SimpleParameterSet {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
-  }
+  public static final ComboParameter<WizardMsPolarity> polarity = MassSpectrometerWizardParameters.polarity.cloneParameter();
 
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
+  public PreclassificationParameters() {
+    super(polarity);
   }
 }

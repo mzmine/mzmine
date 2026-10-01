@@ -23,32 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
+ * The user has to choose between multiple valid values.
  *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * @param preselected the value selected in the dialog by default, one of the options
+ * @param options     the valid values. Limits the choices if the parameter is a combo box
+ * @param message     explains why the user has to choose
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public record PreclassificationChoice<T>(@NotNull T preselected, @NotNull List<@NotNull T> options,
+                                         @NotNull String message) implements
+    PreclassificationDecision<T> {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
-  }
-
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
+  public PreclassificationChoice {
+    options = List.copyOf(options);
+    if (!options.contains(preselected)) {
+      throw new IllegalArgumentException("The preselected value must be one of the options");
+    }
   }
 }

@@ -25,10 +25,14 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -49,24 +53,30 @@ public final class WizardParameterEstimationTask extends AbstractTask {
   private final File @NotNull [] files;
   private final @Nullable File metadataFile;
   private final @NotNull WizardSequence sequence;
+  private final @NotNull ParameterSet preclassification;
   private final @NotNull Predicate<@NotNull PresetSelection> presetConfirmation;
   private final @NotNull Consumer<WizardParameterEstimationResult> onFinished;
   private volatile double progress;
 
   /**
+   * @param files              the files that were pre-classified, see
+   *                           {@link RawDataPreclassificationTask}
+   * @param preclassification  the settings fixed by the pre-classification, see
+   *                           {@link PreclassificationParameters}
    * @param presetConfirmation called on the JavaFX thread with the presets that fit the raw data,
    *                           returns true to estimate for them, see
    *                           {@link ParameterEstimationContext#withFittingPresets}
    */
   public WizardParameterEstimationTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, File @NotNull [] files, @Nullable File metadataFile,
-      @NotNull WizardSequence sequence,
+      @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> presetConfirmation,
       @NotNull Consumer<WizardParameterEstimationResult> onFinished) {
     super(storage, moduleCallDate, "Estimate wizard parameters");
     this.files = files.clone();
     this.metadataFile = metadataFile;
     this.sequence = sequence;
+    this.preclassification = preclassification;
     this.presetConfirmation = presetConfirmation;
     this.onFinished = onFinished;
   }
@@ -95,8 +105,10 @@ public final class WizardParameterEstimationTask extends AbstractTask {
         throw new IllegalStateException("None of the selected wizard files could be imported.");
       }
 
+      final PolarityType polarity = preclassification.getValue(PreclassificationParameters.polarity)
+          .toScanPolaritySelection();
       final List<DataFileStatistics> statistics = RawDataPreparation.computeFileStatistics(
-          importedFiles, null, getMemoryMapStorage());
+          importedFiles, null, getMemoryMapStorage(), polarity);
       progress = 0.8;
       if (isCanceled()) {
         return;
@@ -104,7 +116,7 @@ public final class WizardParameterEstimationTask extends AbstractTask {
 
       final RawDataAnalysis analysis = RawDataAnalysis.analyze(statistics);
       final ParameterEstimationContext context = ParameterEstimationContext.withFittingPresets(
-          analysis, sequence, this::confirmPresetsOnFxThread);
+          analysis, sequence, preclassification, this::confirmPresetsOnFxThread);
       if (isCanceled()) {
         return;
       }

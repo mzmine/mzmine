@@ -23,32 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
-
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
- *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * Result of all {@link RawDataClassifier}s, see {@link Preclassification#resolve}.
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public sealed interface PreclassificationResolution permits PreclassificationResolved,
+    PreclassificationConflicts {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
-  }
-
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
-  }
 }

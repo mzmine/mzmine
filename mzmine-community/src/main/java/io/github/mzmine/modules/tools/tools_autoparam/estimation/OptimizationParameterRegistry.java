@@ -35,6 +35,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplc
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
@@ -84,6 +85,15 @@ public final class OptimizationParameterRegistry {
       "Crop retention time", WizardPart.ION_INTERFACE, IonInterfaceHplcWizardParameters.cropRtRange,
       ParameterEstimators::cropRtRange);
 
+  /**
+   * decision: estimate only, like {@link #CROP_RT}. The polarity is fixed by the pre-classification
+   * before the statistics are computed, so the optimizer never offers it but every candidate and
+   * the wizard use it.
+   */
+  static final WizardParameterDefinition<WizardMsPolarity> POLARITY = new WizardParameterDefinition<>(
+      "Ion mode", WizardPart.MS, MassSpectrometerWizardParameters.polarity,
+      ParameterEstimators::polarity);
+
   static final WizardParameterDefinition<Double> MOBILITY_FWHM = new WizardParameterDefinition<>(
       "FWHM (mobility)", WizardPart.IMS, IonMobilityWizardParameters.approximateImsFWHM,
       ParameterEstimators::mobilityFwhm);
@@ -125,7 +135,7 @@ public final class OptimizationParameterRegistry {
   private static @NotNull List<ParameterDefinition<?>> forFactory(
       @NotNull WizardParameterFactory factory) {
     if (factory instanceof MassSpectrometerWizardParameterFactory) {
-      return List.of(MS1_NOISE, MZ_TOLERANCE, MINIMUM_FEATURE_HEIGHT);
+      return List.of(MS1_NOISE, MZ_TOLERANCE, MINIMUM_FEATURE_HEIGHT, POLARITY);
     }
     if (factory instanceof IonMobilityWizardParameterFactory mobility) {
       return switch (mobility) {

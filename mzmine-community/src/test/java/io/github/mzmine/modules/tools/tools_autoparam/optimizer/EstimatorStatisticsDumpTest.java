@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
@@ -147,7 +148,7 @@ public class EstimatorStatisticsDumpTest {
     final List<RawDataFile> files = RawDataPreparation.importFilesBlocking(dataset.rawFiles(),
         dataset.metadataFile());
     final List<DataFileStatistics> stats = RawDataPreparation.computeFileStatistics(files, null,
-        null);
+        null, PolarityType.ANY);
 
     final RawDataAnalysis analysis = RawDataAnalysis.analyze(stats);
     final WizardSequence sequence = new WizardSequence();

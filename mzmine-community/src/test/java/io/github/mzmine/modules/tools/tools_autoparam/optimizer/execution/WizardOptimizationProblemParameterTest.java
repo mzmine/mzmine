@@ -30,6 +30,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
+import io.github.mzmine.modules.tools.tools_autoparam.estimation.OptimizationParameterRegistry;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterDefinition;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationContext;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.ParameterEstimationTestData;
@@ -43,6 +45,7 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.metrics.SweepMet
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.OptimizerOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartInitialization;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
@@ -63,13 +66,61 @@ class WizardOptimizationProblemParameterTest {
   }
 
   private static @NotNull ParameterEstimationContext context() {
+    return ParameterEstimationTestData.context(fullSequence());
+  }
+
+  private static @NotNull WizardSequence fullSequence() {
     final WizardSequence sequence = ParameterEstimationTestData.sequence();
     for (final WizardPart part : WizardPart.values()) {
       if (sequence.get(part).isEmpty()) {
         sequence.set(part, part.getDefaultPresets()[0].create());
       }
     }
-    return ParameterEstimationTestData.context(sequence);
+    return sequence;
+  }
+
+  private static @NotNull WizardMsPolarity msPolarity(@NotNull WizardSequence sequence) {
+    return sequence.get(WizardPart.MS).orElseThrow()
+        .getValue(MassSpectrometerWizardParameters.polarity);
+  }
+
+  @Test
+  void polarityIsAFixedEstimateThatTheOptimizerNeverOffers() {
+    final String ionMode = MassSpectrometerWizardParameters.polarity.getName();
+    Assertions.assertTrue(OptimizationParameterRegistry.forSequence(fullSequence()).stream()
+        .anyMatch(definition -> definition.name().equals(ionMode)));
+    Assertions.assertTrue(OptimizationParameterRegistry.allSolutions().stream()
+        .noneMatch(definition -> definition.name().equals(ionMode)));
+
+    final ParameterSet positive = new PreclassificationParameters().cloneParameterSet();
+    positive.setParameter(PreclassificationParameters.polarity, WizardMsPolarity.Positive);
+    final ParameterEstimationContext context = ParameterEstimationTestData.context(fullSequence(),
+        positive);
+    final WizardOptimizationProblem problem = problem(context,
+        PreparedParameterSet.prepare(context),
+        List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT));
+    final Solution solution = problem.newSolution();
+
+    // every candidate batch filters the pre-classified polarity
+    Assertions.assertEquals(WizardMsPolarity.Positive,
+        msPolarity(problem.createWizardSequenceFromSolution(solution)));
+    final WizardSequence wizard = fullSequence();
+    problem.applySolutionToWizard(solution, wizard);
+    Assertions.assertEquals(WizardMsPolarity.Positive, msPolarity(wizard));
+  }
+
+  @Test
+  void noPolarityFilterKeepsTheWizardIonMode() {
+    final ParameterEstimationContext context = context();
+    final WizardOptimizationProblem problem = problem(context,
+        PreparedParameterSet.prepare(context),
+        List.of(ParameterEstimationTestData.MINIMUM_FEATURE_HEIGHT));
+    final WizardSequence wizard = fullSequence();
+    wizard.get(WizardPart.MS).orElseThrow()
+        .setParameter(MassSpectrometerWizardParameters.polarity, WizardMsPolarity.Negative);
+
+    problem.applySolutionToWizard(problem.newSolution(), wizard);
+    Assertions.assertEquals(WizardMsPolarity.Negative, msPolarity(wizard));
   }
 
   private static @NotNull WizardOptimizationProblem problem(

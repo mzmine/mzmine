@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
@@ -239,7 +240,9 @@ public class AutoParamTask extends AbstractRawDataFileTask {
 
   @Override
   protected void process() {
-    final ScanSelection scanSelection = new ScanSelection(1);
+    // polarity switching data alternate polarities scan by scan, which breaks every trace
+    final PolarityType polarity = getParameters().getValue(AutoParamParameters.POLARITY);
+    final ScanSelection scanSelection = new ScanSelection(1, polarity);
     final List<Scan> scans = scanSelection.getMatchingScans(file.getScans());
     applyZeroIntensityMassDetection(scans);
     // needs only the MS1 mass lists, cheap compared to the isotope trace extraction below

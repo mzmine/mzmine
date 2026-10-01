@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
 import io.github.mzmine.main.MZmineCore;
@@ -69,13 +70,15 @@ public final class RawDataPreparation {
    * that only wants to inspect or re-derive estimates can stop here.
    *
    * @param benchmarkFeatures additional target features, or null
+   * @param polarity          only MS1 scans of this polarity are used, {@link PolarityType#ANY} for
+   *                          all
    */
   public static @NotNull List<DataFileStatistics> computeFileStatistics(
       @NotNull List<RawDataFile> importedFiles, @Nullable List<FeatureRecord> benchmarkFeatures,
-      @Nullable MemoryMapStorage storage) {
-    return importedFiles.stream().map(
-            file -> new AutoParamTask(storage, Instant.now(), AutoParamParameters.of(importedFiles),
-                AutoParamModule.class, file, benchmarkFeatures, false)).parallel()
+      @Nullable MemoryMapStorage storage, @NotNull PolarityType polarity) {
+    return importedFiles.stream().map(file -> new AutoParamTask(storage, Instant.now(),
+            AutoParamParameters.of(importedFiles, polarity), AutoParamModule.class, file,
+            benchmarkFeatures, false)).parallel()
         .map(AutoParamTask::runAndGet).toList();
   }
 

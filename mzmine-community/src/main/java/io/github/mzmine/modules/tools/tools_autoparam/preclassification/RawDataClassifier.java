@@ -23,32 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.parameters.UserParameter;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
+ * Classifies the imported raw data before parameter estimation and optimization and decides a
+ * wizard setting that has to be fixed for the whole run, e.g., the polarity.
  *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * @param <T> value type of the decided wizard setting
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public interface RawDataClassifier<T> {
 
   /**
-   * Some presets have no name, e.g., no ion mobility.
+   * @return the parameter in {@link PreclassificationParameters} that holds the decision. A clone
+   * of the respective wizard parameter.
    */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
-  }
+  @NotNull UserParameter<T, ?> parameter();
 
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
-  }
+  /**
+   * @param files  the imported raw data files that are used for estimation and optimization
+   * @param wizard the current wizard sequence with the user's settings
+   * @return the decision for {@link #parameter()}
+   */
+  @NotNull PreclassificationDecision<T> decide(@NotNull List<@NotNull RawDataFile> files,
+      @NotNull WizardSequence wizard);
 }

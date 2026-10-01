@@ -23,32 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
+ * All classifiers decided without conflict.
  *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * @param parameters       the decided settings, see {@link PreclassificationParameters}
+ * @param choiceParameters the parameters of {@link #parameters()} the user still has to choose. The
+ *                         same instances, so a dialog on them changes {@link #parameters()}
+ * @param choiceMessages   explain why the user has to choose
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public record PreclassificationResolved(@NotNull ParameterSet parameters,
+                                        @NotNull List<@NotNull Parameter<?>> choiceParameters,
+                                        @NotNull List<@NotNull String> choiceMessages) implements
+    PreclassificationResolution {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
+  public PreclassificationResolved {
+    choiceParameters = List.copyOf(choiceParameters);
+    choiceMessages = List.copyOf(choiceMessages);
   }
 
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
+  public boolean needsUserChoice() {
+    return !choiceParameters.isEmpty();
   }
 }

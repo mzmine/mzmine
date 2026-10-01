@@ -23,32 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.modules.tools.tools_autoparam.preclassification;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
+ * At least one classifier found a conflict, the estimation or optimization has to be aborted.
  *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
+ * @param messages the conflicts of all classifiers
  */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+public record PreclassificationConflicts(@NotNull List<@NotNull String> messages) implements
+    PreclassificationResolution {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
+  public PreclassificationConflicts {
+    messages = List.copyOf(messages);
   }
 
   public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
+    return String.join("\n\n", messages);
   }
 }

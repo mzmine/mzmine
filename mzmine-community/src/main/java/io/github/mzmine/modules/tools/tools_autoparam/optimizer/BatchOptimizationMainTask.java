@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.optimizer;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -60,6 +61,11 @@ import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.PatternSe
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.SolutionOrigin;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartInitialization;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.search.WarmStartSampling;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationConflicts;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolved;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -134,6 +140,11 @@ public class BatchOptimizationMainTask extends AbstractTask {
    */
   private @Nullable OptimizationOutcome outcome;
   private final long randomSeed;
+  /**
+   * Settings fixed by the pre-classification, see {@link PreclassificationParameters}. Null for
+   * headless runs, which pre-classify the imported files themselves.
+   */
+  private final @Nullable ParameterSet preclassification;
   private final AtomicReference<TaskStatus> externalStatus = new AtomicReference<>(
       TaskStatus.PROCESSING);
   private final AtomicBoolean stopSearchRequested = new AtomicBoolean();
@@ -147,10 +158,18 @@ public class BatchOptimizationMainTask extends AbstractTask {
   @Nullable
   private WizardOptimizationProblem problem;
 
+  /**
+   * @param files             the files that were pre-classified, see
+   *                          {@link RawDataPreclassificationTask}
+   * @param preclassification the settings fixed by the pre-classification, see
+   *                          {@link PreclassificationParameters}
+   */
   public BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
-      @NotNull BatchWizardTab tab, @NotNull OptimizerParameters params) {
-    this(storage, moduleCallDate, files, metadata, tab.getSequence(), tab, params);
+      @NotNull BatchWizardTab tab, @NotNull OptimizerParameters params,
+      @NotNull ParameterSet preclassification) {
+    this(storage, moduleCallDate, files, metadata, tab.getSequence(), tab, params,
+        preclassification, DEFAULT_RANDOM_SEED);
   }
 
   /**
@@ -166,31 +185,30 @@ public class BatchOptimizationMainTask extends AbstractTask {
   /**
    * Runs headlessly with an explicit random seed, so a caller can measure how much of a result
    * comes from the data and how much from the draw. Use {@link #DEFAULT_RANDOM_SEED} to reproduce
-   * what a user would get.
+   * what a user would get. The pre-classification runs on the imported files and fails the task
+   * if it needs a user choice.
    */
   public BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull WizardSequence sequence, @NotNull OptimizerParameters params, long randomSeed) {
-    this(storage, moduleCallDate, files, metadata, sequence, null, params, randomSeed);
+    this(storage, moduleCallDate, files, metadata, sequence, null, params, null, randomSeed);
   }
 
+  /**
+   * @param preclassification null to pre-classify the imported files without user interaction
+   */
   private BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
       @NotNull WizardSequence sequence, @Nullable BatchWizardTab tab,
-      @NotNull OptimizerParameters params) {
-    this(storage, moduleCallDate, files, metadata, sequence, tab, params, DEFAULT_RANDOM_SEED);
-  }
-
-  private BatchOptimizationMainTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, @NotNull File[] files, @Nullable File metadata,
-      @NotNull WizardSequence sequence, @Nullable BatchWizardTab tab,
-      @NotNull OptimizerParameters params, long randomSeed) {
+      @NotNull OptimizerParameters params, @Nullable ParameterSet preclassification,
+      long randomSeed) {
     super(storage, moduleCallDate);
     this.files = files;
     this.metadata = metadata;
     this.sequence = sequence;
     this.tab = tab;
     this.params = params;
+    this.preclassification = preclassification;
     this.randomSeed = randomSeed;
 
     addTaskStatusListener((_, newStatus, _) -> {
@@ -235,6 +253,31 @@ public class BatchOptimizationMainTask extends AbstractTask {
   }
 
   /**
+   * Pre-classifies the imported files for headless runs.
+   * <p>
+   * decision: a run without a wizard tab cannot ask the user, so a needed choice fails the task
+   * instead of silently picking a value
+   *
+   * @return the decided settings, or null if the task was set to error
+   */
+  private @Nullable ParameterSet preclassifyWithoutUser(@NotNull List<RawDataFile> importedFiles) {
+    return switch (Preclassification.resolve(importedFiles, sequence)) {
+      case PreclassificationConflicts conflicts -> {
+        error(conflicts.describe());
+        yield null;
+      }
+      case PreclassificationResolved resolved -> {
+        if (resolved.needsUserChoice()) {
+          error("The raw data require a user choice before the optimization:\n" + String.join("\n",
+              resolved.choiceMessages()));
+          yield null;
+        }
+        yield resolved.parameters();
+      }
+    };
+  }
+
+  /**
    * Asks for the preset switch on the JavaFX thread and waits on the task thread for the answer.
    */
   private static boolean confirmPresetsOnFxThread(@NotNull BatchWizardTab wizardTab,
@@ -258,14 +301,21 @@ public class BatchOptimizationMainTask extends AbstractTask {
     addTaskStatusListener((_, _, _) -> initialMemoryOption.enforceToMemoryMapping());
 
     final List<RawDataFile> importedFiles = RawDataPreparation.importFilesBlocking(files, metadata);
+    final ParameterSet runPreclassification =
+        preclassification != null ? preclassification : preclassifyWithoutUser(importedFiles);
+    if (runPreclassification == null) {
+      return;
+    }
     final List<FeatureRecord> benchmarkFeatures =
         params.getValue(OptimizerParameters.benchmarkFeaturesFile)
             ? BenchmarkFeatureLoader.fromFile(null,
             params.getEmbeddedParameterValue(OptimizerParameters.benchmarkFeaturesFile),
             params.getValue(OptimizerParameters.benchmarkFeatureTypes)) : List.of();
 
+    final PolarityType polarity = runPreclassification.getValue(
+        PreclassificationParameters.polarity).toScanPolaritySelection();
     final List<DataFileStatistics> stats = RawDataPreparation.computeFileStatistics(importedFiles,
-        benchmarkFeatures, getMemoryMapStorage());
+        benchmarkFeatures, getMemoryMapStorage(), polarity);
     stats.forEach(stat -> logger.info(stat.getMzToleranceForIsotopes().toString()));
 
     // set a specific seed to make the results deterministic, see DEFAULT_RANDOM_SEED
@@ -280,7 +330,7 @@ public class BatchOptimizationMainTask extends AbstractTask {
         tab != null ? presetSelection -> confirmPresetsOnFxThread(tab, presetSelection)
             : _ -> false;
     final ParameterEstimationContext estimationContext = ParameterEstimationContext.withFittingPresets(
-        analysis, sequence, presetConfirmation);
+        analysis, sequence, runPreclassification, presetConfirmation);
     if (getStatus() != TaskStatus.PROCESSING) {
       return;
     }

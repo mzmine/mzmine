@@ -25,13 +25,17 @@
 
 package io.github.mzmine.modules.tools.tools_autoparam.estimation;
 
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +62,15 @@ class PresetSelectionTest {
 
   private static @NotNull WizardSequence sequence(@NotNull IonInterfaceWizardParameterFactory lc,
       @NotNull MassSpectrometerWizardParameterFactory ms) {
+    return sequence(lc, IonMobilityWizardParameterFactory.NO_IMS, ms);
+  }
+
+  private static @NotNull WizardSequence sequence(@NotNull IonInterfaceWizardParameterFactory lc,
+      @NotNull IonMobilityWizardParameterFactory ims,
+      @NotNull MassSpectrometerWizardParameterFactory ms) {
     final WizardSequence sequence = new WizardSequence();
     sequence.set(WizardPart.ION_INTERFACE, lc.create());
-    sequence.set(WizardPart.IMS, IonMobilityWizardParameterFactory.NO_IMS.create());
+    sequence.set(WizardPart.IMS, ims.create());
     sequence.set(WizardPart.MS, ms.create());
     return sequence;
   }
@@ -141,7 +151,8 @@ class PresetSelectionTest {
     final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
         MassSpectrometerWizardParameterFactory.QTOF);
     final ParameterEstimationContext context = ParameterEstimationContext.withFittingPresets(
-        analysis(0.04, 0.05, 0.06), sequence, _ -> false);
+        analysis(0.04, 0.05, 0.06), sequence, new PreclassificationParameters().cloneParameterSet(),
+        _ -> false);
     Assertions.assertTrue(context.presetSelection().isEmpty());
     Assertions.assertEquals(IonInterfaceWizardParameterFactory.HPLC,
         context.sequence().get(WizardPart.ION_INTERFACE).map(WizardStepParameters::getFactory)
@@ -153,12 +164,79 @@ class PresetSelectionTest {
     final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
         MassSpectrometerWizardParameterFactory.QTOF);
     final ParameterEstimationContext context = ParameterEstimationContext.withFittingPresets(
-        analysis(0.04, 0.05, 0.06), sequence, _ -> true);
+        analysis(0.04, 0.05, 0.06), sequence, new PreclassificationParameters().cloneParameterSet(),
+        _ -> true);
     Assertions.assertFalse(context.presetSelection().isEmpty());
     Assertions.assertEquals(IonInterfaceWizardParameterFactory.UHPLC,
         context.sequence().get(WizardPart.ION_INTERFACE).map(WizardStepParameters::getFactory)
             .orElseThrow());
     Assertions.assertEquals(IonInterfaceWizardParameterFactory.HPLC,
         sequence.get(WizardPart.ION_INTERFACE).map(WizardStepParameters::getFactory).orElseThrow());
+  }
+
+  @Test
+  void imsFilesSwitchToTheirIonMobilityPreset() {
+    final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
+        MassSpectrometerWizardParameterFactory.QTOF);
+    final PresetChange change = PresetSelection.selectIonMobility(
+        List.of(MobilityType.TIMS, MobilityType.TIMS), sequence,
+        IonInterfaceWizardParameterFactory.HPLC);
+    Assertions.assertNotNull(change);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.TIMS, change.to());
+    Assertions.assertTrue(change.describe().contains("none"), change::describe);
+
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.TWIMS,
+        PresetSelection.selectIonMobility(List.of(MobilityType.TRAVELING_WAVE), sequence,
+            IonInterfaceWizardParameterFactory.HPLC).to());
+  }
+
+  @Test
+  void mixedOrUnsupportedMobilityKeepsTheIonMobilityPreset() {
+    final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
+        MassSpectrometerWizardParameterFactory.QTOF);
+    // a file without ion mobility
+    Assertions.assertNull(
+        PresetSelection.selectIonMobility(Arrays.asList(MobilityType.TIMS, null), sequence,
+            IonInterfaceWizardParameterFactory.HPLC));
+    Assertions.assertNull(
+        PresetSelection.selectIonMobility(List.of(MobilityType.TIMS, MobilityType.DRIFT_TUBE),
+            sequence, IonInterfaceWizardParameterFactory.HPLC));
+    Assertions.assertNull(PresetSelection.selectIonMobility(List.of(MobilityType.FAIMS), sequence,
+        IonInterfaceWizardParameterFactory.HPLC));
+    // GC-EI only supports no ion mobility
+    Assertions.assertNull(PresetSelection.selectIonMobility(List.of(MobilityType.TIMS), sequence,
+        IonInterfaceWizardParameterFactory.GC_EI));
+    // already selected
+    Assertions.assertNull(PresetSelection.selectIonMobility(List.of(MobilityType.TIMS),
+        sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TIMS,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC));
+  }
+
+  @Test
+  void ionMobilityRequiresAnAllowedMassSpectrometer() {
+    final PresetChange change = PresetSelection.selectMassSpectrometer(analysis(),
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.LOW_RES),
+        IonMobilityWizardParameterFactory.TWIMS);
+    Assertions.assertNotNull(change);
+    Assertions.assertEquals(MassSpectrometerWizardParameterFactory.QTOF, change.to());
+  }
+
+  @Test
+  void ionMobilitySwitchAppliesItsMassSpectrometerDefaults() {
+    final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
+        MassSpectrometerWizardParameterFactory.QTOF);
+    new PresetSelection(List.of(
+        new PresetChange(WizardPart.IMS, IonMobilityWizardParameterFactory.NO_IMS,
+            IonMobilityWizardParameterFactory.TIMS, "test"))).applyDefaultPresets(sequence);
+
+    final MassSpectrometerWizardParameters expected = MassSpectrometerWizardParameterFactory.createForIms(
+        IonMobilityWizardParameterFactory.TIMS);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.TIMS,
+        sequence.get(WizardPart.IMS).map(WizardStepParameters::getFactory).orElseThrow());
+    Assertions.assertEquals(
+        expected.getValue(MassSpectrometerWizardParameters.minimumFeatureHeight),
+        sequence.get(WizardPart.MS).orElseThrow()
+            .getValue(MassSpectrometerWizardParameters.minimumFeatureHeight));
   }
 }

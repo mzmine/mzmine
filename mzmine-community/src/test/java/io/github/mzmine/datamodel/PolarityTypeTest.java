@@ -23,32 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.tools_autoparam.estimation;
+package io.github.mzmine.datamodel;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
-import org.jetbrains.annotations.NotNull;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-/**
- * A wizard preset that is replaced because the raw data fit another preset better.
- *
- * @param part   the wizard part of the preset
- * @param from   the preset selected before
- * @param to     the preset that fits the raw data
- * @param reason the measurement that caused the change
- */
-public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
-                           @NotNull WizardParameterFactory to, @NotNull String reason) {
+class PolarityTypeTest {
 
-  /**
-   * Some presets have no name, e.g., no ion mobility.
-   */
-  private static @NotNull String presetName(@NotNull WizardParameterFactory preset) {
-    final String name = preset.toString();
-    return name.isBlank() ? "none" : name;
+  @Test
+  void fromPolaritiesReducesToASinglePolarity() {
+    Assertions.assertEquals(PolarityType.UNKNOWN, PolarityType.fromPolarities(List.of()));
+    Assertions.assertEquals(PolarityType.POSITIVE,
+        PolarityType.fromPolarities(List.of(PolarityType.POSITIVE)));
+    Assertions.assertEquals(PolarityType.NEGATIVE,
+        PolarityType.fromPolarities(List.of(PolarityType.NEGATIVE, PolarityType.UNKNOWN)));
+    Assertions.assertEquals(PolarityType.ANY,
+        PolarityType.fromPolarities(List.of(PolarityType.NEGATIVE, PolarityType.POSITIVE)));
   }
 
-  public @NotNull String describe() {
-    return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
+  @Test
+  void fromPolaritiesIgnoresUndefinedPolarities() {
+    Assertions.assertEquals(PolarityType.UNKNOWN, PolarityType.fromPolarities(
+        List.of(PolarityType.UNKNOWN, PolarityType.NEUTRAL, PolarityType.ANY)));
   }
 }

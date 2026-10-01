@@ -31,6 +31,8 @@ import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -63,11 +65,22 @@ import io.github.mzmine.modules.tools.tools_autoparam.estimation.WizardParameter
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.BatchOptimizationMainTask;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerModule;
 import io.github.mzmine.modules.tools.tools_autoparam.optimizer.OptimizerParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.Preclassification;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationConflicts;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolution;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationResolved;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.RawDataPreclassificationTask;
 import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMetadataExtractionParameters;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
@@ -89,7 +102,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -147,7 +162,11 @@ public class BatchWizardTab extends SimpleTab {
   private final Map<WizardPart, ComboBox<WizardStepParameters>> combos = new HashMap<>();
   private final LastFilesButton localPresetsButton;
   private final SimpleBooleanProperty advancedMode = new SimpleBooleanProperty(false);
-  private final SimpleBooleanProperty parameterEstimationRunning = new SimpleBooleanProperty(false);
+  /**
+   * Number of running pre-classification and estimation tasks, see
+   * {@link #startAutoParamTask(AbstractTask, String)}.
+   */
+  private final SimpleIntegerProperty runningAutoParamTasks = new SimpleIntegerProperty(0);
   private final int helpButtonSize = 50;
   /**
    * Parameters changed by estimation or optimization. Highlighted until overridden again or a batch
@@ -516,12 +535,14 @@ public class BatchWizardTab extends SimpleTab {
         "Derive wizard parameters from the same representative files used for optimization.\n"
             + "Right click to also show the data file statistics.",
         () -> estimateParametersFromFiles(false));
-    estimate.disableProperty().bind(parameterEstimationRunning);
+    final BooleanBinding autoParamTaskRunning = runningAutoParamTasks.greaterThan(0);
+    estimate.disableProperty().bind(autoParamTaskRunning);
     estimate.setContextMenu(new ContextMenu(
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
             () -> estimateParametersFromFiles(true))));
     final Button optimize = FxButtons.createButton("Optimize parameters",
         Source.OPTIMIZATION.icon(), null, this::runOptimizer);
+    optimize.disableProperty().bind(autoParamTaskRunning);
 
     final HBox batchButtons = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, createBatch, save, load,
         localPresetsButton);
@@ -565,10 +586,14 @@ public class BatchWizardTab extends SimpleTab {
   }
 
   private void runOptimizer() {
+    if (runningAutoParamTasks.get() > 0) {
+      return;
+    }
     updateAllParametersFromUi();
     final WizardStepParameters importParam = sequenceSteps.get(DATA_IMPORT).get();
     final @NotNull File[] allFiles = importParam.getParameter(DataImportWizardParameters.fileNames)
         .getValue();
+    // selected once, the random selection must not change between pre-classification and run
     final File[] optimizerFiles = RawDataPreparation.selectOptimizerInputFiles(allFiles);
 
     if (optimizerFiles.length < 3) {
@@ -581,6 +606,20 @@ public class BatchWizardTab extends SimpleTab {
     final var metadataFile = importParam.getOptionalValue(DataImportWizardParameters.metadataFile)
         .orElse(null);
 
+    preclassify(optimizerFiles, metadataFile, "Cannot optimize parameters",
+        preclassification -> startOptimizer(optimizerFiles, metadataFile, preclassification));
+  }
+
+  /**
+   * Shows the optimizer setup dialog after the pre-classification and starts the optimization.
+   *
+   * @param preclassification the settings fixed by the pre-classification, see
+   *                          {@link PreclassificationParameters}
+   */
+  private void startOptimizer(final File @NotNull [] optimizerFiles,
+      @Nullable final File metadataFile, @NotNull final ParameterSet preclassification) {
+    // keep edits made while the pre-classification was running
+    updateAllParametersFromUi();
     final OptimizerParameters optimizerParam = (OptimizerParameters) ConfigService.getConfiguration()
         .getModuleParameters(OptimizerModule.class);
     // inject wizard sequence so the parameter checklist shows only relevant solutions
@@ -591,15 +630,88 @@ public class BatchWizardTab extends SimpleTab {
 
     final BatchOptimizationMainTask optimizer = new BatchOptimizationMainTask(
         MemoryMapStorage.forRawDataFile(), Instant.now(), optimizerFiles, metadataFile, this,
-        optimizerParam);
+        optimizerParam, preclassification);
     TaskService.getController().addTask(optimizer);
+  }
+
+  /**
+   * Imports and pre-classifies the files in a background task, see {@link Preclassification}.
+   * Conflicts are shown as an error and stop the run, choices are asked in a dialog. Then continues
+   * on the JavaFX thread with the decided settings.
+   *
+   * @param errorTitle   title of error dialogs
+   * @param continuation receives the settings fixed by the pre-classification, see
+   *                     {@link PreclassificationParameters}
+   */
+  private void preclassify(final File @NotNull [] files, @Nullable final File metadataFile,
+      @NotNull final String errorTitle,
+      @NotNull final Consumer<@NotNull ParameterSet> continuation) {
+    // a copy, so the task never reads the live wizard off the JavaFX thread
+    final RawDataPreclassificationTask task = new RawDataPreclassificationTask(
+        MemoryMapStorage.forRawDataFile(), Instant.now(), files, metadataFile, sequenceSteps.copy(),
+        resolution -> {
+          final ParameterSet preclassification = resolvePreclassification(resolution, errorTitle);
+          if (preclassification != null) {
+            continuation.accept(preclassification);
+          }
+        });
+    startAutoParamTask(task, errorTitle);
+  }
+
+  /**
+   * @return the decided settings, or null if there was a conflict or the user cancelled
+   */
+  private @Nullable ParameterSet resolvePreclassification(
+      @NotNull final PreclassificationResolution resolution, @NotNull final String errorTitle) {
+    return switch (resolution) {
+      case PreclassificationConflicts conflicts -> {
+        DialogLoggerUtil.showErrorDialog(errorTitle, conflicts.describe());
+        yield null;
+      }
+      case PreclassificationResolved resolved -> {
+        if (!resolved.needsUserChoice()) {
+          yield resolved.parameters();
+        }
+        // decision: the dialog only shows the parameters that need a choice. They are the same
+        // instances as in the decided settings, so the dialog changes those
+        final ParameterSet choices = new SimpleParameterSet(
+            resolved.choiceParameters().toArray(new Parameter<?>[0]));
+        final ParameterSetupDialog dialog = new ParameterSetupDialog(true, choices,
+            FxTextFlows.newTextFlow(FxTexts.text(String.join("\n\n", resolved.choiceMessages()))));
+        dialog.showAndWait();
+        yield dialog.getExitCode() == ExitCode.OK ? resolved.parameters() : null;
+      }
+    };
+  }
+
+  /**
+   * Starts a pre-classification or estimation task. The estimate and optimize buttons are disabled
+   * while any of them runs, errors are shown in a dialog.
+   */
+  private void startAutoParamTask(@NotNull final AbstractTask task,
+      @NotNull final String errorTitle) {
+    // decision: a counter instead of a flag. A task hands its result to the JavaFX thread before
+    // it finishes, so the next task may already run when the previous one reports its end
+    runningAutoParamTasks.set(runningAutoParamTasks.get() + 1);
+    task.addTaskStatusListener((_, newStatus, _) -> {
+      if (!newStatus.isUnmodifiable()) {
+        return;
+      }
+      Platform.runLater(() -> {
+        runningAutoParamTasks.set(runningAutoParamTasks.get() - 1);
+        if (newStatus == TaskStatus.ERROR) {
+          DialogLoggerUtil.showErrorDialog(errorTitle, task.getErrorMessage());
+        }
+      });
+    });
+    TaskService.getController().addTask(task);
   }
 
   /**
    * @param showStatistics opens the data file statistics dashboard after applying the estimates
    */
   private void estimateParametersFromFiles(final boolean showStatistics) {
-    if (parameterEstimationRunning.get()) {
+    if (runningAutoParamTasks.get() > 0) {
       return;
     }
     updateAllParametersFromUi();
@@ -616,28 +728,31 @@ public class BatchWizardTab extends SimpleTab {
           "Select at least one raw data file in the Data Import step first.");
       return;
     }
+    // selected once, the random selection must not change between pre-classification and run
     final File[] estimateFiles = RawDataPreparation.selectOptimizerInputFiles(allFiles);
 
     final File metadataFile = importParameters.getOptionalValue(
         DataImportWizardParameters.metadataFile).orElse(null);
+    preclassify(estimateFiles, metadataFile, "Cannot estimate parameters",
+        preclassification -> startParameterEstimation(estimateFiles, metadataFile,
+            preclassification, showStatistics));
+  }
+
+  /**
+   * @param preclassification the settings fixed by the pre-classification, see
+   *                          {@link PreclassificationParameters}
+   */
+  private void startParameterEstimation(final File @NotNull [] estimateFiles,
+      @Nullable final File metadataFile, @NotNull final ParameterSet preclassification,
+      final boolean showStatistics) {
+    // keep edits made while the pre-classification was running
+    updateAllParametersFromUi();
     final WizardSequence sequenceSnapshot = sequenceSteps.copy();
     final WizardParameterEstimationTask task = new WizardParameterEstimationTask(
         MemoryMapStorage.forRawDataFile(), Instant.now(), estimateFiles, metadataFile,
-        sequenceSnapshot, this::confirmAndSwitchPresets,
+        sequenceSnapshot, preclassification, this::confirmAndSwitchPresets,
         result -> applyParameterEstimationResult(result, showStatistics));
-    parameterEstimationRunning.set(true);
-    task.addTaskStatusListener((_, newStatus, _) -> {
-      if (!newStatus.isUnmodifiable()) {
-        return;
-      }
-      Platform.runLater(() -> {
-        parameterEstimationRunning.set(false);
-        if (newStatus == TaskStatus.ERROR) {
-          DialogLoggerUtil.showErrorDialog("Cannot estimate parameters", task.getErrorMessage());
-        }
-      });
-    });
-    TaskService.getController().addTask(task);
+    startAutoParamTask(task, "Cannot estimate parameters");
   }
 
   private void applyParameterEstimationResult(@NotNull WizardParameterEstimationResult result,

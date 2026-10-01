@@ -33,6 +33,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.RawDataParameterEstimation;
+import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Objects;
@@ -49,22 +51,41 @@ public final class ParameterEstimationContext {
   private final @NotNull WizardSequence sequence;
   private final @Nullable MZTolerance sampleToSampleMzTolerance;
   private final @NotNull PresetSelection presetSelection;
+  /**
+   * Wizard settings fixed for the whole run before the statistics were computed, see
+   * {@link PreclassificationParameters}.
+   */
+  private final @NotNull ParameterSet preclassification;
 
   private ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence, @Nullable MZTolerance sampleToSampleMzTolerance,
-      @NotNull PresetSelection presetSelection) {
+      @NotNull PresetSelection presetSelection, @NotNull ParameterSet preclassification) {
     this.analysis = analysis;
     this.sequence = sequence;
     this.sampleToSampleMzTolerance = sampleToSampleMzTolerance;
     this.presetSelection = presetSelection;
+    this.preclassification = preclassification;
+  }
+
+  /**
+   * Estimates for the presets selected in the sequence without pre-classified settings, i.e., no
+   * polarity filter.
+   */
+  public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
+      @NotNull WizardSequence sequence) {
+    this(analysis, sequence, new PreclassificationParameters().cloneParameterSet());
   }
 
   /**
    * Estimates for the presets selected in the sequence.
+   *
+   * @param preclassification the settings the statistics were computed with, see
+   *                          {@link PreclassificationParameters}
    */
   public ParameterEstimationContext(@NotNull RawDataAnalysis analysis,
-      @NotNull WizardSequence sequence) {
-    this(analysis, sequence, estimateSampleToSampleMzTolerance(analysis), PresetSelection.NONE);
+      @NotNull WizardSequence sequence, @NotNull ParameterSet preclassification) {
+    this(analysis, sequence, estimateSampleToSampleMzTolerance(analysis), PresetSelection.NONE,
+        preclassification);
   }
 
   /**
@@ -72,21 +93,33 @@ public final class ParameterEstimationContext {
    * {@link PresetSelection}, and estimates for them if confirmed. The context sequence is then a
    * copy with the default parameters of the new presets.
    *
-   * @param sequence     the wizard sequence, is not modified
-   * @param confirmation called with the fitting presets if they differ from the sequence, returns
-   *                     true to estimate for them. Usually asks the user and switches the wizard.
+   * @param sequence          the wizard sequence, is not modified
+   * @param preclassification the settings the statistics were computed with, see
+   *                          {@link PreclassificationParameters}
+   * @param confirmation      called with the fitting presets if they differ from the sequence,
+   *                          returns true to estimate for them. Usually asks the user and switches
+   *                          the wizard.
    */
   public static @NotNull ParameterEstimationContext withFittingPresets(
       @NotNull RawDataAnalysis analysis, @NotNull WizardSequence sequence,
+      @NotNull ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> confirmation) {
     final PresetSelection fitting = PresetSelection.select(analysis, sequence);
     if (fitting.isEmpty() || !confirmation.test(fitting)) {
-      return new ParameterEstimationContext(analysis, sequence);
+      return new ParameterEstimationContext(analysis, sequence, preclassification);
     }
     final WizardSequence estimationSequence = sequence.copy();
     fitting.applyDefaultPresets(estimationSequence);
     return new ParameterEstimationContext(analysis, estimationSequence,
-        estimateSampleToSampleMzTolerance(analysis), fitting);
+        estimateSampleToSampleMzTolerance(analysis), fitting, preclassification);
+  }
+
+  /**
+   * @return the wizard settings fixed before the statistics were computed, see
+   * {@link PreclassificationParameters}
+   */
+  public @NotNull ParameterSet preclassification() {
+    return preclassification;
   }
 
   private static @Nullable MZTolerance estimateSampleToSampleMzTolerance(
@@ -143,21 +176,22 @@ public final class ParameterEstimationContext {
     var that = (ParameterEstimationContext) obj;
     return Objects.equals(this.analysis, that.analysis) && Objects.equals(this.sequence,
         that.sequence) && Objects.equals(this.sampleToSampleMzTolerance,
-        that.sampleToSampleMzTolerance)
-        && Objects.equals(this.presetSelection, that.presetSelection);
+        that.sampleToSampleMzTolerance) && Objects.equals(this.presetSelection,
+        that.presetSelection) && Objects.equals(this.preclassification, that.preclassification);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(analysis, sequence, sampleToSampleMzTolerance, presetSelection);
+    return Objects.hash(analysis, sequence, sampleToSampleMzTolerance, presetSelection,
+        preclassification);
   }
 
   @Override
   public String toString() {
     return "ParameterEstimationContext[" + "analysis=" + analysis + ", " + "sequence=" + sequence
         + ", " + "sampleToSampleMzTolerance=" + sampleToSampleMzTolerance + ", "
-        + "presetSelection="
-        + presetSelection + ']';
+        + "presetSelection=" + presetSelection + ", " + "preclassification=" + preclassification
+        + ']';
   }
 
 }
