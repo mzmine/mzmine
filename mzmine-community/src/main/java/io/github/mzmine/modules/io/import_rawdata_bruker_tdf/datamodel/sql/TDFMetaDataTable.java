@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
@@ -36,6 +35,7 @@ import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.sql.Connection;
@@ -199,7 +199,7 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
     OperatorName(OperatorNameType.class), //
     Description, //
     SampleName(SampleNameType.class), //
-    MethodName(AcquisitionMethodNameType.class), //
+    MethodName(AcquisitionMethodType.class), //
     HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos, Geometry, ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos, AcquisitionDateTime;
 
     private final @Nullable Class<? extends StringType> fileMetadataType;

@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables;
 
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
@@ -35,6 +34,7 @@ import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataColumn;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataTable;
 import java.util.stream.IntStream;
@@ -89,7 +89,7 @@ public class BafPropertiesTable extends TDFDataTable<String> {
     OperatorName(OperatorNameType.class), //
     Description, //
     SampleName(SampleNameType.class), //
-    AcquisitionMethod(AcquisitionMethodNameType.class), //
+    AcquisitionMethod(AcquisitionMethodType.class), //
     AcquisitionDateTime, //
     InstrumentSerialNumber(InstrumentSerialNumberType.class);
 

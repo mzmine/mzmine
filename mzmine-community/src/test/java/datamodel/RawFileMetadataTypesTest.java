@@ -25,20 +25,24 @@
 
 package datamodel;
 
-import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationDateTimeType;
 import io.github.mzmine.datamodel.features.rawfiletypes.DetectorsType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.IonSourcesType;
+import io.github.mzmine.datamodel.features.rawfiletypes.LcMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MassAnalyzersType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SourceFileSha1Type;
+import io.github.mzmine.datamodel.features.rawfiletypes.TuneMethodNameType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +67,6 @@ class RawFileMetadataTypesTest {
   private static final List<String> TEXT_LIST = List.of("quadrupole", "time-of-flight");
 
   private static final Map<Class<? extends DataType<?>>, Object> SAMPLES = Map.ofEntries(
-      Map.entry(AcquisitionMethodNameType.class, TEXT),
       Map.entry(AcquisitionSoftwareType.class, TEXT),
       Map.entry(AcquisitionSoftwareVersionType.class, "2.9-290204/2.9.2.2947"),
       Map.entry(InstrumentModelType.class, TEXT), Map.entry(InstrumentSerialNumberType.class, TEXT),
@@ -72,7 +75,10 @@ class RawFileMetadataTypesTest {
       Map.entry(SourceFileSha1Type.class, "a7bf52e6b4cc2739fb0b692fef6a27bb90c4f2ac"),
       Map.entry(IonSourcesType.class, List.of("electrospray ionization", "electrospray inlet")),
       Map.entry(MassAnalyzersType.class, TEXT_LIST),
-      Map.entry(DetectorsType.class, List.of("microchannel plate detector", "photomultiplier")));
+      Map.entry(DetectorsType.class, List.of("microchannel plate detector", "photomultiplier")),
+      Map.entry(SampleDescriptionType.class, TEXT), Map.entry(LcMethodNameType.class, TEXT),
+      Map.entry(TuneMethodNameType.class, "D:\\Projects\\CJH Feb25.PRO\\ACQUDB\\tune.ipr"),
+      Map.entry(CalibrationDateTimeType.class, LocalDateTime.of(2025, 3, 5, 15, 43, 52)));
 
   static @NotNull Stream<DataType<?>> rawFileMetadataTypes() {
     return DataTypes.getInstances().stream()

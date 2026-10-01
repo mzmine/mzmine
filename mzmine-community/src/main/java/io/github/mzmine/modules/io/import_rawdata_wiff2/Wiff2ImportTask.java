@@ -31,13 +31,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -104,7 +104,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
           metadata.set(InstrumentVendorType.class, "SCIEX");
         });
     setIfNotBlank(metadata, OperatorNameType.class, sample.getUserName());
-    setIfNotBlank(metadata, AcquisitionMethodNameType.class, sample.getAcquisitionMethodName());
+    setIfNotBlank(metadata, AcquisitionMethodType.class, sample.getAcquisitionMethodName());
     setIfNotBlank(metadata, SampleNameType.class, sample.getSampleName());
   }
 

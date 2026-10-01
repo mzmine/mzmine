@@ -29,17 +29,17 @@ import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Name of the acquisition method used to acquire the data.
+ * Name or path of the mass spectrometer tune method used to acquire the data.
  */
-public class AcquisitionMethodNameType extends StringType {
+public class TuneMethodNameType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "rawfile_acquisition_method_name";
+    return "rawfile_tune_method_name";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Acquisition method";
+    return "Tune method";
   }
 }

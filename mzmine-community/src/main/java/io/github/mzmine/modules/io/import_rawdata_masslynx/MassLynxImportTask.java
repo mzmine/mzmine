@@ -151,9 +151,10 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       readTotalItems(ml);
 
       dataFile = ml.createDataFile();
-      dataFile.setStartTimeStamp(ml.getAcquisitionDateTime());
-      // decision: MassLynx does not provide instrument information, only the vendor is known
+      dataFile.setStartTimeStamp(ml.getAcqDate());
+      // decision: MassLynx files are always acquired on Waters instruments
       dataFile.getFileMetadata().set(InstrumentVendorType.class, "Waters");
+      ml.applyToFileMetadata(dataFile.getFileMetadata());
       OtherDataFileImpl mrmFileDataFile = null;
 
       final List<SimpleScan> scans = new ArrayList<>();
