@@ -391,7 +391,7 @@ saturate the detector shift their m/z at the apex, the builder keeps them in one
   continues, a deficit of 1 / trace length: on the QE "20 years" files (peak width 3 scans, DDA)
   the signal fraction stayed at ~0.75 from 3E4 to 8E4 and N95 was 4.8E5, ~10x the wizard min
   height of 5E4, Medium found 49% of the wizard features. Measured on these files
-  (`SignalPersistenceDiagnosis`, test tree, not committed): the previous or the next scan N95
+  (`SignalPersistenceDiagnosis`, tag `benchmark`): the previous or the next scan N95
   1.95E5; no intensity rule in the next scan 3.8E5; 2x the near window 4.6E5; the scan after the
   next one never reaches 0.95 (no alternating scan types); a trace of at least 3 scans 3.3E5. The
   noise level keeps the next scan: with the previous or the next scan, N50 halves on all data sets
