@@ -28,6 +28,7 @@ package datamodel;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationDateTimeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationUserType;
 import io.github.mzmine.datamodel.features.rawfiletypes.DetectorsType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
@@ -35,6 +36,12 @@ import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.IonSourcesType;
 import io.github.mzmine.datamodel.features.rawfiletypes.LcMethodNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MassAnalyzersType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationDateTimeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationReferencePressureType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationStdDevPercentType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationUserType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationModeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationStdDevPpmType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
@@ -78,7 +85,14 @@ class RawFileMetadataTypesTest {
       Map.entry(DetectorsType.class, List.of("microchannel plate detector", "photomultiplier")),
       Map.entry(SampleDescriptionType.class, TEXT), Map.entry(LcMethodNameType.class, TEXT),
       Map.entry(TuneMethodNameType.class, "D:\\Projects\\CJH Feb25.PRO\\ACQUDB\\tune.ipr"),
-      Map.entry(CalibrationDateTimeType.class, LocalDateTime.of(2025, 3, 5, 15, 43, 52)));
+      Map.entry(CalibrationDateTimeType.class, LocalDateTime.of(2025, 3, 5, 15, 43, 52)),
+      Map.entry(CalibrationUserType.class, TEXT),
+      Map.entry(MzCalibrationStdDevPpmType.class, 0.755987),
+      Map.entry(MzCalibrationModeType.class, 7),
+      Map.entry(MobilityCalibrationStdDevPercentType.class, 674.585316),
+      Map.entry(MobilityCalibrationUserType.class, TEXT),
+      Map.entry(MobilityCalibrationDateTimeType.class, LocalDateTime.of(2024, 1, 16, 16, 17, 53)),
+      Map.entry(MobilityCalibrationReferencePressureType.class, 2.52874));
 
   static @NotNull Stream<DataType<?>> rawFileMetadataTypes() {
     return DataTypes.getInstances().stream()

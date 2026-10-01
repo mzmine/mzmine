@@ -55,9 +55,9 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -112,8 +112,8 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         getMemoryMapStorage());
 
     try (BafDataAccess baf = new BafDataAccess(
-        !parameters.getParameter(AllSpectralDataImportParameters.vendorOptions).getEmbeddedParameters().getValue(
-            VendorImportParameters.applyVendorCentroiding))) {
+        !parameters.getParameter(AllSpectralDataImportParameters.vendorOptions)
+            .getEmbeddedParameters().getValue(VendorImportParameters.applyVendorCentroiding))) {
 
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
@@ -136,11 +136,13 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         }
 
         MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
-        if(msMsInfo == null && scanTable.getMsLevel(i) == 2 && scanTable.getFallbackCe(i) != null) {
+        if (msMsInfo == null && scanTable.getMsLevel(i) == 2
+            && scanTable.getFallbackCe(i) != null) {
           // in dia data, the Steps table is empty, but we can determine the ms level from the
           // regular scans table (by using the acquisition keys)
           // We can then use the fallback CE we have loaded in the scans table and assume that nothing was isolated
-          msMsInfo = new DIAMsMsInfoImpl(scanTable.getFallbackCe(i).floatValue(), null, 2, ActivationMethod.CID, null);
+          msMsInfo = new DIAMsMsInfoImpl(scanTable.getFallbackCe(i).floatValue(), null, 2,
+              ActivationMethod.CID, null);
         }
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
             scanTable.getPolarity(i), availableSpectrumType, scanTable.getRt(i), 0d, 0);
@@ -173,9 +175,9 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
         BrukerUvReader.loadAndAddForFile(folderPath, file, getMemoryMapStorage());
       }
 
-      file.setStartTimeStamp(
-          ZonedDateTime.parse(metadata.getValue(Values.AcquisitionDateTime)).toLocalDateTime());
+      file.setStartTimeStamp(DateTimeUtils.parse(metadata.getValue(Values.AcquisitionDateTime)));
       metadata.applyToFileMetadata(file.getFileMetadata());
+      baf.getCalibrationVariables().applyToFileMetadata(file.getFileMetadata());
 
       file.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));

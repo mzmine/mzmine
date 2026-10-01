@@ -25,10 +25,12 @@
 
 package io.github.mzmine.datamodel.features.rawfiletypes;
 
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,5 +72,52 @@ public final class RawFileMetadataTypes {
       return null;
     }
     return byAccession().get(accession);
+  }
+
+  /**
+   * Converts a text value from a vendor file to the value class of the type, using the
+   * {@link DataType#getMapper() mapper} of the type.
+   *
+   * @return the value or null if the text is blank or cannot be converted
+   * @throws IllegalArgumentException if the type cannot convert text values
+   */
+  public static <T> @Nullable T parseValue(@NotNull final DataType<T> type,
+      @Nullable final String text) {
+    if (text == null || text.isBlank()) {
+      return null;
+    }
+    final String value = text.strip();
+    final Function<@Nullable String, @Nullable T> mapper = type.getMapper();
+    if (mapper == null) {
+      throw new IllegalArgumentException(
+          "Type %s cannot convert text values".formatted(type.getClass().getName()));
+    }
+    try {
+      return mapper.apply(value);
+    } catch (RuntimeException e) {
+      // decision: unparsable vendor values are skipped, not fatal for the import
+      return null;
+    }
+  }
+
+  /**
+   * Converts the text with {@link #parseValue(DataType, String)} and sets it to the metadata.
+   *
+   * @return true if a value was set
+   */
+  public static boolean setParsed(@NotNull final ModularDataModel metadata,
+      @NotNull final Class<? extends DataType<?>> typeClass, @Nullable final String text) {
+    final DataType<?> type = DataTypes.get(typeClass);
+    return setParsedValue(metadata, type, text);
+  }
+
+  private static <T> boolean setParsedValue(@NotNull final ModularDataModel metadata,
+      @NotNull final DataType<T> type, @Nullable final String text) {
+    final T value = parseValue(type, text);
+    if (value == null) {
+      return false;
+    }
+    metadata.set(type, value);
+    return true;
   }
 }

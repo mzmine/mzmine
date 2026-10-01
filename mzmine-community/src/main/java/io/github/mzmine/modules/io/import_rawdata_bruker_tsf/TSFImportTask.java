@@ -44,6 +44,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFCalibrationInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
@@ -75,6 +76,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
   private static Logger logger = Logger.getLogger(TSFImportTask.class.getName());
 
   private final TDFMetaDataTable metaDataTable;
+  private final TDFCalibrationInfoTable calibrationInfoTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
@@ -106,6 +108,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     this.config = config;
 
     metaDataTable = new TDFMetaDataTable();
+    calibrationInfoTable = new TDFCalibrationInfoTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     frameTable = new TSFFrameTable();
     maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
@@ -182,6 +185,9 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
     newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
     metaDataTable.applyToFileMetadata(newMZmineFile.getFileMetadata());
+    // tsf files have no ion mobility dimension
+    calibrationInfoTable.applyToFileMetadata(newMZmineFile.getFileMetadata(),
+        frameTable.getPolarityColumn(), false);
 
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
@@ -266,6 +272,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
         setDescription("Reading metadata for " + tsf.getName());
         metaDataTable.executeQuery(connection);
+        calibrationInfoTable.executeQuery(connection);
         // metaDataTable.print();
 
         setDescription("Reading frame data for " + tsf.getName());
