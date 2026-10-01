@@ -34,10 +34,17 @@ import org.jetbrains.annotations.Nullable;
  *                        of a single step
  * @param secondsToFinish wall-clock seconds the step took
  * @param name            module name of the step
+ * @param algorithm       the selected algorithms of the step, see {@link StepAlgorithms}, null if
+ *                        the module has no choice
  * @param usedHeapGB      used heap (GB) after the step, or null if not tracked
  */
 public record StepTimeMeasurement(int step, double secondsToFinish, String name,
-                                  @Nullable String usedHeapGB) {
+                                  @Nullable String algorithm, @Nullable String usedHeapGB) {
+
+  public StepTimeMeasurement(final int step, final double secondsToFinish, final String name,
+      @Nullable final String usedHeapGB) {
+    this(step, secondsToFinish, name, null, usedHeapGB);
+  }
 
   /**
    * @param trackMemory memory measurements are only precise when combined with GC
@@ -45,15 +52,26 @@ public record StepTimeMeasurement(int step, double secondsToFinish, String name,
    */
   public StepTimeMeasurement(final int stepNumber, final String name, final Duration duration,
       final boolean trackMemory) {
+    this(stepNumber, name, null, duration, trackMemory);
+  }
+
+  /**
+   * @param algorithm   the selected algorithms of the step, see {@link StepAlgorithms}
+   * @param trackMemory memory measurements are only precise when combined with GC before, if
+   *                    active - please perform gc before this constructor
+   */
+  public StepTimeMeasurement(final int stepNumber, final String name,
+      @Nullable final String algorithm, final Duration duration, final boolean trackMemory) {
     var memory = trackMemory ? "%.2f".formatted(
         ConfigService.getConfiguration().getUsedMemoryGB()) : null;
-    this(stepNumber, duration.toMillis() / 1000.0, name, memory);
+    this(stepNumber, duration.toMillis() / 1000.0, name, algorithm, memory);
   }
 
   @Override
   public String toString() {
     String heap = usedHeapGB == null ? "" : " (used heap: %s GB)".formatted(usedHeapGB);
-    return "Step %d: %s took %.3f seconds to finish%s".formatted(step, name, secondsToFinish, heap);
+    return "Step %d: %s took %.3f seconds to finish%s".formatted(step,
+        StepMeasurement.nameWithAlgorithm(name, algorithm), secondsToFinish, heap);
   }
 
 }

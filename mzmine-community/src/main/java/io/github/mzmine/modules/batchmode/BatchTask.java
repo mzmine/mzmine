@@ -39,6 +39,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
+import io.github.mzmine.modules.batchmode.timing.StepAlgorithms;
 import io.github.mzmine.modules.batchmode.timing.StepMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepStorageMeasurement;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
@@ -342,8 +343,10 @@ public class BatchTask extends AbstractTask {
       }
       final MemoryMapSnapshot storageAfter = MemoryMapStorageStats.snapshot();
       final String stepName = queue.get(stepNumber).getModule().getName();
+      final String stepAlgorithm = StepAlgorithms.describe(
+          queue.get(stepNumber).getParameterSet());
       final StepTimeMeasurement stepTime = new StepTimeMeasurement(stepNumber + 1, stepName,
-          duration, runGCafterBatchStep);
+          stepAlgorithm, duration, runGCafterBatchStep);
       final StepStorageMeasurement stepStorage = new StepStorageMeasurement(stepNumber + 1,
           stepName, storageBefore, storageAfter);
       stepTimes.add(stepTime);
