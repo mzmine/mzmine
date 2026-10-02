@@ -1,0 +1,15 @@
+Acquisition vocabulary subset derived from the HUPO Proteomics Standards Initiative
+PSI-MS controlled vocabulary, version 4.1.261.
+Source: https://github.com/HUPO-PSI/psi-ms-CV
+Upstream licence: https://github.com/HUPO-PSI/psi-ms-CV/blob/master/Licence.txt
+Creative Commons Attribution 4.0 International (CC BY 4.0):
+https://creativecommons.org/licenses/by/4.0/
+
+Modified for mzmine: selected instrument, analyzer, ionization, detector and acquisition
+method categories; retained only accessions and canonical labels, omitting definitions.
+The accompanying TSV records the original source SHA-256 and version. No endorsement
+by the vocabulary authors is implied.
+
+Reference: Mayer et al. (2013), The HUPO proteomics standards initiative - mass
+spectrometry controlled vocabulary. Database, bat009.
+https://doi.org/10.1093/database/bat009

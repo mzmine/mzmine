@@ -32,8 +32,15 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import io.github.mzmine.datamodel.AcquisitionMetadata;
+import io.github.mzmine.datamodel.AcquisitionMetadata.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TDFMetaDataTable extends TDFDataTable<String> {
@@ -170,5 +177,31 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   public String getValueForKey(Keys key) {
     int index = keyCol.indexOf(key.toString());
     return index != -1 ? valueCol.get(index) : "";
+  }
+
+  /** Retains selected vendor header values without turning them into editable study metadata. */
+  public @NotNull AcquisitionMetadata acquisitionMetadata(final @NotNull Collection<Long> scanModes) {
+    final Map<String, String> fields = new LinkedHashMap<>();
+    for (final Keys key : List.of(Keys.InstrumentName, Keys.AcquisitionSoftwareVersion,
+        Keys.SampleName, Keys.MethodName, Keys.Description)) {
+      final String value = getValueForKey(key);
+      if (value != null && !value.isBlank()) {
+        fields.put(key.name(), value);
+      }
+    }
+    final List<AcquisitionMetadata.Term> terms = new ArrayList<>(AcquisitionMetadata.resolveLabel(
+        Field.INSTRUMENT_MODEL, getValueForKey(Keys.InstrumentName)));
+    // Native scan-mode declarations are evidence for DDA/DIA; MS levels alone are not.
+    if (scanModes.contains(1L)) {
+      terms.addAll(AcquisitionMetadata.resolve("MS:1003221"));
+    }
+    if (scanModes.contains(9L)) {
+      terms.addAll(AcquisitionMetadata.resolve("MS:1003215"));
+    }
+    fields.put("Acquisition scan modes", scanModes.stream().distinct().sorted().map(mode ->
+        io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode.fromScanMode(
+            mode.intValue()).getDescription() + " (" + mode + ")")
+        .collect(java.util.stream.Collectors.joining(", ")));
+    return new AcquisitionMetadata(terms, fields);
   }
 }
