@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,10 @@ package io.github.mzmine.javafx.validation;
 
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -40,39 +42,104 @@ import org.controlsfx.control.decoration.Decoration;
 import org.controlsfx.validation.Severity;
 import org.controlsfx.validation.ValidationMessage;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class IconValidationDecoration extends GraphicValidationDecoration {
+
+  private static final int ICON_SIZE = 12;
 
   public IconValidationDecoration() {
 
   }
 
   protected Node createDecorationNode(ValidationMessage message) {
-    FontIcon graphic = getGraphicBySeverity(message.getSeverity());
+    return createDecorationNode(message.getSeverity(), message.getText());
+  }
+
+  /**
+   * Creates the icon node with tooltip without requiring a {@link ValidationMessage}, which is
+   * bound to a {@link Control} target. Enables decorating any node, e.g., layout panes.
+   */
+  public @NotNull Node createDecorationNode(@NotNull Severity severity, @NotNull String text) {
+    return createDecorationNode(severity, text, null);
+  }
+
+  /**
+   * Creates the icon node with tooltip without requiring a {@link ValidationMessage}, which is
+   * bound to a {@link Control} target. Enables decorating any node, e.g., layout panes.
+   *
+   * @param color icon color, e.g., the positive or negative color of a color palette. null for the
+   *              default color of the severity
+   */
+  public @NotNull Node createDecorationNode(@NotNull Severity severity, @NotNull String text,
+      @Nullable Color color) {
+    return createDecorationNode(severity, text, null, color);
+  }
+
+  /**
+   * Creates the icon node with tooltip without requiring a {@link ValidationMessage}, which is
+   * bound to a {@link Control} target. Enables decorating any node, e.g., layout panes.
+   *
+   * @param icon  icon or null for the default icon of the severity
+   * @param color icon color, e.g., the positive or negative color of a color palette. null for the
+   *              default color of the severity
+   */
+  public @NotNull Node createDecorationNode(@NotNull Severity severity, @NotNull String text,
+      @Nullable IconCodeSupplier icon, @Nullable Color color) {
+    final FontIcon graphic = icon == null ? getGraphicBySeverity(severity, color)
+        : FxIconUtil.getFontIcon(icon, ICON_SIZE,
+            Objects.requireNonNullElse(color, getDefaultColor(severity)));
     Label label = new Label();
     label.setPadding(new Insets(6, 6, 0, 0));
     label.setGraphic(graphic);
-    label.setTooltip(createTooltip(message));
+    label.setTooltip(createTooltip(severity, text));
     label.setAlignment(Pos.CENTER);
     return label;
   }
 
   protected FontIcon getGraphicBySeverity(Severity severity) {
-    int size = 12;
+    return getGraphicBySeverity(severity, null);
+  }
+
+  /**
+   * @param color icon color or null for the default color of the severity
+   */
+  protected @NotNull FontIcon getGraphicBySeverity(@NotNull Severity severity,
+      @Nullable Color color) {
+    return FxIconUtil.getFontIcon(getIconBySeverity(severity), ICON_SIZE,
+        Objects.requireNonNullElse(color, getDefaultColor(severity)));
+  }
+
+  protected @NotNull FxIcons getIconBySeverity(@NotNull Severity severity) {
     return switch (severity) {
-      case ERROR -> FxIconUtil.getFontIcon(FxIcons.X_CIRCLE_FILL, size, Color.RED);
-      case WARNING -> FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_CIRCLE_FILL, size, Color.GOLD);
-      default -> FxIconUtil.getFontIcon(FxIcons.INFO_CIRCLE_FILL, size, Color.LIGHTSTEELBLUE);
+      case ERROR -> FxIcons.X_CIRCLE_FILL;
+      case WARNING -> FxIcons.EXCLAMATION_CIRCLE_FILL;
+      case INFO -> FxIcons.INFO_CIRCLE_FILL;
+      case OK -> FxIcons.CHECK_CIRCLE_FILL;
+    };
+  }
+
+  protected @NotNull Color getDefaultColor(@NotNull Severity severity) {
+    return switch (severity) {
+      case ERROR -> Color.RED;
+      case WARNING -> Color.GOLD;
+      case INFO -> Color.LIGHTSTEELBLUE;
+      // decision: fixed color as there is no color palette access in the javafx-framework
+      case OK -> Color.MEDIUMSEAGREEN;
     };
   }
 
   protected Tooltip createTooltip(ValidationMessage message) {
-    Tooltip tooltip = new Tooltip(message.getText());
+    return createTooltip(message.getSeverity(), message.getText());
+  }
+
+  protected Tooltip createTooltip(@NotNull Severity severity, @NotNull String text) {
+    Tooltip tooltip = new Tooltip(text);
     tooltip.setOpacity(.9);
     tooltip.setAutoFix(true);
-    final String style = getStyleBySeverity(message.getSeverity());
+    final String style = getStyleBySeverity(severity);
     if (style != null) {
       tooltip.getStyleClass().add(style);
     }
@@ -84,7 +151,7 @@ public class IconValidationDecoration extends GraphicValidationDecoration {
     return switch (severity) {
       case ERROR -> "tooltip-error";
       case WARNING -> "tooltip-warning";
-      default -> null;
+      case INFO, OK -> null;
     };
   }
 

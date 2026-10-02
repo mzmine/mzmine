@@ -26,11 +26,6 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import com.opencsv.RFC4180ParserBuilder;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.io.JsonUtils;
@@ -100,19 +95,14 @@ public class SynonymsType extends ListDataType<String> {
   }
 
   @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
       throws XMLStreamException {
     writer.writeCharacters(value == null ? CONST.XML_NULL_VALUE
         : JsonUtils.writeStringOrElse(value, CONST.XML_NULL_VALUE));
   }
 
   @Override
-  public @Nullable List<String> loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
-      @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
-      @Nullable final RawDataFile file) throws XMLStreamException {
+  public @Nullable List<String> loadFromXML(@NotNull final XMLStreamReader reader) throws XMLStreamException {
     final String text = reader.getElementText();
     return CONST.XML_NULL_VALUE.equals(text) ? null : parse(text);
   }
