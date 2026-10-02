@@ -98,7 +98,7 @@ class FeatureListPreferencesTest {
   void testDefaultIsQcOnly() {
     Assertions.assertEquals(SampleTypeFilter.qc(),
         FeatureListPreferences.createDefault().getRsdSampleTypeFilter());
-    Assertions.assertEquals(List.of("Tag 1", "Tag 2", "Tag 3", "Tag 4", "Tag 5", "Tag 6"),
+    Assertions.assertEquals(List.of("Tag 1", "Tag 2", "Tag 3", "Tag 4"),
         FeatureListPreferences.createDefault().getTagLabels());
   }
 

@@ -215,7 +215,7 @@ public class ModularFeatureList implements FeatureList {
     this.memoryMapStorage = storage;
 
     // only a few standard types
-    addRowType(new IDType(), new TagDataType());
+    addRowType(DataTypes.getAll(IDType.class, TagDataType.class));
     addDefaultListeners();
   }
 
