@@ -63,12 +63,14 @@ Detailed measurements and rejected algorithm pilots are recorded in
   units. The categorical m/z plot marks the estimated preset, one predefined tolerance step above
   the most frequently sufficient tolerance. The dashboard and single-pass optimizer call the same
   estimator functions.
-- The wizard's **Estimate parameters** action uses the optimizer's representative-file rule: up to
+- The wizard's **Estimate** action (next to the parameter tabs) uses the optimizer's
+  representative-file rule: up to
   ten filename-identified QCs when at least three are available, otherwise up to ten non-blanks
   when at least four are available, and otherwise up to ten of all selected files. It analyses that
   subset on a background task, applies only estimates backed by those statistics to the active
-  wizard presets, adds batch-only estimates as customization overrides, and opens the statistics
-  dashboard. It does not change mobility FWHM; with only one file it also leaves the sample-to-sample
+  wizard presets, and adds batch-only estimates as customization overrides. The statistics
+  dashboard only opens via the context menu entry "Estimate parameters and show statistics". It does
+  not change mobility FWHM; with only one file it also leaves the sample-to-sample
   RT tolerance unchanged.
 - General wizard preset factories do not depend on optimizer classes. Optimizable parameters are
   registered centrally in `OptimizationParameterRegistry`; optional Wavelet parameters are excluded
