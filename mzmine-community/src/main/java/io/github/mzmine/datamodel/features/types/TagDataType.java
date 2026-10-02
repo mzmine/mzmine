@@ -25,10 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.TagCheckBoxPane;
 import io.github.mzmine.datamodel.features.types.fx.TagTreeTableCell;
@@ -132,9 +129,7 @@ public class TagDataType extends DataType<BitSet> {
   }
 
   @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
       throws XMLStreamException {
     if (value == null) {
       return;
@@ -149,10 +144,8 @@ public class TagDataType extends DataType<BitSet> {
   }
 
   @Override
-  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final MZmineProject project, @NotNull final ModularFeatureList flist,
-      @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
-      @Nullable final RawDataFile file) throws XMLStreamException {
+  public @Nullable Object loadFromXML(@NotNull final XMLStreamReader reader)
+      throws XMLStreamException {
     final String text = reader.getElementText();
     if (text.isBlank()) {
       return null;
