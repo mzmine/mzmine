@@ -25,9 +25,12 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
+
 import com.google.common.collect.Range;
 import com.sun.jna.Native;
-import com.sun.jna.Pointer;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
@@ -35,46 +38,61 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLib;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfPressureCompensation;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.ProfileData;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_profile_spectrum_function;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_spectrum_function;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.msms_spectrum_function.Function;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.StringUtils;
 import io.mzio.general.Result;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.lang.foreign.ValueLayout.OfByte;
+import java.lang.foreign.ValueLayout.OfInt;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.scene.control.Alert.AlertType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+//import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
+
+/**
+ * private static SymbolLookup getSymbolLookup() { try { return
+ * SymbolLookup.libraryLookup(FileAndPathUtil.resolveInExternalToolsDir(
+ * "bruker_tdf/%s".formatted(System.mapLibraryName("timsdata"))).toPath(), LIBRARY_ARENA)
+ * .or(SymbolLookup.loaderLookup()).or(Linker.nativeLinker().defaultLookup()); } catch
+ * (IllegalArgumentException e) { if(Platform.isMac()) { throw new RuntimeException("TDF is not
+ * supported on MacOS.", e); } throw new RuntimeException("Failed to load TDF library.", e); } }
+ */
 
 /**
  * @author https://github.com/SteffenHeu
@@ -84,20 +102,54 @@ public class TDFUtils implements AutoCloseable {
   public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+
+  private static final OfInt INT_LITTLE_ENDIAN = TDFLib.C_INT.withOrder(ByteOrder.LITTLE_ENDIAN);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final Int2DoubleMap indexToMzBuffer = new Int2DoubleOpenHashMap();
-  private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
+  private final Arena offHeap = Arena.ofAuto();
+
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
-  private TDFLibrary tdfLib = null;
   private File file;
+  /**
+   * buffer to store our scans. allocation takes time, so we want to reuse it cannot be final, since
+   * we might have to increase the buffer size on the run we don't just take a huge buffer, because
+   * clearing it takes time, too
+   */
+  private MemorySegment mobScanBuffer = offHeap.allocate(BUFFER_SIZE,
+      INT_LITTLE_ENDIAN.byteAlignment());
+  /**
+   * Before indices can be converted to mzs, they need to be converted to doubles. This buffer holds
+   * the integer index values as doubles.
+   */
+  private MemorySegment mzIndexInputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Before indices can be converted to mzs, they need to be converted to doubles. This buffer holds
+   * the converted mz values as doubles.
+   */
+  private MemorySegment mobScanMzOutputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Contains the input for conversion of scan numbers to mobility values. (double)
+   */
+  private MemorySegment mobilitiesInputDoubleBuffer = offHeap.allocate(0);
+  /**
+   * Contains the output for conversion of scan numbers to mobility values. (double)
+   */
+  private MemorySegment mobilitiesOutputDoubleBuffer = offHeap.allocate(0);
+
   /**
    * the handle of the currently opened file
    **/
   private long handle = 0L;
   private TdfPressureCompensation applyPressureComp = TdfPressureCompensation.NONE;
 
+  /**
+   * A magic number based on empiric testing that is the threshold between the number of peaks per
+   * mz and the loading speed of the v2 and v3 centroid frame extraction methods.
+   */
+  private double MAGIC_NUMBER_NON_SPARSE_SPECTRUM = 13.42;
+
   public TDFUtils() {
-    loadLibrary();
+    setNumThreads(1);
   }
 
   public TDFUtils(TdfPressureCompensation pressureCompensation) {
@@ -140,62 +192,6 @@ public class TDFUtils implements AutoCloseable {
     };
   }
 
-  /**
-   * Initialises the tdf library. Is called when openFile is called.
-   *
-   * @return true on success, false on failure.
-   */
-  private boolean loadLibrary() {
-    if (tdfLib != null) {
-      return true;
-    }
-
-    logger.finest("Initialising tdf library.");
-    File timsdataLib = null;
-    String libraryFileName;
-    try {
-      if (com.sun.jna.Platform.isWindows() && com.sun.jna.Platform.is64Bit()) {
-        libraryFileName = "timsdata_x64.dll";
-      } else if (com.sun.jna.Platform.isWindows() && !com.sun.jna.Platform.is64Bit()) {
-        libraryFileName = "timsdata_x32.dll";
-      } else if (com.sun.jna.Platform.isLinux()) {
-        libraryFileName = "libtimsdata.so";
-      } else if (com.sun.jna.Platform.isMac()) {
-        logger.info("MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
-        MZmineCore.getDesktop().displayMessage(
-            "MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
-        return false;
-      } else {
-        return false;
-      }
-      timsdataLib = Native.extractFromResourcePath("/vendorlib/bruker/" + libraryFileName,
-          TDFUtils.class.getClassLoader());
-    } catch (IOException e) {
-      e.printStackTrace();
-      logger.log(Level.SEVERE, "Failed to load/extract timsdata library", e);
-      return false;
-    }
-
-    if (timsdataLib == null) {
-      logger.warning("TIMS data library could not be loaded.");
-      return false;
-    }
-
-    try {
-      tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
-    } catch (UnsatisfiedLinkError e) {
-      logger.severe("Cannot load tdf library. Is VC++ 2017 Redist installed?");
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      MZmineCore.getDesktop()
-          .displayErrorMessage("Cannot load tdf library. Is VC++ 2017 Redist installed?");
-      return false;
-    }
-    logger.info("Native TDF library initialised " + tdfLib.toString());
-    setNumThreads(1);
-
-    return true;
-  }
-
   // -----------------------------------------------------------------------------------------------
   // HANDLING INDIVIDUAL SCANS
   // -----------------------------------------------------------------------------------------------
@@ -209,32 +205,42 @@ public class TDFUtils implements AutoCloseable {
    * @param useRecalibratedState 0 or 1
    * @return 0 on error, the handle otherwise.
    */
-  public long openFile(final File path, final long useRecalibratedState) {
+  public long openFile(final File path, final int useRecalibratedState) {
     if (handle != 0L) {
       close();
     }
 
     file = path;
 
-    if (!loadLibrary() || tdfLib == null) {
-      logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
-          + "library could not be initialised.");
-      return 0L;
-    }
+//    if (!loadLibrary() || tdfLib == null) {
+//      logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
+//          + "library could not be initialised.");
+//      return 0L;
+//    }
 
     logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
     final String dirToOpen =
-        path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath();
+        path.isFile() ? path.getParentFile().getAbsolutePath() : path.getAbsolutePath() + '\0';
 
     // UTF8 required to load files from paths with special chars like ü
+    // todo: check this is 0 terminated
     final byte[] fileBytes = Native.toByteArray(dirToOpen, StandardCharsets.UTF_8);
-    handle = tdfLib.tims_open_v2(fileBytes, useRecalibratedState, applyPressureComp.mode());
+    handle = TDFLib.tims_open_v2(offHeap.allocateFrom(OfByte.JAVA_BYTE, fileBytes),
+        useRecalibratedState, applyPressureComp.mode());
 
     if (handle == 0) {
-      printLastError(0).throwOnError();
+      Result result = printLastError(0);
+      if (result.message().contains("The minimum version (14.44.xx")) {
+        DialogLoggerUtil.showDialog(AlertType.ERROR, "Outdated MSVC Runtime",
+            "The MSVC runtime does not match the minimum required version 14.44.xx for the tdf import.\n%s".formatted(
+                result.message()));
+        result.throwOnError();
+      } else {
+        result.throwOnError();
+      }
     }
     logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-        + tdfLib.tims_has_recalibrated_state(handle));
+        + TDFLib.tims_has_recalibrated_state(handle));
     return handle;
   }
 
@@ -253,86 +259,15 @@ public class TDFUtils implements AutoCloseable {
 
   @Override
   public void close() {
-    if (tdfLib != null && handle != 0L) {
-      tdfLib.tims_close(handle);
+    if (handle != 0L) {
+      TDFLib.tims_close(handle);
     }
     handle = 0L;
     file = null;
   }
 
   /**
-   * use {@link #loadDataPointsForFrame_v2(long, long, long)}
-   *
-   * @param frameId   The id of the frame. See {@link TDFFrameTable}
-   * @param scanBegin The first scan index (starting with 0)
-   * @param scanEnd   The last scan index
-   * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
-   */
-  @Deprecated
-  public List<SimpleSpectralArrays> loadDataPointsForFrame(final long frameId, final long scanBegin,
-      final long scanEnd) {
-    if (handle == 0L) {
-      throw new IllegalStateException("No tdf data file opened yet.");
-    }
-
-    final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
-
-    // buffer to store our scans. allocation takes time, so we want to reuse it
-    // cannot be final, since we might have to increase the buffer size on the run
-    // we don't just take a huge buffer, because clearing it takes time, too
-    byte[] buffer = new byte[BUFFER_SIZE];
-
-    // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
-    long start = scanBegin;
-    while (start < scanEnd) {
-      // start is inclusive, end is exclusive
-      final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
-      final int numScans = (int) (end - start);
-
-      synchronized (tdfLib) {
-        final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
-            buffer.length);
-        if (lastError > BUFFER_SIZE) {
-          BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
-          buffer = new byte[BUFFER_SIZE];
-          continue;
-        } else if (lastError == 0) {
-          printLastError(lastError).throwOnError();
-        }
-      }
-
-      start = start + SCAN_PACKAGE_SIZE;
-
-      final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
-          .asIntBuffer();
-      final int[] scanBuffer = new int[intBuffer.remaining()];
-      intBuffer.get(scanBuffer);
-      // check out the layout of scanBuffer:
-      // - the first numScan integers specify the number of peaks for each scan
-      // - the next integers are pairs of (x,y) values for the scans. The x values are not masses
-      // but index values
-      int d = numScans;
-      for (int i = 0; i < numScans; i++) {
-        final int numPeaks = scanBuffer[i];
-        final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
-        d += numPeaks;
-        final double[] intensities = ConversionUtils.convertIntsToDoubles(
-            Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
-        d += numPeaks;
-
-        synchronized (tdfLib) {
-          final double[] masses = convertIndicesToMZ(handle, frameId, indices);
-          dataPoints.add(new SimpleSpectralArrays(masses, intensities));
-        }
-      }
-      Arrays.fill(buffer, (byte) 0);
-    }
-    return dataPoints;
-  }
-
-  /**
-   * Extracts mobility scans for the given range of scan numbers. Uses a caching functionality to be
-   * faster.
+   * Extracts mobility scans for the given range of scan numbers.
    *
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
@@ -340,65 +275,48 @@ public class TDFUtils implements AutoCloseable {
    * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
    */
   public List<SimpleSpectralArrays> loadDataPointsForFrame_v2(final long frameId,
-      final long scanBegin, final long scanEnd) {
+      final int scanBegin, final int scanEnd) {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
-    // the buffer is only valid for one frame,
-    // otherwise the index -> mz mapping may change due to temperature compensation
-    indexToMzBuffer.clear();
-
     final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
-    // buffer to store our scans. allocation takes time, so we want to reuse it
-    // cannot be final, since we might have to increase the buffer size on the run
-    // we don't just take a huge buffer, because clearing it takes time, too
-    byte[] buffer = new byte[BUFFER_SIZE];
-
     // load scans in packs of SCAN_PACKAGE_SIZE to not cause a buffer overflow
-    long start = scanBegin;
+    int start = scanBegin;
     while (start < scanEnd) {
       // start is inclusive, end is exclusive
-      final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
+      final int end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
       final int numScans = (int) (end - start);
 
-      synchronized (tdfLib) {
-        final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
-            buffer.length);
-        if (lastError > BUFFER_SIZE) {
-          BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
-          buffer = new byte[BUFFER_SIZE];
-          continue;
-        } else if (lastError == 0) {
-          printLastError(lastError).throwOnError();
-        }
+      final long lastError = TDFLib.tims_read_scans_v2(handle, frameId, start, end, mobScanBuffer,
+          (int) mobScanBuffer.byteSize());
+      if (lastError > BUFFER_SIZE) {
+        BUFFER_SIZE = ((int) (lastError / BUFFER_SIZE_INCREMENT + 1)) * BUFFER_SIZE_INCREMENT;
+        mobScanBuffer = offHeap.allocate(BUFFER_SIZE, INT_LITTLE_ENDIAN.byteAlignment());
+        continue;
+      } else if (lastError == 0) {
+        printLastError(lastError).throwOnError();
       }
 
       start = start + SCAN_PACKAGE_SIZE;
 
-      final IntBuffer intBuffer = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
-          .asIntBuffer();
-      final int[] scanBuffer = new int[intBuffer.remaining()];
-      intBuffer.get(scanBuffer);
       // check out the layout of scanBuffer:
       // - the first numScan integers specify the number of peaks for each scan
       // - the next integers are pairs of (x,y) values for the scans. The x values are not masses
       // but index values
       int d = numScans;
       for (int i = 0; i < numScans; i++) {
-        final int numPeaks = scanBuffer[i];
-        final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
+        final int numPeaks = mobScanBuffer.getAtIndex(INT_LITTLE_ENDIAN, i);
+        final MemorySegment indices = mobScanBuffer.asSlice(d * 4L, 4L * numPeaks);
         d += numPeaks;
         final double[] intensities = ConversionUtils.convertIntsToDoubles(
-            Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
+            mobScanBuffer.asSlice(d * 4L, 4L * numPeaks).toArray(INT_LITTLE_ENDIAN));
         d += numPeaks;
 
-        synchronized (tdfLib) {
-          final double[] masses = convertIndicesToMZ_v2(handle, frameId, indices);
-          dataPoints.add(new SimpleSpectralArrays(masses, intensities));
-        }
+        final double[] masses = convertIndicesToMZ_v3(handle, frameId, indices);
+        dataPoints.add(new SimpleSpectralArrays(masses, intensities));
       }
-      Arrays.fill(buffer, (byte) 0);
+//      mobScanBuffer.fill((byte) 0);
     }
     return dataPoints;
   }
@@ -446,17 +364,45 @@ public class TDFUtils implements AutoCloseable {
   // ---------------------------------------------------------------------------------------------
   // AVERAGE FRAMES
   // -----------------------------------------------------------------------------------------------
-  private SimpleSpectralArrays extractCentroidsForFrame(final long frameId, final int startScanNum,
-      final int endScanNum) {
+  @NotNull SimpleSpectralArrays extractCentroidsForFrame(final long frameId, final int startScanNum,
+      final int endScanNum, boolean predictedSparse) {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
 
-    final CentroidData data = new CentroidData();
+    final AtomicReference<double[]> mzs = new AtomicReference<>();
+    final AtomicReference<float[]> intensities = new AtomicReference<>();
+    final Function function = new Function() {
+      @Override
+      public void apply(long id, int num_peaks, MemorySegment mz_values, MemorySegment area_values,
+          MemorySegment user_data) {
+        try {
+          final MemorySegment mzSegment = mz_values.reinterpret(
+              (long) num_peaks * JAVA_DOUBLE.byteSize());
+          final MemorySegment areaSegment = area_values.reinterpret(
+              (long) num_peaks * JAVA_FLOAT.byteSize());
+          mzs.set(mzSegment.toArray(JAVA_DOUBLE));
+          intensities.set(areaSegment.toArray(JAVA_FLOAT));
 
-    synchronized (tdfLib) {
-      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
-          startScanNum, endScanNum, data, Pointer.NULL);
+        } catch (Throwable t) {
+          logger.log(Level.WARNING, t,
+              () -> "Error extracting centroid scan for frame " + frameId + " for scans "
+                  + startScanNum + " to " + endScanNum + ".");
+        }
+      }
+    };
+
+    try (var arena = Arena.ofShared()) {
+      MemorySegment callback = msms_spectrum_function.allocate(function, arena);
+
+      final long error = switch (predictedSparse) {
+        case true ->
+            TDFLib.tims_extract_centroided_spectrum_for_frame_v3(handle, frameId, startScanNum,
+                endScanNum, callback, MemorySegment.NULL);
+        case false ->
+            TDFLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId, startScanNum,
+                endScanNum, callback, MemorySegment.NULL);
+      };
 
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
@@ -464,9 +410,10 @@ public class TDFUtils implements AutoCloseable {
         printLastError(error).throwOnError();
         return SimpleSpectralArrays.EMPTY;
       }
-
-      return new SimpleSpectralArrays(data.getMzs(), data.getIntensitiesAsDoubles());
     }
+
+    return new SimpleSpectralArrays(mzs.get(),
+        ConversionUtils.convertFloatsToDoubles(intensities.get()));
   }
 
 
@@ -525,7 +472,9 @@ public class TDFUtils implements AutoCloseable {
     }
 
     // load data after filters applied
-    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans);
+    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans,
+        frameTable.getNumPeaksColumn().get(frameIndex) / RangeUtils.rangeLength(mzRange)
+            < MAGIC_NUMBER_NON_SPARSE_SPECTRUM);
 
     // process data?
     if (scanProcessorConfig.hasProcessors()) {
@@ -534,30 +483,38 @@ public class TDFUtils implements AutoCloseable {
     // finally set data and mobilities
     frame.setDataPoints(data.mzs(), data.intensities());
 
-    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArrayFrom1(numScans));
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId, numScans);
     frame.setMobilities(mobilities);
 
     return frame;
   }
 
   @Nullable
-  public int[] extractProfileForFrame(final long frameId, final long startScanNum,
-      final long endScanNum) {
+  public int[] extractProfileForFrame(final long frameId, final int startScanNum,
+      final int endScanNum) {
 
-    final ProfileData data = new ProfileData();
-    synchronized (tdfLib) {
-      final long error = tdfLib.tims_extract_profile_for_frame(handle, frameId, startScanNum,
-          endScanNum, data, null);
+    final AtomicReference<int[]> intensities = new AtomicReference<>();
+    var function = new msms_profile_spectrum_function.Function() {
+      @Override
+      public void apply(long id, int num_points, MemorySegment intensity_values,
+          MemorySegment user_data) {
+        MemorySegment intensitySegment = intensity_values.reinterpret(
+            num_points * TDFLib.C_INT.byteSize());
+        intensities.set(intensitySegment.toArray(JAVA_INT));
+      }
+    };
 
+    try (var arena = Arena.ofShared()) {
+      MemorySegment callback = msms_profile_spectrum_function.allocate(function, arena);
+      int error = TDFLib.tims_extract_profile_for_frame(handle, frameId, startScanNum, endScanNum,
+          callback, MemorySegment.NULL);
       if (error == 0) {
         logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
         printLastError(error).throwOnError();
         return null;
       }
-
-      return data.getIntensities();
     }
+    return intensities.get();
   }
 
   /**
@@ -638,28 +595,10 @@ public class TDFUtils implements AutoCloseable {
     // finally set data and mobilities
     frame.setDataPoints(data.mzs(), data.intensities());
 
-    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArrayFrom1(numScans));
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId, numScans);
     frame.setMobilities(mobilities);
 
     return frame;
-  }
-
-  // ---------------------------------------------------------------------------------------------
-  // PASEF MS MS FUNCTIONS
-  // -----------------------------------------------------------------------------------------------
-  @Deprecated
-  public double[][] loadMsMsDataPointsForPrecursor_v2(final long handle, final long precursorId) {
-
-    final CentroidData data = new CentroidData();
-    final long error = tdfLib.tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data,
-        Pointer.NULL);
-    if (error == 0) {
-      logger.warning(() -> "Could not extract MS/MS for precursor " + precursorId + ".");
-      printLastError(error).throwOnError();
-      return new double[][]{{0}, {0}};
-    }
-    return data.toDoubles();
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -667,64 +606,40 @@ public class TDFUtils implements AutoCloseable {
   // -----------------------------------------------------------------------------------------------
   private double[] convertIndicesToMZ(final long handle, final long frameId, final int[] indices) {
 
-    final double[] buffer = new double[indices.length];
-    final long error = tdfLib.tims_index_to_mz(handle, frameId,
-        Arrays.stream(indices).asDoubleStream().toArray(), buffer, indices.length);
+    final var buffer = offHeap.allocate(JAVA_DOUBLE, indices.length);
+
+    final long error = TDFLib.tims_index_to_mz(handle, frameId,
+        offHeap.allocateFrom(TDFLib.C_DOUBLE, Arrays.stream(indices).asDoubleStream().toArray()),
+        buffer, indices.length);
     if (error == 0) {
       printLastError(error).throwOnError();
       logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
-    return buffer;
+    return buffer.toArray(JAVA_DOUBLE);
   }
 
-  /**
-   * Converts extracted indices to mz values while employing a cache to limit the number and size of
-   * API calls. Indices may only belong to a single frame. This method uses caching to convert
-   * indices faster.
-   */
-  private double[] convertIndicesToMZ_v2(final long handle, final long frameId,
-      final int[] indices) {
+  private double[] convertIndicesToMZ_v3(final long handle, final long frameId,
+      final MemorySegment intIndices) {
+    // reusing the buffers saves ~4s on a file with 3000 frames and 1000 mobility scans
 
-    DoubleList unknownIndices = null;
-    final double[] mzs = new double[indices.length];
-
-    indicesToIndexMap.clear();
-
-    for (int i = 0; i < indices.length; i++) {
-      final double mz = indexToMzBuffer.get(indices[i]);
-      if (mz != 0) {
-        mzs[i] = mz;
-      } else {
-        if (unknownIndices == null) {
-          unknownIndices = new DoubleArrayList(indices.length / 2);
-        }
-        indicesToIndexMap.put(indices[i], i);
-        unknownIndices.add(indices[i]);
-      }
+    if (intIndices.byteSize() > mzIndexInputDoubleBuffer.byteSize() / 2) {
+      // ensure buffer capacity
+      mzIndexInputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
+          intIndices.byteSize() / JAVA_INT.byteSize());
+      mobScanMzOutputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE,
+          intIndices.byteSize() / JAVA_INT.byteSize());
+    }
+    for (int i = 0; i < intIndices.byteSize() / JAVA_INT.byteSize(); i++) {
+      mzIndexInputDoubleBuffer.setAtIndex(JAVA_DOUBLE, i, intIndices.getAtIndex(JAVA_INT, i));
     }
 
-    if (unknownIndices != null) {
-      unknownIndices.toDoubleArray();
-
-      final double[] buffer = new double[unknownIndices.size()];
-      final long error = tdfLib.tims_index_to_mz(handle, frameId, unknownIndices.toDoubleArray(),
-          buffer, unknownIndices.size());
-
-      if (error == 0) {
-        logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
-        printLastError(error).throwOnError();
-      }
-
-      // index in the newly converted mz buffer
-      for (int i = 0; i < unknownIndices.size(); i++) {
-        final int peakIndex = (int) unknownIndices.getDouble(i);
-        indexToMzBuffer.put(peakIndex, buffer[i]);
-        mzs[indicesToIndexMap.get(peakIndex)] = buffer[i];
-      }
+    final long error = TDFLib.tims_index_to_mz(handle, frameId, mzIndexInputDoubleBuffer,
+        mobScanMzOutputDoubleBuffer, (int) (intIndices.byteSize() / JAVA_INT.byteSize()));
+    if (error == 0) {
+      printLastError(error).throwOnError();
+      logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
-
-    Arrays.sort(mzs);
-    return mzs;
+    return mobScanMzOutputDoubleBuffer.asSlice(0, intIndices.byteSize() * 2).toArray(JAVA_DOUBLE);
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -732,40 +647,45 @@ public class TDFUtils implements AutoCloseable {
   // -----------------------------------------------------------------------------------------------
 
   public double[] convertScanNumsToOneOverK0(final long handle, final long frameId,
-      final int[] scanNums) {
-    double[] buffer = new double[scanNums.length];
+      final int numScans) {
+    // scan numbers always start at 1, so we only need to re-populate the buffer if the new number
+    //  of scans is greater than the current buffer size. For a different frame we may get different
+    //  mobilities due to pressure compensation.
+    if (mobilitiesInputDoubleBuffer.byteSize() < numScans * JAVA_DOUBLE.byteSize()) {
+      mobilitiesInputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE, numScans);
+      mobilitiesOutputDoubleBuffer = offHeap.allocate(JAVA_DOUBLE, numScans);
+      for (int i = 0; i < numScans; i++) {
+        mobilitiesInputDoubleBuffer.setAtIndex(JAVA_DOUBLE, i, i + 1);
+      }
+    }
 
-    long error = tdfLib.tims_scannum_to_oneoverk0(handle, frameId,
-        Arrays.stream(scanNums).asDoubleStream().toArray(), buffer, scanNums.length);
+    long error = TDFLib.tims_scannum_to_oneoverk0(handle, frameId, mobilitiesInputDoubleBuffer,
+        mobilitiesOutputDoubleBuffer, numScans);
     if (error == 0) {
       logger.warning(() -> "Could not convert scan nums to 1/K0 for frame " + frameId);
       printLastError(error).throwOnError();
     }
-    return buffer;
+    return mobilitiesOutputDoubleBuffer.toArray(JAVA_DOUBLE);
   }
 
   // ---------------------------------------------------------------------------------------------
   // UTILITY FUNCTIONS
   // -----------------------------------------------------------------------------------------------
 
-  public Float calculateCCS(double ook0, long charge, double mz) {
-    if (tdfLib == null) {
-      boolean loaded = loadLibrary();
-      if (!loaded) {
-        return null;
-      }
+  public static @Nullable Float calculateCCS(double ook0, int charge, double mz) {
+    try {
+      return (float) TDFLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
+    } catch (Exception e) {
+      return null;
     }
-    return (float) tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
   }
 
-  public Float calculateOok0(double ccs, long charge, double mz) {
-    if (tdfLib == null) {
-      boolean loaded = loadLibrary();
-      if (!loaded) {
-        return null;
-      }
+  public static @Nullable Float calculateOok0(double ccs, int charge, double mz) {
+    try {
+      return (float) TDFLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
+    } catch (Exception e) {
+      return null;
     }
-    return (float) tdfLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
   }
 
   /**
@@ -774,10 +694,11 @@ public class TDFUtils implements AutoCloseable {
    */
   private Result printLastError(long errorCode) {
     if (errorCode == 0 || errorCode > BUFFER_SIZE) {
-      byte[] errorBuffer = new byte[256];
-      long len = tdfLib.tims_get_last_error_string(errorBuffer, errorBuffer.length);
+      final MemorySegment errorBuffer = offHeap.allocate(OfByte.JAVA_BYTE, 256);
+      long len = TDFLib.tims_get_last_error_string(errorBuffer, (int) errorBuffer.byteSize());
       try {
-        final String errorMessage = new String(errorBuffer, "UTF-8").substring(0, (int) len - 1);
+        final String errorMessage = new String(errorBuffer.toArray(ValueLayout.JAVA_BYTE),
+            "UTF-8").substring(0, (int) len - 1);
 //        logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
 //            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
         if (errorMessage.contains("CorruptFrameDataError")) {
@@ -813,15 +734,14 @@ public class TDFUtils implements AutoCloseable {
     return Result.ok();
   }
 
-  private void setNumThreads(int numThreads) {
-    if (tdfLib == null) {
-      if (!loadLibrary()) {
-        return;
-      }
-    }
-    if (numThreads >= 1) {
+  private static void setNumThreads(int numThreads) {
+    try {
+      if (numThreads >= 1) {
 //      logger.finest(() -> "Setting number of threads per file to " + numThreads);
-      tdfLib.tims_set_num_threads(numThreads);
+        TDFLib.tims_set_num_threads(numThreads);
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 }
