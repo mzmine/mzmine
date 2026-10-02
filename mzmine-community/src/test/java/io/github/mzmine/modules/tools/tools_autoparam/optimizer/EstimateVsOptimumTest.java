@@ -247,6 +247,12 @@ public class EstimateVsOptimumTest {
   private static final String ONLY_PROPERTY = "mzmine.test.autoparam.only";
 
   /**
+   * Comma separated parameter names to optimize, e.g. {@code Min height,MS1 noise level}, or unset
+   * for every parameter the sequence exposes. Fewer variables converge in fewer batches.
+   */
+  private static final String PARAMS_PROPERTY = "mzmine.test.autoparam.params";
+
+  /**
    * Comma separated random seeds to repeat every dataset with. One seed gives every dataset the
    * same warm-start draws, so a measured optimum can only ever be one of the twenty values that
    * draw produced - enough to see the direction of an estimate's error, not its size. Several seeds
@@ -606,6 +612,26 @@ public class EstimateVsOptimumTest {
     };
   }
 
+  /**
+   * Restricts the search to the parameters named in {@link #PARAMS_PROPERTY}. The others are not
+   * searched and stay at their raw data estimates.
+   */
+  private static @NotNull List<ParameterDefinition<?>> selectedParameters(
+      @NotNull List<ParameterDefinition<?>> exposed) {
+    final String configured = System.getProperty(PARAMS_PROPERTY);
+    if (configured == null || configured.isBlank()) {
+      return exposed;
+    }
+    final List<String> names = java.util.Arrays.stream(configured.split(",")).map(String::trim)
+        .filter(s -> !s.isEmpty()).toList();
+    final List<ParameterDefinition<?>> selected = exposed.stream()
+        .filter(p -> names.stream().anyMatch(name -> name.equalsIgnoreCase(p.name()))).toList();
+    Assertions.assertEquals(names.size(), selected.size(),
+        "-D%s=%s does not match the exposed parameters %s".formatted(PARAMS_PROPERTY, configured,
+            exposed.stream().map(ParameterDefinition::name).toList()));
+    return selected;
+  }
+
   private @NotNull OptimizerParameters createParameters(@NotNull WizardSequence sequence) {
     final OptimizerParameters params = new OptimizerParameters();
     final OptimizerOptions optimizer = optimizer();
@@ -625,7 +651,7 @@ public class EstimateVsOptimumTest {
     params.setParameter(OptimizerParameters.maxShapeRejectionFactor, false);
     // only the parameters this sequence actually exposes, same as the wizard's checklist
     params.setParameter(OptimizerParameters.paramToOptimize,
-        OptimizerParameters.collectSolutions(sequence));
+        selectedParameters(OptimizerParameters.collectSolutions(sequence)));
     return params;
   }
 

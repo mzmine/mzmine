@@ -289,7 +289,10 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     final List<FeatureStatistics> featureStats = mzsToIsotopeTraces.double2ObjectEntrySet().stream()
         .map(e -> new FeatureStatistics(e.getValue()))
         .sorted(Comparator.comparingDouble(FeatureStatistics::getMz)).toList();
-    dataFileStats = new DataFileStatistics(file, featureStats, effectiveRtRange);
+    final Double referenceInjectionTime = RawDataParameterEstimation.estimateReferenceInjectionTime(
+        file, scans, effectiveRtRange);
+    dataFileStats = new DataFileStatistics(file, featureStats, effectiveRtRange,
+        referenceInjectionTime);
 
     final String tolStr = "mz\tabs\trel\n" + Arrays.stream(dataFileStats.getBestTolerances()).map(
         pair -> "%.4f\t%.4f\t%.1f".formatted(pair.mz(), pair.tolerance().getMzTolerance(),

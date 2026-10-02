@@ -101,7 +101,8 @@ public enum StatisticsPlotType {
     return switch (this) {
       case FWHM -> stats.getIsotopePeakFwhms();
       case EDGE_INTENSITY -> stats.getEdgeIntensities();
-      case LOWEST_ISOTOPE_HEIGHT -> stats.getLowestIsotopeHeights();
+      // the same values the min height is estimated from, so the marked estimate fits the histogram
+      case LOWEST_ISOTOPE_HEIGHT -> stats.getInjectionTimeCorrectedLowestIsotopeHeights();
       case ISOTOPE_DATA_POINTS ->
           Arrays.stream(stats.getNumberOfLowestIsotopeDataPoints()).asDoubleStream().toArray();
       case BEST_TOLERANCE_FREQUENCY -> new double[0];

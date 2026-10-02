@@ -26,10 +26,12 @@
 package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,9 +43,14 @@ import org.jetbrains.annotations.Nullable;
  * @param effectiveRtRange retention time range of the run that contains the separation, without
  *                         dead volume, calibrant plugs and re-equilibration, in minutes. Null if
  *                         the file has too few MS1 scans or no run phase was detected
+ * @param referenceInjectionTime median MS1 injection time in ms within the effective RT range,
+ *                               see
+ *                               {@link RawDataParameterEstimation#estimateReferenceInjectionTime}.
+ *                               Null if there is no injection time or it is ion mobility data
  */
 public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featureStatistics,
-                                 @Nullable SimpleFloatRange effectiveRtRange) {
+                                 @Nullable SimpleFloatRange effectiveRtRange,
+                                 @Nullable Double referenceInjectionTime) {
 
   public double[] getEdgeIntensities() {
     return featureStatistics.stream()
@@ -97,5 +104,32 @@ public record DataFileStatistics(RawDataFile file, List<FeatureStatistics> featu
   public double[] getLowestIsotopeHeights() {
     return featureStatistics().stream().map(FeatureStatistics::getBestEnvelope)
         .map(fwi -> fwi.isotopeTraces().getLast()).mapToDouble(Feature::getHeight).toArray();
+  }
+
+  /**
+   * Lowest isotope heights as they would be in a scan with the {@link #referenceInjectionTime}.
+   * Height times injection time is proportional to the charges in the trap, and the detection limit
+   * is constant in charges. The seed features are intense, so their apexes are in short-IT scans
+   * with a raised noise floor, and their raw heights overestimate the minimum height.
+   *
+   * @return the converted heights, or the raw heights if this file is not injection-time normalized
+   */
+  public double @NotNull [] getInjectionTimeCorrectedLowestIsotopeHeights() {
+    if (referenceInjectionTime == null) {
+      return getLowestIsotopeHeights();
+    }
+    final DoubleArrayList heights = new DoubleArrayList();
+    for (final FeatureStatistics stats : featureStatistics) {
+      final Feature lowest = stats.getBestEnvelope().isotopeTraces().getLast();
+      final Scan apex = lowest.getRepresentativeScan();
+      final Float apexInjectionTime = apex == null ? null : apex.getInjectionTime();
+      final Float height = lowest.getHeight();
+      // assumption: a height without the apex injection time cannot be converted and is left out
+      if (apexInjectionTime == null || apexInjectionTime <= 0 || height == null) {
+        continue;
+      }
+      heights.add(height * apexInjectionTime / referenceInjectionTime);
+    }
+    return heights.toDoubleArray();
   }
 }

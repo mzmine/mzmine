@@ -50,7 +50,7 @@ class CropRtEstimationTest {
       @Nullable SimpleFloatRange range) {
     final RawDataFile raw = Mockito.mock(RawDataFile.class);
     Mockito.when(raw.getDataRTRange(1)).thenReturn(Range.closed(rtStart, rtEnd));
-    return new DataFileStatistics(raw, List.of(), range);
+    return new DataFileStatistics(raw, List.of(), range, null);
   }
 
   private static @NotNull ParameterEstimationContext context(

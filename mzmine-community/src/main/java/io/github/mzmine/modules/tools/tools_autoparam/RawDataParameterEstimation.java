@@ -26,6 +26,9 @@
 package io.github.mzmine.modules.tools.tools_autoparam;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.SimpleRange.SimpleFloatRange;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -66,8 +69,38 @@ public final class RawDataParameterEstimation {
     return estimateQuantile(fwhms, 0.5);
   }
 
+  /**
+   * @param heights lowest isotope heights, converted to the reference injection time for
+   *                injection-time data, see
+   *                {@link DataFileStatistics#getInjectionTimeCorrectedLowestIsotopeHeights()}
+   */
   public static @Nullable Double estimateMinHeight(double @NotNull [] heights) {
     return estimateQuantile(heights, 0.5);
+  }
+
+  /**
+   * Injection time of a typical MS1 scan, used to convert heights measured in scans with other
+   * injection times. Orbitrap intensities are normalized to the injection time, so the noise floor
+   * of a scan scales with 1/IT, and the intense seed features have their apex in short-IT scans.
+   * <p>
+   * decision: the median scan. Higher quantiles lower the min height further, which the optimized
+   * reference datasets did not consistently support.
+   *
+   * @param ms1Scans         the MS1 scans the statistics were computed from
+   * @param effectiveRtRange the separation without dead volume and wash, or null to use all scans
+   * @return the median injection time in ms, or null if the file is not injection-time normalized
+   */
+  public static @Nullable Double estimateReferenceInjectionTime(@NotNull RawDataFile file,
+      @NotNull List<? extends Scan> ms1Scans, @Nullable SimpleFloatRange effectiveRtRange) {
+    // decision: timsTOF reports injection times, but we don't scale the noise level with it.
+    if (file instanceof IMSRawDataFile) {
+      return null;
+    }
+    final double[] injectionTimes = ms1Scans.stream().filter(
+            scan -> effectiveRtRange == null || effectiveRtRange.contains(scan.getRetentionTime()))
+        .filter(Scan::hasInjectionTime).mapToDouble(Scan::getInjectionTime).filter(it -> it > 0)
+        .toArray();
+    return estimateQuantile(injectionTimes, 0.5);
   }
 
   /**

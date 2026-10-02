@@ -95,7 +95,8 @@ public record RawDataAnalysis(@NotNull List<DataFileStatistics> files, double @N
         .map(DataFileStatistics::getNumberOfLowestIsotopeDataPoints).flatMapToInt(Arrays::stream)
         .mapToDouble(value -> value).toArray();
     final double[] edges = flatten(files, DataFileStatistics::getEdgeIntensities);
-    final double[] heights = flatten(files, DataFileStatistics::getLowestIsotopeHeights);
+    final double[] heights = flatten(files,
+        DataFileStatistics::getInjectionTimeCorrectedLowestIsotopeHeights);
     if (files.size() < 2) {
       return new RawDataAnalysis(files, fwhms, points, edges, heights, new double[0], new double[0],
           Map.of());
