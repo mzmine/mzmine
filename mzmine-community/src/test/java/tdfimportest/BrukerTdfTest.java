@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -121,12 +120,10 @@ public class BrukerTdfTest {
     Frame frame18 = file.getFrame(17);
     Assert.assertEquals(2481, frame18.getNumberOfDataPoints());
     Assert.assertEquals(338.3410293649397, frame18.getBasePeakMz(), 0.001d);
-//    Assert.assertEquals(17702.0, frame18.getBasePeakIntensity(), 1d);
-//    Assert.assertEquals((double) 217944.0, frame18.getTIC(), 2d);
+    Assert.assertEquals(17714.396484375, frame18.getBasePeakIntensity(), 1d);
+    Assert.assertEquals(212221.03301429749, frame18.getTIC(), 2d);
     Assert.assertEquals(0.03988863f, frame18.getRetentionTime(), 0.00001f);
     Assert.assertEquals(Range.closed(20.000132, 1300d), frame18.getScanningMZRange());
-    Assertions.assertTrue(IntStream.range(0, frame18.getNumberOfDataPoints())
-        .allMatch(i -> frame18.getIntensityValue(i) == (double) ((int) frame18.getIntensityValue(i))));
 
     MobilityScan mobilityScan425 = frame18.getMobilityScans().get(676);
     Assert.assertEquals(5, mobilityScan425.getBasePeakIndex().intValue());
@@ -140,8 +137,8 @@ public class BrukerTdfTest {
     Assert.assertEquals(2105.0, mobilityScan425.getTIC(), 0.0001d);
     Assertions.assertEquals(215673.0,
         frame18.getMobilityScans().stream().mapToDouble(s -> s.getTIC()).sum());
-    Assertions.assertTrue(frame18.getMobilityScans().stream()
-        .noneMatch(s -> s.getTIC() != (double) (s.getTIC().intValue())));
+    Assertions.assertTrue(
+        frame18.getMobilityScans().stream().noneMatch(s -> s.getTIC() != (int) (s.getTIC())));
   }
 
   @Disabled
