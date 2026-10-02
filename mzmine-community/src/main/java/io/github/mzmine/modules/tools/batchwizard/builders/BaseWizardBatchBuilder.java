@@ -350,9 +350,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     final List<RawDataFileType> allFileTypes = Arrays.stream(dataFiles)
         .map(RawDataFileTypeDetector::detectDataFileType).toList();
-    imsHasFrameSpectra = allFileTypes.stream().allMatch(
-        type -> (type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
-            && ConfigService.getPreference(MZminePreferences.massLynxImportChoice).isNative())));
+    imsHasFrameSpectra = allFileTypes.stream().allMatch(BaseWizardBatchBuilder::hasImsFrameSpectra);
     allMobilityScansCentroided = allFileTypes.stream()
         .allMatch(type -> (type == RawDataFileType.BRUKER_TDF));
 
@@ -368,6 +366,15 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     mzTolFeaturesIntraSample = getValue(params,
         MassSpectrometerWizardParameters.featureToFeatureMzTolerance);
     mzTolInterSample = getValue(params, MassSpectrometerWizardParameters.sampleToSampleMzTolerance);
+  }
+
+  /**
+   * @return true if the IMS frames of this file type contain the summed spectra. Otherwise, e.g.,
+   * for mzML, the frames are empty and the mobility scans need to be merged into the frames.
+   */
+  public static boolean hasImsFrameSpectra(@NotNull RawDataFileType type) {
+    return type == RawDataFileType.BRUKER_TDF || (type == RawDataFileType.WATERS_RAW_IMS
+        && ConfigService.getPreference(MZminePreferences.massLynxImportChoice).isNative());
   }
 
   // #################################################################################

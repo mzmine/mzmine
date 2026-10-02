@@ -28,6 +28,8 @@ package io.github.mzmine.modules.tools.tools_autoparam;
 import com.google.common.collect.Range;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -39,6 +41,8 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -46,17 +50,24 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerTask;
+import io.github.mzmine.modules.tools.batchwizard.builders.BaseWizardBatchBuilder;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.FeatureRecord;
 import io.github.mzmine.modules.tools.tools_autoparam.estimation.MzToleranceSearchOptions;
 import io.github.mzmine.modules.tools.tools_autoparam.runphases.RunPhaseDetection;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.SpectraMerging;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap;
 import java.time.Instant;
@@ -238,13 +249,48 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     return List.of();
   }
 
+  /**
+   * Replaces the frame mass lists by a merge of the mobility scans with the tested tolerance, as
+   * the wizard batch merges with the scan-to-scan tolerance. Otherwise, the best tolerance would
+   * depend on how well the reference merge fits the raw data. Requires the mobility scan mass lists
+   * of {@link #mergeMs1MobilityScansIntoFrames(IMSRawDataFile)}.
+   */
+  private static void mergeFrameMassLists(@NotNull List<Scan> frames,
+      @NotNull MZTolerance tolerance) {
+    final CenterFunction centerFunction = new CenterFunction(SpectraMerging.DEFAULT_CENTER_MEASURE,
+        MobilityScanMergerParameters.DEFAULT_WEIGHTING);
+    for (final Scan frame : frames) {
+      final double[][] merged = MobilityScanMergerTask.mergeMobilityScans((Frame) frame, tolerance,
+          MobilityScanMergerParameters.DEFAULT_MERGING_TYPE, centerFunction,
+          MobilityScanMergerParameters.DEFAULT_NOISE_LEVEL,
+          MobilityScanMergerParameters.DEFAULT_MIN_DETECTIONS);
+      // decision: in RAM, as each merge is replaced by the next one and the memory map storage
+      // would keep every replaced merge
+      frame.addMassList(new SimpleMassList(null, merged[0], merged[1]));
+    }
+  }
+
   @Override
   protected void process() {
     // polarity switching data alternate polarities scan by scan, which breaks every trace
     final PolarityType polarity = getParameters().getValue(AutoParamParameters.POLARITY);
     final ScanSelection scanSelection = new ScanSelection(1, polarity);
     final List<Scan> scans = scanSelection.getMatchingScans(file.getScans());
-    applyZeroIntensityMassDetection(scans);
+    final boolean mergeMobilityScans =
+        file instanceof IMSRawDataFile && !BaseWizardBatchBuilder.hasImsFrameSpectra(
+            RawDataFileTypeDetector.detectDataFileType(file.getAbsoluteFilePath()));
+    if (mergeMobilityScans) {
+      // reference merge with the default tolerance for the seeds and the run phases
+      mergeMs1MobilityScansIntoFrames((IMSRawDataFile) file);
+    } else {
+      applyZeroIntensityMassDetection(scans);
+    }
+    // decision: the mass spectrometer presets allowed with ion mobility are never estimated with
+    // a wider tolerance, and wide merges distort the frame spectra
+    final List<MZTolerance> testedTolerances =
+        file instanceof IMSRawDataFile ? Arrays.asList(tolerances)
+            .subList(0, MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1)
+            : Arrays.asList(tolerances);
     // needs only the MS1 mass lists, cheap compared to the isotope trace extraction below
     final SimpleFloatRange effectiveRtRange = RunPhaseDetection.detect(file, scans);
     logger.finest("Effective RT range of %s: %s".formatted(file.getName(), effectiveRtRange));
@@ -255,7 +301,10 @@ public class AutoParamTask extends AbstractRawDataFileTask {
     final Double2ObjectArrayMap<List<FeatureWithIsotopeTraces>> mzsToIsotopeTraces = new Double2ObjectArrayMap<>();
 
     List<FeatureWithIsotopeTraces> featureWithIsotopeTraces = new ArrayList<>();
-    for (MZTolerance tolerance : tolerances) {
+    for (MZTolerance tolerance : testedTolerances) {
+      if (mergeMobilityScans) {
+        mergeFrameMassLists(scans, tolerance);
+      }
       final List<Range<Double>> mzRangesSorted = Arrays.stream(basePeakMzs)
           .mapToObj(tolerance::getToleranceRange).toList();
       final List<ModularFeature> mainFeatures = getMainSignalFeatures(scans, mzRangesSorted,
@@ -283,6 +332,12 @@ public class AutoParamTask extends AbstractRawDataFileTask {
         final List<FeatureWithIsotopeTraces> mzResults = mzsToIsotopeTraces.computeIfAbsent(
             initialMz, k -> new ArrayList<>());
         mzResults.add(envelope);
+      }
+    }
+    if (mergeMobilityScans) {
+      // restore the reference merge, the frame spectra of the file
+      for (final Scan frame : scans) {
+        frame.addMassList(new ScanPointerMassList(frame));
       }
     }
 
@@ -399,6 +454,41 @@ public class AutoParamTask extends AbstractRawDataFileTask {
       mainPeaks.add(mainFeature);
     }
     return mainPeaks;
+  }
+
+  /**
+   * The frames of IMS files without frame spectra, e.g., from mzML, are empty. Merges the MS1
+   * mobility scans into the frames with the default tolerance, as the wizard batch does, so the
+   * frames can be analyzed like scans. This reference merge stays in the frames of the file, the
+   * tolerance search re-merges into temporary mass lists, see
+   * {@link #mergeFrameMassLists(List, MZTolerance)}.
+   */
+  private void mergeMs1MobilityScansIntoFrames(@NotNull IMSRawDataFile imsFile) {
+    final ScanSelection ms1 = ScanSelection.MS1;
+    // decision: all MS1 frames, not only those of the polarity, as the merger requires mass lists
+    // for all frames of its scan selection
+    final AutoMassDetector detector = new AutoMassDetector(0d);
+    for (final Frame frame : ms1.getMatchingScans(imsFile.getFrames())) {
+      ((SimpleFrame) frame).getMobilityScanStorage()
+          .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, false);
+    }
+
+    // the defaults, but only MS1
+    final MobilityScanMergerParameters mergerParameters = MobilityScanMergerParameters.create(
+        new RawDataFilesSelection(new RawDataFile[]{imsFile}),
+        MobilityScanMergerParameters.DEFAULT_NOISE_LEVEL,
+        MobilityScanMergerParameters.DEFAULT_MERGING_TYPE,
+        MobilityScanMergerParameters.DEFAULT_WEIGHTING, ms1,
+        MobilityScanMergerParameters.DEFAULT_MZ_TOLERANCE,
+        MobilityScanMergerParameters.DEFAULT_MIN_DETECTIONS);
+    final MobilityScanMergerTask mergerTask = new MobilityScanMergerTask(imsFile, mergerParameters,
+        getModuleCallDate());
+    mergerTask.run();
+    if (mergerTask.getStatus() != TaskStatus.FINISHED) {
+      throw new IllegalStateException(
+          "Cannot merge the mobility scans of %s: %s".formatted(imsFile.getName(),
+              mergerTask.getErrorMessage()));
+    }
   }
 
   private void applyZeroIntensityMassDetection(List<Scan> scans) {
