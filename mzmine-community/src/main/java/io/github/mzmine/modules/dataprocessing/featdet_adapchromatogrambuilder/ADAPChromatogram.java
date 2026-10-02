@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,9 +43,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ADAPChromatogram {
 
+  /**
+   * Shared comparator instance.
+   */
+  private static final Comparator<Scan> SCAN_ORDER = Comparator.comparingInt(Scan::getScanNumber)
+      .thenComparingDouble(Scan::getRetentionTime);
+
   // Data points of the chromatogram (map of scan number -> m/z feature)
   // private Hashtable<Integer, DataPoint> dataPointsMap;
-  private final TreeMap<Scan, DataPoint> dataPointsMap = new TreeMap<>();
+  private final TreeMap<Scan, DataPoint> dataPointsMap = new TreeMap<>(SCAN_ORDER);
   public int tmp_see_same_scan_count = 0;
   // Chromatogram m/z weighted
   private double mz;
@@ -59,6 +66,10 @@ public class ADAPChromatogram {
 
   public Collection<DataPoint> getDataPoints() {
     return dataPointsMap.values();
+  }
+
+  public TreeMap<Scan, DataPoint> getDataPointsMap() {
+    return dataPointsMap;
   }
 
 
@@ -115,15 +126,14 @@ public class ADAPChromatogram {
     //
     // For now just don't add the point if we have it already. The highest point will be the
     // first one added
-    if (dataPointsMap.containsKey(scanNumber)) {
-      tmp_see_same_scan_count += 1;
-      return;
-    }
     if (mzValue == null) {
       return;
     }
+    if (dataPointsMap.putIfAbsent(scanNumber, mzValue) != null) {
+      tmp_see_same_scan_count += 1;
+      return;
+    }
 
-    dataPointsMap.put(scanNumber, mzValue);
     mzSum += mzValue.getMZ();
     mzN++;
     mz = mzSum / mzN;
