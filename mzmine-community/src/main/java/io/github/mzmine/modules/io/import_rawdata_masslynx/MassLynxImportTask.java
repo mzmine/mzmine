@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -150,6 +151,10 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       readTotalItems(ml);
 
       dataFile = ml.createDataFile();
+      dataFile.setStartTimeStamp(ml.getAcqDate());
+      // decision: MassLynx files are always acquired on Waters instruments
+      dataFile.getFileMetadata().set(InstrumentVendorType.class, "Waters");
+      ml.applyToFileMetadata(dataFile.getFileMetadata());
       OtherDataFileImpl mrmFileDataFile = null;
 
       final List<SimpleScan> scans = new ArrayList<>();

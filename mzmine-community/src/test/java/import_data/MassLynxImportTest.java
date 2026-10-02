@@ -27,6 +27,16 @@ package import_data;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.SimpleModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
+import io.github.mzmine.datamodel.features.rawfiletypes.LcMethodNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.TuneMethodNameType;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
@@ -43,6 +53,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -377,5 +388,42 @@ public class MassLynxImportTest {
     }
 
     Assertions.assertEquals(rawMz, mzmineMz);
+  }
+
+  @Test
+  public void testFileMetadata() throws Exception {
+    final File raw = new File(
+        "D:\\OneDrive - mzio GmbH\\Example data - Documents\\Waters\\LC-MS DDA\\pos\\050325_029.raw");
+    if (!raw.exists()) {
+      return;
+    }
+    final AllSpectralDataImportParameters param = generateProfileImportParamMzmine(raw);
+    final ScanImportProcessorConfig processor = AllSpectralDataImportModule.createSpectralProcessors(
+        param.getEmbeddedParametersIfSelectedOrElse(AllSpectralDataImportParameters.advancedImport,
+            null));
+
+    final ModularDataModel metadata = new SimpleModularDataModel();
+    final LocalDateTime acquisitionDate;
+    try (final var access = new MassLynxDataAccess(raw,
+        (VendorImportParameters) param.getEmbeddedParameterValue(
+            AllSpectralDataImportParameters.vendorOptions), null, processor)) {
+      access.applyToFileMetadata(metadata);
+      acquisitionDate = access.getAcqDate();
+    }
+
+    // values from _header.txt of the file
+    Assertions.assertEquals(LocalDateTime.of(2025, 3, 5, 15, 43, 52), acquisitionDate);
+    Assertions.assertEquals("Cyclic-IMS", metadata.get(InstrumentModelType.class));
+    Assertions.assertEquals("MassLynx", metadata.get(AcquisitionSoftwareType.class));
+    Assertions.assertEquals("04.20", metadata.get(AcquisitionSoftwareVersionType.class));
+    Assertions.assertEquals("Raw output", metadata.get(SampleDescriptionType.class));
+    // HPLC method is empty, the inlet method is used as LC method
+    Assertions.assertEquals(
+        "D:\\Projects\\CJH Feb25.PRO\\ACQUDB\\small_mols_prem_5min_13total_10_50pc_55",
+        metadata.get(LcMethodNameType.class));
+    // empty in the header
+    Assertions.assertNull(metadata.get(OperatorNameType.class));
+    Assertions.assertNull(metadata.get(SampleNameType.class));
+    Assertions.assertNull(metadata.get(TuneMethodNameType.class));
   }
 }

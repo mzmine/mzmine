@@ -25,35 +25,81 @@
 
 package io.github.mzmine.modules.io.import_rawdata_masslynx;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationDateTimeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
+import io.github.mzmine.datamodel.features.rawfiletypes.LcMethodNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.TuneMethodNameType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * Header item identifiers used by MassLynx, starting at 300.
+ * Header item identifiers used by MassLynx, starting at 300. Items with a
+ * {@link #getFileMetadataType() file metadata type} are read during import and stored in
+ * {@link RawDataFile#getFileMetadata()}, see {@link MassLynxDataAccess#applyToFileMetadata}.
  */
 public enum MassLynxHeaderItem {
-  VERSION(300), ACQUIRED_NAME(301), ACQUIRED_DATE(302), ACQUIRED_TIME(303), JOB_CODE(
-      304), TASK_CODE(305), USER_NAME(306), INSTRUMENT(307), CONDITIONS(308), LAB_NAME(
-      309), SAMPLE_DESCRIPTION(310), SOLVENT_DELAY(311), SUBMITTER(312), SAMPLE_ID(
-      313), BOTTLE_NUMBER(314), ANALOG_CH1_OFFSET(315), ANALOG_CH2_OFFSET(316), ANALOG_CH3_OFFSET(
-      317), ANALOG_CH4_OFFSET(318), CAL_MS1_STATIC(319), CAL_MS2_STATIC(320), CAL_MS1_STATIC_PARAMS(
-      321), CAL_MS1_DYNAMIC_PARAMS(322), CAL_MS2_STATIC_PARAMS(323), CAL_MS2_DYNAMIC_PARAMS(
-      324), CAL_MS1_FAST_PARAMS(325), CAL_MS2_FAST_PARAMS(326), CAL_TIME(327), CAL_DATE(
-      328), CAL_TEMPERATURE(329), INLET_METHOD(330), SPARE1(331), SPARE2(332), SPARE3(333), SPARE4(
-      334), SPARE5(335), MS_METHOD(336), INLET_PRERUN_METHOD(337), INLET_POSTRUN_METHOD(
-      338), INLET_SWITCH_METHOD(339), HPLC_METHOD(340), TUNE_METHOD(341), FRACTIONLYNX_METHOD(
-      342), REINJECTIONS(343), PIC_MRM_FUNCTION(344), PIC_SCAN_FUNCTION(345), SCANWAVE_FUNC_LIST(
-      346), CALIBRATION_FILE(347), ASSOCIATED_DATAFILE(348), MUX_STREAM(349);
+  // MassLynx version, the acquisition software is set to MassLynx
+  VERSION(300, AcquisitionSoftwareVersionType.class), //
+  ACQUIRED_NAME(301), ACQUIRED_DATE(302), ACQUIRED_TIME(303), JOB_CODE(304), TASK_CODE(305), //
+  USER_NAME(306, OperatorNameType.class), //
+  INSTRUMENT(307, InstrumentModelType.class), //
+  CONDITIONS(308), LAB_NAME(309), //
+  SAMPLE_DESCRIPTION(310, SampleDescriptionType.class), //
+  SOLVENT_DELAY(311), SUBMITTER(312), //
+  SAMPLE_ID(313, SampleNameType.class), //
+  BOTTLE_NUMBER(314), ANALOG_CH1_OFFSET(315), ANALOG_CH2_OFFSET(316), ANALOG_CH3_OFFSET(317), //
+  ANALOG_CH4_OFFSET(318), CAL_MS1_STATIC(319), CAL_MS2_STATIC(320), CAL_MS1_STATIC_PARAMS(321), //
+  CAL_MS1_DYNAMIC_PARAMS(322), CAL_MS2_STATIC_PARAMS(323), CAL_MS2_DYNAMIC_PARAMS(324), //
+  CAL_MS1_FAST_PARAMS(325), CAL_MS2_FAST_PARAMS(326), //
+  // calibration date and time are combined into one value
+  CAL_TIME(327, CalibrationDateTimeType.class), //
+  CAL_DATE(328, CalibrationDateTimeType.class), //
+  CAL_TEMPERATURE(329), //
+  // LC method if HPLC_METHOD is not set
+  INLET_METHOD(330, LcMethodNameType.class), //
+  SPARE1(331), SPARE2(332), SPARE3(333), SPARE4(334), //
+  SPARE5(335), //
+  MS_METHOD(336, AcquisitionMethodType.class), //
+  INLET_PRERUN_METHOD(337), INLET_POSTRUN_METHOD(338), INLET_SWITCH_METHOD(339), //
+  HPLC_METHOD(340, LcMethodNameType.class), //
+  TUNE_METHOD(341, TuneMethodNameType.class), //
+  FRACTIONLYNX_METHOD(342), REINJECTIONS(343), PIC_MRM_FUNCTION(344), PIC_SCAN_FUNCTION(345), //
+  SCANWAVE_FUNC_LIST(346), CALIBRATION_FILE(347), ASSOCIATED_DATAFILE(348), MUX_STREAM(349);
 
   private final int value;
+  private final @Nullable Class<? extends DataType<?>> fileMetadataType;
 
-  MassLynxHeaderItem(int value) {
-    this.value = value;
+  MassLynxHeaderItem(final int value) {
+    this(value, null);
   }
 
-  public static MassLynxHeaderItem[] relevantItems() {
-    return new MassLynxHeaderItem[]{VERSION, USER_NAME, INSTRUMENT, SAMPLE_DESCRIPTION, CAL_TIME,
-        CAL_DATE, HPLC_METHOD, TUNE_METHOD};
+  MassLynxHeaderItem(final int value,
+      @Nullable final Class<? extends DataType<?>> fileMetadataType) {
+    this.value = value;
+    this.fileMetadataType = fileMetadataType;
   }
 
   public int getValue() {
     return value;
+  }
+
+  /**
+   * @return the raw file metadata type this item is mapped to or null
+   */
+  public @Nullable Class<? extends DataType<?>> getFileMetadataType() {
+    return fileMetadataType;
+  }
+
+  /**
+   * @return true if this item is read during import and mapped to the raw file metadata
+   */
+  public boolean hasFileMetadataType() {
+    return fileMetadataType != null;
   }
 }

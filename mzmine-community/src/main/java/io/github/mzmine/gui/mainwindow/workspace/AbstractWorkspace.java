@@ -137,6 +137,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.extract.SampleMeta
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
+import io.github.mzmine.modules.visualization.rawfilemetadata.RawFileMetadataTab;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
@@ -234,6 +235,8 @@ public abstract class AbstractWorkspace implements Workspace {
     addMenuItem(menu, "Sample metadata",
         () -> MZmineCore.getDesktop().addTab(new ProjectMetadataTab()), KeyCode.M,
         KeyCombination.SHORTCUT_DOWN);
+    addMenuItem(menu, RawFileMetadataTab.TITLE,
+        () -> MZmineCore.getDesktop().addTab(new RawFileMetadataTab()), null);
     addModuleMenuItems(menu, SampleMetadataExtractionModule.class);
     addSeparator(menu);
     addMenuItem(menu, "Set preferences",

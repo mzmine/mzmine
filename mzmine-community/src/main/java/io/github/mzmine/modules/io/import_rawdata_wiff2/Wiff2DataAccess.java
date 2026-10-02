@@ -26,11 +26,16 @@
 package io.github.mzmine.modules.io.import_rawdata_wiff2;
 
 import com.google.common.collect.Range;
+import com.google.protobuf.Value;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.OtherFeatureUtils;
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
+import io.github.mzmine.datamodel.features.rawfiletypes.IonSourcesType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.ChromatogramTypeType;
 import io.github.mzmine.datamodel.features.types.otherdectectors.WavelengthType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
@@ -63,13 +68,17 @@ import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetAdcChannelDescrip
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetChannelTracesRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetExperimentsRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetMrmXicRequest;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetSampleInfoRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetSpectraRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.GetWavelengthSpectraRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.ListSamplesRequest;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.MassRangeConfiguration;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.MrmXic;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Paragraph;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Parameter;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Precursor;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.Sample;
+import io.github.mzmine.modules.io.import_rawdata_wiff2.api.SampleInfoSection;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.ScanWindow;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.SmoothingOptions;
 import io.github.mzmine.modules.io.import_rawdata_wiff2.api.SourceFile;
@@ -98,6 +107,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -112,6 +122,12 @@ import org.slf4j.LoggerFactory;
 public class Wiff2DataAccess implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(Wiff2DataAccess.class.getName());
+
+  // names of the sample info paragraphs and parameters mapped to the file metadata
+  private static final String SAMPLE_INFO_SOFTWARE_PARAGRAPH = "Software Information";
+  private static final String SAMPLE_INFO_SOFTWARE_PARAMETER = "Keyed Text";
+  private static final String SAMPLE_INFO_ION_SOURCE_PARAGRAPH = "Ion Source";
+  private static final String SAMPLE_INFO_ION_SOURCE_PARAMETER = "Source name";
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(Wiff2DataAccess.class);
   private static final OfDouble doubleLayout = ValueLayout.JAVA_DOUBLE.withOrder(
       ByteOrder.LITTLE_ENDIAN).withByteAlignment(1); // byte buffer from protobuf is not aligned.
@@ -515,6 +531,76 @@ public class Wiff2DataAccess implements AutoCloseable {
     }
 
     return samples;
+  }
+
+  /**
+   * @return the first non-blank text value of the parameter in a paragraph of any section or null
+   */
+  private static @Nullable String findSampleInfoValue(
+      @NotNull final List<SampleInfoSection> sections, @NotNull final String paragraphName,
+      @NotNull final String parameterName) {
+    // decision: sections are not matched, only paragraph and parameter names
+    for (final SampleInfoSection section : sections) {
+      for (final Paragraph paragraph : section.getParagraphsList()) {
+        if (!paragraphName.equals(paragraph.getName())) {
+          continue;
+        }
+        for (final Parameter parameter : paragraph.getParametersList()) {
+          if (!parameterName.equals(parameter.getName())) {
+            continue;
+          }
+          for (final Value value : parameter.getValuesList()) {
+            final String text = switch (value.getKindCase()) {
+              case STRING_VALUE -> value.getStringValue();
+              case NUMBER_VALUE -> String.valueOf(value.getNumberValue());
+              case BOOL_VALUE -> String.valueOf(value.getBoolValue());
+              case NULL_VALUE, STRUCT_VALUE, LIST_VALUE, KIND_NOT_SET -> null;
+            };
+            if (text != null && !text.isBlank()) {
+              return text.strip();
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Reads the sample info parameters and sets the acquisition software and the ion source to the
+   * file metadata. The sample info contains paragraphs with named parameters, e.g., paragraph
+   * Software Information with the parameter Keyed Text = SCIEX OS 4.0.0.8559.
+   */
+  void applySampleInfoToFileMetadata(@NotNull final Sample sample,
+      @NotNull final ModularDataModel metadata) {
+    final List<SampleInfoSection> sections;
+    try {
+      sections = IteratorUtils.toList(dataProvider.getSampleInfoParameters(
+          GetSampleInfoRequest.newBuilder().setSampleId(sample.getId()).build()));
+    } catch (RuntimeException e) {
+      // decision: missing sample info must not fail the import
+      logger.log(Level.FINE, "Cannot read sample info of " + sample.getSampleName(), e);
+      return;
+    }
+
+    final String software = findSampleInfoValue(sections, SAMPLE_INFO_SOFTWARE_PARAGRAPH,
+        SAMPLE_INFO_SOFTWARE_PARAMETER);
+    if (software != null) {
+      // e.g., SCIEX OS 4.0.0.8559, the version is the last word if it starts with a digit
+      final int lastSpace = software.lastIndexOf(' ');
+      if (lastSpace > 0 && Character.isDigit(software.charAt(lastSpace + 1))) {
+        metadata.set(AcquisitionSoftwareType.class, software.substring(0, lastSpace).strip());
+        metadata.set(AcquisitionSoftwareVersionType.class, software.substring(lastSpace + 1));
+      } else {
+        metadata.set(AcquisitionSoftwareType.class, software);
+      }
+    }
+
+    final String ionSource = findSampleInfoValue(sections, SAMPLE_INFO_ION_SOURCE_PARAGRAPH,
+        SAMPLE_INFO_ION_SOURCE_PARAMETER);
+    if (ionSource != null) {
+      metadata.set(IonSourcesType.class, List.of(ionSource));
+    }
   }
 
   List<Experiment> getExperiments(Sample sample) {
