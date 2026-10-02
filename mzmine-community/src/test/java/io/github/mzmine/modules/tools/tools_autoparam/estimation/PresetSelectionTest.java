@@ -35,6 +35,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMob
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WizardParameterFactory;
 import io.github.mzmine.modules.tools.tools_autoparam.preclassification.PreclassificationParameters;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -194,13 +195,6 @@ class PresetSelectionTest {
   void mixedOrUnsupportedMobilityKeepsTheIonMobilityPreset() {
     final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
         MassSpectrometerWizardParameterFactory.QTOF);
-    // a file without ion mobility
-    Assertions.assertNull(
-        PresetSelection.selectIonMobility(Arrays.asList(MobilityType.TIMS, null), sequence,
-            IonInterfaceWizardParameterFactory.HPLC));
-    Assertions.assertNull(
-        PresetSelection.selectIonMobility(List.of(MobilityType.TIMS, MobilityType.DRIFT_TUBE),
-            sequence, IonInterfaceWizardParameterFactory.HPLC));
     Assertions.assertNull(PresetSelection.selectIonMobility(List.of(MobilityType.FAIMS), sequence,
         IonInterfaceWizardParameterFactory.HPLC));
     // GC-EI only supports no ion mobility
@@ -210,6 +204,147 @@ class PresetSelectionTest {
     Assertions.assertNull(PresetSelection.selectIonMobility(List.of(MobilityType.TIMS),
         sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TIMS,
             MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC));
+  }
+
+  @Test
+  void mixedMobilityTypesKeepThePresetWithAWarning() {
+    final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
+        IonMobilityWizardParameterFactory.TIMS, MassSpectrometerWizardParameterFactory.QTOF);
+    final PresetChange change = PresetSelection.selectIonMobility(
+        List.of(MobilityType.TIMS, MobilityType.DRIFT_TUBE), sequence,
+        IonInterfaceWizardParameterFactory.HPLC);
+    Assertions.assertNotNull(change);
+    Assertions.assertTrue(change.keepsPreset(), change::describe);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.TIMS, change.to());
+    Assertions.assertTrue(change.reason().contains("mixed mobility types"), change::describe);
+
+    final PresetSelection selection = new PresetSelection(List.of(change));
+    Assertions.assertFalse(selection.hasSwitches());
+    Assertions.assertTrue(selection.hasWarnings());
+
+    // the warning keeps the parameters of the selected preset
+    final WizardStepParameters imsStep = sequence.get(WizardPart.IMS).orElseThrow();
+    selection.applyDefaultPresets(sequence);
+    Assertions.assertSame(imsStep, sequence.get(WizardPart.IMS).orElseThrow());
+
+    Assertions.assertTrue(
+        change.reason().contains("recommended to process different IMS types separately"),
+        change::describe);
+
+    // also warned without ion mobility
+    final PresetChange noIms = PresetSelection.selectIonMobility(
+        List.of(MobilityType.TIMS, MobilityType.DRIFT_TUBE),
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC);
+    Assertions.assertNotNull(noIms);
+    Assertions.assertTrue(noIms.keepsPreset(), noIms::describe);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.NO_IMS, noIms.to());
+  }
+
+  @Test
+  void nonImsFilesSwitchToNoIonMobility() {
+    final PresetChange change = PresetSelection.selectIonMobility(Arrays.asList(null, null),
+        sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TWIMS,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC);
+    Assertions.assertNotNull(change);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.NO_IMS, change.to());
+
+    // already selected
+    Assertions.assertNull(PresetSelection.selectIonMobility(Arrays.asList(null, null),
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC));
+  }
+
+  @Test
+  void mixedImsAndNonImsFilesSwitchToNoIonMobility() {
+    // IMS files can be processed without ion mobility, but not the other way round
+    final PresetChange change = PresetSelection.selectIonMobility(
+        Arrays.asList(MobilityType.TIMS, null, MobilityType.TIMS),
+        sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TIMS,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC);
+    Assertions.assertNotNull(change);
+    Assertions.assertEquals(IonMobilityWizardParameterFactory.NO_IMS, change.to());
+    // the user is told that the IMS files lose their ion mobility
+    Assertions.assertTrue(change.reason().contains("1 of 3"), change::describe);
+    Assertions.assertTrue(change.reason().contains("processed without ion mobility"),
+        change::describe);
+
+    // already selected
+    Assertions.assertNull(PresetSelection.selectIonMobility(Arrays.asList(MobilityType.TIMS, null),
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.QTOF), IonInterfaceWizardParameterFactory.HPLC));
+  }
+
+  @Test
+  void switchToNoIonMobilityAllowsOtherMassSpectrometers() {
+    // TWIMS only allows QTOF, the mass spectrometer is selected for the switched ion mobility
+    final WizardSequence sequence = sequence(IonInterfaceWizardParameterFactory.HPLC,
+        IonMobilityWizardParameterFactory.TWIMS, MassSpectrometerWizardParameterFactory.QTOF);
+    final MZTolerance narrow = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[2];
+    final PresetChange orbitrap = PresetSelection.selectMassSpectrometer(narrow, true, sequence,
+        IonMobilityWizardParameterFactory.NO_IMS);
+    Assertions.assertNotNull(orbitrap);
+    Assertions.assertEquals(MassSpectrometerWizardParameterFactory.Orbitrap, orbitrap.to());
+
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    final PresetChange lowRes = PresetSelection.selectMassSpectrometer(wide, false, sequence,
+        IonMobilityWizardParameterFactory.NO_IMS);
+    Assertions.assertNotNull(lowRes);
+    Assertions.assertEquals(MassSpectrometerWizardParameterFactory.LOW_RES, lowRes.to());
+  }
+
+  @Test
+  void toleranceAboveHighResolutionRangeSwitchesToLowRes() {
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
+        MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX + 1];
+    for (final MassSpectrometerWizardParameterFactory ms : List.of(
+        MassSpectrometerWizardParameterFactory.QTOF,
+        MassSpectrometerWizardParameterFactory.Orbitrap)) {
+      for (final boolean injectionTimes : List.of(true, false)) {
+        final PresetChange change = PresetSelection.selectMassSpectrometer(wide, injectionTimes,
+            sequence(IonInterfaceWizardParameterFactory.HPLC, ms),
+            IonMobilityWizardParameterFactory.NO_IMS);
+        Assertions.assertNotNull(change, ms::toString);
+        Assertions.assertEquals(MassSpectrometerWizardParameterFactory.LOW_RES, change.to());
+      }
+    }
+  }
+
+  @Test
+  void toleranceWithinHighResolutionRangeKeepsHighRes() {
+    final MZTolerance widestHighRes = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX];
+    // the Orbitrap range ends below, but the data are still high-resolution data
+    Assertions.assertNull(PresetSelection.selectMassSpectrometer(widestHighRes, true,
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.Orbitrap),
+        IonMobilityWizardParameterFactory.NO_IMS));
+    Assertions.assertNull(PresetSelection.selectMassSpectrometer(widestHighRes, false,
+        sequence(IonInterfaceWizardParameterFactory.HPLC,
+            MassSpectrometerWizardParameterFactory.QTOF),
+        IonMobilityWizardParameterFactory.NO_IMS));
+  }
+
+  @Test
+  void lowResRequiresAnIonMobilityPresetThatAllowsIt() {
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    Assertions.assertNull(PresetSelection.selectMassSpectrometer(wide, false,
+        sequence(IonInterfaceWizardParameterFactory.HPLC, IonMobilityWizardParameterFactory.TIMS,
+            MassSpectrometerWizardParameterFactory.QTOF), IonMobilityWizardParameterFactory.TIMS));
+  }
+
+  @Test
+  void otherMassSpectrometersAreKeptForWideTolerances() {
+    final MZTolerance wide = MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS[
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS.length - 1];
+    for (final MassSpectrometerWizardParameterFactory ms : List.of(
+        MassSpectrometerWizardParameterFactory.Orbitrap_Astral,
+        MassSpectrometerWizardParameterFactory.FTICR)) {
+      Assertions.assertNull(PresetSelection.selectMassSpectrometer(wide, true,
+          sequence(IonInterfaceWizardParameterFactory.HPLC, ms),
+          IonMobilityWizardParameterFactory.NO_IMS), ms::toString);
+    }
   }
 
   @Test

@@ -111,6 +111,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.CheckBox;
@@ -802,6 +803,9 @@ public class BatchWizardTab extends SimpleTab {
    * directly if confirmed. The switch is not highlighted as a parameter change. Must be called on
    * the JavaFX thread.
    *
+   * Presets that are kept with a warning are only shown, without a question if there is nothing to
+   * switch.
+   *
    * @param presets the presets that fit the raw data
    * @return true if the wizard was switched to the presets
    */
@@ -809,13 +813,24 @@ public class BatchWizardTab extends SimpleTab {
     if (presets.isEmpty()) {
       return false;
     }
-    final boolean confirmed = DialogLoggerUtil.showDialogYesNo("Switch wizard presets", """
-        Other presets fit the raw data better than the ones selected in the wizard:
+    final String warnings = presets.hasWarnings() ? """
+        Please check the raw data, the selected presets are kept:
         
-        %s
-        
-        Switch the wizard to these presets? The new presets start from their default \
-        parameters, the estimated values are applied on top.""".formatted(presets.describe()));
+        %s""".formatted(presets.describeWarnings()) : "";
+    if (!presets.hasSwitches()) {
+      DialogLoggerUtil.showWarningDialog("Check wizard presets", warnings);
+      return false;
+    }
+    final boolean confirmed = DialogLoggerUtil.showDialogYesNo(
+        presets.hasWarnings() ? AlertType.WARNING : AlertType.CONFIRMATION, "Switch wizard presets",
+        """
+            Other presets fit the raw data better than the ones selected in the wizard:
+            
+            %s
+            
+            Switch the wizard to these presets? The new presets start from their default \
+            parameters, the estimated values are applied on top.%s""".formatted(
+            presets.describeSwitches(), warnings.isEmpty() ? "" : "\n\n" + warnings));
     if (confirmed) {
       switchPresets(presets);
     }
@@ -832,7 +847,8 @@ public class BatchWizardTab extends SimpleTab {
     final boolean previousListenersActive = listenersActive;
     setListenersActive(false);
     try {
-      for (final PresetChange change : presets.changes()) {
+      // kept presets are only warnings and keep their parameters
+      for (final PresetChange change : presets.switches()) {
         ALL_PRESETS.get(change.part()).stream()
             .filter(preset -> preset.getFactory().equals(change.to())).findFirst()
             .ifPresent(preset -> {
@@ -846,7 +862,7 @@ public class BatchWizardTab extends SimpleTab {
     } finally {
       setListenersActive(previousListenersActive);
     }
-    logger.info("Switched wizard presets to fit the raw data:\n" + presets.describe());
+    logger.info("Switched wizard presets to fit the raw data:\n" + presets.describeSwitches());
   }
 
   /**

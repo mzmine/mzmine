@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
  * Wizard context for interpreting measurements; construction performs no processing.
  */
 public final class ParameterEstimationContext {
+
+  private static final Logger logger = Logger.getLogger(ParameterEstimationContext.class.getName());
 
   private final @NotNull RawDataAnalysis analysis;
   private final @NotNull WizardSequence sequence;
@@ -105,6 +108,10 @@ public final class ParameterEstimationContext {
       @NotNull ParameterSet preclassification,
       @NotNull Predicate<@NotNull PresetSelection> confirmation) {
     final PresetSelection fitting = PresetSelection.select(analysis, sequence);
+    // also reaches headless runs, which never confirm
+    if (fitting.hasWarnings()) {
+      logger.warning("Check the wizard presets for the raw data:\n" + fitting.describeWarnings());
+    }
     if (fitting.isEmpty() || !confirmation.test(fitting)) {
       return new ParameterEstimationContext(analysis, sequence, preclassification);
     }

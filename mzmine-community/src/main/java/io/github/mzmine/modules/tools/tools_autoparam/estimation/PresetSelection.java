@@ -40,6 +40,8 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Wizard
 import io.github.mzmine.modules.tools.tools_autoparam.DataFileStatistics;
 import io.github.mzmine.modules.tools.tools_autoparam.RawDataParameterEstimation;
 import io.github.mzmine.parameters.ParameterUtils;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import java.util.ArrayList;
@@ -55,7 +57,8 @@ import org.jetbrains.annotations.Nullable;
  * presets selected in the wizard. Applied before the parameters are estimated, so the estimates and
  * the optimizer start from the defaults of the fitting presets.
  *
- * @param changes the presets to replace, at most one per wizard part, in wizard part order
+ * @param changes the presets to replace or to keep with a warning, at most one per wizard part, in
+ *                wizard part order
  */
 public record PresetSelection(@NotNull List<PresetChange> changes) {
 
@@ -157,7 +160,8 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
   }
 
   /**
-   * Selects the ion mobility preset matching the mobility type of the IMS files.
+   * Selects the ion mobility preset matching the mobility type of the IMS files, or no ion mobility
+   * if no file is an IMS file.
    *
    * @param ionInterface the ion interface preset after its own switch, limits the ion mobility
    *                     presets
@@ -178,11 +182,30 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
       @Nullable IonInterfaceWizardParameterFactory ionInterface) {
     final IonMobilityWizardParameterFactory current = currentFactory(sequence, WizardPart.IMS,
         IonMobilityWizardParameterFactory.class);
-    // decision: only switch if all files are IMS files of one mobility type, mixed data keep the
-    // selected preset
-    if (current == null || fileMobilityTypes.isEmpty() || fileMobilityTypes.stream()
-        .anyMatch(Objects::isNull) || fileMobilityTypes.stream().distinct().count() != 1) {
+    if (current == null || fileMobilityTypes.isEmpty()) {
       return null;
+    }
+    final long nonImsFiles = fileMobilityTypes.stream().filter(Objects::isNull).count();
+    if (nonImsFiles > 0) {
+      // decision: IMS files can be processed without ion mobility, but not the other way round, so
+      // any non-IMS file requires no ion mobility. Every ion interface allows no ion mobility.
+      if (current == IonMobilityWizardParameterFactory.NO_IMS) {
+        return null;
+      }
+      final String reason = nonImsFiles == fileMobilityTypes.size() ? "files have no ion mobility"
+          : "%d of %d files have no ion mobility, the IMS files are processed without ion mobility".formatted(
+              nonImsFiles, fileMobilityTypes.size());
+      return new PresetChange(WizardPart.IMS, current, IonMobilityWizardParameterFactory.NO_IMS,
+          reason);
+    }
+    final List<@Nullable MobilityType> distinctTypes = fileMobilityTypes.stream().distinct()
+        .toList();
+    if (distinctTypes.size() > 1) {
+      // decision: mixed mobility types may be intended, so the selected preset is kept and the user
+      // is only warned, also without ion mobility
+      return new PresetChange(WizardPart.IMS, current, current,
+          "files have mixed mobility types: %s. It is recommended to process different IMS types separately".formatted(
+              distinctTypes.stream().map(String::valueOf).collect(Collectors.joining(", "))));
     }
     final MobilityType mobilityType = fileMobilityTypes.getFirst();
     final IonMobilityWizardParameterFactory target = presetFor(mobilityType);
@@ -212,14 +235,35 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
   }
 
   /**
-   * Selects Orbitrap if the MS1 scans of a file that is not a Bruker TDF file have injection times,
-   * otherwise QTOF. Switches to the first allowed mass spectrometer if the ion mobility preset does
-   * not allow the selected one.
+   * Selects low res. if the isotope signals need a wider m/z tolerance than any high-resolution
+   * preset is estimated with. Otherwise, selects Orbitrap if the MS1 scans of a file that is not a
+   * Bruker TDF file have injection times, otherwise QTOF. Switches to the first allowed mass
+   * spectrometer if the ion mobility preset does not allow the selected one.
    *
    * @param ionMobility the ion mobility preset after its own switch, limits the mass spectrometers
    */
   static @Nullable PresetChange selectMassSpectrometer(@NotNull RawDataAnalysis analysis,
       @NotNull WizardSequence sequence, @NotNull IonMobilityWizardParameterFactory ionMobility) {
+    final MZTolerance estimatedTolerance = RawDataParameterEstimation.estimateMzTolerance(
+        analysis.files());
+    // assumption: the representative files stem from the same instrument, so a single file with
+    // injection times is enough
+    final boolean injectionTimes = analysis.files().stream().map(DataFileStatistics::file)
+        .filter(Objects::nonNull)
+        .anyMatch(file -> !isBrukerTdf(file) && hasMs1InjectionTimes(file));
+    return selectMassSpectrometer(estimatedTolerance, injectionTimes, sequence, ionMobility);
+  }
+
+  /**
+   * @param estimatedTolerance the m/z tolerance estimated from the isotope signals before it is
+   *                           limited to the range of the mass spectrometer preset, see
+   *                           {@link RawDataParameterEstimation#estimateMzTolerance}
+   * @param injectionTimes     true if the MS1 scans of a file that is not a Bruker TDF file have
+   *                           injection times
+   */
+  static @Nullable PresetChange selectMassSpectrometer(@NotNull MZTolerance estimatedTolerance,
+      final boolean injectionTimes, @NotNull WizardSequence sequence,
+      @NotNull IonMobilityWizardParameterFactory ionMobility) {
     final MassSpectrometerWizardParameterFactory current = currentFactory(sequence, WizardPart.MS,
         MassSpectrometerWizardParameterFactory.class);
     if (current == null) {
@@ -237,11 +281,17 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
       return null;
     }
 
-    // assumption: the representative files stem from the same instrument, so a single file with
-    // injection times is enough
-    final boolean injectionTimes = analysis.files().stream().map(DataFileStatistics::file)
-        .filter(Objects::nonNull)
-        .anyMatch(file -> !isBrukerTdf(file) && hasMs1InjectionTimes(file));
+    // decision: switch above the widest high-resolution range (QTOF) for both presets. An Orbitrap
+    // estimate within the QTOF range is still high-resolution data and is limited to its range.
+    final int estimatedIndex = ArrayUtils.indexOf(estimatedTolerance,
+        MzToleranceSearchOptions.ALL_TOLERANCE_OPTIONS);
+    if (estimatedIndex > MzToleranceSearchOptions.MAX_HIGH_RESOLUTION_INDEX && allowed.contains(
+        MassSpectrometerWizardParameterFactory.LOW_RES)) {
+      return new PresetChange(WizardPart.MS, current,
+          MassSpectrometerWizardParameterFactory.LOW_RES,
+          "isotope signals need m/z tolerance %s".formatted(estimatedTolerance));
+    }
+
     final MassSpectrometerWizardParameterFactory target =
         injectionTimes ? MassSpectrometerWizardParameterFactory.Orbitrap
             : MassSpectrometerWizardParameterFactory.QTOF;
@@ -271,19 +321,24 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
     return changes.isEmpty();
   }
 
+  private static @NotNull String describe(@NotNull List<PresetChange> changes) {
+    return changes.stream().map(PresetChange::describe).collect(Collectors.joining("\n"));
+  }
+
   /**
    * Replaces the changed parts with the default parameters of their new presets.
    *
    * @param sequence the sequence to modify, usually a copy of the wizard sequence
    */
   public void applyDefaultPresets(@NotNull WizardSequence sequence) {
-    for (final PresetChange change : changes) {
+    // kept presets are only warnings and keep their parameters
+    for (final PresetChange change : switches()) {
       sequence.set(change.part(), change.to().create());
     }
 
     // mirror the wizard, which uses special mass spectrometer defaults for some ion mobility
     // presets, e.g., TIMS, if the mass spectrometer still has its default parameters
-    changes.stream().filter(change -> change.part() == WizardPart.IMS)
+    switches().stream().filter(change -> change.part() == WizardPart.IMS)
         .map(change -> (IonMobilityWizardParameterFactory) change.to())
         .map(MassSpectrometerWizardParameterFactory::createForIms).filter(Objects::nonNull)
         .findFirst().ifPresent(
@@ -291,7 +346,37 @@ public record PresetSelection(@NotNull List<PresetChange> changes) {
                 .ifPresent(ms -> ParameterUtils.copyParameters(msForIms, ms)));
   }
 
+  /**
+   * @return the changes that select another preset
+   */
+  public @NotNull List<PresetChange> switches() {
+    return changes.stream().filter(change -> !change.keepsPreset()).toList();
+  }
+
+  /**
+   * @return the changes that keep the selected preset and only warn about the raw data
+   */
+  public @NotNull List<PresetChange> warnings() {
+    return changes.stream().filter(PresetChange::keepsPreset).toList();
+  }
+
+  public boolean hasSwitches() {
+    return changes.stream().anyMatch(change -> !change.keepsPreset());
+  }
+
+  public boolean hasWarnings() {
+    return changes.stream().anyMatch(PresetChange::keepsPreset);
+  }
+
   public @NotNull String describe() {
-    return changes.stream().map(PresetChange::describe).collect(Collectors.joining("\n"));
+    return describe(changes);
+  }
+
+  public @NotNull String describeSwitches() {
+    return describe(switches());
+  }
+
+  public @NotNull String describeWarnings() {
+    return describe(warnings());
   }
 }

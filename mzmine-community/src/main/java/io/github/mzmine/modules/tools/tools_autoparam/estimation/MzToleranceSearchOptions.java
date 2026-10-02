@@ -46,6 +46,12 @@ public final class MzToleranceSearchOptions {
       new MZTolerance(0.3, 25), //  10
       new MZTolerance(0.5, 25)}; // 11
 
+  /**
+   * Index of the widest tolerance estimated for a high-resolution mass spectrometer preset (QTOF
+   * has the widest range). A wider estimate indicates low-resolution data.
+   */
+  public static final int MAX_HIGH_RESOLUTION_INDEX = 6;
+
   private MzToleranceSearchOptions() {
   }
 

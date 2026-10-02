@@ -30,11 +30,12 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Wizard
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A wizard preset that is replaced because the raw data fit another preset better.
+ * A wizard preset that is replaced because the raw data fit another preset better, or a selected
+ * preset that is kept with a warning about the raw data, see {@link #keepsPreset()}.
  *
  * @param part   the wizard part of the preset
  * @param from   the preset selected before
- * @param to     the preset that fits the raw data
+ * @param to     the preset that fits the raw data, the same as from for a warning
  * @param reason the measurement that caused the change
  */
 public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFactory from,
@@ -48,7 +49,17 @@ public record PresetChange(@NotNull WizardPart part, @NotNull WizardParameterFac
     return name.isBlank() ? "none" : name;
   }
 
+  /**
+   * @return true if the selected preset is kept and the change only warns about the raw data
+   */
+  public boolean keepsPreset() {
+    return from.equals(to);
+  }
+
   public @NotNull String describe() {
+    if (keepsPreset()) {
+      return "%s: %s kept (%s)".formatted(part, presetName(from), reason);
+    }
     return "%s: %s → %s (%s)".formatted(part, presetName(from), presetName(to), reason);
   }
 }
