@@ -33,6 +33,7 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -111,6 +112,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.control.Alert.AlertType;
@@ -132,15 +134,18 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Subscription;
 import org.controlsfx.control.ToggleSwitch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public class BatchWizardTab extends SimpleTab {
 
@@ -479,14 +484,28 @@ public class BatchWizardTab extends SimpleTab {
     return spacer;
   }
 
+  /// caption above the combo box. min and pref width 0 so the column width is defined by the combo
+  /// box and long captions wrap instead of widening the column
+  private static @NonNull Label generateCaptionLabel(WizardPart part) {
+    final Label caption = FxLabels.wrap(FxLabels.newBoldLabel(part.caption()));
+    caption.setTooltip(new Tooltip(part.tooltip()));
+    caption.setMinWidth(0);
+    caption.setPrefWidth(0);
+    caption.setMaxWidth(Double.MAX_VALUE);
+    caption.setAlignment(Pos.CENTER);
+    caption.setTextAlignment(TextAlignment.CENTER);
+    GridPane.setValignment(caption, VPos.BOTTOM);
+    return caption;
+  }
+
   private Region createTopMenu() {
     VBox controlSchemaPane = new VBox(4);
     controlSchemaPane.setAlignment(Pos.CENTER);
     VBox.setMargin(controlSchemaPane, new Insets(5));
 
-    var instrumentComboBoxPane = new FlowPane(4, 4);
-    instrumentComboBoxPane.setAlignment(Pos.CENTER);
-    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
+    // row 0: captions, row 1: combo boxes, separators and create batch button
+    final GridPane comboBoxGrid = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
+    int column = 0;
 
     sequenceSteps.clear();
     combos.clear();
@@ -506,16 +525,20 @@ public class BatchWizardTab extends SimpleTab {
       ComboBox<WizardStepParameters> combo = new ComboBox<>(presets);
       combo.setVisibleRowCount(IonInterfaceWizardParameterFactory.values().length);
       combos.put(part, combo);
-      // add a spacer if not the first
-      if (!instrumentComboBoxPane.getChildren().isEmpty()) {
-        instrumentComboBoxPane.getChildren().add(new Label("-"));
+      // add a separator if not the first
+      if (column > 0) {
+        comboBoxGrid.add(new Label("-"), column++, 1);
       }
       combo.getSelectionModel().select(0);
-      instrumentComboBoxPane.getChildren().add(combo);
+      final Label caption = generateCaptionLabel(part);
+      caption.widthProperty().addListener(
+          (_, _, width) -> caption.setMinHeight(caption.prefHeight(width.doubleValue())));
+      comboBoxGrid.add(caption, column, 0);
+      comboBoxGrid.add(combo, column++, 1);
 
       // add listener
       combo.getSelectionModel().selectedItemProperty()
-          .addListener((observable, oldValue, newValue) -> {
+          .addListener((_, _, newValue) -> {
             if (listenersActive) {
               sequenceSteps.set(part, newValue);
               // selecting another preset overrides the automatically changed values of this part
@@ -538,6 +561,13 @@ public class BatchWizardTab extends SimpleTab {
         "Derive wizard parameters from the same representative files used for optimization.\n"
             + "Right click to also show the data file statistics.",
         () -> estimateParametersFromFiles(false));
+
+
+    final FlowPane instrumentComboBoxPane = FxLayout.newFlowPane();
+    instrumentComboBoxPane.setAlignment(Pos.CENTER);
+    // align the buttons with the combo box row of the grid, not with the captions
+    instrumentComboBoxPane.setRowValignment(VPos.BOTTOM);
+    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
 
     //disable estimate and optimize on invalid presets
     final BooleanBinding autoParamDisabled = createDisableEstimateAndOptimizeBinding();
