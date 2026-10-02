@@ -31,9 +31,9 @@ import static io.github.mzmine.modules.tools.batchwizard.WizardPart.WORKFLOW;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.factories.FxTexts;
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
@@ -105,6 +105,7 @@ import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -562,13 +563,6 @@ public class BatchWizardTab extends SimpleTab {
             + "Right click to also show the data file statistics.",
         () -> estimateParametersFromFiles(false));
 
-
-    final FlowPane instrumentComboBoxPane = FxLayout.newFlowPane();
-    instrumentComboBoxPane.setAlignment(Pos.CENTER);
-    // align the buttons with the combo box row of the grid, not with the captions
-    instrumentComboBoxPane.setRowValignment(VPos.BOTTOM);
-    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
-
     //disable estimate and optimize on invalid presets
     final BooleanBinding autoParamDisabled = createDisableEstimateAndOptimizeBinding();
     estimate.disableProperty().bind(autoParamDisabled);
@@ -581,12 +575,35 @@ public class BatchWizardTab extends SimpleTab {
 
     final HBox batchButtons = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, createBatch, save, load,
         localPresetsButton);
-    final HBox optimizerButtons = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, estimate, optimize);
+    final HBox optimizerButtons = FxLayout.newHBox(Pos.CENTER_LEFT, Insets.EMPTY, estimate,
+        optimize);
     final VBox buttonPane = FxLayout.newVBox(Pos.CENTER, Insets.EMPTY, batchButtons,
         optimizerButtons);
 
-    instrumentComboBoxPane.getChildren()
-        .addAll(createSpacer(), new Label("="), createSpacer(), buttonPane);
+    final Label equals = FxLabels.newLabel("=");
+    comboBoxGrid.add(equals, column, 1);
+
+    // decision: the button pane spans caption, combo and a filler row and is bottom aligned. The
+    // filler rows are as high as the button pane overhangs the combo row, so the button pane is
+    // vertically centered on the combo row and "=".
+    buttonPane.setMaxHeight(Region.USE_PREF_SIZE);
+    GridPane.setValignment(buttonPane, VPos.BOTTOM);
+    comboBoxGrid.add(buttonPane, column + 1, 0, 1, 3);
+    final ComboBox<WizardStepParameters> referenceCombo = combos.get(WizardPart.ION_INTERFACE);
+    final DoubleBinding buttonOverhang = Bindings.createDoubleBinding(() -> Math.max(0,
+            (buttonPane.getHeight() - referenceCombo.getHeight()) / 2 - comboBoxGrid.getVgap()),
+        buttonPane.heightProperty(), referenceCombo.heightProperty());
+    // top filler ensures that the caption row is high enough even for single line captions
+    final Region topFiller = new Region();
+    topFiller.minHeightProperty().bind(buttonOverhang);
+    final Region bottomFiller = new Region();
+    bottomFiller.minHeightProperty().bind(buttonOverhang);
+    comboBoxGrid.add(topFiller, column, 0);
+    comboBoxGrid.add(bottomFiller, column, 2);
+
+    final FlowPane instrumentComboBoxPane = FxLayout.newFlowPane(comboBoxGrid);
+    instrumentComboBoxPane.setAlignment(Pos.CENTER);
+    HBox.setMargin(instrumentComboBoxPane, new Insets(5));
 
     schemaPane = new HBox(0);
     schemaPane.setAlignment(Pos.CENTER);
