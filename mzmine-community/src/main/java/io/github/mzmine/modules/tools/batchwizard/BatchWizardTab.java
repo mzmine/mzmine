@@ -102,7 +102,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -536,14 +538,16 @@ public class BatchWizardTab extends SimpleTab {
         "Derive wizard parameters from the same representative files used for optimization.\n"
             + "Right click to also show the data file statistics.",
         () -> estimateParametersFromFiles(false));
-    final BooleanBinding autoParamTaskRunning = runningAutoParamTasks.greaterThan(0);
-    estimate.disableProperty().bind(autoParamTaskRunning);
+
+    //disable estimate and optimize on invalid presets
+    final BooleanBinding autoParamDisabled = createDisableEstimateAndOptimizeBinding();
+    estimate.disableProperty().bind(autoParamDisabled);
     estimate.setContextMenu(new ContextMenu(
         FxMenuUtil.newMenuItem("Estimate parameters and show statistics",
             () -> estimateParametersFromFiles(true))));
     final Button optimize = FxButtons.createButton("Optimize parameters",
         Source.OPTIMIZATION.icon(), null, this::runOptimizer);
-    optimize.disableProperty().bind(autoParamTaskRunning);
+    optimize.disableProperty().bind(autoParamDisabled);
 
     final HBox batchButtons = FxLayout.newHBox(Pos.CENTER, Insets.EMPTY, createBatch, save, load,
         localPresetsButton);
@@ -584,6 +588,22 @@ public class BatchWizardTab extends SimpleTab {
     StackPane.setAlignment(topRightControls, Pos.TOP_RIGHT);
 
     return stackPane;
+  }
+
+  /**
+   * the parameter estimation needs chromatographic traces, so spatial imaging (MALDI, LDI, DESI,
+   * SIMS) is not supported
+   */
+  private BooleanBinding createDisableEstimateAndOptimizeBinding() {
+    final BooleanBinding autoParamTaskRunning = runningAutoParamTasks.greaterThan(0);
+    final ReadOnlyObjectProperty<WizardStepParameters> selectedIonInterface = combos.get(
+        WizardPart.ION_INTERFACE).getSelectionModel().selectedItemProperty();
+    final BooleanBinding imagingSelected = Bindings.createBooleanBinding(
+        () -> selectedIonInterface.get() != null && selectedIonInterface.get()
+            .getFactory() instanceof IonInterfaceWizardParameterFactory ionInterface
+            && ionInterface.isImaging(), selectedIonInterface);
+    final BooleanBinding autoParamDisabled = autoParamTaskRunning.or(imagingSelected);
+    return autoParamDisabled;
   }
 
   private void runOptimizer() {
@@ -802,7 +822,7 @@ public class BatchWizardTab extends SimpleTab {
    * Asks the user whether to switch to the presets that fit the raw data and switches the wizard
    * directly if confirmed. The switch is not highlighted as a parameter change. Must be called on
    * the JavaFX thread.
-   *
+   * <p>
    * Presets that are kept with a warning are only shown, without a question if there is nothing to
    * switch.
    *
