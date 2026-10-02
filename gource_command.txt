@@ -1,0 +1,3 @@
+# Run gource from mzmine3 directory in terminal after installing the tool
+
+gource --load-config gource-config.txt --fullscreen
