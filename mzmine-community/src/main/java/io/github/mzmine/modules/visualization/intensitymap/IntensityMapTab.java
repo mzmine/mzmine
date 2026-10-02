@@ -1,0 +1,751 @@
+/*
+ * Copyright (c) 2004-2026 The mzmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.modules.visualization.intensitymap;
+
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.intensitymap.chromatogram.IntensityMapChromatogramPane;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapGrid;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapPosition;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapProjection;
+import io.github.mzmine.modules.visualization.intensitymap.data.IntensityMapSeries;
+import io.github.mzmine.modules.visualization.intensitymap.plot.IntensityMapPlot;
+import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapFrameCache;
+import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapLayer;
+import io.github.mzmine.modules.visualization.intensitymap.sampling.IntensityMapSampler;
+import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMapSpectrumLookup;
+import io.github.mzmine.modules.visualization.intensitymap.spectrum.IntensityMapSpectrumPane;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
+import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Owns the overlay layers (raw file and m/z range), the spectrum or chromatogram pane, and the
+ * lifetime of the reusable plot. The sampled data are cached by {@link IntensityMapDetailLoader},
+ * so adding or removing overlays only reads the raw data of new layers.
+ */
+class IntensityMapTab extends MZmineTab {
+
+  private static final Logger logger = Logger.getLogger(IntensityMapTab.class.getName());
+
+  private final List<RawDataFile> files = new ArrayList<>();
+  private final List<IntensityMapLayer> layers = new ArrayList<>();
+  private static final int MAX_SPECTRA = 6;
+
+  private final IntensityMapPlot plot;
+  // sampled data of the layers, also of the zoomed window
+  private final IntensityMapDetailLoader loader;
+  private final @NotNull ParameterSet parameters;
+  private final @Nullable IntensityMapSpectrumLookup spectrumSource;
+  private final @Nullable IntensityMapSpectrumPane spectrumPane;
+  // mobility frames: the chromatogram selects the frame instead of showing spectra
+  private final @Nullable IntensityMapChromatogramPane chromatogramPane;
+  private final Map<RawDataFile, TICDataSet> chromatograms = new HashMap<>();
+  private int chromatogramGeneration;
+  // retention time of the shown frames, or a range of averaged frames; no retention time before
+  // the first frame is resolved
+  private @NotNull IntensityMapFrameCache frames = new IntensityMapFrameCache();
+  private final @NotNull IntensityMapDimensions mode;
+  // the 3D or the 2D view
+  private final IntensityMapProjection projection;
+  private final ChangeListener<Boolean> darkModeListener = (_, _, dark) -> updateDarkMode(dark);
+  // decision: weak, because tabs removed via their context menu are not closed and must not stay
+  // reachable
+  private final WeakChangeListener<Boolean> weakDarkModeListener = new WeakChangeListener<>(
+      darkModeListener);
+  // decision: the image normalization only applies to imaging data
+  private ImageNormalization normalization = ImageNormalization.NO_NORMALIZATION;
+  private int nextLayer;
+  private boolean closed;
+  // feature list of the peak labels, null for none
+  private @Nullable FeatureList labelList;
+  // list, layers, and frames of the shown labels; the labels are only built again on changes
+  private @Nullable List<Object> labelState;
+  // images: known annotations of the extracted ions by layer id, appended to the overlay titles
+  private @NotNull Map<String, String> titles = Map.of();
+
+  /**
+   * @param files      at least one file, all with the same data dimensions
+   * @param mzRanges   initial m/z overlays for every file, e.g. of selected features. Empty shows
+   *                   the complete m/z range of the parameters.
+   * @param projection the 3D view, or the 2D view: a fixed top view without heights
+   * @param labelList  feature list of the initial peak labels, null for none
+   */
+  IntensityMapTab(final RawDataFile @NotNull [] files, @NotNull final ParameterSet parameters,
+      @NotNull final List<Range<Double>> mzRanges, @NotNull final IntensityMapProjection projection,
+      @Nullable final FeatureList labelList) {
+    super(title(files, projection), false, false);
+    this.projection = projection;
+    this.parameters = parameters.cloneParameterSet();
+    mode = IntensityMapSampler.resolveMode(files[0],
+        parameters.getValue(IntensityMapParameters.mode));
+    // decision: the paint scale is chosen in the viewer and starts with the default of the
+    // preferences, like other mzmine heatmaps
+    final SimpleColorPalette palette = ConfigService.getConfiguration()
+        .getDefaultPaintScalePalette();
+    plot = new IntensityMapPlot(palette, projection);
+    loader = new IntensityMapDetailLoader(plot, this.parameters, () -> layers, () -> normalization,
+        () -> frames, this::publish);
+    // assumption: the preferences hold the complete list including custom paint scales
+    plot.setPaintScales(paintScales(palette));
+    plot.setPaintScale(palette);
+    plot.setOnAddSelectedFiles(() -> addFiles(MZmineGUI.getSelectedRawDataFiles()));
+    plot.setOnAddMzRanges(this::addMzRanges);
+    plot.setOnResetMzRanges(this::resetMzRanges);
+    if (mode == IntensityMapDimensions.IMAGING) {
+      normalization = ConfigService.getConfiguration().getImageNormalization();
+      plot.setIntensityNormalization(normalization);
+      plot.setOnIntensityNormalizationChanged(value -> {
+        normalization = value;
+        load(true);
+      });
+    }
+    if (mode == IntensityMapDimensions.MOBILITY_FRAME) {
+      // decision: a base peak chromatogram picks the frame by retention time
+      spectrumSource = null;
+      spectrumPane = null;
+      chromatogramPane = new IntensityMapChromatogramPane();
+      chromatogramPane.setListener(this::onFrameTimesSelected);
+      plot.setDetailPane(chromatogramPane, "Base peak chromatogram");
+      plot.setDetailHeader("Base peak chromatogram", IntensityMapChromatogramPane.HINT);
+    } else {
+      spectrumSource = new IntensityMapSpectrumLookup(this.parameters, mode);
+      spectrumPane = new IntensityMapSpectrumPane();
+      chromatogramPane = null;
+      spectrumPane.setListener(this::onSpectrumClicked);
+      // decision: Ctrl/⌘ + drag adds, like Ctrl/⌘ + click, so the window joins the shown overlays
+      spectrumPane.setRangeListener(range -> addMzRanges(List.of(range)));
+      plot.setDetailPane(spectrumPane, "Spectrum");
+      spectrumPane.descriptionProperty().subscribe(
+          value -> plot.setDetailHeader("Spectrum · " + value, IntensityMapSpectrumPane.HINT));
+      plot.setSliceMode(spectrumSource.sliceMode());
+      plot.setOnSelectionChanged(this::showSpectra);
+    }
+    this.labelList = labelList;
+    plot.setLabelSources(this::labelListNames, this::setLabelList);
+    plot.setLabelSource(labelList == null ? null : labelList.getName());
+    // decision: images get no peak labels, annotations extend the overlay titles instead
+    plot.setPeakLabelOptions(mode != IntensityMapDimensions.IMAGING);
+    plot.setOnRemoveSeries(this::removeLayer);
+    plot.setOnSeriesColorChanged(this::onColorChanged);
+    for (final RawDataFile file : Arrays.stream(files).distinct().toList()) {
+      this.files.add(file);
+      if (mzRanges.isEmpty()) {
+        addDefaultLayer(file);
+      }
+      for (final Range<Double> range : mzRanges) {
+        addLayer(file, range);
+      }
+    }
+    initTab();
+    plot.runWhenLaidOut(() -> load(false));
+  }
+
+  private static @NotNull String title(final RawDataFile @NotNull [] files,
+      @NotNull final IntensityMapProjection projection) {
+    final String prefix = projection.label();
+    if (files.length == 0) {
+      return prefix + " visualizer";
+    }
+    return prefix + " " + files[0].getName() + (files.length > 1 ? " +" + (files.length - 1) : "");
+  }
+
+  private void initTab() {
+    plot.setNumberFormats(ConfigService.getGuiFormats());
+    plot.setUnitFormat(ConfigService.getConfiguration().getUnitFormat());
+    if (mode == IntensityMapDimensions.IMAGING) {
+      // decision: images show all pixels by default
+      plot.setNoiseFloor(0);
+    }
+    if (mode == IntensityMapDimensions.IMAGING && !projection.heights()) {
+      // decision: images are colored linearly from the noise floor, as in the 3D view; for other
+      // data the 2D view applies its transformation to the colors, log10 by default
+      plot.setTransform(PaintScaleTransform.LINEAR);
+    }
+    if (mode == IntensityMapDimensions.IMAGING && projection.heights()) {
+      // decision: images read best as flat log-scaled reliefs
+      plot.setTransform(PaintScaleTransform.LOG10);
+      plot.setHeightScale(plot.minimumHeightScale());
+      // decision: the weakest pixels start at the floor, not on a tall base
+      plot.setHeightsFromLowest(true);
+    }
+    setContent(plot);
+    setOnClosed(_ -> close());
+    plot.setDetailListener(_ -> loader.viewChanged());
+    ConfigService.isDarkModeProperty().addListener(weakDarkModeListener);
+    updateDarkMode(ConfigService.isDarkModeProperty().get());
+  }
+
+  /**
+   * @return all paint scales of the preferences, including custom ones, and the initial one
+   */
+  private static @NotNull List<SimpleColorPalette> paintScales(
+      @NotNull final SimpleColorPalette initial) {
+    final List<SimpleColorPalette> scales = new ArrayList<>(
+        ConfigService.getPreferences().getParameter(MZminePreferences.defaultPaintScale)
+            .getPalettes());
+    if (!scales.contains(initial)) {
+      scales.add(initial);
+    }
+    for (final SimpleColorPalette scale : SimpleColorPalette.DEFAULT_PAINT_SCALES) {
+      if (!scales.contains(scale)) {
+        scales.add(scale);
+      }
+    }
+    return scales;
+  }
+
+  private void updateDarkMode(final boolean dark) {
+    plot.setDarkMode(dark);
+  }
+
+  private @NotNull Color nextColor() {
+    // decision: colors follow the list position, so replacing a selection keeps familiar colors
+    final SimpleColorPalette colors = ConfigService.getDefaultColorPalette();
+    final int used = layers.size();
+    for (int i = 0; i < colors.size(); i++) {
+      final Color candidate = colors.get((used + i) % colors.size());
+      if (layers.stream().noneMatch(layer -> layer.color().equals(candidate))) {
+        return candidate;
+      }
+    }
+    return colors.get(used % colors.size());
+  }
+
+  private @NotNull String nextId() {
+    return "layer-" + nextLayer++;
+  }
+
+  private void addDefaultLayer(@NotNull final RawDataFile file) {
+    final Range<Double> range = IntensityMapSampler.defaultMzRange(file, parameters);
+    if (!IntensityMapLayer.validRange(range)) {
+      plot.setStatus(file.getName() + " has no data in the selected m/z range");
+      return;
+    }
+    final Color color = nextColor();
+    layers.add(new IntensityMapLayer(nextId(), file, range, color, true));
+  }
+
+  private boolean addLayer(@NotNull final RawDataFile file, @NotNull final Range<Double> range) {
+    final boolean exists = layers.stream().anyMatch(
+        layer -> layer.file().equals(file) && !layer.fullRange() && layer.mzRange().equals(range));
+    if (exists || !IntensityMapLayer.validRange(range)) {
+      return false;
+    }
+    final Color color = nextColor();
+    layers.add(new IntensityMapLayer(nextId(), file, range, color, false));
+    return true;
+  }
+
+  private void addFiles(@NotNull final Collection<? extends RawDataFile> additional) {
+    if (additional.isEmpty()) {
+      plot.setStatus("Select raw files in the project, then use Add selected raw files");
+      return;
+    }
+    for (final RawDataFile file : additional) {
+      if (mode != IntensityMapSampler.resolveMode(file,
+          parameters.getValue(IntensityMapParameters.mode))) {
+        plot.setStatus("Choose files with matching coordinate dimensions for an overlay");
+        return;
+      }
+    }
+    // new samples receive the same extraction ranges as the current overlays
+    final List<Range<Double>> ranges = layers.stream().filter(layer -> !layer.fullRange())
+        .map(IntensityMapLayer::mzRange).distinct().toList();
+    final boolean full = layers.isEmpty() || layers.stream().anyMatch(IntensityMapLayer::fullRange);
+    boolean changed = false;
+    for (final RawDataFile file : additional) {
+      if (files.contains(file)) {
+        continue;
+      }
+      files.add(file);
+      changed = true;
+      if (full) {
+        addDefaultLayer(file);
+      }
+      for (final Range<Double> range : ranges) {
+        addLayer(file, range);
+      }
+    }
+    if (changed) {
+      load(false);
+    } else {
+      plot.setStatus("The selected raw files are already shown");
+    }
+  }
+
+  private void addMzRanges(@NotNull final List<Range<Double>> ranges) {
+    if (files.isEmpty()) {
+      plot.setStatus("Add raw files first, then enter m/z values");
+      return;
+    }
+    boolean changed = false;
+    for (final RawDataFile file : files) {
+      // decision: specific m/z overlays replace the all-m/z default. It would otherwise dominate
+      // the shared intensity scale and hide the extracted ions.
+      changed |= removeLayersWhere(layer -> layer.file().equals(file) && layer.fullRange());
+      for (final Range<Double> range : ranges) {
+        changed |= addLayer(file, range);
+      }
+    }
+    if (changed) {
+      load(false);
+    } else {
+      plot.setStatus("These m/z overlays are already shown");
+    }
+  }
+
+  private void removeLayer(@NotNull final String id) {
+    final IntensityMapLayer layer = layers.stream().filter(l -> l.id().equals(id)).findFirst()
+        .orElse(null);
+    if (layer == null) {
+      return;
+    }
+    removeLayersWhere(l -> l == layer);
+    if (layers.stream().noneMatch(l -> l.file().equals(layer.file()))) {
+      files.remove(layer.file());
+    }
+    // decision: while reading, the cache may be cleared for resampling; publishing during a read
+    // would empty the view and reset the overlay settings. The running task publishes when done.
+    if (!loader.isLoading()) {
+      publish();
+    }
+  }
+
+  /**
+   * Replaces all overlays by the ranges for every file.
+   */
+  private void setMzRanges(@NotNull final List<Range<Double>> ranges) {
+    replaceLayers(file -> ranges.forEach(range -> addLayer(file, range)));
+  }
+
+  private void resetMzRanges() {
+    if (!layers.isEmpty() && layers.stream().allMatch(IntensityMapLayer::fullRange)) {
+      return;
+    }
+    replaceLayers(this::addDefaultLayer);
+  }
+
+  /**
+   * Replaces all overlays by new ones for every file.
+   */
+  private void replaceLayers(@NotNull final Consumer<RawDataFile> addLayers) {
+    if (files.isEmpty()) {
+      return;
+    }
+    layers.clear();
+    loader.clear();
+    files.forEach(addLayers);
+    load(false);
+  }
+
+  /**
+   * Removes overlays and their sampled data.
+   *
+   * @return true if an overlay was removed
+   */
+  private boolean removeLayersWhere(@NotNull final Predicate<IntensityMapLayer> condition) {
+    final List<IntensityMapLayer> removed = layers.stream().filter(condition).toList();
+    layers.removeAll(removed);
+    removed.forEach(layer -> loader.remove(layer.id()));
+    return !removed.isEmpty();
+  }
+
+  private void onSpectrumClicked(@NotNull final IntensityMapSpectrumPane.Click click) {
+    final MZTolerance tolerance = plot.mzTolerance();
+    if (tolerance == null) {
+      plot.setStatus("Enter a valid m/z tolerance in the overlay panel");
+      return;
+    }
+    if (click.additive()) {
+      // Ctrl/⌘ + click on a selected range removes it again
+      final List<IntensityMapLayer> selected = layers.stream()
+          .filter(layer -> !layer.fullRange() && layer.mzRange().contains(click.mz())).toList();
+      if (!selected.isEmpty()) {
+        removeLayers(selected);
+        return;
+      }
+    }
+    final double center = click.scan() == null ? click.mz()
+        : IntensityMapSpectrumLookup.apex(click.scan(), tolerance.getToleranceRange(click.mz()),
+            click.mz());
+    final Range<Double> range = tolerance.getToleranceRange(center);
+    if (click.additive()) {
+      addMzRanges(List.of(range));
+    } else {
+      setMzRanges(List.of(range));
+    }
+  }
+
+  /**
+   * Removes overlays. Files without remaining overlays show the complete m/z range again.
+   */
+  private void removeLayers(@NotNull final List<IntensityMapLayer> removed) {
+    removeLayersWhere(removed::contains);
+    for (final RawDataFile file : files) {
+      if (layers.stream().noneMatch(layer -> layer.file().equals(file))) {
+        addDefaultLayer(file);
+      }
+    }
+    load(false);
+  }
+
+  private void showSpectra(@NotNull final IntensityMapPosition selection) {
+    if (spectrumSource == null || spectrumPane == null) {
+      return;
+    }
+    final List<IntensityMapSpectrumPane.Spectrum> spectra = new ArrayList<>();
+    String description = "";
+    for (final RawDataFile file : files) {
+      if (spectra.size() == MAX_SPECTRA) {
+        break;
+      }
+      final Scan scan = spectrumSource.scanAt(file, selection.x(), selection.y());
+      if (scan == null) {
+        continue;
+      }
+      final Color color = fileColor(file);
+      spectra.add(new IntensityMapSpectrumPane.Spectrum(file.getName(), scan, color));
+      if (description.isEmpty()) {
+        description = spectrumSource.describe(scan);
+      }
+    }
+    spectrumPane.setSpectra(description, spectra);
+  }
+
+  private void updateDetail(@NotNull final List<IntensityMapSeries> series) {
+    updateChromatograms();
+    if (spectrumPane == null) {
+      return;
+    }
+    final List<IntensityMapSpectrumPane.Marker> markers = new ArrayList<>();
+    final Set<Range<Double>> ranges = new HashSet<>();
+    for (final IntensityMapLayer layer : layers) {
+      if (!layer.fullRange() && ranges.add(layer.mzRange())) {
+        markers.add(new IntensityMapSpectrumPane.Marker(layer.mzRange(), layer.color()));
+      }
+    }
+    spectrumPane.setMarkers(markers);
+    if (plot.getSelection() == null && !series.isEmpty()) {
+      // start with the most intense position so that the spectrum is informative right away
+      final IntensityMapPosition maximum = maximumPosition(series.getFirst().data());
+      if (maximum != null) {
+        plot.setSelection(maximum);
+        showSpectra(maximum);
+      }
+    }
+  }
+
+  private void onFrameTimesSelected(@NotNull final Range<Float> retentionTimes) {
+    frames = frames.select(retentionTimes);
+    load(true);
+  }
+
+  /**
+   * Shows the base peak chromatograms of all files. New files are read in the background, colors
+   * follow the overlays.
+   */
+  private void updateChromatograms() {
+    if (chromatogramPane == null) {
+      return;
+    }
+    chromatograms.keySet().retainAll(files);
+    final List<RawDataFile> missing = files.stream().filter(f -> !chromatograms.containsKey(f))
+        .toList();
+    showChromatograms();
+    if (missing.isEmpty()) {
+      return;
+    }
+    final int generation = ++chromatogramGeneration;
+    Thread.ofVirtual().name("3D base peak chromatograms").start(() -> {
+      final Map<RawDataFile, TICDataSet> results = new HashMap<>();
+      try {
+        for (final RawDataFile file : missing) {
+          final Scan[] scans = IntensityMapSampler.scanSelection(parameters,
+              IntensityMapDimensions.MOBILITY_FRAME).getMatchingScans(file);
+          // the dataset computes its values on construction
+          results.put(file, new TICDataSet(file, Arrays.asList(scans),
+              IntensityMapSampler.defaultMzRange(file, parameters), null, TICPlotType.BASEPEAK));
+        }
+      } catch (final RuntimeException ex) {
+        logger.log(Level.WARNING, "Cannot compute base peak chromatograms", ex);
+      }
+      Platform.runLater(() -> {
+        if (closed || generation != chromatogramGeneration) {
+          return;
+        }
+        results.keySet().retainAll(files);
+        chromatograms.putAll(results);
+        showChromatograms();
+      });
+    });
+  }
+
+  private void showChromatograms() {
+    if (chromatogramPane == null) {
+      return;
+    }
+    final List<IntensityMapChromatogramPane.Chromatogram> shown = new ArrayList<>();
+    for (final RawDataFile file : files) {
+      final TICDataSet data = chromatograms.get(file);
+      if (data != null) {
+        shown.add(new IntensityMapChromatogramPane.Chromatogram(data, fileColor(file)));
+      }
+    }
+    chromatogramPane.setChromatograms(shown);
+  }
+
+  private @NotNull Color fileColor(@NotNull final RawDataFile file) {
+    return layers.stream().filter(layer -> layer.file().equals(file)).map(IntensityMapLayer::color)
+        .findFirst().orElse(Color.GRAY);
+  }
+
+  /**
+   * Resolves the initial frame and shows the frame of the first file in the header and
+   * chromatogram. Overlaid files show their frame closest to the same retention time.
+   */
+  private void updateFrame() {
+    if (chromatogramPane == null || files.isEmpty()) {
+      return;
+    }
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final Scan[] scans = IntensityMapSampler.scanSelection(parameters,
+        IntensityMapDimensions.MOBILITY_FRAME).getMatchingScans(files.getFirst());
+    final Range<Float> times = frames.retentionTimes();
+    String position = "no frame";
+    final List<Frame> averaged = times == null || IntensityMapFrameCache.isSingle(times) ? List.of()
+        : IntensityMapFrameCache.within(scans, times);
+    if (averaged.size() > 1) {
+      // averaged frames are merged during sampling, not on the FX thread
+      chromatogramPane.setSelected(times);
+      position = "RT " + formats.rt(times) + " min · " + averaged.size() + " frames averaged";
+    } else {
+      try {
+        // decision: start with the most intense frame, so that the first view is informative
+        final Frame frame = frames.frame(scans);
+        if (times == null) {
+          frames = frames.select(Range.singleton(frame.getRetentionTime()));
+        }
+        chromatogramPane.setSelected(Range.singleton(frame.getRetentionTime()));
+        position =
+            "RT " + formats.rt(frame.getRetentionTime()) + " min · frame #" + frame.getScanNumber();
+      } catch (final IllegalArgumentException ex) {
+        // no frame matches the scan selection, sampling reports it
+        chromatogramPane.setSelected(times);
+      }
+    }
+    plot.setDetailHeader("Base peak chromatogram · " + position, IntensityMapChromatogramPane.HINT);
+  }
+
+  private static @Nullable IntensityMapPosition maximumPosition(
+      @NotNull final IntensityMapGrid data) {
+    int best = -1;
+    float maximum = -1;
+    for (int row = 0; row < data.height(); row++) {
+      for (int column = 0; column < data.width(); column++) {
+        final float value = data.intensity(column, row);
+        if (value > maximum) {
+          maximum = value;
+          best = row * data.width() + column;
+        }
+      }
+    }
+    return best < 0 ? null : new IntensityMapPosition(data.xValue(best % data.width()),
+        data.yValue(best / data.width()));
+  }
+
+  /**
+   * Keeps layer colors in sync with the color pickers, so the spectrum uses the same colors.
+   */
+  private void onColorChanged(@NotNull final String id, @NotNull final Color color) {
+    for (int i = 0; i < layers.size(); i++) {
+      final IntensityMapLayer layer = layers.get(i);
+      if (layer.id().equals(id) && !layer.color().equals(color)) {
+        layers.set(i,
+            new IntensityMapLayer(id, layer.file(), layer.mzRange(), color, layer.fullRange()));
+        updateDetail(List.of());
+        final IntensityMapPosition selection = plot.getSelection();
+        if (selection != null) {
+          showSpectra(selection);
+        }
+        return;
+      }
+    }
+  }
+
+  /**
+   * @param all resample every layer, otherwise only layers without data
+   */
+  private void load(final boolean all) {
+    if (closed) {
+      return;
+    }
+    updateFrame();
+    loader.load(all);
+  }
+
+  private void publish() {
+    updateLabels();
+    final List<IntensityMapSeries> series = new ArrayList<>();
+    for (final IntensityMapLayer layer : layers) {
+      final IntensityMapGrid data = loader.data(layer.id());
+      if (data != null) {
+        series.add(layer.toSeries(data, titles.get(layer.id())));
+      }
+    }
+    try {
+      plot.setSeries(series);
+    } catch (final IllegalArgumentException ex) {
+      plot.setStatus(ex.getMessage());
+    }
+    updateDetail(series);
+    if (series.isEmpty() && !layers.isEmpty() && loader.hasEmptyLayers()) {
+      plot.setStatus("No data in the selected m/z ranges");
+    }
+  }
+
+  /**
+   * @return names of the feature lists of the project that contain a shown file
+   */
+  private @NotNull List<String> labelListNames() {
+    return ProjectService.getProject().getCurrentFeatureLists().stream()
+        .filter(list -> files.stream().anyMatch(list::hasRawDataFile)).map(FeatureList::getName)
+        .toList();
+  }
+
+  /**
+   * @param name feature list of the labels, null for none
+   */
+  private void setLabelList(@Nullable final String name) {
+    labelList = name == null ? null : ProjectService.getProject().getCurrentFeatureLists().stream()
+        .filter(list -> list.getName().equals(name)).findFirst().orElse(null);
+    if (updateLabels()) {
+      publish();
+    }
+  }
+
+  /**
+   * Builds the peak labels, or for images the overlay titles, of the chosen feature list.
+   *
+   * @return true if the overlay titles changed, so that the overlays are shown again
+   */
+  private boolean updateLabels() {
+    final FeatureList list = labelList;
+    final Range<Float> times = frames.retentionTimes();
+    final List<Object> state = new ArrayList<>();
+    state.add(list);
+    state.add(List.copyOf(layers));
+    state.add(times);
+    if (state.equals(labelState)) {
+      return false;
+    }
+    labelState = state;
+    return switch (mode) {
+      case IMAGING -> {
+        final Map<String, String> next =
+            list == null ? Map.of() : IntensityMapLabels.titles(list, List.copyOf(layers));
+        final boolean changed = !next.equals(titles);
+        titles = next;
+        yield changed;
+      }
+      case LC_MS, AUTOMATIC, MOBILITY_FRAME -> {
+        plot.setLabels(list == null ? List.of()
+            : IntensityMapLabels.of(list, List.copyOf(layers), mode, times,
+                ConfigService.getGuiFormats()));
+        yield false;
+      }
+    };
+  }
+
+  private void close() {
+    closed = true;
+    loader.close();
+    chromatogramGeneration++;
+    ConfigService.isDarkModeProperty().removeListener(weakDarkModeListener);
+    plot.close();
+  }
+
+  @Override
+  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
+    return List.copyOf(files);
+  }
+
+  @Override
+  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
+    return List.of();
+  }
+
+  @Override
+  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
+    return List.of();
+  }
+
+  @Override
+  public void onRawDataFileSelectionChanged(
+      @NotNull final Collection<? extends RawDataFile> selected) {
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(
+      @NotNull final Collection<? extends FeatureList> selected) {
+  }
+
+  @Override
+  public void onAlignedFeatureListSelectionChanged(
+      @NotNull final Collection<? extends FeatureList> selected) {
+  }
+}
