@@ -70,6 +70,26 @@ public class ColumnarModularDataModelRow implements ModularDataModel {
     return schema.get(modelRowIndex, key);
   }
 
+  /**
+   * Fast-Path to read the RT, see {@link ColumnarModularDataModelSchema#getRtOrDefault}.
+   *
+   * @param defaultValue returned if there is no retention time
+   * @return the retention time or defaultValue
+   */
+  public float getRtOrDefault(final float defaultValue) {
+    return schema.getRtOrDefault(modelRowIndex, defaultValue);
+  }
+
+  /**
+   * Fast-Path to read the m/z, see {@link ColumnarModularDataModelSchema#getMzOrDefault}.
+   *
+   * @param defaultValue returned if there is no m/z
+   * @return the m/z or defaultValue
+   */
+  public double getMzOrDefault(final double defaultValue) {
+    return schema.getMzOrDefault(modelRowIndex, defaultValue);
+  }
+
   @Override
   public <T> void remove(@NotNull DataType<T> type) {
     // cannot completely remove the type from the schema - this should be called directly on the schema
