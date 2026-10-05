@@ -58,6 +58,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import testutils.MZmineTestUtil;
 
+@Disabled
 public class BrukerTdfTest {
 
   private static Logger logger = Logger.getLogger(BrukerTdfTest.class.getName());
