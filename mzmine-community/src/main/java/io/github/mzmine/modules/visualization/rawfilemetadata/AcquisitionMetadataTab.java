@@ -56,21 +56,21 @@ import org.jetbrains.annotations.NotNull;
  * {@link RawDataFile#getFileMetadata()}. One row per file and one column per metadata type that is
  * present in any file.
  */
-public class RawFileMetadataTab extends SimpleTab {
+public class AcquisitionMetadataTab extends SimpleTab {
 
-  public static final String TITLE = "Raw file metadata";
+  public static final String TITLE = "Acquisition metadata";
 
   private final @NotNull MZmineProject project;
   private final @NotNull ObservableList<RawDataFile> files = FXCollections.observableArrayList();
   private final @NotNull TableView<RawDataFile> table = new TableView<>(files);
   private final @NotNull ProjectChangeListener projectListener;
 
-  public RawFileMetadataTab() {
+  public AcquisitionMetadataTab() {
     super(TITLE, false, false);
     project = ProjectService.getProject();
 
     table.getSelectionModel().setCellSelectionEnabled(true);
-    table.setPlaceholder(new Label("No raw data files in the project"));
+    table.setPlaceholder(new Label("No raw MS data files in the project"));
     setContent(new BorderPane(table));
 
     projectListener = new ProjectChangeListener() {
