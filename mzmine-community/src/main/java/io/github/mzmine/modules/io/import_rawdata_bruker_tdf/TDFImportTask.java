@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DIAImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
@@ -73,6 +74,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -350,6 +353,8 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
       assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
       assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
+      newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF);
+      RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
     } catch (RuntimeException e) {
       error("Error importing file %s. %s".formatted(fileNameToOpen.getName(), e.getMessage()), e);

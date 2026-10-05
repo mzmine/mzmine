@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentModelType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentSerialNumberType;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.AcquisitionMethodType;
@@ -53,6 +54,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractRawDataFileTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -185,6 +188,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
   protected void process() {
 
     taskStr = "Launching WIFF API...";
+    final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(file);
     try (Wiff2DataAccess access = new Wiff2DataAccess(file,
         parameters.getEmbeddedParameterValue(AllSpectralDataImportParameters.vendorOptions)
             .getValue(VendorImportParameters.applyVendorCentroiding), scanProcessorConfig)) {
@@ -247,6 +251,8 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
         access.loadAndAddMrms(sample, rawDataFile, experiments);
 
+        rawDataFile.getFileMetadata().set(RawDataFileFormatType.class, fileType);
+        RawDataFileUtils.addAdditionalFileMetadata(rawDataFile);
         files.add(rawDataFile);
       }
     } catch (Exception e) {

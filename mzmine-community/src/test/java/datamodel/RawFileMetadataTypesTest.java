@@ -25,6 +25,9 @@
 
 package datamodel;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionMzRangeType;
+import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionRtRangeType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareType;
 import io.github.mzmine.datamodel.features.rawfiletypes.AcquisitionSoftwareVersionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.CalibrationDateTimeType;
@@ -43,12 +46,14 @@ import io.github.mzmine.datamodel.features.rawfiletypes.MobilityCalibrationUserT
 import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationModeType;
 import io.github.mzmine.datamodel.features.rawfiletypes.MzCalibrationStdDevPpmType;
 import io.github.mzmine.datamodel.features.rawfiletypes.OperatorNameType;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleDescriptionType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SampleNameType;
 import io.github.mzmine.datamodel.features.rawfiletypes.SourceFileSha1Type;
 import io.github.mzmine.datamodel.features.rawfiletypes.TuneMethodNameType;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.util.RawDataFileType;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -92,7 +97,10 @@ class RawFileMetadataTypesTest {
       Map.entry(MobilityCalibrationStdDevPercentType.class, 674.585316),
       Map.entry(MobilityCalibrationUserType.class, TEXT),
       Map.entry(MobilityCalibrationDateTimeType.class, LocalDateTime.of(2024, 1, 16, 16, 17, 53)),
-      Map.entry(MobilityCalibrationReferencePressureType.class, 2.52874));
+      Map.entry(MobilityCalibrationReferencePressureType.class, 2.52874),
+      Map.entry(AcquisitionMzRangeType.class, Range.closed(50d, 1500d)),
+      Map.entry(AcquisitionRtRangeType.class, Range.closed(0.05f, 15.3f)),
+      Map.entry(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF));
 
   static @NotNull Stream<DataType<?>> rawFileMetadataTypes() {
     return DataTypes.getInstances().stream()

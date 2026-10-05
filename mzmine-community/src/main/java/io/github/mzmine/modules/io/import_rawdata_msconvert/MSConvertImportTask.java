@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.MassLynxImportOptions;
 import io.github.mzmine.gui.preferences.VendorImportParameters;
@@ -49,6 +50,7 @@ import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionInfo;
 import io.github.mzmine.util.RawDataFileTypeDetector.WatersAcquisitionType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -449,7 +451,6 @@ public class MSConvertImportTask extends AbstractTask implements RawDataImportTa
             "ThermoRawFileParser/MSConvert process crashed before all scans were extracted ("
                 + parsedScans + " out of " + totalScans + ")"));
       }
-
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_zip;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
@@ -36,6 +37,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileTypeDetector;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -91,7 +93,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
       FileInputStream fis = new FileInputStream(fileToOpen);
       InputStream is;
 
-      var fileType = RawDataFileTypeDetector.detectDataFileType(fileToOpen);
+      final var fileType = RawDataFileTypeDetector.detectDataFileType(fileToOpen);
       switch (fileType) {
         case MZML_ZIP -> {
           ZipInputStream zis = new ZipInputStream(fis);
@@ -131,6 +133,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
         return;
       }
 
+      dataFile.getFileMetadata().set(RawDataFileFormatType.class, fileType);
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {

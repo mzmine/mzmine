@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.rawfiletypes.InstrumentVendorType;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -53,6 +54,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;
@@ -205,6 +208,10 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
       dataFile.setStartTimeStamp(ml.getAcqDate());
+      dataFile.getFileMetadata().set(RawDataFileFormatType.class,
+          dataFile instanceof IMSRawDataFile ? RawDataFileType.WATERS_RAW_IMS
+              : RawDataFileType.WATERS_RAW);
+      RawDataFileUtils.addAdditionalFileMetadata(dataFile);
 
       if (isCanceled()) {
         return;

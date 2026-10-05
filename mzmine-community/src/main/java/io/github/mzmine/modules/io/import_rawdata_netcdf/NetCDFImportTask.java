@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
@@ -137,6 +138,7 @@ public class NetCDFImportTask extends AbstractTask implements RawDataImportTask 
       this.finishReading();
       newMZmineFile.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

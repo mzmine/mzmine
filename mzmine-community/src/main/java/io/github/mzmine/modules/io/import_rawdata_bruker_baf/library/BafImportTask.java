@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
@@ -55,6 +56,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.date.DateTimeUtils;
 import java.io.File;
 import java.time.Instant;
@@ -178,6 +181,8 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
       file.setStartTimeStamp(DateTimeUtils.parse(metadata.getValue(Values.AcquisitionDateTime)));
       metadata.applyToFileMetadata(file.getFileMetadata());
       baf.getCalibrationVariables().applyToFileMetadata(file.getFileMetadata());
+      file.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_BAF);
+      RawDataFileUtils.addAdditionalFileMetadata(file);
 
       file.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(callingModule, parameters, getModuleCallDate()));

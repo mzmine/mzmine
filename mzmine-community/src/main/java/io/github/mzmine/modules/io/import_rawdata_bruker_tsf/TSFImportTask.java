@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
@@ -56,6 +57,8 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
@@ -204,6 +207,9 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     addMsMsInfo(newMZmineFile);
     assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
+    newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
+    RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
+
     newMZmineFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
 
@@ -220,8 +226,8 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
 
       final Scan scan;
       try {
-        scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable,
-            frameTable, frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
+        scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
+            frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
       } catch (Exception e) {
         error("Error while loading scan %d in of file %s".formatted(frameId, rawDataFileName), e);
         return false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2026 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.RawDataImportTask;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.rawfiletypes.RawDataFileFormatType;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
@@ -57,6 +58,8 @@ import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RawDataFileType;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
@@ -215,6 +218,8 @@ public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
       newMZmineFile.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.IMZML);
+      RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

@@ -60,6 +60,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -181,6 +182,7 @@ public class MSDKmzMLImportTask extends AbstractTask implements RawDataImportTas
   }
 
   public void addAppliedMethodAndAddToProject(final RawDataFile dataFile) {
+    RawDataFileUtils.addAdditionalFileMetadata(dataFile);
     dataFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(dataFile);
