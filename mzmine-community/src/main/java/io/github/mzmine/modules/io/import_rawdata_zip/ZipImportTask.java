@@ -37,7 +37,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -133,7 +132,7 @@ public class ZipImportTask extends AbstractTask implements RawDataImportTask {
         return;
       }
 
-      dataFile.getFileMetadata().set(RawDataFileFormatType.class, fileType);
+      dataFile.setFileMetadataValue(RawDataFileFormatType.class, fileType);
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {

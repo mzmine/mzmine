@@ -207,7 +207,7 @@ public class TSFImportTask extends AbstractTask implements RawDataImportTask {
     addMsMsInfo(newMZmineFile);
     assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
 
-    newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
+    newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TSF);
     RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
     newMZmineFile.getAppliedMethods()

@@ -248,17 +248,17 @@ public class RawDataFileUtils {
       if (acquisitionMzRange == null) {
         acquisitionMzRange = file.getDataMZRange();
       }
-      metadata.set(AcquisitionMzRangeType.class, acquisitionMzRange);
+      file.setFileMetadataValue(AcquisitionMzRangeType.class, acquisitionMzRange);
     }
     if (metadata.get(AcquisitionRtRangeType.class) == null) {
-      metadata.set(AcquisitionRtRangeType.class, file.getDataRTRange());
+      file.setFileMetadataValue(AcquisitionRtRangeType.class, file.getDataRTRange());
     }
 
     final String path = file.getAbsolutePath();
     if (path != null && metadata.get(RawDataFileFormatType.class) == null) {
       final RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(new File(path));
       if (fileType != null) {
-        metadata.set(RawDataFileFormatType.class, fileType);
+        file.setFileMetadataValue(RawDataFileFormatType.class, fileType);
       }
     }
   }

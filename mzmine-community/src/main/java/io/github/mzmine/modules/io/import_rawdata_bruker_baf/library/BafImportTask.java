@@ -181,7 +181,7 @@ public class BafImportTask extends AbstractTask implements RawDataImportTask {
       file.setStartTimeStamp(DateTimeUtils.parse(metadata.getValue(Values.AcquisitionDateTime)));
       metadata.applyToFileMetadata(file.getFileMetadata());
       baf.getCalibrationVariables().applyToFileMetadata(file.getFileMetadata());
-      file.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_BAF);
+      file.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_BAF);
       RawDataFileUtils.addAdditionalFileMetadata(file);
 
       file.getAppliedMethods()

@@ -156,7 +156,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
       dataFile = ml.createDataFile();
       dataFile.setStartTimeStamp(ml.getAcqDate());
       // decision: MassLynx files are always acquired on Waters instruments
-      dataFile.getFileMetadata().set(InstrumentVendorType.class, "Waters");
+      dataFile.setFileMetadataValue(InstrumentVendorType.class, "Waters");
       ml.applyToFileMetadata(dataFile.getFileMetadata());
       OtherDataFileImpl mrmFileDataFile = null;
 
@@ -208,7 +208,7 @@ public class MassLynxImportTask extends AbstractTask implements RawDataImportTas
           getModuleCallDate());
       dataFile.getAppliedMethods().add(appliedMethod);
       dataFile.setStartTimeStamp(ml.getAcqDate());
-      dataFile.getFileMetadata().set(RawDataFileFormatType.class,
+      dataFile.setFileMetadataValue(RawDataFileFormatType.class,
           dataFile instanceof IMSRawDataFile ? RawDataFileType.WATERS_RAW_IMS
               : RawDataFileType.WATERS_RAW);
       RawDataFileUtils.addAdditionalFileMetadata(dataFile);

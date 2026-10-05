@@ -251,7 +251,7 @@ public class Wiff2ImportTask extends AbstractRawDataFileTask implements RawDataI
 
         access.loadAndAddMrms(sample, rawDataFile, experiments);
 
-        rawDataFile.getFileMetadata().set(RawDataFileFormatType.class, fileType);
+        rawDataFile.setFileMetadataValue(RawDataFileFormatType.class, fileType);
         RawDataFileUtils.addAdditionalFileMetadata(rawDataFile);
         files.add(rawDataFile);
       }

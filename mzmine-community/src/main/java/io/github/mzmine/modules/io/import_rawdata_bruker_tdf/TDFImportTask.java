@@ -353,7 +353,7 @@ public class TDFImportTask extends AbstractTask implements RawDataImportTask {
       assignDiaMsMsInfo(newMZmineFile, diaFrameMsMsWindowTable, diaFrameMsMsInfoTable);
       assignBbCidMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable, metaDataTable);
       assignTimsAutoMsMsInfo(newMZmineFile, frameTable, frameMsMsInfoTable);
-      newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF);
+      newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.BRUKER_TDF);
       RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
 
     } catch (RuntimeException e) {

@@ -58,11 +58,11 @@ class RawFileMetadataProjectIOTest {
   void saveAndLoadRoundTrip() throws Exception {
     final MZmineProjectImpl savedProject = new MZmineProjectImpl();
     final RawDataFile a = createFile("a.mzML");
-    a.getFileMetadata().set(InstrumentModelType.class, "Q Exactive");
-    a.getFileMetadata().set(InstrumentSerialNumberType.class, "Exactive Series slot #1331");
-    a.getFileMetadata().set(MassAnalyzersType.class, List.of("quadrupole", "time-of-flight"));
+    a.setFileMetadataValue(InstrumentModelType.class, "Q Exactive");
+    a.setFileMetadataValue(InstrumentSerialNumberType.class, "Exactive Series slot #1331");
+    a.setFileMetadataValue(MassAnalyzersType.class, List.of("quadrupole", "time-of-flight"));
     // general context-free types can be used without any raw file specific tagging
-    a.getFileMetadata().set(MZType.class, 524.3718);
+    a.setFileMetadataValue(MZType.class, 524.3718);
     // file without metadata is not written
     final RawDataFile b = createFile("b.mzML");
     savedProject.addFile(a);
@@ -76,7 +76,7 @@ class RawFileMetadataProjectIOTest {
     // re-imported files in a new project, with a value from import that is replaced by the saved
     final MZmineProjectImpl loadedProject = new MZmineProjectImpl();
     final RawDataFile loadedA = createFile("a.mzML");
-    loadedA.getFileMetadata().set(InstrumentModelType.class, "from import");
+    loadedA.setFileMetadataValue(InstrumentModelType.class, "from import");
     final RawDataFile loadedB = createFile("b.mzML");
     loadedProject.addFile(loadedA);
     loadedProject.addFile(loadedB);
@@ -98,9 +98,9 @@ class RawFileMetadataProjectIOTest {
   void contextTypeFailsSave() throws Exception {
     final MZmineProjectImpl project = new MZmineProjectImpl();
     final RawDataFile a = createFile("a.mzML");
-    a.getFileMetadata().set(InstrumentModelType.class, "Q Exactive");
+    a.setFileMetadataValue(InstrumentModelType.class, "Q Exactive");
     // requires a feature list context and must never be stored as raw file metadata
-    a.getFileMetadata().set(RawFileType.class, a);
+    a.setFileMetadataValue(RawFileType.class, a);
     project.addFile(a);
 
     final File zip = new File(tempDir, "context.mzmine");

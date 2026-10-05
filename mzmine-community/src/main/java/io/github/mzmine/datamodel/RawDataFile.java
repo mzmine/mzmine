@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNullElse;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -379,4 +380,14 @@ public interface RawDataFile extends Comparable<RawDataFile> {
    * @return the file metadata, never null but may be empty
    */
   @NotNull ModularDataModel getFileMetadata();
+
+  /**
+   * Sets a value in the {@link #getFileMetadata() file metadata}.
+   *
+   * @return true if the new value is different than the old
+   */
+  default <T> boolean setFileMetadataValue(@NotNull Class<? extends DataType<T>> typeClass,
+      @Nullable T value) {
+    return getFileMetadata().set(typeClass, value);
+  }
 }

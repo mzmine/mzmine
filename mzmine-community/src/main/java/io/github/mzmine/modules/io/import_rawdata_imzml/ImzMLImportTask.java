@@ -218,7 +218,7 @@ public class ImzMLImportTask extends AbstractTask implements RawDataImportTask {
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
       newMZmineFile.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
-      newMZmineFile.getFileMetadata().set(RawDataFileFormatType.class, RawDataFileType.IMZML);
+      newMZmineFile.setFileMetadataValue(RawDataFileFormatType.class, RawDataFileType.IMZML);
       RawDataFileUtils.addAdditionalFileMetadata(newMZmineFile);
       project.addFile(newMZmineFile);
 
